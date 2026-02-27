@@ -1,88 +1,79 @@
 """
 PromptGL Backend — FastAPI + WebSocket server.
+Rendering is done client-side via WebGL2. Backend manages Claude Agent SDK agent and state.
 """
 
+import asyncio
 import json
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 
 import workspace
 import config
 import agents
+import projects
 
 
 # ---------------------------------------------------------------------------
-# Seed default workspace files on startup
+# Default scene JSON (simple color gradient)
 # ---------------------------------------------------------------------------
 
-DEFAULT_SHADER_VERT = """\
-varying vec2 vUv;
-void main() {
-  vUv = uv;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-}
-"""
-
-DEFAULT_SHADER_FRAG = """\
-uniform float u_time;
-varying vec2 vUv;
-void main() {
-  vec3 color = 0.5 + 0.5 * cos(u_time + vUv.xyx + vec3(0.0, 2.0, 4.0));
-  gl_FragColor = vec4(color, 1.0);
-}
-"""
-
-DEFAULT_PIPELINE = {
-    "mode": "mesh",
-    "shader": {
-        "vertex": "shader.vert",
-        "fragment": "shader.frag",
+DEFAULT_SCENE_JSON = {
+    "version": 1,
+    "mode": "fullscreen",
+    "clearColor": [0.08, 0.08, 0.12, 1.0],
+    "buffers": {},
+    "output": {
+        "fragment": (
+            "#version 300 es\n"
+            "precision highp float;\n"
+            "in vec2 v_uv;\n"
+            "uniform float u_time;\n"
+            "uniform vec2 u_resolution;\n"
+            "out vec4 fragColor;\n"
+            "void main() {\n"
+            "  vec2 uv = v_uv;\n"
+            "  vec3 col = 0.5 + 0.5 * cos(u_time + uv.xyx + vec3(0.0, 2.0, 4.0));\n"
+            "  fragColor = vec4(col, 1.0);\n"
+            "}\n"
+        ),
+        "vertex": None,
+        "geometry": "quad",
+        "inputs": {},
     },
-    "uniforms": {
-        "u_time": {"type": "float", "value": 0.0},
-    },
+    "uniforms": {},
+    "camera": None,
+    "animation": None,
 }
 
-DEFAULT_UI_CONFIG = {
-    "controls": [
-        {
-            "type": "slider",
-            "label": "Time Speed",
-            "uniform": "u_time",
-            "min": 0.0,
-            "max": 10.0,
-            "step": 0.01,
-            "default": 1.0,
-        }
-    ]
-}
+DEFAULT_UI_CONFIG = {"controls": [], "inspectable_buffers": []}
 
 
 # ---------------------------------------------------------------------------
-# Stored API key (loaded on startup, set via WebSocket)
+# API key state
 # ---------------------------------------------------------------------------
 
 _api_key: str | None = None
+_chat_history: list[dict] = []
+_agent_busy: dict[int, bool] = {}  # ws_id → busy flag
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _api_key
-    # Load API key from .env
     _api_key = config.load_api_key()
 
-    # Seed defaults if not already present
+    # Seed defaults
     existing = workspace.list_files()
-    if "shader.vert" not in existing:
-        workspace.write_file("shader.vert", DEFAULT_SHADER_VERT)
-    if "shader.frag" not in existing:
-        workspace.write_file("shader.frag", DEFAULT_SHADER_FRAG)
-    if "pipeline.json" not in existing:
-        workspace.write_json("pipeline.json", DEFAULT_PIPELINE)
+    if "scene.json" not in existing:
+        workspace.write_json("scene.json", DEFAULT_SCENE_JSON)
     if "ui_config.json" not in existing:
         workspace.write_json("ui_config.json", DEFAULT_UI_CONFIG)
+
     yield
 
 
@@ -101,7 +92,7 @@ app.add_middleware(
 
 
 # ---------------------------------------------------------------------------
-# Connection manager (broadcast to all connected clients)
+# Connection manager
 # ---------------------------------------------------------------------------
 
 class ConnectionManager:
@@ -117,8 +108,14 @@ class ConnectionManager:
 
     async def broadcast(self, message: dict):
         data = json.dumps(message)
+        dead = []
         for ws in self.active:
-            await ws.send_text(data)
+            try:
+                await ws.send_text(data)
+            except Exception:
+                dead.append(ws)
+        for ws in dead:
+            self.active.remove(ws)
 
 
 manager = ConnectionManager()
@@ -130,22 +127,32 @@ manager = ConnectionManager()
 
 @app.get("/api/workspace/files")
 async def get_workspace_files():
-    """List all generated files."""
     return {"files": workspace.list_files()}
 
 
 @app.get("/api/workspace/{filename:path}")
 async def get_workspace_file(filename: str):
-    """Read a generated file."""
     try:
         content = workspace.read_file(filename)
-        # Try JSON parse
         try:
             return {"filename": filename, "content": json.loads(content)}
         except json.JSONDecodeError:
             return {"filename": filename, "content": content}
     except FileNotFoundError:
         return {"error": "not found"}, 404
+
+
+@app.get("/api/projects/{name}/thumbnail")
+async def project_thumbnail(name: str):
+    """Serve a project's saved thumbnail."""
+    try:
+        project_dir = projects._safe_project_path(name)
+        thumb = project_dir / "thumbnail.jpg"
+        if thumb.exists():
+            return Response(content=thumb.read_bytes(), media_type="image/jpeg")
+        return Response(status_code=404)
+    except (PermissionError, FileNotFoundError):
+        return Response(status_code=404)
 
 
 # ---------------------------------------------------------------------------
@@ -159,21 +166,22 @@ async def websocket_endpoint(ws: WebSocket):
 
     # Send initial state
     try:
-        pipeline = workspace.read_json("pipeline.json")
-        frag = workspace.read_file("shader.frag")
-        vert = workspace.read_file("shader.vert")
+        scene_json = workspace.read_json("scene.json")
+    except FileNotFoundError:
+        scene_json = DEFAULT_SCENE_JSON
+
+    try:
         ui_config = workspace.read_json("ui_config.json")
     except FileNotFoundError:
-        pipeline, frag, vert, ui_config = {}, "", "", {}
+        ui_config = DEFAULT_UI_CONFIG
 
     await ws.send_text(json.dumps({
         "type": "init",
-        "pipeline": pipeline,
-        "shaders": {"vertex": vert, "fragment": frag},
+        "scene_json": scene_json,
         "ui_config": ui_config,
+        "projects": projects.list_projects(),
     }))
 
-    # If no API key loaded, tell the client
     if not _api_key:
         await ws.send_text(json.dumps({"type": "api_key_required"}))
 
@@ -201,9 +209,21 @@ async def websocket_endpoint(ws: WebSocket):
                     await ws.send_text(json.dumps({"type": "api_key_required"}))
                     continue
 
-                user_prompt = msg.get("text", "")
+                ws_id = id(ws)
 
-                # Log callback streams agent_log messages to all clients
+                # Prevent concurrent agent runs on the same connection
+                if _agent_busy.get(ws_id):
+                    await ws.send_text(json.dumps({
+                        "type": "agent_log",
+                        "agent": "System",
+                        "message": "Agent is busy, please wait...",
+                        "level": "error",
+                    }))
+                    continue
+
+                user_prompt = msg.get("text", "")
+                _chat_history.append({"role": "user", "text": user_prompt})
+
                 async def log_callback(agent_name: str, message: str, level: str):
                     await manager.broadcast({
                         "type": "agent_log",
@@ -212,48 +232,172 @@ async def websocket_endpoint(ws: WebSocket):
                         "level": level,
                     })
 
+                _agent_busy[ws_id] = True
                 try:
-                    result = await agents.run_pipeline(
-                        _api_key, user_prompt, log_callback
+                    result = await agents.run_agent(
+                        ws_id=ws_id,
+                        user_prompt=user_prompt,
+                        log=log_callback,
+                        broadcast=manager.broadcast,
                     )
 
-                    # Send chat response
+                    _chat_history.append({"role": "assistant", "text": result["chat_text"]})
+
+                    # Scene/UI updates are broadcast in real-time by MCP tools.
+                    # Only send the chat response here.
                     await manager.broadcast({
                         "type": "chat_response",
                         "text": result["chat_text"],
-                    })
-
-                    # Send shader update
-                    await manager.broadcast({
-                        "type": "shader_update",
-                        "shaders": result["shaders"],
-                        "pipeline": result["pipeline"],
-                        "ui_config": result["ui_config"],
                     })
 
                 except Exception as e:
                     await manager.broadcast({
                         "type": "agent_log",
                         "agent": "System",
-                        "message": f"Pipeline error: {e}",
+                        "message": f"Agent error: {e}",
                         "level": "error",
                     })
                     await manager.broadcast({
                         "type": "chat_response",
                         "text": f"Error: {e}",
                     })
+                finally:
+                    _agent_busy.pop(ws_id, None)
 
-            elif msg_type == "request_state":
-                # Re-send current workspace state
+            elif msg_type == "set_uniform":
+                uniform = msg.get("uniform")
+                value = msg.get("value")
+                if uniform is not None and value is not None:
+                    # Update uniform in scene.json for persistence
+                    try:
+                        scene = workspace.read_json("scene.json")
+                        if "uniforms" not in scene:
+                            scene["uniforms"] = {}
+                        if uniform in scene["uniforms"]:
+                            scene["uniforms"][uniform]["value"] = value
+                        else:
+                            # Infer type from value
+                            if isinstance(value, list):
+                                utype = f"vec{len(value)}"
+                            elif isinstance(value, bool):
+                                utype = "bool"
+                            else:
+                                utype = "float"
+                            scene["uniforms"][uniform] = {"type": utype, "value": value}
+                        workspace.write_json("scene.json", scene)
+                    except FileNotFoundError:
+                        pass
+
+            elif msg_type == "new_chat":
+                _chat_history.clear()
+                await agents.reset_agent(id(ws))
                 await ws.send_text(json.dumps({
-                    "type": "init",
-                    "pipeline": workspace.read_json("pipeline.json"),
-                    "shaders": {
-                        "vertex": workspace.read_file("shader.vert"),
-                        "fragment": workspace.read_file("shader.frag"),
-                    },
-                    "ui_config": workspace.read_json("ui_config.json"),
+                    "type": "agent_log",
+                    "agent": "System",
+                    "message": "Chat history cleared",
+                    "level": "info",
                 }))
 
-    except WebSocketDisconnect:
-        manager.disconnect(ws)
+            elif msg_type == "new_project":
+                # 1. Clear chat history and agent session
+                _chat_history.clear()
+                await agents.reset_agent(id(ws))
+
+                # 2. Reset workspace files to defaults
+                workspace.write_json("scene.json", DEFAULT_SCENE_JSON)
+                workspace.write_json("ui_config.json", DEFAULT_UI_CONFIG)
+
+                # Clean up old files
+                for old_file in ["scene.py", "pipeline.json", "uniforms.json", "renderer_status.json"]:
+                    try:
+                        p = workspace._safe_path(old_file)
+                        if p.exists():
+                            p.unlink()
+                    except Exception:
+                        pass
+
+                # 3. Broadcast init with default scene
+                await manager.broadcast({
+                    "type": "init",
+                    "scene_json": DEFAULT_SCENE_JSON,
+                    "ui_config": DEFAULT_UI_CONFIG,
+                    "projects": projects.list_projects(),
+                })
+
+            elif msg_type == "project_save":
+                try:
+                    thumbnail_b64 = msg.get("thumbnail")
+                    meta = projects.save_project(
+                        name=msg.get("name", "untitled"),
+                        chat_history=_chat_history,
+                        description=msg.get("description", ""),
+                        thumbnail_b64=thumbnail_b64,
+                    )
+                    await ws.send_text(json.dumps({
+                        "type": "project_saved",
+                        "meta": meta,
+                    }))
+                    await manager.broadcast({
+                        "type": "project_list",
+                        "projects": projects.list_projects(),
+                    })
+                except Exception as e:
+                    await ws.send_text(json.dumps({
+                        "type": "project_save_error",
+                        "error": str(e),
+                    }))
+
+            elif msg_type == "project_load":
+                try:
+                    result = projects.load_project(msg.get("name", ""))
+                    _chat_history.clear()
+                    _chat_history.extend(result["chat_history"])
+                    await ws.send_text(json.dumps({
+                        "type": "project_loaded",
+                        **result,
+                    }))
+                except Exception as e:
+                    await ws.send_text(json.dumps({
+                        "type": "project_load_error",
+                        "error": str(e),
+                    }))
+
+            elif msg_type == "project_list":
+                await ws.send_text(json.dumps({
+                    "type": "project_list",
+                    "projects": projects.list_projects(),
+                }))
+
+            elif msg_type == "project_delete":
+                try:
+                    projects.delete_project(msg.get("name", ""))
+                    await manager.broadcast({
+                        "type": "project_list",
+                        "projects": projects.list_projects(),
+                    })
+                except Exception as e:
+                    await ws.send_text(json.dumps({
+                        "type": "project_delete_error",
+                        "error": str(e),
+                    }))
+
+            elif msg_type == "request_state":
+                try:
+                    s = workspace.read_json("scene.json")
+                    u = workspace.read_json("ui_config.json")
+                except FileNotFoundError:
+                    s, u = DEFAULT_SCENE_JSON, DEFAULT_UI_CONFIG
+                await ws.send_text(json.dumps({
+                    "type": "init",
+                    "scene_json": s,
+                    "ui_config": u,
+                    "projects": projects.list_projects(),
+                }))
+
+    except (WebSocketDisconnect, RuntimeError):
+        try:
+            manager.disconnect(ws)
+        except ValueError:
+            pass
+        await agents.destroy_client(id(ws))
+        _agent_busy.pop(id(ws), None)

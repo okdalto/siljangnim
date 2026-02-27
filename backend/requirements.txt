@@ -3,4 +3,5 @@ uvicorn[standard]>=0.24.0
 websockets>=12.0
 pydantic>=2.5.0
 anthropic>=0.49.0
+claude-agent-sdk>=0.1.0
 python-dotenv>=1.1.0
