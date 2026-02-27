@@ -1,3 +1,11 @@
+# PromptGL - Node / Frontend
+node_modules/
+frontend/dist/
+
+# PromptGL - AI-generated workspace (sandboxed outputs)
+.workspace/generated/*
+!.workspace/generated/.gitkeep
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
