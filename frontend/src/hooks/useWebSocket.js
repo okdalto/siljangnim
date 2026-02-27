@@ -1,31 +1,44 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export default function useWebSocket(url) {
+export default function useWebSocket(url, onMessage) {
   const wsRef = useRef(null);
   const [connected, setConnected] = useState(false);
-  const [lastMessage, setLastMessage] = useState(null);
+  const onMessageRef = useRef(onMessage);
+  onMessageRef.current = onMessage;
 
   useEffect(() => {
-    const ws = new WebSocket(url);
-    wsRef.current = ws;
+    let cancelled = false;
+    let reconnectTimer = null;
 
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => {
-      setConnected(false);
-      // Reconnect after 2s
-      setTimeout(() => {
-        wsRef.current = new WebSocket(url);
-      }, 2000);
-    };
-    ws.onmessage = (event) => {
-      try {
-        setLastMessage(JSON.parse(event.data));
-      } catch {
-        setLastMessage(event.data);
-      }
-    };
+    function connect() {
+      const ws = new WebSocket(url);
+      wsRef.current = ws;
 
-    return () => ws.close();
+      ws.onopen = () => {
+        if (!cancelled) setConnected(true);
+      };
+      ws.onclose = () => {
+        if (!cancelled) {
+          setConnected(false);
+          reconnectTimer = setTimeout(connect, 2000);
+        }
+      };
+      ws.onmessage = (event) => {
+        try {
+          onMessageRef.current?.(JSON.parse(event.data));
+        } catch {
+          onMessageRef.current?.(event.data);
+        }
+      };
+    }
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(reconnectTimer);
+      wsRef.current?.close();
+    };
   }, [url]);
 
   const send = useCallback((data) => {
@@ -35,5 +48,5 @@ export default function useWebSocket(url) {
     }
   }, []);
 
-  return { connected, lastMessage, send };
+  return { connected, send };
 }
