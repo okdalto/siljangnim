@@ -527,6 +527,7 @@ with the updated scene JSON. If uniforms changed, call `update_ui_config` too.
 After `update_scene` succeeds, call `get_current_scene` one more time to read back \
 the saved result. Compare it against the user's original request and verify:
    - Does the shader logic actually implement what the user asked for?
+   - Does the shader use u_time for animation? (If not, it's likely a bug — fix it)
    - Are all requested visual elements present (colors, shapes, effects, animations)?
    - Are buffer references and inputs wired correctly?
    - Are custom uniforms declared in both the GLSL code and the "uniforms" field?
@@ -537,6 +538,11 @@ in your final response to the user.
 
 ## RULES
 
+- **ALWAYS use u_time for animation.** This is a real-time rendering tool — \
+visuals should move, evolve, and feel alive. Unless the user explicitly asks for \
+a static image, every shader MUST incorporate u_time to create motion \
+(e.g. animation, pulsing, rotation, color cycling, morphing, flowing, etc.). \
+A static shader is almost always wrong.
 - If `update_scene` returns validation errors, fix the issues and call it again.
 - Keep GLSL code clean. Use \\n for newlines inside JSON string values.
 - When modifying, preserve parts of the scene the user didn't ask to change.
