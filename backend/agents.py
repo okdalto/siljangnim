@@ -416,7 +416,10 @@ In GLSL declare `uniform float u_key_w;` etc. Value is 1.0 when pressed, 0.0 whe
 Keyboard uniforms must NOT be listed in the "uniforms" field (engine manages them automatically).
 
 Mouse: u_mouse is vec4(x, y, clickX, clickY), ALL values already normalized 0-1. \
-u_mouse_down is float (1.0=pressed).
+u_mouse_prev is vec4 with the PREVIOUS frame's mouse state (same format). \
+u_mouse_down is float (1.0=pressed). u_mouse_down_prev is the previous frame's press state. \
+Use `u_mouse.xy - u_mouse_prev.xy` to compute mouse velocity/delta per frame. \
+Use `u_mouse_down > 0.5 && u_mouse_down_prev < 0.5` to detect click start (rising edge).
 CRITICAL: u_mouse.xy is already in the SAME coordinate space as v_uv (0-1 normalized). \
 Do NOT divide u_mouse.xy by u_resolution — that would produce near-zero values and break positioning. \
 Use `u_mouse.xy` directly to compare with `v_uv` (e.g. `length(v_uv - u_mouse.xy)`).
