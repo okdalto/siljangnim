@@ -74,6 +74,10 @@ export default class AudioManager {
       this._analyser.connect(this._gainNode);
       this._gainNode.connect(this._audioContext.destination);
 
+      // Recording stream destination (audio capture for MediaRecorder)
+      this._streamDest = this._audioContext.createMediaStreamDestination();
+      this._gainNode.connect(this._streamDest);
+
       this.frequencyData = new Uint8Array(this._analyser.frequencyBinCount);
       this.waveformData = new Uint8Array(this._analyser.frequencyBinCount);
     }
@@ -144,6 +148,13 @@ export default class AudioManager {
     if (this._gainNode) {
       this._gainNode.gain.value = v;
     }
+  }
+
+  /**
+   * Return the audio MediaStream for recording, or null if unavailable.
+   */
+  getAudioStream() {
+    return this._streamDest?.stream ?? null;
   }
 
   // ---- Engine integration (called by GLEngine) ----
