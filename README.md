@@ -5,6 +5,20 @@ AI-powered real-time graphics creation tool. Describe the visuals you want in na
 ![WebGL2](https://img.shields.io/badge/WebGL2-ES_3.0-blue)
 ![License](https://img.shields.io/badge/license-GPLv3-green)
 
+## Philosophy
+
+**You say what. AI handles how. The browser renders it live.**
+
+- **Intent first, boilerplate later** — The AI generates real WebGL2 JavaScript, so knowing graphics programming makes you more powerful with this tool. But instead of writing boilerplate from scratch every time, you describe what you want and refine through conversation. siljangnim accelerates the people who understand the craft.
+
+- **Code is the medium** — There are no visual node graphs hiding complexity behind drag-and-drop. What the AI generates is human-readable JavaScript — code you can inspect, version-control, share, and hand-edit if you want to.
+
+- **Conversational creation** — You don't build a scene in one shot. You build it through dialogue: "make it faster," "change the color," "add a slider for that." The AI remembers context across the conversation, so creation happens incrementally — the unit of work is a conversation, not a file.
+
+- **Immediate feedback** — Everything is real-time. Generated shaders render instantly. Slider changes reflect on the canvas with zero round-trip to the server. You can experiment at the speed of thought.
+
+- **AI as amplifier** — AI doesn't replace your creativity; it amplifies your creative intent. You decide *what* to make, AI handles *how* to make it — boilerplate, shader compilation, buffer setup, geometry generation — all taken care of.
+
 ## Features
 
 - **Natural Language Shader Generation** — Describe what you want in chat; Claude generates GLSL shaders
