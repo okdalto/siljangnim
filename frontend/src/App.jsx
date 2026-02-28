@@ -10,6 +10,7 @@ import "@xyflow/react/dist/style.css";
 
 import useWebSocket from "./hooks/useWebSocket.js";
 import useNodeSnapping from "./hooks/useNodeSnapping.js";
+import useNodeLayoutHistory from "./hooks/useNodeLayoutHistory.js";
 import useRecorder from "./hooks/useRecorder.js";
 import EngineContext from "./contexts/EngineContext.js";
 import ChatNode from "./nodes/ChatNode.jsx";
@@ -92,7 +93,8 @@ const initialNodes = [
 export default function App() {
   const [nodes, setNodes, rawOnNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState([]);
-  const { onNodesChange, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes);
+  const { onNodesChange: onNodesChangeSnapped, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes);
+  const { onNodesChange, undo, redo } = useNodeLayoutHistory(nodes, onNodesChangeSnapped, setNodes);
 
   // Chat state (restored from localStorage)
   const [messages, setMessages] = useState(() => loadJson("siljangnim:messages", []));
@@ -103,6 +105,7 @@ export default function App() {
   const [paused, setPaused] = useState(false);
   const [duration, setDuration] = useState(30);
   const [loop, setLoop] = useState(true);
+  const [offlineRecord, setOfflineRecord] = useState(false);
 
   // Spacebar toggle pause (ignore when typing in inputs)
   useEffect(() => {
@@ -116,6 +119,23 @@ export default function App() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Undo/Redo shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
+      const tag = e.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable) return;
+      e.preventDefault();
+      if (e.shiftKey) {
+        redo();
+      } else {
+        undo();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undo, redo]);
 
   // Engine ref (shared via EngineContext and node data)
   const engineRef = useRef(null);
@@ -388,10 +408,14 @@ export default function App() {
     if (recording) {
       stopRecording();
     } else {
-      setPaused(false);
-      startRecording();
+      if (!offlineRecord) setPaused(false);
+      startRecording({ offline: offlineRecord });
     }
-  }, [recording, startRecording, stopRecording]);
+  }, [recording, startRecording, stopRecording, offlineRecord]);
+
+  const handleToggleOfflineRecord = useCallback(() => {
+    setOfflineRecord((v) => !v);
+  }, []);
 
   const handleApiKeySubmit = useCallback(
     (key) => {
@@ -598,6 +622,8 @@ export default function App() {
           recording={recording}
           recordingTime={recordingTime}
           onToggleRecord={handleToggleRecord}
+          offlineRecord={offlineRecord}
+          onToggleOfflineRecord={handleToggleOfflineRecord}
         />
 
         {apiKeyRequired && (
