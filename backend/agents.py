@@ -1323,14 +1323,19 @@ def _compact_messages(messages: list[dict]) -> None:
     """Compact conversation history in-place to reduce token usage.
 
     1. Remove thinking blocks from assistant messages
-    2. Truncate long tool_use inputs and tool_result contents to 200 chars
-    3. If still 8+ messages, keep first user message + last 6
+    2. Truncate long tool_use inputs and tool_result contents
+    3. Trim old turns, keeping first user message + recent turns
+    4. Repeat trimming until estimated tokens are under the safe limit
     """
     _TRUNC = 200
+    _SAFE_TOKENS = 120_000  # target after compaction (~4 chars/token)
 
     for msg in messages:
         content = msg.get("content")
         if not isinstance(content, list):
+            # Truncate plain-string user messages if very long
+            if isinstance(content, str) and len(content) > 10_000:
+                msg["content"] = content[:10_000] + "\n...(truncated)"
             continue
 
         # --- Strip thinking blocks from assistant messages ---
@@ -1357,11 +1362,19 @@ def _compact_messages(messages: list[dict]) -> None:
                 if len(block["content"]) > _TRUNC:
                     block["content"] = block["content"][:_TRUNC] + "...(truncated)"
 
-    # --- Trim old turns if conversation is very long ---
-    if len(messages) > 8:
-        kept = [messages[0]] + messages[-6:]
+    # --- Progressively trim old turns until under token budget ---
+    keep_recent = 6
+    while len(messages) > 4:
+        est = len(json.dumps(messages, ensure_ascii=False)) // 4
+        if est <= _SAFE_TOKENS:
+            break
+        kept = [messages[0]] + messages[-keep_recent:]
+        if len(kept) >= len(messages):
+            # Can't trim further
+            break
         messages.clear()
         messages.extend(kept)
+        keep_recent = max(2, keep_recent - 2)
 
 
 async def run_agent(
@@ -1401,54 +1414,76 @@ async def run_agent(
         while turns < _MAX_TURNS:
             turns += 1
 
+            # Pre-flight compaction: estimate token count (~4 chars/token)
+            # and compact if approaching the 200k input limit.
+            _est_tokens = len(json.dumps(messages, ensure_ascii=False)) // 4
+            if _est_tokens > 150_000:
+                await log("System", f"Estimated ~{_est_tokens} tokens — compacting before API call...", "info")
+                if on_status:
+                    await on_status("thinking", "Compacting conversation...")
+                _compact_messages(messages)
+
             # Stream the API call so thinking/status updates reach the
             # frontend in real-time instead of blocking until completion.
             current_block_type = None
             thinking_chunks: list[str] = []
             thinking_len = 0
 
-            async with client.messages.stream(
-                model="claude-opus-4-6",
-                max_tokens=65536,
-                thinking={"type": "adaptive"},
-                system=SYSTEM_PROMPT,
-                tools=TOOLS,
-                messages=messages,
-            ) as stream:
-                async for event in stream:
-                    if event.type == "content_block_start":
-                        current_block_type = event.content_block.type
-                        if current_block_type == "thinking":
-                            thinking_chunks = []
-                            thinking_len = 0
-                            await log("Agent", "[Thinking started]", "thinking")
-                            if on_status:
-                                await on_status("thinking", "")
-                        elif current_block_type == "tool_use":
-                            tool_name = getattr(event.content_block, "name", "")
-                            if on_status:
-                                await on_status("tool_use", tool_name)
+            try:
+                async with client.messages.stream(
+                    model="claude-opus-4-6",
+                    max_tokens=65536,
+                    thinking={"type": "adaptive"},
+                    system=SYSTEM_PROMPT,
+                    tools=TOOLS,
+                    messages=messages,
+                ) as stream:
+                    async for event in stream:
+                        if event.type == "content_block_start":
+                            current_block_type = event.content_block.type
+                            if current_block_type == "thinking":
+                                thinking_chunks = []
+                                thinking_len = 0
+                                await log("Agent", "[Thinking started]", "thinking")
+                                if on_status:
+                                    await on_status("thinking", "")
+                            elif current_block_type == "tool_use":
+                                tool_name = getattr(event.content_block, "name", "")
+                                if on_status:
+                                    await on_status("tool_use", tool_name)
 
-                    elif event.type == "content_block_delta":
-                        delta = event.delta
-                        delta_type = getattr(delta, "type", "")
-                        if delta_type == "thinking_delta":
-                            chunk = getattr(delta, "thinking", "")
-                            if chunk:
-                                thinking_chunks.append(chunk)
-                                thinking_len += len(chunk)
-                                # Send periodic updates (~every 300 chars)
-                                if thinking_len % 300 < len(chunk):
-                                    if on_status:
-                                        await on_status("thinking", "".join(thinking_chunks))
+                        elif event.type == "content_block_delta":
+                            delta = event.delta
+                            delta_type = getattr(delta, "type", "")
+                            if delta_type == "thinking_delta":
+                                chunk = getattr(delta, "thinking", "")
+                                if chunk:
+                                    thinking_chunks.append(chunk)
+                                    thinking_len += len(chunk)
+                                    # Send periodic updates (~every 300 chars)
+                                    if thinking_len % 300 < len(chunk):
+                                        if on_status:
+                                            await on_status("thinking", "".join(thinking_chunks))
 
-                    elif event.type == "content_block_stop":
-                        if current_block_type == "thinking" and thinking_chunks:
-                            full_thinking = "".join(thinking_chunks)
-                            await log("Agent", full_thinking, "thinking")
-                        current_block_type = None
+                        elif event.type == "content_block_stop":
+                            if current_block_type == "thinking" and thinking_chunks:
+                                full_thinking = "".join(thinking_chunks)
+                                await log("Agent", full_thinking, "thinking")
+                            current_block_type = None
 
-                response = await stream.get_final_message()
+                    response = await stream.get_final_message()
+            except anthropic.BadRequestError as e:
+                if "prompt is too long" in str(e):
+                    await log("System", "Prompt too long — compacting and retrying...", "info")
+                    if on_status:
+                        await on_status("thinking", "Compacting conversation...")
+                    _compact_messages(messages)
+                    compact_retries += 1
+                    if compact_retries > _MAX_COMPACT_RETRIES:
+                        await log("System", "Max compact retries — cannot reduce further", "error")
+                        break
+                    continue
+                raise
 
             # Process completed response blocks (text, tool_use logging)
             for block in response.content:
