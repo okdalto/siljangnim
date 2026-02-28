@@ -1,5 +1,5 @@
 """
-PromptGL — Direct Anthropic API single-agent pipeline.
+siljangnim — Direct Anthropic API single-agent pipeline.
 
 A single agent handles intent analysis, WebGL2 script generation, UI control creation,
 and conversational replies using tool calls for scene/UI management.
@@ -112,7 +112,7 @@ def _set_nested(obj, path, value):
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT = """\
-You are the PromptGL Agent — a single AI assistant for a real-time visual \
+You are the siljangnim Agent — a single AI assistant for a real-time visual \
 creation tool that renders using WebGL2 in the browser.
 
 You handle ALL tasks: analysing user intent, generating/modifying WebGL2 scripts, \

@@ -1,5 +1,5 @@
 """
-API key management for PromptGL.
+API key management for siljangnim.
 
 Reads/writes ANTHROPIC_API_KEY from backend/.env using python-dotenv.
 """

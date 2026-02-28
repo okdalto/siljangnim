@@ -1,5 +1,5 @@
 """
-Sandboxed workspace I/O for PromptGL.
+Sandboxed workspace I/O for siljangnim.
 
 All AI-generated outputs MUST be written strictly inside WORKSPACE_DIR.
 This module enforces path safety so no agent can escape the sandbox.

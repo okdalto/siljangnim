@@ -1,5 +1,5 @@
 """
-Project save/load for PromptGL.
+Project save/load for siljangnim.
 
 Each project is a folder under .workspace/projects/ containing:
   meta.json, scene.json, ui_config.json, chat_history.json, thumbnail.jpg
