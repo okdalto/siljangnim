@@ -401,6 +401,86 @@ and UI components before generating code.
 Paths are relative to the project root. Use these to understand \
 existing patterns before writing scripts.
 
+## CUSTOM PANELS
+
+You can create custom HTML/CSS/JS panels that appear as draggable nodes in the UI. \
+Use `open_panel` to create a panel and `close_panel` to remove it.
+
+**Bridge API** — Every panel iframe automatically has a `window.panel` object:
+
+```js
+// Set a uniform value on the WebGL engine
+panel.setUniform("u_speed", 2.5);
+
+// Read current state (updated every frame by the engine)
+panel.uniforms   // {u_speed: 2.5, u_color: [1,0,0], ...}
+panel.time       // current time in seconds
+panel.frame      // current frame number
+panel.mouse      // [x, y, pressed, prevPressed]
+
+// Register a callback that runs every frame
+panel.onUpdate = function(p) {
+  document.getElementById('time').textContent = p.time.toFixed(2);
+};
+```
+
+**Example — Interactive control panel:**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { font-family: sans-serif; padding: 12px; background: #1a1a2e; color: #eee; margin: 0; }
+  label { display: block; margin: 8px 0 4px; font-size: 13px; }
+  input[type=range] { width: 100%; }
+  .value { font-size: 12px; color: #888; }
+</style>
+</head>
+<body>
+  <label>Speed</label>
+  <input type="range" id="speed" min="0" max="5" step="0.1" value="1">
+  <span class="value" id="speedVal">1.0</span>
+  <label>Scale</label>
+  <input type="range" id="scale" min="0.1" max="3" step="0.1" value="1">
+  <span class="value" id="scaleVal">1.0</span>
+  <script>
+    document.getElementById('speed').addEventListener('input', function(e) {
+      var v = parseFloat(e.target.value);
+      document.getElementById('speedVal').textContent = v.toFixed(1);
+      panel.setUniform('u_speed', v);
+    });
+    document.getElementById('scale').addEventListener('input', function(e) {
+      var v = parseFloat(e.target.value);
+      document.getElementById('scaleVal').textContent = v.toFixed(1);
+      panel.setUniform('u_scale', v);
+    });
+    panel.onUpdate = function(p) {
+      document.getElementById('speed').value = p.uniforms.u_speed || 1;
+      document.getElementById('speedVal').textContent = (p.uniforms.u_speed || 1).toFixed(1);
+    };
+  </script>
+</body>
+</html>
+```
+
+**When to use custom panels:**
+- Interactive controls that go beyond simple sliders (2D color pickers, curve editors, etc.)
+- Data visualization dashboards showing scene metrics
+- Info/help panels with formatted text and diagrams
+- Debugging tools showing real-time uniform values
+- Any custom UI that standard inspector controls cannot provide
+
+## RECORDING
+
+You can record the WebGL canvas to a WebM video file:
+
+- `start_recording({duration?, fps?})`: Start recording. If `duration` is provided \
+(in seconds), recording stops automatically. Default fps is 30. \
+The playback is automatically unpaused when recording starts.
+- `stop_recording()`: Stop recording manually. The WebM file auto-downloads in the browser.
+
+Use this when the user asks to capture, record, or export a video of their scene.
+
 ## WORKFLOW
 
 1. **Create new visual**: Call `get_current_scene` first (to check if empty). \
@@ -575,6 +655,85 @@ TOOLS = [
                 },
             },
             "required": ["path", "content"],
+        },
+    },
+    {
+        "name": "open_panel",
+        "description": (
+            "Open a custom HTML/CSS/JS panel as a draggable node in the UI. "
+            "The panel runs in a sandboxed iframe with a bridge API for communicating "
+            "with the WebGL engine (read/write uniforms, access time/frame/mouse). "
+            "Use this to create interactive controls, data visualizations, info displays, "
+            "or any custom UI that complements the WebGL scene."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "Unique identifier for this panel (e.g. 'controls', 'info', 'viz').",
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Title shown in the panel header.",
+                },
+                "html": {
+                    "type": "string",
+                    "description": "Complete HTML document to render in the panel iframe. Can include <style> and <script> tags.",
+                },
+                "width": {
+                    "type": "number",
+                    "description": "Initial width in pixels (default 320).",
+                },
+                "height": {
+                    "type": "number",
+                    "description": "Initial height in pixels (default 300).",
+                },
+            },
+            "required": ["id", "title", "html"],
+        },
+    },
+    {
+        "name": "close_panel",
+        "description": "Close a previously opened custom panel by its ID.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The ID of the panel to close.",
+                },
+            },
+            "required": ["id"],
+        },
+    },
+    {
+        "name": "start_recording",
+        "description": (
+            "Start recording the WebGL canvas to a WebM video file. "
+            "The recording runs in the browser and auto-downloads when stopped. "
+            "If duration is specified, recording stops automatically after that many seconds."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "number",
+                    "description": "Optional duration in seconds. Recording stops automatically after this time.",
+                },
+                "fps": {
+                    "type": "number",
+                    "description": "Frames per second for the recording (default 30).",
+                },
+            },
+        },
+    },
+    {
+        "name": "stop_recording",
+        "description": "Stop an in-progress canvas recording. The WebM file will auto-download in the browser.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
         },
     },
 ]
@@ -806,6 +965,52 @@ async def _handle_tool(
         except OSError as e:
             return f"Error writing '{rel_path}': {e}"
         return f"ok — wrote {len(content)} bytes to {rel_path}"
+
+    elif name == "open_panel":
+        panel_id = input_data.get("id", "")
+        title = input_data.get("title", "Panel")
+        html = input_data.get("html", "")
+        width = input_data.get("width", 320)
+        height = input_data.get("height", 300)
+        if not panel_id:
+            return "Error: 'id' is required."
+        if not html:
+            return "Error: 'html' is required."
+        await broadcast({
+            "type": "open_panel",
+            "id": panel_id,
+            "title": title,
+            "html": html,
+            "width": width,
+            "height": height,
+        })
+        return f"ok — panel '{panel_id}' opened."
+
+    elif name == "close_panel":
+        panel_id = input_data.get("id", "")
+        if not panel_id:
+            return "Error: 'id' is required."
+        await broadcast({
+            "type": "close_panel",
+            "id": panel_id,
+        })
+        return f"ok — panel '{panel_id}' closed."
+
+    elif name == "start_recording":
+        msg = {"type": "start_recording"}
+        duration = input_data.get("duration")
+        fps = input_data.get("fps")
+        if duration is not None:
+            msg["duration"] = duration
+        if fps is not None:
+            msg["fps"] = fps
+        await broadcast(msg)
+        duration_str = f" for {duration}s" if duration else ""
+        return f"ok — recording started{duration_str}."
+
+    elif name == "stop_recording":
+        await broadcast({"type": "stop_recording"})
+        return "ok — recording stopped. The WebM file will auto-download in the user's browser."
 
     else:
         return f"Unknown tool: {name}"

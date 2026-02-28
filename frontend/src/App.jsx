@@ -10,11 +10,13 @@ import "@xyflow/react/dist/style.css";
 
 import useWebSocket from "./hooks/useWebSocket.js";
 import useNodeSnapping from "./hooks/useNodeSnapping.js";
+import useRecorder from "./hooks/useRecorder.js";
 import EngineContext from "./contexts/EngineContext.js";
 import ChatNode from "./nodes/ChatNode.jsx";
 import InspectorNode from "./nodes/InspectorNode.jsx";
 import CameraNode from "./nodes/CameraNode.jsx";
 import Pad2dNode from "./nodes/Pad2dNode.jsx";
+import CustomPanelNode from "./nodes/CustomPanelNode.jsx";
 import ViewportNode from "./nodes/ViewportNode.jsx";
 import DebugLogNode from "./nodes/DebugLogNode.jsx";
 import ProjectBrowserNode from "./nodes/ProjectBrowserNode.jsx";
@@ -31,6 +33,7 @@ const nodeTypes = {
   projectBrowser: ProjectBrowserNode,
   camera: CameraNode,
   pad2d: Pad2dNode,
+  customPanel: CustomPanelNode,
 };
 
 const WS_URL = import.meta.env.DEV
@@ -115,6 +118,11 @@ export default function App() {
   // Engine ref (shared via EngineContext and node data)
   const engineRef = useRef(null);
 
+  // Recording
+  const { recording, elapsedTime: recordingTime, startRecording, stopRecording } = useRecorder(engineRef);
+  const recorderFnsRef = useRef({ startRecording, stopRecording });
+  recorderFnsRef.current = { startRecording, stopRecording };
+
   // API key state
   const [apiKeyRequired, setApiKeyRequired] = useState(false);
   const [apiKeyError, setApiKeyError] = useState("");
@@ -130,6 +138,9 @@ export default function App() {
   // Agent processing state
   const [isProcessing, setIsProcessing] = useState(false);
   const [agentStatus, setAgentStatus] = useState(null); // {status, detail}
+
+  // Custom panels: Map<id, {title, html, width, height}>
+  const [customPanels, setCustomPanels] = useState(new Map());
 
   // Handle every incoming WebSocket message
   const handleMessage = useCallback((msg) => {
@@ -204,6 +215,40 @@ export default function App() {
         }
         if (msg.ui_config) setUiConfig(msg.ui_config);
         setDebugLogs([]);
+        break;
+
+      case "open_panel":
+        setCustomPanels((prev) => {
+          const next = new Map(prev);
+          next.set(msg.id, {
+            title: msg.title || "Panel",
+            html: msg.html || "",
+            width: msg.width || 320,
+            height: msg.height || 300,
+          });
+          return next;
+        });
+        break;
+
+      case "close_panel":
+        setCustomPanels((prev) => {
+          const next = new Map(prev);
+          next.delete(msg.id);
+          return next;
+        });
+        break;
+
+      case "start_recording":
+        setPaused(false);
+        recorderFnsRef.current.startRecording({
+          fps: msg.fps || 30,
+          duration: msg.duration,
+          filename: msg.filename,
+        });
+        break;
+
+      case "stop_recording":
+        recorderFnsRef.current.stopRecording();
         break;
 
       case "project_save_error":
@@ -306,6 +351,15 @@ export default function App() {
     setPaused((p) => !p);
   }, []);
 
+  const handleToggleRecord = useCallback(() => {
+    if (recording) {
+      stopRecording();
+    } else {
+      setPaused(false);
+      startRecording();
+    }
+  }, [recording, startRecording, stopRecording]);
+
   const handleApiKeySubmit = useCallback(
     (key) => {
       setApiKeyLoading(true);
@@ -321,6 +375,18 @@ export default function App() {
       { agent: "WebGL", message: err.message || String(err), level: "error" },
     ]);
   }, []);
+
+  const handleClosePanel = useCallback(
+    (panelId) => {
+      setCustomPanels((prev) => {
+        const next = new Map(prev);
+        next.delete(panelId);
+        return next;
+      });
+      send({ type: "close_panel", id: panelId });
+    },
+    [send]
+  );
 
   // Sync data into nodes (including dynamic camera node creation/removal)
   useEffect(() => {
@@ -387,6 +453,23 @@ export default function App() {
             data: { ...node.data, ctrl, onUniformChange: handleUniformChange },
           };
         }
+        if (node.type === "customPanel") {
+          const panelId = node.id.replace("panel_", "");
+          const panel = customPanels.get(panelId);
+          if (panel) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                title: panel.title,
+                html: panel.html,
+                onUniformChange: handleUniformChange,
+                engineRef,
+                onClose: () => handleClosePanel(panelId),
+              },
+            };
+          }
+        }
         return node;
       });
 
@@ -429,9 +512,35 @@ export default function App() {
       // Remove pad2d nodes whose controls no longer exist
       updated = updated.filter((n) => n.type !== "pad2d" || pad2dIds.has(n.id));
 
+      // Add custom panel nodes for each panel that doesn't have a node yet
+      const panelNodeIds = new Set([...customPanels.keys()].map((id) => `panel_${id}`));
+      for (const [panelId, panel] of customPanels) {
+        const nodeId = `panel_${panelId}`;
+        if (!updated.some((n) => n.id === nodeId)) {
+          updated = [
+            ...updated,
+            {
+              id: nodeId,
+              type: "customPanel",
+              position: { x: 750, y: 400 },
+              style: { width: panel.width || 320, height: panel.height || 300 },
+              data: {
+                title: panel.title,
+                html: panel.html,
+                onUniformChange: handleUniformChange,
+                engineRef,
+                onClose: () => handleClosePanel(panelId),
+              },
+            },
+          ];
+        }
+      }
+      // Remove custom panel nodes whose panels no longer exist
+      updated = updated.filter((n) => n.type !== "customPanel" || panelNodeIds.has(n.id));
+
       return updated;
     });
-  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleShaderError, setNodes]);
+  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleShaderError, customPanels, handleClosePanel, setNodes]);
 
   return (
     <EngineContext.Provider value={engineRef}>
@@ -450,6 +559,9 @@ export default function App() {
           onDurationChange={setDuration}
           loop={loop}
           onLoopChange={setLoop}
+          recording={recording}
+          recordingTime={recordingTime}
+          onToggleRecord={handleToggleRecord}
         />
 
         {apiKeyRequired && (
