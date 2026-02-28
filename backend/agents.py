@@ -401,7 +401,11 @@ Common KeyboardEvent.code values:
 In GLSL declare `uniform float u_key_w;` etc. Value is 1.0 when pressed, 0.0 when released.
 Keyboard uniforms must NOT be listed in the "uniforms" field (engine manages them automatically).
 
-Mouse: u_mouse is vec4(x, y, clickX, clickY). u_mouse_down is float (1.0=pressed).
+Mouse: u_mouse is vec4(x, y, clickX, clickY), ALL values already normalized 0-1. \
+u_mouse_down is float (1.0=pressed).
+CRITICAL: u_mouse.xy is already in the SAME coordinate space as v_uv (0-1 normalized). \
+Do NOT divide u_mouse.xy by u_resolution — that would produce near-zero values and break positioning. \
+Use `u_mouse.xy` directly to compare with `v_uv` (e.g. `length(v_uv - u_mouse.xy)`).
 When using keyboard input, always tell the user: "Click the viewport to focus it for keyboard input."
 
 ## UI CONFIG FORMAT
@@ -439,7 +443,12 @@ Use for mode/type selection (blend mode, noise type, shape, etc.).
 - "pad2d": 2D XY pad for vec2 control. Needs `min` ([x,y]), `max` ([x,y]), \
 `default` ([x,y]). Outputs [x,y] as vec2. Example: `{"type":"pad2d",\
 "label":"Offset","uniform":"u_offset","min":[-1,-1],"max":[1,1],\
-"default":[0,0]}`. Use for position, offset, direction control.
+"default":[0,0]}`. Use for position, offset, direction control. \
+CRITICAL: The pad2d control outputs a single vec2 uniform (e.g. `u_pan`). \
+In the GLSL shader you MUST declare it as `uniform vec2 u_pan;` and access \
+components via `u_pan.x`, `u_pan.y`. Do NOT create separate float uniforms \
+like `u_pan_x`, `u_pan_y` — those are different names and won't receive \
+the pad2d values.
 - "separator": visual group header, no uniform. Needs only `label`. \
 Example: `{"type":"separator","label":"Color Settings"}`. \
 Use to organize controls into logical groups.
@@ -463,8 +472,12 @@ Create intuitive labels (e.g. "Glow Intensity" not "u_glow").
 Every scene MUST expose camera controls in the UI config so the user can \
 navigate the view interactively.
 
-- **2D** (geometry: "quad"): Add u_zoom, u_pan_x, u_pan_y uniforms. \
-In the shader, transform UVs: `vec2 uv = (v_uv - 0.5) / u_zoom + vec2(0.5 + u_pan_x, 0.5 + u_pan_y);`
+- **2D** (geometry: "quad"): Add u_zoom (float) and u_pan (vec2) uniforms. \
+Use a "pad2d" control for u_pan — it outputs [x,y] as a vec2 which maps \
+directly to the uniform. Example pad2d control: `{"type":"pad2d",\
+"label":"Pan","uniform":"u_pan","min":[-1,-1],"max":[1,1],"default":[0,0]}`. \
+In the shader, declare `uniform vec2 u_pan;` and transform UVs: \
+`vec2 uv = (v_uv - 0.5) / u_zoom + 0.5 + u_pan;`
 - **3D** (geometry: "box"/"sphere"/"plane"): Declare u_cam_pos_x, u_cam_pos_y, \
 u_cam_pos_z, u_cam_target_x, u_cam_target_y, u_cam_target_z, u_cam_fov in \
 scene JSON "uniforms" and expose camera position as a single "rotation3d" \
