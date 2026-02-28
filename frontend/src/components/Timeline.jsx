@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 
-export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange }) {
+export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange, recording, recordingTime, onToggleRecord }) {
   const progressRef = useRef(null);
   const timeDisplayRef = useRef(null);
   const barRef = useRef(null);
@@ -146,6 +146,24 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
           )}
         </svg>
       </button>
+
+      {/* Record toggle */}
+      <button
+        onClick={onToggleRecord}
+        className={`flex items-center justify-center gap-1 h-6 transition-colors ${recording ? "text-red-400 hover:text-red-300" : "text-zinc-500 hover:text-zinc-300"}`}
+        title={recording ? "Stop recording" : "Start recording"}
+      >
+        <span
+          className={`inline-block w-3 h-3 rounded-full ${recording ? "bg-red-500" : "bg-red-800 border border-red-600"}`}
+          style={recording ? { animation: "rec-blink 1s ease-in-out infinite" } : undefined}
+        />
+        {recording && (
+          <span className="text-xs font-mono text-red-400 min-w-[36px]">
+            {Math.floor(recordingTime / 60).toString().padStart(2, "0")}:{Math.floor(recordingTime % 60).toString().padStart(2, "0")}
+          </span>
+        )}
+      </button>
+      <style>{`@keyframes rec-blink { 0%,100% { opacity:1 } 50% { opacity:0.3 } }`}</style>
 
       {/* Scrub bar */}
       <div
