@@ -432,12 +432,6 @@ async def websocket_endpoint(ws: WebSocket):
                         }))
                         continue
 
-                # Launch background asset processing for uploaded files
-                if saved_files:
-                    asyncio.create_task(
-                        _process_uploaded_files(saved_files, manager.broadcast)
-                    )
-
                 history_entry = {"role": "user", "text": user_prompt}
                 if saved_files:
                     history_entry["files"] = [
@@ -476,6 +470,11 @@ async def websocket_endpoint(ws: WebSocket):
                 ):
                     global _global_agent_busy
                     try:
+                        # Process uploaded files BEFORE agent starts,
+                        # so derivatives are available when the agent queries them
+                        if _files:
+                            await _process_uploaded_files(_files, manager.broadcast)
+
                         await agents.run_agent(
                             ws_id=_AGENT_WS_ID,
                             user_prompt=_user_prompt,
