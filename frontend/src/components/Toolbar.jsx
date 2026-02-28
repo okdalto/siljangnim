@@ -1,4 +1,4 @@
-export default function Toolbar({ onNewProject, onTogglePause, paused, activeProject, connected }) {
+export default function Toolbar({ onNewProject, activeProject, connected }) {
   return (
     <div className="fixed top-0 left-0 right-0 z-40 h-10 bg-zinc-800 border-b border-zinc-700 flex items-center justify-between px-4 text-sm text-zinc-300">
       {/* Left: actions */}
@@ -8,12 +8,6 @@ export default function Toolbar({ onNewProject, onTogglePause, paused, activePro
           className="text-xs text-zinc-400 hover:text-zinc-100 bg-zinc-700 hover:bg-zinc-600 px-2.5 py-1 rounded transition-colors"
         >
           New Project
-        </button>
-        <button
-          onClick={onTogglePause}
-          className="text-xs text-zinc-400 hover:text-zinc-100 bg-zinc-700 hover:bg-zinc-600 px-2.5 py-1 rounded transition-colors"
-        >
-          {paused ? "Play" : "Pause"}
         </button>
       </div>
 

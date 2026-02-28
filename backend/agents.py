@@ -1,43 +1,49 @@
 """
-PromptGL — Claude Agent SDK based single-agent pipeline.
+PromptGL — Direct Anthropic API single-agent pipeline.
 
 A single agent handles intent analysis, shader generation, UI control creation,
-and conversational replies using custom MCP tools for scene/UI management.
+and conversational replies using tool calls for scene/UI management.
 """
 
 import asyncio
 import json
 import os
 import re
+from pathlib import Path
 from typing import Callable, Awaitable, Any
 
-# Disable stream-close timeout so Opus tool calls are never cut short.
-# The SDK waits for an async event — no polling — so a huge value is fine.
-os.environ.setdefault("CLAUDE_CODE_STREAM_CLOSE_TIMEOUT", "2147483647")
-
-from claude_agent_sdk import (
-    ClaudeSDKClient,
-    ClaudeAgentOptions,
-    tool,
-    create_sdk_mcp_server,
-    AssistantMessage,
-    ResultMessage,
-    SystemMessage,
-    TextBlock,
-    ThinkingBlock,
-    ToolUseBlock,
-)
+import anthropic
 
 import workspace
+
+# ---------------------------------------------------------------------------
+# Project path constants
+# ---------------------------------------------------------------------------
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_WORKSPACE_DIR = _PROJECT_ROOT / ".workspace"
+
+_IGNORED_DIRS = {
+    ".git", "node_modules", ".venv", "__pycache__", "dist",
+    ".next", ".cache", ".DS_Store", ".vite",
+}
+
+
+def _resolve_project_path(path: str) -> Path | None:
+    """Resolve a path relative to project root. Returns None if outside root."""
+    resolved = (_PROJECT_ROOT / path).resolve()
+    if not str(resolved).startswith(str(_PROJECT_ROOT.resolve())):
+        return None
+    return resolved
 
 LogCallback = Callable[[str, str, str], Awaitable[None]]
 BroadcastCallback = Callable[[dict], Awaitable[None]]
 
 # ---------------------------------------------------------------------------
-# Client management: WebSocket ID → persistent ClaudeSDKClient
+# Conversation history: WebSocket ID → message list
 # ---------------------------------------------------------------------------
 
-_clients: dict[int, ClaudeSDKClient] = {}
+_conversations: dict[int, list[dict]] = {}
 
 # ---------------------------------------------------------------------------
 # Shader compile result queue — frontend sends WebGL compile results here
@@ -127,6 +133,24 @@ def _validate_scene_json(scene: dict) -> list[str]:
                 f"Output input '{ch_name}' has type 'image' "
                 f"but missing 'url' field"
             )
+
+    # Validate inputs.keyboard if present
+    scene_inputs = scene.get("inputs")
+    if scene_inputs is not None:
+        if not isinstance(scene_inputs, dict):
+            errors.append("'inputs' must be a dict")
+        else:
+            kb = scene_inputs.get("keyboard")
+            if kb is not None:
+                if not isinstance(kb, dict):
+                    errors.append("'inputs.keyboard' must be a dict")
+                else:
+                    for uname, code in kb.items():
+                        if not isinstance(code, str):
+                            errors.append(
+                                f"inputs.keyboard['{uname}'] value must be a string "
+                                f"(KeyboardEvent.code), got {type(code).__name__}"
+                            )
 
     if output.get("vertex") and isinstance(output["vertex"], str):
         errors.extend(_validate_glsl(output["vertex"], "output.vertex", is_vertex=True))
@@ -308,14 +332,14 @@ skips camera uniform binding and nothing renders. Always include: \
 - Use in/out (NOT attribute/varying)
 - Use texture() NOT texture2D()
 - Built-in uniforms (auto-provided values, but you MUST declare them in GLSL \
-if you use them): u_time, u_resolution, u_mouse, u_frame, u_dt
+if you use them): u_time, u_resolution, u_mouse, u_mouse_down, u_frame, u_dt
 - For 3D: u_mvp, u_model, u_camera_pos are auto-provided
 - Vertex attributes for quad: in vec2 a_position; (default vertex shader outputs v_uv)
 - Vertex attributes for 3D: in vec3 a_position; in vec3 a_normal; in vec2 a_uv;
 - Default quad vertex shader provides: out vec2 v_uv; (0-1 range UV coordinates)
 - Buffer sampling: use uniform sampler2D iChannel0; with texture(iChannel0, uv)
-- Do NOT list u_time, u_resolution, u_mouse, u_frame, u_dt in the "uniforms" \
-field of the scene JSON — they are auto-provided by the engine.
+- Do NOT list u_time, u_resolution, u_mouse, u_mouse_down, u_frame, u_dt, \
+or keyboard uniforms (u_key_*) in the "uniforms" field — they are auto-provided.
 
 ## INSTANCING
 
@@ -348,6 +372,37 @@ omit them to use sensible defaults.
   self-reference input, output visualizes it
 - IMPORTANT: double_buffer alone is NOT enough. The buffer's "inputs" MUST \
   explicitly include itself for the engine to bind the previous frame texture.
+
+## KEYBOARD & MOUSE INPUT
+
+The viewport accepts keyboard input when focused (user clicks the viewport).
+
+Add an "inputs" object at the top level of scene JSON:
+```json
+{
+  "inputs": {
+    "keyboard": {
+      "u_key_w": "KeyW",
+      "u_key_a": "KeyA",
+      "u_key_s": "KeyS",
+      "u_key_d": "KeyD",
+      "u_key_space": "Space"
+    }
+  }
+}
+```
+
+Common KeyboardEvent.code values:
+- Letters: "KeyA" ~ "KeyZ"
+- Arrows: "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"
+- Special: "Space", "ShiftLeft", "ControlLeft", "Enter", "Escape"
+- Digits: "Digit0" ~ "Digit9"
+
+In GLSL declare `uniform float u_key_w;` etc. Value is 1.0 when pressed, 0.0 when released.
+Keyboard uniforms must NOT be listed in the "uniforms" field (engine manages them automatically).
+
+Mouse: u_mouse is vec4(x, y, clickX, clickY). u_mouse_down is float (1.0=pressed).
+When using keyboard input, always tell the user: "Click the viewport to focus it for keyboard input."
 
 ## UI CONFIG FORMAT
 
@@ -444,6 +499,18 @@ Available tools for uploads:
 
 Uploaded files are served at `/api/uploads/<filename>` for use in shader inputs.
 
+## FILE ACCESS
+
+You can explore the project source code to understand the engine, existing shaders, \
+and UI components before generating code.
+
+- `list_files(path)`: List directory contents (project-wide, read-only)
+- `read_file(path)`: Read any project file (read-only, 50KB limit)
+- `write_file(path, content)`: Write files (restricted to .workspace/ only)
+
+Paths are relative to the project root. Use these to understand \
+existing patterns before writing shaders.
+
 ## WORKFLOW
 
 1. **Create new visual**: Call `get_current_scene` first (to check if empty). \
@@ -455,6 +522,18 @@ Modify the JSON as needed (change shaders, uniforms, etc.). Call `update_scene` 
 with the updated scene JSON. If uniforms changed, call `update_ui_config` too.
 
 3. **Explain / answer questions**: Just respond with text. No tool calls needed.
+
+4. **Review (ALWAYS do this after creating or modifying)**: \
+After `update_scene` succeeds, call `get_current_scene` one more time to read back \
+the saved result. Compare it against the user's original request and verify:
+   - Does the shader logic actually implement what the user asked for?
+   - Are all requested visual elements present (colors, shapes, effects, animations)?
+   - Are buffer references and inputs wired correctly?
+   - Are custom uniforms declared in both the GLSL code and the "uniforms" field?
+   - Do UI controls cover all user-adjustable parameters?
+If you find any mismatch or missing detail, fix it immediately by calling \
+`update_scene` / `update_ui_config` again. Briefly summarize what you verified \
+in your final response to the user.
 
 ## RULES
 
@@ -470,162 +549,226 @@ with the updated scene JSON. If uniforms changed, call `update_ui_config` too.
 
 
 # ---------------------------------------------------------------------------
-# MCP tool factory
+# Anthropic tool definitions (JSON Schema)
 # ---------------------------------------------------------------------------
 
-def create_promptgl_tools(broadcast_fn: BroadcastCallback):
-    """Create the 3 MCP tools as closures that capture broadcast_fn."""
-
-    @tool(
-        "get_current_scene",
-        "Read the current scene.json from workspace. Returns the full scene JSON or a message if no scene exists.",
-        {},
-    )
-    async def get_current_scene(args: dict[str, Any]) -> dict[str, Any]:
-        try:
-            scene = workspace.read_json("scene.json")
-            return {
-                "content": [
-                    {"type": "text", "text": json.dumps(scene, indent=2)}
-                ]
-            }
-        except FileNotFoundError:
-            return {
-                "content": [
-                    {"type": "text", "text": "No scene.json exists yet. Create a new one."}
-                ]
-            }
-
-    @tool(
-        "update_scene",
-        (
+TOOLS = [
+    {
+        "name": "get_current_scene",
+        "description": (
+            "Read the current scene.json from workspace. "
+            "Returns the full scene JSON or a message if no scene exists."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+        },
+    },
+    {
+        "name": "update_scene",
+        "description": (
             "Validate, save, and broadcast a scene JSON to all connected clients. "
-            "The scene_json parameter must be a complete scene JSON object. "
+            "The scene_json parameter must be a complete scene JSON string. "
             "Returns 'ok' on success or a list of validation errors to fix."
         ),
-        {"scene_json": str},
-    )
-    async def update_scene(args: dict[str, Any]) -> dict[str, Any]:
-        raw = args.get("scene_json", "")
-        # Parse the scene JSON
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "scene_json": {
+                    "type": "string",
+                    "description": "Complete scene JSON object as a string.",
+                },
+            },
+            "required": ["scene_json"],
+        },
+    },
+    {
+        "name": "update_ui_config",
+        "description": (
+            "Save and broadcast UI control configuration. "
+            "The ui_config parameter must be a JSON string with 'controls' array "
+            "and 'inspectable_buffers' array."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "ui_config": {
+                    "type": "string",
+                    "description": "UI config JSON string with 'controls' and 'inspectable_buffers'.",
+                },
+            },
+            "required": ["ui_config"],
+        },
+    },
+    {
+        "name": "read_uploaded_file",
+        "description": (
+            "Read an uploaded file from the uploads directory. "
+            "For text files (.obj, .mtl, .glsl, .json, .txt, .csv, etc.), returns the file contents as text. "
+            "For binary files (images, etc.), returns metadata only. "
+            "Use list_uploaded_files first to see available files."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "filename": {
+                    "type": "string",
+                    "description": "Name of the uploaded file to read.",
+                },
+            },
+            "required": ["filename"],
+        },
+    },
+    {
+        "name": "list_uploaded_files",
+        "description": "List all files uploaded by the user. Returns filenames and metadata.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+        },
+    },
+    {
+        "name": "list_files",
+        "description": (
+            "List directory contents relative to the project root. "
+            "Useful for exploring the project structure (source code, shaders, etc.). "
+            "Directories show a trailing /, files show their size."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Relative path from project root. Defaults to '.' (root).",
+                },
+            },
+        },
+    },
+    {
+        "name": "read_file",
+        "description": (
+            "Read a project file by relative path. Returns file contents for text files "
+            "(up to 50KB), or metadata for binary files. Use this to understand existing "
+            "code, shaders, and engine internals before generating new code."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Relative path from project root to the file to read.",
+                },
+            },
+            "required": ["path"],
+        },
+    },
+    {
+        "name": "write_file",
+        "description": (
+            "Write a file to the .workspace/ directory. Only paths under .workspace/ "
+            "are writable. Parent directories are created automatically."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Relative path under .workspace/ (e.g. '.workspace/notes.txt').",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "File content to write.",
+                },
+            },
+            "required": ["path", "content"],
+        },
+    },
+]
+
+
+# ---------------------------------------------------------------------------
+# Tool handler
+# ---------------------------------------------------------------------------
+
+async def _handle_tool(
+    name: str,
+    input_data: dict,
+    broadcast: BroadcastCallback,
+) -> str:
+    """Execute a tool call and return the result as a plain string."""
+
+    if name == "get_current_scene":
+        try:
+            scene = workspace.read_json("scene.json")
+            return json.dumps(scene, indent=2)
+        except FileNotFoundError:
+            return "No scene.json exists yet. Create a new one."
+
+    elif name == "update_scene":
+        raw = input_data.get("scene_json", "")
         try:
             if isinstance(raw, str):
                 scene = json.loads(raw)
             else:
                 scene = raw
         except json.JSONDecodeError as e:
-            return {
-                "content": [
-                    {"type": "text", "text": f"Invalid JSON: {e}"}
-                ],
-                "isError": True,
-            }
+            return f"Invalid JSON: {e}"
 
-        # Validate
         errors = _validate_scene_json(scene)
         if errors:
             error_text = "Validation errors (fix these and call update_scene again):\n"
             error_text += "\n".join(f"  - {e}" for e in errors)
-            return {
-                "content": [{"type": "text", "text": error_text}],
-                "isError": True,
-            }
+            return error_text
 
-        # Save and broadcast
         workspace.write_json("scene.json", scene)
 
-        # Prepare compile queue before broadcasting
         q = _ensure_compile_queue()
-        # Drain stale results
         while not q.empty():
             try:
                 q.get_nowait()
             except asyncio.QueueEmpty:
                 break
 
-        await broadcast_fn({
+        await broadcast({
             "type": "scene_update",
             "scene_json": scene,
         })
 
-        # Wait for frontend WebGL compile result (max 5 seconds)
         try:
             result = await asyncio.wait_for(q.get(), timeout=5.0)
             if not result.get("success", True):
                 error_msg = result.get("error", "Unknown WebGL compile error")
-                return {
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": (
-                                f"WebGL shader compile error from browser:\n{error_msg}\n\n"
-                                "Fix the GLSL code and call update_scene again."
-                            ),
-                        }
-                    ],
-                    "isError": True,
-                }
+                return (
+                    f"WebGL shader compile error from browser:\n{error_msg}\n\n"
+                    "Fix the GLSL code and call update_scene again."
+                )
         except asyncio.TimeoutError:
-            # No frontend connected or response took too long — assume ok
             pass
 
-        return {
-            "content": [
-                {"type": "text", "text": "ok — scene saved, broadcast, and compiled successfully."}
-            ]
-        }
+        return "ok — scene saved, broadcast, and compiled successfully."
 
-    @tool(
-        "update_ui_config",
-        (
-            "Save and broadcast UI control configuration. "
-            "The ui_config parameter must be a JSON string with 'controls' array "
-            "and 'inspectable_buffers' array."
-        ),
-        {"ui_config": str},
-    )
-    async def update_ui_config(args: dict[str, Any]) -> dict[str, Any]:
-        raw = args.get("ui_config", "")
+    elif name == "update_ui_config":
+        raw = input_data.get("ui_config", "")
         try:
             if isinstance(raw, str):
                 ui_config = json.loads(raw)
             else:
                 ui_config = raw
         except json.JSONDecodeError as e:
-            return {
-                "content": [
-                    {"type": "text", "text": f"Invalid JSON: {e}"}
-                ],
-                "isError": True,
-            }
+            return f"Invalid JSON: {e}"
 
         workspace.write_json("ui_config.json", ui_config)
-        await broadcast_fn({
+        await broadcast({
             "type": "scene_update",
             "ui_config": ui_config,
         })
-        return {
-            "content": [
-                {"type": "text", "text": "ok — ui_config saved and broadcast to clients."}
-            ]
-        }
+        return "ok — ui_config saved and broadcast to clients."
 
-    @tool(
-        "read_uploaded_file",
-        (
-            "Read an uploaded file from the uploads directory. "
-            "For text files (.obj, .mtl, .glsl, .json, .txt, .csv, etc.), returns the file contents as text. "
-            "For binary files (images, etc.), returns metadata only. "
-            "Use list_uploaded_files first to see available files."
-        ),
-        {"filename": str},
-    )
-    async def read_uploaded_file(args: dict[str, Any]) -> dict[str, Any]:
-        filename = args.get("filename", "")
+    elif name == "read_uploaded_file":
+        filename = input_data.get("filename", "")
         try:
             info = workspace.get_upload_info(filename)
             mime = info["mime_type"]
-            # Text-based files: return content
             text_types = (
                 "text/", "application/json", "application/xml",
                 "application/javascript", "model/obj",
@@ -640,44 +783,25 @@ def create_promptgl_tools(broadcast_fn: BroadcastCallback):
 
             if is_text:
                 content = workspace.read_upload_text(filename)
-                # Truncate very large files
                 if len(content) > 50000:
                     content = content[:50000] + "\n... (truncated)"
-                return {
-                    "content": [
-                        {"type": "text", "text": f"File: {filename} ({info['size']} bytes, {mime})\n\n{content}"}
-                    ]
-                }
+                return f"File: {filename} ({info['size']} bytes, {mime})\n\n{content}"
             else:
-                return {
-                    "content": [
-                        {"type": "text", "text": (
-                            f"Binary file: {filename}\n"
-                            f"Size: {info['size']} bytes\n"
-                            f"MIME type: {mime}\n"
-                            f"This is a binary file. Its contents cannot be displayed as text.\n"
-                            f"If it's an image, the user may have sent it via vision (check the conversation).\n"
-                            f"The file is accessible at: /api/uploads/{filename}"
-                        )}
-                    ]
-                }
+                return (
+                    f"Binary file: {filename}\n"
+                    f"Size: {info['size']} bytes\n"
+                    f"MIME type: {mime}\n"
+                    f"This is a binary file. Its contents cannot be displayed as text.\n"
+                    f"If it's an image, the user may have sent it via vision (check the conversation).\n"
+                    f"The file is accessible at: /api/uploads/{filename}"
+                )
         except FileNotFoundError:
-            return {
-                "content": [{"type": "text", "text": f"File not found: {filename}"}],
-                "isError": True,
-            }
+            return f"File not found: {filename}"
 
-    @tool(
-        "list_uploaded_files",
-        "List all files uploaded by the user. Returns filenames and metadata.",
-        {},
-    )
-    async def list_uploaded_files(args: dict[str, Any]) -> dict[str, Any]:
+    elif name == "list_uploaded_files":
         files = workspace.list_uploads()
         if not files:
-            return {
-                "content": [{"type": "text", "text": "No files have been uploaded yet."}]
-            }
+            return "No files have been uploaded yet."
         info_lines = []
         for f in files:
             try:
@@ -685,52 +809,95 @@ def create_promptgl_tools(broadcast_fn: BroadcastCallback):
                 info_lines.append(f"- {f} ({info['size']} bytes, {info['mime_type']})")
             except FileNotFoundError:
                 info_lines.append(f"- {f} (info unavailable)")
-        return {
-            "content": [{"type": "text", "text": "Uploaded files:\n" + "\n".join(info_lines)}]
+        return "Uploaded files:\n" + "\n".join(info_lines)
+
+    elif name == "list_files":
+        rel_path = input_data.get("path", ".")
+        resolved = _resolve_project_path(rel_path)
+        if resolved is None:
+            return "Error: path is outside the project root."
+        if not resolved.is_dir():
+            return f"Error: '{rel_path}' is not a directory."
+        try:
+            entries = sorted(os.listdir(resolved))
+        except PermissionError:
+            return f"Error: permission denied for '{rel_path}'."
+        lines = []
+        for entry in entries:
+            if entry in _IGNORED_DIRS or entry.startswith("."):
+                continue
+            full = resolved / entry
+            if full.is_dir():
+                lines.append(f"  {entry}/")
+            else:
+                try:
+                    size = full.stat().st_size
+                    lines.append(f"  {entry}  ({size} bytes)")
+                except OSError:
+                    lines.append(f"  {entry}")
+        if not lines:
+            return f"Directory '{rel_path}' is empty (after filtering)."
+        return f"Contents of '{rel_path}':\n" + "\n".join(lines)
+
+    elif name == "read_file":
+        rel_path = input_data.get("path", "")
+        if not rel_path:
+            return "Error: 'path' is required."
+        resolved = _resolve_project_path(rel_path)
+        if resolved is None:
+            return "Error: path is outside the project root."
+        if not resolved.is_file():
+            return f"Error: '{rel_path}' is not a file or does not exist."
+        binary_extensions = {
+            ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".ico",
+            ".woff", ".woff2", ".ttf", ".otf", ".eot",
+            ".zip", ".tar", ".gz", ".bz2", ".7z",
+            ".pdf", ".exe", ".dll", ".so", ".dylib",
+            ".mp3", ".mp4", ".wav", ".ogg", ".webm",
+            ".pyc", ".pyo", ".class",
         }
+        suffix = resolved.suffix.lower()
+        file_size = resolved.stat().st_size
+        if suffix in binary_extensions:
+            return (
+                f"Binary file: {rel_path}\n"
+                f"Size: {file_size} bytes\n"
+                f"Type: {suffix}\n"
+                f"Binary files cannot be displayed as text."
+            )
+        try:
+            content = resolved.read_text(encoding="utf-8", errors="replace")
+        except OSError as e:
+            return f"Error reading '{rel_path}': {e}"
+        max_size = 50_000
+        truncated = ""
+        if len(content) > max_size:
+            content = content[:max_size]
+            truncated = "\n... (truncated at 50KB)"
+        return f"File: {rel_path} ({file_size} bytes)\n\n{content}{truncated}"
 
-    return [get_current_scene, update_scene, update_ui_config, read_uploaded_file, list_uploaded_files]
+    elif name == "write_file":
+        rel_path = input_data.get("path", "")
+        content = input_data.get("content", "")
+        if not rel_path:
+            return "Error: 'path' is required."
+        resolved = _resolve_project_path(rel_path)
+        if resolved is None:
+            return "Error: path is outside the project root."
+        # Check that the path is under .workspace/
+        try:
+            resolved.relative_to(_WORKSPACE_DIR.resolve())
+        except ValueError:
+            return "Write access denied. Only .workspace/ is writable."
+        try:
+            resolved.parent.mkdir(parents=True, exist_ok=True)
+            resolved.write_text(content, encoding="utf-8")
+        except OSError as e:
+            return f"Error writing '{rel_path}': {e}"
+        return f"ok — wrote {len(content)} bytes to {rel_path}"
 
-
-# ---------------------------------------------------------------------------
-# Client lifecycle helpers
-# ---------------------------------------------------------------------------
-
-async def _get_or_create_client(
-    ws_id: int,
-    broadcast: BroadcastCallback,
-) -> ClaudeSDKClient:
-    """Return the existing client for this WS, or create a new one."""
-    if ws_id in _clients:
-        return _clients[ws_id]
-
-    tools = create_promptgl_tools(broadcast)
-    mcp_server = create_sdk_mcp_server(
-        name="promptgl",
-        version="1.0.0",
-        tools=tools,
-    )
-
-    options = ClaudeAgentOptions(
-        system_prompt=SYSTEM_PROMPT,
-        model="claude-opus-4-6",
-        mcp_servers={"promptgl": mcp_server},
-        allowed_tools=[
-            "mcp__promptgl__get_current_scene",
-            "mcp__promptgl__update_scene",
-            "mcp__promptgl__update_ui_config",
-            "mcp__promptgl__read_uploaded_file",
-            "mcp__promptgl__list_uploaded_files",
-        ],
-        permission_mode="bypassPermissions",
-        max_turns=10,
-        cwd=str(workspace.WORKSPACE_DIR),
-    )
-
-    client = ClaudeSDKClient(options=options)
-    await client.connect()
-    _clients[ws_id] = client
-    return client
+    else:
+        return f"Unknown tool: {name}"
 
 
 # ---------------------------------------------------------------------------
@@ -781,15 +948,71 @@ def _build_multimodal_content(user_prompt: str, files: list[dict]) -> list[dict]
     return content_blocks
 
 
+StatusCallback = Callable[[str, str], Awaitable[None]]  # (status_type, detail)
+
+_MAX_TURNS = 10
+_MAX_COMPACT_RETRIES = 2
+
+
+# ---------------------------------------------------------------------------
+# Conversation compaction — reduce token usage when max_tokens is hit
+# ---------------------------------------------------------------------------
+
+def _compact_messages(messages: list[dict]) -> None:
+    """Compact conversation history in-place to reduce token usage.
+
+    1. Remove thinking blocks from assistant messages
+    2. Truncate long tool_use inputs and tool_result contents to 200 chars
+    3. If still 8+ messages, keep first user message + last 6
+    """
+    _TRUNC = 200
+
+    for msg in messages:
+        content = msg.get("content")
+        if not isinstance(content, list):
+            continue
+
+        # --- Strip thinking blocks from assistant messages ---
+        if msg.get("role") == "assistant":
+            msg["content"] = [
+                block for block in content
+                if not (isinstance(block, dict) and block.get("type") == "thinking")
+            ]
+            content = msg["content"]
+
+        # --- Truncate large payloads ---
+        for block in content:
+            if not isinstance(block, dict):
+                continue
+
+            # tool_use: truncate input values
+            if block.get("type") == "tool_use" and isinstance(block.get("input"), dict):
+                for key, val in block["input"].items():
+                    if isinstance(val, str) and len(val) > _TRUNC:
+                        block["input"][key] = val[:_TRUNC] + "...(truncated)"
+
+            # tool_result: truncate content string
+            if block.get("type") == "tool_result" and isinstance(block.get("content"), str):
+                if len(block["content"]) > _TRUNC:
+                    block["content"] = block["content"][:_TRUNC] + "...(truncated)"
+
+    # --- Trim old turns if conversation is very long ---
+    if len(messages) > 8:
+        kept = [messages[0]] + messages[-6:]
+        messages.clear()
+        messages.extend(kept)
+
+
 async def run_agent(
     ws_id: int,
     user_prompt: str,
     log: LogCallback,
     broadcast: BroadcastCallback,
     on_text: Callable[[str], Awaitable[None]] | None = None,
+    on_status: StatusCallback | None = None,
     files: list[dict] | None = None,
 ) -> dict:
-    """Run the Claude Agent SDK agent for one user prompt.
+    """Run the agent for one user prompt using the Anthropic API directly.
 
     Returns {"chat_text": str} with the agent's conversational reply.
     """
@@ -798,79 +1021,180 @@ async def run_agent(
         file_names = ", ".join(f["name"] for f in files)
         await log("System", f"Files attached: {file_names}", "info")
 
-    try:
-        client = await _get_or_create_client(ws_id, broadcast)
-    except Exception as e:
-        # Client creation failed — remove stale entry and raise
-        _clients.pop(ws_id, None)
-        raise
+    client = anthropic.AsyncAnthropic()
+
+    # Build user message content
+    if files:
+        content = _build_multimodal_content(user_prompt, files)
+    else:
+        content = user_prompt
+
+    messages = _conversations.setdefault(ws_id, [])
+    messages.append({"role": "user", "content": content})
+
+    last_text = ""
+    turns = 0
+    compact_retries = 0
 
     try:
-        # Send prompt — use transport directly for multimodal content
-        if files:
-            content = _build_multimodal_content(user_prompt, files)
-            message = {
-                "type": "user",
-                "message": {"role": "user", "content": content},
-                "parent_tool_use_id": None,
-                "session_id": "default",
-            }
-            await client._transport.write(json.dumps(message) + "\n")
-        else:
-            await client.query(user_prompt)
+        while turns < _MAX_TURNS:
+            turns += 1
 
-        last_text = ""
+            # Stream the API call so thinking/status updates reach the
+            # frontend in real-time instead of blocking until completion.
+            current_block_type = None
+            thinking_chunks: list[str] = []
+            thinking_len = 0
 
-        async for message in client.receive_response():
-            # Stream assistant messages
-            if isinstance(message, AssistantMessage):
-                for block in message.content:
-                    if isinstance(block, ThinkingBlock):
-                        text = getattr(block, "thinking", None) or getattr(block, "text", None) or ""
-                        if text:
-                            await log("Agent", text, "thinking")
-                    elif isinstance(block, TextBlock):
-                        last_text = block.text
-                        await log("Agent", block.text, "info")
-                        if on_text:
-                            await on_text(block.text)
-                    elif isinstance(block, ToolUseBlock):
-                        input_str = json.dumps(block.input)
-                        if len(input_str) > 200:
-                            input_str = input_str[:200] + "..."
-                        await log("Agent", f"Tool: {block.name}({input_str})", "thinking")
+            async with client.messages.stream(
+                model="claude-opus-4-6",
+                max_tokens=65536,
+                thinking={"type": "adaptive"},
+                system=SYSTEM_PROMPT,
+                tools=TOOLS,
+                messages=messages,
+            ) as stream:
+                async for event in stream:
+                    if event.type == "content_block_start":
+                        current_block_type = event.content_block.type
+                        if current_block_type == "thinking":
+                            thinking_chunks = []
+                            thinking_len = 0
+                            await log("Agent", "[Thinking started]", "thinking")
+                            if on_status:
+                                await on_status("thinking", "")
+                        elif current_block_type == "tool_use":
+                            tool_name = getattr(event.content_block, "name", "")
+                            if on_status:
+                                await on_status("tool_use", tool_name)
 
-            # Completion
-            elif isinstance(message, ResultMessage):
-                subtype = getattr(message, "subtype", "unknown")
-                cost = getattr(message, "total_cost_usd", None)
-                turns = getattr(message, "num_turns", None)
-                cost_str = f"${cost:.4f}" if cost is not None else "n/a"
-                await log(
-                    "System",
-                    f"Agent finished ({subtype}) — turns: {turns}, cost: {cost_str}",
-                    "result",
-                )
+                    elif event.type == "content_block_delta":
+                        delta = event.delta
+                        delta_type = getattr(delta, "type", "")
+                        if delta_type == "thinking_delta":
+                            chunk = getattr(delta, "thinking", "")
+                            if chunk:
+                                thinking_chunks.append(chunk)
+                                thinking_len += len(chunk)
+                                # Send periodic updates (~every 300 chars)
+                                if thinking_len % 300 < len(chunk):
+                                    if on_status:
+                                        await on_status("thinking", "".join(thinking_chunks))
+
+                    elif event.type == "content_block_stop":
+                        if current_block_type == "thinking" and thinking_chunks:
+                            full_thinking = "".join(thinking_chunks)
+                            await log("Agent", full_thinking, "thinking")
+                        current_block_type = None
+
+                response = await stream.get_final_message()
+
+            # Process completed response blocks (text, tool_use logging)
+            for block in response.content:
+                if block.type == "text":
+                    last_text = block.text
+                    await log("Agent", block.text, "info")
+                    if on_text:
+                        await on_text(block.text)
+                elif block.type == "tool_use":
+                    input_str = json.dumps(block.input)
+                    if len(input_str) > 200:
+                        input_str = input_str[:200] + "..."
+                    await log("Agent", f"Tool: {block.name}({input_str})", "thinking")
+                    if on_status:
+                        await on_status("tool_use", block.name)
+
+            # Append assistant message to history (serialize only API-accepted fields)
+            assistant_content = []
+            for block in response.content:
+                if block.type == "thinking":
+                    assistant_content.append({
+                        "type": "thinking",
+                        "thinking": block.thinking,
+                        "signature": block.signature,
+                    })
+                elif block.type == "text":
+                    assistant_content.append({
+                        "type": "text",
+                        "text": block.text,
+                    })
+                elif block.type == "tool_use":
+                    assistant_content.append({
+                        "type": "tool_use",
+                        "id": block.id,
+                        "name": block.name,
+                        "input": block.input,
+                    })
+            messages.append({"role": "assistant", "content": assistant_content})
+
+            # If the response was cut off due to token limit, compact & retry
+            if response.stop_reason == "max_tokens":
+                compact_retries += 1
+                if compact_retries > _MAX_COMPACT_RETRIES:
+                    await log("System", "Max compact retries reached — using partial response", "info")
+                    break
+                await log("System", "Token limit reached — compacting conversation...", "info")
+                if on_status:
+                    await on_status("thinking", "Compacting conversation...")
+                _compact_messages(messages)
+                messages.append({
+                    "role": "user",
+                    "content": "You were cut off due to token limit. Continue where you left off.",
+                })
+                continue
+
+            # If the model stopped for a reason other than tool_use, we're done
+            if response.stop_reason != "tool_use":
+                break
+
+            # Execute tool calls and build tool_result messages
+            tool_results = []
+            for block in response.content:
+                if block.type == "tool_use":
+                    result_str = await _handle_tool(block.name, block.input, broadcast)
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": result_str,
+                    })
+
+            messages.append({"role": "user", "content": tool_results})
+
+        # Log completion
+        await log(
+            "System",
+            f"Agent finished — turns: {turns}",
+            "result",
+        )
 
         chat_text = last_text or "Done."
         return {"chat_text": chat_text}
 
     except Exception:
-        # Client is likely dead — remove so next query gets a fresh one
-        await reset_agent(ws_id)
+        # Clear conversation so next query starts fresh
+        _conversations.pop(ws_id, None)
         raise
 
 
+def get_debug_conversations(max_content_len: int = 200) -> dict[int, list[dict]]:
+    """Return a safely-serialisable copy of _conversations with large content truncated."""
+    def _truncate(obj):
+        if isinstance(obj, str):
+            return obj[:max_content_len] + "..." if len(obj) > max_content_len else obj
+        if isinstance(obj, list):
+            return [_truncate(item) for item in obj]
+        if isinstance(obj, dict):
+            return {k: _truncate(v) for k, v in obj.items()}
+        return obj
+
+    return {ws_id: _truncate(msgs) for ws_id, msgs in _conversations.items()}
+
+
 async def reset_agent(ws_id: int) -> None:
-    """Disconnect & remove the client so the next query starts fresh."""
-    client = _clients.pop(ws_id, None)
-    if client:
-        try:
-            await client.disconnect()
-        except Exception:
-            pass
+    """Clear conversation history so the next query starts fresh."""
+    _conversations.pop(ws_id, None)
 
 
 async def destroy_client(ws_id: int) -> None:
     """Clean up when a WebSocket disconnects."""
-    await reset_agent(ws_id)
+    _conversations.pop(ws_id, None)

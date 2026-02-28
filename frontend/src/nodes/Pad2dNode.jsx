@@ -1,0 +1,97 @@
+import { useRef, useState, useCallback } from "react";
+import { NodeResizer } from "@xyflow/react";
+
+export default function Pad2dNode({ data }) {
+  const { ctrl, onUniformChange } = data;
+  const minX = ctrl?.min?.[0] ?? -1;
+  const minY = ctrl?.min?.[1] ?? -1;
+  const maxX = ctrl?.max?.[0] ?? 1;
+  const maxY = ctrl?.max?.[1] ?? 1;
+  const [pos, setPos] = useState(ctrl?.default || [0, 0]);
+  const padRef = useRef(null);
+  const dragging = useRef(false);
+
+  const updateFromPointer = useCallback(
+    (e) => {
+      const rect = padRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+      const x = minX + nx * (maxX - minX);
+      const y = maxY - ny * (maxY - minY); // Y inverted: top = max
+      const next = [x, y];
+      setPos(next);
+      onUniformChange?.(ctrl.uniform, next);
+    },
+    [minX, minY, maxX, maxY, ctrl?.uniform, onUniformChange]
+  );
+
+  const onPointerDown = useCallback(
+    (e) => {
+      dragging.current = true;
+      padRef.current?.setPointerCapture(e.pointerId);
+      updateFromPointer(e);
+    },
+    [updateFromPointer]
+  );
+
+  const onPointerMove = useCallback(
+    (e) => {
+      if (dragging.current) updateFromPointer(e);
+    },
+    [updateFromPointer]
+  );
+
+  const onPointerUp = useCallback(() => {
+    dragging.current = false;
+  }, []);
+
+  const onDoubleClick = useCallback(() => {
+    const def = ctrl?.default || [0, 0];
+    setPos(def);
+    onUniformChange?.(ctrl?.uniform, def);
+  }, [ctrl?.default, ctrl?.uniform, onUniformChange]);
+
+  // Normalized position for display (0-1)
+  const dotX = ((pos[0] - minX) / (maxX - minX)) * 100;
+  const dotY = ((maxY - pos[1]) / (maxY - minY)) * 100; // Y inverted
+
+  if (!ctrl) return null;
+
+  return (
+    <div className="w-full h-full bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+      <NodeResizer minWidth={160} minHeight={160} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
+      <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab flex justify-between">
+        <span>{ctrl.label || "Pad 2D"}</span>
+        <span className="text-xs text-zinc-500 tabular-nums">
+          {pos[0].toFixed(2)}, {pos[1].toFixed(2)}
+        </span>
+      </div>
+      <div className="flex-1 p-2 nodrag nowheel">
+        <div
+          ref={padRef}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onDoubleClick={onDoubleClick}
+          className="relative w-full h-full bg-zinc-800 rounded border border-zinc-600 cursor-crosshair touch-none"
+        >
+          {/* Crosshair lines */}
+          <div
+            className="absolute left-0 right-0 h-px bg-zinc-600 pointer-events-none"
+            style={{ top: `${dotY}%` }}
+          />
+          <div
+            className="absolute top-0 bottom-0 w-px bg-zinc-600 pointer-events-none"
+            style={{ left: `${dotX}%` }}
+          />
+          {/* Dot indicator */}
+          <div
+            className="absolute w-3 h-3 rounded-full bg-indigo-500 border border-white shadow pointer-events-none -translate-x-1/2 -translate-y-1/2"
+            style={{ left: `${dotX}%`, top: `${dotY}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
