@@ -15,6 +15,8 @@ function SliderControl({ ctrl, onUniformChange }) {
   const inputRef = useRef(null);
   const decimals = Math.max(stepDecimals(ctrl.step), 0);
 
+  const defaultVal = ctrl.default ?? 0;
+
   const handleChange = useCallback(
     (e) => {
       const v = parseFloat(e.target.value);
@@ -23,6 +25,11 @@ function SliderControl({ ctrl, onUniformChange }) {
     },
     [ctrl.uniform, onUniformChange]
   );
+
+  const handleReset = useCallback(() => {
+    setValue(defaultVal);
+    onUniformChange?.(ctrl.uniform, defaultVal);
+  }, [defaultVal, ctrl.uniform, onUniformChange]);
 
   const startEditing = useCallback(() => {
     setEditText(String(value));
@@ -51,27 +58,43 @@ function SliderControl({ ctrl, onUniformChange }) {
 
   return (
     <div className="space-y-1">
-      <label className="flex justify-between text-xs text-zinc-400">
+      <label className="flex justify-between items-center text-xs text-zinc-400">
         <span>{ctrl.label}</span>
-        {editing ? (
-          <input
-            ref={inputRef}
-            type="text"
-            value={editText}
-            onChange={(e) => setEditText(e.target.value)}
-            onBlur={commitEdit}
-            onKeyDown={handleKeyDown}
-            className="w-16 bg-zinc-800 text-zinc-100 text-xs text-right rounded px-1 py-0 outline-none ring-1 ring-indigo-500"
-          />
-        ) : (
-          <span
-            onClick={startEditing}
-            className="cursor-text hover:text-zinc-200 tabular-nums"
-            title="Click to edit"
-          >
-            {value.toFixed(decimals)}
-          </span>
-        )}
+        <span className="flex items-center gap-1">
+          {editing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              onBlur={commitEdit}
+              onKeyDown={handleKeyDown}
+              className="w-16 bg-zinc-800 text-zinc-100 text-xs text-right rounded px-1 py-0 outline-none ring-1 ring-indigo-500"
+            />
+          ) : (
+            <span
+              onClick={startEditing}
+              className="cursor-text hover:text-zinc-200 tabular-nums"
+              title="Click to edit"
+            >
+              {value.toFixed(decimals)}
+            </span>
+          )}
+          {value !== defaultVal && (
+            <button
+              onClick={handleReset}
+              className="text-zinc-500 hover:text-zinc-200 transition-colors"
+              title={`Reset to ${defaultVal}`}
+            >
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 8a6 6 0 0 1 10.47-4" />
+                <path d="M14 8a6 6 0 0 1-10.47 4" />
+                <polyline points="12 2 13 4.5 10.5 4.5" />
+                <polyline points="4 14 3 11.5 5.5 11.5" />
+              </svg>
+            </button>
+          )}
+        </span>
       </label>
       <input
         type="range"
