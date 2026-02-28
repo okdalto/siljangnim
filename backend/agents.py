@@ -7,8 +7,13 @@ and conversational replies using custom MCP tools for scene/UI management.
 
 import asyncio
 import json
+import os
 import re
 from typing import Callable, Awaitable, Any
+
+# Disable stream-close timeout so Opus tool calls are never cut short.
+# The SDK waits for an async event — no polling — so a huge value is fine.
+os.environ.setdefault("CLAUDE_CODE_STREAM_CLOSE_TIMEOUT", "2147483647")
 
 from claude_agent_sdk import (
     ClaudeSDKClient,
@@ -105,12 +110,22 @@ def _validate_scene_json(scene: dict) -> list[str]:
                         f"Buffer '{name}' input '{ch_name}' references "
                         f"non-existent buffer '{ch.get('name')}'"
                     )
+            if ch.get("type") == "image" and not ch.get("url"):
+                errors.append(
+                    f"Buffer '{name}' input '{ch_name}' has type 'image' "
+                    f"but missing 'url' field"
+                )
 
     for ch_name, ch in (output.get("inputs") or {}).items():
         if ch.get("type") == "buffer" and ch.get("name") not in buffers:
             errors.append(
                 f"Output input '{ch_name}' references "
                 f"non-existent buffer '{ch.get('name')}'"
+            )
+        if ch.get("type") == "image" and not ch.get("url"):
+            errors.append(
+                f"Output input '{ch_name}' has type 'image' "
+                f"but missing 'url' field"
             )
 
     if output.get("vertex") and isinstance(output["vertex"], str):
@@ -277,8 +292,13 @@ CRITICAL: when double_buffer is true, you MUST add a self-reference in "inputs",
 e.g. "inputs": { "iChannel0": { "type": "buffer", "name": "BufferA" } } for BufferA. \
 Without this explicit input, the shader cannot read its previous frame and will be black.
 - "geometry": "quad" (fullscreen shader art), "box", "sphere", "plane" (3D)
-- "camera"/"animation": only used for 3D geometry modes
+- "camera": REQUIRED for 3D geometry (box/sphere/plane). Without it the engine \
+skips camera uniform binding and nothing renders. Always include: \
+`"camera": { "position": [2, 1.5, 2], "target": [0, 0, 0], "fov": 60 }`
+- "animation": optional model rotation for 3D scenes
 - For simple shader art, just use "output" with no buffers
+- Image texture input: { "type": "image", "url": "/api/uploads/filename.png" } \
+— loads an uploaded image as a sampler2D texture
 
 ## GLSL RULES (CRITICAL — WebGL2 ES 3.0)
 
@@ -355,6 +375,29 @@ Control types:
 - "button": one-shot trigger (uniform is set to 1.0 on click, auto-resets to 0.0 \
 after 100ms). Use for actions like "Reset", "Randomize", "Spawn". \
 In the shader, check `if (u_trigger > 0.5) { ... }` to detect the impulse.
+- "dropdown": select from predefined options. Needs `options` (array of \
+`{label, value}` objects) and `default` (number matching one of the values). \
+Outputs a float. Example: `{"type":"dropdown","label":"Shape","uniform":"u_shape",\
+"options":[{"label":"Circle","value":0},{"label":"Square","value":1},\
+{"label":"Triangle","value":2}],"default":0}`. \
+Use for mode/type selection (blend mode, noise type, shape, etc.).
+- "pad2d": 2D XY pad for vec2 control. Needs `min` ([x,y]), `max` ([x,y]), \
+`default` ([x,y]). Outputs [x,y] as vec2. Example: `{"type":"pad2d",\
+"label":"Offset","uniform":"u_offset","min":[-1,-1],"max":[1,1],\
+"default":[0,0]}`. Use for position, offset, direction control.
+- "separator": visual group header, no uniform. Needs only `label`. \
+Example: `{"type":"separator","label":"Color Settings"}`. \
+Use to organize controls into logical groups.
+- "text": direct number input field. Needs `default` (number). Outputs float. \
+Example: `{"type":"text","label":"Seed","uniform":"u_seed","default":42}`. \
+Use for seed values, precise parameters, or values with unpredictable range.
+- "rotation3d": 3D arcball rotation for camera orbit. Needs `uniforms` (array of \
+3 uniform names for x/y/z), `target` ([x,y,z] orbit centre), `distance` (orbit \
+radius), `default` ([x,y,z] initial camera position). \
+Example: `{"type":"rotation3d","label":"Camera","uniforms":["u_cam_pos_x",\
+"u_cam_pos_y","u_cam_pos_z"],"target":[0,0,0],"distance":3.0,\
+"default":[2,1.5,2]}`. \
+Use instead of individual camera position sliders for 3D scenes.
 
 Do NOT create controls for auto-provided uniforms (u_time, u_resolution, etc.).
 Create intuitive labels (e.g. "Glow Intensity" not "u_glow").
@@ -369,8 +412,13 @@ navigate the view interactively.
 In the shader, transform UVs: `vec2 uv = (v_uv - 0.5) / u_zoom + vec2(0.5 + u_pan_x, 0.5 + u_pan_y);`
 - **3D** (geometry: "box"/"sphere"/"plane"): Declare u_cam_pos_x, u_cam_pos_y, \
 u_cam_pos_z, u_cam_target_x, u_cam_target_y, u_cam_target_z, u_cam_fov in \
-scene JSON "uniforms" and expose as sliders. The engine reads them automatically \
-(do NOT declare them in GLSL). Set defaults to match the camera field values.
+scene JSON "uniforms" and expose camera position as a single "rotation3d" \
+control (preferred) — it provides an intuitive 3D arcball widget for orbiting \
+the camera around the target. Example: `{"type":"rotation3d","label":"Camera",\
+"uniforms":["u_cam_pos_x","u_cam_pos_y","u_cam_pos_z"],"target":[0,0,0],\
+"distance":3.0,"default":[2,1.5,2]}`. \
+You may still add individual sliders for target position and FOV. \
+The engine reads u_cam_* uniforms automatically (do NOT declare them in GLSL).
 
 ## UPLOADED FILES
 
@@ -380,7 +428,10 @@ When files are attached:
 - **Images** (PNG, JPG, GIF, WebP): You can see them directly via vision. \
 Describe what you see and suggest how to use the image in a shader \
 (as a texture, reference, color palette source, etc.). \
-The image is saved to the uploads directory and accessible at `/api/uploads/<filename>`.
+The image is saved to the uploads directory and accessible at `/api/uploads/<filename>`. \
+To use an uploaded image as a shader texture, add it as an input: \
+`"inputs": { "iChannel0": { "type": "image", "url": "/api/uploads/<filename>" } }` \
+Then declare `uniform sampler2D iChannel0;` in the GLSL code and sample with `texture(iChannel0, uv)`.
 - **3D models** (OBJ, MTL): Use `read_uploaded_file` to read the file contents. \
 Analyze the geometry and suggest how to render it. You can write loader code \
 or convert it to shader-based rendering.
@@ -686,11 +737,10 @@ async def _get_or_create_client(
 # Agent execution
 # ---------------------------------------------------------------------------
 
-def _build_multimodal_prompt(user_prompt: str, files: list[dict]) -> str | list[dict]:
-    """Build a prompt that includes file info.
+def _build_multimodal_content(user_prompt: str, files: list[dict]) -> list[dict]:
+    """Build a multimodal content block list from user prompt + attached files.
 
-    For images, we build a multimodal content block list.
-    For non-image files, we add text descriptions.
+    Returns a list of Anthropic content blocks (image / text).
     """
     image_mimes = {"image/png", "image/jpeg", "image/gif", "image/webp"}
     content_blocks: list[dict] = []
@@ -721,21 +771,14 @@ def _build_multimodal_prompt(user_prompt: str, files: list[dict]) -> str | list[
                 f"The file is accessible at /api/uploads/{name}]"
             )
 
-    # If there are image blocks, build multimodal content
-    if content_blocks:
-        # Add non-image descriptions as text
-        extra_text = "\n".join(non_image_descriptions)
-        prompt_text = user_prompt or "The user uploaded these files."
-        if extra_text:
-            prompt_text += "\n\n" + extra_text
+    # Compose user text
+    extra_text = "\n".join(non_image_descriptions)
+    prompt_text = user_prompt or "The user uploaded these files."
+    if extra_text:
+        prompt_text += "\n\n" + extra_text
 
-        content_blocks.append({"type": "text", "text": prompt_text})
-        return content_blocks
-
-    # No images — just add file info to text prompt
-    file_info = "\n".join(non_image_descriptions)
-    prompt_text = user_prompt or "The user uploaded files."
-    return prompt_text + "\n\n" + file_info
+    content_blocks.append({"type": "text", "text": prompt_text})
+    return content_blocks
 
 
 async def run_agent(
@@ -755,51 +798,67 @@ async def run_agent(
         file_names = ", ".join(f["name"] for f in files)
         await log("System", f"Files attached: {file_names}", "info")
 
-    client = await _get_or_create_client(ws_id, broadcast)
+    try:
+        client = await _get_or_create_client(ws_id, broadcast)
+    except Exception as e:
+        # Client creation failed — remove stale entry and raise
+        _clients.pop(ws_id, None)
+        raise
 
-    # Build prompt — multimodal if images are attached
-    if files:
-        prompt = _build_multimodal_prompt(user_prompt, files)
-    else:
-        prompt = user_prompt
+    try:
+        # Send prompt — use transport directly for multimodal content
+        if files:
+            content = _build_multimodal_content(user_prompt, files)
+            message = {
+                "type": "user",
+                "message": {"role": "user", "content": content},
+                "parent_tool_use_id": None,
+                "session_id": "default",
+            }
+            await client._transport.write(json.dumps(message) + "\n")
+        else:
+            await client.query(user_prompt)
 
-    await client.query(prompt)
+        last_text = ""
 
-    last_text = ""
+        async for message in client.receive_response():
+            # Stream assistant messages
+            if isinstance(message, AssistantMessage):
+                for block in message.content:
+                    if isinstance(block, ThinkingBlock):
+                        text = getattr(block, "thinking", None) or getattr(block, "text", None) or ""
+                        if text:
+                            await log("Agent", text, "thinking")
+                    elif isinstance(block, TextBlock):
+                        last_text = block.text
+                        await log("Agent", block.text, "info")
+                        if on_text:
+                            await on_text(block.text)
+                    elif isinstance(block, ToolUseBlock):
+                        input_str = json.dumps(block.input)
+                        if len(input_str) > 200:
+                            input_str = input_str[:200] + "..."
+                        await log("Agent", f"Tool: {block.name}({input_str})", "thinking")
 
-    async for message in client.receive_response():
-        # Stream assistant messages
-        if isinstance(message, AssistantMessage):
-            for block in message.content:
-                if isinstance(block, ThinkingBlock):
-                    text = getattr(block, "thinking", None) or getattr(block, "text", None) or ""
-                    if text:
-                        await log("Agent", text, "thinking")
-                elif isinstance(block, TextBlock):
-                    last_text = block.text
-                    await log("Agent", block.text, "info")
-                    if on_text:
-                        await on_text(block.text)
-                elif isinstance(block, ToolUseBlock):
-                    input_str = json.dumps(block.input)
-                    if len(input_str) > 200:
-                        input_str = input_str[:200] + "..."
-                    await log("Agent", f"Tool: {block.name}({input_str})", "thinking")
+            # Completion
+            elif isinstance(message, ResultMessage):
+                subtype = getattr(message, "subtype", "unknown")
+                cost = getattr(message, "total_cost_usd", None)
+                turns = getattr(message, "num_turns", None)
+                cost_str = f"${cost:.4f}" if cost is not None else "n/a"
+                await log(
+                    "System",
+                    f"Agent finished ({subtype}) — turns: {turns}, cost: {cost_str}",
+                    "result",
+                )
 
-        # Completion
-        elif isinstance(message, ResultMessage):
-            subtype = getattr(message, "subtype", "unknown")
-            cost = getattr(message, "total_cost_usd", None)
-            turns = getattr(message, "num_turns", None)
-            cost_str = f"${cost:.4f}" if cost is not None else "n/a"
-            await log(
-                "System",
-                f"Agent finished ({subtype}) — turns: {turns}, cost: {cost_str}",
-                "result",
-            )
+        chat_text = last_text or "Done."
+        return {"chat_text": chat_text}
 
-    chat_text = last_text or "Done."
-    return {"chat_text": chat_text}
+    except Exception:
+        # Client is likely dead — remove so next query gets a fresh one
+        await reset_agent(ws_id)
+        raise
 
 
 async def reset_agent(ws_id: int) -> None:

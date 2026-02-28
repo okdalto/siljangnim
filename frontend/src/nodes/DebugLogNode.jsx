@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { NodeResizer } from "@xyflow/react";
 
 const AGENT_COLORS = {
   "Art Director": "text-purple-400",
@@ -36,7 +37,8 @@ export default function DebugLogNode({ data }) {
   }, []);
 
   return (
-    <div className="w-96 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+    <div className="w-full h-full bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+      <NodeResizer minWidth={300} minHeight={150} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
       {/* Header */}
       <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab">
         Debug Log
@@ -45,7 +47,7 @@ export default function DebugLogNode({ data }) {
       {/* Log entries */}
       <div
         ref={scrollRef}
-        className="min-h-48 max-h-96 overflow-y-auto p-3 space-y-1 font-mono text-xs nodrag nowheel nopan select-text cursor-text"
+        className="flex-1 overflow-y-auto p-3 space-y-1 font-mono text-xs nodrag nowheel nopan select-text cursor-text"
       >
         {logs.length === 0 && (
           <p className="text-zinc-500 italic">

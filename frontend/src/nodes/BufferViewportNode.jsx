@@ -64,12 +64,7 @@ export default function BufferViewportNode({ id, data }) {
 
   return (
     <>
-      <NodeResizer
-        minWidth={200}
-        minHeight={150}
-        lineStyle={{ borderColor: "#7c3aed" }}
-        handleStyle={{ background: "#7c3aed", width: 8, height: 8 }}
-      />
+      <NodeResizer minWidth={200} minHeight={150} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
       <div className="w-full h-full bg-black rounded-xl overflow-hidden border border-zinc-700 shadow-2xl flex flex-col">
         {/* Header */}
         <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab shrink-0 flex items-center justify-between">

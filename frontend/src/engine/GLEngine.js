@@ -59,6 +59,9 @@ export default class GLEngine {
     this._customUniforms = {};
     this._mouse = [0, 0, 0, 0]; // x, y, clickX, clickY (normalized)
 
+    // Image textures
+    this._imageTextures = {}; // url -> { texture, loaded }
+
     // Error state
     this.onError = null;     // callback(error)
     this.onFPS = null;       // callback(fps)
@@ -561,6 +564,40 @@ export default class GLEngine {
     gl.depthFunc(gl.LESS);
   }
 
+  _loadImageTexture(url) {
+    if (this._imageTextures[url]) return this._imageTextures[url];
+
+    const gl = this.gl;
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    // 1x1 magenta placeholder until image loads
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+      new Uint8Array([255, 0, 255, 255]));
+
+    const entry = { texture, loaded: false };
+    this._imageTextures[url] = entry;
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+      entry.loaded = true;
+    };
+    img.onerror = () => {
+      console.warn(`[GLEngine] Failed to load image texture: ${url}`);
+    };
+    img.src = url;
+
+    return entry;
+  }
+
   _renderPass(passName, passConfig, time, dt) {
     const gl = this.gl;
     const program = this._programs[passName];
@@ -586,7 +623,7 @@ export default class GLEngine {
       this._setUniform(program, name, value);
     }
 
-    // Bind input textures (buffers)
+    // Bind input textures (buffers and images)
     let texUnit = 0;
     const inputs = passConfig.inputs || {};
     for (const [channelName, input] of Object.entries(inputs)) {
@@ -608,6 +645,13 @@ export default class GLEngine {
         } else {
           console.warn(`[GLEngine] Pass '${passName}': input '${channelName}' references buffer '${input.name}' but no FBO found`);
         }
+      } else if (input.type === "image") {
+        const entry = this._loadImageTexture(input.url);
+        gl.activeTexture(gl.TEXTURE0 + texUnit);
+        gl.bindTexture(gl.TEXTURE_2D, entry.texture);
+        const loc = gl.getUniformLocation(program, channelName);
+        if (loc) gl.uniform1i(loc, texUnit);
+        texUnit++;
       }
     }
 
@@ -644,9 +688,22 @@ export default class GLEngine {
 
   _bindCameraUniforms(program, time) {
     const cam = this._scene.camera || {};
-    const pos = cam.position || [2, 1.5, 2];
-    const target = cam.target || [0, 0, 0];
-    const fov = cam.fov || 60;
+    const cu = this._customUniforms;
+    const defPos = cam.position || [2, 1.5, 2];
+    const defTarget = cam.target || [0, 0, 0];
+
+    // Allow UI sliders to override camera parameters
+    const pos = [
+      cu.u_cam_pos_x !== undefined ? cu.u_cam_pos_x : defPos[0],
+      cu.u_cam_pos_y !== undefined ? cu.u_cam_pos_y : defPos[1],
+      cu.u_cam_pos_z !== undefined ? cu.u_cam_pos_z : defPos[2],
+    ];
+    const target = [
+      cu.u_cam_target_x !== undefined ? cu.u_cam_target_x : defTarget[0],
+      cu.u_cam_target_y !== undefined ? cu.u_cam_target_y : defTarget[1],
+      cu.u_cam_target_z !== undefined ? cu.u_cam_target_z : defTarget[2],
+    ];
+    const fov = cu.u_cam_fov !== undefined ? cu.u_cam_fov : (cam.fov || 60);
     const aspect = this.canvas.width / this.canvas.height;
 
     const proj = perspective(fov, aspect, 0.1, 100.0);
@@ -710,10 +767,28 @@ export default class GLEngine {
 
     const w = fboData.width;
     const h = fboData.height;
-    const pixels = new Uint8Array(w * h * 4);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, fboData.fbo);
-    gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+    // Detect whether this FBO uses a float texture by querying the
+    // implementation-chosen readPixels type for this framebuffer.
+    let implType = gl.getParameter(gl.IMPLEMENTATION_COLOR_READ_TYPE);
+    const isFloat = implType === gl.FLOAT || implType === gl.HALF_FLOAT;
+
+    let rgba8;
+    if (isFloat) {
+      // Read as float, then convert to 0-255
+      const floats = new Float32Array(w * h * 4);
+      gl.readPixels(0, 0, w, h, gl.RGBA, gl.FLOAT, floats);
+      rgba8 = new Uint8Array(w * h * 4);
+      for (let i = 0, len = floats.length; i < len; i++) {
+        rgba8[i] = Math.max(0, Math.min(255, (floats[i] * 255 + 0.5) | 0));
+      }
+    } else {
+      rgba8 = new Uint8Array(w * h * 4);
+      gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, rgba8);
+    }
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
     // Flip Y
@@ -721,7 +796,7 @@ export default class GLEngine {
     for (let row = 0; row < h; row++) {
       const srcOffset = row * w * 4;
       const dstOffset = (h - 1 - row) * w * 4;
-      flipped.set(pixels.subarray(srcOffset, srcOffset + w * 4), dstOffset);
+      flipped.set(rgba8.subarray(srcOffset, srcOffset + w * 4), dstOffset);
     }
 
     return new ImageData(new Uint8ClampedArray(flipped.buffer), w, h);
@@ -769,6 +844,7 @@ export default class GLEngine {
     for (const prog of Object.values(this._programs)) gl.deleteProgram(prog);
     for (const vaoInfo of Object.values(this._vaos)) gl.deleteVertexArray(vaoInfo.vao);
     for (const name of Object.keys(this._fbos)) this._destroyFBO(name);
+    for (const entry of Object.values(this._imageTextures)) gl.deleteTexture(entry.texture);
 
     this._programs = {};
     this._vaos = {};
@@ -776,6 +852,7 @@ export default class GLEngine {
     this._pingPong = {};
     this._renderOrder = [];
     this._customUniforms = {};
+    this._imageTextures = {};
   }
 
   dispose() {

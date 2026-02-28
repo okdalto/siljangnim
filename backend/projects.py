@@ -56,6 +56,16 @@ def save_project(
         if src.exists():
             shutil.copy2(src, project_dir / fname)
 
+    # Copy uploads directory
+    src_uploads = GENERATED_DIR / "uploads"
+    dst_uploads = project_dir / "uploads"
+    if src_uploads.exists() and any(src_uploads.iterdir()):
+        if dst_uploads.exists():
+            shutil.rmtree(dst_uploads)
+        shutil.copytree(src_uploads, dst_uploads)
+    elif dst_uploads.exists():
+        shutil.rmtree(dst_uploads)
+
     # Save chat history
     (project_dir / "chat_history.json").write_text(
         json.dumps(chat_history, indent=2, ensure_ascii=False), encoding="utf-8"
@@ -116,6 +126,16 @@ def load_project(name: str) -> dict:
         src = project_dir / fname
         if src.exists():
             shutil.copy2(src, GENERATED_DIR / fname)
+
+    # Restore uploads directory
+    src_uploads = project_dir / "uploads"
+    dst_uploads = GENERATED_DIR / "uploads"
+    if dst_uploads.exists():
+        shutil.rmtree(dst_uploads)
+    if src_uploads.exists():
+        shutil.copytree(src_uploads, dst_uploads)
+    else:
+        dst_uploads.mkdir(parents=True, exist_ok=True)
 
     # Read data to return to frontend
     chat_history = []

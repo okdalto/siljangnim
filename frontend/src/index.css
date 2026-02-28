@@ -12,3 +12,19 @@ body,
   color: #e0e0e0;
   font-family: "Inter", system-ui, -apple-system, sans-serif;
 }
+
+/* Widen resize handle hit area (invisible but easier to grab) */
+.react-flow__resize-control.line {
+  border-width: 6px !important;
+}
+
+.react-flow__resize-control.handle {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Allow text selection inside chat messages */
+.react-flow__node .nowheel.nodrag {
+  user-select: text;
+  -webkit-user-select: text;
+}
