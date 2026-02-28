@@ -165,6 +165,7 @@ Each script function receives a `ctx` object with these fields:
 | ctx.uniforms | object | Current UI slider values (available in render) |
 | ctx.keys | Set | Currently pressed key codes (available in render) |
 | ctx.utils | object | Utility functions (see below) |
+| ctx.audio | object | Audio playback & analysis (see below) |
 
 ### ctx.utils — helper functions
 
@@ -355,9 +356,12 @@ derivatives. Use `list_uploaded_files` to see available derivatives for each fil
 
 ### Audio files (.mp3, .wav, .ogg, .flac)
 - `waveform.json`: Downsampled waveform (4096 samples). Load via \
-  `read_uploaded_file` and use the `samples` array for audio visualization.
+  `read_uploaded_file` and use the `samples` array for static audio visualization.
 - `spectrogram.png`: Spectrogram image (1024x512). Use as a texture input for \
-  frequency-domain visualization.
+  static frequency-domain visualization.
+- For real-time audio-reactive visuals, use `ctx.audio.load('/api/uploads/<filename>')` \
+  to load the original audio file and access live FFT data via \
+  `ctx.audio.bass/mid/treble/energy/fftTexture`.
 
 ### Video files (.mp4, .webm, .mov)
 - `frame_NNN.png`: Uniformly sampled keyframes (up to 30, 512px max dimension). \
@@ -393,6 +397,101 @@ if (ctx.state.cam) {
 }
 ```
 Always tell the user that the browser will ask for camera permission.
+
+## AUDIO PLAYBACK & ANALYSIS
+
+Use `ctx.audio` to load audio files, play them in sync with the timeline, \
+and access real-time FFT data for audio-reactive visuals.
+
+### Methods
+
+| Method | Description |
+|--------|-------------|
+| `ctx.audio.load(url)` | Load audio file → `Promise`. Use `/api/uploads/<filename>` for uploaded files |
+| `ctx.audio.play(offset?)` | Start playback (optionally from offset in seconds) |
+| `ctx.audio.pause()` | Pause playback |
+| `ctx.audio.stop()` | Stop and reset to beginning |
+| `ctx.audio.setVolume(v)` | Set volume (0-1) |
+
+### Properties (read-only, updated every frame)
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `ctx.audio.isLoaded` | boolean | True after `load()` completes |
+| `ctx.audio.isPlaying` | boolean | True while audio is playing |
+| `ctx.audio.duration` | float | Total duration in seconds |
+| `ctx.audio.currentTime` | float | Current playback position in seconds |
+| `ctx.audio.bass` | float | Low-frequency energy (0-1) |
+| `ctx.audio.mid` | float | Mid-frequency energy (0-1) |
+| `ctx.audio.treble` | float | High-frequency energy (0-1) |
+| `ctx.audio.energy` | float | Overall energy (0-1) |
+| `ctx.audio.frequencyData` | Uint8Array | Raw FFT bins (1024 values, 0-255) |
+| `ctx.audio.waveformData` | Uint8Array | Time-domain waveform (1024 values, centered at 128) |
+| `ctx.audio.fftTexture` | WebGLTexture | 1024x2 R8 texture (row 0=frequency, row 1=waveform) |
+| `ctx.audio.volume` | float | Current volume level |
+
+Audio playback is automatically synchronized with the timeline (pause, seek, loop).
+
+### Example — Audio-reactive visual
+
+```javascript
+// setup
+ctx.audio.load('/api/uploads/music.mp3').then(() => {
+  ctx.audio.play();
+});
+
+const vs = ctx.utils.DEFAULT_QUAD_VERTEX_SHADER;
+const fs = `#version 300 es
+precision highp float;
+uniform float uBass, uMid, uTreble, uTime;
+uniform vec2 uResolution;
+uniform sampler2D uAudioData;
+out vec4 fragColor;
+void main() {
+  vec2 uv = gl_FragCoord.xy / uResolution;
+  // Sample FFT texture (row 0 = frequency)
+  float freq = texture(uAudioData, vec2(uv.x, 0.25)).r;
+  // Visualize frequency bars
+  float bar = step(uv.y, freq);
+  vec3 col = mix(vec3(0.1, 0.2, 0.5), vec3(1.0, 0.3, 0.1), uBass);
+  fragColor = vec4(col * bar, 1.0);
+}`;
+ctx.state.prog = ctx.utils.createProgram(vs, fs);
+const positions = ctx.utils.createQuadGeometry();
+const vao = ctx.gl.createVertexArray();
+ctx.gl.bindVertexArray(vao);
+const buf = ctx.gl.createBuffer();
+ctx.gl.bindBuffer(ctx.gl.ARRAY_BUFFER, buf);
+ctx.gl.bufferData(ctx.gl.ARRAY_BUFFER, positions, ctx.gl.STATIC_DRAW);
+ctx.gl.enableVertexAttribArray(0);
+ctx.gl.vertexAttribPointer(0, 2, ctx.gl.FLOAT, false, 0, 0);
+ctx.state.vao = vao;
+ctx.state.buf = buf;
+
+// render
+const gl = ctx.gl;
+gl.viewport(0, 0, ctx.resolution[0], ctx.resolution[1]);
+gl.clear(gl.COLOR_BUFFER_BIT);
+gl.useProgram(ctx.state.prog);
+gl.uniform1f(gl.getUniformLocation(ctx.state.prog, 'uBass'), ctx.audio.bass);
+gl.uniform1f(gl.getUniformLocation(ctx.state.prog, 'uMid'), ctx.audio.mid);
+gl.uniform1f(gl.getUniformLocation(ctx.state.prog, 'uTreble'), ctx.audio.treble);
+gl.uniform1f(gl.getUniformLocation(ctx.state.prog, 'uTime'), ctx.time);
+gl.uniform2f(gl.getUniformLocation(ctx.state.prog, 'uResolution'), ctx.resolution[0], ctx.resolution[1]);
+if (ctx.audio.fftTexture) {
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, ctx.audio.fftTexture);
+  gl.uniform1i(gl.getUniformLocation(ctx.state.prog, 'uAudioData'), 0);
+}
+gl.bindVertexArray(ctx.state.vao);
+gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+// cleanup
+ctx.gl.deleteProgram(ctx.state.prog);
+ctx.gl.deleteBuffer(ctx.state.buf);
+ctx.gl.deleteVertexArray(ctx.state.vao);
+ctx.audio.stop();
+```
 
 ## FILE ACCESS
 
@@ -529,6 +628,14 @@ in your final response to the user.
 
 ## RULES
 
+- **Do NOT generate or modify scenes for simple queries.** If the user is asking \
+a question, browsing files, or requesting an explanation, just respond with text \
+(and file-reading tools if needed). Do NOT call `update_scene` or `update_ui_config` \
+unless the user explicitly asks to create or change a visual. Examples of simple queries:
+  - "What is this?" → Just explain. No scene changes.
+  - "Show me the files" → Use `list_files`, return the result. Done.
+  - "What is WebGL?" → Answer the question. No tool calls needed.
+  - "What does the current scene look like?" → Use `get_current_scene`, explain it. Do NOT modify it.
 - **ALWAYS use ctx.time for animation.** This is a real-time rendering tool — \
 visuals should move, evolve, and feel alive. Unless the user explicitly asks for \
 a static image, every script MUST incorporate ctx.time to create motion \
