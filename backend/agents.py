@@ -1,7 +1,7 @@
 """
 PromptGL — Direct Anthropic API single-agent pipeline.
 
-A single agent handles intent analysis, shader generation, UI control creation,
+A single agent handles intent analysis, WebGL2 script generation, UI control creation,
 and conversational replies using tool calls for scene/UI management.
 """
 
@@ -46,38 +46,11 @@ BroadcastCallback = Callable[[dict], Awaitable[None]]
 _conversations: dict[int, list[dict]] = {}
 
 # ---------------------------------------------------------------------------
-# Shader compile result queue — frontend sends WebGL compile results here
-# ---------------------------------------------------------------------------
-
-_pending_compile_queue: asyncio.Queue | None = None
-
-
-def _ensure_compile_queue() -> asyncio.Queue:
-    """Lazily create the compile-result queue."""
-    global _pending_compile_queue
-    if _pending_compile_queue is None:
-        _pending_compile_queue = asyncio.Queue()
-    return _pending_compile_queue
-
-
-async def notify_shader_compile_result(result: dict) -> None:
-    """Called by the WebSocket handler when the frontend reports a compile result."""
-    q = _ensure_compile_queue()
-    # Drain any stale items before putting the new one
-    while not q.empty():
-        try:
-            q.get_nowait()
-        except asyncio.QueueEmpty:
-            break
-    await q.put(result)
-
-
-# ---------------------------------------------------------------------------
-# GLSL / Scene JSON validation  (kept from original)
+# Scene JSON validation
 # ---------------------------------------------------------------------------
 
 def _validate_scene_json(scene: dict) -> list[str]:
-    """Validate a scene JSON and its GLSL shaders.
+    """Validate a scene JSON (script mode only).
 
     Returns a list of error strings. Empty list = valid.
     """
@@ -86,143 +59,12 @@ def _validate_scene_json(scene: dict) -> list[str]:
     if not isinstance(scene, dict):
         return ["Scene JSON is not a dict"]
 
-    output = scene.get("output")
-    if not output or not isinstance(output, dict):
-        errors.append("Missing 'output' object in scene JSON")
+    script = scene.get("script")
+    if not script or not isinstance(script, dict):
+        errors.append("Missing 'script' object in scene JSON")
         return errors
-
-    frag = output.get("fragment")
-    if not frag or not isinstance(frag, str):
-        errors.append("Missing 'output.fragment' shader code")
-        return errors
-
-    errors.extend(_validate_glsl(frag, "output.fragment"))
-
-    buffers = scene.get("buffers") or {}
-    for name, buf in buffers.items():
-        if not isinstance(buf, dict):
-            errors.append(f"Buffer '{name}' is not a dict")
-            continue
-        buf_frag = buf.get("fragment")
-        if not buf_frag or not isinstance(buf_frag, str):
-            errors.append(f"Buffer '{name}' missing 'fragment' shader code")
-            continue
-        errors.extend(_validate_glsl(buf_frag, f"buffers.{name}.fragment"))
-
-        for ch_name, ch in (buf.get("inputs") or {}).items():
-            if ch.get("type") == "buffer" and ch.get("name") not in buffers:
-                if ch.get("name") != name:
-                    errors.append(
-                        f"Buffer '{name}' input '{ch_name}' references "
-                        f"non-existent buffer '{ch.get('name')}'"
-                    )
-            if ch.get("type") == "image" and not ch.get("url"):
-                errors.append(
-                    f"Buffer '{name}' input '{ch_name}' has type 'image' "
-                    f"but missing 'url' field"
-                )
-
-    for ch_name, ch in (output.get("inputs") or {}).items():
-        if ch.get("type") == "buffer" and ch.get("name") not in buffers:
-            errors.append(
-                f"Output input '{ch_name}' references "
-                f"non-existent buffer '{ch.get('name')}'"
-            )
-        if ch.get("type") == "image" and not ch.get("url"):
-            errors.append(
-                f"Output input '{ch_name}' has type 'image' "
-                f"but missing 'url' field"
-            )
-
-    # Validate inputs.keyboard if present
-    scene_inputs = scene.get("inputs")
-    if scene_inputs is not None:
-        if not isinstance(scene_inputs, dict):
-            errors.append("'inputs' must be a dict")
-        else:
-            kb = scene_inputs.get("keyboard")
-            if kb is not None:
-                if not isinstance(kb, dict):
-                    errors.append("'inputs.keyboard' must be a dict")
-                else:
-                    for uname, code in kb.items():
-                        if not isinstance(code, str):
-                            errors.append(
-                                f"inputs.keyboard['{uname}'] value must be a string "
-                                f"(KeyboardEvent.code), got {type(code).__name__}"
-                            )
-
-    if output.get("vertex") and isinstance(output["vertex"], str):
-        errors.extend(_validate_glsl(output["vertex"], "output.vertex", is_vertex=True))
-    for name, buf in buffers.items():
-        if buf.get("vertex") and isinstance(buf["vertex"], str):
-            errors.extend(_validate_glsl(buf["vertex"], f"buffers.{name}.vertex", is_vertex=True))
-
-    return errors
-
-
-def _validate_glsl(source: str, label: str, is_vertex: bool = False) -> list[str]:
-    """Validate a single GLSL shader source string."""
-    errors = []
-    lines = source.strip().split("\n")
-
-    if not lines:
-        errors.append(f"[{label}] Shader is empty")
-        return errors
-
-    first_line = lines[0].strip()
-    if not first_line.startswith("#version"):
-        errors.append(
-            f"[{label}] First line must be '#version 300 es', "
-            f"got: '{first_line[:50]}'"
-        )
-    elif "300 es" not in first_line:
-        errors.append(
-            f"[{label}] Must use '#version 300 es' (WebGL2), "
-            f"got: '{first_line}'. "
-            f"Do NOT use '#version 330' (desktop GL)."
-        )
-
-    if not is_vertex:
-        if "precision" not in source:
-            errors.append(
-                f"[{label}] Missing 'precision highp float;' declaration. "
-                f"This is REQUIRED in WebGL2 ES fragment shaders."
-            )
-
-    if "void main" not in source:
-        errors.append(f"[{label}] Missing 'void main()' function")
-
-    if "gl_FragColor" in source:
-        errors.append(
-            f"[{label}] Uses 'gl_FragColor' which is GLSL ES 1.0. "
-            f"Use 'out vec4 fragColor;' instead (GLSL ES 3.0)."
-        )
-
-    if re.search(r"\battribute\b", source):
-        errors.append(
-            f"[{label}] Uses 'attribute' which is GLSL ES 1.0. "
-            f"Use 'in' instead (GLSL ES 3.0)."
-        )
-
-    if re.search(r"\bvarying\b", source):
-        errors.append(
-            f"[{label}] Uses 'varying' which is GLSL ES 1.0. "
-            f"Use 'in'/'out' instead (GLSL ES 3.0)."
-        )
-
-    if not is_vertex:
-        if not re.search(r"\bout\s+vec4\s+\w+", source):
-            errors.append(
-                f"[{label}] Missing output variable declaration. "
-                f"Need 'out vec4 fragColor;' (or similar name)."
-            )
-
-    if "texture2D" in source:
-        errors.append(
-            f"[{label}] Uses 'texture2D()' which is GLSL ES 1.0. "
-            f"Use 'texture()' instead (GLSL ES 3.0)."
-        )
+    if not script.get("render"):
+        errors.append("Missing 'script.render' code in scene JSON")
 
     return errors
 
@@ -271,140 +113,131 @@ def _set_nested(obj, path, value):
 
 SYSTEM_PROMPT = """\
 You are the PromptGL Agent — a single AI assistant for a real-time visual \
-creation tool that renders using WebGL2 in the browser via GLSL shaders.
+creation tool that renders using WebGL2 in the browser.
 
-You handle ALL tasks: analysing user intent, generating/modifying shaders, \
+You handle ALL tasks: analysing user intent, generating/modifying WebGL2 scripts, \
 creating UI controls, and answering questions.
 
 ## SCENE JSON FORMAT
 
+The scene JSON uses a script-based approach where you write raw WebGL2 JavaScript code.
+
 ```json
 {
   "version": 1,
-  "mode": "fullscreen",
-  "clearColor": [0.08, 0.08, 0.12, 1.0],
-  "buffers": {
-    "BufferA": {
-      "fragment": "#version 300 es\\nprecision highp float;\\n...",
-      "vertex": null,
-      "geometry": "quad",
-      "resolution_scale": 1.0,
-      "double_buffer": false,
-      "inputs": { "iChannel0": { "type": "buffer", "name": "BufferB" } }
-    }
-  },
-  "output": {
-    "fragment": "...GLSL code...",
-    "vertex": null,
-    "geometry": "quad",
-    "inputs": { "iChannel0": { "type": "buffer", "name": "BufferA" } }
+  "render_mode": "script",
+  "script": {
+    "setup": "// runs once when loaded\\n...",
+    "render": "// runs every frame\\n...",
+    "cleanup": "// runs when scene is disposed\\n..."
   },
   "uniforms": {
     "u_speed": { "type": "float", "value": 1.0 },
     "u_color": { "type": "vec3", "value": [0.4, 0.6, 0.9] }
   },
-  "camera": { "position": [2, 1.5, 2], "target": [0, 0, 0], "fov": 60 },
-  "animation": { "model_rotation": { "axis": [0, 1, 0], "speed": 0.5 } }
+  "clearColor": [0, 0, 0, 1]
 }
 ```
 
-Key concepts:
-- "buffers": intermediate render passes (like ShaderToy's BufferA/B/C/D)
-- "output": final screen output pass
-- "double_buffer": enable ping-pong (self can read its own previous frame). \
-CRITICAL: when double_buffer is true, you MUST add a self-reference in "inputs", \
-e.g. "inputs": { "iChannel0": { "type": "buffer", "name": "BufferA" } } for BufferA. \
-Without this explicit input, the shader cannot read its previous frame and will be black.
-- "geometry": "quad" (fullscreen shader art), "box", "sphere", "plane" (3D)
-- "camera": REQUIRED for 3D geometry (box/sphere/plane). Without it the engine \
-skips camera uniform binding and nothing renders. Always include: \
-`"camera": { "position": [2, 1.5, 2], "target": [0, 0, 0], "fov": 60 }`
-- "animation": optional model rotation for 3D scenes
-- For simple shader art, just use "output" with no buffers
-- Image texture input: { "type": "image", "url": "/api/uploads/filename.png" } \
-— loads an uploaded image as a sampler2D texture
+The `script.render` field is REQUIRED. `script.setup` and `script.cleanup` are optional.
 
-## GLSL RULES (CRITICAL — WebGL2 ES 3.0)
+### ctx API
+
+Each script function receives a `ctx` object with these fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| ctx.gl | WebGL2RenderingContext | WebGL2 context |
+| ctx.canvas | HTMLCanvasElement | The canvas element |
+| ctx.state | object | Persistent state across frames (use this to store variables) |
+| ctx.time | float | Elapsed time in seconds (available in render) |
+| ctx.dt | float | Frame delta time (available in render) |
+| ctx.mouse | [x,y,cx,cy] | Mouse coords normalized 0-1 (available in render) |
+| ctx.mousePrev | [x,y,cx,cy] | Previous frame mouse (available in render) |
+| ctx.mouseDown | boolean | Mouse button pressed (available in render) |
+| ctx.resolution | [w,h] | Canvas size in pixels (available in render) |
+| ctx.frame | int | Frame counter (available in render) |
+| ctx.uniforms | object | Current UI slider values (available in render) |
+| ctx.keys | Set | Currently pressed key codes (available in render) |
+| ctx.utils | object | Utility functions (see below) |
+
+### ctx.utils — helper functions
+
+The engine exposes these utilities on `ctx.utils` for convenience:
+
+| Function | Description |
+|----------|-------------|
+| `ctx.utils.createProgram(vertSource, fragSource)` | Compile & link a WebGL program from GLSL sources |
+| `ctx.utils.compileShader(type, source)` | Compile a single shader (gl.VERTEX_SHADER or gl.FRAGMENT_SHADER) |
+| `ctx.utils.createQuadGeometry()` | Returns fullscreen quad positions (Float32Array, 6 verts, 2D) |
+| `ctx.utils.createBoxGeometry()` | Returns unit box with positions, normals, uvs (36 verts, 3D) |
+| `ctx.utils.createSphereGeometry(segments?)` | Returns UV sphere with indices (3D) |
+| `ctx.utils.createPlaneGeometry(w?, h?, wSegs?, hSegs?)` | Returns XZ plane with indices (3D) |
+| `ctx.utils.DEFAULT_QUAD_VERTEX_SHADER` | Default vertex shader for fullscreen quads |
+| `ctx.utils.DEFAULT_3D_VERTEX_SHADER` | Default vertex shader for 3D geometry |
+| `ctx.utils.uploadTexture(texture, source)` | Upload image/video/canvas to texture with Y-flip for GL |
+| `ctx.utils.loadImage(url)` | Load image → `Promise<{texture, width, height}>` (Y-flipped) |
+| `ctx.utils.initWebcam()` | Start webcam → `Promise<{video, texture, stream}>` |
+| `ctx.utils.updateVideoTexture(texture, video)` | Refresh webcam/video texture each frame (Y-flipped) |
+
+**Y-coordinate note**: All texture upload utilities automatically flip Y to match \
+GL coordinates (bottom-left origin). Mouse coordinates (`ctx.mouse`) are in \
+screen space (0,0 = top-left, 1,1 = bottom-right). If you need GL-space mouse Y, \
+use `1.0 - ctx.mouse[1]`.
+
+### Canvas 2D text rendering example
+
+```javascript
+// setup
+if (!ctx.state.canvas2d) {
+  ctx.state.canvas2d = document.createElement('canvas');
+  ctx.state.ctx2d = ctx.state.canvas2d.getContext('2d');
+  ctx.state.texture = ctx.gl.createTexture();
+}
+
+// render
+const c = ctx.state.canvas2d;
+const c2 = ctx.state.ctx2d;
+c.width = ctx.resolution[0];
+c.height = ctx.resolution[1];
+c2.clearRect(0, 0, c.width, c.height);
+c2.fillStyle = '#fff';
+c2.font = '48px monospace';
+c2.textAlign = 'center';
+c2.fillText('Hello World', c.width/2, c.height/2);
+
+// Upload to WebGL and draw
+const gl = ctx.gl;
+gl.bindTexture(gl.TEXTURE_2D, ctx.state.texture);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+// ... draw fullscreen quad with this texture
+```
+
+### GLSL rules (for shaders compiled via ctx.utils.createProgram)
 
 - Always start with: #version 300 es
 - Always include: precision highp float;
 - Fragment output: out vec4 fragColor; (NOT gl_FragColor)
 - Use in/out (NOT attribute/varying)
 - Use texture() NOT texture2D()
-- Built-in uniforms (auto-provided values, but you MUST declare them in GLSL \
-if you use them): u_time, u_resolution, u_mouse, u_mouse_prev, u_mouse_down, \
-u_mouse_down_prev, u_frame, u_dt
-- ALL built-in uniforms are float type. Declare them as: \
-`uniform float u_time;` `uniform vec2 u_resolution;` `uniform vec4 u_mouse;` \
-`uniform vec4 u_mouse_prev;` `uniform float u_mouse_down;` \
-`uniform float u_mouse_down_prev;` `uniform float u_frame;` `uniform float u_dt;` \
-NEVER declare u_frame as int — the engine sends all values as float.
-- u_resolution matches the ACTUAL render target size for each pass. \
-If a buffer uses resolution_scale (e.g. 0.25), u_resolution will be the \
-scaled buffer size, not the canvas size. `1.0/u_resolution.xy` gives correct \
-texel size for that pass. You can also use `textureSize(iChannel0, 0)` \
-to query input texture dimensions directly.
-- For 3D: u_mvp, u_model, u_camera_pos are auto-provided
-- Vertex attributes for quad: in vec2 a_position; (default vertex shader outputs v_uv)
-- Vertex attributes for 3D: in vec3 a_position; in vec3 a_normal; in vec2 a_uv;
-- Default quad vertex shader provides: out vec2 v_uv; (0-1 range UV coordinates)
-- Buffer sampling: use uniform sampler2D iChannel0; with texture(iChannel0, uv)
-- Do NOT list u_time, u_resolution, u_mouse, u_mouse_down, u_frame, u_dt, \
-or keyboard uniforms (u_key_*) in the "uniforms" field — they are auto-provided.
+- All built-in uniforms are float type
 
-## INSTANCING
-
-- Set "instance_count": N in the pass config to draw N instances
-- In VERTEX SHADER use gl_InstanceID (0 to N-1)
-- Engine provides: uniform int u_instance_count;
-- You MUST write a CUSTOM VERTEX SHADER when using instancing
-
-## PER-PASS RENDER STATE
-
-Each buffer or output pass can include optional render state fields \
-to unlock advanced rendering techniques. All fields are optional — \
-omit them to use sensible defaults.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| draw_mode | string | "triangles" | triangles, lines, points, line_strip, line_loop, triangle_strip, triangle_fan |
-| blend | object | disabled | {src, dst, equation} — enables blending |
-| depth | object | auto (3D=on, quad=off) | {test, write, func} |
-| cull | object | disabled | {enable, face} |
-| clear | object | clear all | {color, depth, color_value} |
-| texture_format | string | "rgba16f" | rgba8, rgba16f, rgba32f, r32f, rg16f, rg32f (buffers only) |
-
-## MULTIPASS PATTERNS
-
-- Blur: BufferA renders scene, output samples BufferA with offset UVs
-- Feedback: BufferA with double_buffer=true AND self-reference input \
-  ("inputs": {"iChannel0": {"type": "buffer", "name": "BufferA"}})
-- Simulation: BufferA stores state as color values with double_buffer=true + \
-  self-reference input, output visualizes it
-- IMPORTANT: double_buffer alone is NOT enough. The buffer's "inputs" MUST \
-  explicitly include itself for the engine to bind the previous frame texture.
-- Initialization: To initialize a simulation on the first frame, use \
-  `if (u_frame < 1.0)` (u_frame is float, not int). \
-  Or use `if (u_time < 0.05)` as a time-based alternative.
+### Script mode rules
+- Store ALL persistent state in `ctx.state` (not in closures or globals)
+- Create WebGL resources (shaders, buffers, textures) in `setup`
+- Clean up WebGL resources in `cleanup` (delete textures, buffers, programs)
+- The `render` function is called every frame — keep it efficient
+- You have full access to `ctx.gl` (WebGL2) — you can create shaders, \
+draw geometry, use Canvas 2D for text, etc.
+- For simple 2D drawing (text, shapes), create an offscreen Canvas 2D, \
+draw to it, then upload as a WebGL texture
 
 ## KEYBOARD & MOUSE INPUT
 
 The viewport accepts keyboard input when focused (user clicks the viewport).
 
-Add an "inputs" object at the top level of scene JSON:
-```json
-{
-  "inputs": {
-    "keyboard": {
-      "u_key_w": "KeyW",
-      "u_key_a": "KeyA",
-      "u_key_s": "KeyS",
-      "u_key_d": "KeyD",
-      "u_key_space": "Space"
-    }
-  }
-}
-```
+Keyboard: Check `ctx.keys.has("KeyW")` etc. in the render function.
 
 Common KeyboardEvent.code values:
 - Letters: "KeyA" ~ "KeyZ"
@@ -412,17 +245,13 @@ Common KeyboardEvent.code values:
 - Special: "Space", "ShiftLeft", "ControlLeft", "Enter", "Escape"
 - Digits: "Digit0" ~ "Digit9"
 
-In GLSL declare `uniform float u_key_w;` etc. Value is 1.0 when pressed, 0.0 when released.
-Keyboard uniforms must NOT be listed in the "uniforms" field (engine manages them automatically).
-
-Mouse: u_mouse is vec4(x, y, clickX, clickY), ALL values already normalized 0-1. \
-u_mouse_prev is vec4 with the PREVIOUS frame's mouse state (same format). \
-u_mouse_down is float (1.0=pressed). u_mouse_down_prev is the previous frame's press state. \
-Use `u_mouse.xy - u_mouse_prev.xy` to compute mouse velocity/delta per frame. \
-Use `u_mouse_down > 0.5 && u_mouse_down_prev < 0.5` to detect click start (rising edge).
-CRITICAL: u_mouse.xy is already in the SAME coordinate space as v_uv (0-1 normalized). \
-Do NOT divide u_mouse.xy by u_resolution — that would produce near-zero values and break positioning. \
-Use `u_mouse.xy` directly to compare with `v_uv` (e.g. `length(v_uv - u_mouse.xy)`).
+Mouse: ctx.mouse is [x, y, clickX, clickY], ALL values normalized 0-1 in screen space \
+(0,0 = top-left, 1,1 = bottom-right). \
+ctx.mousePrev is the PREVIOUS frame's mouse state (same format). \
+ctx.mouseDown is boolean (true=pressed). \
+Use `ctx.mouse[0] - ctx.mousePrev[0]` to compute mouse velocity/delta per frame. \
+CRITICAL: ctx.mouse values are already in 0-1 normalized coordinates. \
+Do NOT divide by resolution — that would produce near-zero values. \
 When using keyboard input, always tell the user: "Click the viewport to focus it for keyboard input."
 
 ## UI CONFIG FORMAT
@@ -440,7 +269,7 @@ When using keyboard input, always tell the user: "Click the viewport to focus it
       "default": 0.5
     }
   ],
-  "inspectable_buffers": ["BufferA"]
+  "inspectable_buffers": []
 }
 ```
 
@@ -450,7 +279,7 @@ Control types:
 - "toggle": needs default (boolean)
 - "button": one-shot trigger (uniform is set to 1.0 on click, auto-resets to 0.0 \
 after 100ms). Use for actions like "Reset", "Randomize", "Spawn". \
-In the shader, check `if (u_trigger > 0.5) { ... }` to detect the impulse.
+In the script, check `if (ctx.uniforms.u_trigger > 0.5) { ... }` to detect the impulse.
 - "dropdown": select from predefined options. Needs `options` (array of \
 `{label, value}` objects) and `default` (number matching one of the values). \
 Outputs a float. Example: `{"type":"dropdown","label":"Shape","uniform":"u_shape",\
@@ -460,12 +289,7 @@ Use for mode/type selection (blend mode, noise type, shape, etc.).
 - "pad2d": 2D XY pad for vec2 control. Needs `min` ([x,y]), `max` ([x,y]), \
 `default` ([x,y]). Outputs [x,y] as vec2. Example: `{"type":"pad2d",\
 "label":"Offset","uniform":"u_offset","min":[-1,-1],"max":[1,1],\
-"default":[0,0]}`. Use for position, offset, direction control. \
-CRITICAL: The pad2d control outputs a single vec2 uniform (e.g. `u_pan`). \
-In the GLSL shader you MUST declare it as `uniform vec2 u_pan;` and access \
-components via `u_pan.x`, `u_pan.y`. Do NOT create separate float uniforms \
-like `u_pan_x`, `u_pan_y` — those are different names and won't receive \
-the pad2d values.
+"default":[0,0]}`. Use for position, offset, direction control.
 - "separator": visual group header, no uniform. Needs only `label`. \
 Example: `{"type":"separator","label":"Color Settings"}`. \
 Use to organize controls into logical groups.
@@ -480,30 +304,7 @@ Example: `{"type":"rotation3d","label":"Camera","uniforms":["u_cam_pos_x",\
 "default":[2,1.5,2]}`. \
 Use instead of individual camera position sliders for 3D scenes.
 
-Do NOT create controls for auto-provided uniforms (u_time, u_resolution, etc.).
 Create intuitive labels (e.g. "Glow Intensity" not "u_glow").
-"inspectable_buffers" lists buffer names useful to inspect in separate viewports.
-
-## CAMERA CONTROLS (ALWAYS INCLUDE)
-
-Every scene MUST expose camera controls in the UI config so the user can \
-navigate the view interactively.
-
-- **2D** (geometry: "quad"): Add u_zoom (float) and u_pan (vec2) uniforms. \
-Use a "pad2d" control for u_pan — it outputs [x,y] as a vec2 which maps \
-directly to the uniform. Example pad2d control: `{"type":"pad2d",\
-"label":"Pan","uniform":"u_pan","min":[-1,-1],"max":[1,1],"default":[0,0]}`. \
-In the shader, declare `uniform vec2 u_pan;` and transform UVs: \
-`vec2 uv = (v_uv - 0.5) / u_zoom + 0.5 + u_pan;`
-- **3D** (geometry: "box"/"sphere"/"plane"): Declare u_cam_pos_x, u_cam_pos_y, \
-u_cam_pos_z, u_cam_target_x, u_cam_target_y, u_cam_target_z, u_cam_fov in \
-scene JSON "uniforms" and expose camera position as a single "rotation3d" \
-control (preferred) — it provides an intuitive 3D arcball widget for orbiting \
-the camera around the target. Example: `{"type":"rotation3d","label":"Camera",\
-"uniforms":["u_cam_pos_x","u_cam_pos_y","u_cam_pos_z"],"target":[0,0,0],\
-"distance":3.0,"default":[2,1.5,2]}`. \
-You may still add individual sliders for target position and FOV. \
-The engine reads u_cam_* uniforms automatically (do NOT declare them in GLSL).
 
 ## UPLOADED FILES
 
@@ -511,15 +312,12 @@ Users can upload files (images, 3D models, text files, etc.) to the chat. \
 When files are attached:
 
 - **Images** (PNG, JPG, GIF, WebP): You can see them directly via vision. \
-Describe what you see and suggest how to use the image in a shader \
+Describe what you see and suggest how to use the image \
 (as a texture, reference, color palette source, etc.). \
 The image is saved to the uploads directory and accessible at `/api/uploads/<filename>`. \
-To use an uploaded image as a shader texture, add it as an input: \
-`"inputs": { "iChannel0": { "type": "image", "url": "/api/uploads/<filename>" } }` \
-Then declare `uniform sampler2D iChannel0;` in the GLSL code and sample with `texture(iChannel0, uv)`.
+To use an uploaded image as a texture in a script, fetch it and create a WebGL texture.
 - **3D models** (OBJ, MTL): Use `read_uploaded_file` to read the file contents. \
-Analyze the geometry and suggest how to render it. You can write loader code \
-or convert it to shader-based rendering.
+Analyze the geometry and suggest how to render it.
 - **Other files**: Use `read_uploaded_file` to inspect the contents. \
 Provide analysis and suggest how to incorporate the data into visuals.
 
@@ -527,11 +325,73 @@ Available tools for uploads:
 - `list_uploaded_files`: See all uploaded files
 - `read_uploaded_file(filename)`: Read file contents (text) or metadata (binary)
 
-Uploaded files are served at `/api/uploads/<filename>` for use in shader inputs.
+Uploaded files are served at `/api/uploads/<filename>` for use in scripts.
+
+## PROCESSED FILE DERIVATIVES
+
+When files are uploaded, they are automatically preprocessed into WebGL-ready \
+derivatives. Use `list_uploaded_files` to see available derivatives for each file.
+
+### Font files (.ttf, .otf, .woff, .woff2)
+- `atlas.png`: Bitmap glyph atlas (48px, white glyphs on transparent background). \
+  Use as a texture with `atlas_metrics.json` UV coordinates to render text.
+- `atlas_metrics.json`: Per-glyph metrics including UV coordinates, advance widths, \
+  and bearings. Load via `read_uploaded_file` and use the `uv` array [u0, v0, u1, v1] \
+  to sample the correct glyph region from `atlas.png`.
+- `outlines.json`: Vector outlines as SVG path data for each glyph. \
+  Can be used for SDF text rendering or path-based effects.
+- `msdf_atlas.png` + `msdf_metrics.json`: MSDF atlas (if msdf-atlas-gen is installed). \
+  Provides resolution-independent text rendering.
+
+### SVG files (.svg)
+- `svg_data.json`: Parsed SVG structure with paths (d attribute), circles, rects, \
+  lines, polygons, and text elements. Use path `d` attributes for vector rendering \
+  in shaders, or extract coordinates for procedural effects.
+
+### Audio files (.mp3, .wav, .ogg, .flac)
+- `waveform.json`: Downsampled waveform (4096 samples). Load via \
+  `read_uploaded_file` and use the `samples` array for audio visualization.
+- `spectrogram.png`: Spectrogram image (1024x512). Use as a texture input for \
+  frequency-domain visualization.
+
+### Video files (.mp4, .webm, .mov)
+- `frame_NNN.png`: Uniformly sampled keyframes (up to 30, 512px max dimension). \
+  Use individual frames as texture inputs.
+- `video_metadata.json`: Duration, FPS, resolution, and frame timestamps.
+
+### 3D Model files (.obj, .gltf, .glb)
+- `geometry.json`: Vertex positions, normals, UVs, and indices as flat arrays. \
+  Load via `read_uploaded_file` and use the data to create WebGL vertex buffers.
+
+Derivatives are served at `/api/uploads/processed/<stem_ext>/<filename>`. \
+Example: for `myFont.ttf`, the atlas is at `/api/uploads/processed/myFont_ttf/atlas.png`.
+
+## WEBCAM INPUT
+
+Use `ctx.utils.initWebcam()` in setup to get a webcam stream. \
+Then call `ctx.utils.updateVideoTexture(texture, video)` each frame in render \
+to refresh the texture (Y-flip is handled automatically). Example:
+```javascript
+// setup
+ctx.utils.initWebcam().then(cam => { ctx.state.cam = cam; });
+
+// render
+if (ctx.state.cam) {
+  ctx.utils.updateVideoTexture(ctx.state.cam.texture, ctx.state.cam.video);
+  // bind ctx.state.cam.texture and draw
+}
+
+// cleanup
+if (ctx.state.cam) {
+  ctx.state.cam.stream.getTracks().forEach(t => t.stop());
+  ctx.gl.deleteTexture(ctx.state.cam.texture);
+}
+```
+Always tell the user that the browser will ask for camera permission.
 
 ## FILE ACCESS
 
-You can explore the project source code to understand the engine, existing shaders, \
+You can explore the project source code to understand the engine, existing code, \
 and UI components before generating code.
 
 - `list_files(path)`: List directory contents (project-wide, read-only)
@@ -539,7 +399,7 @@ and UI components before generating code.
 - `write_file(path, content)`: Write files (restricted to .workspace/ only)
 
 Paths are relative to the project root. Use these to understand \
-existing patterns before writing shaders.
+existing patterns before writing scripts.
 
 ## WORKFLOW
 
@@ -548,7 +408,7 @@ Then call `update_scene` with a complete scene JSON. Then call `update_ui_config
 with controls for any custom uniforms.
 
 2. **Modify existing visual**: Call `get_current_scene` to read the current scene. \
-Modify the JSON as needed (change shaders, uniforms, etc.). Call `update_scene` \
+Modify the JSON as needed (change script code, uniforms, etc.). Call `update_scene` \
 with the updated scene JSON. If uniforms changed, call `update_ui_config` too.
 
 3. **Explain / answer questions**: Just respond with text. No tool calls needed.
@@ -556,11 +416,10 @@ with the updated scene JSON. If uniforms changed, call `update_ui_config` too.
 4. **Review (ALWAYS do this after creating or modifying)**: \
 After `update_scene` succeeds, call `get_current_scene` one more time to read back \
 the saved result. Compare it against the user's original request and verify:
-   - Does the shader logic actually implement what the user asked for?
-   - Does the shader use u_time for animation? (If not, it's likely a bug — fix it)
+   - Does the script logic actually implement what the user asked for?
+   - Does the script use ctx.time for animation? (If not, it's likely a bug — fix it)
    - Are all requested visual elements present (colors, shapes, effects, animations)?
-   - Are buffer references and inputs wired correctly?
-   - Are custom uniforms declared in both the GLSL code and the "uniforms" field?
+   - Are custom uniforms used correctly from ctx.uniforms?
    - Do UI controls cover all user-adjustable parameters?
 If you find any mismatch or missing detail, fix it immediately by calling \
 `update_scene` / `update_ui_config` again. Briefly summarize what you verified \
@@ -568,19 +427,18 @@ in your final response to the user.
 
 ## RULES
 
-- **ALWAYS use u_time for animation.** This is a real-time rendering tool — \
+- **ALWAYS use ctx.time for animation.** This is a real-time rendering tool — \
 visuals should move, evolve, and feel alive. Unless the user explicitly asks for \
-a static image, every shader MUST incorporate u_time to create motion \
+a static image, every script MUST incorporate ctx.time to create motion \
 (e.g. animation, pulsing, rotation, color cycling, morphing, flowing, etc.). \
-A static shader is almost always wrong.
+A static scene is almost always wrong.
 - If `update_scene` returns validation errors, fix the issues and call it again.
-- Keep GLSL code clean. Use \\n for newlines inside JSON string values.
 - When modifying, preserve parts of the scene the user didn't ask to change.
 - Always respond in the SAME LANGUAGE the user is using.
 - For "create" requests, generate both the scene and UI config.
 - For small modifications that don't change uniforms, you may skip update_ui_config.
-- When vertex is null the engine uses a default vertex shader for the geometry type.
-- Custom uniforms go in the "uniforms" field of scene JSON.
+- Custom uniforms go in the "uniforms" field of scene JSON, and are accessed \
+in scripts via `ctx.uniforms.u_name`.
 """
 
 
@@ -667,7 +525,7 @@ TOOLS = [
         "name": "list_files",
         "description": (
             "List directory contents relative to the project root. "
-            "Useful for exploring the project structure (source code, shaders, etc.). "
+            "Useful for exploring the project structure (source code, etc.). "
             "Directories show a trailing /, files show their size."
         ),
         "input_schema": {
@@ -685,7 +543,7 @@ TOOLS = [
         "description": (
             "Read a project file by relative path. Returns file contents for text files "
             "(up to 50KB), or metadata for binary files. Use this to understand existing "
-            "code, shaders, and engine internals before generating new code."
+            "code, engine internals, and patterns before generating new code."
         ),
         "input_schema": {
             "type": "object",
@@ -758,30 +616,12 @@ async def _handle_tool(
 
         workspace.write_json("scene.json", scene)
 
-        q = _ensure_compile_queue()
-        while not q.empty():
-            try:
-                q.get_nowait()
-            except asyncio.QueueEmpty:
-                break
-
         await broadcast({
             "type": "scene_update",
             "scene_json": scene,
         })
 
-        try:
-            result = await asyncio.wait_for(q.get(), timeout=5.0)
-            if not result.get("success", True):
-                error_msg = result.get("error", "Unknown WebGL compile error")
-                return (
-                    f"WebGL shader compile error from browser:\n{error_msg}\n\n"
-                    "Fix the GLSL code and call update_scene again."
-                )
-        except asyncio.TimeoutError:
-            pass
-
-        return "ok — scene saved, broadcast, and compiled successfully."
+        return "ok — script mode scene saved and broadcast."
 
     elif name == "update_ui_config":
         raw = input_data.get("ui_config", "")
@@ -821,9 +661,9 @@ async def _handle_tool(
                 content = workspace.read_upload_text(filename)
                 if len(content) > 50000:
                     content = content[:50000] + "\n... (truncated)"
-                return f"File: {filename} ({info['size']} bytes, {mime})\n\n{content}"
+                result_text = f"File: {filename} ({info['size']} bytes, {mime})\n\n{content}"
             else:
-                return (
+                result_text = (
                     f"Binary file: {filename}\n"
                     f"Size: {info['size']} bytes\n"
                     f"MIME type: {mime}\n"
@@ -831,6 +671,24 @@ async def _handle_tool(
                     f"If it's an image, the user may have sent it via vision (check the conversation).\n"
                     f"The file is accessible at: /api/uploads/{filename}"
                 )
+
+            # Append processed derivatives info
+            manifest = workspace.read_processed_manifest(filename)
+            if manifest:
+                proc_name = manifest.get("processor_name", "Unknown")
+                status = manifest.get("status", "unknown")
+                stem = workspace.get_processed_dir(filename).name
+                result_text += f"\n\n--- Processed Derivatives ---\n"
+                result_text += f"Processor: {proc_name} ({status})\n"
+                for out in manifest.get("outputs", []):
+                    out_url = f"/api/uploads/processed/{stem}/{out['filename']}"
+                    result_text += f"- {out['filename']}: {out['description']}\n"
+                    result_text += f"  URL: {out_url}\n"
+                meta = manifest.get("metadata", {})
+                if meta:
+                    result_text += f"Metadata: {json.dumps(meta)}\n"
+
+            return result_text
         except FileNotFoundError:
             return f"File not found: {filename}"
 
@@ -838,11 +696,28 @@ async def _handle_tool(
         files = workspace.list_uploads()
         if not files:
             return "No files have been uploaded yet."
+        # Filter out processed/ subdirectory files from the main listing
+        main_files = [f for f in files if not f.startswith("processed/")]
+        if not main_files:
+            return "No files have been uploaded yet."
         info_lines = []
-        for f in files:
+        for f in main_files:
             try:
                 info = workspace.get_upload_info(f)
-                info_lines.append(f"- {f} ({info['size']} bytes, {info['mime_type']})")
+                line = f"- {f} ({info['size']} bytes, {info['mime_type']})"
+
+                # Check for processed derivatives
+                manifest = workspace.read_processed_manifest(f)
+                if manifest:
+                    proc_name = manifest.get("processor_name", "Unknown")
+                    status = manifest.get("status", "unknown")
+                    line += f"\n  Processed by: {proc_name} ({status})"
+                    stem = workspace.get_processed_dir(f).name
+                    for out in manifest.get("outputs", []):
+                        out_url = f"/api/uploads/processed/{stem}/{out['filename']}"
+                        line += f"\n    - {out['filename']}: {out['description']} ({out_url})"
+
+                info_lines.append(line)
             except FileNotFoundError:
                 info_lines.append(f"- {f} (info unavailable)")
         return "Uploaded files:\n" + "\n".join(info_lines)

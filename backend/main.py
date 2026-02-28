@@ -26,30 +26,58 @@ import projects
 
 DEFAULT_SCENE_JSON = {
     "version": 1,
-    "mode": "fullscreen",
-    "clearColor": [0.08, 0.08, 0.12, 1.0],
-    "buffers": {},
-    "output": {
-        "fragment": (
-            "#version 300 es\n"
+    "render_mode": "script",
+    "script": {
+        "setup": (
+            "const gl = ctx.gl;\n"
+            "const prog = ctx.utils.createProgram(\n"
+            "  ctx.utils.DEFAULT_QUAD_VERTEX_SHADER,\n"
+            "  `#version 300 es\n"
             "precision highp float;\n"
             "in vec2 v_uv;\n"
             "uniform float u_time;\n"
-            "uniform vec2 u_resolution;\n"
             "out vec4 fragColor;\n"
             "void main() {\n"
             "  vec2 uv = v_uv;\n"
             "  vec3 col = 0.5 + 0.5 * cos(u_time + uv.xyx + vec3(0.0, 2.0, 4.0));\n"
             "  fragColor = vec4(col, 1.0);\n"
             "}\n"
+            "`);\n"
+            "const quad = ctx.utils.createQuadGeometry();\n"
+            "const vao = gl.createVertexArray();\n"
+            "gl.bindVertexArray(vao);\n"
+            "const buf = gl.createBuffer();\n"
+            "gl.bindBuffer(gl.ARRAY_BUFFER, buf);\n"
+            "gl.bufferData(gl.ARRAY_BUFFER, quad.positions, gl.STATIC_DRAW);\n"
+            "const loc = gl.getAttribLocation(prog, 'a_position');\n"
+            "gl.enableVertexAttribArray(loc);\n"
+            "gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);\n"
+            "gl.bindVertexArray(null);\n"
+            "ctx.state.prog = prog;\n"
+            "ctx.state.vao = vao;\n"
+            "ctx.state.buf = buf;\n"
         ),
-        "vertex": None,
-        "geometry": "quad",
-        "inputs": {},
+        "render": (
+            "const gl = ctx.gl;\n"
+            "gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);\n"
+            "gl.clearColor(0.08, 0.08, 0.12, 1.0);\n"
+            "gl.clear(gl.COLOR_BUFFER_BIT);\n"
+            "gl.useProgram(ctx.state.prog);\n"
+            "const tLoc = gl.getUniformLocation(ctx.state.prog, 'u_time');\n"
+            "if (tLoc) gl.uniform1f(tLoc, ctx.time);\n"
+            "gl.bindVertexArray(ctx.state.vao);\n"
+            "gl.drawArrays(gl.TRIANGLES, 0, 6);\n"
+            "gl.bindVertexArray(null);\n"
+        ),
+        "cleanup": (
+            "const gl = ctx.gl;\n"
+            "gl.deleteProgram(ctx.state.prog);\n"
+            "gl.deleteVertexArray(ctx.state.vao);\n"
+            "gl.deleteBuffer(ctx.state.buf);\n"
+        ),
     },
     "uniforms": {},
-    "camera": None,
-    "animation": None,
+    "clearColor": [0.08, 0.08, 0.12, 1.0],
 }
 
 DEFAULT_UI_CONFIG = {"controls": [], "inspectable_buffers": []}
@@ -277,6 +305,51 @@ def _process_uploads(raw_files: list[dict]) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Asset processing pipeline
+# ---------------------------------------------------------------------------
+
+async def _process_uploaded_files(saved_files: list[dict], broadcast):
+    """Run asset processing pipeline for uploaded files in the background."""
+    from processors import run_pipeline
+
+    for f in saved_files:
+        source_path = workspace._safe_upload_path(f["name"])
+        output_dir = workspace.get_processed_dir(f["name"])
+
+        async def on_status(status: str, detail: str):
+            await broadcast({
+                "type": "processing_status",
+                "filename": f["name"],
+                "status": status,
+                "detail": detail,
+            })
+
+        try:
+            result = await run_pipeline(source_path, output_dir, f["name"], on_status)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            continue
+
+        if result and result.status in ("success", "partial"):
+            stem = workspace.get_processed_dir(f["name"]).name
+            await broadcast({
+                "type": "processing_complete",
+                "filename": f["name"],
+                "processor": result.processor_name,
+                "outputs": [
+                    {
+                        "filename": o.filename,
+                        "description": o.description,
+                        "url": f"/api/uploads/processed/{stem}/{o.filename}",
+                    }
+                    for o in result.outputs
+                ],
+                "metadata": result.metadata,
+            })
+
+
+# ---------------------------------------------------------------------------
 # WebSocket endpoint
 # ---------------------------------------------------------------------------
 
@@ -358,6 +431,12 @@ async def websocket_endpoint(ws: WebSocket):
                             "level": "error",
                         }))
                         continue
+
+                # Launch background asset processing for uploaded files
+                if saved_files:
+                    asyncio.create_task(
+                        _process_uploaded_files(saved_files, manager.broadcast)
+                    )
 
                 history_entry = {"role": "user", "text": user_prompt}
                 if saved_files:
@@ -547,9 +626,6 @@ async def websocket_endpoint(ws: WebSocket):
                         "type": "project_delete_error",
                         "error": str(e),
                     }))
-
-            elif msg_type == "shader_compile_result":
-                await agents.notify_shader_compile_result(msg)
 
             elif msg_type == "request_state":
                 try:

@@ -3,7 +3,7 @@ import { NodeResizer } from "@xyflow/react";
 import GLEngine from "../engine/GLEngine.js";
 
 export default function ViewportNode({ data }) {
-  const { sceneJSON, engineRef, onError, onSceneLoadResult, paused } = data;
+  const { sceneJSON, engineRef, onError, paused } = data;
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const engineInternalRef = useRef(null);
@@ -59,11 +59,9 @@ export default function ViewportNode({ data }) {
     try {
       setError(null);
       engine.loadScene(sceneJSON);
-      onSceneLoadResult?.({ success: true });
     } catch (err) {
       console.error("[ViewportNode] loadScene error:", err);
       setError(err.message || String(err));
-      onSceneLoadResult?.({ success: false, error: err.message || String(err) });
     }
   }, [sceneJSON]);
 
@@ -99,7 +97,7 @@ export default function ViewportNode({ data }) {
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
     const x = (e.clientX - rect.left) / rect.width;
-    const y = 1.0 - (e.clientY - rect.top) / rect.height;
+    const y = (e.clientY - rect.top) / rect.height;
     engine.updateMouse(x, y, e.buttons > 0);
   }, []);
 
@@ -109,7 +107,7 @@ export default function ViewportNode({ data }) {
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
     const x = (e.clientX - rect.left) / rect.width;
-    const y = 1.0 - (e.clientY - rect.top) / rect.height;
+    const y = (e.clientY - rect.top) / rect.height;
     engine.updateMouse(x, y, true);
     containerRef.current?.focus();
   }, []);
@@ -120,7 +118,7 @@ export default function ViewportNode({ data }) {
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
     const x = (e.clientX - rect.left) / rect.width;
-    const y = 1.0 - (e.clientY - rect.top) / rect.height;
+    const y = (e.clientY - rect.top) / rect.height;
     engine.updateMouse(x, y, false);
   }, []);
 
