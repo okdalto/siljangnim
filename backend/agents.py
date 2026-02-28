@@ -1484,6 +1484,35 @@ async def run_agent(
                         break
                     continue
                 raise
+            except (anthropic.APIConnectionError, anthropic.APITimeoutError, anthropic.APIStatusError) as e:
+                # Connection dropped mid-stream or server error (5xx)
+                if isinstance(e, anthropic.APIStatusError) and e.status_code < 500:
+                    raise  # only retry server errors, not client errors
+                compact_retries += 1
+                if compact_retries > _MAX_COMPACT_RETRIES:
+                    await log("System", f"API error after retries: {e}", "error")
+                    raise
+                await log("System", f"Connection interrupted — retrying ({compact_retries}/{_MAX_COMPACT_RETRIES})...", "info")
+                if on_status:
+                    await on_status("thinking", "Connection lost, retrying...")
+                import asyncio as _asyncio
+                await _asyncio.sleep(2)
+                continue
+            except Exception as e:
+                # Catch transient connection errors (e.g. httpx.RemoteProtocolError)
+                err_str = str(e).lower()
+                if any(k in err_str for k in ("incomplete chunked", "connection", "reset by peer", "timed out")):
+                    compact_retries += 1
+                    if compact_retries > _MAX_COMPACT_RETRIES:
+                        await log("System", f"Connection error after retries: {e}", "error")
+                        raise
+                    await log("System", f"Connection interrupted — retrying ({compact_retries}/{_MAX_COMPACT_RETRIES})...", "info")
+                    if on_status:
+                        await on_status("thinking", "Connection lost, retrying...")
+                    import asyncio as _asyncio
+                    await _asyncio.sleep(2)
+                    continue
+                raise
 
             # Process completed response blocks (text, tool_use logging)
             for block in response.content:
