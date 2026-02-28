@@ -13,12 +13,15 @@ import useNodeSnapping from "./hooks/useNodeSnapping.js";
 import EngineContext from "./contexts/EngineContext.js";
 import ChatNode from "./nodes/ChatNode.jsx";
 import InspectorNode from "./nodes/InspectorNode.jsx";
+import CameraNode from "./nodes/CameraNode.jsx";
+import Pad2dNode from "./nodes/Pad2dNode.jsx";
 import ViewportNode from "./nodes/ViewportNode.jsx";
 import DebugLogNode from "./nodes/DebugLogNode.jsx";
 import ProjectBrowserNode from "./nodes/ProjectBrowserNode.jsx";
 import BufferViewportNode from "./nodes/BufferViewportNode.jsx";
 import ApiKeyModal from "./components/ApiKeyModal.jsx";
 import Toolbar from "./components/Toolbar.jsx";
+import Timeline from "./components/Timeline.jsx";
 import SnapGuides from "./components/SnapGuides.jsx";
 
 const nodeTypes = {
@@ -28,6 +31,8 @@ const nodeTypes = {
   debugLog: DebugLogNode,
   projectBrowser: ProjectBrowserNode,
   bufferViewport: BufferViewportNode,
+  camera: CameraNode,
+  pad2d: Pad2dNode,
 };
 
 const WS_URL = import.meta.env.DEV
@@ -47,28 +52,28 @@ const initialNodes = [
   {
     id: "chat",
     type: "chat",
-    position: { x: 50, y: 50 },
+    position: { x: 50, y: 550 },
     style: { width: 320, height: 380 },
     data: { messages: [], onSend: () => { } },
   },
   {
     id: "inspector",
     type: "inspector",
-    position: { x: 50, y: 450 },
-    style: { width: 320, height: 300 },
+    position: { x: 400, y: 550 },
+    style: { width: 320, height: 380 },
     data: { controls: [], bufferNames: [], onUniformChange: () => { }, onOpenBufferViewport: () => { } },
   },
   {
     id: "viewport",
     type: "viewport",
-    position: { x: 400, y: 50 },
-    style: { width: 640, height: 480 },
+    position: { x: 50, y: 50 },
+    style: { width: 670, height: 480 },
     data: { sceneJSON: null, engineRef: null, paused: false },
   },
   {
     id: "debugLog",
     type: "debugLog",
-    position: { x: 50, y: 770 },
+    position: { x: 750, y: 50 },
     style: { width: 320, height: 300 },
     data: { logs: [] },
   },
@@ -76,7 +81,7 @@ const initialNodes = [
     id: "projectBrowser",
     type: "projectBrowser",
     position: { x: 1080, y: 50 },
-    style: { width: 288, height: 320 },
+    style: { width: 288, height: 300 },
     data: { projects: [], activeProject: null, onSave: () => { }, onLoad: () => { }, onDelete: () => { } },
   },
 ];
@@ -93,6 +98,21 @@ export default function App() {
   const [sceneJSON, setSceneJSON] = useState(null);
   const [uiConfig, setUiConfig] = useState({ controls: [], inspectable_buffers: [] });
   const [paused, setPaused] = useState(false);
+  const [duration, setDuration] = useState(30);
+  const [loop, setLoop] = useState(true);
+
+  // Spacebar toggle pause (ignore when typing in inputs)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code !== "Space") return;
+      const tag = e.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable) return;
+      e.preventDefault();
+      setPaused((p) => !p);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Engine ref (shared via EngineContext and node data)
   const engineRef = useRef(null);
@@ -111,6 +131,7 @@ export default function App() {
 
   // Agent processing state
   const [isProcessing, setIsProcessing] = useState(false);
+  const [agentStatus, setAgentStatus] = useState(null); // {status, detail}
 
   // Buffer viewport tracking
   const [openBufferViewports, setOpenBufferViewports] = useState([]);
@@ -124,6 +145,8 @@ export default function App() {
         if (msg.scene_json) setSceneJSON(msg.scene_json);
         if (msg.ui_config) setUiConfig(msg.ui_config);
         if (msg.projects) setProjectList(msg.projects);
+        if (msg.chat_history?.length) setMessages(msg.chat_history);
+        setIsProcessing(!!msg.is_processing);
         break;
 
       case "assistant_text":
@@ -132,6 +155,11 @@ export default function App() {
 
       case "chat_done":
         setIsProcessing(false);
+        setAgentStatus(null);
+        break;
+
+      case "agent_status":
+        setAgentStatus({ status: msg.status, detail: msg.detail });
         break;
 
       case "scene_update":
@@ -345,14 +373,17 @@ export default function App() {
     });
   }, [openBufferViewports, handleCloseBufferViewport, setNodes]);
 
-  // Sync data into nodes
+  // Sync data into nodes (including dynamic camera node creation/removal)
   useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) => {
+    const rot3dCtrl = (uiConfig.controls || []).find((c) => c.type === "rotation3d");
+    const pad2dCtrls = (uiConfig.controls || []).filter((c) => c.type === "pad2d");
+
+    setNodes((nds) => {
+      let updated = nds.map((node) => {
         if (node.id === "chat") {
           return {
             ...node,
-            data: { ...node.data, messages, onSend: handleSend, isProcessing, onNewChat: handleNewChat },
+            data: { ...node.data, messages, onSend: handleSend, isProcessing, agentStatus, onNewChat: handleNewChat },
           };
         }
         if (node.id === "inspector") {
@@ -402,20 +433,86 @@ export default function App() {
             },
           };
         }
+        if (node.id === "camera") {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              ctrl: rot3dCtrl,
+              onUniformChange: handleUniformChange,
+            },
+          };
+        }
+        if (node.type === "pad2d") {
+          const ctrl = pad2dCtrls.find((c) => `pad2d_${c.uniform}` === node.id);
+          return {
+            ...node,
+            data: { ...node.data, ctrl, onUniformChange: handleUniformChange },
+          };
+        }
         return node;
-      })
-    );
-  }, [messages, handleSend, isProcessing, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, handleOpenBufferViewport, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleCloseBufferViewport, handleShaderError, handleSceneLoadResult, setNodes]);
+      });
+
+      // Add camera node if rotation3d control exists but node doesn't
+      const hasCamera = updated.some((n) => n.id === "camera");
+      if (rot3dCtrl && !hasCamera) {
+        updated = [
+          ...updated,
+          {
+            id: "camera",
+            type: "camera",
+            position: { x: 1080, y: 400 },
+            style: { width: 240, height: 280 },
+            data: { ctrl: rot3dCtrl, onUniformChange: handleUniformChange },
+          },
+        ];
+      }
+      // Remove camera node if no rotation3d control
+      if (!rot3dCtrl && hasCamera) {
+        updated = updated.filter((n) => n.id !== "camera");
+      }
+
+      // Add pad2d nodes for each pad2d control that doesn't have a node yet
+      const pad2dIds = new Set(pad2dCtrls.map((c) => `pad2d_${c.uniform}`));
+      for (const ctrl of pad2dCtrls) {
+        const nodeId = `pad2d_${ctrl.uniform}`;
+        if (!updated.some((n) => n.id === nodeId)) {
+          updated = [
+            ...updated,
+            {
+              id: nodeId,
+              type: "pad2d",
+              position: { x: 1080, y: 700 },
+              style: { width: 220, height: 260 },
+              data: { ctrl, onUniformChange: handleUniformChange },
+            },
+          ];
+        }
+      }
+      // Remove pad2d nodes whose controls no longer exist
+      updated = updated.filter((n) => n.type !== "pad2d" || pad2dIds.has(n.id));
+
+      return updated;
+    });
+  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, handleOpenBufferViewport, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleCloseBufferViewport, handleShaderError, handleSceneLoadResult, setNodes]);
 
   return (
     <EngineContext.Provider value={engineRef}>
-      <div className="w-screen h-screen pt-10">
+      <div className="w-screen h-screen pt-10 pb-10">
         <Toolbar
           onNewProject={handleNewProject}
-          onTogglePause={handleTogglePause}
-          paused={paused}
           activeProject={activeProject}
           connected={connected}
+        />
+        <Timeline
+          paused={paused}
+          onTogglePause={handleTogglePause}
+          onPause={() => setPaused(true)}
+          engineRef={engineRef}
+          duration={duration}
+          onDurationChange={setDuration}
+          loop={loop}
+          onLoopChange={setLoop}
         />
 
         {apiKeyRequired && (
@@ -432,6 +529,7 @@ export default function App() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
+          deleteKeyCode={null}
           fitView
           minZoom={0.1}
           maxZoom={4}

@@ -47,14 +47,22 @@ export default function ChatNode({ data }) {
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const { messages = [], onSend, isProcessing = false, onNewChat } = data;
+  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat } = data;
   const messagesEndRef = useRef(null);
   const messagesRef = useRef(null);
   const fileInputRef = useRef(null);
+  const thinkingRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Auto-scroll thinking detail to bottom as new content arrives
+  useEffect(() => {
+    if (thinkingRef.current) {
+      thinkingRef.current.scrollTop = thinkingRef.current.scrollHeight;
+    }
+  }, [agentStatus?.detail]);
 
   useEffect(() => {
     const el = messagesRef.current;
@@ -235,13 +243,26 @@ export default function ChatNode({ data }) {
           </div>
         ))}
         {isProcessing && (
-          <div className="px-3 py-2 rounded-lg max-w-[90%] bg-zinc-800 text-zinc-500 flex items-center gap-1.5">
-            <span className="flex gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:0ms]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:150ms]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:300ms]" />
-            </span>
-            <span className="italic text-sm">Thinking</span>
+          <div className="px-3 py-2 rounded-lg max-w-[90%] bg-zinc-800 text-zinc-500">
+            <div className="flex items-center gap-1.5">
+              <span className="flex gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:0ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:300ms]" />
+              </span>
+              <span className="italic text-sm">
+                {agentStatus?.status === "tool_use"
+                  ? `Calling ${agentStatus.detail}...`
+                  : agentStatus?.status === "thinking"
+                  ? "Thinking..."
+                  : "Thinking"}
+              </span>
+            </div>
+            {agentStatus?.status === "thinking" && agentStatus.detail && (
+              <p ref={thinkingRef} className="mt-1.5 text-xs text-zinc-600 italic leading-relaxed max-h-24 overflow-y-auto">
+                {agentStatus.detail}
+              </p>
+            )}
           </div>
         )}
         <div ref={messagesEndRef} />

@@ -61,7 +61,8 @@ DEFAULT_UI_CONFIG = {"controls": [], "inspectable_buffers": []}
 
 _api_key: str | None = None
 _chat_history: list[dict] = []
-_agent_busy: dict[int, bool] = {}  # ws_id → busy flag
+_global_agent_busy: bool = False  # any agent running?
+_AGENT_WS_ID = 0  # fixed conversation key (single-user app)
 
 
 @asynccontextmanager
@@ -157,6 +158,77 @@ async def project_thumbnail(name: str):
         return Response(status_code=404)
 
 
+# ---------------------------------------------------------------------------
+# Debug / Admin endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/api/debug/state")
+async def debug_state():
+    """Server-wide state summary for debugging."""
+    conversations = agents.get_debug_conversations()
+    return {
+        "api_key_set": _api_key is not None,
+        "global_agent_busy": _global_agent_busy,
+        "active_connections": len(manager.active),
+        "agent_ws_id": _AGENT_WS_ID,
+        "chat_history_length": len(_chat_history),
+        "conversation_count": len(conversations),
+        "conversation_lengths": {str(k): len(v) for k, v in conversations.items()},
+        "workspace_files": workspace.list_files(),
+        "uploads": workspace.list_uploads(),
+    }
+
+
+@app.get("/api/debug/chat-history")
+async def debug_chat_history():
+    """Return the full chat history."""
+    return {
+        "count": len(_chat_history),
+        "messages": _chat_history,
+    }
+
+
+@app.get("/api/debug/conversations")
+async def debug_conversations():
+    """Return all agent conversation histories (truncated)."""
+    conversations = agents.get_debug_conversations()
+    return {
+        "count": len(conversations),
+        "conversations": {str(k): v for k, v in conversations.items()},
+    }
+
+
+@app.get("/api/debug/conversations/{ws_id}")
+async def debug_conversation(ws_id: int):
+    """Return a specific WebSocket's full conversation history."""
+    convs = agents.get_debug_conversations(max_content_len=10000)
+    if ws_id not in convs:
+        return {"error": "not found", "available_ws_ids": [str(k) for k in convs]}
+    return {
+        "ws_id": str(ws_id),
+        "message_count": len(convs[ws_id]),
+        "messages": convs[ws_id],
+    }
+
+
+@app.get("/api/debug/scene")
+async def debug_scene():
+    """Return the current scene.json content."""
+    try:
+        return workspace.read_json("scene.json")
+    except FileNotFoundError:
+        return {"error": "no scene.json"}
+
+
+@app.get("/api/debug/ui-config")
+async def debug_ui_config():
+    """Return the current ui_config.json content."""
+    try:
+        return workspace.read_json("ui_config.json")
+    except FileNotFoundError:
+        return {"error": "no ui_config.json"}
+
+
 @app.get("/api/uploads/{filename:path}")
 async def get_upload(filename: str):
     """Serve an uploaded file (textures, models, etc.)."""
@@ -210,7 +282,7 @@ def _process_uploads(raw_files: list[dict]) -> list[dict]:
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
-    global _api_key
+    global _api_key, _global_agent_busy
     await manager.connect(ws)
 
     # Send initial state
@@ -229,6 +301,8 @@ async def websocket_endpoint(ws: WebSocket):
         "scene_json": scene_json,
         "ui_config": ui_config,
         "projects": projects.list_projects(),
+        "is_processing": _global_agent_busy,
+        "chat_history": _chat_history,
     }))
 
     if not _api_key:
@@ -258,10 +332,8 @@ async def websocket_endpoint(ws: WebSocket):
                     await ws.send_text(json.dumps({"type": "api_key_required"}))
                     continue
 
-                ws_id = id(ws)
-
-                # Prevent concurrent agent runs on the same connection
-                if _agent_busy.get(ws_id):
+                # Prevent concurrent agent runs
+                if _global_agent_busy:
                     await ws.send_text(json.dumps({
                         "type": "agent_log",
                         "agent": "System",
@@ -303,52 +375,56 @@ async def websocket_endpoint(ws: WebSocket):
                         "level": level,
                     })
 
-                async def send_to_client(msg: dict):
-                    try:
-                        await ws.send_text(json.dumps(msg))
-                    except Exception:
-                        pass
-
                 async def on_text(text: str):
                     _chat_history.append({"role": "assistant", "text": text})
-                    await send_to_client({"type": "assistant_text", "text": text})
+                    await manager.broadcast({"type": "assistant_text", "text": text})
 
-                _agent_busy[ws_id] = True
+                async def on_status(status_type: str, detail: str):
+                    await manager.broadcast({
+                        "type": "agent_status",
+                        "status": status_type,
+                        "detail": detail,
+                    })
+
+                _global_agent_busy = True
 
                 async def _run_agent_task(
-                    _ws_id=ws_id,
                     _user_prompt=user_prompt,
                     _log=log_callback,
                     _on_text=on_text,
-                    _send=send_to_client,
+                    _on_status=on_status,
                     _files=saved_files,
                 ):
+                    global _global_agent_busy
                     try:
                         await agents.run_agent(
-                            ws_id=_ws_id,
+                            ws_id=_AGENT_WS_ID,
                             user_prompt=_user_prompt,
                             log=_log,
                             broadcast=manager.broadcast,
                             on_text=_on_text,
+                            on_status=_on_status,
                             files=_files,
                         )
 
-                        await _send({"type": "chat_done"})
+                        await manager.broadcast({"type": "chat_done"})
 
                     except Exception as e:
+                        import traceback
+                        traceback.print_exc()
                         await manager.broadcast({
                             "type": "agent_log",
                             "agent": "System",
                             "message": f"Agent error: {e}",
                             "level": "error",
                         })
-                        await _send({
+                        await manager.broadcast({
                             "type": "assistant_text",
                             "text": f"Error: {e}",
                         })
-                        await _send({"type": "chat_done"})
+                        await manager.broadcast({"type": "chat_done"})
                     finally:
-                        _agent_busy.pop(_ws_id, None)
+                        _global_agent_busy = False
 
                 asyncio.create_task(_run_agent_task())
 
@@ -378,7 +454,7 @@ async def websocket_endpoint(ws: WebSocket):
 
             elif msg_type == "new_chat":
                 _chat_history.clear()
-                await agents.reset_agent(id(ws))
+                await agents.reset_agent(_AGENT_WS_ID)
                 await ws.send_text(json.dumps({
                     "type": "agent_log",
                     "agent": "System",
@@ -389,7 +465,7 @@ async def websocket_endpoint(ws: WebSocket):
             elif msg_type == "new_project":
                 # 1. Clear chat history and agent session
                 _chat_history.clear()
-                await agents.reset_agent(id(ws))
+                await agents.reset_agent(_AGENT_WS_ID)
 
                 # 2. Reset workspace files to defaults
                 workspace.write_json("scene.json", DEFAULT_SCENE_JSON)
@@ -493,5 +569,3 @@ async def websocket_endpoint(ws: WebSocket):
             manager.disconnect(ws)
         except ValueError:
             pass
-        await agents.destroy_client(id(ws))
-        _agent_busy.pop(id(ws), None)

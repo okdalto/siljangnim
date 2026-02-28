@@ -58,9 +58,18 @@ export default class GLEngine {
     this._renderOrder = [];  // topologically sorted pass names
     this._customUniforms = {};
     this._mouse = [0, 0, 0, 0]; // x, y, clickX, clickY (normalized)
+    this._mouseDown = false;
+    this._pressedKeys = new Set();
+    this._keyboardBindings = {}; // uniform name → KeyboardEvent.code
 
     // Image textures
     this._imageTextures = {}; // url -> { texture, loaded }
+
+    // Timeline
+    this._duration = 0;      // 0 = infinite (no loop)
+    this._loop = true;       // true = loop, false = stop at end
+    this.onTime = null;      // callback(currentTime) — called every frame
+    this.onTimelineEnd = null; // callback() — called when non-loop playback reaches end
 
     // Error state
     this.onError = null;     // callback(error)
@@ -95,6 +104,7 @@ export default class GLEngine {
     const newPingPong = {};
     let newRenderOrder = [];
     const newUniforms = {};
+    let newKeyboardBindings = {};
 
     try {
       const buffers = sceneJSON.buffers || {};
@@ -129,6 +139,12 @@ export default class GLEngine {
         }
       }
 
+      // Parse keyboard bindings
+      const kb = sceneJSON.inputs?.keyboard;
+      if (kb && typeof kb === "object") {
+        newKeyboardBindings = { ...kb };
+      }
+
     } catch (err) {
       // Cleanup partially created new resources
       for (const prog of Object.values(newPrograms)) gl.deleteProgram(prog);
@@ -158,6 +174,8 @@ export default class GLEngine {
     this._pingPong = newPingPong;
     this._renderOrder = newRenderOrder;
     this._customUniforms = newUniforms;
+    this._keyboardBindings = newKeyboardBindings;
+    this._pressedKeys.clear();
     this._frameCount = 0;
   }
 
@@ -342,16 +360,58 @@ export default class GLEngine {
     return this._paused;
   }
 
+  getCurrentTime() {
+    if (this._paused) {
+      return this._pauseStart - this._startTime - this._pausedTime;
+    }
+    return (performance.now() / 1000) - this._startTime - this._pausedTime;
+  }
+
+  seekTo(targetTime) {
+    const now = performance.now() / 1000;
+    if (this._paused) {
+      // Adjust _startTime so that getCurrentTime() returns targetTime
+      this._startTime = this._pauseStart - this._pausedTime - targetTime;
+    } else {
+      this._startTime = now - this._pausedTime - targetTime;
+    }
+  }
+
+  setDuration(d) {
+    this._duration = d;
+  }
+
+  setLoop(loop) {
+    this._loop = loop;
+  }
+
   _renderLoop() {
     if (!this._running) return;
     this._rafId = requestAnimationFrame(() => this._renderLoop());
 
+    // Always report current time (for timeline UI even when paused)
+    this.onTime?.(this.getCurrentTime());
+
     if (this._paused) return;
 
     const now = performance.now() / 1000;
-    const time = now - this._startTime - this._pausedTime;
     const dt = now - this._lastFrameTime;
     this._lastFrameTime = now;
+
+    let time = now - this._startTime - this._pausedTime;
+
+    // Duration boundary
+    if (this._duration > 0 && time >= this._duration) {
+      if (this._loop) {
+        this.seekTo(0);
+        time = this.getCurrentTime();
+      } else {
+        this.seekTo(this._duration);
+        this.setPaused(true);
+        this.onTimelineEnd?.();
+        return;
+      }
+    }
 
     try {
       this._renderFrame(time, dt);
@@ -582,7 +642,9 @@ export default class GLEngine {
     img.crossOrigin = "anonymous";
     img.onload = () => {
       gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
       gl.generateMipmap(gl.TEXTURE_2D);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -612,6 +674,12 @@ export default class GLEngine {
     this._setUniform(program, "u_mouse", this._mouse);
     this._setUniform(program, "u_frame", this._frameCount);
     this._setUniform(program, "u_dt", dt);
+    this._setUniform(program, "u_mouse_down", this._mouseDown ? 1.0 : 0.0);
+
+    // Bind keyboard uniforms
+    for (const [name, code] of Object.entries(this._keyboardBindings)) {
+      this._setUniform(program, name, this._pressedKeys.has(code) ? 1.0 : 0.0);
+    }
 
     // Bind camera uniforms for 3D
     if (this._scene.camera && vaoInfo.dimension === 3) {
@@ -758,6 +826,19 @@ export default class GLEngine {
 
   updateMouse(x, y, pressed) {
     this._mouse = [x, y, pressed ? x : this._mouse[2], pressed ? y : this._mouse[3]];
+    this._mouseDown = pressed;
+  }
+
+  updateKey(code, pressed) {
+    if (pressed) {
+      this._pressedKeys.add(code);
+    } else {
+      this._pressedKeys.delete(code);
+    }
+  }
+
+  releaseAllKeys() {
+    this._pressedKeys.clear();
   }
 
   getBufferImageData(bufferName) {
@@ -853,6 +934,8 @@ export default class GLEngine {
     this._renderOrder = [];
     this._customUniforms = {};
     this._imageTextures = {};
+    this._keyboardBindings = {};
+    this._pressedKeys.clear();
   }
 
   dispose() {
