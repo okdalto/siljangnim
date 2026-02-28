@@ -1,113 +1,113 @@
-# 실장님 (siljangnim)
+# siljangnim
 
-AI로 실시간 그래픽을 만드는 도구. 자연어로 원하는 비주얼을 설명하면 Claude가 WebGL2 셰이더를 생성하고, 브라우저에서 바로 렌더링합니다.
+AI-powered real-time graphics creation tool. Describe the visuals you want in natural language, and Claude generates WebGL2 shaders that render directly in your browser.
 
 ![WebGL2](https://img.shields.io/badge/WebGL2-ES_3.0-blue)
 ![License](https://img.shields.io/badge/license-GPLv3-green)
 
-## 주요 기능
+## Features
 
-- **자연어 셰이더 생성** — 채팅으로 원하는 비주얼을 설명하면 GLSL 셰이더 자동 생성
-- **멀티패스 렌더링** — BufferA/B/C/D 체이닝, 핑퐁 더블 버퍼, 피드백 루프 지원
-- **2D & 3D** — 풀스크린 셰이더 아트부터 3D 지오메트리(box, sphere, plane)까지
-- **인터랙티브 UI** — 슬라이더, 2D 패드, 3D 카메라 컨트롤, 컬러 피커 자동 생성
-- **이미지 텍스처** — 이미지를 업로드해서 셰이더 텍스처로 활용
-- **타임라인** — 재생/일시정지, 시간 스크럽, 루프/1회 재생 토글
-- **프로젝트 관리** — 씬, 채팅 이력, 업로드 파일을 프로젝트 단위로 저장/불러오기
+- **Natural Language Shader Generation** — Describe what you want in chat; Claude generates GLSL shaders
+- **Multi-Pass Rendering** — Buffer chaining (BufferA/B/C/D), ping-pong double buffering, feedback loops
+- **2D & 3D** — Fullscreen shader art and 3D geometry (box, sphere, plane)
+- **Interactive UI Controls** — Auto-generated sliders, 2D pads, 3D camera controls, color pickers
+- **Image Textures** — Upload images and use them as shader textures
+- **Timeline** — Play/pause, time scrubbing, loop/once toggle
+- **Project Management** — Save and load entire projects with scenes, chat history, and uploads
 
-## 빠른 시작
+## Quick Start
 
-### 필수 조건
+### Prerequisites
 
 - Python 3.10+
 - Node.js 18+
-- [Anthropic API 키](https://console.anthropic.com/)
+- [Anthropic API key](https://console.anthropic.com/)
 
-### 실행
+### Run
 
 ```bash
-git clone https://github.com/your-username/siljangnim.git
+git clone https://github.com/okdalto/siljangnim.git
 cd siljangnim
 ./run.sh
 ```
 
-`run.sh`가 자동으로:
-1. Python 가상환경 생성 및 백엔드 의존성 설치
-2. 프론트엔드 npm 패키지 설치
-3. 백엔드(`localhost:8000`) + 프론트엔드(`localhost:5173`) 동시 시작
+`run.sh` automatically:
+1. Creates a Python venv and installs backend dependencies
+2. Installs frontend npm packages
+3. Starts backend (`localhost:8000`) + frontend (`localhost:5173`)
 
-브라우저에서 `http://localhost:5173`을 열면 API 키 입력 모달이 나타납니다.
+Open `http://localhost:5173` in your browser. You'll be prompted to enter your API key on first launch.
 
-### 수동 설치
+### Manual Setup
 
 ```bash
-# 백엔드
+# Backend
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# .env에 API 키 저장 (선택 — UI에서도 입력 가능)
+# Save API key to .env (optional — can also enter via UI)
 echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
 
 uvicorn main:app --host 0.0.0.0 --port 8000
 
-# 프론트엔드 (새 터미널)
+# Frontend (new terminal)
 cd frontend
 npm install
 npm run dev
 ```
 
-## 사용법
+## Usage
 
-1. **채팅에 원하는 비주얼을 설명합니다**
-   > "파란색 물결이 천천히 움직이는 셰이더 만들어줘"
+1. **Describe the visuals you want in the chat**
+   > "Create a shader with blue waves slowly moving across the screen"
 
-2. **뷰포트에서 결과를 바로 확인합니다** — 셰이더가 자동으로 컴파일되고 렌더링됩니다
+2. **See results in the viewport** — Shaders are compiled and rendered automatically
 
-3. **Inspector에서 파라미터를 조정합니다** — 슬라이더, 컬러 피커 등이 자동 생성됩니다
+3. **Adjust parameters in the Inspector** — Sliders, color pickers, and other controls are auto-generated
 
-4. **타임라인에서 애니메이션을 제어합니다** — 스크럽, 루프, 재생 속도 조정
+4. **Control animation with the timeline** — Scrub, loop, and adjust duration
 
-5. **프로젝트를 저장하고 나중에 불러옵니다**
+5. **Save your project and load it later**
 
-### 키보드 단축키
+### Keyboard Shortcuts
 
-| 키 | 동작 |
-|---|---|
-| `Space` | 재생 / 일시정지 토글 |
-| 뷰포트 클릭 후 키보드 | 셰이더에 키 입력 전달 |
+| Key | Action |
+|-----|--------|
+| `Space` | Toggle play / pause |
+| Click viewport, then keyboard | Send key inputs to shader |
 
-## 프로젝트 구조
+## Project Structure
 
 ```
 siljangnim/
 ├── backend/
-│   ├── main.py           # FastAPI 서버 + WebSocket
-│   ├── agents.py         # Claude 에이전트 (셰이더 생성 + UI 제어)
-│   ├── workspace.py      # 샌드박스 파일 I/O
-│   ├── projects.py       # 프로젝트 저장/불러오기
-│   └── config.py         # API 키 관리
+│   ├── main.py           # FastAPI server + WebSocket
+│   ├── agents.py         # Claude agent (shader generation + UI control)
+│   ├── workspace.py      # Sandboxed file I/O
+│   ├── projects.py       # Project save/load
+│   └── config.py         # API key management
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx       # 메인 앱 + 상태 관리
-│   │   ├── engine/       # GLEngine (WebGL2 렌더러)
-│   │   ├── nodes/        # ReactFlow 노드 (채팅, 뷰포트, 인스펙터 등)
+│   │   ├── App.jsx       # Main app + state management
+│   │   ├── engine/       # GLEngine (WebGL2 renderer)
+│   │   ├── nodes/        # ReactFlow nodes (chat, viewport, inspector, etc.)
 │   │   └── components/   # Toolbar, Timeline, SnapGuides
 │   └── package.json
-├── .workspace/           # 런타임 데이터 (씬, 업로드, 프로젝트)
-└── run.sh                # 원클릭 실행 스크립트
+├── .workspace/           # Runtime data (scenes, uploads, projects)
+└── run.sh                # One-click startup script
 ```
 
-## 기술 스택
+## Tech Stack
 
-| 영역 | 기술 |
-|------|------|
-| 프론트엔드 | React 19, Vite, TailwindCSS v4, @xyflow/react |
-| 렌더링 | WebGL2 (ES 3.0), 커스텀 GLEngine |
-| 백엔드 | FastAPI, WebSocket, Uvicorn |
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, Vite, TailwindCSS v4, @xyflow/react |
+| Rendering | WebGL2 (ES 3.0), custom GLEngine |
+| Backend | FastAPI, WebSocket, Uvicorn |
 | AI | Anthropic Claude API (tool calling) |
 
-## 라이선스
+## License
 
 [GPLv3](LICENSE)
