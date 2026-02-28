@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { NodeResizer } from "@xyflow/react";
 
 function timeAgo(iso) {
   if (!iso) return "";
@@ -48,7 +49,8 @@ export default function ProjectBrowserNode({ data }) {
   };
 
   return (
-    <div className="w-72 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+    <div className="w-full h-full bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+      <NodeResizer minWidth={240} minHeight={150} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
       {/* Header */}
       <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab flex items-center justify-between">
         Projects
@@ -68,6 +70,7 @@ export default function ProjectBrowserNode({ data }) {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.stopPropagation()}
             placeholder="Project name..."
             className="flex-1 bg-zinc-800 text-zinc-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500"
           />
@@ -83,7 +86,7 @@ export default function ProjectBrowserNode({ data }) {
       {/* Project list */}
       <div
         ref={scrollRef}
-        className="min-h-32 max-h-72 overflow-y-auto nodrag nowheel nopan"
+        className="flex-1 overflow-y-auto nodrag nowheel nopan"
       >
         {projects.length === 0 && (
           <p className="text-zinc-500 italic text-xs p-3">

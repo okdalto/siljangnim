@@ -4,7 +4,9 @@ Rendering is done client-side via WebGL2. Backend manages Claude Agent SDK agent
 """
 
 import asyncio
+import base64
 import json
+import re
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -155,6 +157,53 @@ async def project_thumbnail(name: str):
         return Response(status_code=404)
 
 
+@app.get("/api/uploads/{filename:path}")
+async def get_upload(filename: str):
+    """Serve an uploaded file (textures, models, etc.)."""
+    try:
+        data = workspace.read_upload(filename)
+        info = workspace.get_upload_info(filename)
+        return Response(content=data, media_type=info["mime_type"])
+    except (FileNotFoundError, PermissionError):
+        return Response(status_code=404)
+
+
+# ---------------------------------------------------------------------------
+# Upload helpers
+# ---------------------------------------------------------------------------
+
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB
+
+def _sanitize_filename(name: str) -> str:
+    """Sanitize a filename — keep alphanumeric, dots, hyphens, underscores."""
+    name = name.strip().replace(" ", "_")
+    name = re.sub(r"[^\w.\-]", "", name)
+    return name or "unnamed"
+
+
+def _process_uploads(raw_files: list[dict]) -> list[dict]:
+    """Decode base64 file data, save to uploads dir, return saved file info."""
+    saved = []
+    for f in raw_files:
+        name = _sanitize_filename(f.get("name", "unnamed"))
+        mime = f.get("mime_type", "application/octet-stream")
+        data_b64 = f.get("data_b64", "")
+        size = f.get("size", 0)
+
+        if size > MAX_UPLOAD_SIZE:
+            raise ValueError(f"File '{name}' exceeds 10 MB limit ({size} bytes)")
+
+        raw_bytes = base64.b64decode(data_b64)
+        workspace.save_upload(name, raw_bytes)
+        saved.append({
+            "name": name,
+            "mime_type": mime,
+            "size": len(raw_bytes),
+            "data_b64": data_b64,
+        })
+    return saved
+
+
 # ---------------------------------------------------------------------------
 # WebSocket endpoint
 # ---------------------------------------------------------------------------
@@ -222,7 +271,29 @@ async def websocket_endpoint(ws: WebSocket):
                     continue
 
                 user_prompt = msg.get("text", "")
-                _chat_history.append({"role": "user", "text": user_prompt})
+
+                # Process uploaded files
+                raw_files = msg.get("files", [])
+                saved_files = []
+                if raw_files:
+                    try:
+                        saved_files = _process_uploads(raw_files)
+                    except ValueError as e:
+                        await ws.send_text(json.dumps({
+                            "type": "agent_log",
+                            "agent": "System",
+                            "message": str(e),
+                            "level": "error",
+                        }))
+                        continue
+
+                history_entry = {"role": "user", "text": user_prompt}
+                if saved_files:
+                    history_entry["files"] = [
+                        {"name": f["name"], "mime_type": f["mime_type"], "size": f["size"]}
+                        for f in saved_files
+                    ]
+                _chat_history.append(history_entry)
 
                 async def log_callback(agent_name: str, message: str, level: str):
                     await manager.broadcast({
@@ -232,37 +303,54 @@ async def websocket_endpoint(ws: WebSocket):
                         "level": level,
                     })
 
+                async def send_to_client(msg: dict):
+                    try:
+                        await ws.send_text(json.dumps(msg))
+                    except Exception:
+                        pass
+
+                async def on_text(text: str):
+                    _chat_history.append({"role": "assistant", "text": text})
+                    await send_to_client({"type": "assistant_text", "text": text})
+
                 _agent_busy[ws_id] = True
-                try:
-                    result = await agents.run_agent(
-                        ws_id=ws_id,
-                        user_prompt=user_prompt,
-                        log=log_callback,
-                        broadcast=manager.broadcast,
-                    )
 
-                    _chat_history.append({"role": "assistant", "text": result["chat_text"]})
+                async def _run_agent_task(
+                    _ws_id=ws_id,
+                    _user_prompt=user_prompt,
+                    _log=log_callback,
+                    _on_text=on_text,
+                    _send=send_to_client,
+                    _files=saved_files,
+                ):
+                    try:
+                        await agents.run_agent(
+                            ws_id=_ws_id,
+                            user_prompt=_user_prompt,
+                            log=_log,
+                            broadcast=manager.broadcast,
+                            on_text=_on_text,
+                            files=_files,
+                        )
 
-                    # Scene/UI updates are broadcast in real-time by MCP tools.
-                    # Only send the chat response here.
-                    await manager.broadcast({
-                        "type": "chat_response",
-                        "text": result["chat_text"],
-                    })
+                        await _send({"type": "chat_done"})
 
-                except Exception as e:
-                    await manager.broadcast({
-                        "type": "agent_log",
-                        "agent": "System",
-                        "message": f"Agent error: {e}",
-                        "level": "error",
-                    })
-                    await manager.broadcast({
-                        "type": "chat_response",
-                        "text": f"Error: {e}",
-                    })
-                finally:
-                    _agent_busy.pop(ws_id, None)
+                    except Exception as e:
+                        await manager.broadcast({
+                            "type": "agent_log",
+                            "agent": "System",
+                            "message": f"Agent error: {e}",
+                            "level": "error",
+                        })
+                        await _send({
+                            "type": "assistant_text",
+                            "text": f"Error: {e}",
+                        })
+                        await _send({"type": "chat_done"})
+                    finally:
+                        _agent_busy.pop(_ws_id, None)
+
+                asyncio.create_task(_run_agent_task())
 
             elif msg_type == "set_uniform":
                 uniform = msg.get("uniform")
@@ -306,6 +394,9 @@ async def websocket_endpoint(ws: WebSocket):
                 # 2. Reset workspace files to defaults
                 workspace.write_json("scene.json", DEFAULT_SCENE_JSON)
                 workspace.write_json("ui_config.json", DEFAULT_UI_CONFIG)
+
+                # 3. Clear uploads
+                workspace.clear_uploads()
 
                 # Clean up old files
                 for old_file in ["scene.py", "pipeline.json", "uniforms.json", "renderer_status.json"]:
@@ -380,6 +471,9 @@ async def websocket_endpoint(ws: WebSocket):
                         "type": "project_delete_error",
                         "error": str(e),
                     }))
+
+            elif msg_type == "shader_compile_result":
+                await agents.notify_shader_compile_result(msg)
 
             elif msg_type == "request_state":
                 try:

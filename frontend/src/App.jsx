@@ -9,6 +9,7 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import useWebSocket from "./hooks/useWebSocket.js";
+import useNodeSnapping from "./hooks/useNodeSnapping.js";
 import EngineContext from "./contexts/EngineContext.js";
 import ChatNode from "./nodes/ChatNode.jsx";
 import InspectorNode from "./nodes/InspectorNode.jsx";
@@ -18,6 +19,7 @@ import ProjectBrowserNode from "./nodes/ProjectBrowserNode.jsx";
 import BufferViewportNode from "./nodes/BufferViewportNode.jsx";
 import ApiKeyModal from "./components/ApiKeyModal.jsx";
 import Toolbar from "./components/Toolbar.jsx";
+import SnapGuides from "./components/SnapGuides.jsx";
 
 const nodeTypes = {
   chat: ChatNode,
@@ -28,7 +30,9 @@ const nodeTypes = {
   bufferViewport: BufferViewportNode,
 };
 
-const WS_URL = `ws://${window.location.hostname}:${window.location.port}/ws`;
+const WS_URL = import.meta.env.DEV
+  ? `ws://${window.location.hostname}:8000/ws`
+  : `ws://${window.location.hostname}:${window.location.port}/ws`;
 
 function loadJson(key, fallback) {
   try {
@@ -44,13 +48,15 @@ const initialNodes = [
     id: "chat",
     type: "chat",
     position: { x: 50, y: 50 },
-    data: { messages: [], onSend: () => {} },
+    style: { width: 320, height: 380 },
+    data: { messages: [], onSend: () => { } },
   },
   {
     id: "inspector",
     type: "inspector",
     position: { x: 50, y: 450 },
-    data: { controls: [], bufferNames: [], onUniformChange: () => {}, onOpenBufferViewport: () => {} },
+    style: { width: 320, height: 300 },
+    data: { controls: [], bufferNames: [], onUniformChange: () => { }, onOpenBufferViewport: () => { } },
   },
   {
     id: "viewport",
@@ -62,20 +68,23 @@ const initialNodes = [
   {
     id: "debugLog",
     type: "debugLog",
-    position: { x: 50, y: 750 },
+    position: { x: 50, y: 770 },
+    style: { width: 320, height: 300 },
     data: { logs: [] },
   },
   {
     id: "projectBrowser",
     type: "projectBrowser",
     position: { x: 1080, y: 50 },
-    data: { projects: [], activeProject: null, onSave: () => {}, onLoad: () => {}, onDelete: () => {} },
+    style: { width: 288, height: 320 },
+    data: { projects: [], activeProject: null, onSave: () => { }, onLoad: () => { }, onDelete: () => { } },
   },
 ];
 
 export default function App() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, rawOnNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState([]);
+  const { onNodesChange, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes);
 
   // Chat state (restored from localStorage)
   const [messages, setMessages] = useState(() => loadJson("promptgl:messages", []));
@@ -117,12 +126,12 @@ export default function App() {
         if (msg.projects) setProjectList(msg.projects);
         break;
 
-      case "chat_response":
+      case "assistant_text":
+        setMessages((prev) => [...prev, { role: "assistant", text: msg.text }]);
+        break;
+
+      case "chat_done":
         setIsProcessing(false);
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", text: msg.text },
-        ]);
         break;
 
       case "scene_update":
@@ -193,10 +202,17 @@ export default function App() {
 
   // Callbacks
   const handleSend = useCallback(
-    (text) => {
-      setMessages((prev) => [...prev, { role: "user", text }]);
+    (text, files) => {
+      const msg = { role: "user", text };
+      if (files?.length) {
+        msg.files = files.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
+      }
+      setMessages((prev) => [...prev, msg]);
       setIsProcessing(true);
-      send({ type: "prompt", text });
+
+      const wsMsg = { type: "prompt", text };
+      if (files?.length) wsMsg.files = files;
+      send(wsMsg);
     },
     [send]
   );
@@ -212,6 +228,11 @@ export default function App() {
     },
     [send]
   );
+
+  const handleNewChat = useCallback(() => {
+    setMessages([]);
+    send({ type: "new_chat" });
+  }, [send]);
 
   const handleNewProject = useCallback(() => {
     setMessages([]);
@@ -286,6 +307,13 @@ export default function App() {
     ]);
   }, []);
 
+  const handleSceneLoadResult = useCallback(
+    (result) => {
+      send({ type: "shader_compile_result", ...result });
+    },
+    [send]
+  );
+
   // Manage buffer viewport nodes dynamically
   useEffect(() => {
     setNodes((nds) => {
@@ -324,7 +352,7 @@ export default function App() {
         if (node.id === "chat") {
           return {
             ...node,
-            data: { ...node.data, messages, onSend: handleSend, isProcessing },
+            data: { ...node.data, messages, onSend: handleSend, isProcessing, onNewChat: handleNewChat },
           };
         }
         if (node.id === "inspector") {
@@ -342,7 +370,7 @@ export default function App() {
         if (node.id === "viewport") {
           return {
             ...node,
-            data: { ...node.data, sceneJSON, engineRef, paused, onError: handleShaderError },
+            data: { ...node.data, sceneJSON, engineRef, paused, onError: handleShaderError, onSceneLoadResult: handleSceneLoadResult },
           };
         }
         if (node.id === "debugLog") {
@@ -377,7 +405,7 @@ export default function App() {
         return node;
       })
     );
-  }, [messages, handleSend, isProcessing, sceneJSON, paused, uiConfig, handleUniformChange, handleOpenBufferViewport, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleCloseBufferViewport, handleShaderError, setNodes]);
+  }, [messages, handleSend, isProcessing, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, handleOpenBufferViewport, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleCloseBufferViewport, handleShaderError, handleSceneLoadResult, setNodes]);
 
   return (
     <EngineContext.Provider value={engineRef}>
@@ -410,6 +438,7 @@ export default function App() {
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           proOptions={{ hideAttribution: true }}
         >
+          <SnapGuides guides={guides} />
           <Background color="#333" gap={24} size={1} />
           <Controls
             className="!bg-zinc-800 !border-zinc-700 !shadow-xl [&>button]:!bg-zinc-800 [&>button]:!border-zinc-700 [&>button]:!fill-zinc-400 [&>button:hover]:!bg-zinc-700"

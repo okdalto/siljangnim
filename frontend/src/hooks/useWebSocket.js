@@ -9,9 +9,27 @@ export default function useWebSocket(url, onMessage) {
   useEffect(() => {
     let cancelled = false;
     let reconnectTimer = null;
+    let ws = null;
+
+    function cleanup() {
+      if (ws) {
+        // Remove handlers before closing to prevent onclose from triggering reconnect
+        ws.onopen = null;
+        ws.onclose = null;
+        ws.onmessage = null;
+        ws.onerror = null;
+        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+          ws.close();
+        }
+        ws = null;
+      }
+    }
 
     function connect() {
-      const ws = new WebSocket(url);
+      cleanup();
+      if (cancelled) return;
+
+      ws = new WebSocket(url);
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -22,6 +40,9 @@ export default function useWebSocket(url, onMessage) {
           setConnected(false);
           reconnectTimer = setTimeout(connect, 2000);
         }
+      };
+      ws.onerror = () => {
+        // onclose will fire after onerror, so reconnect happens there
       };
       ws.onmessage = (event) => {
         try {
@@ -37,7 +58,9 @@ export default function useWebSocket(url, onMessage) {
     return () => {
       cancelled = true;
       clearTimeout(reconnectTimer);
-      wsRef.current?.close();
+      cleanup();
+      wsRef.current = null;
+      setConnected(false);
     };
   }, [url]);
 

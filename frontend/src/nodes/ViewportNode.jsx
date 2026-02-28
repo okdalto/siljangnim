@@ -3,12 +3,13 @@ import { NodeResizer } from "@xyflow/react";
 import GLEngine from "../engine/GLEngine.js";
 
 export default function ViewportNode({ data }) {
-  const { sceneJSON, engineRef, onError, paused } = data;
+  const { sceneJSON, engineRef, onError, onSceneLoadResult, paused } = data;
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const engineInternalRef = useRef(null);
   const [fps, setFps] = useState(0);
   const [error, setError] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   // Initialize engine on mount
   useEffect(() => {
@@ -58,9 +59,11 @@ export default function ViewportNode({ data }) {
     try {
       setError(null);
       engine.loadScene(sceneJSON);
+      onSceneLoadResult?.({ success: true });
     } catch (err) {
       console.error("[ViewportNode] loadScene error:", err);
       setError(err.message || String(err));
+      onSceneLoadResult?.({ success: false, error: err.message || String(err) });
     }
   }, [sceneJSON]);
 
@@ -112,12 +115,7 @@ export default function ViewportNode({ data }) {
 
   return (
     <>
-      <NodeResizer
-        minWidth={320}
-        minHeight={240}
-        lineStyle={{ borderColor: "#4f46e5" }}
-        handleStyle={{ background: "#4f46e5", width: 8, height: 8 }}
-      />
+      <NodeResizer minWidth={320} minHeight={240} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
       <div className="w-full h-full bg-black rounded-xl overflow-hidden border border-zinc-700 shadow-2xl flex flex-col">
         {/* Header */}
         <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab shrink-0 flex items-center justify-between">
@@ -145,9 +143,21 @@ export default function ViewportNode({ data }) {
             style={{ imageRendering: "auto" }}
           />
           {error && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4 nodrag">
               <div className="bg-red-950 border border-red-800 rounded-lg p-3 max-w-full max-h-full overflow-auto">
-                <p className="text-red-400 text-xs font-mono whitespace-pre-wrap break-all">
+                <div className="flex justify-end mb-1">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(error);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 1500);
+                    }}
+                    className="text-[10px] text-red-400 hover:text-red-200 bg-red-950 hover:bg-red-900 border border-red-800 rounded px-1.5 py-0.5 transition-colors"
+                  >
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
+                <p className="text-red-400 text-xs font-mono whitespace-pre-wrap break-all select-text cursor-text">
                   {error}
                 </p>
               </div>

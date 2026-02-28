@@ -6,9 +6,12 @@ This module enforces path safety so no agent can escape the sandbox.
 """
 
 import json
+import mimetypes
+import shutil
 from pathlib import Path
 
 WORKSPACE_DIR = Path(__file__).resolve().parent.parent / ".workspace" / "generated"
+UPLOADS_DIR = WORKSPACE_DIR / "uploads"
 
 
 def _safe_path(filename: str) -> Path:
@@ -54,3 +57,70 @@ def write_json(filename: str, data: dict) -> Path:
 def read_json(filename: str) -> dict:
     """Read a JSON file from the workspace."""
     return json.loads(read_file(filename))
+
+
+# ---------------------------------------------------------------------------
+# Uploads
+# ---------------------------------------------------------------------------
+
+def _safe_upload_path(filename: str) -> Path:
+    """Resolve a filename inside UPLOADS_DIR and reject directory traversal."""
+    resolved = (UPLOADS_DIR / filename).resolve()
+    if not str(resolved).startswith(str(UPLOADS_DIR.resolve())):
+        raise PermissionError(f"Path escapes upload sandbox: {filename}")
+    return resolved
+
+
+def save_upload(filename: str, data: bytes) -> Path:
+    """Save uploaded file data to the uploads directory."""
+    path = _safe_upload_path(filename)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
+    return path
+
+
+def read_upload(filename: str) -> bytes:
+    """Read an uploaded file as bytes."""
+    path = _safe_upload_path(filename)
+    if not path.exists():
+        raise FileNotFoundError(f"Upload not found: {filename}")
+    return path.read_bytes()
+
+
+def read_upload_text(filename: str) -> str:
+    """Read an uploaded file as text (for text-based files)."""
+    path = _safe_upload_path(filename)
+    if not path.exists():
+        raise FileNotFoundError(f"Upload not found: {filename}")
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def list_uploads() -> list[str]:
+    """List all files in the uploads directory."""
+    if not UPLOADS_DIR.exists():
+        return []
+    return [
+        str(p.relative_to(UPLOADS_DIR))
+        for p in UPLOADS_DIR.rglob("*")
+        if p.is_file()
+    ]
+
+
+def get_upload_info(filename: str) -> dict:
+    """Get metadata for an uploaded file."""
+    path = _safe_upload_path(filename)
+    if not path.exists():
+        raise FileNotFoundError(f"Upload not found: {filename}")
+    mime, _ = mimetypes.guess_type(str(path))
+    return {
+        "filename": filename,
+        "size": path.stat().st_size,
+        "mime_type": mime or "application/octet-stream",
+    }
+
+
+def clear_uploads() -> None:
+    """Remove all files from the uploads directory."""
+    if UPLOADS_DIR.exists():
+        shutil.rmtree(UPLOADS_DIR)
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
