@@ -124,3 +124,32 @@ def clear_uploads() -> None:
     if UPLOADS_DIR.exists():
         shutil.rmtree(UPLOADS_DIR)
     UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# ---------------------------------------------------------------------------
+# Processed file derivatives
+# ---------------------------------------------------------------------------
+
+PROCESSED_DIR = UPLOADS_DIR / "processed"
+
+
+def get_processed_dir(filename: str) -> Path:
+    """Get processed output directory for a file (stem_ext form to avoid collisions).
+
+    Example: logo.png → processed/logo_png/
+    """
+    p = Path(filename)
+    return PROCESSED_DIR / f"{p.stem}_{p.suffix.lstrip('.')}"
+
+
+def read_processed_manifest(filename: str) -> dict | None:
+    """Read the processing manifest for a file, or None if not processed."""
+    manifest = get_processed_dir(filename) / "manifest.json"
+    if not manifest.exists():
+        return None
+    return json.loads(manifest.read_text())
+
+
+def is_processed(filename: str) -> bool:
+    """Check if a file has been processed (manifest exists)."""
+    return (get_processed_dir(filename) / "manifest.json").exists()

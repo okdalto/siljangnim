@@ -18,7 +18,6 @@ import Pad2dNode from "./nodes/Pad2dNode.jsx";
 import ViewportNode from "./nodes/ViewportNode.jsx";
 import DebugLogNode from "./nodes/DebugLogNode.jsx";
 import ProjectBrowserNode from "./nodes/ProjectBrowserNode.jsx";
-import BufferViewportNode from "./nodes/BufferViewportNode.jsx";
 import ApiKeyModal from "./components/ApiKeyModal.jsx";
 import Toolbar from "./components/Toolbar.jsx";
 import Timeline from "./components/Timeline.jsx";
@@ -30,7 +29,6 @@ const nodeTypes = {
   viewport: ViewportNode,
   debugLog: DebugLogNode,
   projectBrowser: ProjectBrowserNode,
-  bufferViewport: BufferViewportNode,
   camera: CameraNode,
   pad2d: Pad2dNode,
 };
@@ -61,7 +59,7 @@ const initialNodes = [
     type: "inspector",
     position: { x: 400, y: 550 },
     style: { width: 320, height: 380 },
-    data: { controls: [], bufferNames: [], onUniformChange: () => { }, onOpenBufferViewport: () => { } },
+    data: { controls: [], onUniformChange: () => { } },
   },
   {
     id: "viewport",
@@ -133,16 +131,15 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [agentStatus, setAgentStatus] = useState(null); // {status, detail}
 
-  // Buffer viewport tracking
-  const [openBufferViewports, setOpenBufferViewports] = useState([]);
-
   // Handle every incoming WebSocket message
   const handleMessage = useCallback((msg) => {
     if (!msg || !msg.type) return;
 
     switch (msg.type) {
       case "init":
-        if (msg.scene_json) setSceneJSON(msg.scene_json);
+        if (msg.scene_json) {
+          setSceneJSON(msg.scene_json);
+        }
         if (msg.ui_config) setUiConfig(msg.ui_config);
         if (msg.projects) setProjectList(msg.projects);
         if (msg.chat_history?.length) setMessages(msg.chat_history);
@@ -163,7 +160,9 @@ export default function App() {
         break;
 
       case "scene_update":
-        if (msg.scene_json) setSceneJSON(msg.scene_json);
+        if (msg.scene_json) {
+          setSceneJSON(msg.scene_json);
+        }
         if (msg.ui_config) setUiConfig(msg.ui_config);
         break;
 
@@ -200,10 +199,11 @@ export default function App() {
       case "project_loaded":
         if (msg.meta) setActiveProject(msg.meta.name);
         if (msg.chat_history) setMessages(msg.chat_history);
-        if (msg.scene_json) setSceneJSON(msg.scene_json);
+        if (msg.scene_json) {
+          setSceneJSON(msg.scene_json);
+        }
         if (msg.ui_config) setUiConfig(msg.ui_config);
         setDebugLogs([]);
-        setOpenBufferViewports([]);
         break;
 
       case "project_save_error":
@@ -268,7 +268,6 @@ export default function App() {
     setSceneJSON(null);
     setUiConfig({ controls: [], inspectable_buffers: [] });
     setActiveProject(null);
-    setOpenBufferViewports([]);
     send({ type: "new_project" });
   }, [send]);
 
@@ -307,18 +306,6 @@ export default function App() {
     setPaused((p) => !p);
   }, []);
 
-  const handleOpenBufferViewport = useCallback((bufferName) => {
-    setOpenBufferViewports((prev) => {
-      if (prev.includes(bufferName)) return prev;
-      return [...prev, bufferName];
-    });
-  }, []);
-
-  const handleCloseBufferViewport = useCallback((nodeId) => {
-    const bufferName = nodeId.replace("bufferViewport-", "");
-    setOpenBufferViewports((prev) => prev.filter((n) => n !== bufferName));
-  }, []);
-
   const handleApiKeySubmit = useCallback(
     (key) => {
       setApiKeyLoading(true);
@@ -334,44 +321,6 @@ export default function App() {
       { agent: "WebGL", message: err.message || String(err), level: "error" },
     ]);
   }, []);
-
-  const handleSceneLoadResult = useCallback(
-    (result) => {
-      send({ type: "shader_compile_result", ...result });
-    },
-    [send]
-  );
-
-  // Manage buffer viewport nodes dynamically
-  useEffect(() => {
-    setNodes((nds) => {
-      // Remove closed buffer viewports
-      const filtered = nds.filter(
-        (n) => n.type !== "bufferViewport" || openBufferViewports.includes(n.id.replace("bufferViewport-", ""))
-      );
-
-      // Add new buffer viewports
-      const existing = new Set(filtered.filter((n) => n.type === "bufferViewport").map((n) => n.id));
-      const toAdd = openBufferViewports
-        .filter((name) => !existing.has(`bufferViewport-${name}`))
-        .map((name, i) => ({
-          id: `bufferViewport-${name}`,
-          type: "bufferViewport",
-          position: { x: 1080 + i * 50, y: 400 + i * 50 },
-          style: { width: 400, height: 300 },
-          data: {
-            bufferName: name,
-            engineRef,
-            onClose: handleCloseBufferViewport,
-          },
-        }));
-
-      if (toAdd.length === 0 && filtered.length === nds.length) {
-        return nds; // no change
-      }
-      return [...filtered, ...toAdd];
-    });
-  }, [openBufferViewports, handleCloseBufferViewport, setNodes]);
 
   // Sync data into nodes (including dynamic camera node creation/removal)
   useEffect(() => {
@@ -392,16 +341,14 @@ export default function App() {
             data: {
               ...node.data,
               controls: uiConfig.controls || [],
-              bufferNames: uiConfig.inspectable_buffers || [],
               onUniformChange: handleUniformChange,
-              onOpenBufferViewport: handleOpenBufferViewport,
             },
           };
         }
         if (node.id === "viewport") {
           return {
             ...node,
-            data: { ...node.data, sceneJSON, engineRef, paused, onError: handleShaderError, onSceneLoadResult: handleSceneLoadResult },
+            data: { ...node.data, sceneJSON, engineRef, paused, onError: handleShaderError },
           };
         }
         if (node.id === "debugLog") {
@@ -420,16 +367,6 @@ export default function App() {
               onSave: handleProjectSave,
               onLoad: handleProjectLoad,
               onDelete: handleProjectDelete,
-            },
-          };
-        }
-        if (node.type === "bufferViewport") {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              engineRef,
-              onClose: handleCloseBufferViewport,
             },
           };
         }
@@ -494,7 +431,7 @@ export default function App() {
 
       return updated;
     });
-  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, handleOpenBufferViewport, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleCloseBufferViewport, handleShaderError, handleSceneLoadResult, setNodes]);
+  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleShaderError, setNodes]);
 
   return (
     <EngineContext.Provider value={engineRef}>

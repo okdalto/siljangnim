@@ -377,9 +377,7 @@ function TextControl({ ctrl, onUniformChange }) {
 export default function InspectorNode({ data }) {
   const {
     controls = [],
-    bufferNames = [],
     onUniformChange,
-    onOpenBufferViewport,
   } = data;
   const controlsRef = useRef(null);
 
@@ -403,7 +401,7 @@ export default function InspectorNode({ data }) {
 
       {/* Dynamic Controls */}
       <div ref={controlsRef} className="flex-1 px-4 py-3 space-y-3 overflow-y-auto nodrag nowheel">
-        {controls.length === 0 && bufferNames.length === 0 && (
+        {controls.length === 0 && (
           <p className="text-zinc-500 text-sm italic">No controls yet.</p>
         )}
         {controls.filter((c) => c.type !== "rotation3d" && c.type !== "pad2d").map((ctrl) => {
@@ -435,24 +433,6 @@ export default function InspectorNode({ data }) {
           return null;
         })}
 
-        {/* Buffer Viewports */}
-        {bufferNames.length > 0 && (
-          <div className="pt-2 border-t border-zinc-700 space-y-1.5">
-            <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
-              Buffers
-            </p>
-            {bufferNames.map((name) => (
-              <button
-                key={name}
-                onClick={() => onOpenBufferViewport?.(name)}
-                className="w-full text-left text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2.5 py-1.5 rounded transition-colors flex items-center justify-between"
-              >
-                <span>{name}</span>
-                <span className="text-zinc-500 text-[10px]">View</span>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
