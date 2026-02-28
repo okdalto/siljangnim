@@ -940,7 +940,10 @@ async def _handle_tool(
             error_text += "\n".join(f"  - {e}" for e in errors)
             return error_text
 
-        workspace.write_json("scene.json", scene)
+        try:
+            workspace.write_json("scene.json", scene)
+        except OSError as e:
+            return f"Error writing scene.json: {e}"
 
         await broadcast({
             "type": "scene_update",
@@ -959,7 +962,10 @@ async def _handle_tool(
         except json.JSONDecodeError as e:
             return f"Invalid JSON: {e}"
 
-        workspace.write_json("ui_config.json", ui_config)
+        try:
+            workspace.write_json("ui_config.json", ui_config)
+        except OSError as e:
+            return f"Error writing ui_config.json: {e}"
         await broadcast({
             "type": "scene_update",
             "ui_config": ui_config,
@@ -1506,7 +1512,11 @@ async def run_agent(
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
-                    result_str = await _handle_tool(block.name, block.input, broadcast)
+                    try:
+                        result_str = await _handle_tool(block.name, block.input, broadcast)
+                    except Exception as e:
+                        result_str = f"Error executing tool '{block.name}': {e}"
+                        await log("System", result_str, "error")
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
@@ -1525,9 +1535,10 @@ async def run_agent(
         chat_text = last_text or "Done."
         return {"chat_text": chat_text}
 
-    except Exception:
-        # Clear conversation so next query starts fresh
-        _conversations.pop(ws_id, None)
+    except Exception as e:
+        # Log the error but preserve conversation history so the user
+        # can continue from where they left off instead of losing context.
+        await log("System", f"Agent error (conversation preserved): {e}", "error")
         raise
 
 
