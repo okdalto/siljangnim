@@ -184,3 +184,34 @@ def delete_project(name: str) -> None:
     if not project_dir.exists():
         raise FileNotFoundError(f"Project not found: {name}")
     shutil.rmtree(project_dir)
+
+
+def _safe_project_file_path(project_name: str, filepath: str) -> Path:
+    """Resolve a file path inside a project, rejecting directory traversal."""
+    project_dir = _safe_project_path(project_name)
+    resolved = (project_dir / filepath).resolve()
+    if not str(resolved).startswith(str(project_dir.resolve())):
+        raise PermissionError(f"Path escapes project sandbox: {filepath}")
+    return resolved
+
+
+def list_project_files(name: str) -> list[dict]:
+    """List all files in a project with metadata."""
+    import mimetypes
+    project_dir = _safe_project_path(name)
+    if not project_dir.exists():
+        raise FileNotFoundError(f"Project not found: {name}")
+    files = []
+    for p in project_dir.rglob("*"):
+        if not p.is_file():
+            continue
+        stat = p.stat()
+        mime, _ = mimetypes.guess_type(str(p))
+        files.append({
+            "path": str(p.relative_to(project_dir)),
+            "size": stat.st_size,
+            "mime_type": mime or "application/octet-stream",
+            "modified": stat.st_mtime,
+        })
+    files.sort(key=lambda f: f["path"])
+    return files

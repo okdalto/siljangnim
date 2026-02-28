@@ -158,7 +158,7 @@ manager = ConnectionManager()
 
 @app.get("/api/workspace/files")
 async def get_workspace_files():
-    return {"files": workspace.list_files()}
+    return {"files": workspace.list_files_detailed()}
 
 
 @app.get("/api/workspace/{filename:path}")
@@ -173,6 +173,43 @@ async def get_workspace_file(filename: str):
         return {"error": "not found"}, 404
 
 
+@app.get("/api/projects/{name}/files")
+async def project_files(name: str):
+    """List all files inside a saved project."""
+    try:
+        files = projects.list_project_files(name)
+        return {"files": files}
+    except (PermissionError, FileNotFoundError):
+        return Response(status_code=404)
+
+
+@app.get("/api/projects/{name}/file/{filepath:path}")
+async def project_file(name: str, filepath: str):
+    """Serve a single file from a saved project (for preview/download)."""
+    import mimetypes
+    try:
+        path = projects._safe_project_file_path(name, filepath)
+        if not path.exists() or not path.is_file():
+            return Response(status_code=404)
+        mime, _ = mimetypes.guess_type(str(path))
+        return Response(
+            content=path.read_bytes(),
+            media_type=mime or "application/octet-stream",
+        )
+    except (PermissionError, FileNotFoundError):
+        return Response(status_code=404)
+
+
+@app.delete("/api/workspace/files/{filepath:path}")
+async def delete_workspace_file(filepath: str):
+    """Delete a file from the workspace."""
+    try:
+        workspace.delete_file(filepath)
+        return {"ok": True}
+    except (PermissionError, FileNotFoundError) as e:
+        return Response(status_code=404, content=str(e))
+
+
 @app.get("/api/projects/{name}/thumbnail")
 async def project_thumbnail(name: str):
     """Serve a project's saved thumbnail."""
@@ -181,6 +218,19 @@ async def project_thumbnail(name: str):
         thumb = project_dir / "thumbnail.jpg"
         if thumb.exists():
             return Response(content=thumb.read_bytes(), media_type="image/jpeg")
+        return Response(status_code=404)
+    except (PermissionError, FileNotFoundError):
+        return Response(status_code=404)
+
+
+@app.get("/api/projects/{name}/scene")
+async def project_scene(name: str):
+    """Peek at a project's scene.json without loading the project."""
+    try:
+        project_dir = projects._safe_project_path(name)
+        scene_path = project_dir / "scene.json"
+        if scene_path.exists():
+            return json.loads(scene_path.read_text(encoding="utf-8"))
         return Response(status_code=404)
     except (PermissionError, FileNotFoundError):
         return Response(status_code=404)

@@ -195,6 +195,9 @@ export default function App() {
   // Custom panels: Map<id, {title, html, width, height}>
   const [customPanels, setCustomPanels] = useState(new Map());
 
+  // Workspace files version counter — bump to trigger re-fetch in ProjectBrowserNode
+  const [workspaceFilesVersion, setWorkspaceFilesVersion] = useState(0);
+
   // Handle every incoming WebSocket message
   const handleMessage = useCallback((msg) => {
     if (!msg || !msg.type) return;
@@ -217,6 +220,7 @@ export default function App() {
       case "chat_done":
         setIsProcessing(false);
         setAgentStatus(null);
+        setWorkspaceFilesVersion((v) => v + 1);
         break;
 
       case "agent_status":
@@ -228,6 +232,7 @@ export default function App() {
           setSceneJSON(msg.scene_json);
         }
         if (msg.ui_config) setUiConfig(msg.ui_config);
+        setWorkspaceFilesVersion((v) => v + 1);
         break;
 
       case "api_key_required":
@@ -268,6 +273,7 @@ export default function App() {
         }
         if (msg.ui_config) setUiConfig(msg.ui_config);
         setDebugLogs([]);
+        setWorkspaceFilesVersion((v) => v + 1);
         break;
 
       case "open_panel":
@@ -400,6 +406,24 @@ export default function App() {
     [send]
   );
 
+  const API_BASE = import.meta.env.DEV
+    ? `http://${window.location.hostname}:8000`
+    : "";
+
+  const handleDeleteWorkspaceFile = useCallback(
+    async (filepath) => {
+      try {
+        const res = await fetch(`${API_BASE}/api/workspace/files/${encodeURIComponent(filepath)}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          setWorkspaceFilesVersion((v) => v + 1);
+        }
+      } catch { /* ignore */ }
+    },
+    [API_BASE]
+  );
+
   const handleTogglePause = useCallback(() => {
     setPaused((p) => !p);
   }, []);
@@ -493,6 +517,8 @@ export default function App() {
               onSave: handleProjectSave,
               onLoad: handleProjectLoad,
               onDelete: handleProjectDelete,
+              onDeleteWorkspaceFile: handleDeleteWorkspaceFile,
+              workspaceFilesVersion,
             },
           };
         }
@@ -600,7 +626,7 @@ export default function App() {
 
       return updated;
     });
-  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleShaderError, customPanels, handleClosePanel, setNodes, handleOpenKeyframeEditor, keyframeVersion]);
+  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleDeleteWorkspaceFile, workspaceFilesVersion, handleShaderError, customPanels, handleClosePanel, setNodes, handleOpenKeyframeEditor, keyframeVersion]);
 
   return (
     <EngineContext.Provider value={engineRef}>
