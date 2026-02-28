@@ -4,7 +4,7 @@ const POINT_RADIUS = 5;
 const HIT_RADIUS = 10;
 const HANDLE_LEN = 60; // tangent handle pixel length
 const HANDLE_HIT = 8;
-const PADDING = { top: 30, right: 30, bottom: 40, left: 55 };
+const PADDING = { top: 30, right: 30, bottom: 52, left: 55 };
 const CURVE_SUBDIVISIONS = 32; // segments per span for drawing Hermite curve
 
 export default function KeyframeEditor({
@@ -188,7 +188,7 @@ export default function KeyframeEditor({
       c.moveTo(Math.round(x) + 0.5, PADDING.top);
       c.lineTo(Math.round(x) + 0.5, PADDING.top + plotH);
       c.stroke();
-      c.fillText(formatNum(t, xStep) + "s", Math.round(x), h - 10);
+      c.fillText(formatNum(t, xStep) + "s", Math.round(x), PADDING.top + plotH + 4);
     }
 
     // Y grid (value)
@@ -332,7 +332,7 @@ export default function KeyframeEditor({
     c.font = "11px sans-serif";
     c.textAlign = "center";
     c.textBaseline = "bottom";
-    c.fillText("Time (s)", PADDING.left + plotW / 2, h);
+    c.fillText("Time (s)", PADDING.left + plotW / 2, h - 4);
     c.save();
     c.translate(12, PADDING.top + plotH / 2);
     c.rotate(-Math.PI / 2);
