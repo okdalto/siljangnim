@@ -5,6 +5,7 @@ A single agent handles intent analysis, shader generation, UI control creation,
 and conversational replies using custom MCP tools for scene/UI management.
 """
 
+import asyncio
 import json
 import re
 from typing import Callable, Awaitable, Any
@@ -18,6 +19,7 @@ from claude_agent_sdk import (
     ResultMessage,
     SystemMessage,
     TextBlock,
+    ThinkingBlock,
     ToolUseBlock,
 )
 
@@ -31,6 +33,32 @@ BroadcastCallback = Callable[[dict], Awaitable[None]]
 # ---------------------------------------------------------------------------
 
 _clients: dict[int, ClaudeSDKClient] = {}
+
+# ---------------------------------------------------------------------------
+# Shader compile result queue — frontend sends WebGL compile results here
+# ---------------------------------------------------------------------------
+
+_pending_compile_queue: asyncio.Queue | None = None
+
+
+def _ensure_compile_queue() -> asyncio.Queue:
+    """Lazily create the compile-result queue."""
+    global _pending_compile_queue
+    if _pending_compile_queue is None:
+        _pending_compile_queue = asyncio.Queue()
+    return _pending_compile_queue
+
+
+async def notify_shader_compile_result(result: dict) -> None:
+    """Called by the WebSocket handler when the frontend reports a compile result."""
+    q = _ensure_compile_queue()
+    # Drain any stale items before putting the new one
+    while not q.empty():
+        try:
+            q.get_nowait()
+        except asyncio.QueueEmpty:
+            break
+    await q.put(result)
 
 
 # ---------------------------------------------------------------------------
@@ -275,7 +303,6 @@ field of the scene JSON — they are auto-provided by the engine.
 - In VERTEX SHADER use gl_InstanceID (0 to N-1)
 - Engine provides: uniform int u_instance_count;
 - You MUST write a CUSTOM VERTEX SHADER when using instancing
-- Grid layout: int cols = int(ceil(sqrt(float(u_instance_count))));
 
 ## PER-PASS RENDER STATE
 
@@ -292,49 +319,6 @@ omit them to use sensible defaults.
 | clear | object | clear all | {color, depth, color_value} |
 | texture_format | string | "rgba16f" | rgba8, rgba16f, rgba32f, r32f, rg16f, rg32f (buffers only) |
 
-### blend factors
-zero, one, src_color, one_minus_src_color, dst_color, one_minus_dst_color, \
-src_alpha, one_minus_src_alpha, dst_alpha, one_minus_dst_alpha
-
-### blend equations
-add, subtract, reverse_subtract, min, max
-
-### depth functions
-never, less, equal, lequal, greater, notequal, gequal, always
-
-### cull faces
-back, front, front_and_back
-
-### Advanced technique guide
-
-- **Line rendering**: `"draw_mode": "lines"` + custom vertex shader that \
-positions vertices. Pair with `"geometry": "quad"` or custom vertex count.
-- **Point rendering**: `"draw_mode": "points"` + set `gl_PointSize` in \
-the vertex shader.
-- **Trail / accumulation effects**: `"clear": {"color": false}` so previous \
-frame persists, combine with `"blend": {"src": "src_alpha", "dst": "one_minus_src_alpha"}`.
-- **GPGPU / simulation**: `"texture_format": "rgba32f"` for full-precision \
-float storage, `"double_buffer": true` + self-reference input for state pingpong.
-- **Additive blending**: `"blend": {"src": "one", "dst": "one"}` — great \
-for particles, glow, volumetric light.
-- **Premultiplied alpha**: `"blend": {"src": "one", "dst": "one_minus_src_alpha"}`.
-- **Depth control**: `"depth": {"test": true, "write": false, "func": "lequal"}` \
-for transparent 3D objects rendered after opaque ones.
-
-Example — additive particle output:
-```json
-"output": {
-  "fragment": "...",
-  "vertex": "...",
-  "geometry": "quad",
-  "draw_mode": "points",
-  "instance_count": 10000,
-  "blend": {"src": "one", "dst": "one"},
-  "depth": {"test": false},
-  "clear": {"color_value": [0, 0, 0, 1]}
-}
-```
-
 ## MULTIPASS PATTERNS
 
 - Blur: BufferA renders scene, output samples BufferA with offset UVs
@@ -344,227 +328,6 @@ Example — additive particle output:
   self-reference input, output visualizes it
 - IMPORTANT: double_buffer alone is NOT enough. The buffer's "inputs" MUST \
   explicitly include itself for the engine to bind the previous frame texture.
-
-## CREATIVE CODING RECIPES
-
-Reference recipes for generative / algorithmic art techniques. Each includes \
-the core GLSL pattern and required scene config so you can implement them \
-immediately when the user asks.
-
-### 1. Signed Distance Fields (SDF) & Ray Marching
-Render 3D scenes by marching rays against distance functions — no mesh needed.
-- Scene config: single output pass, geometry: "quad"
-- Core GLSL:
-```
-float sdSphere(vec3 p, float r) { return length(p) - r; }
-float sdBox(vec3 p, vec3 b) { vec3 d = abs(p)-b; return length(max(d,0.0))+min(max(d.x,max(d.y,d.z)),0.0); }
-float opSmoothUnion(float d1, float d2, float k) { float h=clamp(0.5+0.5*(d2-d1)/k,0.,1.); return mix(d2,d1,h)-k*h*(1.-h); }
-// Ray march: for(int i=0;i<128;i++){float d=map(ro+rd*t); if(d<0.001)break; t+=d;}
-// Normal: vec3 n=normalize(vec3(map(p+e.xyy)-map(p-e.xyy), map(p+e.yxy)-map(p-e.yxy), map(p+e.yyx)-map(p-e.yyx)));
-```
-
-### 2. Reaction-Diffusion (Gray-Scott)
-Classic Gray-Scott model producing organic spots, stripes, and coral patterns.
-- Scene config: BufferA with double_buffer: true, texture_format: "rgba32f", \
-self-reference input. Output reads BufferA for visualization.
-- Core GLSL (BufferA):
-```
-// RG channels = (A, B) concentrations. Laplacian via 3x3 kernel:
-vec2 lap = -state.xy + 0.2*(tl+tr+bl+br).xy + 0.05*(t+b+l+r).xy; // weighted neighbors
-float feed = 0.037, kill = 0.06;
-float reaction = state.x * state.y * state.y;
-float dA = 1.0*lap.x - reaction + feed*(1.0 - state.x);
-float dB = 0.5*lap.y + reaction - (kill+feed)*state.y;
-fragColor = vec4(state.x + dA*dt, state.y + dB*dt, 0., 1.);
-```
-
-### 3. Fluid Simulation (Navier-Stokes 2D)
-Velocity advection + pressure solve for real-time 2D fluid.
-- Scene config: 3-4 buffers (velocity, pressure, divergence, dye), all \
-double_buffer: true, texture_format: "rgba32f". Jacobi iteration requires \
-multiple pressure-solve passes — use a single buffer with ~20-40 iterations \
-inside the shader or approximate with fewer passes.
-- Core GLSL (advection):
-```
-vec2 vel = texture(iVelocity, uv).xy;
-vec2 pastUV = uv - vel * u_dt; // semi-Lagrangian back-trace
-fragColor = texture(iSelf, pastUV); // advected quantity
-```
-- Core GLSL (pressure Jacobi):
-```
-float div = divergence(uv);
-float pL=p(uv-dx), pR=p(uv+dx), pT=p(uv+dy), pB=p(uv-dy);
-float pressure = (pL+pR+pT+pB - div) * 0.25;
-```
-
-### 4. Simplex / FBM Noise
-Procedural noise layered via fractional Brownian motion for organic textures.
-- Scene config: single output pass, geometry: "quad". No special buffers needed.
-- Core GLSL:
-```
-// Include a simplex3D(vec3) or snoise(vec2) function (Ashima/Stefan Gustavson).
-float fbm(vec2 p) {
-  float v=0., a=0.5; for(int i=0;i<6;i++){v+=a*snoise(p); p*=2.0; a*=0.5;} return v;
-}
-// Domain warping: float n = fbm(p + vec2(fbm(p+vec2(1.7,9.2)), fbm(p+vec2(8.3,2.8))));
-```
-
-### 5. Voronoi / Worley Noise
-Cell-based patterns — nearest-point distance, cell IDs, edge detection.
-- Scene config: single output pass, geometry: "quad"
-- Core GLSL:
-```
-vec2 ip = floor(p), fp = fract(p);
-float md = 1e9;
-for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){
-  vec2 n = vec2(x,y);
-  vec2 pt = hash2(ip+n); // random per-cell point
-  float d = length(n+pt-fp);
-  md = min(md, d);
-}
-// md = F1 distance. Track F2 for edges: edge = F2-F1.
-```
-
-### 6. L-System / Fractal Branching
-Recursive tree-like structures in a fragment shader using polar coordinates.
-- Scene config: single output pass, geometry: "quad"
-- Core GLSL:
-```
-// Convert to polar, reflect & scale iteratively:
-for(int i=0;i<8;i++){
-  p = abs(p); // mirror
-  p -= vec2(0.5, 0.4); // translate branch point
-  p *= mat2(cos(a),-sin(a),sin(a),cos(a)); // rotate by branch angle a
-  p *= 1.5; // scale up (zoom into branch)
-}
-float d = length(p.x); // distance to branch skeleton
-```
-
-### 7. Bezier Curves
-Render smooth curves via SDF distance to quadratic/cubic Bezier.
-- Scene config: single output pass, geometry: "quad". \
-Alternatively use draw_mode: "line_strip" with custom vertex shader for polyline approximation.
-- Core GLSL (quadratic Bezier SDF):
-```
-// Approximate: subdivide into segments or use analytic cubic solve.
-// Simple approach — evaluate closest point on curve:
-float t = clamp(dot(p-A, B-A)/dot(B-A,B-A), 0., 1.); // for line segment A-B
-vec2 cp = mix(mix(A,B,t), mix(B,C,t), t); // quadratic interp
-float d = length(p - cp); // approximate distance
-fragColor = vec4(vec3(smoothstep(0.02, 0.0, d)), 1.);
-```
-
-### 8. Flocking / Boids Simulation
-Texture-based agent state — separation, alignment, cohesion computed per texel.
-- Scene config: BufferA (agent state: xy=pos, zw=vel) with double_buffer: true, \
-texture_format: "rgba32f", self-reference input. Each texel = one agent. \
-Output visualizes as points or quads.
-- Core GLSL (BufferA):
-```
-// For each agent at texel (i), scan neighbors:
-vec2 sep=vec2(0.), ali=vec2(0.), coh=vec2(0.); float cnt=0.;
-for(int j=0;j<N;j++){
-  vec4 other = texelFetch(iSelf, ivec2(j,0), 0);
-  vec2 diff = pos - other.xy; float d = length(diff);
-  if(d>0.&&d<radius){ sep+=diff/d; ali+=other.zw; coh+=other.xy; cnt++; }
-}
-vel += normalize(sep)*wSep + normalize(ali/cnt-vel)*wAli + normalize(coh/cnt-pos)*wCoh;
-```
-
-### 9. Particle Systems
-GPU-driven particles via instancing — position/velocity in texture or vertex shader.
-- Scene config: output or buffer with draw_mode: "points", instance_count: N, \
-custom vertex shader. blend: {src:"one",dst:"one"} for additive glow. \
-Optional: BufferA (rgba32f, double_buffer) for physics state.
-- Core vertex GLSL:
-```
-int id = gl_InstanceID;
-vec2 uv = vec2(float(id%cols)+0.5, float(id/cols)+0.5) / float(cols);
-vec4 state = texture(iParticles, uv); // xy=pos, zw=vel
-gl_Position = vec4(state.xy * 2.0 - 1.0, 0., 1.);
-gl_PointSize = 4.0;
-```
-
-### 10. Gaussian Splatting (2D)
-Point-sprite rendering with Gaussian falloff for soft blob / splat visuals.
-- Scene config: draw_mode: "points", instance_count: N, \
-blend: {src:"one",dst:"one"} or {src:"src_alpha",dst:"one_minus_src_alpha"}, \
-depth: {test:false}. Custom vertex + fragment shaders.
-- Core fragment GLSL:
-```
-vec2 pc = gl_PointCoord * 2.0 - 1.0; // -1..1 within point sprite
-float g = exp(-dot(pc,pc) * 3.0);     // Gaussian falloff
-fragColor = v_color * vec4(vec3(1.), g);
-```
-
-### 11. Domain Warping
-Layer fBM noise outputs to distort UV coordinates for painterly / marble textures.
-- Scene config: single output pass, geometry: "quad"
-- Core GLSL:
-```
-vec2 q = vec2(fbm(p), fbm(p + vec2(5.2,1.3)));
-vec2 r = vec2(fbm(p + 4.0*q + vec2(1.7,9.2) + 0.15*u_time),
-              fbm(p + 4.0*q + vec2(8.3,2.8) + 0.126*u_time));
-float f = fbm(p + 4.0*r);
-// Color by f — mix between palette colors based on f value.
-```
-
-### 12. Fractals (Mandelbrot / Julia)
-Complex-plane iteration with orbit trap or smooth coloring.
-- Scene config: single output pass, geometry: "quad". Add uniforms for \
-zoom center (vec2), zoom level (float), Julia constant (vec2).
-- Core GLSL:
-```
-vec2 c = (gl_FragCoord.xy/u_resolution - 0.5) * zoom + center;
-vec2 z = c; // Mandelbrot. For Julia: z=scaled_uv, c=u_julia_c
-int iter = 0;
-for(int i=0;i<256;i++){ z = vec2(z.x*z.x-z.y*z.y, 2.*z.x*z.y)+c; if(dot(z,z)>4.) break; iter=i; }
-float t = float(iter) - log2(log2(dot(z,z))); // smooth iteration count
-fragColor = vec4(palette(t * 0.02), 1.);
-```
-
-### 13. Trail / Feedback Art
-Accumulate frames without clearing — apply UV distortion for swirling trails.
-- Scene config: BufferA with double_buffer: true, self-reference input, \
-clear: {color: false}. Or output with clear: {color: false}. \
-blend: {src:"src_alpha",dst:"one_minus_src_alpha"} for alpha fade.
-- Core GLSL:
-```
-vec2 warp_uv = uv + vec2(sin(uv.y*6.+u_time)*0.003, cos(uv.x*6.+u_time)*0.003);
-vec4 prev = texture(iSelf, warp_uv) * 0.98; // fade previous frame
-vec4 newStroke = drawShape(uv); // new content this frame
-fragColor = max(prev, newStroke); // composite
-```
-
-### 14. Halftone / Dithering
-Print-aesthetic dot patterns via quantized grid sampling.
-- Scene config: BufferA renders source image/scene. Output applies halftone \
-post-process reading BufferA. geometry: "quad"
-- Core GLSL:
-```
-float gridSize = 8.0;
-vec2 cell = floor(gl_FragCoord.xy / gridSize) * gridSize + gridSize*0.5;
-float lum = dot(texture(iChannel0, cell/u_resolution).rgb, vec3(0.299,0.587,0.114));
-float dist = length(fract(gl_FragCoord.xy/gridSize) - 0.5);
-float dot_size = lum; // brighter = bigger dot
-fragColor = vec4(vec3(step(dist, dot_size * 0.5)), 1.);
-```
-
-### 15. Morphogenesis / Turing Patterns
-Reaction-diffusion variant with anisotropic or multi-species diffusion.
-- Scene config: same as recipe 2 (double_buffer, rgba32f, self-reference). \
-Add more species in extra channels or use multiple buffers.
-- Core GLSL:
-```
-// Multi-species: RGB channels = 3 interacting chemicals
-vec3 lap = laplacian(uv); // 3x3 kernel per channel
-vec3 reaction = vec3(
-  a.x*(1.-a.x) - a.y*a.x*4.0 + feed*(1.-a.x),
-  a.y*(a.x - a.z) - decay*a.y,
-  a.z*(a.y - 1.) + feed2*(1.-a.z)
-);
-fragColor = vec4(a + (diffRate*lap + reaction)*u_dt, 1.);
-```
 
 ## UI CONFIG FORMAT
 
@@ -589,10 +352,46 @@ Control types:
 - "slider": needs min, max, step, default (number)
 - "color": needs default (hex string like "#ff0000")
 - "toggle": needs default (boolean)
+- "button": one-shot trigger (uniform is set to 1.0 on click, auto-resets to 0.0 \
+after 100ms). Use for actions like "Reset", "Randomize", "Spawn". \
+In the shader, check `if (u_trigger > 0.5) { ... }` to detect the impulse.
 
 Do NOT create controls for auto-provided uniforms (u_time, u_resolution, etc.).
 Create intuitive labels (e.g. "Glow Intensity" not "u_glow").
 "inspectable_buffers" lists buffer names useful to inspect in separate viewports.
+
+## CAMERA CONTROLS (ALWAYS INCLUDE)
+
+Every scene MUST expose camera controls in the UI config so the user can \
+navigate the view interactively.
+
+- **2D** (geometry: "quad"): Add u_zoom, u_pan_x, u_pan_y uniforms. \
+In the shader, transform UVs: `vec2 uv = (v_uv - 0.5) / u_zoom + vec2(0.5 + u_pan_x, 0.5 + u_pan_y);`
+- **3D** (geometry: "box"/"sphere"/"plane"): Declare u_cam_pos_x, u_cam_pos_y, \
+u_cam_pos_z, u_cam_target_x, u_cam_target_y, u_cam_target_z, u_cam_fov in \
+scene JSON "uniforms" and expose as sliders. The engine reads them automatically \
+(do NOT declare them in GLSL). Set defaults to match the camera field values.
+
+## UPLOADED FILES
+
+Users can upload files (images, 3D models, text files, etc.) to the chat. \
+When files are attached:
+
+- **Images** (PNG, JPG, GIF, WebP): You can see them directly via vision. \
+Describe what you see and suggest how to use the image in a shader \
+(as a texture, reference, color palette source, etc.). \
+The image is saved to the uploads directory and accessible at `/api/uploads/<filename>`.
+- **3D models** (OBJ, MTL): Use `read_uploaded_file` to read the file contents. \
+Analyze the geometry and suggest how to render it. You can write loader code \
+or convert it to shader-based rendering.
+- **Other files**: Use `read_uploaded_file` to inspect the contents. \
+Provide analysis and suggest how to incorporate the data into visuals.
+
+Available tools for uploads:
+- `list_uploaded_files`: See all uploaded files
+- `read_uploaded_file(filename)`: Read file contents (text) or metadata (binary)
+
+Uploaded files are served at `/api/uploads/<filename>` for use in shader inputs.
 
 ## WORKFLOW
 
@@ -683,13 +482,45 @@ def create_promptgl_tools(broadcast_fn: BroadcastCallback):
 
         # Save and broadcast
         workspace.write_json("scene.json", scene)
+
+        # Prepare compile queue before broadcasting
+        q = _ensure_compile_queue()
+        # Drain stale results
+        while not q.empty():
+            try:
+                q.get_nowait()
+            except asyncio.QueueEmpty:
+                break
+
         await broadcast_fn({
             "type": "scene_update",
             "scene_json": scene,
         })
+
+        # Wait for frontend WebGL compile result (max 5 seconds)
+        try:
+            result = await asyncio.wait_for(q.get(), timeout=5.0)
+            if not result.get("success", True):
+                error_msg = result.get("error", "Unknown WebGL compile error")
+                return {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                f"WebGL shader compile error from browser:\n{error_msg}\n\n"
+                                "Fix the GLSL code and call update_scene again."
+                            ),
+                        }
+                    ],
+                    "isError": True,
+                }
+        except asyncio.TimeoutError:
+            # No frontend connected or response took too long — assume ok
+            pass
+
         return {
             "content": [
-                {"type": "text", "text": "ok — scene saved and broadcast to clients."}
+                {"type": "text", "text": "ok — scene saved, broadcast, and compiled successfully."}
             ]
         }
 
@@ -728,7 +559,86 @@ def create_promptgl_tools(broadcast_fn: BroadcastCallback):
             ]
         }
 
-    return [get_current_scene, update_scene, update_ui_config]
+    @tool(
+        "read_uploaded_file",
+        (
+            "Read an uploaded file from the uploads directory. "
+            "For text files (.obj, .mtl, .glsl, .json, .txt, .csv, etc.), returns the file contents as text. "
+            "For binary files (images, etc.), returns metadata only. "
+            "Use list_uploaded_files first to see available files."
+        ),
+        {"filename": str},
+    )
+    async def read_uploaded_file(args: dict[str, Any]) -> dict[str, Any]:
+        filename = args.get("filename", "")
+        try:
+            info = workspace.get_upload_info(filename)
+            mime = info["mime_type"]
+            # Text-based files: return content
+            text_types = (
+                "text/", "application/json", "application/xml",
+                "application/javascript", "model/obj",
+            )
+            text_extensions = (
+                ".obj", ".mtl", ".glsl", ".vert", ".frag", ".txt",
+                ".csv", ".json", ".xml", ".html", ".css", ".js",
+                ".py", ".md", ".yaml", ".yml", ".toml", ".svg",
+            )
+            is_text = any(mime.startswith(t) for t in text_types) or \
+                      any(filename.lower().endswith(ext) for ext in text_extensions)
+
+            if is_text:
+                content = workspace.read_upload_text(filename)
+                # Truncate very large files
+                if len(content) > 50000:
+                    content = content[:50000] + "\n... (truncated)"
+                return {
+                    "content": [
+                        {"type": "text", "text": f"File: {filename} ({info['size']} bytes, {mime})\n\n{content}"}
+                    ]
+                }
+            else:
+                return {
+                    "content": [
+                        {"type": "text", "text": (
+                            f"Binary file: {filename}\n"
+                            f"Size: {info['size']} bytes\n"
+                            f"MIME type: {mime}\n"
+                            f"This is a binary file. Its contents cannot be displayed as text.\n"
+                            f"If it's an image, the user may have sent it via vision (check the conversation).\n"
+                            f"The file is accessible at: /api/uploads/{filename}"
+                        )}
+                    ]
+                }
+        except FileNotFoundError:
+            return {
+                "content": [{"type": "text", "text": f"File not found: {filename}"}],
+                "isError": True,
+            }
+
+    @tool(
+        "list_uploaded_files",
+        "List all files uploaded by the user. Returns filenames and metadata.",
+        {},
+    )
+    async def list_uploaded_files(args: dict[str, Any]) -> dict[str, Any]:
+        files = workspace.list_uploads()
+        if not files:
+            return {
+                "content": [{"type": "text", "text": "No files have been uploaded yet."}]
+            }
+        info_lines = []
+        for f in files:
+            try:
+                info = workspace.get_upload_info(f)
+                info_lines.append(f"- {f} ({info['size']} bytes, {info['mime_type']})")
+            except FileNotFoundError:
+                info_lines.append(f"- {f} (info unavailable)")
+        return {
+            "content": [{"type": "text", "text": "Uploaded files:\n" + "\n".join(info_lines)}]
+        }
+
+    return [get_current_scene, update_scene, update_ui_config, read_uploaded_file, list_uploaded_files]
 
 
 # ---------------------------------------------------------------------------
@@ -752,12 +662,14 @@ async def _get_or_create_client(
 
     options = ClaudeAgentOptions(
         system_prompt=SYSTEM_PROMPT,
-        model="claude-sonnet-4-20250514",
+        model="claude-opus-4-6",
         mcp_servers={"promptgl": mcp_server},
         allowed_tools=[
             "mcp__promptgl__get_current_scene",
             "mcp__promptgl__update_scene",
             "mcp__promptgl__update_ui_config",
+            "mcp__promptgl__read_uploaded_file",
+            "mcp__promptgl__list_uploaded_files",
         ],
         permission_mode="bypassPermissions",
         max_turns=10,
@@ -774,21 +686,84 @@ async def _get_or_create_client(
 # Agent execution
 # ---------------------------------------------------------------------------
 
+def _build_multimodal_prompt(user_prompt: str, files: list[dict]) -> str | list[dict]:
+    """Build a prompt that includes file info.
+
+    For images, we build a multimodal content block list.
+    For non-image files, we add text descriptions.
+    """
+    image_mimes = {"image/png", "image/jpeg", "image/gif", "image/webp"}
+    content_blocks: list[dict] = []
+    non_image_descriptions: list[str] = []
+
+    for f in files:
+        mime = f.get("mime_type", "")
+        name = f.get("name", "unknown")
+        data_b64 = f.get("data_b64", "")
+
+        if mime in image_mimes and data_b64:
+            content_blocks.append({
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": mime,
+                    "data": data_b64,
+                },
+            })
+            content_blocks.append({
+                "type": "text",
+                "text": f"[Uploaded image: {name} ({f.get('size', 0)} bytes)]",
+            })
+        else:
+            non_image_descriptions.append(
+                f"[Uploaded file: {name} ({f.get('size', 0)} bytes, {mime}) — "
+                f"use read_uploaded_file tool to read its contents. "
+                f"The file is accessible at /api/uploads/{name}]"
+            )
+
+    # If there are image blocks, build multimodal content
+    if content_blocks:
+        # Add non-image descriptions as text
+        extra_text = "\n".join(non_image_descriptions)
+        prompt_text = user_prompt or "The user uploaded these files."
+        if extra_text:
+            prompt_text += "\n\n" + extra_text
+
+        content_blocks.append({"type": "text", "text": prompt_text})
+        return content_blocks
+
+    # No images — just add file info to text prompt
+    file_info = "\n".join(non_image_descriptions)
+    prompt_text = user_prompt or "The user uploaded files."
+    return prompt_text + "\n\n" + file_info
+
+
 async def run_agent(
     ws_id: int,
     user_prompt: str,
     log: LogCallback,
     broadcast: BroadcastCallback,
+    on_text: Callable[[str], Awaitable[None]] | None = None,
+    files: list[dict] | None = None,
 ) -> dict:
     """Run the Claude Agent SDK agent for one user prompt.
 
     Returns {"chat_text": str} with the agent's conversational reply.
     """
     await log("System", f"Starting agent for: \"{user_prompt}\"", "info")
+    if files:
+        file_names = ", ".join(f["name"] for f in files)
+        await log("System", f"Files attached: {file_names}", "info")
 
     client = await _get_or_create_client(ws_id, broadcast)
 
-    await client.query(user_prompt)
+    # Build prompt — multimodal if images are attached
+    if files:
+        prompt = _build_multimodal_prompt(user_prompt, files)
+    else:
+        prompt = user_prompt
+
+    await client.query(prompt)
 
     last_text = ""
 
@@ -796,9 +771,15 @@ async def run_agent(
         # Stream assistant messages
         if isinstance(message, AssistantMessage):
             for block in message.content:
-                if isinstance(block, TextBlock):
+                if isinstance(block, ThinkingBlock):
+                    text = getattr(block, "thinking", None) or getattr(block, "text", None) or ""
+                    if text:
+                        await log("Agent", text, "thinking")
+                elif isinstance(block, TextBlock):
                     last_text = block.text
                     await log("Agent", block.text, "info")
+                    if on_text:
+                        await on_text(block.text)
                 elif isinstance(block, ToolUseBlock):
                     input_str = json.dumps(block.input)
                     if len(input_str) > 200:
