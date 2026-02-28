@@ -1,8 +1,8 @@
-# PromptGL - Node / Frontend
+# siljangnim - Node / Frontend
 node_modules/
 frontend/dist/
 
-# PromptGL - AI-generated workspace (sandboxed outputs)
+# siljangnim - AI-generated workspace (sandboxed outputs)
 .workspace/generated/*
 !.workspace/generated/.gitkeep
 .workspace/projects/

@@ -20,7 +20,7 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
             Anthropic API Key
           </h2>
           <p className="text-sm text-zinc-400 mt-1">
-            PromptGL uses Claude to generate shaders. Enter your API key to get
+            실장님 uses Claude to generate shaders. Enter your API key to get
             started.
           </p>
         </div>

@@ -93,7 +93,7 @@ export default function App() {
   const { onNodesChange, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes);
 
   // Chat state (restored from localStorage)
-  const [messages, setMessages] = useState(() => loadJson("promptgl:messages", []));
+  const [messages, setMessages] = useState(() => loadJson("siljangnim:messages", []));
 
   // Scene state
   const [sceneJSON, setSceneJSON] = useState(null);
@@ -129,7 +129,7 @@ export default function App() {
   const [apiKeyLoading, setApiKeyLoading] = useState(false);
 
   // Debug log state (restored from localStorage)
-  const [debugLogs, setDebugLogs] = useState(() => loadJson("promptgl:debugLogs", []));
+  const [debugLogs, setDebugLogs] = useState(() => loadJson("siljangnim:debugLogs", []));
 
   // Project state
   const [projectList, setProjectList] = useState([]);
@@ -266,11 +266,11 @@ export default function App() {
 
   // Persist to localStorage
   useEffect(() => {
-    localStorage.setItem("promptgl:messages", JSON.stringify(messages));
+    localStorage.setItem("siljangnim:messages", JSON.stringify(messages));
   }, [messages]);
 
   useEffect(() => {
-    localStorage.setItem("promptgl:debugLogs", JSON.stringify(debugLogs));
+    localStorage.setItem("siljangnim:debugLogs", JSON.stringify(debugLogs));
   }, [debugLogs]);
 
   // Callbacks

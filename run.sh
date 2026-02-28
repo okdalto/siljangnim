@@ -34,7 +34,7 @@ fi
 
 # ── Start servers ──────────────────────────────────────────────
 echo ""
-echo "Starting PromptGL..."
+echo "Starting siljangnim..."
 echo "   Backend   → http://localhost:8000"
 echo "   Frontend  → http://localhost:5173"
 echo "   Rendering → WebGL2 in browser"

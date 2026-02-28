@@ -1,5 +1,5 @@
 """
-PromptGL Backend — FastAPI + WebSocket server.
+siljangnim Backend — FastAPI + WebSocket server.
 Rendering is done client-side via WebGL2. Backend manages Claude Agent SDK agent and state.
 """
 
@@ -112,7 +112,7 @@ async def lifespan(app: FastAPI):
 # App
 # ---------------------------------------------------------------------------
 
-app = FastAPI(title="PromptGL", lifespan=lifespan)
+app = FastAPI(title="siljangnim", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
