@@ -7,6 +7,7 @@
 
 import { createProgram, compileShader, DEFAULT_QUAD_VERTEX_SHADER, DEFAULT_3D_VERTEX_SHADER } from "./shaderUtils.js";
 import { createQuadGeometry, createBoxGeometry, createSphereGeometry, createPlaneGeometry } from "./geometries.js";
+import AudioManager from "./AudioManager.js";
 
 const GEOMETRY_CREATORS = {
   quad: createQuadGeometry,
@@ -59,6 +60,12 @@ export default class GLEngine {
     this._mouseDownPrev = false;
     this._pressedKeys = new Set();
     this._keyboardBindings = {}; // uniform name → KeyboardEvent.code
+
+    // Keyframe manager (set externally via setKeyframeManager)
+    this._keyframeManager = null;
+
+    // Audio manager
+    this._audioManager = new AudioManager();
 
     // Script mode
     this._scriptCtx = null;
@@ -205,6 +212,28 @@ export default class GLEngine {
         },
       },
     };
+    // Audio API (methods delegate to AudioManager, properties updated per frame)
+    this._audioManager.reset();
+    ctx.audio = {
+      load: (url) => this._audioManager.load(url),
+      play: (offset) => this._audioManager.play(offset),
+      pause: () => this._audioManager.pause(),
+      stop: () => this._audioManager.stop(),
+      setVolume: (v) => this._audioManager.setVolume(v),
+      isLoaded: false,
+      isPlaying: false,
+      duration: 0,
+      currentTime: 0,
+      bass: 0,
+      mid: 0,
+      treble: 0,
+      energy: 0,
+      frequencyData: null,
+      waveformData: null,
+      fftTexture: null,
+      volume: 1,
+    };
+
     this._scriptCtx = ctx;
 
     try {
@@ -271,6 +300,7 @@ export default class GLEngine {
       this._paused = false;
       this._pausedTime += (performance.now() / 1000) - this._pauseStart;
     }
+    this._audioManager?.syncPaused(paused, this.getCurrentTime());
   }
 
   get paused() {
@@ -292,6 +322,7 @@ export default class GLEngine {
     } else {
       this._startTime = now - this._pausedTime - targetTime;
     }
+    this._audioManager?.syncSeek(targetTime, this._paused);
   }
 
   setDuration(d) {
@@ -369,7 +400,29 @@ export default class GLEngine {
       ctx.resolution = [this.canvas.width, this.canvas.height];
       ctx.frame = this._frameCount;
       ctx.uniforms = { ...this._customUniforms };
+      if (this._keyframeManager) {
+        Object.assign(ctx.uniforms, this._keyframeManager.evaluateAll(time));
+      }
       ctx.keys = this._pressedKeys;
+
+      // Update audio data before script render
+      if (this._audioManager) {
+        this._audioManager.updateFrame(gl, time);
+        const am = this._audioManager;
+        ctx.audio.isLoaded = am.isLoaded;
+        ctx.audio.isPlaying = am.isPlaying;
+        ctx.audio.duration = am.duration;
+        ctx.audio.currentTime = am.currentTime;
+        ctx.audio.bass = am.bass;
+        ctx.audio.mid = am.mid;
+        ctx.audio.treble = am.treble;
+        ctx.audio.energy = am.energy;
+        ctx.audio.frequencyData = am.frequencyData;
+        ctx.audio.waveformData = am.waveformData;
+        ctx.audio.fftTexture = am.fftTexture;
+        ctx.audio.volume = am.volume;
+      }
+
       try {
         this._scriptRenderFn(ctx);
       } catch (err) {
@@ -381,6 +434,10 @@ export default class GLEngine {
 
   updateUniform(name, value) {
     this._customUniforms[name] = value;
+  }
+
+  setKeyframeManager(km) {
+    this._keyframeManager = km;
   }
 
   updateMouse(x, y, pressed) {
@@ -423,6 +480,8 @@ export default class GLEngine {
     this._scriptRenderFn = null;
     this._scriptCleanupFn = null;
 
+    this._audioManager?.reset();
+
     this._customUniforms = {};
     this._keyboardBindings = {};
     this._pressedKeys.clear();
@@ -431,6 +490,7 @@ export default class GLEngine {
   dispose() {
     this.stop();
     this._disposeScene();
+    this._audioManager?.dispose();
     this._scene = null;
   }
 }
