@@ -309,25 +309,35 @@ def _process_uploads(raw_files: list[dict]) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 async def _process_uploaded_files(saved_files: list[dict], broadcast):
-    """Run asset processing pipeline for uploaded files in the background."""
+    """Run asset processing pipeline for uploaded files before agent starts."""
+    import logging
+    logger = logging.getLogger(__name__)
     from processors import run_pipeline
 
     for f in saved_files:
         source_path = workspace._safe_upload_path(f["name"])
         output_dir = workspace.get_processed_dir(f["name"])
+        logger.info("[AssetPipeline] Processing %s → %s", f["name"], output_dir)
 
-        async def on_status(status: str, detail: str):
+        async def on_status(status: str, detail: str, _fname=f["name"]):
             await broadcast({
                 "type": "processing_status",
-                "filename": f["name"],
+                "filename": _fname,
                 "status": status,
                 "detail": detail,
             })
 
         try:
             result = await run_pipeline(source_path, output_dir, f["name"], on_status)
+            if result:
+                logger.info("[AssetPipeline] %s → %s (outputs: %s, warnings: %s)",
+                            f["name"], result.status,
+                            [o.filename for o in result.outputs], result.warnings)
+            else:
+                logger.info("[AssetPipeline] %s → no matching processor", f["name"])
         except Exception as e:
             import traceback
+            logger.error("[AssetPipeline] %s failed: %s", f["name"], e)
             traceback.print_exc()
             continue
 
@@ -473,7 +483,19 @@ async def websocket_endpoint(ws: WebSocket):
                         # Process uploaded files BEFORE agent starts,
                         # so derivatives are available when the agent queries them
                         if _files:
+                            await manager.broadcast({
+                                "type": "agent_log",
+                                "agent": "System",
+                                "message": f"Processing {len(_files)} uploaded file(s)...",
+                                "level": "info",
+                            })
                             await _process_uploaded_files(_files, manager.broadcast)
+                            await manager.broadcast({
+                                "type": "agent_log",
+                                "agent": "System",
+                                "message": "File processing complete",
+                                "level": "info",
+                            })
 
                         await agents.run_agent(
                             ws_id=_AGENT_WS_ID,

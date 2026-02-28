@@ -9,6 +9,9 @@ import asyncio
 import json
 import os
 import re
+import shlex
+import subprocess
+import sys
 from pathlib import Path
 from typing import Callable, Awaitable, Any
 
@@ -27,6 +30,8 @@ _IGNORED_DIRS = {
     ".git", "node_modules", ".venv", "__pycache__", "dist",
     ".next", ".cache", ".DS_Store", ".vite",
 }
+
+_ALLOWED_COMMANDS = {"pip", "ffmpeg", "ffprobe", "convert", "magick"}
 
 
 def _resolve_project_path(path: str) -> Path | None:
@@ -401,6 +406,23 @@ and UI components before generating code.
 Paths are relative to the project root. Use these to understand \
 existing patterns before writing scripts.
 
+## CODE EXECUTION
+
+You can run Python code and limited shell commands to process data, \
+convert files, or install packages.
+
+- `run_python(code)`: Execute Python code in .workspace/generated/. \
+Use this to parse uploaded files, transform data, generate textures, \
+or create any WebGL-ready assets. Has access to all installed packages.
+- `run_command(command)`: Run whitelisted commands (pip, ffmpeg, ffprobe, \
+convert, magick). Use `pip install <package>` to install missing dependencies.
+
+Example use cases:
+- Font parsing failed? Write Python code using fonttools to extract glyph data
+- Need a spectrogram? Run ffmpeg to convert audio
+- Missing a package? `pip install librosa`
+- Custom data processing for uploaded files
+
 ## CUSTOM PANELS
 
 You can create custom HTML/CSS/JS panels that appear as draggable nodes in the UI. \
@@ -736,6 +758,44 @@ TOOLS = [
             "properties": {},
         },
     },
+    {
+        "name": "run_python",
+        "description": (
+            "Execute Python code in a sandboxed subprocess. "
+            "Working directory is .workspace/generated/. "
+            "Can read project files, but can only write to .workspace/. "
+            "Has access to installed packages (fonttools, numpy, Pillow, etc). "
+            "Returns stdout and stderr. Timeout: 30 seconds."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "description": "Python code to execute.",
+                },
+            },
+            "required": ["code"],
+        },
+    },
+    {
+        "name": "run_command",
+        "description": (
+            "Run a whitelisted shell command. "
+            "Allowed commands: pip, ffmpeg, ffprobe, convert, magick. "
+            "Working directory is .workspace/generated/. Timeout: 60 seconds."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "description": "Shell command to execute (must start with an allowed command).",
+                },
+            },
+            "required": ["command"],
+        },
+    },
 ]
 
 
@@ -1011,6 +1071,78 @@ async def _handle_tool(
     elif name == "stop_recording":
         await broadcast({"type": "stop_recording"})
         return "ok — recording stopped. The WebM file will auto-download in the user's browser."
+
+    elif name == "run_python":
+        code = input_data.get("code", "")
+        if not code.strip():
+            return "Error: empty code."
+        gen_dir = _WORKSPACE_DIR / "generated"
+        gen_dir.mkdir(parents=True, exist_ok=True)
+        tmp_file = gen_dir / "_run_tmp.py"
+        try:
+            tmp_file.write_text(code, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(tmp_file)],
+                cwd=str(gen_dir),
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            output = result.stdout + result.stderr
+            if len(output) > 50_000:
+                output = output[:50_000] + "\n... (truncated at 50KB)"
+            if not output.strip():
+                output = "(no output)"
+            return output
+        except subprocess.TimeoutExpired:
+            return "Error: execution timed out after 30 seconds."
+        except Exception as e:
+            return f"Error running Python code: {e}"
+        finally:
+            if tmp_file.exists():
+                tmp_file.unlink()
+
+    elif name == "run_command":
+        command = input_data.get("command", "")
+        if not command.strip():
+            return "Error: empty command."
+        try:
+            args = shlex.split(command)
+        except ValueError as e:
+            return f"Error parsing command: {e}"
+        if not args:
+            return "Error: empty command after parsing."
+        cmd_name = args[0]
+        if cmd_name not in _ALLOWED_COMMANDS:
+            return (
+                f"Error: '{cmd_name}' is not allowed. "
+                f"Allowed commands: {', '.join(sorted(_ALLOWED_COMMANDS))}"
+            )
+        # Rewrite pip to use the current Python interpreter
+        if cmd_name == "pip":
+            args = [sys.executable, "-m", "pip"] + args[1:]
+        gen_dir = _WORKSPACE_DIR / "generated"
+        gen_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            result = subprocess.run(
+                args,
+                cwd=str(gen_dir),
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            output = result.stdout + result.stderr
+            if len(output) > 50_000:
+                output = output[:50_000] + "\n... (truncated at 50KB)"
+            if not output.strip():
+                output = "(no output)"
+            return output
+        except subprocess.TimeoutExpired:
+            return "Error: command timed out after 60 seconds."
+        except FileNotFoundError:
+            return f"Error: command '{cmd_name}' not found on this system."
+        except Exception as e:
+            return f"Error running command: {e}"
 
     else:
         return f"Unknown tool: {name}"
