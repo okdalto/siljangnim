@@ -8,14 +8,37 @@ function stepDecimals(step) {
   return dot === -1 ? 0 : s.length - dot - 1;
 }
 
-function SliderControl({ ctrl, onUniformChange }) {
+function SliderControl({ ctrl, onUniformChange, keyframeManagerRef, engineRef, onOpenKeyframeEditor }) {
   const [value, setValue] = useState(ctrl.default ?? 0);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState("");
   const inputRef = useRef(null);
+  const sliderRef = useRef(null);
+  const valueDisplayRef = useRef(null);
   const decimals = Math.max(stepDecimals(ctrl.step), 0);
 
   const defaultVal = ctrl.default ?? 0;
+
+  const hasKf = keyframeManagerRef?.current?.hasKeyframes(ctrl.uniform);
+
+  // rAF loop: when keyframes are active, track interpolated value via DOM
+  useEffect(() => {
+    if (!hasKf) return;
+    let rafId;
+    const tick = () => {
+      rafId = requestAnimationFrame(tick);
+      const km = keyframeManagerRef?.current;
+      const engine = engineRef?.current;
+      if (!km || !engine) return;
+      const v = km.evaluate(ctrl.uniform, engine.getCurrentTime());
+      if (v !== null) {
+        if (sliderRef.current) sliderRef.current.value = v;
+        if (valueDisplayRef.current) valueDisplayRef.current.textContent = v.toFixed(decimals);
+      }
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [hasKf, ctrl.uniform, keyframeManagerRef, engineRef, decimals]);
 
   const handleChange = useCallback(
     (e) => {
@@ -73,6 +96,7 @@ function SliderControl({ ctrl, onUniformChange }) {
             />
           ) : (
             <span
+              ref={valueDisplayRef}
               onClick={startEditing}
               className="cursor-text hover:text-zinc-200 tabular-nums"
               title="Click to edit"
@@ -94,9 +118,21 @@ function SliderControl({ ctrl, onUniformChange }) {
               </svg>
             </button>
           )}
+          {onOpenKeyframeEditor && (
+            <button
+              onClick={() => onOpenKeyframeEditor(ctrl)}
+              className={`transition-colors ${hasKf ? "text-indigo-400 hover:text-indigo-300" : "text-zinc-600 hover:text-zinc-400"}`}
+              title="Keyframe editor"
+            >
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 1 L12 8 L8 15 L4 8 Z" />
+              </svg>
+            </button>
+          )}
         </span>
       </label>
       <input
+        ref={sliderRef}
         type="range"
         min={ctrl.min}
         max={ctrl.max}
@@ -378,6 +414,9 @@ export default function InspectorNode({ data }) {
   const {
     controls = [],
     onUniformChange,
+    keyframeManagerRef,
+    engineRef,
+    onOpenKeyframeEditor,
   } = data;
   const controlsRef = useRef(null);
 
@@ -407,7 +446,7 @@ export default function InspectorNode({ data }) {
         {controls.filter((c) => c.type !== "rotation3d" && c.type !== "pad2d").map((ctrl) => {
           const key = ctrl.uniform || ctrl.label;
           if (ctrl.type === "slider") {
-            return <SliderControl key={key} ctrl={ctrl} onUniformChange={onUniformChange} />;
+            return <SliderControl key={key} ctrl={ctrl} onUniformChange={onUniformChange} keyframeManagerRef={keyframeManagerRef} engineRef={engineRef} onOpenKeyframeEditor={onOpenKeyframeEditor} />;
           }
           if (ctrl.type === "toggle") {
             return <ToggleControl key={key} ctrl={ctrl} onUniformChange={onUniformChange} />;

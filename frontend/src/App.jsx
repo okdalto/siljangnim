@@ -24,6 +24,8 @@ import ApiKeyModal from "./components/ApiKeyModal.jsx";
 import Toolbar from "./components/Toolbar.jsx";
 import Timeline from "./components/Timeline.jsx";
 import SnapGuides from "./components/SnapGuides.jsx";
+import KeyframeEditor from "./components/KeyframeEditor.jsx";
+import KeyframeManager from "./engine/KeyframeManager.js";
 
 const nodeTypes = {
   chat: ChatNode,
@@ -82,7 +84,7 @@ const initialNodes = [
     id: "projectBrowser",
     type: "projectBrowser",
     position: { x: 1080, y: 50 },
-    style: { width: 288, height: 300 },
+    style: { width: 320, height: 400 },
     data: { projects: [], activeProject: null, onSave: () => { }, onLoad: () => { }, onDelete: () => { } },
   },
 ];
@@ -117,6 +119,37 @@ export default function App() {
 
   // Engine ref (shared via EngineContext and node data)
   const engineRef = useRef(null);
+
+  // Keyframe animation
+  const keyframeManagerRef = useRef(new KeyframeManager());
+  const [keyframeVersion, setKeyframeVersion] = useState(0);
+  const [keyframeEditorTarget, setKeyframeEditorTarget] = useState(null); // { uniform, label, min, max }
+
+  // Connect keyframe manager to engine when engine is available
+  useEffect(() => {
+    const engine = engineRef.current;
+    if (engine) engine.setKeyframeManager(keyframeManagerRef.current);
+  });
+
+  const handleOpenKeyframeEditor = useCallback((ctrl) => {
+    setKeyframeEditorTarget({
+      uniform: ctrl.uniform,
+      label: ctrl.label,
+      min: ctrl.min ?? 0,
+      max: ctrl.max ?? 1,
+    });
+  }, []);
+
+  const handleKeyframesChange = useCallback((newKeyframes) => {
+    if (!keyframeEditorTarget) return;
+    const km = keyframeManagerRef.current;
+    if (newKeyframes.length === 0) {
+      km.clearTrack(keyframeEditorTarget.uniform);
+    } else {
+      km.setTrack(keyframeEditorTarget.uniform, newKeyframes);
+    }
+    setKeyframeVersion((v) => v + 1);
+  }, [keyframeEditorTarget]);
 
   // Recording
   const { recording, elapsedTime: recordingTime, startRecording, stopRecording } = useRecorder(engineRef);
@@ -408,6 +441,9 @@ export default function App() {
               ...node.data,
               controls: uiConfig.controls || [],
               onUniformChange: handleUniformChange,
+              keyframeManagerRef,
+              engineRef,
+              onOpenKeyframeEditor: handleOpenKeyframeEditor,
             },
           };
         }
@@ -540,7 +576,7 @@ export default function App() {
 
       return updated;
     });
-  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleShaderError, customPanels, handleClosePanel, setNodes]);
+  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleShaderError, customPanels, handleClosePanel, setNodes, handleOpenKeyframeEditor, keyframeVersion]);
 
   return (
     <EngineContext.Provider value={engineRef}>
@@ -569,6 +605,20 @@ export default function App() {
             onSubmit={handleApiKeySubmit}
             error={apiKeyError}
             loading={apiKeyLoading}
+          />
+        )}
+
+        {keyframeEditorTarget && (
+          <KeyframeEditor
+            uniformName={keyframeEditorTarget.uniform}
+            label={keyframeEditorTarget.label}
+            min={keyframeEditorTarget.min}
+            max={keyframeEditorTarget.max}
+            duration={duration}
+            keyframes={keyframeManagerRef.current.getTrack(keyframeEditorTarget.uniform)}
+            engineRef={engineRef}
+            onKeyframesChange={handleKeyframesChange}
+            onClose={() => setKeyframeEditorTarget(null)}
           />
         )}
 
