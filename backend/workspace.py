@@ -49,6 +49,34 @@ def list_files() -> list[str]:
     ]
 
 
+def list_files_detailed() -> list[dict]:
+    """List all files with size, mime_type, modified metadata."""
+    if not WORKSPACE_DIR.exists():
+        return []
+    files = []
+    for p in WORKSPACE_DIR.rglob("*"):
+        if not p.is_file() or p.name == ".gitkeep":
+            continue
+        stat = p.stat()
+        mime, _ = mimetypes.guess_type(str(p))
+        files.append({
+            "path": str(p.relative_to(WORKSPACE_DIR)),
+            "size": stat.st_size,
+            "mime_type": mime or "application/octet-stream",
+            "modified": stat.st_mtime,
+        })
+    files.sort(key=lambda f: f["path"])
+    return files
+
+
+def delete_file(filename: str) -> None:
+    """Delete a file from the workspace."""
+    path = _safe_path(filename)
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {filename}")
+    path.unlink()
+
+
 def write_json(filename: str, data: dict) -> Path:
     """Write a dict as JSON to the workspace."""
     return write_file(filename, json.dumps(data, indent=2))
