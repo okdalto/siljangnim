@@ -469,7 +469,7 @@ export default class GLEngine {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this._applyClear(scene.output || {}, clearColor);
-        this._renderPass("__output__", scene.output || {}, time, dt);
+        this._renderPass("__output__", scene.output || {}, time, dt, this.canvas.width, this.canvas.height);
       } else {
         const buf = scene.buffers?.[passName];
         if (!buf) continue;
@@ -486,7 +486,7 @@ export default class GLEngine {
         gl.bindFramebuffer(gl.FRAMEBUFFER, targetFBO.fbo);
         gl.viewport(0, 0, targetFBO.width, targetFBO.height);
         this._applyClear(buf, clearColor);
-        this._renderPass(passName, buf, time, dt);
+        this._renderPass(passName, buf, time, dt, targetFBO.width, targetFBO.height);
 
         // Swap ping-pong
         if (doubleBuffered) {
@@ -660,7 +660,7 @@ export default class GLEngine {
     return entry;
   }
 
-  _renderPass(passName, passConfig, time, dt) {
+  _renderPass(passName, passConfig, time, dt, resWidth, resHeight) {
     const gl = this.gl;
     const program = this._programs[passName];
     const vaoInfo = this._vaos[passName];
@@ -668,9 +668,9 @@ export default class GLEngine {
 
     gl.useProgram(program);
 
-    // Bind built-in uniforms
+    // Bind built-in uniforms — u_resolution matches actual render target size
     this._setUniform(program, "u_time", time);
-    this._setUniform(program, "u_resolution", [this.canvas.width, this.canvas.height]);
+    this._setUniform(program, "u_resolution", [resWidth, resHeight]);
     this._setUniform(program, "u_mouse", this._mouse);
     this._setUniform(program, "u_frame", this._frameCount);
     this._setUniform(program, "u_dt", dt);
@@ -798,7 +798,7 @@ export default class GLEngine {
     if (!loc) return;
 
     if (typeof value === "number") {
-      if (Number.isInteger(value) && (name === "u_frame" || name === "u_instance_count")) {
+      if (Number.isInteger(value) && name === "u_instance_count") {
         gl.uniform1i(loc, value);
       } else {
         gl.uniform1f(loc, value);

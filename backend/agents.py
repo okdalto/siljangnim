@@ -333,6 +333,15 @@ skips camera uniform binding and nothing renders. Always include: \
 - Use texture() NOT texture2D()
 - Built-in uniforms (auto-provided values, but you MUST declare them in GLSL \
 if you use them): u_time, u_resolution, u_mouse, u_mouse_down, u_frame, u_dt
+- ALL built-in uniforms are float type. Declare them as: \
+`uniform float u_time;` `uniform vec2 u_resolution;` `uniform vec4 u_mouse;` \
+`uniform float u_mouse_down;` `uniform float u_frame;` `uniform float u_dt;` \
+NEVER declare u_frame as int — the engine sends all values as float.
+- u_resolution matches the ACTUAL render target size for each pass. \
+If a buffer uses resolution_scale (e.g. 0.25), u_resolution will be the \
+scaled buffer size, not the canvas size. `1.0/u_resolution.xy` gives correct \
+texel size for that pass. You can also use `textureSize(iChannel0, 0)` \
+to query input texture dimensions directly.
 - For 3D: u_mvp, u_model, u_camera_pos are auto-provided
 - Vertex attributes for quad: in vec2 a_position; (default vertex shader outputs v_uv)
 - Vertex attributes for 3D: in vec3 a_position; in vec3 a_normal; in vec2 a_uv;
@@ -372,6 +381,9 @@ omit them to use sensible defaults.
   self-reference input, output visualizes it
 - IMPORTANT: double_buffer alone is NOT enough. The buffer's "inputs" MUST \
   explicitly include itself for the engine to bind the previous frame texture.
+- Initialization: To initialize a simulation on the first frame, use \
+  `if (u_frame < 1.0)` (u_frame is float, not int). \
+  Or use `if (u_time < 0.05)` as a time-based alternative.
 
 ## KEYBOARD & MOUSE INPUT
 
