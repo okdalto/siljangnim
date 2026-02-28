@@ -122,6 +122,17 @@ siljangnim/
 | Backend | FastAPI, WebSocket, Uvicorn |
 | AI | Anthropic Claude API (tool calling) |
 
+## Security Notice
+
+The AI agent can execute arbitrary Python code and whitelisted shell commands (`pip`, `ffmpeg`, `ffprobe`, `convert`, `magick`) on the host machine via `run_python` and `run_command` tools. While execution is restricted to the `.workspace/` working directory and shell commands are limited to a whitelist, **the Python code runs with the same permissions as the backend process** — there is no container or OS-level sandbox.
+
+This means a prompt injection attack (e.g., via a maliciously crafted uploaded file) could potentially:
+- Read or write files accessible to the backend process
+- Install arbitrary packages via `pip`
+- Exfiltrate data through installed packages or network calls
+
+**Do not expose this application to the public internet.** It is designed for local, single-user use only. If you must run it on a shared network, place it behind authentication and consider running the backend inside a container.
+
 ## License
 
 [GPLv3](LICENSE)
