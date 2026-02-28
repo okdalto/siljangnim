@@ -58,7 +58,11 @@ export default class GLEngine {
     this._renderOrder = [];  // topologically sorted pass names
     this._customUniforms = {};
     this._mouse = [0, 0, 0, 0]; // x, y, clickX, clickY (normalized)
+    this._mouseSnapshot = [0, 0, 0, 0]; // snapshot at start of current frame
+    this._mousePrev = [0, 0, 0, 0]; // previous frame's mouse state
     this._mouseDown = false;
+    this._mouseDownSnapshot = false;
+    this._mouseDownPrev = false;
     this._pressedKeys = new Set();
     this._keyboardBindings = {}; // uniform name → KeyboardEvent.code
 
@@ -464,6 +468,12 @@ export default class GLEngine {
     const scene = this._scene;
     const clearColor = scene.clearColor || [0.08, 0.08, 0.12, 1.0];
 
+    // Snapshot previous mouse state at start of frame
+    this._mousePrev = [...this._mouseSnapshot];
+    this._mouseDownPrev = this._mouseDownSnapshot;
+    this._mouseSnapshot = [...this._mouse];
+    this._mouseDownSnapshot = this._mouseDown;
+
     for (const passName of this._renderOrder) {
       if (passName === "__output__") {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -672,9 +682,11 @@ export default class GLEngine {
     this._setUniform(program, "u_time", time);
     this._setUniform(program, "u_resolution", [resWidth, resHeight]);
     this._setUniform(program, "u_mouse", this._mouse);
+    this._setUniform(program, "u_mouse_prev", this._mousePrev);
     this._setUniform(program, "u_frame", this._frameCount);
     this._setUniform(program, "u_dt", dt);
     this._setUniform(program, "u_mouse_down", this._mouseDown ? 1.0 : 0.0);
+    this._setUniform(program, "u_mouse_down_prev", this._mouseDownPrev ? 1.0 : 0.0);
 
     // Bind keyboard uniforms
     for (const [name, code] of Object.entries(this._keyboardBindings)) {

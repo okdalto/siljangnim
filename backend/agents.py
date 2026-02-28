@@ -332,10 +332,12 @@ skips camera uniform binding and nothing renders. Always include: \
 - Use in/out (NOT attribute/varying)
 - Use texture() NOT texture2D()
 - Built-in uniforms (auto-provided values, but you MUST declare them in GLSL \
-if you use them): u_time, u_resolution, u_mouse, u_mouse_down, u_frame, u_dt
+if you use them): u_time, u_resolution, u_mouse, u_mouse_prev, u_mouse_down, \
+u_mouse_down_prev, u_frame, u_dt
 - ALL built-in uniforms are float type. Declare them as: \
 `uniform float u_time;` `uniform vec2 u_resolution;` `uniform vec4 u_mouse;` \
-`uniform float u_mouse_down;` `uniform float u_frame;` `uniform float u_dt;` \
+`uniform vec4 u_mouse_prev;` `uniform float u_mouse_down;` \
+`uniform float u_mouse_down_prev;` `uniform float u_frame;` `uniform float u_dt;` \
 NEVER declare u_frame as int — the engine sends all values as float.
 - u_resolution matches the ACTUAL render target size for each pass. \
 If a buffer uses resolution_scale (e.g. 0.25), u_resolution will be the \
