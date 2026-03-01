@@ -449,7 +449,7 @@ export default function KeyframeEditor({
       const { cx, cy } = getCanvasCoords(e);
 
       // Cmd+click on keyframe → toggle linear mode
-      if (e.metaKey) {
+      if (e.metaKey || e.ctrlKey) {
         const kfHit = hitTestKeyframe(cx, cy);
         if (kfHit >= 0) {
           const kfs = keyframesRef.current;
