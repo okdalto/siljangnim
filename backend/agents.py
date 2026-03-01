@@ -45,10 +45,38 @@ LogCallback = Callable[[str, str, str], Awaitable[None]]
 BroadcastCallback = Callable[[dict], Awaitable[None]]
 
 # ---------------------------------------------------------------------------
-# Conversation history: WebSocket ID → message list
+# Conversation history: WebSocket ID → message list (persisted to disk)
 # ---------------------------------------------------------------------------
 
 _conversations: dict[int, list[dict]] = {}
+_CONVERSATION_FILE = Path(__file__).resolve().parent.parent / ".workspace" / "generated" / "conversation.json"
+
+
+def _save_conversations() -> None:
+    """Persist conversation history to disk."""
+    try:
+        _CONVERSATION_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _CONVERSATION_FILE.write_text(
+            json.dumps(_conversations, ensure_ascii=False), encoding="utf-8"
+        )
+    except OSError:
+        pass
+
+
+def _load_conversations() -> None:
+    """Load conversation history from disk on startup."""
+    global _conversations
+    try:
+        if _CONVERSATION_FILE.exists():
+            data = json.loads(_CONVERSATION_FILE.read_text(encoding="utf-8"))
+            # JSON keys are strings — convert back to int
+            _conversations = {int(k): v for k, v in data.items()}
+    except (OSError, json.JSONDecodeError, ValueError):
+        _conversations = {}
+
+
+# Load on module import
+_load_conversations()
 
 # ---------------------------------------------------------------------------
 # Scene JSON validation
@@ -1597,11 +1625,13 @@ async def run_agent(
         )
 
         chat_text = last_text or "Done."
+        _save_conversations()
         return {"chat_text": chat_text}
 
     except Exception as e:
         # Log the error but preserve conversation history so the user
         # can continue from where they left off instead of losing context.
+        _save_conversations()
         await log("System", f"Agent error (conversation preserved): {e}", "error")
         raise
 
@@ -1623,8 +1653,10 @@ def get_debug_conversations(max_content_len: int = 200) -> dict[int, list[dict]]
 async def reset_agent(ws_id: int) -> None:
     """Clear conversation history so the next query starts fresh."""
     _conversations.pop(ws_id, None)
+    _save_conversations()
 
 
 async def destroy_client(ws_id: int) -> None:
     """Clean up when a WebSocket disconnects."""
-    _conversations.pop(ws_id, None)
+    # Don't clear — keep history so it survives refresh/reconnect
+    pass
