@@ -259,6 +259,10 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [agentStatus, setAgentStatus] = useState(null); // {status, detail}
 
+  // Agent question state (ask_user tool)
+  const [pendingQuestion, setPendingQuestion] = useState(null);
+  // { question: string, options: [{label, description}] }
+
   // Save status: "saved" | "unsaved" | "saving"
   const [saveStatus, setSaveStatus] = useState("saved");
 
@@ -377,6 +381,7 @@ export default function App() {
       case "chat_done":
         setIsProcessing(false);
         setAgentStatus(null);
+        setPendingQuestion(null);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = true;
         setSaveStatus("unsaved");
@@ -416,6 +421,13 @@ export default function App() {
           ...prev,
           { agent: msg.agent, message: msg.message, level: msg.level },
         ]);
+        break;
+
+      case "agent_question":
+        setPendingQuestion({
+          question: msg.question,
+          options: msg.options || [],
+        });
         break;
 
       case "project_list":
@@ -573,6 +585,12 @@ export default function App() {
   const handleNewChat = useCallback(() => {
     setMessages([]);
     send({ type: "new_chat" });
+  }, [send]);
+
+  const handleAnswer = useCallback((text) => {
+    setMessages((prev) => [...prev, { role: "user", text }]);
+    setPendingQuestion(null);
+    send({ type: "user_answer", text });
   }, [send]);
 
   // Warn before closing tab with unsaved changes
@@ -749,7 +767,7 @@ export default function App() {
         if (node.id === "chat") {
           return {
             ...node,
-            data: { ...node.data, messages, onSend: handleSend, isProcessing, agentStatus, onNewChat: handleNewChat },
+            data: { ...node.data, messages, onSend: handleSend, isProcessing, agentStatus, onNewChat: handleNewChat, pendingQuestion, onAnswer: handleAnswer },
           };
         }
         if (node.id === "inspector") {
@@ -908,7 +926,7 @@ export default function App() {
 
       return updated;
     });
-  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleDeleteWorkspaceFile, workspaceFilesVersion, handleShaderError, customPanels, handleClosePanel, setNodes, handleOpenKeyframeEditor, keyframeVersion, handlePanelKeyframesChange, duration, loop]);
+  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, pendingQuestion, handleAnswer, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleDeleteWorkspaceFile, workspaceFilesVersion, handleShaderError, customPanels, handleClosePanel, setNodes, handleOpenKeyframeEditor, keyframeVersion, handlePanelKeyframesChange, duration, loop]);
 
   return (
     <EngineContext.Provider value={engineRef}>

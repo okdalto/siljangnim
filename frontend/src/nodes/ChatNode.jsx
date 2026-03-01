@@ -47,7 +47,7 @@ export default function ChatNode({ data }) {
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat } = data;
+  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat, pendingQuestion, onAnswer } = data;
   const messagesEndRef = useRef(null);
   const messagesRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -138,7 +138,18 @@ export default function ChatNode({ data }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if ((!input.trim() && attachedFiles.length === 0) || isProcessing) return;
+    if (!input.trim() && attachedFiles.length === 0) return;
+
+    // If a question is pending, send answer instead of normal prompt
+    if (pendingQuestion) {
+      if (input.trim()) {
+        onAnswer?.(input.trim());
+        setInput("");
+      }
+      return;
+    }
+
+    if (isProcessing) return;
 
     const files = attachedFiles.length > 0
       ? attachedFiles.map(({ name, mime_type, size, data_b64 }) => ({ name, mime_type, size, data_b64 }))
@@ -242,7 +253,7 @@ export default function ChatNode({ data }) {
             )}
           </div>
         ))}
-        {isProcessing && (
+        {isProcessing && !pendingQuestion && (
           <div className="px-3 py-2 rounded-lg max-w-[90%] bg-zinc-800 text-zinc-500">
             <div className="flex items-center gap-1.5">
               <span className="flex gap-1">
@@ -263,6 +274,25 @@ export default function ChatNode({ data }) {
                 {agentStatus.detail}
               </p>
             )}
+          </div>
+        )}
+        {pendingQuestion && (
+          <div className="px-3 py-2 rounded-lg max-w-[90%] bg-zinc-800 text-zinc-300 space-y-2">
+            <p className="text-sm font-medium">{pendingQuestion.question}</p>
+            <div className="flex flex-col gap-1.5">
+              {pendingQuestion.options.map((opt, i) => (
+                <button
+                  key={i}
+                  onClick={() => onAnswer?.(opt.label)}
+                  className="text-left px-3 py-2 rounded-lg bg-zinc-700 hover:bg-indigo-600 transition-colors text-sm"
+                >
+                  <span className="font-medium text-zinc-100">{opt.label}</span>
+                  {opt.description && (
+                    <span className="block text-xs text-zinc-400 mt-0.5">{opt.description}</span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -291,7 +321,7 @@ export default function ChatNode({ data }) {
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          disabled={isProcessing}
+          disabled={isProcessing && !pendingQuestion}
           className="text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-1"
           title="Attach files"
         >
@@ -317,15 +347,15 @@ export default function ChatNode({ data }) {
               }
             }
           }}
-          placeholder={isProcessing ? "Waiting for response..." : "Type a prompt... (Shift+Enter for newline)"}
-          disabled={isProcessing}
+          placeholder={pendingQuestion ? "Type your answer..." : isProcessing ? "Waiting for response..." : "Type a prompt... (Shift+Enter for newline)"}
+          disabled={isProcessing && !pendingQuestion}
           rows={1}
           className="flex-1 bg-zinc-800 text-zinc-100 text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
           style={{ maxHeight: "120px", overflowY: "auto" }}
         />
         <button
           type="submit"
-          disabled={isProcessing}
+          disabled={isProcessing && !pendingQuestion}
           className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
         >
           Send
