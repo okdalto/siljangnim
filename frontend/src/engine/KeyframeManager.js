@@ -21,6 +21,7 @@ export default class KeyframeManager {
         value: kf.value,
         inTangent: kf.inTangent ?? 0,
         outTangent: kf.outTangent ?? 0,
+        linear: kf.linear ?? false,
       }))
       .sort((a, b) => a.time - b.time);
   }
@@ -75,6 +76,10 @@ export default class KeyframeManager {
       if (time >= a.time && time <= b.time) {
         const dt = b.time - a.time;
         if (dt === 0) return a.value;
+        // If both endpoints are linear, just lerp
+        if (a.linear && b.linear) {
+          return a.value + ((time - a.time) / dt) * (b.value - a.value);
+        }
         const t = (time - a.time) / dt;
         const t2 = t * t;
         const t3 = t2 * t;
@@ -83,9 +88,10 @@ export default class KeyframeManager {
         const h10 = t3 - 2 * t2 + t;
         const h01 = -2 * t3 + 3 * t2;
         const h11 = t3 - t2;
-        // Tangents scaled by segment duration
-        const m0 = a.outTangent * dt;
-        const m1 = b.inTangent * dt;
+        // Linear keyframes use straight-line slope instead of stored tangent
+        const linearSlope = (b.value - a.value) / dt;
+        const m0 = (a.linear ? linearSlope : a.outTangent) * dt;
+        const m1 = (b.linear ? linearSlope : b.inTangent) * dt;
         return h00 * a.value + h10 * m0 + h01 * b.value + h11 * m1;
       }
     }

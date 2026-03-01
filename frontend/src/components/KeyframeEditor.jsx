@@ -230,6 +230,15 @@ export default function KeyframeEditor({
         const a = kfs[i];
         const b = kfs[i + 1];
         const dt = b.time - a.time;
+        // Both linear → straight line
+        if (a.linear && b.linear) {
+          const p = toCanvasXY(b.time, b.value);
+          c.lineTo(p.x, p.y);
+          continue;
+        }
+        const linearSlope = dt > 0 ? (b.value - a.value) / dt : 0;
+        const outT = a.linear ? linearSlope : a.outTangent;
+        const inT = b.linear ? linearSlope : b.inTangent;
         for (let s = 1; s <= CURVE_SUBDIVISIONS; s++) {
           const t = s / CURVE_SUBDIVISIONS;
           const t2 = t * t;
@@ -238,7 +247,7 @@ export default function KeyframeEditor({
           const h10 = t3 - 2 * t2 + t;
           const h01 = -2 * t3 + 3 * t2;
           const h11 = t3 - t2;
-          const val = h00 * a.value + h10 * (a.outTangent * dt) + h01 * b.value + h11 * (b.inTangent * dt);
+          const val = h00 * a.value + h10 * (outT * dt) + h01 * b.value + h11 * (inT * dt);
           const time = a.time + t * dt;
           const p = toCanvasXY(time, val);
           c.lineTo(p.x, p.y);
@@ -256,8 +265,8 @@ export default function KeyframeEditor({
       c.restore();
     }
 
-    // ── Tangent handles (selected keyframe) ──────
-    if (selIdx >= 0 && selIdx < kfs.length) {
+    // ── Tangent handles (selected keyframe, hidden for linear) ──────
+    if (selIdx >= 0 && selIdx < kfs.length && !kfs[selIdx].linear) {
       const kf = kfs[selIdx];
       const kfP = toCanvasXY(kf.time, kf.value);
 
@@ -301,12 +310,19 @@ export default function KeyframeEditor({
 
       c.save();
       c.translate(p.x, p.y);
-      c.rotate(Math.PI / 4);
       c.fillStyle = isSelected || isDragging ? "#a5b4fc" : "#818cf8";
-      c.fillRect(-POINT_RADIUS, -POINT_RADIUS, POINT_RADIUS * 2, POINT_RADIUS * 2);
       c.strokeStyle = isSelected ? "#fbbf24" : "#fff";
       c.lineWidth = isSelected ? 2 : 1.5;
-      c.strokeRect(-POINT_RADIUS, -POINT_RADIUS, POINT_RADIUS * 2, POINT_RADIUS * 2);
+      if (kf.linear) {
+        // Linear keyframe → square (no rotation)
+        c.fillRect(-POINT_RADIUS, -POINT_RADIUS, POINT_RADIUS * 2, POINT_RADIUS * 2);
+        c.strokeRect(-POINT_RADIUS, -POINT_RADIUS, POINT_RADIUS * 2, POINT_RADIUS * 2);
+      } else {
+        // Curve keyframe → diamond (rotated square)
+        c.rotate(Math.PI / 4);
+        c.fillRect(-POINT_RADIUS, -POINT_RADIUS, POINT_RADIUS * 2, POINT_RADIUS * 2);
+        c.strokeRect(-POINT_RADIUS, -POINT_RADIUS, POINT_RADIUS * 2, POINT_RADIUS * 2);
+      }
       c.restore();
     }
 
@@ -406,6 +422,7 @@ export default function KeyframeEditor({
       const sel = selectedRef.current;
       if (sel < 0 || sel >= kfs.length) return null;
       const kf = kfs[sel];
+      if (kf.linear) return null;
 
       if (sel > 0) {
         const h = getTangentHandlePos(kf, "in");
@@ -430,6 +447,20 @@ export default function KeyframeEditor({
     (e) => {
       if (e.button === 2) return;
       const { cx, cy } = getCanvasCoords(e);
+
+      // Cmd+click on keyframe → toggle linear mode
+      if (e.metaKey) {
+        const kfHit = hitTestKeyframe(cx, cy);
+        if (kfHit >= 0) {
+          const kfs = keyframesRef.current;
+          const newKf = kfs.map((k, i) =>
+            i === kfHit ? { ...k, linear: !k.linear } : { ...k }
+          );
+          selectedRef.current = kfHit;
+          onKeyframesChangeRef.current(newKf);
+          return;
+        }
+      }
 
       // Alt+drag → pan
       if (e.altKey) {
@@ -681,7 +712,7 @@ export default function KeyframeEditor({
 
         {/* Footer */}
         <div className="px-4 py-1.5 bg-zinc-800 border-t border-zinc-700 text-[10px] text-zinc-500">
-          Double-click: add &nbsp;|&nbsp; Drag: move &nbsp;|&nbsp; Right-click: delete &nbsp;|&nbsp; Scroll: X-zoom &nbsp;|&nbsp; Shift+Scroll: Y-zoom &nbsp;|&nbsp; Alt+Drag: pan
+          Double-click: add &nbsp;|&nbsp; Drag: move &nbsp;|&nbsp; Right-click: delete &nbsp;|&nbsp; ⌘+Click: toggle linear &nbsp;|&nbsp; Scroll: X-zoom &nbsp;|&nbsp; Shift+Scroll: Y-zoom &nbsp;|&nbsp; Alt+Drag: pan
         </div>
       </div>
     </div>
