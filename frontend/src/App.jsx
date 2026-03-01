@@ -140,8 +140,24 @@ export default function App() {
   // Engine ref (shared via EngineContext and node data)
   const engineRef = useRef(null);
 
-  // Keyframe animation
-  const keyframeManagerRef = useRef(new KeyframeManager());
+  // Keyframe animation (restore from localStorage)
+  const keyframeManagerRef = useRef(() => {
+    const km = new KeyframeManager();
+    try {
+      const raw = localStorage.getItem("siljangnim:keyframes");
+      if (raw) {
+        const tracks = JSON.parse(raw);
+        for (const [uniform, kfs] of Object.entries(tracks)) {
+          km.setTrack(uniform, kfs);
+        }
+      }
+    } catch {}
+    return km;
+  });
+  // Lazy init: replace the factory with its result on first access
+  if (typeof keyframeManagerRef.current === "function") {
+    keyframeManagerRef.current = keyframeManagerRef.current();
+  }
   const [keyframeVersion, setKeyframeVersion] = useState(0);
   const [keyframeEditorTarget, setKeyframeEditorTarget] = useState(null); // { uniform, label, min, max }
 
@@ -331,6 +347,13 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("siljangnim:debugLogs", JSON.stringify(debugLogs));
   }, [debugLogs]);
+
+  // Persist keyframes to localStorage
+  useEffect(() => {
+    if (keyframeVersion > 0) {
+      localStorage.setItem("siljangnim:keyframes", JSON.stringify(keyframeManagerRef.current.tracks));
+    }
+  }, [keyframeVersion]);
 
   // Callbacks
   const handleSend = useCallback(
