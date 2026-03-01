@@ -195,9 +195,12 @@ export default function ProjectBrowserNode({ data }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [savedFeedback, setSavedFeedback] = useState(false);
+  const [overwriteConfirm, setOverwriteConfirm] = useState(null);
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
   const deleteTimerRef = useRef(null);
+  const savedTimerRef = useRef(null);
 
   // Code preview state
   const [expandedProject, setExpandedProject] = useState(null);
@@ -249,19 +252,57 @@ export default function ProjectBrowserNode({ data }) {
     }
   }, [confirmDelete]);
 
+  const sanitizeName = (n) => {
+    let s = n.trim().toLowerCase();
+    s = s.replace(/[^a-z0-9]+/g, "-");
+    s = s.replace(/^-+|-+$/g, "");
+    return s || "untitled";
+  };
+
   const handleSave = (e) => {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return;
+    const sanitized = sanitizeName(trimmed);
+    const exists = projects.some((p) => p.name === sanitized);
+    if (exists && overwriteConfirm !== sanitized) {
+      setOverwriteConfirm(sanitized);
+      return;
+    }
     onSave?.(trimmed, description.trim() || undefined);
     setName("");
     setDescription("");
     setSaving(false);
+    setOverwriteConfirm(null);
+  };
+
+  const handleOverwriteCancel = () => {
+    setOverwriteConfirm(null);
+  };
+
+  const handleOverwriteConfirm = () => {
+    const trimmed = name.trim();
+    onSave?.(trimmed, description.trim() || undefined);
+    setName("");
+    setDescription("");
+    setSaving(false);
+    setOverwriteConfirm(null);
   };
 
   const handleQuickSave = () => {
     if (!activeProject) return;
     onSave?.(activeProject);
+    clearTimeout(savedTimerRef.current);
+    setSavedFeedback(true);
+    savedTimerRef.current = setTimeout(() => setSavedFeedback(false), 1500);
+  };
+
+  const handleOpenSaveAs = () => {
+    if (activeProject) {
+      setName(activeProject + " copy");
+    }
+    setOverwriteConfirm(null);
+    setSaving(true);
   };
 
   const handleDeleteClick = (e, projectName) => {
@@ -364,25 +405,40 @@ export default function ProjectBrowserNode({ data }) {
       <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab flex items-center justify-between">
         Projects
         <div className="flex items-center gap-1.5 nodrag">
-          {activeProject && (
+          {saving ? (
             <button
-              onClick={handleQuickSave}
-              title={`Quick save "${activeProject}"`}
-              className="text-zinc-500 hover:text-indigo-400 p-0.5 rounded transition-colors"
+              onClick={() => { setSaving(false); setOverwriteConfirm(null); }}
+              className="text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-700 hover:bg-zinc-600 px-2 py-0.5 rounded transition-colors"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <polyline points="17 21 17 13 7 13 7 21" />
-                <polyline points="7 3 7 8 15 8" />
-              </svg>
+              Cancel
+            </button>
+          ) : activeProject ? (
+            <>
+              <button
+                onClick={handleQuickSave}
+                className={`text-xs px-2 py-0.5 rounded transition-colors ${
+                  savedFeedback
+                    ? "bg-emerald-600 text-white"
+                    : "text-zinc-500 hover:text-zinc-200 bg-zinc-700 hover:bg-zinc-600"
+                }`}
+              >
+                {savedFeedback ? "Saved!" : "Save"}
+              </button>
+              <button
+                onClick={handleOpenSaveAs}
+                className="text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-700 hover:bg-zinc-600 px-2 py-0.5 rounded transition-colors"
+              >
+                Save As
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setSaving(true)}
+              className="text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-700 hover:bg-zinc-600 px-2 py-0.5 rounded transition-colors"
+            >
+              Save
             </button>
           )}
-          <button
-            onClick={() => setSaving((v) => !v)}
-            className="text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-700 hover:bg-zinc-600 px-2 py-0.5 rounded transition-colors"
-          >
-            {saving ? "Cancel" : activeProject ? "Save As" : "Save"}
-          </button>
         </div>
       </div>
 
@@ -393,7 +449,7 @@ export default function ProjectBrowserNode({ data }) {
             ref={inputRef}
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => { setName(e.target.value); setOverwriteConfirm(null); }}
             onKeyDown={(e) => e.stopPropagation()}
             placeholder="Project name..."
             className="bg-zinc-800 text-zinc-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500"
@@ -406,12 +462,36 @@ export default function ProjectBrowserNode({ data }) {
             rows={2}
             className="bg-zinc-800 text-zinc-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
           />
-          <button
-            type="submit"
-            className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-1.5 rounded transition-colors self-end"
-          >
-            Save
-          </button>
+          {overwriteConfirm ? (
+            <div className="bg-yellow-900/30 border border-yellow-600/50 rounded px-2.5 py-2 flex flex-col gap-1.5">
+              <p className="text-[11px] text-yellow-400">
+                Project "{overwriteConfirm}" already exists. Overwrite it?
+              </p>
+              <div className="flex items-center gap-2 self-end">
+                <button
+                  type="button"
+                  onClick={handleOverwriteCancel}
+                  className="text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleOverwriteConfirm}
+                  className="bg-yellow-600 hover:bg-yellow-500 text-white text-[11px] px-2.5 py-1 rounded transition-colors"
+                >
+                  Overwrite
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="submit"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-1.5 rounded transition-colors self-end"
+            >
+              Save
+            </button>
+          )}
         </form>
       )}
 

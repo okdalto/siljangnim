@@ -309,7 +309,9 @@ When using keyboard input, always tell the user: "Click the viewport to focus it
 
 Control types:
 - "slider": needs min, max, step, default (number)
-- "color": needs default (hex string like "#ff0000")
+- "color": needs default (hex string like "#ff0000" or "#ff000080" with alpha). \
+Outputs vec4 [r, g, b, a] to the uniform. Use vec4 uniform type for colors. \
+The alpha slider (0-100%) is always shown below the color picker.
 - "toggle": needs default (boolean)
 - "button": one-shot trigger (uniform is set to 1.0 on click, auto-resets to 0.0 \
 after 100ms). Use for actions like "Reset", "Randomize", "Spawn". \
@@ -337,6 +339,12 @@ Example: `{"type":"rotation3d","label":"Camera","uniforms":["u_cam_pos_x",\
 "u_cam_pos_y","u_cam_pos_z"],"target":[0,0,0],"distance":3.0,\
 "default":[2,1.5,2]}`. \
 Use instead of individual camera position sliders for 3D scenes.
+- "graph": editable curve for transfer functions, easing, falloff, etc. \
+Needs min (number), max (number), default (array of [x,y] control points). \
+Uniform stores the control points array. In scripts, use \
+ctx.utils.sampleCurve(ctx.uniforms.u_curve, t) to sample (t: 0-1 → y value). \
+Example: `{"type":"graph","label":"Falloff","uniform":"u_falloff",\
+"min":0,"max":1,"default":[[0,1],[0.5,0.8],[1,0]]}`.
 
 Create intuitive labels (e.g. "Glow Intensity" not "u_glow").
 
@@ -1412,10 +1420,14 @@ def _compact_messages(messages: list[dict]) -> None:
 
         # --- Strip thinking blocks from assistant messages ---
         if msg.get("role") == "assistant":
-            msg["content"] = [
+            filtered = [
                 block for block in content
                 if not (isinstance(block, dict) and block.get("type") == "thinking")
             ]
+            # Keep at least a placeholder so content is never empty
+            if not filtered:
+                filtered = [{"type": "text", "text": "(thinking only)"}]
+            msg["content"] = filtered
             content = msg["content"]
 
         # --- Truncate large payloads ---
@@ -1495,6 +1507,12 @@ async def run_agent(
                     await on_status("thinking", "Compacting conversation...")
                 _compact_messages(messages)
 
+            # Sanitize: remove any messages with empty content before API call
+            messages[:] = [
+                m for m in messages
+                if m.get("content") not in (None, "", [], [{}])
+            ]
+
             # Stream the API call so thinking/status updates reach the
             # frontend in real-time instead of blocking until completion.
             current_block_type = None
@@ -1545,8 +1563,9 @@ async def run_agent(
 
                     response = await stream.get_final_message()
             except anthropic.BadRequestError as e:
-                if "prompt is too long" in str(e):
-                    await log("System", "Prompt too long — compacting and retrying...", "info")
+                err_msg = str(e)
+                if "prompt is too long" in err_msg or "non-empty content" in err_msg:
+                    await log("System", f"Bad request — compacting and retrying: {err_msg[:200]}", "info")
                     if on_status:
                         await on_status("thinking", "Compacting conversation...")
                     _compact_messages(messages)

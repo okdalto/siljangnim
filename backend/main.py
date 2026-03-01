@@ -613,6 +613,19 @@ async def websocket_endpoint(ws: WebSocket):
                 }))
 
             elif msg_type == "new_project":
+                # Auto-save current project before resetting
+                _auto_save_name = msg.get("active_project")
+                if _auto_save_name:
+                    try:
+                        projects.save_project(
+                            name=_auto_save_name,
+                            chat_history=_chat_history,
+                            thumbnail_b64=msg.get("thumbnail"),
+                        )
+                    except Exception as e:
+                        logger.warning("Auto-save failed for %s: %s",
+                                       _auto_save_name, e)
+
                 # 1. Clear chat history and agent session
                 _chat_history.clear()
                 await agents.reset_agent(_AGENT_WS_ID)
@@ -665,6 +678,19 @@ async def websocket_endpoint(ws: WebSocket):
                     }))
 
             elif msg_type == "project_load":
+                # Auto-save current project before loading another
+                _auto_save_name = msg.get("active_project")
+                if _auto_save_name:
+                    try:
+                        projects.save_project(
+                            name=_auto_save_name,
+                            chat_history=_chat_history,
+                            thumbnail_b64=msg.get("thumbnail"),
+                        )
+                    except Exception as e:
+                        logger.warning("Auto-save failed for %s: %s",
+                                       _auto_save_name, e)
+
                 try:
                     result = projects.load_project(msg.get("name", ""))
                     _chat_history.clear()
