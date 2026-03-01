@@ -495,6 +495,22 @@ export default function App() {
         recorderFnsRef.current.stopRecording();
         break;
 
+      case "workspace_state_update":
+        if (msg.workspace_state) {
+          const ws = msg.workspace_state;
+          if (ws.keyframes && typeof ws.keyframes === "object") {
+            const km = keyframeManagerRef.current;
+            for (const u of Object.keys(km.tracks)) km.clearTrack(u);
+            for (const [u, kfs] of Object.entries(ws.keyframes)) {
+              km.setTrack(u, kfs);
+            }
+            setKeyframeVersion((v) => v + 1);
+          }
+          if (typeof ws.duration === "number") setDuration(ws.duration);
+          if (typeof ws.loop === "boolean") setLoop(ws.loop);
+        }
+        break;
+
       case "project_save_error":
       case "project_load_error":
       case "project_delete_error":
