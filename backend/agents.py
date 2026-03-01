@@ -728,6 +728,43 @@ control whose uniform or label matches, and call `update_ui_config` with the \
 remaining controls.
 - Custom uniforms go in the "uniforms" field of scene JSON, and are accessed \
 in scripts via `ctx.uniforms.u_name`.
+
+## KEYFRAME ANIMATION STATE
+
+The user can set keyframe animations on uniforms via the UI. Keyframes \
+override the static uniform value at runtime — the value animates over time.
+
+Use `get_workspace_state` to read the current keyframe/timeline state. \
+Use `update_workspace_state` to modify it (e.g. add/remove keyframes, \
+change duration or loop).
+
+### workspace_state.json schema
+```json
+{
+  "version": 1,
+  "keyframes": {
+    "u_speed": [
+      { "time": 0, "value": 0.5, "inTangent": 0, "outTangent": 0, "linear": false },
+      { "time": 10, "value": 2.0, "inTangent": 0, "outTangent": 0, "linear": false }
+    ]
+  },
+  "duration": 30,
+  "loop": true
+}
+```
+
+- `keyframes`: object mapping uniform names → sorted arrays of keyframe objects.
+  - `time`: position in seconds on the timeline
+  - `value`: the uniform value at that time
+  - `inTangent` / `outTangent`: slope for cubic Hermite interpolation (0 = flat)
+  - `linear`: if true, uses linear interpolation instead of cubic
+- `duration`: total timeline length in seconds
+- `loop`: whether the timeline loops
+
+When creating animations, consider using keyframes for values that should \
+change over time rather than hardcoding time-based math in the shader. \
+When modifying scenes, always check `get_workspace_state` first to see if \
+the user has existing keyframe animations that you should preserve or adapt.
 """
 
 
@@ -781,6 +818,42 @@ TOOLS = [
                 },
             },
             "required": ["ui_config"],
+        },
+    },
+    {
+        "name": "get_workspace_state",
+        "description": (
+            "Read the current workspace state including keyframe animations, "
+            "timeline duration, and loop setting. Returns the workspace_state.json "
+            "contents, or defaults if no state exists. Use this to check existing "
+            "keyframe animations before modifying scenes."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+        },
+    },
+    {
+        "name": "update_workspace_state",
+        "description": (
+            "Update the workspace state (keyframes, duration, loop). "
+            "The state is saved to workspace_state.json and broadcast to all "
+            "connected clients, immediately updating the timeline and keyframe "
+            "editor in the UI. You can add/remove/modify keyframe tracks, "
+            "change the timeline duration, or toggle looping."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workspace_state": {
+                    "type": "string",
+                    "description": (
+                        "Complete workspace state JSON string with 'version', "
+                        "'keyframes', 'duration', and 'loop' fields."
+                    ),
+                },
+            },
+            "required": ["workspace_state"],
         },
     },
     {
@@ -1051,6 +1124,38 @@ async def _handle_tool(
             "ui_config": ui_config,
         })
         return "ok — ui_config saved and broadcast to clients."
+
+    elif name == "get_workspace_state":
+        try:
+            ws_state = workspace.read_json("workspace_state.json")
+            return json.dumps(ws_state, indent=2)
+        except FileNotFoundError:
+            return json.dumps({"version": 1, "keyframes": {}, "duration": 30, "loop": True}, indent=2)
+
+    elif name == "update_workspace_state":
+        raw = input_data.get("workspace_state", "")
+        try:
+            if isinstance(raw, str):
+                ws_state = json.loads(raw)
+            else:
+                ws_state = raw
+        except json.JSONDecodeError as e:
+            return f"Invalid JSON: {e}"
+
+        # Ensure version field
+        if "version" not in ws_state:
+            ws_state["version"] = 1
+
+        try:
+            workspace.write_json("workspace_state.json", ws_state)
+        except OSError as e:
+            return f"Error writing workspace_state.json: {e}"
+
+        await broadcast({
+            "type": "workspace_state_update",
+            "workspace_state": ws_state,
+        })
+        return "ok — workspace state saved and broadcast to clients."
 
     elif name == "read_uploaded_file":
         filename = input_data.get("filename", "")
