@@ -701,10 +701,13 @@ export default function App() {
   );
 
   const handleShaderError = useCallback((err) => {
+    const message = err.message || String(err);
     setDebugLogs((prev) => [
       ...prev,
-      { agent: "WebGL", message: err.message || String(err), level: "error" },
+      { agent: "WebGL", message, level: "error" },
     ]);
+    // Forward to backend for automatic agent fix
+    sendRef.current?.({ type: "console_error", message });
   }, []);
 
   const handleClosePanel = useCallback(
@@ -718,6 +721,23 @@ export default function App() {
     },
     [send]
   );
+
+  // Panel keyframe change handler
+  const handlePanelKeyframesChange = useCallback((uniform, keyframes) => {
+    const km = keyframeManagerRef.current;
+    // Push to undo stack
+    const prevKfs = km.getTrack(uniform);
+    kfHistoryRef.current.past.push({ uniform, keyframes: [...prevKfs] });
+    if (kfHistoryRef.current.past.length > 50) kfHistoryRef.current.past.shift();
+    kfHistoryRef.current.future.length = 0;
+
+    if (!keyframes || keyframes.length === 0) {
+      km.clearTrack(uniform);
+    } else {
+      km.setTrack(uniform, keyframes);
+    }
+    setKeyframeVersion((v) => v + 1);
+  }, []);
 
   // Sync data into nodes (including dynamic camera node creation/removal)
   useEffect(() => {
@@ -802,6 +822,12 @@ export default function App() {
                 onUniformChange: handleUniformChange,
                 engineRef,
                 onClose: () => handleClosePanel(panelId),
+                keyframeManagerRef,
+                onKeyframesChange: handlePanelKeyframesChange,
+                onDurationChange: setDuration,
+                onLoopChange: setLoop,
+                duration,
+                loop,
               },
             };
           }
@@ -866,6 +892,12 @@ export default function App() {
                 onUniformChange: handleUniformChange,
                 engineRef,
                 onClose: () => handleClosePanel(panelId),
+                keyframeManagerRef,
+                onKeyframesChange: handlePanelKeyframesChange,
+                onDurationChange: setDuration,
+                onLoopChange: setLoop,
+                duration,
+                loop,
               },
             },
           ];
@@ -876,7 +908,7 @@ export default function App() {
 
       return updated;
     });
-  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleDeleteWorkspaceFile, workspaceFilesVersion, handleShaderError, customPanels, handleClosePanel, setNodes, handleOpenKeyframeEditor, keyframeVersion]);
+  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleDeleteWorkspaceFile, workspaceFilesVersion, handleShaderError, customPanels, handleClosePanel, setNodes, handleOpenKeyframeEditor, keyframeVersion, handlePanelKeyframesChange, duration, loop]);
 
   return (
     <EngineContext.Provider value={engineRef}>

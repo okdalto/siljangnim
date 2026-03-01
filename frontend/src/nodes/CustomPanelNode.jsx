@@ -6,13 +6,42 @@ import { NodeResizer } from "@xyflow/react";
 const BRIDGE_SCRIPT = `
 <script>
 window.panel = {
+  // Uniforms
   setUniform(name, value) {
     window.parent.postMessage({ type: 'panel:setUniform', uniform: name, value: value }, '*');
   },
   uniforms: {},
+
+  // Timeline
   time: 0,
   frame: 0,
   mouse: [0, 0, 0, 0],
+  duration: 30,
+  loop: true,
+
+  // Keyframes: { uniformName: [{ time, value, inTangent, outTangent, linear }] }
+  keyframes: {},
+
+  // Set keyframes for a uniform track
+  setKeyframes(uniform, keyframeArray) {
+    window.parent.postMessage({ type: 'panel:setKeyframes', uniform: uniform, keyframes: keyframeArray }, '*');
+  },
+
+  // Clear all keyframes for a uniform
+  clearKeyframes(uniform) {
+    window.parent.postMessage({ type: 'panel:setKeyframes', uniform: uniform, keyframes: [] }, '*');
+  },
+
+  // Set timeline duration
+  setDuration(d) {
+    window.parent.postMessage({ type: 'panel:setDuration', duration: d }, '*');
+  },
+
+  // Set timeline loop
+  setLoop(l) {
+    window.parent.postMessage({ type: 'panel:setLoop', loop: l }, '*');
+  },
+
   onUpdate: null,
 };
 window.addEventListener('message', function(e) {
@@ -21,6 +50,9 @@ window.addEventListener('message', function(e) {
     window.panel.time = e.data.time !== undefined ? e.data.time : window.panel.time;
     window.panel.frame = e.data.frame !== undefined ? e.data.frame : window.panel.frame;
     window.panel.mouse = e.data.mouse || window.panel.mouse;
+    window.panel.duration = e.data.duration !== undefined ? e.data.duration : window.panel.duration;
+    window.panel.loop = e.data.loop !== undefined ? e.data.loop : window.panel.loop;
+    if (e.data.keyframes !== undefined) window.panel.keyframes = e.data.keyframes;
     if (typeof window.panel.onUpdate === 'function') {
       window.panel.onUpdate(window.panel);
     }
@@ -43,7 +75,7 @@ function injectBridge(html) {
 /* ── CustomPanelNode ────────────────────────────────────────────── */
 
 export default function CustomPanelNode({ data }) {
-  const { title, html, onUniformChange, engineRef, onClose } = data;
+  const { title, html, onUniformChange, engineRef, onClose, keyframeManagerRef, onKeyframesChange, onDurationChange, onLoopChange, duration, loop } = data;
   const iframeRef = useRef(null);
   const rafRef = useRef(null);
 
@@ -54,19 +86,26 @@ export default function CustomPanelNode({ data }) {
       if (!iframe || e.source !== iframe.contentWindow) return;
       if (e.data?.type === "panel:setUniform") {
         onUniformChange?.(e.data.uniform, e.data.value);
+      } else if (e.data?.type === "panel:setKeyframes") {
+        onKeyframesChange?.(e.data.uniform, e.data.keyframes || []);
+      } else if (e.data?.type === "panel:setDuration") {
+        if (typeof e.data.duration === "number") onDurationChange?.(e.data.duration);
+      } else if (e.data?.type === "panel:setLoop") {
+        if (typeof e.data.loop === "boolean") onLoopChange?.(e.data.loop);
       }
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  }, [onUniformChange]);
+  }, [onUniformChange, onKeyframesChange, onDurationChange, onLoopChange]);
 
   // Send engine state to iframe every frame
   useEffect(() => {
-    const loop = () => {
+    const tick = () => {
       const iframe = iframeRef.current;
       const engine = engineRef?.current;
       if (iframe?.contentWindow && engine) {
         const ctx = engine.ctx || {};
+        const km = keyframeManagerRef?.current;
         iframe.contentWindow.postMessage(
           {
             type: "panel:state",
@@ -74,17 +113,20 @@ export default function CustomPanelNode({ data }) {
             time: ctx.time || 0,
             frame: ctx.frame || 0,
             mouse: ctx.mouse || [0, 0, 0, 0],
+            keyframes: km ? km.tracks : {},
+            duration: duration ?? 30,
+            loop: loop ?? true,
           },
           "*"
         );
       }
-      rafRef.current = requestAnimationFrame(loop);
+      rafRef.current = requestAnimationFrame(tick);
     };
-    rafRef.current = requestAnimationFrame(loop);
+    rafRef.current = requestAnimationFrame(tick);
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [engineRef]);
+  }, [engineRef, keyframeManagerRef, duration, loop]);
 
   const handleClose = useCallback(() => {
     onClose?.();

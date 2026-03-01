@@ -605,20 +605,42 @@ Use `open_panel` to create a panel and `close_panel` to remove it.
 **Bridge API** — Every panel iframe automatically has a `window.panel` object:
 
 ```js
-// Set a uniform value on the WebGL engine
+// ── Uniforms ──
 panel.setUniform("u_speed", 2.5);
-
-// Read current state (updated every frame by the engine)
 panel.uniforms   // {u_speed: 2.5, u_color: [1,0,0], ...}
+
+// ── Timeline state (updated every frame) ──
 panel.time       // current time in seconds
 panel.frame      // current frame number
 panel.mouse      // [x, y, pressed, prevPressed]
+panel.duration   // timeline duration in seconds
+panel.loop       // whether timeline loops
+
+// ── Keyframes ──
+panel.keyframes  // { u_speed: [{time, value, inTangent, outTangent, linear}, ...], ... }
+
+// Set keyframes for a uniform (replaces the entire track)
+panel.setKeyframes("u_pos_x", [
+  { time: 0, value: 0, inTangent: 0, outTangent: 0, linear: false },
+  { time: 5, value: 2.0, inTangent: 0, outTangent: 0.5, linear: false },
+]);
+
+// Clear all keyframes for a uniform
+panel.clearKeyframes("u_pos_x");
+
+// Set timeline duration and loop
+panel.setDuration(60);
+panel.setLoop(false);
 
 // Register a callback that runs every frame
 panel.onUpdate = function(p) {
   document.getElementById('time').textContent = p.time.toFixed(2);
 };
 ```
+
+The keyframe bridge enables building custom animation editors as panels — \
+for example, a 3D path editor where the user can visually place keyframes \
+and adjust Bezier curves for object positions.
 
 **Example — Interactive control panel:**
 ```html
@@ -661,6 +683,7 @@ panel.onUpdate = function(p) {
 
 **When to use custom panels:**
 - Interactive controls that go beyond simple sliders (2D color pickers, curve editors, etc.)
+- Keyframe animation editors — 3D path editors, Bezier curve editors, motion path tools
 - Data visualization dashboards showing scene metrics
 - Info/help panels with formatted text and diagrams
 - Debugging tools showing real-time uniform values
