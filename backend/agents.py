@@ -397,8 +397,47 @@ derivatives. Use `list_uploaded_files` to see available derivatives for each fil
 - `video_metadata.json`: Duration, FPS, resolution, and frame timestamps.
 
 ### 3D Model files (.obj, .fbx, .gltf, .glb)
-- `geometry.json`: Vertex positions, normals, UVs, and indices as flat arrays. \
-  Load via `read_uploaded_file` and use the data to create WebGL vertex buffers.
+- `geometry.json`: Contains mesh geometry and optional skeletal/animation data. \
+  Load via `read_uploaded_file`. Fields:
+  - **Always present**: `positions` (flat float array, 3 per vertex), `normals`, \
+    `uvs` (2 per vertex), `indices`, `vertex_count`, `face_count`, `bounds`.
+  - **`materials`** (optional): Array of `{name, diffuse_color:[r,g,b], \
+    specular_color, emissive_color, opacity, shininess, diffuse_texture, \
+    normal_texture}`. When `diffuse_texture` is present, load it as an image: \
+    `ctx.utils.loadImage(derivativeUrl + '/' + mat.diffuse_texture)`.
+  - **`skeleton`** (optional): `{bones: [{name, parent, inverse_bind_matrix}], \
+    bone_indices: [4 per vertex, flat ints], bone_weights: [4 per vertex, flat floats]}`. \
+    For GPU skinning, upload `bone_indices` and `bone_weights` as vertex attributes, \
+    pass per-bone matrices as a uniform array, and compute skinned positions in the \
+    vertex shader: \
+    `vec4 skinned = weight.x * bones[idx.x] * pos + weight.y * bones[idx.y] * pos + ...`
+  - **`animations`** (optional): `[{name, duration, tracks: [{bone_index, property, \
+    times, values}]}]`. `property` is `"translation"`, `"rotation"`, or `"scale"`. \
+    `values` are interleaved (3 floats per keyframe for translation/scale, \
+    4 for rotation quaternions in glTF). Interpolate between keyframes using the \
+    `times` array, compose bone-local transforms, multiply along the hierarchy, \
+    then multiply by each bone's `inverse_bind_matrix` to get the final skinning matrix.
+- `texture_N.png|jpg`: Extracted texture images (embedded textures from FBX/glTF). \
+  Load via `ctx.utils.loadImage(derivativeUrl + '/texture_0.png')`.
+- **Warning — skeletal animation is extremely error-prone.** The most common mistakes:
+  1. **Missing bind-pose translation**: If a bone only has rotation keyframes in the \
+     animation data, you still MUST use its bind-pose translation (from the skeleton \
+     hierarchy), NOT (0,0,0). Otherwise the limbs will collapse to the origin.
+  2. **Euler rotation order**: FBX uses ZYX intrinsic rotation order. You must compose \
+     the quaternion/matrix as Rz·Ry·Rx. Using the wrong order (e.g. Rx·Ry·Rz) produces \
+     spiky, distorted meshes. Always implement `fromEulerZYX(rx, ry, rz)`.
+  3. **Matrix multiplication order**: The final skinning matrix for a bone is \
+     `worldMatrix * inverseBindMatrix`. The world matrix is computed root-to-leaf: \
+     `parentWorld * localMatrix`. Getting this order backwards will invert the skeleton.
+  4. **Bind-pose vs animated transform**: For bones without animation tracks, use \
+     their rest/bind-pose transform, not identity.
+  5. **Unskinned vertices cause spikes**: Some vertices may have zero bone weights \
+     (all four weights are 0). These stay locked in bind pose while their skinned \
+     neighbors move, creating sharp spikes. When you detect unskinned vertices, \
+     propagate weights from adjacent skinned vertices (find neighbors via the index \
+     buffer, copy their bone indices/weights) so the entire mesh deforms smoothly.
+  Recommendation: render the static bind pose first and verify the mesh looks correct \
+  before adding animation playback.
 
 Derivatives are served at `/api/uploads/processed/<stem_ext>/<filename>`. \
 Example: for `myFont.ttf`, the atlas is at `/api/uploads/processed/myFont_ttf/atlas.png`.
@@ -674,6 +713,11 @@ A static scene is almost always wrong.
 - Always respond in the SAME LANGUAGE the user is using.
 - For "create" requests, generate both the scene and UI config.
 - For small modifications that don't change uniforms, you may skip update_ui_config.
+- To **remove a control** from the inspector, call `update_ui_config` with a \
+controls array that excludes the control you want to delete. For example, if the \
+user says "remove the speed slider", read the current ui_config, filter out the \
+control whose uniform or label matches, and call `update_ui_config` with the \
+remaining controls.
 - Custom uniforms go in the "uniforms" field of scene JSON, and are accessed \
 in scripts via `ctx.uniforms.u_name`.
 """
