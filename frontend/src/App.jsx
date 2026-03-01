@@ -289,12 +289,13 @@ export default function App() {
 
   // Debounced send workspace state to backend (2s)
   const wsStateTimerRef = useRef(null);
+  const sendRef = useRef(null);
   const sendWorkspaceState = useCallback(() => {
     if (wsStateTimerRef.current) clearTimeout(wsStateTimerRef.current);
     wsStateTimerRef.current = setTimeout(() => {
-      send({ type: "update_workspace_state", workspace_state: getWorkspaceState() });
+      sendRef.current?.({ type: "update_workspace_state", workspace_state: getWorkspaceState() });
     }, 2000);
-  }, [send, getWorkspaceState]);
+  }, [getWorkspaceState]);
 
   // Send workspace state when keyframes, duration, or loop change
   useEffect(() => {
@@ -321,7 +322,7 @@ export default function App() {
     if (!activeProject || saveStatus === "saved") return;
     autoSaveTimerRef.current = setTimeout(() => {
       setSaveStatus("saving");
-      send({
+      sendRef.current?.({
         type: "project_save",
         name: activeProject,
         workspace_state: getWorkspaceState(),
@@ -329,7 +330,7 @@ export default function App() {
       });
     }, 20000);
     return () => clearTimeout(autoSaveTimerRef.current);
-  }, [activeProject, saveStatus, send, getWorkspaceState, captureThumbnail]);
+  }, [activeProject, saveStatus, getWorkspaceState, captureThumbnail]);
 
   // Handle every incoming WebSocket message
   const handleMessage = useCallback((msg) => {
@@ -506,6 +507,7 @@ export default function App() {
   }, []);
 
   const { connected, send } = useWebSocket(WS_URL, handleMessage);
+  sendRef.current = send;
 
   // Persist to localStorage
   useEffect(() => {
