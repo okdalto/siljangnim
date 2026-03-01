@@ -92,6 +92,11 @@ _chat_history: list[dict] = []
 _global_agent_busy: bool = False  # any agent running?
 _AGENT_WS_ID = 0  # fixed conversation key (single-user app)
 
+# Console error auto-fix state
+_pending_console_errors: list[str] = []
+_auto_fix_count: int = 0
+_MAX_AUTO_FIX = 3
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -410,12 +415,89 @@ async def _process_uploaded_files(saved_files: list[dict], broadcast):
 
 
 # ---------------------------------------------------------------------------
+# Auto-fix: trigger agent to fix a runtime error
+# ---------------------------------------------------------------------------
+
+async def _trigger_auto_fix(error_message: str):
+    global _global_agent_busy, _auto_fix_count
+    if _global_agent_busy or not _api_key:
+        _pending_console_errors.append(error_message)
+        return
+
+    _auto_fix_count += 1
+    prompt = (
+        f"[Runtime Error] The script produced this error:\n"
+        f"{error_message}\n"
+        f"Please fix the script so this error no longer occurs."
+    )
+    _chat_history.append({"role": "user", "text": prompt})
+    _global_agent_busy = True
+
+    # Notify frontend
+    await manager.broadcast({"type": "assistant_text", "text": ""})  # signal processing start
+    await manager.broadcast({
+        "type": "agent_log",
+        "agent": "System",
+        "message": f"Auto-fix #{_auto_fix_count}: {error_message}",
+        "level": "info",
+    })
+
+    async def log_callback(agent_name: str, message: str, level: str):
+        await manager.broadcast({
+            "type": "agent_log",
+            "agent": agent_name,
+            "message": message,
+            "level": level,
+        })
+
+    async def on_text(text: str):
+        _chat_history.append({"role": "assistant", "text": text})
+        await manager.broadcast({"type": "assistant_text", "text": text})
+
+    async def on_status(status_type: str, detail: str):
+        await manager.broadcast({
+            "type": "agent_status",
+            "status": status_type,
+            "detail": detail,
+        })
+
+    try:
+        await agents.run_agent(
+            ws_id=_AGENT_WS_ID,
+            user_prompt=prompt,
+            log=log_callback,
+            broadcast=manager.broadcast,
+            on_text=on_text,
+            on_status=on_status,
+            files=[],
+        )
+        await manager.broadcast({"type": "chat_done"})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        await manager.broadcast({
+            "type": "agent_log",
+            "agent": "System",
+            "message": f"Auto-fix agent error: {e}",
+            "level": "error",
+        })
+        await manager.broadcast({"type": "chat_done"})
+    finally:
+        _global_agent_busy = False
+        # Drain pending console errors
+        if _pending_console_errors and _auto_fix_count < _MAX_AUTO_FIX:
+            next_err = _pending_console_errors.pop(0)
+            _pending_console_errors.clear()
+            asyncio.create_task(_trigger_auto_fix(next_err))
+
+
+# ---------------------------------------------------------------------------
 # WebSocket endpoint
 # ---------------------------------------------------------------------------
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
-    global _api_key, _global_agent_busy
+    global _api_key, _global_agent_busy, _auto_fix_count
     await manager.connect(ws)
 
     # Send initial state
@@ -467,6 +549,7 @@ async def websocket_endpoint(ws: WebSocket):
                     }))
 
             elif msg_type == "prompt":
+                _auto_fix_count = 0  # reset auto-fix counter on manual input
                 if not _api_key:
                     await ws.send_text(json.dumps({"type": "api_key_required"}))
                     continue
@@ -581,8 +664,37 @@ async def websocket_endpoint(ws: WebSocket):
                         await manager.broadcast({"type": "chat_done"})
                     finally:
                         _global_agent_busy = False
+                        # Drain pending console errors
+                        if _pending_console_errors and _auto_fix_count < _MAX_AUTO_FIX:
+                            next_err = _pending_console_errors.pop(0)
+                            _pending_console_errors.clear()  # collapse duplicates
+                            asyncio.create_task(_trigger_auto_fix(next_err))
 
                 asyncio.create_task(_run_agent_task())
+
+            elif msg_type == "user_answer":
+                answer_text = msg.get("text", "")
+                if agents._user_answer_future and not agents._user_answer_future.done():
+                    agents._user_answer_future.set_result(answer_text)
+
+            elif msg_type == "console_error":
+                error_msg = msg.get("message", "")
+                if not error_msg:
+                    pass
+                elif _global_agent_busy:
+                    # Agent is busy — queue the error (deduplicate)
+                    if error_msg not in _pending_console_errors:
+                        _pending_console_errors.append(error_msg)
+                elif _auto_fix_count < _MAX_AUTO_FIX:
+                    asyncio.create_task(_trigger_auto_fix(error_msg))
+                else:
+                    # Max auto-fix reached — notify user
+                    await manager.broadcast({
+                        "type": "agent_log",
+                        "agent": "System",
+                        "message": f"Auto-fix limit ({_MAX_AUTO_FIX}) reached. Please fix the error manually or send a new prompt to reset.",
+                        "level": "warning",
+                    })
 
             elif msg_type == "set_uniform":
                 uniform = msg.get("uniform")

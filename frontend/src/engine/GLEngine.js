@@ -81,6 +81,7 @@ export default class GLEngine {
 
     // Error state
     this.onError = null;     // callback(error)
+    this._lastErrorMessage = null; // debounce repeated render errors
     this.onFPS = null;       // callback(fps)
     this._fpsCounter = { frames: 0, lastTime: performance.now() };
 
@@ -106,6 +107,7 @@ export default class GLEngine {
 
     this._disposeScene();
     this._scene = sceneJSON;
+    this._lastErrorMessage = null; // reset error debounce for new scene
 
     const script = sceneJSON.script || {};
     const setupBody = script.setup || "";
@@ -400,7 +402,10 @@ export default class GLEngine {
       this._renderFrame(time, dt);
     } catch (err) {
       console.error("[GLEngine] Render error:", err);
-      this.onError?.(err);
+      if (err.message !== this._lastErrorMessage) {
+        this._lastErrorMessage = err.message;
+        this.onError?.(err);
+      }
     }
     this._frameCount++;
 
@@ -462,7 +467,10 @@ export default class GLEngine {
         this._scriptRenderFn(ctx);
       } catch (err) {
         console.error("[GLEngine] Script render error:", err);
-        this.onError?.(err);
+        if (err.message !== this._lastErrorMessage) {
+          this._lastErrorMessage = err.message;
+          this.onError?.(err);
+        }
       }
     }
   }
