@@ -432,6 +432,16 @@ export default class GLEngine {
     }
   }
 
+  /**
+   * Render a single frame at the given time for offline recording.
+   * Called by the recorder loop instead of the normal rAF loop.
+   */
+  renderOfflineFrame(time, dt) {
+    this.onTime?.(time);
+    this._renderFrame(time, dt);
+    this._frameCount++;
+  }
+
   updateUniform(name, value) {
     this._customUniforms[name] = value;
   }

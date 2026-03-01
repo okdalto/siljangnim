@@ -350,7 +350,7 @@ Describe what you see and suggest how to use the image \
 (as a texture, reference, color palette source, etc.). \
 The image is saved to the uploads directory and accessible at `/api/uploads/<filename>`. \
 To use an uploaded image as a texture in a script, fetch it and create a WebGL texture.
-- **3D models** (OBJ, MTL): Use `read_uploaded_file` to read the file contents. \
+- **3D models** (OBJ, FBX, glTF, GLB): Use `read_uploaded_file` to read the file contents. \
 Analyze the geometry and suggest how to render it.
 - **Other files**: Use `read_uploaded_file` to inspect the contents. \
 Provide analysis and suggest how to incorporate the data into visuals.
@@ -396,7 +396,7 @@ derivatives. Use `list_uploaded_files` to see available derivatives for each fil
   Use individual frames as texture inputs.
 - `video_metadata.json`: Duration, FPS, resolution, and frame timestamps.
 
-### 3D Model files (.obj, .gltf, .glb)
+### 3D Model files (.obj, .fbx, .gltf, .glb)
 - `geometry.json`: Vertex positions, normals, UVs, and indices as flat arrays. \
   Load via `read_uploaded_file` and use the data to create WebGL vertex buffers.
 

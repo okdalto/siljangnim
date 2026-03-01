@@ -1,13 +1,14 @@
 """
-3D Model Processor — .obj/.gltf/.glb → geometry JSON.
+3D Model Processor — .obj/.fbx/.gltf/.glb → geometry JSON.
 
-Dependencies: None (pure Python OBJ parser, JSON+struct for glTF).
+Dependencies: None (pure Python OBJ parser, binary FBX parser, JSON+struct for glTF).
 """
 
 import base64
 import json
 import logging
 import struct
+import zlib
 from pathlib import Path
 
 from processors import BaseProcessor, ProcessedOutput, ProcessorResult
@@ -19,7 +20,7 @@ _MAX_VERTICES = 100_000
 
 class Model3DProcessor(BaseProcessor):
     name = "3D Model Processor"
-    supported_extensions = {".obj", ".gltf", ".glb"}
+    supported_extensions = {".obj", ".fbx", ".gltf", ".glb"}
 
     @classmethod
     def is_available(cls) -> bool:
@@ -32,6 +33,8 @@ class Model3DProcessor(BaseProcessor):
         try:
             if ext == ".obj":
                 geometry = cls._parse_obj(source_path)
+            elif ext == ".fbx":
+                geometry = cls._parse_fbx(source_path)
             elif ext == ".gltf":
                 geometry = cls._parse_gltf(source_path)
             elif ext == ".glb":
@@ -167,6 +170,350 @@ class Model3DProcessor(BaseProcessor):
             "indices": out_indices,
             "_warnings": warnings,
         }
+
+    # ------------------------------------------------------------------
+    # FBX binary parser
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def _parse_fbx(cls, path: Path) -> dict:
+        """Parse FBX binary file and extract geometry."""
+        data = path.read_bytes()
+
+        # --- Header validation ---
+        FBX_MAGIC = b"Kaydara FBX Binary  \x00"
+        if len(data) < 27 or data[:21] != FBX_MAGIC[:21]:
+            raise ValueError("Not a valid FBX binary file")
+        version = struct.unpack_from("<I", data, 23)[0]
+
+        # --- Node parsing helpers ---
+        # Versions >= 7500 use 64-bit offsets; older use 32-bit
+        is64 = version >= 7500
+        _sentinel_size = 25 if is64 else 13  # null-node sentinel size
+
+        def _read_node(offset: int):
+            """Read a single FBX node. Returns (node_dict | None, next_offset)."""
+            if is64:
+                if offset + 25 > len(data):
+                    return None, len(data)
+                end_offset = struct.unpack_from("<Q", data, offset)[0]
+                num_props = struct.unpack_from("<Q", data, offset + 8)[0]
+                prop_list_len = struct.unpack_from("<Q", data, offset + 16)[0]
+                name_len = data[offset + 24]
+                name_start = offset + 25
+            else:
+                if offset + 13 > len(data):
+                    return None, len(data)
+                end_offset = struct.unpack_from("<I", data, offset)[0]
+                num_props = struct.unpack_from("<I", data, offset + 4)[0]
+                prop_list_len = struct.unpack_from("<I", data, offset + 8)[0]
+                name_len = data[offset + 12]
+                name_start = offset + 13
+
+            if end_offset == 0:
+                return None, offset + _sentinel_size
+
+            name = data[name_start:name_start + name_len].decode("ascii", errors="replace")
+            prop_data_start = name_start + name_len
+
+            # Parse properties
+            props = []
+            po = prop_data_start
+            for _ in range(num_props):
+                prop, po = _read_property(po)
+                props.append(prop)
+
+            # Parse child nodes
+            children = {}
+            child_offset = prop_data_start + prop_list_len
+            while child_offset < end_offset - _sentinel_size:
+                child, child_offset = _read_node(child_offset)
+                if child is None:
+                    break
+                cname = child["name"]
+                if cname in children:
+                    if not isinstance(children[cname], list):
+                        children[cname] = [children[cname]]
+                    children[cname].append(child)
+                else:
+                    children[cname] = child
+
+            return {"name": name, "props": props, "children": children}, end_offset
+
+        def _read_property(offset: int):
+            """Read a single FBX property value. Returns (value, next_offset)."""
+            type_code = chr(data[offset])
+            offset += 1
+
+            # Scalar types
+            if type_code == "Y":  # int16
+                return struct.unpack_from("<h", data, offset)[0], offset + 2
+            if type_code == "C":  # bool (1 byte)
+                return bool(data[offset]), offset + 1
+            if type_code == "I":  # int32
+                return struct.unpack_from("<i", data, offset)[0], offset + 4
+            if type_code == "F":  # float32
+                return struct.unpack_from("<f", data, offset)[0], offset + 4
+            if type_code == "D":  # float64
+                return struct.unpack_from("<d", data, offset)[0], offset + 8
+            if type_code == "L":  # int64
+                return struct.unpack_from("<q", data, offset)[0], offset + 8
+
+            # Array types: i/l/f/d/b
+            if type_code in ("i", "l", "f", "d", "b"):
+                arr_len = struct.unpack_from("<I", data, offset)[0]
+                encoding = struct.unpack_from("<I", data, offset + 4)[0]
+                comp_len = struct.unpack_from("<I", data, offset + 8)[0]
+                offset += 12
+
+                raw = data[offset:offset + comp_len]
+                if encoding == 1:  # zlib compressed
+                    raw = zlib.decompress(raw)
+
+                fmt_map = {"i": "<i", "l": "<q", "f": "<f", "d": "<d", "b": "B"}
+                fmt = fmt_map[type_code]
+                elem_size = struct.calcsize(fmt)
+                arr = [struct.unpack_from(fmt, raw, i * elem_size)[0] for i in range(arr_len)]
+                return arr, offset + comp_len
+
+            # String
+            if type_code == "S":
+                slen = struct.unpack_from("<I", data, offset)[0]
+                s = data[offset + 4:offset + 4 + slen].decode("utf-8", errors="replace")
+                return s, offset + 4 + slen
+
+            # Raw binary
+            if type_code == "R":
+                rlen = struct.unpack_from("<I", data, offset)[0]
+                return data[offset + 4:offset + 4 + rlen], offset + 4 + rlen
+
+            raise ValueError(f"Unknown FBX property type: {type_code}")
+
+        # --- Parse top-level nodes ---
+        nodes = {}
+        offset = 27  # after header
+        while offset < len(data) - _sentinel_size:
+            node, offset = _read_node(offset)
+            if node is None:
+                break
+            nname = node["name"]
+            if nname in nodes:
+                if not isinstance(nodes[nname], list):
+                    nodes[nname] = [nodes[nname]]
+                nodes[nname].append(node)
+            else:
+                nodes[nname] = node
+
+        # --- Extract geometry from Objects → Geometry nodes ---
+        warnings: list[str] = []
+        all_positions: list[float] = []
+        all_normals: list[float] = []
+        all_uvs: list[float] = []
+        all_indices: list[int] = []
+        face_count = 0
+        vertex_offset = 0
+        truncated = False
+
+        objects_node = nodes.get("Objects")
+        if objects_node is None:
+            raise ValueError("FBX file has no Objects section")
+
+        geom_nodes = objects_node.get("children", {}).get("Geometry")
+        if geom_nodes is None:
+            raise ValueError("FBX file has no Geometry nodes")
+        if not isinstance(geom_nodes, list):
+            geom_nodes = [geom_nodes]
+
+        for geom in geom_nodes:
+            # Only process Mesh geometry (skip e.g. Shape)
+            if len(geom.get("props", [])) >= 3 and geom["props"][2] != "Mesh":
+                continue
+
+            gc = geom.get("children", {})
+
+            # --- Vertices (doubles → floats) ---
+            vert_node = gc.get("Vertices")
+            if vert_node is None:
+                continue
+            raw_verts = vert_node["props"][0] if vert_node["props"] else []
+            if not isinstance(raw_verts, list):
+                continue
+
+            n_verts = len(raw_verts) // 3
+            if truncated:
+                continue
+            if vertex_offset + n_verts > _MAX_VERTICES:
+                remaining = _MAX_VERTICES - vertex_offset
+                if remaining <= 0:
+                    if not truncated:
+                        warnings.append(f"Model exceeds {_MAX_VERTICES} vertices, truncated")
+                        truncated = True
+                    continue
+                n_verts = remaining
+                raw_verts = raw_verts[:n_verts * 3]
+                warnings.append(f"Model exceeds {_MAX_VERTICES} vertices, truncated")
+                truncated = True
+
+            positions = [float(v) for v in raw_verts]
+
+            # --- PolygonVertexIndex ---
+            pvi_node = gc.get("PolygonVertexIndex")
+            if pvi_node is None:
+                continue
+            raw_indices = pvi_node["props"][0] if pvi_node["props"] else []
+            if not isinstance(raw_indices, list):
+                continue
+
+            # --- Normals ---
+            normals_flat: list[float] = []
+            normal_mapping = "ByPolygonVertex"
+            normal_ref = "Direct"
+            normal_index: list[int] = []
+
+            le_normal = gc.get("LayerElementNormal")
+            if le_normal is not None:
+                lec = le_normal.get("children", {})
+                ndata = lec.get("Normals")
+                if ndata and ndata["props"]:
+                    normals_flat = [float(v) for v in ndata["props"][0]] if isinstance(ndata["props"][0], list) else []
+                mm = lec.get("MappingInformationType")
+                if mm and mm["props"]:
+                    normal_mapping = mm["props"][0]
+                rm = lec.get("ReferenceInformationType")
+                if rm and rm["props"]:
+                    normal_ref = rm["props"][0]
+                ni = lec.get("NormalsIndex")
+                if ni and ni["props"] and isinstance(ni["props"][0], list):
+                    normal_index = ni["props"][0]
+
+            # --- UVs ---
+            uvs_flat: list[float] = []
+            uv_mapping = "ByPolygonVertex"
+            uv_ref = "Direct"
+            uv_index: list[int] = []
+
+            le_uv = gc.get("LayerElementUV")
+            if le_uv is not None:
+                lec = le_uv.get("children", {})
+                uvdata = lec.get("UV")
+                if uvdata and uvdata["props"]:
+                    uvs_flat = [float(v) for v in uvdata["props"][0]] if isinstance(uvdata["props"][0], list) else []
+                mm = lec.get("MappingInformationType")
+                if mm and mm["props"]:
+                    uv_mapping = mm["props"][0]
+                rm = lec.get("ReferenceInformationType")
+                if rm and rm["props"]:
+                    uv_ref = rm["props"][0]
+                uvi = lec.get("UVIndex")
+                if uvi and uvi["props"] and isinstance(uvi["props"][0], list):
+                    uv_index = uvi["props"][0]
+
+            # --- Build triangulated geometry ---
+            # Parse polygons from PolygonVertexIndex
+            # Negative index marks end of polygon: actual index = ~neg = -(neg + 1)
+            polygons: list[list[int]] = []
+            current_poly: list[int] = []
+            for idx in raw_indices:
+                if idx < 0:
+                    current_poly.append(~idx)  # XOR bitflip: ~idx == -(idx + 1)
+                    polygons.append(current_poly)
+                    current_poly = []
+                else:
+                    current_poly.append(idx)
+
+            # Build output vertex data with fan triangulation
+            poly_vertex_counter = 0  # running counter across all polygon vertices
+            mesh_positions: list[float] = []
+            mesh_normals: list[float] = []
+            mesh_uvs: list[float] = []
+            mesh_indices: list[int] = []
+            mesh_face_count = 0
+            out_vert_idx = 0
+
+            for poly in polygons:
+                poly_out_indices: list[int] = []
+
+                for i, v_idx in enumerate(poly):
+                    # Position
+                    if v_idx * 3 + 2 < len(positions):
+                        mesh_positions.extend(positions[v_idx * 3:v_idx * 3 + 3])
+                    else:
+                        mesh_positions.extend([0.0, 0.0, 0.0])
+
+                    # Normal
+                    if normals_flat:
+                        ni_val = poly_vertex_counter
+                        if normal_mapping == "ByPolygonVertex":
+                            if normal_ref == "IndexToDirect" and poly_vertex_counter < len(normal_index):
+                                ni_val = normal_index[poly_vertex_counter]
+                            # else Direct: ni_val = poly_vertex_counter
+                        elif normal_mapping == "ByVertex" or normal_mapping == "ByVertice":
+                            ni_val = v_idx
+                            if normal_ref == "IndexToDirect" and v_idx < len(normal_index):
+                                ni_val = normal_index[v_idx]
+
+                        if ni_val * 3 + 2 < len(normals_flat):
+                            mesh_normals.extend(normals_flat[ni_val * 3:ni_val * 3 + 3])
+                        else:
+                            mesh_normals.extend([0.0, 0.0, 0.0])
+
+                    # UV
+                    if uvs_flat:
+                        uv_val = poly_vertex_counter
+                        if uv_mapping == "ByPolygonVertex":
+                            if uv_ref == "IndexToDirect" and poly_vertex_counter < len(uv_index):
+                                uv_val = uv_index[poly_vertex_counter]
+                        elif uv_mapping == "ByVertex" or uv_mapping == "ByVertice":
+                            uv_val = v_idx
+                            if uv_ref == "IndexToDirect" and v_idx < len(uv_index):
+                                uv_val = uv_index[v_idx]
+
+                        if uv_val * 2 + 1 < len(uvs_flat):
+                            mesh_uvs.extend(uvs_flat[uv_val * 2:uv_val * 2 + 2])
+                        else:
+                            mesh_uvs.extend([0.0, 0.0])
+
+                    poly_out_indices.append(out_vert_idx)
+                    out_vert_idx += 1
+                    poly_vertex_counter += 1
+
+                # Fan triangulation
+                for j in range(1, len(poly_out_indices) - 1):
+                    mesh_indices.extend([
+                        poly_out_indices[0],
+                        poly_out_indices[j],
+                        poly_out_indices[j + 1],
+                    ])
+                    mesh_face_count += 1
+
+            # Accumulate into global arrays with offset
+            for idx in mesh_indices:
+                all_indices.append(idx + vertex_offset)
+            all_positions.extend(mesh_positions)
+            all_normals.extend(mesh_normals)
+            all_uvs.extend(mesh_uvs)
+            face_count += mesh_face_count
+            vertex_offset += out_vert_idx
+
+        vertex_count = len(all_positions) // 3
+        bounds = _compute_bounds(all_positions)
+
+        return {
+            "vertex_count": vertex_count,
+            "face_count": face_count,
+            "has_normals": len(all_normals) > 0,
+            "has_uvs": len(all_uvs) > 0,
+            "bounds": bounds,
+            "positions": [round(v, 6) for v in all_positions],
+            "normals": [round(v, 6) for v in all_normals] if all_normals else [],
+            "uvs": [round(v, 6) for v in all_uvs] if all_uvs else [],
+            "indices": all_indices,
+            "_warnings": warnings,
+        }
+
+    # ------------------------------------------------------------------
+    # glTF / GLB parsers
+    # ------------------------------------------------------------------
 
     @classmethod
     def _parse_gltf(cls, path: Path) -> dict:

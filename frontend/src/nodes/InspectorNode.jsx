@@ -8,10 +8,59 @@ function stepDecimals(step) {
   return dot === -1 ? 0 : s.length - dot - 1;
 }
 
+function EditableRangeLabel({ value, onChange, side }) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(String(value));
+  const ref = useRef(null);
+
+  const commit = useCallback(() => {
+    const v = parseFloat(text);
+    if (!isNaN(v)) onChange(v);
+    else setText(String(value));
+    setEditing(false);
+  }, [text, value, onChange]);
+
+  const start = useCallback(() => {
+    setText(String(value));
+    setEditing(true);
+    setTimeout(() => ref.current?.select(), 0);
+  }, [value]);
+
+  if (editing) {
+    return (
+      <input
+        ref={ref}
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          e.stopPropagation();
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") { setText(String(value)); setEditing(false); }
+        }}
+        className={`w-12 bg-zinc-800 text-zinc-100 text-[10px] rounded px-1 py-0 outline-none ring-1 ring-indigo-500 tabular-nums ${side === "left" ? "text-left" : "text-right"}`}
+      />
+    );
+  }
+
+  return (
+    <span
+      onClick={start}
+      className="text-[10px] text-zinc-600 hover:text-zinc-400 cursor-text tabular-nums transition-colors"
+      title="Click to edit range"
+    >
+      {value}
+    </span>
+  );
+}
+
 function SliderControl({ ctrl, onUniformChange, keyframeManagerRef, engineRef, onOpenKeyframeEditor }) {
   const [value, setValue] = useState(ctrl.default ?? 0);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState("");
+  const [rangeMin, setRangeMin] = useState(ctrl.min ?? 0);
+  const [rangeMax, setRangeMax] = useState(ctrl.max ?? 1);
   const inputRef = useRef(null);
   const sliderRef = useRef(null);
   const valueDisplayRef = useRef(null);
@@ -20,6 +69,12 @@ function SliderControl({ ctrl, onUniformChange, keyframeManagerRef, engineRef, o
   const defaultVal = ctrl.default ?? 0;
 
   const hasKf = keyframeManagerRef?.current?.hasKeyframes(ctrl.uniform);
+
+  // Sync from ctrl when agent updates min/max
+  useEffect(() => {
+    if (ctrl.min != null) setRangeMin(ctrl.min);
+    if (ctrl.max != null) setRangeMax(ctrl.max);
+  }, [ctrl.min, ctrl.max]);
 
   // rAF loop: when keyframes are active, track interpolated value via DOM
   useEffect(() => {
@@ -63,12 +118,12 @@ function SliderControl({ ctrl, onUniformChange, keyframeManagerRef, engineRef, o
   const commitEdit = useCallback(() => {
     const v = parseFloat(editText);
     if (!isNaN(v)) {
-      const clamped = Math.min(Math.max(v, ctrl.min ?? -Infinity), ctrl.max ?? Infinity);
+      const clamped = Math.min(Math.max(v, rangeMin), rangeMax);
       setValue(clamped);
       onUniformChange?.(ctrl.uniform, clamped);
     }
     setEditing(false);
-  }, [editText, ctrl.min, ctrl.max, ctrl.uniform, onUniformChange]);
+  }, [editText, rangeMin, rangeMax, ctrl.uniform, onUniformChange]);
 
   const handleKeyDown = useCallback(
     (e) => {
@@ -78,6 +133,18 @@ function SliderControl({ ctrl, onUniformChange, keyframeManagerRef, engineRef, o
     },
     [commitEdit]
   );
+
+  const handleMinChange = useCallback((v) => {
+    if (v >= rangeMax) return;
+    setRangeMin(v);
+    if (value < v) { setValue(v); onUniformChange?.(ctrl.uniform, v); }
+  }, [rangeMax, value, ctrl.uniform, onUniformChange]);
+
+  const handleMaxChange = useCallback((v) => {
+    if (v <= rangeMin) return;
+    setRangeMax(v);
+    if (value > v) { setValue(v); onUniformChange?.(ctrl.uniform, v); }
+  }, [rangeMin, value, ctrl.uniform, onUniformChange]);
 
   return (
     <div className="space-y-1">
@@ -104,20 +171,18 @@ function SliderControl({ ctrl, onUniformChange, keyframeManagerRef, engineRef, o
               {value.toFixed(decimals)}
             </span>
           )}
-          {value !== defaultVal && (
-            <button
-              onClick={handleReset}
-              className="text-zinc-500 hover:text-zinc-200 transition-colors"
-              title={`Reset to ${defaultVal}`}
-            >
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 8a6 6 0 0 1 10.47-4" />
-                <path d="M14 8a6 6 0 0 1-10.47 4" />
-                <polyline points="12 2 13 4.5 10.5 4.5" />
-                <polyline points="4 14 3 11.5 5.5 11.5" />
-              </svg>
-            </button>
-          )}
+          <button
+            onClick={handleReset}
+            className={`transition-colors ${value !== defaultVal ? "text-zinc-500 hover:text-zinc-200" : "invisible"}`}
+            title={`Reset to ${defaultVal}`}
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 8a6 6 0 0 1 10.47-4" />
+              <path d="M14 8a6 6 0 0 1-10.47 4" />
+              <polyline points="12 2 13 4.5 10.5 4.5" />
+              <polyline points="4 14 3 11.5 5.5 11.5" />
+            </svg>
+          </button>
           {onOpenKeyframeEditor && (
             <button
               onClick={() => onOpenKeyframeEditor(ctrl)}
@@ -134,13 +199,17 @@ function SliderControl({ ctrl, onUniformChange, keyframeManagerRef, engineRef, o
       <input
         ref={sliderRef}
         type="range"
-        min={ctrl.min}
-        max={ctrl.max}
+        min={rangeMin}
+        max={rangeMax}
         step={ctrl.step}
         value={value}
         onChange={handleChange}
         className="w-full accent-indigo-500"
       />
+      <div className="flex justify-between">
+        <EditableRangeLabel value={rangeMin} onChange={handleMinChange} side="left" />
+        <EditableRangeLabel value={rangeMax} onChange={handleMaxChange} side="right" />
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 
-export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange, recording, recordingTime, onToggleRecord }) {
+export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange, recording, recordingTime, onToggleRecord, offlineRecord, onToggleOfflineRecord }) {
   const progressRef = useRef(null);
   const timeDisplayRef = useRef(null);
   const barRef = useRef(null);
@@ -163,6 +163,26 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
           </span>
         )}
       </button>
+      {/* Offline record toggle */}
+      <div className="relative group">
+        <button
+          onClick={onToggleOfflineRecord}
+          className={`flex items-center justify-center w-6 h-6 transition-colors ${offlineRecord ? "text-indigo-400 hover:text-indigo-300" : "text-zinc-500 hover:text-zinc-300"}`}
+          disabled={recording}
+          style={recording ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="8" cy="8" r="6.5" />
+            <polyline points="8,4 8,8 11,10" />
+          </svg>
+        </button>
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-600 shadow-xl text-[11px] text-zinc-300 whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
+          {offlineRecord
+            ? "Offline mode ON — renders every frame at exact FPS"
+            : "Realtime mode — click to switch to offline (frame-exact)"}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-zinc-600" />
+        </div>
+      </div>
       <style>{`@keyframes rec-blink { 0%,100% { opacity:1 } 50% { opacity:0.3 } }`}</style>
 
       {/* Scrub bar */}
