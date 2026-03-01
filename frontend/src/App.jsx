@@ -102,6 +102,7 @@ export default function App() {
   // Scene state
   const [sceneJSON, setSceneJSON] = useState(null);
   const [uiConfig, setUiConfig] = useState({ controls: [], inspectable_buffers: [] });
+  const dirtyRef = useRef(false);
   const [paused, setPaused] = useState(false);
   const [duration, setDuration] = useState(30);
   const [loop, setLoop] = useState(true);
@@ -120,6 +121,40 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Keyframe undo/redo history
+  const kfHistoryRef = useRef({ past: [], future: [] });
+  const kfEditorOpenRef = useRef(false);
+
+  const undoKeyframes = useCallback(() => {
+    const h = kfHistoryRef.current;
+    if (h.past.length === 0) return;
+    const entry = h.past.pop();
+    const km = keyframeManagerRef.current;
+    const currentKfs = km.getTrack(entry.uniform);
+    h.future.push({ uniform: entry.uniform, keyframes: [...currentKfs] });
+    if (entry.keyframes.length === 0) {
+      km.clearTrack(entry.uniform);
+    } else {
+      km.setTrack(entry.uniform, entry.keyframes);
+    }
+    setKeyframeVersion((v) => v + 1);
+  }, []);
+
+  const redoKeyframes = useCallback(() => {
+    const h = kfHistoryRef.current;
+    if (h.future.length === 0) return;
+    const entry = h.future.pop();
+    const km = keyframeManagerRef.current;
+    const currentKfs = km.getTrack(entry.uniform);
+    h.past.push({ uniform: entry.uniform, keyframes: [...currentKfs] });
+    if (entry.keyframes.length === 0) {
+      km.clearTrack(entry.uniform);
+    } else {
+      km.setTrack(entry.uniform, entry.keyframes);
+    }
+    setKeyframeVersion((v) => v + 1);
+  }, []);
+
   // Undo/Redo shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -127,15 +162,23 @@ export default function App() {
       const tag = e.target.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable) return;
       e.preventDefault();
-      if (e.shiftKey) {
-        redo();
+      if (kfEditorOpenRef.current) {
+        if (e.shiftKey) {
+          redoKeyframes();
+        } else {
+          undoKeyframes();
+        }
       } else {
-        undo();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo, redo]);
+  }, [undo, redo, undoKeyframes, redoKeyframes]);
 
   // Engine ref (shared via EngineContext and node data)
   const engineRef = useRef(null);
@@ -160,6 +203,7 @@ export default function App() {
   }
   const [keyframeVersion, setKeyframeVersion] = useState(0);
   const [keyframeEditorTarget, setKeyframeEditorTarget] = useState(null); // { uniform, label, min, max }
+  kfEditorOpenRef.current = keyframeEditorTarget != null;
 
   // Connect keyframe manager to engine when engine is available
   useEffect(() => {
@@ -179,10 +223,17 @@ export default function App() {
   const handleKeyframesChange = useCallback((newKeyframes) => {
     if (!keyframeEditorTarget) return;
     const km = keyframeManagerRef.current;
+    const uniform = keyframeEditorTarget.uniform;
+    // Push current state to undo stack
+    const prevKfs = km.getTrack(uniform);
+    kfHistoryRef.current.past.push({ uniform, keyframes: [...prevKfs] });
+    if (kfHistoryRef.current.past.length > 50) kfHistoryRef.current.past.shift();
+    kfHistoryRef.current.future.length = 0;
+
     if (newKeyframes.length === 0) {
-      km.clearTrack(keyframeEditorTarget.uniform);
+      km.clearTrack(uniform);
     } else {
-      km.setTrack(keyframeEditorTarget.uniform, newKeyframes);
+      km.setTrack(uniform, newKeyframes);
     }
     setKeyframeVersion((v) => v + 1);
   }, [keyframeEditorTarget]);
@@ -237,6 +288,7 @@ export default function App() {
         setIsProcessing(false);
         setAgentStatus(null);
         setWorkspaceFilesVersion((v) => v + 1);
+        dirtyRef.current = true;
         break;
 
       case "agent_status":
@@ -249,6 +301,7 @@ export default function App() {
         }
         if (msg.ui_config) setUiConfig(msg.ui_config);
         setWorkspaceFilesVersion((v) => v + 1);
+        dirtyRef.current = true;
         break;
 
       case "api_key_required":
@@ -279,6 +332,7 @@ export default function App() {
 
       case "project_saved":
         if (msg.meta) setActiveProject(msg.meta.name);
+        dirtyRef.current = false;
         break;
 
       case "project_loaded":
@@ -290,6 +344,7 @@ export default function App() {
         if (msg.ui_config) setUiConfig(msg.ui_config);
         setDebugLogs([]);
         setWorkspaceFilesVersion((v) => v + 1);
+        dirtyRef.current = false;
         break;
 
       case "open_panel":
@@ -389,36 +444,62 @@ export default function App() {
     send({ type: "new_chat" });
   }, [send]);
 
+  // Warn before closing tab with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (dirtyRef.current) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
+  const captureThumbnail = useCallback(() => {
+    if (engineRef.current?.canvas) {
+      try {
+        return engineRef.current.canvas.toDataURL("image/jpeg", 0.8);
+      } catch { /* canvas may be tainted */ }
+    }
+    return null;
+  }, []);
+
   const handleNewProject = useCallback(() => {
+    const msg = { type: "new_project" };
+    if (activeProject) {
+      msg.active_project = activeProject;
+      msg.thumbnail = captureThumbnail();
+    }
     setMessages([]);
     setDebugLogs([]);
     setSceneJSON(null);
     setUiConfig({ controls: [], inspectable_buffers: [] });
     setActiveProject(null);
-    send({ type: "new_project" });
-  }, [send]);
+    send(msg);
+  }, [send, activeProject, captureThumbnail]);
 
   const handleProjectSave = useCallback(
     (name, description) => {
-      // Capture thumbnail from WebGL canvas
-      let thumbnail = null;
-      if (engineRef.current?.canvas) {
-        try {
-          thumbnail = engineRef.current.canvas.toDataURL("image/jpeg", 0.8);
-        } catch {
-          // Canvas may be tainted
-        }
-      }
-      send({ type: "project_save", name, description: description || "", thumbnail });
+      send({
+        type: "project_save", name,
+        description: description || "",
+        thumbnail: captureThumbnail(),
+      });
     },
-    [send]
+    [send, captureThumbnail]
   );
 
   const handleProjectLoad = useCallback(
     (name) => {
-      send({ type: "project_load", name });
+      const msg = { type: "project_load", name };
+      if (activeProject && activeProject !== name) {
+        msg.active_project = activeProject;
+        msg.thumbnail = captureThumbnail();
+      }
+      send(msg);
     },
-    [send]
+    [send, activeProject, captureThumbnail]
   );
 
   const handleProjectDelete = useCallback(
