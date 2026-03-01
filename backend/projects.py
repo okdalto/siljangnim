@@ -20,6 +20,7 @@ PROJECTS_DIR = WORKSPACE_DIR / "projects"
 _COPY_FILES = [
     "scene.json",
     "ui_config.json",
+    "workspace_state.json",
 ]
 
 
@@ -153,11 +154,20 @@ def load_project(name: str) -> dict:
     if uc_path.exists():
         ui_config = json.loads(uc_path.read_text(encoding="utf-8"))
 
+    workspace_state = {}
+    ws_path = project_dir / "workspace_state.json"
+    if ws_path.exists():
+        try:
+            workspace_state = json.loads(ws_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+
     return {
         "meta": meta,
         "chat_history": chat_history,
         "scene_json": scene_json,
         "ui_config": ui_config,
+        "workspace_state": workspace_state,
     }
 
 

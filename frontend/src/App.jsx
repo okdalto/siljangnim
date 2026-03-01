@@ -259,11 +259,77 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [agentStatus, setAgentStatus] = useState(null); // {status, detail}
 
+  // Save status: "saved" | "unsaved" | "saving"
+  const [saveStatus, setSaveStatus] = useState("saved");
+
   // Custom panels: Map<id, {title, html, width, height}>
   const [customPanels, setCustomPanels] = useState(new Map());
 
   // Workspace files version counter — bump to trigger re-fetch in ProjectBrowserNode
   const [workspaceFilesVersion, setWorkspaceFilesVersion] = useState(0);
+
+  const captureThumbnail = useCallback(() => {
+    if (engineRef.current?.canvas) {
+      try {
+        return engineRef.current.canvas.toDataURL("image/jpeg", 0.8);
+      } catch { /* canvas may be tainted */ }
+    }
+    return null;
+  }, []);
+
+  // Collect workspace state for persistence
+  const getWorkspaceState = useCallback(() => {
+    return {
+      version: 1,
+      keyframes: keyframeManagerRef.current.tracks,
+      duration,
+      loop,
+    };
+  }, [duration, loop]);
+
+  // Debounced send workspace state to backend (2s)
+  const wsStateTimerRef = useRef(null);
+  const sendWorkspaceState = useCallback(() => {
+    if (wsStateTimerRef.current) clearTimeout(wsStateTimerRef.current);
+    wsStateTimerRef.current = setTimeout(() => {
+      send({ type: "update_workspace_state", workspace_state: getWorkspaceState() });
+    }, 2000);
+  }, [send, getWorkspaceState]);
+
+  // Send workspace state when keyframes, duration, or loop change
+  useEffect(() => {
+    if (keyframeVersion > 0) {
+      sendWorkspaceState();
+      setSaveStatus("unsaved");
+    }
+  }, [keyframeVersion, sendWorkspaceState]);
+
+  const durationLoopMountedRef = useRef(false);
+  useEffect(() => {
+    if (!durationLoopMountedRef.current) {
+      durationLoopMountedRef.current = true;
+      return;
+    }
+    sendWorkspaceState();
+    setSaveStatus("unsaved");
+  }, [duration, loop, sendWorkspaceState]);
+
+  // Auto-save: when activeProject exists and dirty, save every 20s
+  const autoSaveTimerRef = useRef(null);
+  useEffect(() => {
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    if (!activeProject || saveStatus === "saved") return;
+    autoSaveTimerRef.current = setTimeout(() => {
+      setSaveStatus("saving");
+      send({
+        type: "project_save",
+        name: activeProject,
+        workspace_state: getWorkspaceState(),
+        thumbnail: captureThumbnail(),
+      });
+    }, 20000);
+    return () => clearTimeout(autoSaveTimerRef.current);
+  }, [activeProject, saveStatus, send, getWorkspaceState, captureThumbnail]);
 
   // Handle every incoming WebSocket message
   const handleMessage = useCallback((msg) => {
@@ -278,6 +344,29 @@ export default function App() {
         if (msg.projects) setProjectList(msg.projects);
         if (msg.chat_history?.length) setMessages(msg.chat_history);
         setIsProcessing(!!msg.is_processing);
+        // Restore workspace state (keyframes, duration, loop)
+        if (msg.workspace_state) {
+          const ws = msg.workspace_state;
+          if (ws.keyframes && typeof ws.keyframes === "object") {
+            const km = keyframeManagerRef.current;
+            // Clear existing tracks
+            for (const u of Object.keys(km.tracks)) km.clearTrack(u);
+            for (const [u, kfs] of Object.entries(ws.keyframes)) {
+              km.setTrack(u, kfs);
+            }
+            setKeyframeVersion((v) => v + 1);
+          }
+          if (typeof ws.duration === "number") setDuration(ws.duration);
+          if (typeof ws.loop === "boolean") setLoop(ws.loop);
+        } else {
+          // No workspace state: reset to defaults
+          const km = keyframeManagerRef.current;
+          for (const u of Object.keys(km.tracks)) km.clearTrack(u);
+          setKeyframeVersion((v) => v + 1);
+          setDuration(30);
+          setLoop(true);
+        }
+        setSaveStatus("saved");
         break;
 
       case "assistant_text":
@@ -289,6 +378,7 @@ export default function App() {
         setAgentStatus(null);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = true;
+        setSaveStatus("unsaved");
         break;
 
       case "agent_status":
@@ -302,6 +392,7 @@ export default function App() {
         if (msg.ui_config) setUiConfig(msg.ui_config);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = true;
+        setSaveStatus("unsaved");
         break;
 
       case "api_key_required":
@@ -333,6 +424,7 @@ export default function App() {
       case "project_saved":
         if (msg.meta) setActiveProject(msg.meta.name);
         dirtyRef.current = false;
+        setSaveStatus("saved");
         break;
 
       case "project_loaded":
@@ -342,9 +434,30 @@ export default function App() {
           setSceneJSON(msg.scene_json);
         }
         if (msg.ui_config) setUiConfig(msg.ui_config);
+        // Restore workspace state
+        if (msg.workspace_state) {
+          const ws = msg.workspace_state;
+          if (ws.keyframes && typeof ws.keyframes === "object") {
+            const km = keyframeManagerRef.current;
+            for (const u of Object.keys(km.tracks)) km.clearTrack(u);
+            for (const [u, kfs] of Object.entries(ws.keyframes)) {
+              km.setTrack(u, kfs);
+            }
+            setKeyframeVersion((v) => v + 1);
+          }
+          if (typeof ws.duration === "number") setDuration(ws.duration);
+          if (typeof ws.loop === "boolean") setLoop(ws.loop);
+        } else {
+          const km = keyframeManagerRef.current;
+          for (const u of Object.keys(km.tracks)) km.clearTrack(u);
+          setKeyframeVersion((v) => v + 1);
+          setDuration(30);
+          setLoop(true);
+        }
         setDebugLogs([]);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = false;
+        setSaveStatus("saved");
         break;
 
       case "open_panel":
@@ -456,15 +569,6 @@ export default function App() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
 
-  const captureThumbnail = useCallback(() => {
-    if (engineRef.current?.canvas) {
-      try {
-        return engineRef.current.canvas.toDataURL("image/jpeg", 0.8);
-      } catch { /* canvas may be tainted */ }
-    }
-    return null;
-  }, []);
-
   const handleNewProject = useCallback(() => {
     if (dirtyRef.current) {
       if (!window.confirm(
@@ -477,25 +581,35 @@ export default function App() {
     if (activeProject) {
       msg.active_project = activeProject;
       msg.thumbnail = captureThumbnail();
+      msg.workspace_state = getWorkspaceState();
     }
     setMessages([]);
     setDebugLogs([]);
     setSceneJSON(null);
     setUiConfig({ controls: [], inspectable_buffers: [] });
     setActiveProject(null);
+    // Reset keyframes, duration, loop to defaults
+    const km = keyframeManagerRef.current;
+    for (const u of Object.keys(km.tracks)) km.clearTrack(u);
+    setKeyframeVersion((v) => v + 1);
+    setDuration(30);
+    setLoop(true);
     dirtyRef.current = false;
+    setSaveStatus("saved");
     send(msg);
-  }, [send, activeProject, captureThumbnail]);
+  }, [send, activeProject, captureThumbnail, getWorkspaceState]);
 
   const handleProjectSave = useCallback(
     (name, description) => {
+      setSaveStatus("saving");
       send({
         type: "project_save", name,
         description: description || "",
         thumbnail: captureThumbnail(),
+        workspace_state: getWorkspaceState(),
       });
     },
-    [send, captureThumbnail]
+    [send, captureThumbnail, getWorkspaceState]
   );
 
   const handleProjectLoad = useCallback(
@@ -509,10 +623,11 @@ export default function App() {
       if (activeProject && activeProject !== name) {
         msg.active_project = activeProject;
         msg.thumbnail = captureThumbnail();
+        msg.workspace_state = getWorkspaceState();
       }
       send(msg);
     },
-    [send, activeProject, captureThumbnail]
+    [send, activeProject, captureThumbnail, getWorkspaceState]
   );
 
   const handleProjectDelete = useCallback(
@@ -752,6 +867,7 @@ export default function App() {
           onNewProject={handleNewProject}
           activeProject={activeProject}
           connected={connected}
+          saveStatus={saveStatus}
         />
         <Timeline
           paused={paused}
