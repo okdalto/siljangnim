@@ -1339,7 +1339,7 @@ def _build_multimodal_content(user_prompt: str, files: list[dict]) -> list[dict]
 
 StatusCallback = Callable[[str, str], Awaitable[None]]  # (status_type, detail)
 
-_MAX_TURNS = 10
+_MAX_TURNS = 30
 _MAX_COMPACT_RETRIES = 2
 
 
@@ -1604,18 +1604,33 @@ async def run_agent(
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
+                    is_error = False
                     try:
                         result_str = await _handle_tool(block.name, block.input, broadcast)
+                        # Detect error strings returned by _handle_tool
+                        if result_str and result_str.startswith("Error"):
+                            is_error = True
                     except Exception as e:
                         result_str = f"Error executing tool '{block.name}': {e}"
+                        is_error = True
                         await log("System", result_str, "error")
-                    tool_results.append({
+                    tr = {
                         "type": "tool_result",
                         "tool_use_id": block.id,
-                        "content": result_str,
-                    })
+                        "content": result_str or "(empty result)",
+                    }
+                    if is_error:
+                        tr["is_error"] = True
+                    tool_results.append(tr)
 
             messages.append({"role": "user", "content": tool_results})
+
+            # If approaching turn limit, tell the agent to wrap up
+            if turns == _MAX_TURNS - 1:
+                messages.append({
+                    "role": "user",
+                    "content": "You are running out of turns. Please provide your final response now — summarize what you accomplished and any remaining issues.",
+                })
 
         # Log completion
         await log(
