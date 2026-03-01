@@ -51,6 +51,9 @@ BroadcastCallback = Callable[[dict], Awaitable[None]]
 _conversations: dict[int, list[dict]] = {}
 _CONVERSATION_FILE = Path(__file__).resolve().parent.parent / ".workspace" / "generated" / "conversation.json"
 
+# Future for ask_user tool — resolved when the user answers
+_user_answer_future: asyncio.Future | None = None
+
 
 def _save_conversations() -> None:
     """Persist conversation history to disk."""
@@ -121,6 +124,36 @@ def _apply_edits(current_scene: dict, edits: list[dict]) -> tuple[dict, list[str
         except (KeyError, IndexError, TypeError) as e:
             warnings.append(f"Edit {i}: failed to set '{target}': {e}")
     return scene, warnings
+
+
+def _get_nested(obj, path):
+    """Get a value from a nested dict using dot-path notation."""
+    keys = path.split(".")
+    for key in keys:
+        if isinstance(obj, dict):
+            if key not in obj:
+                raise KeyError(f"Key '{key}' not found")
+            obj = obj[key]
+        else:
+            raise TypeError(f"Cannot traverse into non-dict at '{key}'")
+    return obj
+
+
+def _delete_nested(obj, path):
+    """Delete a key from a nested dict using dot-path notation."""
+    keys = path.split(".")
+    for key in keys[:-1]:
+        if isinstance(obj, dict):
+            if key not in obj:
+                raise KeyError(f"Key '{key}' not found")
+            obj = obj[key]
+        else:
+            raise TypeError(f"Cannot traverse into non-dict at '{key}'")
+    final_key = keys[-1]
+    if isinstance(obj, dict) and final_key in obj:
+        del obj[final_key]
+    else:
+        raise KeyError(f"Key '{final_key}' not found")
 
 
 def _set_nested(obj, path, value):
@@ -706,23 +739,27 @@ Use this when the user asks to capture, record, or export a video of their scene
 Then call `update_scene` with a complete scene JSON. Then call `update_ui_config` \
 with controls for any custom uniforms.
 
-2. **Modify existing visual**: Call `get_current_scene` to read the current scene. \
-Modify the JSON as needed (change script code, uniforms, etc.). Call `update_scene` \
-with the updated scene JSON. If uniforms changed, call `update_ui_config` too.
+2. **Modify existing visual**: Use `read_scene_section` to read only the part \
+you need to change (e.g. `script.render`, `uniforms`). Then use `edit_scene` to \
+apply targeted edits — this is much more efficient than `update_scene` for \
+modifications. Only use `update_scene` when rewriting the entire scene from scratch.
 
 3. **Explain / answer questions**: Just respond with text. No tool calls needed.
 
 4. **Review (ALWAYS do this after creating or modifying)**: \
-After `update_scene` succeeds, call `get_current_scene` one more time to read back \
-the saved result. Compare it against the user's original request and verify:
+After `update_scene` or `edit_scene` succeeds, call `read_scene_section("script.render")` \
+to read back the key parts. Compare against the user's request and verify:
    - Does the script logic actually implement what the user asked for?
    - Does the script use ctx.time for animation? (If not, it's likely a bug — fix it)
    - Are all requested visual elements present (colors, shapes, effects, animations)?
    - Are custom uniforms used correctly from ctx.uniforms?
    - Do UI controls cover all user-adjustable parameters?
 If you find any mismatch or missing detail, fix it immediately by calling \
-`update_scene` / `update_ui_config` again. Briefly summarize what you verified \
+`edit_scene` / `update_ui_config` again. Briefly summarize what you verified \
 in your final response to the user.
+
+5. **Reading large files**: Use `read_file` with `offset` and `limit` to read \
+files in chunks. Start with the first ~100 lines, then decide if you need more.
 
 ## RULES
 
@@ -742,6 +779,15 @@ A static scene is almost always wrong.
 - If `update_scene` returns validation errors, fix the issues and call it again.
 - When modifying, preserve parts of the scene the user didn't ask to change.
 - Always respond in the SAME LANGUAGE the user is using.
+- **Clarify before acting on ambiguous requests.** When a user's request is vague, \
+has multiple reasonable interpretations, or lacks critical details, use the \
+`ask_user` tool to ask clarifying questions BEFORE generating or modifying scenes. \
+Provide 2-4 concrete options. Examples:
+  - "Make a particle effect" → Ask: type (rain/explosion/fire/snow), color scheme, 3D or 2D
+  - "Make it prettier" → Ask: which aspect (colors, animation, geometry, lighting)
+  - "Add an effect" → Ask: what kind of effect
+Do NOT use ask_user for clear, specific requests like "make the background red" or \
+"add a speed slider from 0 to 5".
 - For "create" requests, generate both the scene and UI config.
 - For small modifications that don't change uniforms, you may skip update_ui_config.
 - To **remove a control** from the inspector, call `update_ui_config` with a \
@@ -808,11 +854,31 @@ TOOLS = [
         },
     },
     {
+        "name": "read_scene_section",
+        "description": (
+            "Read a specific section of scene.json using a dot-path. "
+            "Much more efficient than get_current_scene when you only need "
+            "a specific part. Examples: 'script.render', 'script.setup', "
+            "'uniforms', 'uniforms.u_speed', 'clearColor'. "
+            "Returns the value at that path as JSON."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Dot-separated path into scene.json (e.g. 'script.render', 'uniforms.u_speed').",
+                },
+            },
+            "required": ["path"],
+        },
+    },
+    {
         "name": "update_scene",
         "description": (
-            "Validate, save, and broadcast a scene JSON to all connected clients. "
-            "The scene_json parameter must be a complete scene JSON string. "
-            "Returns 'ok' on success or a list of validation errors to fix."
+            "Validate, save, and broadcast a COMPLETE scene JSON to all clients. "
+            "Use this only when creating a new scene from scratch. "
+            "For modifying existing scenes, prefer edit_scene instead."
         ),
         "input_schema": {
             "type": "object",
@@ -823,6 +889,33 @@ TOOLS = [
                 },
             },
             "required": ["scene_json"],
+        },
+    },
+    {
+        "name": "edit_scene",
+        "description": (
+            "Apply targeted edits to the current scene.json without replacing the whole file. "
+            "Takes an array of edits, each with a dot-path and new value. "
+            "Much more efficient than update_scene for modifications. "
+            "The edited scene is validated, saved, and broadcast to clients. "
+            "Supports 'set' (default) and 'delete' operations."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "edits": {
+                    "type": "string",
+                    "description": (
+                        "JSON array of edit objects. Each has: "
+                        "'path' (dot-separated target, e.g. 'script.render'), "
+                        "'value' (new value — string, number, object, etc.), "
+                        "'op' (optional: 'set' or 'delete', default 'set'). "
+                        "Example: [{\"path\": \"script.render\", \"value\": \"const gl = ctx.gl;...\"}, "
+                        "{\"path\": \"uniforms.u_new\", \"value\": {\"type\": \"float\", \"value\": 1.0}}]"
+                    ),
+                },
+            },
+            "required": ["edits"],
         },
     },
     {
@@ -926,9 +1019,10 @@ TOOLS = [
     {
         "name": "read_file",
         "description": (
-            "Read a project file by relative path. Returns file contents for text files "
-            "(up to 50KB), or metadata for binary files. Use this to understand existing "
-            "code, engine internals, and patterns before generating new code."
+            "Read a project file by relative path. Returns file contents for text files, "
+            "or metadata for binary files. Supports line-based pagination with offset/limit "
+            "— use these to read large files in chunks instead of all at once. "
+            "Returns total line count so you know if there's more to read."
         ),
         "input_schema": {
             "type": "object",
@@ -936,6 +1030,14 @@ TOOLS = [
                 "path": {
                     "type": "string",
                     "description": "Relative path from project root to the file to read.",
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Starting line number (1-based). Default: 1.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max number of lines to return. Default: all lines (up to 50KB).",
                 },
             },
             "required": ["path"],
@@ -1079,6 +1181,36 @@ TOOLS = [
             "required": ["command"],
         },
     },
+    {
+        "name": "ask_user",
+        "description": (
+            "Ask the user a clarifying question when their request is ambiguous "
+            "or could be interpreted in multiple ways. Provide 2-4 options. "
+            "The agent will pause until the user responds."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string",
+                    "description": "The question to ask the user.",
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "label": {"type": "string", "description": "Short option name"},
+                            "description": {"type": "string", "description": "What this option means"},
+                        },
+                        "required": ["label", "description"],
+                    },
+                    "description": "2-4 options for the user to choose from.",
+                },
+            },
+            "required": ["question", "options"],
+        },
+    },
 ]
 
 
@@ -1099,6 +1231,22 @@ async def _handle_tool(
             return json.dumps(scene, indent=2)
         except FileNotFoundError:
             return "No scene.json exists yet. Create a new one."
+
+    elif name == "read_scene_section":
+        path = input_data.get("path", "")
+        if not path:
+            return "Error: 'path' is required."
+        try:
+            scene = workspace.read_json("scene.json")
+        except FileNotFoundError:
+            return "No scene.json exists yet."
+        try:
+            value = _get_nested(scene, path)
+            if isinstance(value, str):
+                return value
+            return json.dumps(value, indent=2)
+        except (KeyError, TypeError) as e:
+            return f"Path '{path}' not found: {e}"
 
     elif name == "update_scene":
         raw = input_data.get("scene_json", "")
@@ -1127,6 +1275,64 @@ async def _handle_tool(
         })
 
         return "ok — script mode scene saved and broadcast."
+
+    elif name == "edit_scene":
+        raw = input_data.get("edits", "")
+        try:
+            if isinstance(raw, str):
+                edits = json.loads(raw)
+            else:
+                edits = raw
+        except json.JSONDecodeError as e:
+            return f"Invalid JSON: {e}"
+
+        if not isinstance(edits, list):
+            return "Error: 'edits' must be a JSON array."
+
+        try:
+            scene = workspace.read_json("scene.json")
+        except FileNotFoundError:
+            return "No scene.json exists. Use update_scene to create one first."
+
+        # Apply edits
+        scene = json.loads(json.dumps(scene))  # deep copy
+        warnings = []
+        for i, edit in enumerate(edits):
+            path = edit.get("path", "")
+            op = edit.get("op", "set")
+            if not path:
+                warnings.append(f"Edit {i}: empty path, skipped")
+                continue
+            try:
+                if op == "delete":
+                    _delete_nested(scene, path)
+                else:
+                    _set_nested(scene, path, edit.get("value"))
+            except (KeyError, TypeError) as e:
+                warnings.append(f"Edit {i} ({op} '{path}'): {e}")
+
+        errors = _validate_scene_json(scene)
+        if errors:
+            error_text = "Validation errors after edits:\n"
+            error_text += "\n".join(f"  - {e}" for e in errors)
+            if warnings:
+                error_text += "\nEdit warnings:\n" + "\n".join(f"  - {w}" for w in warnings)
+            return error_text
+
+        try:
+            workspace.write_json("scene.json", scene)
+        except OSError as e:
+            return f"Error writing scene.json: {e}"
+
+        await broadcast({
+            "type": "scene_update",
+            "scene_json": scene,
+        })
+
+        result = f"ok — {len(edits)} edit(s) applied and broadcast."
+        if warnings:
+            result += "\nWarnings:\n" + "\n".join(f"  - {w}" for w in warnings)
+        return result
 
     elif name == "update_ui_config":
         raw = input_data.get("ui_config", "")
@@ -1320,12 +1526,37 @@ async def _handle_tool(
             content = resolved.read_text(encoding="utf-8", errors="replace")
         except OSError as e:
             return f"Error reading '{rel_path}': {e}"
+
+        lines = content.splitlines(keepends=True)
+        total_lines = len(lines)
+        offset = max(1, input_data.get("offset", 1))
+        limit = input_data.get("limit")
+
+        # Apply pagination
+        start_idx = offset - 1  # 1-based to 0-based
+        if limit is not None and limit > 0:
+            end_idx = min(start_idx + limit, total_lines)
+        else:
+            end_idx = total_lines
+
+        selected = lines[start_idx:end_idx]
+        result = "".join(selected)
+
+        # Truncate if still too large
         max_size = 50_000
         truncated = ""
-        if len(content) > max_size:
-            content = content[:max_size]
+        if len(result) > max_size:
+            result = result[:max_size]
             truncated = "\n... (truncated at 50KB)"
-        return f"File: {rel_path} ({file_size} bytes)\n\n{content}{truncated}"
+
+        header = f"File: {rel_path} ({file_size} bytes, {total_lines} lines)"
+        if limit is not None or offset > 1:
+            shown_start = offset
+            shown_end = start_idx + len(selected)
+            header += f" [showing lines {shown_start}-{shown_end}]"
+            if shown_end < total_lines:
+                header += f" — use offset={shown_end + 1} to read more"
+        return f"{header}\n\n{result}{truncated}"
 
     elif name == "write_file":
         rel_path = input_data.get("path", "")
@@ -1464,6 +1695,20 @@ async def _handle_tool(
             return f"Error: command '{cmd_name}' not found on this system."
         except Exception as e:
             return f"Error running command: {e}"
+
+    elif name == "ask_user":
+        global _user_answer_future
+        question = input_data.get("question", "")
+        options = input_data.get("options", [])
+        _user_answer_future = asyncio.get_event_loop().create_future()
+        await broadcast({
+            "type": "agent_question",
+            "question": question,
+            "options": options,
+        })
+        answer = await _user_answer_future
+        _user_answer_future = None
+        return f"The user answered: {answer}"
 
     else:
         return f"Unknown tool: {name}"
