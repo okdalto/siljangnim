@@ -466,6 +466,13 @@ export default function App() {
   }, []);
 
   const handleNewProject = useCallback(() => {
+    if (dirtyRef.current) {
+      if (!window.confirm(
+        activeProject
+          ? `Save changes to "${activeProject}" before creating a new project?\n\nClick OK to save and continue, or Cancel to stay.`
+          : "You have unsaved changes. Discard them and create a new project?"
+      )) return;
+    }
     const msg = { type: "new_project" };
     if (activeProject) {
       msg.active_project = activeProject;
@@ -476,6 +483,7 @@ export default function App() {
     setSceneJSON(null);
     setUiConfig({ controls: [], inspectable_buffers: [] });
     setActiveProject(null);
+    dirtyRef.current = false;
     send(msg);
   }, [send, activeProject, captureThumbnail]);
 
@@ -492,6 +500,11 @@ export default function App() {
 
   const handleProjectLoad = useCallback(
     (name) => {
+      if (dirtyRef.current && activeProject && activeProject !== name) {
+        if (!window.confirm(
+          `Save changes to "${activeProject}" before loading "${name}"?\n\nClick OK to save and continue, or Cancel to stay.`
+        )) return;
+      }
       const msg = { type: "project_load", name };
       if (activeProject && activeProject !== name) {
         msg.active_project = activeProject;

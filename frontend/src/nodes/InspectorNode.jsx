@@ -276,28 +276,69 @@ function ButtonControl({ ctrl, onUniformChange }) {
 }
 
 function ColorControl({ ctrl, onUniformChange }) {
-  const [color, setColor] = useState(ctrl.default || "#ffffff");
+  const [color, setColor] = useState(() => {
+    const d = ctrl.default || "#ffffff";
+    if (typeof d === "string") return d.slice(0, 7);
+    return "#ffffff";
+  });
+  const [alpha, setAlpha] = useState(() => {
+    const d = ctrl.default;
+    if (typeof d === "string" && d.length === 9) {
+      return parseInt(d.slice(7, 9), 16) / 255;
+    }
+    return 1;
+  });
 
-  const handleChange = useCallback(
-    (e) => {
-      const hex = e.target.value;
-      setColor(hex);
+  const emit = useCallback(
+    (hex, a) => {
       const r = parseInt(hex.slice(1, 3), 16) / 255;
       const g = parseInt(hex.slice(3, 5), 16) / 255;
       const b = parseInt(hex.slice(5, 7), 16) / 255;
-      onUniformChange?.(ctrl.uniform, [r, g, b]);
+      onUniformChange?.(ctrl.uniform, [r, g, b, a]);
     },
     [ctrl.uniform, onUniformChange]
   );
 
+  const handleColorChange = useCallback(
+    (e) => {
+      const hex = e.target.value;
+      setColor(hex);
+      emit(hex, alpha);
+    },
+    [alpha, emit]
+  );
+
+  const handleAlphaChange = useCallback(
+    (e) => {
+      const a = parseFloat(e.target.value);
+      setAlpha(a);
+      emit(color, a);
+    },
+    [color, emit]
+  );
+
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-xs text-zinc-400">{ctrl.label}</span>
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-zinc-400">{ctrl.label}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-zinc-500 tabular-nums">{Math.round(alpha * 100)}%</span>
+          <input
+            type="color"
+            value={color}
+            onChange={handleColorChange}
+            className="w-8 h-6 rounded border border-zinc-600 bg-transparent cursor-pointer"
+          />
+        </div>
+      </div>
       <input
-        type="color"
-        value={color}
-        onChange={handleChange}
-        className="w-8 h-6 rounded border border-zinc-600 bg-transparent cursor-pointer"
+        type="range"
+        min={0}
+        max={1}
+        step={0.01}
+        value={alpha}
+        onChange={handleAlphaChange}
+        className="w-full accent-indigo-500"
       />
     </div>
   );
@@ -479,6 +520,274 @@ function TextControl({ ctrl, onUniformChange }) {
   );
 }
 
+/* ---------- shared Catmull-Rom helper (same logic as GLEngine.sampleCurve) ---------- */
+function sampleCurve(points, t) {
+  if (!points || points.length === 0) return 0;
+  if (points.length === 1) return points[0][1];
+  const pts = points.slice().sort((a, b) => a[0] - b[0]);
+  const n = pts.length;
+  if (t <= pts[0][0]) return pts[0][1];
+  if (t >= pts[n - 1][0]) return pts[n - 1][1];
+  let idx = 0;
+  for (let j = 0; j < n - 1; j++) {
+    if (t >= pts[j][0] && t <= pts[j + 1][0]) { idx = j; break; }
+  }
+  const m = new Array(n);
+  for (let k = 0; k < n; k++) {
+    if (k === 0) m[k] = (pts[1][1] - pts[0][1]) / (pts[1][0] - pts[0][0]);
+    else if (k === n - 1) m[k] = (pts[n - 1][1] - pts[n - 2][1]) / (pts[n - 1][0] - pts[n - 2][0]);
+    else m[k] = (pts[k + 1][1] - pts[k - 1][1]) / (pts[k + 1][0] - pts[k - 1][0]);
+  }
+  const dx = pts[idx + 1][0] - pts[idx][0];
+  const u = (t - pts[idx][0]) / dx;
+  const u2 = u * u, u3 = u2 * u;
+  const h00 = 2 * u3 - 3 * u2 + 1;
+  const h10 = u3 - 2 * u2 + u;
+  const h01 = -2 * u3 + 3 * u2;
+  const h11 = u3 - u2;
+  return h00 * pts[idx][1] + h10 * m[idx] * dx + h01 * pts[idx + 1][1] + h11 * m[idx + 1] * dx;
+}
+
+function GraphControl({ ctrl, onUniformChange }) {
+  const yMin = ctrl.min ?? 0;
+  const yMax = ctrl.max ?? 1;
+  const defaultPts = ctrl.default || [[0, 0], [1, 1]];
+
+  const [points, setPoints] = useState(() =>
+    defaultPts.map((p) => [...p]).sort((a, b) => a[0] - b[0])
+  );
+  const canvasRef = useRef(null);
+  const dragging = useRef(null); // index of dragged point
+  const containerRef = useRef(null);
+
+  const PAD = 20; // canvas padding
+
+  // Convert data coords ↔ canvas coords
+  const toCanvas = useCallback(
+    (px, py, w, h) => [
+      PAD + px * (w - 2 * PAD),
+      (h - PAD) - ((py - yMin) / (yMax - yMin)) * (h - 2 * PAD),
+    ],
+    [yMin, yMax]
+  );
+
+  const fromCanvas = useCallback(
+    (cx, cy, w, h) => [
+      Math.max(0, Math.min(1, (cx - PAD) / (w - 2 * PAD))),
+      Math.max(yMin, Math.min(yMax, yMin + (1 - (cy - PAD) / (h - 2 * PAD)) * (yMax - yMin))),
+    ],
+    [yMin, yMax]
+  );
+
+  // Draw
+  const draw = useCallback(
+    (pts) => {
+      const cvs = canvasRef.current;
+      if (!cvs) return;
+      const ctx2d = cvs.getContext("2d");
+      const w = cvs.width;
+      const h = cvs.height;
+
+      // Background
+      ctx2d.fillStyle = "#27272a"; // zinc-800
+      ctx2d.fillRect(0, 0, w, h);
+
+      // Grid lines
+      ctx2d.strokeStyle = "#3f3f46"; // zinc-700
+      ctx2d.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const gy = PAD + (i / 4) * (h - 2 * PAD);
+        ctx2d.beginPath();
+        ctx2d.moveTo(PAD, gy);
+        ctx2d.lineTo(w - PAD, gy);
+        ctx2d.stroke();
+      }
+      for (let i = 0; i <= 4; i++) {
+        const gx = PAD + (i / 4) * (w - 2 * PAD);
+        ctx2d.beginPath();
+        ctx2d.moveTo(gx, PAD);
+        ctx2d.lineTo(gx, h - PAD);
+        ctx2d.stroke();
+      }
+
+      // Curve (sample many points)
+      const sorted = pts.slice().sort((a, b) => a[0] - b[0]);
+      if (sorted.length >= 2) {
+        ctx2d.strokeStyle = "#818cf8"; // indigo-400
+        ctx2d.lineWidth = 2;
+        ctx2d.beginPath();
+        const steps = w - 2 * PAD;
+        for (let s = 0; s <= steps; s++) {
+          const t = s / steps;
+          const y = sampleCurve(sorted, t);
+          const [cx, cy] = toCanvas(t, y, w, h);
+          if (s === 0) ctx2d.moveTo(cx, cy);
+          else ctx2d.lineTo(cx, cy);
+        }
+        ctx2d.stroke();
+      }
+
+      // Control points
+      for (const p of sorted) {
+        const [cx, cy] = toCanvas(p[0], p[1], w, h);
+        ctx2d.fillStyle = "#6366f1"; // indigo-500
+        ctx2d.beginPath();
+        ctx2d.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx2d.fill();
+        ctx2d.strokeStyle = "#c7d2fe"; // indigo-200
+        ctx2d.lineWidth = 1;
+        ctx2d.stroke();
+      }
+    },
+    [toCanvas]
+  );
+
+  // Redraw on points change
+  useEffect(() => {
+    draw(points);
+  }, [points, draw]);
+
+  // Resize observer for canvas
+  useEffect(() => {
+    const container = containerRef.current;
+    const cvs = canvasRef.current;
+    if (!container || !cvs) return;
+    const ro = new ResizeObserver(() => {
+      const rect = container.getBoundingClientRect();
+      cvs.width = Math.round(rect.width);
+      cvs.height = 120;
+      draw(points);
+    });
+    ro.observe(container);
+    // Init size
+    const rect = container.getBoundingClientRect();
+    cvs.width = Math.round(rect.width);
+    cvs.height = 120;
+    draw(points);
+    return () => ro.disconnect();
+  }, [draw, points]);
+
+  const emit = useCallback(
+    (pts) => {
+      onUniformChange?.(ctrl.uniform, pts.map((p) => [...p]));
+    },
+    [ctrl.uniform, onUniformChange]
+  );
+
+  const findPoint = useCallback(
+    (cx, cy, w, h) => {
+      for (let i = 0; i < points.length; i++) {
+        const [px, py] = toCanvas(points[i][0], points[i][1], w, h);
+        if (Math.hypot(cx - px, cy - py) < 10) return i;
+      }
+      return -1;
+    },
+    [points, toCanvas]
+  );
+
+  const handlePointerDown = useCallback(
+    (e) => {
+      const cvs = canvasRef.current;
+      if (!cvs) return;
+      const rect = cvs.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const idx = findPoint(cx, cy, cvs.width, cvs.height);
+      if (idx >= 0) {
+        dragging.current = idx;
+        cvs.setPointerCapture(e.pointerId);
+      } else {
+        // Add new point
+        const [x, y] = fromCanvas(cx, cy, cvs.width, cvs.height);
+        const newPts = [...points, [x, y]].sort((a, b) => a[0] - b[0]);
+        setPoints(newPts);
+        emit(newPts);
+      }
+    },
+    [points, findPoint, fromCanvas, emit]
+  );
+
+  const handlePointerMove = useCallback(
+    (e) => {
+      if (dragging.current === null) return;
+      const cvs = canvasRef.current;
+      if (!cvs) return;
+      const rect = cvs.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      let [x, y] = fromCanvas(cx, cy, cvs.width, cvs.height);
+      const idx = dragging.current;
+      // First/last point: lock x
+      if (idx === 0) x = 0;
+      else if (idx === points.length - 1) x = 1;
+      const newPts = points.map((p, i) => (i === idx ? [x, y] : [...p]));
+      setPoints(newPts);
+      emit(newPts);
+    },
+    [points, fromCanvas, emit]
+  );
+
+  const handlePointerUp = useCallback(() => {
+    dragging.current = null;
+  }, []);
+
+  const handleDoubleClick = useCallback(
+    (e) => {
+      const cvs = canvasRef.current;
+      if (!cvs) return;
+      const rect = cvs.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const idx = findPoint(cx, cy, cvs.width, cvs.height);
+      // Don't delete first/last
+      if (idx > 0 && idx < points.length - 1) {
+        const newPts = points.filter((_, i) => i !== idx);
+        setPoints(newPts);
+        emit(newPts);
+      }
+    },
+    [points, findPoint, emit]
+  );
+
+  const handleReset = useCallback(() => {
+    const def = defaultPts.map((p) => [...p]).sort((a, b) => a[0] - b[0]);
+    setPoints(def);
+    emit(def);
+  }, [defaultPts, emit]);
+
+  return (
+    <div className="space-y-1">
+      <label className="flex justify-between items-center text-xs text-zinc-400">
+        <span>{ctrl.label}</span>
+        <button
+          onClick={handleReset}
+          className="text-zinc-500 hover:text-zinc-200 transition-colors"
+          title="Reset curve"
+        >
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 8a6 6 0 0 1 10.47-4" />
+            <path d="M14 8a6 6 0 0 1-10.47 4" />
+            <polyline points="12 2 13 4.5 10.5 4.5" />
+            <polyline points="4 14 3 11.5 5.5 11.5" />
+          </svg>
+        </button>
+      </label>
+      <div ref={containerRef} className="w-full">
+        <canvas
+          ref={canvasRef}
+          height={120}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onDoubleClick={handleDoubleClick}
+          className="w-full rounded border border-zinc-600 cursor-crosshair touch-none"
+          style={{ height: 120 }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function InspectorNode({ data }) {
   const {
     controls = [],
@@ -537,6 +846,9 @@ export default function InspectorNode({ data }) {
           }
           if (ctrl.type === "text") {
             return <TextControl key={key} ctrl={ctrl} onUniformChange={onUniformChange} />;
+          }
+          if (ctrl.type === "graph") {
+            return <GraphControl key={key} ctrl={ctrl} onUniformChange={onUniformChange} />;
           }
           return null;
         })}
