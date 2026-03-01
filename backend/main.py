@@ -429,6 +429,11 @@ async def websocket_endpoint(ws: WebSocket):
     except FileNotFoundError:
         ui_config = DEFAULT_UI_CONFIG
 
+    try:
+        workspace_state = workspace.read_json("workspace_state.json")
+    except FileNotFoundError:
+        workspace_state = {}
+
     await ws.send_text(json.dumps({
         "type": "init",
         "scene_json": scene_json,
@@ -436,6 +441,7 @@ async def websocket_endpoint(ws: WebSocket):
         "projects": projects.list_projects(),
         "is_processing": _global_agent_busy,
         "chat_history": _chat_history,
+        "workspace_state": workspace_state,
     }))
 
     if not _api_key:
@@ -602,6 +608,11 @@ async def websocket_endpoint(ws: WebSocket):
                     except FileNotFoundError:
                         pass
 
+            elif msg_type == "update_workspace_state":
+                ws_data = msg.get("workspace_state", {})
+                if ws_data:
+                    workspace.write_json("workspace_state.json", ws_data)
+
             elif msg_type == "new_chat":
                 _chat_history.clear()
                 await agents.reset_agent(_AGENT_WS_ID)
@@ -617,6 +628,9 @@ async def websocket_endpoint(ws: WebSocket):
                 _auto_save_name = msg.get("active_project")
                 if _auto_save_name:
                     try:
+                        ws_data = msg.get("workspace_state")
+                        if ws_data:
+                            workspace.write_json("workspace_state.json", ws_data)
                         projects.save_project(
                             name=_auto_save_name,
                             chat_history=_chat_history,
@@ -638,7 +652,7 @@ async def websocket_endpoint(ws: WebSocket):
                 workspace.clear_uploads()
 
                 # Clean up old files
-                for old_file in ["scene.py", "pipeline.json", "uniforms.json", "renderer_status.json"]:
+                for old_file in ["scene.py", "pipeline.json", "uniforms.json", "renderer_status.json", "workspace_state.json"]:
                     try:
                         p = workspace._safe_path(old_file)
                         if p.exists():
@@ -646,16 +660,20 @@ async def websocket_endpoint(ws: WebSocket):
                     except Exception:
                         pass
 
-                # 3. Broadcast init with default scene
+                # 4. Broadcast init with default scene
                 await manager.broadcast({
                     "type": "init",
                     "scene_json": DEFAULT_SCENE_JSON,
                     "ui_config": DEFAULT_UI_CONFIG,
                     "projects": projects.list_projects(),
+                    "workspace_state": {},
                 })
 
             elif msg_type == "project_save":
                 try:
+                    ws_data = msg.get("workspace_state")
+                    if ws_data:
+                        workspace.write_json("workspace_state.json", ws_data)
                     thumbnail_b64 = msg.get("thumbnail")
                     meta = projects.save_project(
                         name=msg.get("name", "untitled"),
@@ -682,6 +700,9 @@ async def websocket_endpoint(ws: WebSocket):
                 _auto_save_name = msg.get("active_project")
                 if _auto_save_name:
                     try:
+                        ws_data = msg.get("workspace_state")
+                        if ws_data:
+                            workspace.write_json("workspace_state.json", ws_data)
                         projects.save_project(
                             name=_auto_save_name,
                             chat_history=_chat_history,
@@ -730,11 +751,16 @@ async def websocket_endpoint(ws: WebSocket):
                     u = workspace.read_json("ui_config.json")
                 except FileNotFoundError:
                     s, u = DEFAULT_SCENE_JSON, DEFAULT_UI_CONFIG
+                try:
+                    ws_state = workspace.read_json("workspace_state.json")
+                except FileNotFoundError:
+                    ws_state = {}
                 await ws.send_text(json.dumps({
                     "type": "init",
                     "scene_json": s,
                     "ui_config": u,
                     "projects": projects.list_projects(),
+                    "workspace_state": ws_state,
                 }))
 
     except (WebSocketDisconnect, RuntimeError):
