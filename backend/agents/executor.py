@@ -101,7 +101,7 @@ def _build_multimodal_content(user_prompt: str, files: list[dict]) -> list[dict]
         else:
             non_image_descriptions.append(
                 f"[Uploaded file: {name} ({f.get('size', 0)} bytes, {mime}) — "
-                f"use read_uploaded_file tool to read its contents. "
+                f"use read_file tool with path='uploads/<filename>' to read its contents. "
                 f"The file is accessible at /api/uploads/{name}]"
             )
 
