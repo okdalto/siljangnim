@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
-export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState) {
+export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs) {
   const [projectList, setProjectList] = useState([]);
   const [activeProject, setActiveProject] = useState(null);
   const [saveStatus, setSaveStatus] = useState("saved");
@@ -18,9 +18,10 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
         description: description || "",
         thumbnail: captureThumbnail(),
         workspace_state: getWorkspaceState(),
+        debug_logs: getDebugLogs(),
       });
     },
-    [sendRef, captureThumbnail, getWorkspaceState]
+    [sendRef, captureThumbnail, getWorkspaceState, getDebugLogs]
   );
 
   const handleProjectLoad = useCallback(
@@ -38,10 +39,11 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
         msg.active_project = activeProject;
         msg.thumbnail = captureThumbnail();
         msg.workspace_state = getWorkspaceState();
+        msg.debug_logs = getDebugLogs();
       }
       sendRef.current?.(msg);
     },
-    [sendRef, activeProject, captureThumbnail, getWorkspaceState]
+    [sendRef, activeProject, captureThumbnail, getWorkspaceState, getDebugLogs]
   );
 
   const handleProjectDelete = useCallback(

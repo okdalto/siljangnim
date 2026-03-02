@@ -212,8 +212,11 @@ TOOLS = [
             "Use template='controls' with config.controls array to render native "
             "React controls (sliders, color pickers, toggles, etc.) that integrate "
             "with undo/redo and keyframe editing — this is the preferred method for "
-            "parameter UI. Use raw html or other templates (orbit_camera, pad2d) only "
-            "for custom interactive panels that need HTML/JS."
+            "parameter UI. You can mix native controls with {\"type\":\"html\"} blocks "
+            "in the same controls array for hybrid panels (native + custom HTML). "
+            "All iframes get app theme CSS auto-injected. "
+            "Use raw html or other templates (orbit_camera, pad2d) only "
+            "for fully custom interactive panels."
         ),
         "input_schema": {
             "type": "object",

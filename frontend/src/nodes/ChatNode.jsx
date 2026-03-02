@@ -123,7 +123,14 @@ export default function ChatNode({ data }) {
       return;
     }
 
-    if (isProcessing) return;
+    // While processing, allow text-only injection (no files)
+    if (isProcessing) {
+      if (input.trim()) {
+        onSend?.(input.trim());
+        setInput("");
+      }
+      return;
+    }
 
     const files = attachedFiles.length > 0
       ? attachedFiles.map(({ name, mime_type, size, data_b64 }) => ({ name, mime_type, size, data_b64 }))
@@ -295,27 +302,25 @@ export default function ChatNode({ data }) {
               }
             }
           }}
-          placeholder={pendingQuestion ? "Type your answer..." : isProcessing ? "Waiting for response..." : "Type a prompt... (Shift+Enter for newline)"}
-          disabled={isProcessing && !pendingQuestion}
+          placeholder={pendingQuestion ? "Type your answer..." : isProcessing ? "Type to send while agent is working..." : "Type a prompt... (Shift+Enter for newline)"}
           rows={1}
-          className="flex-1 bg-zinc-800 text-zinc-100 text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+          className="flex-1 bg-zinc-800 text-zinc-100 text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
           style={{ maxHeight: "120px", overflowY: "auto" }}
         />
-        {isProcessing && !pendingQuestion ? (
+        <button
+          type="submit"
+          disabled={!input.trim() && (!attachedFiles.length || isProcessing)}
+          className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
+        >
+          Send
+        </button>
+        {isProcessing && !pendingQuestion && (
           <button
             type="button"
             onClick={onCancel}
             className="bg-red-600 hover:bg-red-500 text-white text-sm px-4 py-2 rounded-lg transition-colors"
           >
             Stop
-          </button>
-        ) : (
-          <button
-            type="submit"
-            disabled={isProcessing && !pendingQuestion}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
-          >
-            Send
           </button>
         )}
       </form>

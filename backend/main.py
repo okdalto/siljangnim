@@ -372,7 +372,7 @@ async def websocket_endpoint(ws: WebSocket):
 
     try:
         panels = workspace.read_json("panels.json")
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError):
         panels = {}
 
     await ws.send_text(json.dumps({
