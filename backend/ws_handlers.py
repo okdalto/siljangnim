@@ -83,9 +83,10 @@ async def _auto_save_project(msg: dict, ctx: WsContext):
         debug_logs = msg.get("debug_logs")
         if debug_logs is not None:
             workspace.write_json("debug_logs.json", debug_logs)
+        chat_history = msg.get("chat_history") or ctx.chat_history
         projects.save_project(
             name=name,
-            chat_history=ctx.chat_history,
+            chat_history=chat_history,
             thumbnail_b64=msg.get("thumbnail"),
         )
     except Exception as e:
@@ -375,9 +376,11 @@ async def handle_project_save(ws, msg, ctx: WsContext):
         if debug_logs is not None:
             workspace.write_json("debug_logs.json", debug_logs)
         thumbnail_b64 = msg.get("thumbnail")
+        # Prefer frontend-provided chat_history (survives server restarts)
+        chat_history = msg.get("chat_history") or ctx.chat_history
         meta = projects.save_project(
             name=msg.get("name", "untitled"),
-            chat_history=ctx.chat_history,
+            chat_history=chat_history,
             description=msg.get("description", ""),
             thumbnail_b64=thumbnail_b64,
         )

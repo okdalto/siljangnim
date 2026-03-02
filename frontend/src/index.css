@@ -23,6 +23,11 @@ body,
   height: 14px !important;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Allow text selection inside chat messages */
 .react-flow__node .nowheel.nodrag {
   user-select: text;

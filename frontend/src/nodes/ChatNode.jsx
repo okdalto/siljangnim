@@ -295,7 +295,7 @@ export default function ChatNode({ data }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             e.stopPropagation();
-            if (e.key === "Enter" && !e.shiftKey) {
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
               e.preventDefault();
               if (input.trim() || attachedFiles.length > 0) {
                 e.target.form.requestSubmit();

@@ -31,6 +31,48 @@ import KeyframeEditor from "./components/KeyframeEditor.jsx";
 
 let _undoSeq = 0;
 
+const _PLACEMENT_GAP = 20;
+
+/**
+ * Find a non-overlapping position for a new panel among existing nodes.
+ * Tries placing to the right of each node, then below, picking the
+ * candidate closest to the origin to keep the layout compact.
+ */
+function findEmptyPosition(existingNodes, width, height) {
+  const boxes = existingNodes.map((n) => ({
+    x: n.position.x,
+    y: n.position.y,
+    w: n.measured?.width ?? n.width ?? parseFloat(n.style?.width) ?? 320,
+    h: n.measured?.height ?? n.height ?? parseFloat(n.style?.height) ?? 300,
+  }));
+
+  const overlaps = (cx, cy) =>
+    boxes.some(
+      (b) =>
+        cx < b.x + b.w + _PLACEMENT_GAP &&
+        cx + width + _PLACEMENT_GAP > b.x &&
+        cy < b.y + b.h + _PLACEMENT_GAP &&
+        cy + height + _PLACEMENT_GAP > b.y
+    );
+
+  // Build candidate positions: right-of and below each node
+  const candidates = [];
+  for (const b of boxes) {
+    candidates.push({ x: b.x + b.w + _PLACEMENT_GAP, y: b.y });
+    candidates.push({ x: b.x, y: b.y + b.h + _PLACEMENT_GAP });
+  }
+  // Sort by distance from origin (prefer compact placement)
+  candidates.sort((a, b) => a.x + a.y - (b.x + b.y));
+
+  for (const c of candidates) {
+    if (!overlaps(c.x, c.y)) return c;
+  }
+
+  // Fallback: cascade from default position
+  const n = existingNodes.filter((nd) => nd.type === "customPanel").length;
+  return { x: 750 + n * 30, y: 400 + n * 30 };
+}
+
 const nodeTypes = {
   chat: ChatNode,
   viewport: ViewportNode,
@@ -123,7 +165,27 @@ export default function App() {
   }, [duration, loop, kf.getKeyframeTracks]);
 
   const getDebugLogs = useCallback(() => chat.debugLogs, [chat.debugLogs]);
-  const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs);
+
+  // Refs for save getters (avoid re-creating callbacks on every state change)
+  const nodesRef = useRef(nodes);
+  nodesRef.current = nodes;
+  const messagesRef = useRef(chat.messages);
+  messagesRef.current = chat.messages;
+
+  const getMessages = useCallback(() => messagesRef.current, []);
+  const getNodeLayouts = useCallback(() => {
+    return nodesRef.current.map((n) => ({
+      id: n.id,
+      type: n.type,
+      position: { ...n.position },
+      style: n.style ? { ...n.style } : undefined,
+    }));
+  }, []);
+
+  // Pending node layouts to apply once after project load
+  const pendingLayoutsRef = useRef(null);
+
+  const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages, getNodeLayouts);
 
   // Recording
   const { recording, elapsedTime: recordingTime, startRecording, stopRecording } = useRecorder(engineRef);
@@ -284,6 +346,7 @@ export default function App() {
           kf.restoreKeyframes(msg.workspace_state.keyframes);
           if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
           if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
+          if (msg.workspace_state.node_layouts) pendingLayoutsRef.current = msg.workspace_state.node_layouts;
         } else {
           kf.restoreKeyframes(null);
           setDuration(30);
@@ -378,6 +441,7 @@ export default function App() {
           kf.restoreKeyframes(msg.workspace_state.keyframes);
           if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
           if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
+          if (msg.workspace_state.node_layouts) pendingLayoutsRef.current = msg.workspace_state.node_layouts;
         } else {
           kf.restoreKeyframes(null);
           setDuration(30);
@@ -508,8 +572,11 @@ export default function App() {
     if (project.activeProject) {
       msg.active_project = project.activeProject;
       msg.thumbnail = captureThumbnail();
-      msg.workspace_state = getWorkspaceState();
+      const ws = getWorkspaceState();
+      ws.node_layouts = getNodeLayouts();
+      msg.workspace_state = ws;
       msg.debug_logs = chat.debugLogs;
+      msg.chat_history = chat.messages;
     }
     chat.clearAll();
     resetUniformHistory();
@@ -523,7 +590,7 @@ export default function App() {
     dirtyRef.current = false;
     project.markSaved();
     send(msg);
-  }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, chat.clearAll, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, project.markSaved]);
+  }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, getNodeLayouts, chat.clearAll, chat.messages, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, project.markSaved]);
 
   const API_BASE = import.meta.env.DEV
     ? `http://${window.location.hostname}:8000`
@@ -665,13 +732,16 @@ export default function App() {
       for (const [panelId, panel] of panels.customPanels) {
         const nodeId = `panel_${panelId}`;
         if (!updated.some((n) => n.id === nodeId)) {
+          const pw = panel.width || 320;
+          const ph = panel.height || 300;
+          const pos = findEmptyPosition(updated, pw, ph);
           updated = [
             ...updated,
             {
               id: nodeId,
               type: "customPanel",
-              position: { x: 750, y: 400 },
-              style: { width: panel.width || 320, height: panel.height || 300 },
+              position: pos,
+              style: { width: pw, height: ph },
               data: {
                 title: panel.title,
                 html: panel.html,
@@ -692,6 +762,19 @@ export default function App() {
         }
       }
       updated = updated.filter((n) => n.type !== "customPanel" || panelNodeIds.has(n.id));
+
+      // Apply pending node layouts from project load (one-shot)
+      if (pendingLayoutsRef.current) {
+        const layoutMap = new Map(pendingLayoutsRef.current.map((l) => [l.id, l]));
+        updated = updated.map((n) => {
+          const saved = layoutMap.get(n.id);
+          if (saved) {
+            return { ...n, position: saved.position, style: saved.style || n.style };
+          }
+          return n;
+        });
+        pendingLayoutsRef.current = null;
+      }
 
       return updated;
     });
@@ -772,6 +855,28 @@ export default function App() {
             className="!bg-zinc-800 !border-zinc-700 !shadow-xl [&>button]:!bg-zinc-800 [&>button]:!border-zinc-700 [&>button]:!fill-zinc-400 [&>button:hover]:!bg-zinc-700"
           />
         </ReactFlow>
+
+        {/* Panel close undo toast */}
+        {panels.recentlyClosed && (
+          <div className="fixed bottom-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-zinc-800 border border-zinc-600 rounded-lg px-4 py-2.5 shadow-xl text-sm text-zinc-200 animate-[fadeIn_150ms_ease-out]">
+            <span>"{panels.recentlyClosed.data.title}" 패널이 닫혔습니다</span>
+            <button
+              onClick={panels.undoClosePanel}
+              className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+            >
+              실행취소
+            </button>
+            <button
+              onClick={panels.dismissUndo}
+              className="text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
     </EngineContext.Provider>
   );
