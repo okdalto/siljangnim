@@ -52,12 +52,12 @@ export default function RecordMenu({
   const popoverRef = useRef(null);
 
   // Settings state (persists across open/close within session)
-  const [format, setFormat] = useState("MP4");
+  const [format, setFormat] = useState("WebM");
   const [fps, setFps] = useState(30);
   const [customFps, setCustomFps] = useState(false);
   const [fpsInput, setFpsInput] = useState("30");
   const [quality, setQuality] = useState("High");
-  const [mode, setMode] = useState("Offline");
+  const [mode, setMode] = useState("Realtime");
   const [resolution, setResolution] = useState("Canvas");
   const [customRes, setCustomRes] = useState(false);
   const [customW, setCustomW] = useState("");
@@ -199,7 +199,7 @@ export default function RecordMenu({
 
       {/* Popover */}
       {open && !recording && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-zinc-800 border border-zinc-600 rounded-lg shadow-xl p-3 text-xs text-zinc-300 z-50">
+        <div className="absolute bottom-full left-0 mb-2 w-72 bg-zinc-800 border border-zinc-600 rounded-lg shadow-xl p-3 text-xs text-zinc-300 z-50">
           {/* Format */}
           <div className="mb-2">
             <div className="text-zinc-500 mb-1">Format</div>

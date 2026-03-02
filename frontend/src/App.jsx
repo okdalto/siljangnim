@@ -125,6 +125,9 @@ export default function App() {
   const { onNodesChange, undo, redo, historyRef: layoutHistoryRef } =
     useNodeLayoutHistory(nodes, onNodesChangeSnapped, setNodes, getSeq, onLayoutCommitRef);
 
+  // Guard: suppress workspace-state saves until init has fully settled
+  const initSettledRef = useRef(false);
+
   // Scene state
   const [sceneJSON, setSceneJSON] = useState(null);
   const [uiConfig, setUiConfig] = useState({ controls: [], inspectable_buffers: [] });
@@ -132,8 +135,7 @@ export default function App() {
   const [paused, setPaused] = useState(false);
   const [duration, setDuration] = useState(30);
   const [loop, setLoop] = useState(true);
-  const [offlineRecord, setOfflineRecord] = useState(false);
-  const [recordFps, setRecordFps] = useState(30);
+  const [canvasSize, setCanvasSize] = useState({ width: 670, height: 480 });
 
   // Workspace files version counter
   const [workspaceFilesVersion, setWorkspaceFilesVersion] = useState(0);
@@ -141,6 +143,18 @@ export default function App() {
   // Engine ref (shared via EngineContext and node data)
   const engineRef = useRef(null);
   const sendRef = useRef(null);
+
+  // Track canvas size for recording resolution UI
+  useEffect(() => {
+    let rafId;
+    const sync = () => {
+      rafId = requestAnimationFrame(sync);
+      const c = engineRef.current?.canvas;
+      if (c) setCanvasSize((prev) => (prev.width === c.width && prev.height === c.height) ? prev : { width: c.width, height: c.height });
+    };
+    rafId = requestAnimationFrame(sync);
+    return () => cancelAnimationFrame(rafId);
+  }, []);
 
   // --- Custom hooks ---
   const apiKey = useApiKey(sendRef);
@@ -358,6 +372,7 @@ export default function App() {
 
   // Save workspace state when node layout changes (drag/resize end)
   onLayoutCommitRef.current = () => {
+    if (!initSettledRef.current) return; // suppress during init/project load
     sendWorkspaceStateNow();
     project.markUnsaved();
   };
@@ -372,6 +387,10 @@ export default function App() {
 
     switch (msg.type) {
       case "init":
+        // Suppress layout saves until init settles (prevent overwriting saved positions)
+        initSettledRef.current = false;
+        // Cancel any pending debounced workspace state save
+        if (wsStateTimerRef.current) { clearTimeout(wsStateTimerRef.current); wsStateTimerRef.current = null; }
         // Reset mount guards so the kf/duration effects skip the restore-triggered fire
         kfMountedRef.current = false;
         durationLoopMountedRef.current = false;
@@ -390,7 +409,15 @@ export default function App() {
           kf.restoreKeyframes(msg.workspace_state.keyframes);
           if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
           if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
-          if (msg.workspace_state.node_layouts) pendingLayoutsRef.current = msg.workspace_state.node_layouts;
+          if (msg.workspace_state.node_layouts) {
+            pendingLayoutsRef.current = msg.workspace_state.node_layouts;
+            // Direct application for core nodes — belt-and-suspenders alongside pendingLayoutsRef
+            const layoutMap = new Map(msg.workspace_state.node_layouts.map((l) => [l.id, l]));
+            setNodes((nds) => nds.map((n) => {
+              const saved = layoutMap.get(n.id);
+              return saved ? { ...n, position: saved.position, style: saved.style || n.style } : n;
+            }));
+          }
         } else {
           kf.restoreKeyframes(null);
           setDuration(30);
@@ -399,6 +426,8 @@ export default function App() {
         panels.restorePanels(msg.panels || {});
         if (msg.debug_logs) chat.setDebugLogs(msg.debug_logs);
         project.markSaved();
+        // Allow layout saves after React Flow has fully reconciled (double-rAF)
+        requestAnimationFrame(() => requestAnimationFrame(() => { initSettledRef.current = true; }));
         break;
 
       case "assistant_text":
@@ -476,6 +505,10 @@ export default function App() {
         break;
 
       case "project_loaded":
+        // Suppress layout saves until project load settles
+        initSettledRef.current = false;
+        // Cancel any pending debounced workspace state save
+        if (wsStateTimerRef.current) { clearTimeout(wsStateTimerRef.current); wsStateTimerRef.current = null; }
         // Reset mount guards so the kf/duration effects skip the restore-triggered fire
         kfMountedRef.current = false;
         durationLoopMountedRef.current = false;
@@ -488,7 +521,15 @@ export default function App() {
           kf.restoreKeyframes(msg.workspace_state.keyframes);
           if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
           if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
-          if (msg.workspace_state.node_layouts) pendingLayoutsRef.current = msg.workspace_state.node_layouts;
+          if (msg.workspace_state.node_layouts) {
+            pendingLayoutsRef.current = msg.workspace_state.node_layouts;
+            // Direct application for core nodes — belt-and-suspenders alongside pendingLayoutsRef
+            const layoutMap = new Map(msg.workspace_state.node_layouts.map((l) => [l.id, l]));
+            setNodes((nds) => nds.map((n) => {
+              const saved = layoutMap.get(n.id);
+              return saved ? { ...n, position: saved.position, style: saved.style || n.style } : n;
+            }));
+          }
         } else {
           kf.restoreKeyframes(null);
           setDuration(30);
@@ -499,6 +540,8 @@ export default function App() {
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = false;
         project.markSaved();
+        // Allow layout saves after React Flow has fully reconciled (double-rAF)
+        requestAnimationFrame(() => requestAnimationFrame(() => { initSettledRef.current = true; }));
         break;
 
       case "open_panel":
@@ -676,16 +719,10 @@ export default function App() {
 
   const handleTogglePause = useCallback(() => setPaused((p) => !p), []);
 
-  const handleToggleRecord = useCallback(() => {
-    if (recording) {
-      stopRecording();
-    } else {
-      if (!offlineRecord) setPaused(false);
-      startRecording({ offline: offlineRecord, fps: recordFps });
-    }
-  }, [recording, startRecording, stopRecording, offlineRecord]);
-
-  const handleToggleOfflineRecord = useCallback(() => setOfflineRecord((v) => !v), []);
+  const handleStartRecord = useCallback((settings) => {
+    if (!settings.offline) setPaused(false);
+    startRecording(settings);
+  }, [startRecording]);
 
   const handleShaderError = useCallback((err) => {
     const message = err.message || String(err);
@@ -840,17 +877,20 @@ export default function App() {
       }
       updated = updated.filter((n) => n.type !== "customPanel" || panelNodeIds.has(n.id));
 
-      // Apply pending node layouts from project load (one-shot)
+      // Apply pending node layouts from project load (incremental — keep unapplied entries for nodes not yet created)
       if (pendingLayoutsRef.current) {
         const layoutMap = new Map(pendingLayoutsRef.current.map((l) => [l.id, l]));
+        const appliedIds = new Set();
         updated = updated.map((n) => {
           const saved = layoutMap.get(n.id);
           if (saved) {
+            appliedIds.add(n.id);
             return { ...n, position: saved.position, style: saved.style || n.style };
           }
           return n;
         });
-        pendingLayoutsRef.current = null;
+        const remaining = pendingLayoutsRef.current.filter((l) => !appliedIds.has(l.id));
+        pendingLayoutsRef.current = remaining.length > 0 ? remaining : null;
       }
 
       // Restore position for undo'd panel close
@@ -895,11 +935,10 @@ export default function App() {
           onLoopChange={setLoop}
           recording={recording}
           recordingTime={recordingTime}
-          onToggleRecord={handleToggleRecord}
-          offlineRecord={offlineRecord}
-          onToggleOfflineRecord={handleToggleOfflineRecord}
-          recordFps={recordFps}
-          onRecordFpsChange={setRecordFps}
+          onStartRecord={handleStartRecord}
+          onStopRecord={stopRecording}
+          canvasWidth={canvasSize.width}
+          canvasHeight={canvasSize.height}
         />
 
         {apiKey.apiKeyRequired && (
@@ -930,6 +969,7 @@ export default function App() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeDragStop={() => {
+            if (!initSettledRef.current) return; // suppress during init/project load
             // Use rAF so React has committed position updates before we read them
             requestAnimationFrame(() => {
               sendWorkspaceStateNow();

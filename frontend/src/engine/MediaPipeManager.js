@@ -5,14 +5,14 @@
  * Exposes landmark data as plain arrays and RGBA32F textures for shader consumption.
  */
 
-const CDN_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+const CDN_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18";
 const WASM_BASE = `${CDN_BASE}/wasm`;
 
-// Model URLs (lite variants for fast loading)
+// Model URLs — hosted on Google Storage (jsDelivr @latest returns 404 for .task files)
 const MODELS = {
-  pose: `${CDN_BASE}/pose_landmarker_lite.task`,
-  hands: `${CDN_BASE}/hand_landmarker.task`,
-  faceMesh: `${CDN_BASE}/face_landmarker.task`,
+  pose: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task",
+  hands: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task",
+  faceMesh: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task",
 };
 
 // Landmark counts per task

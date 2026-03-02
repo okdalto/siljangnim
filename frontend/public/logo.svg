@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- Main gradient: deep purple → cyan (shader/graphics vibe) -->
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="50%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <!-- Accent glow -->
+    <linearGradient id="g2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+    <!-- Subtle inner glow -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="#18181b"/>
+
+  <!-- Subtle radial glow -->
+  <circle cx="256" cy="256" r="200" fill="url(#glow)"/>
+
+  <!-- Abstract prism / diamond — represents shader rendering pipeline -->
+  <polygon points="256,72 420,256 256,440 92,256" fill="none" stroke="url(#g1)" stroke-width="16" stroke-linejoin="round"/>
+
+  <!-- Inner rotated square — node graph / data flow -->
+  <rect x="172" y="172" width="168" height="168" rx="8" fill="none" stroke="url(#g1)" stroke-width="10" transform="rotate(0 256 256)" opacity="0.6"/>
+
+  <!-- Three connection nodes — AI nodes -->
+  <circle cx="256" cy="72" r="20" fill="url(#g2)"/>
+  <circle cx="92" cy="256" r="20" fill="url(#g2)"/>
+  <circle cx="420" cy="256" r="20" fill="url(#g2)"/>
+  <circle cx="256" cy="440" r="20" fill="url(#g2)"/>
+
+  <!-- Center spark — generative AI core -->
+  <circle cx="256" cy="256" r="28" fill="url(#g1)"/>
+  <circle cx="256" cy="256" r="14" fill="#18181b"/>
+
+  <!-- Cross lines through center — shader grid -->
+  <line x1="256" y1="172" x2="256" y2="340" stroke="url(#g1)" stroke-width="6" opacity="0.4"/>
+  <line x1="172" y1="256" x2="340" y2="256" stroke="url(#g1)" stroke-width="6" opacity="0.4"/>
+
+  <!-- Diagonal flow lines — data connections -->
+  <line x1="256" y1="100" x2="172" y2="172" stroke="url(#g1)" stroke-width="4" opacity="0.3"/>
+  <line x1="256" y1="100" x2="340" y2="172" stroke="url(#g1)" stroke-width="4" opacity="0.3"/>
+  <line x1="256" y1="412" x2="172" y2="340" stroke="url(#g1)" stroke-width="4" opacity="0.3"/>
+  <line x1="256" y1="412" x2="340" y2="340" stroke="url(#g1)" stroke-width="4" opacity="0.3"/>
+  <line x1="120" y1="256" x2="172" y2="172" stroke="url(#g1)" stroke-width="4" opacity="0.3"/>
+  <line x1="120" y1="256" x2="172" y2="340" stroke="url(#g1)" stroke-width="4" opacity="0.3"/>
+  <line x1="392" y1="256" x2="340" y2="172" stroke="url(#g1)" stroke-width="4" opacity="0.3"/>
+  <line x1="392" y1="256" x2="340" y2="340" stroke="url(#g1)" stroke-width="4" opacity="0.3"/>
+</svg>
