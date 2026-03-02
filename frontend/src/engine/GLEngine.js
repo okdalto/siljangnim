@@ -8,6 +8,7 @@
 import { createProgram, compileShader, DEFAULT_QUAD_VERTEX_SHADER, DEFAULT_3D_VERTEX_SHADER } from "./shaderUtils.js";
 import { createQuadGeometry, createBoxGeometry, createSphereGeometry, createPlaneGeometry } from "./geometries.js";
 import AudioManager from "./AudioManager.js";
+import MediaPipeManager from "./MediaPipeManager.js";
 import { sampleCurve } from "../utils/curves.js";
 
 const GEOMETRY_CREATORS = {
@@ -67,6 +68,9 @@ export default class GLEngine {
 
     // Audio manager
     this._audioManager = new AudioManager();
+
+    // MediaPipe Vision manager
+    this._mediapipeManager = new MediaPipeManager();
 
     // Script mode
     this._scriptCtx = null;
@@ -302,6 +306,23 @@ export default class GLEngine {
       waveformData: null,
       fftTexture: null,
       volume: 1,
+    };
+
+    // MediaPipe Vision API (user calls detect() explicitly with their video source)
+    const mpManager = this._mediapipeManager;
+    ctx.mediapipe = {
+      init: (options) => mpManager.init(this.gl, options),
+      detect: (source, timestamp) => {
+        mpManager.detect(source, timestamp);
+        mpManager.updateTextures(this.gl);
+      },
+      get initialized() { return mpManager.initialized; },
+      get pose() { return mpManager.pose; },
+      get hands() { return mpManager.hands; },
+      get faceMesh() { return mpManager.faceMesh; },
+      get poseTexture() { return mpManager.poseTexture; },
+      get handsTexture() { return mpManager.handsTexture; },
+      get faceMeshTexture() { return mpManager.faceMeshTexture; },
     };
 
     this._scriptCtx = ctx;
@@ -683,6 +704,7 @@ export default class GLEngine {
     this._scriptCleanupFn = null;
 
     this._audioManager?.reset();
+    this._mediapipeManager?.reset();
     this._disposeReadbackCache();
 
     this._customUniforms = {};
@@ -694,6 +716,7 @@ export default class GLEngine {
     this.stop();
     this._disposeScene();
     this._audioManager?.dispose();
+    this._mediapipeManager?.dispose();
     this._disposeReadbackCache();
     this._scene = null;
   }

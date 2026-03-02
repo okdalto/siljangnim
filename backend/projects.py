@@ -188,6 +188,19 @@ def load_project(name: str) -> dict:
         except (json.JSONDecodeError, OSError):
             pass
 
+    # Fallback: if no panels but ui_config has controls, create a default controls panel
+    if not panels and ui_config.get("controls"):
+        panels = {
+            "controls": {
+                "title": "Controls",
+                "controls": ui_config["controls"],
+                "width": 320,
+                "height": 300,
+            }
+        }
+        # Persist so the fallback doesn't repeat
+        workspace.write_json("panels.json", panels)
+
     return {
         "meta": meta,
         "chat_history": chat_history,

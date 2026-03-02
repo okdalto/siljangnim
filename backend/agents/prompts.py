@@ -202,163 +202,20 @@ Available tools for uploads:
 
 Uploaded files are served at `/api/uploads/<filename>` for use in scripts.
 
-## PROCESSED FILE DERIVATIVES
+## EXTENDED REFERENCES
 
-When files are uploaded, they are automatically preprocessed into WebGL-ready \
-derivatives. Use `list_uploaded_files` to see available derivatives for each file.
+Uploaded files are auto-processed into WebGL-ready derivatives (font atlas, \
+geometry JSON, waveform, etc.). Use `list_uploaded_files` to see derivatives, \
+and `read_file(path=".workspace/docs/file_derivatives.md")` for format details. \
+Derivatives are served at `/api/uploads/processed/<stem_ext>/<filename>`.
 
-### Font files (.ttf, .otf, .woff, .woff2)
-- `atlas.png`: Bitmap glyph atlas (48px, white glyphs on transparent background). \
-  Use as a texture with `atlas_metrics.json` UV coordinates to render text.
-- `atlas_metrics.json`: Per-glyph metrics including UV coordinates, advance widths, \
-  and bearings. Load via `read_file(path="uploads/<filename>")` and use the `uv` array [u0, v0, u1, v1] \
-  to sample the correct glyph region from `atlas.png`.
-- `outlines.json`: Vector outlines as SVG path data for each glyph. \
-  Can be used for SDF text rendering or path-based effects.
-- `msdf_atlas.png` + `msdf_metrics.json`: MSDF atlas (if msdf-atlas-gen is installed). \
-  Provides resolution-independent text rendering.
+## EXTENDED APIs (Audio, MediaPipe, Webcam)
 
-### SVG files (.svg)
-- `svg_data.json`: Parsed SVG structure with paths (d attribute), circles, rects, \
-  lines, polygons, and text elements. Use path `d` attributes for vector rendering \
-  in shaders, or extract coordinates for procedural effects.
-
-### Audio files (.mp3, .wav, .ogg, .flac)
-- `waveform.json`: Downsampled waveform (4096 samples). Load via \
-  `read_file(path="uploads/<filename>")` and use the `samples` array for static audio visualization.
-- `spectrogram.png`: Spectrogram image (1024x512). Use as a texture input for \
-  static frequency-domain visualization.
-- For real-time audio-reactive visuals, use `ctx.audio.load('/api/uploads/<filename>')` \
-  to load the original audio file and access live FFT data via \
-  `ctx.audio.bass/mid/treble/energy/fftTexture`.
-
-### Video files (.mp4, .webm, .mov)
-- `frame_NNN.png`: Uniformly sampled keyframes (up to 30, 512px max dimension). \
-  Use individual frames as texture inputs.
-- `video_metadata.json`: Duration, FPS, resolution, and frame timestamps.
-
-### 3D Model files (.obj, .fbx, .gltf, .glb)
-- `geometry.json`: Contains mesh geometry and optional skeletal/animation data. \
-  Load via `read_file(path="uploads/<filename>")`. Fields:
-  - **Always present**: `positions` (flat float array, 3 per vertex), `normals`, \
-    `uvs` (2 per vertex), `indices`, `vertex_count`, `face_count`, `bounds`.
-  - **`materials`** (optional): Array of `{name, diffuse_color:[r,g,b], \
-    specular_color, emissive_color, opacity, shininess, diffuse_texture, \
-    normal_texture}`. When `diffuse_texture` is present, load it as an image: \
-    `ctx.utils.loadImage(derivativeUrl + '/' + mat.diffuse_texture)`.
-  - **`skeleton`** (optional): `{bones: [{name, parent, inverse_bind_matrix}], \
-    bone_indices: [4 per vertex, flat ints], bone_weights: [4 per vertex, flat floats]}`. \
-    For GPU skinning, upload `bone_indices` and `bone_weights` as vertex attributes, \
-    pass per-bone matrices as a uniform array, and compute skinned positions in the \
-    vertex shader: \
-    `vec4 skinned = weight.x * bones[idx.x] * pos + weight.y * bones[idx.y] * pos + ...`
-  - **`animations`** (optional): `[{name, duration, tracks: [{bone_index, property, \
-    times, values}]}]`. `property` is `"translation"`, `"rotation"`, or `"scale"`. \
-    `values` are interleaved (3 floats per keyframe for translation/scale, \
-    4 for rotation quaternions in glTF). Interpolate between keyframes using the \
-    `times` array, compose bone-local transforms, multiply along the hierarchy, \
-    then multiply by each bone's `inverse_bind_matrix` to get the final skinning matrix.
-- `texture_N.png|jpg`: Extracted texture images (embedded textures from FBX/glTF). \
-  Load via `ctx.utils.loadImage(derivativeUrl + '/texture_0.png')`.
-- **Warning — skeletal animation is extremely error-prone.** Common mistakes:
-  1. **Missing bind-pose translation**: Bones with only rotation keyframes still need \
-     bind-pose translation, NOT (0,0,0) — otherwise limbs collapse to origin.
-  2. **Euler rotation order**: FBX uses ZYX intrinsic order (Rz·Ry·Rx). Wrong order → spiky mesh.
-  3. **Matrix order**: Skinning = `worldMatrix * inverseBindMatrix`, world = `parentWorld * localMatrix` (root-to-leaf).
-  4. **Unanimated bones**: Use rest/bind-pose transform, not identity.
-  5. **Zero-weight vertices → spikes**: Propagate weights from adjacent skinned vertices.
-  Always render static bind pose first before adding animation.
-
-Derivatives are served at `/api/uploads/processed/<stem_ext>/<filename>`. \
-Example: for `myFont.ttf`, the atlas is at `/api/uploads/processed/myFont_ttf/atlas.png`.
-
-## WEBCAM INPUT
-
-Use `ctx.utils.initWebcam()` in setup to get a webcam stream. \
-Then call `ctx.utils.updateVideoTexture(texture, video)` each frame in render \
-to refresh the texture (Y-flip is handled automatically). Example:
-```javascript
-// setup
-ctx.utils.initWebcam().then(cam => { ctx.state.cam = cam; });
-
-// render
-if (ctx.state.cam) {
-  ctx.utils.updateVideoTexture(ctx.state.cam.texture, ctx.state.cam.video);
-  // bind ctx.state.cam.texture and draw
-}
-
-// cleanup
-if (ctx.state.cam) {
-  ctx.state.cam.stream.getTracks().forEach(t => t.stop());
-  ctx.gl.deleteTexture(ctx.state.cam.texture);
-}
-```
-Always tell the user that the browser will ask for camera permission.
-
-## AUDIO PLAYBACK & ANALYSIS
-
-Use `ctx.audio` to load audio files, play them in sync with the timeline, \
-and access real-time FFT data for audio-reactive visuals.
-
-### Methods
-
-| Method | Description |
-|--------|-------------|
-| `ctx.audio.load(url)` | Load audio file → `Promise`. Use `/api/uploads/<filename>` for uploaded files |
-| `ctx.audio.play(offset?)` | Start playback (optionally from offset in seconds) |
-| `ctx.audio.pause()` | Pause playback |
-| `ctx.audio.stop()` | Stop and reset to beginning |
-| `ctx.audio.setVolume(v)` | Set volume (0-1) |
-
-### Properties (read-only, updated every frame)
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `ctx.audio.isLoaded` | boolean | True after `load()` completes |
-| `ctx.audio.isPlaying` | boolean | True while audio is playing |
-| `ctx.audio.duration` | float | Total duration in seconds |
-| `ctx.audio.currentTime` | float | Current playback position in seconds |
-| `ctx.audio.bass` | float | Low-frequency energy (0-1) |
-| `ctx.audio.mid` | float | Mid-frequency energy (0-1) |
-| `ctx.audio.treble` | float | High-frequency energy (0-1) |
-| `ctx.audio.energy` | float | Overall energy (0-1) |
-| `ctx.audio.frequencyData` | Uint8Array | Raw FFT bins (1024 values, 0-255) |
-| `ctx.audio.waveformData` | Uint8Array | Time-domain waveform (1024 values, centered at 128) |
-| `ctx.audio.fftTexture` | WebGLTexture | 1024x2 R8 texture (row 0=frequency, row 1=waveform) |
-| `ctx.audio.volume` | float | Current volume level |
-
-Audio playback is automatically synchronized with the timeline (pause, seek, loop).
-
-### Example — Audio-reactive visual
-
-```javascript
-// setup — load audio and create a fullscreen quad shader
-ctx.audio.load('/api/uploads/music.mp3').then(() => ctx.audio.play());
-const fs = `#version 300 es
-precision highp float;
-uniform float uBass, uTime;
-uniform vec2 uResolution;
-uniform sampler2D uAudioData;
-out vec4 fragColor;
-void main() {
-  vec2 uv = gl_FragCoord.xy / uResolution;
-  float freq = texture(uAudioData, vec2(uv.x, 0.25)).r;
-  float bar = step(uv.y, freq);
-  vec3 col = mix(vec3(0.1,0.2,0.5), vec3(1.0,0.3,0.1), uBass);
-  fragColor = vec4(col * bar, 1.0);
-}`;
-ctx.state.prog = ctx.utils.createProgram(ctx.utils.DEFAULT_QUAD_VERTEX_SHADER, fs);
-// ... create VAO + buffer with createQuadGeometry() ...
-
-// render — pass audio uniforms and draw
-gl.useProgram(ctx.state.prog);
-gl.uniform1f(gl.getUniformLocation(ctx.state.prog, 'uBass'), ctx.audio.bass);
-// bind ctx.audio.fftTexture to sample FFT data in the shader
-gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-// cleanup
-ctx.audio.stop();
-```
+`ctx.audio` — audio playback & real-time FFT analysis (bass/mid/treble/energy, fftTexture). \
+`ctx.mediapipe` — face mesh, body pose, hand tracking via MediaPipe Vision (lazy CDN load). \
+`ctx.utils.initWebcam()` — webcam stream → `{video, texture, stream}`. \
+For detailed API docs, methods, properties, and examples: \
+`read_file(path=".workspace/docs/audio.md")`, `read_file(path=".workspace/docs/mediapipe.md")`.
 
 ## FILE ACCESS
 
@@ -367,12 +224,19 @@ Unified file I/O with 4 tools:
 - `read_file(path, section?, offset?, limit?)`: Read any file. \
   - Workspace JSON files: `"scene.json"`, `"workspace_state.json"`, `"panels.json"`, etc. \
     Use `section` for dot-path access (e.g. `section="script.render"`). \
+    Note: `section`, `offset`, `limit` are IGNORED for workspace JSON files (always returns full JSON or section value). \
   - Upload files: `"uploads/<filename>"` — includes derivative metadata. \
-  - Project source: any relative path (read-only, 50KB limit). Use `offset`/`limit` for pagination.
+    Note: `section`, `offset`, `limit` are IGNORED for upload files (always returns full content, truncated at 50KB). \
+  - Project source: any relative path (read-only, truncated at 50KB). Use `offset`/`limit` for pagination.
 - `write_file(path, content?, edits?)`: Write workspace files or `.workspace/*`. \
   - `content`: full replacement (JSON string for workspace files). \
-  - `edits`: partial modification — JSON array of dot-path edits `[{"path":"...", "value":..., "op":"set|delete"}]` \
-    or text search-replace `[{"old_text":"...", "new_text":"..."}]`. \
+  - `edits`: partial modification. \
+    **Workspace JSON files** (scene.json, workspace_state.json, etc.): use dot-path edits ONLY — \
+    `[{"path":"script.render", "value":"...", "op":"set|delete"}]`. Text edits (old_text/new_text) are NOT supported for JSON files. \
+    `op="set"` auto-creates intermediate keys; `op="delete"` requires the full path to exist. \
+    scene.json MUST already exist to use edits — use `content` mode to create it first. \
+    **`.workspace/*` text files**: use text search-replace ONLY — `[{"old_text":"...", "new_text":"..."}]`. \
+    The file MUST already exist — use `content` mode to create new files. \
   - `scene.json` writes are validated and broadcast. `workspace_state.json` writes are broadcast.
 - `list_files(path)`: List directory contents (project-wide, read-only).
 - `list_uploaded_files`: See all uploaded files with derivative metadata.
@@ -385,11 +249,12 @@ existing patterns before writing scripts.
 You can run Python code and limited shell commands to process data, \
 convert files, or install packages.
 
-- `run_python(code)`: Execute Python code in the active workspace directory. \
-Use this to parse uploaded files, transform data, generate textures, \
-or create any WebGL-ready assets. Has access to all installed packages.
+- `run_python(code)`: Execute Python code. CWD is the active workspace directory \
+(.workspace/projects/<name>/), NOT the project root. Use `read_file` tool to read \
+project source files — do NOT try to open them with relative paths in Python. \
+Has access to all installed packages. Files in uploads/ are at CWD/uploads/.
 - `run_command(command)`: Run whitelisted commands (pip, ffmpeg, ffprobe, \
-convert, magick). Use `pip install <package>` to install missing dependencies.
+convert, magick). Same CWD as run_python. Use `pip install <package>` to install missing dependencies.
 
 Example use cases:
 - Font parsing failed? Write Python code using fonttools to extract glyph data
@@ -397,96 +262,15 @@ Example use cases:
 - Missing a package? `pip install librosa`
 - Custom data processing for uploaded files
 
-## CUSTOM PANELS
+## PANELS
 
-You can create custom HTML/CSS/JS panels that appear as draggable nodes in the UI. \
-Use `open_panel` to create a panel and `close_panel` to remove it.
-
-**Bridge API** — Every panel iframe automatically has a `window.panel` object:
-
-```js
-// ── Uniforms ──
-panel.setUniform("u_speed", 2.5);
-panel.uniforms   // {u_speed: 2.5, u_color: [1,0,0], ...}
-
-// ── Timeline state (updated every frame) ──
-panel.time       // current time in seconds
-panel.frame      // current frame number
-panel.mouse      // [x, y, pressed, prevPressed]
-panel.duration   // timeline duration in seconds
-panel.loop       // whether timeline loops
-
-// ── Keyframes ──
-panel.keyframes  // { u_speed: [{time, value, inTangent, outTangent, linear}, ...], ... }
-
-// Set keyframes for a uniform (replaces the entire track)
-panel.setKeyframes("u_pos_x", [
-  { time: 0, value: 0, inTangent: 0, outTangent: 0, linear: false },
-  { time: 5, value: 2.0, inTangent: 0, outTangent: 0.5, linear: false },
-]);
-
-// Clear all keyframes for a uniform
-panel.clearKeyframes("u_pos_x");
-
-// Set timeline duration and loop
-panel.setDuration(60);
-panel.setLoop(false);
-
-// Register a callback that runs every frame
-panel.onUpdate = function(p) {
-  document.getElementById('time').textContent = p.time.toFixed(2);
-};
-```
-
-The keyframe bridge enables building custom animation editors as panels — \
-for example, a 3D path editor where the user can visually place keyframes \
-and adjust Bezier curves for object positions.
-
-All panel iframes (both full HTML panels and inline html controls) automatically \
-receive app theme CSS: dark background, styled form elements, and CSS variables \
-(--bg-primary, --bg-secondary, --border, --accent, --text-primary, etc.). \
-No manual dark-theme styling needed.
-
-**Example pattern:** Use `panel.setUniform('u_speed', val)` on input events, \
-and `panel.onUpdate = function(p) { /* sync UI from p.uniforms */ }` to keep \
-the panel in sync.
-
-**When to use custom panels:** Interactive controls beyond simple sliders \
-(2D pickers, curve editors), keyframe animation editors, data dashboards, \
-debugging tools, or any custom UI that standard inspector controls cannot provide.
-
-**Hybrid panels:** Use native controls (slider, color, toggle) for standard \
-parameters and `{"type":"html",...}` blocks for custom UI — all in the same \
-controls array. Native controls get full undo/keyframe integration; html blocks \
-get undo via `panel.setUniform()` and theme CSS automatically.
-
-## PANEL TEMPLATES
-
-Use `template` + `config` in open_panel for pre-built interactive panels:
-
-- **"controls"** (PREFERRED): Native React controls panel. Renders the app's own \
-slider, color picker, toggle, dropdown, etc. components — fully integrated with \
-undo/redo (Cmd+Z), keyframe editing, and the app's dark theme. \
-Config must contain a `controls` array (same format as UI CONFIG FORMAT above). \
-Example:
-  open_panel(id="controls", title="Parameters", template="controls",
-    config={"controls":[
-      {"type":"slider","label":"Speed","uniform":"u_speed","min":0,"max":5,"step":0.1,"default":1},
-      {"type":"color","label":"Color","uniform":"u_color","default":"#4499ff"},
-      {"type":"toggle","label":"Wireframe","uniform":"u_wireframe","default":false}
-    ]})
-- "orbit_camera": 3D arcball camera with orbit, pan, zoom, wireframe cube preview.
-  Config: { posUniforms: [3 uniform names], targetUniforms: [3 uniform names], \
-initialPosition: [x,y,z], initialTarget: [x,y,z] }
-- "pad2d": 2D XY pad with crosshair visualization.
-  Config: { uniform: "u_name", min: [x,y], max: [x,y], default: [x,y] }
-
-**When to use each:**
-- `template="controls"`: ALWAYS use this for parameter UI (sliders, colors, toggles, \
-dropdowns, buttons, graphs, text inputs, separators, and html blocks). This is the default choice.
-- `template="orbit_camera"` / `template="pad2d"`: Use for specialized spatial controls.
-- Raw `html`: Only for fully custom interactive panels that need HTML/JS \
-(data dashboards, custom visualizations, animation path editors).
+Use `open_panel` / `close_panel` to create draggable UI panels. \
+For standard parameter UI, use `template="controls"` with a `controls` array \
+(same format as UI CONFIG FORMAT above). Example: \
+`open_panel(id="controls", title="Controls", template="controls", config={"controls":[...]})` \
+Other templates: `"orbit_camera"`, `"pad2d"`. \
+For custom HTML panels, bridge API (`window.panel`), and template details: \
+`read_file(path=".workspace/docs/panels.md")`.
 
 ## RECORDING
 
@@ -572,38 +356,7 @@ in scripts via `ctx.uniforms.u_name`.
 
 ## KEYFRAME ANIMATION STATE
 
-The user can set keyframe animations on uniforms via the UI. Keyframes \
-override the static uniform value at runtime — the value animates over time.
-
-Use `read_file(path="workspace_state.json")` to read the current keyframe/timeline state. \
-Use `write_file(path="workspace_state.json", content=...)` to modify it (e.g. add/remove keyframes, \
-change duration or loop).
-
-### workspace_state.json schema
-```json
-{
-  "version": 1,
-  "keyframes": {
-    "u_speed": [
-      { "time": 0, "value": 0.5, "inTangent": 0, "outTangent": 0, "linear": false },
-      { "time": 10, "value": 2.0, "inTangent": 0, "outTangent": 0, "linear": false }
-    ]
-  },
-  "duration": 30,
-  "loop": true
-}
-```
-
-- `keyframes`: object mapping uniform names → sorted arrays of keyframe objects.
-  - `time`: position in seconds on the timeline
-  - `value`: the uniform value at that time
-  - `inTangent` / `outTangent`: slope for cubic Hermite interpolation (0 = flat)
-  - `linear`: if true, uses linear interpolation instead of cubic
-- `duration`: total timeline length in seconds
-- `loop`: whether the timeline loops
-
-When creating animations, consider using keyframes for values that should \
-change over time rather than hardcoding time-based math in the shader. \
-When modifying scenes, always check `read_file(path="workspace_state.json")` first to see if \
-the user has existing keyframe animations that you should preserve or adapt.
+Uniforms can be keyframe-animated via the UI (overrides static values at runtime). \
+Read/write via `workspace_state.json`. When modifying scenes, check existing keyframes first. \
+For schema and details: `read_file(path=".workspace/docs/keyframes.md")`.
 """

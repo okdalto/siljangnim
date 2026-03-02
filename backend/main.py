@@ -403,6 +403,18 @@ async def websocket_endpoint(ws: WebSocket):
     except (FileNotFoundError, json.JSONDecodeError):
         panels = {}
 
+    # Fallback: if no panels but ui_config has controls, create a default controls panel
+    if not panels and ui_config.get("controls"):
+        panels = {
+            "controls": {
+                "title": "Controls",
+                "controls": ui_config["controls"],
+                "width": 320,
+                "height": 300,
+            }
+        }
+        workspace.write_json("panels.json", panels)
+
     # Resolve active project meta (null for _untitled)
     active_project_meta = None
     active_name = workspace.get_active_project_name()

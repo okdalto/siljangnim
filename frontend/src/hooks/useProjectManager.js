@@ -4,7 +4,7 @@ const API_BASE = import.meta.env.DEV
   ? `http://${window.location.hostname}:8000`
   : "";
 
-export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages, getNodeLayouts) {
+export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages) {
   const [projectList, setProjectList] = useState([]);
   const [activeProject, setActiveProject] = useState(null);
   const [saveStatus, setSaveStatus] = useState("saved");
@@ -16,19 +16,17 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
   const handleProjectSave = useCallback(
     (name, description) => {
       setSaveStatus("saving");
-      const ws = getWorkspaceState();
-      if (getNodeLayouts) ws.node_layouts = getNodeLayouts();
       sendRef.current?.({
         type: "project_save",
         name,
         description: description || "",
         thumbnail: captureThumbnail(),
-        workspace_state: ws,
+        workspace_state: getWorkspaceState(),
         debug_logs: getDebugLogs(),
         chat_history: getMessages?.() || [],
       });
     },
-    [sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages, getNodeLayouts]
+    [sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages]
   );
 
   const handleProjectLoad = useCallback(
@@ -45,15 +43,13 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
       if (activeProject && activeProject !== name) {
         msg.active_project = activeProject;
         msg.thumbnail = captureThumbnail();
-        const ws = getWorkspaceState();
-        if (getNodeLayouts) ws.node_layouts = getNodeLayouts();
-        msg.workspace_state = ws;
+        msg.workspace_state = getWorkspaceState();
         msg.debug_logs = getDebugLogs();
         msg.chat_history = getMessages?.() || [];
       }
       sendRef.current?.(msg);
     },
-    [sendRef, activeProject, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages, getNodeLayouts]
+    [sendRef, activeProject, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages]
   );
 
   const handleProjectDelete = useCallback(

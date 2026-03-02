@@ -121,8 +121,9 @@ export default function App() {
   const [edges, , onEdgesChange] = useEdgesState([]);
   const { onNodesChange: onNodesChangeSnapped, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes);
   const getSeq = useCallback(() => ++_undoSeq, []);
+  const onLayoutCommitRef = useRef(null);
   const { onNodesChange, undo, redo, historyRef: layoutHistoryRef } =
-    useNodeLayoutHistory(nodes, onNodesChangeSnapped, setNodes, getSeq);
+    useNodeLayoutHistory(nodes, onNodesChangeSnapped, setNodes, getSeq, onLayoutCommitRef);
 
   // Scene state
   const [sceneJSON, setSceneJSON] = useState(null);
@@ -132,6 +133,7 @@ export default function App() {
   const [duration, setDuration] = useState(30);
   const [loop, setLoop] = useState(true);
   const [offlineRecord, setOfflineRecord] = useState(false);
+  const [recordFps, setRecordFps] = useState(30);
 
   // Workspace files version counter
   const [workspaceFilesVersion, setWorkspaceFilesVersion] = useState(0);
@@ -155,15 +157,6 @@ export default function App() {
     return null;
   }, []);
 
-  const getWorkspaceState = useCallback(() => {
-    return {
-      version: 1,
-      keyframes: kf.getKeyframeTracks(),
-      duration,
-      loop,
-    };
-  }, [duration, loop, kf.getKeyframeTracks]);
-
   const getDebugLogs = useCallback(() => chat.debugLogs, [chat.debugLogs]);
 
   // Refs for save getters (avoid re-creating callbacks on every state change)
@@ -182,10 +175,20 @@ export default function App() {
     }));
   }, []);
 
+  const getWorkspaceState = useCallback(() => {
+    return {
+      version: 1,
+      keyframes: kf.getKeyframeTracks(),
+      duration,
+      loop,
+      node_layouts: getNodeLayouts(),
+    };
+  }, [duration, loop, kf.getKeyframeTracks, getNodeLayouts]);
+
   // Pending node layouts to apply once after project load
   const pendingLayoutsRef = useRef(null);
 
-  const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages, getNodeLayouts);
+  const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages);
 
   // Recording
   const { recording, elapsedTime: recordingTime, startRecording, stopRecording } = useRecorder(engineRef);
@@ -320,13 +323,28 @@ export default function App() {
     }, 2000);
   }, [getWorkspaceState]);
 
-  // Send workspace state when keyframes change
+  // Immediate (non-debounced) send — for user actions like drag end
+  const sendWorkspaceStateNow = useCallback(() => {
+    if (wsStateTimerRef.current) clearTimeout(wsStateTimerRef.current);
+    sendRef.current?.({ type: "update_workspace_state", workspace_state: getWorkspaceState() });
+  }, [getWorkspaceState]);
+
+  // Use ref so effects don't re-fire when sendWorkspaceState changes
+  const sendWsRef = useRef(sendWorkspaceState);
+  sendWsRef.current = sendWorkspaceState;
+
+  // Send workspace state when keyframes change (skip init restore)
+  const kfMountedRef = useRef(false);
   useEffect(() => {
+    if (!kfMountedRef.current) {
+      kfMountedRef.current = true;
+      return;
+    }
     if (kf.keyframeVersion > 0) {
-      sendWorkspaceState();
+      sendWsRef.current();
       project.markUnsaved();
     }
-  }, [kf.keyframeVersion, sendWorkspaceState, project.markUnsaved]);
+  }, [kf.keyframeVersion, project.markUnsaved]);
 
   const durationLoopMountedRef = useRef(false);
   useEffect(() => {
@@ -334,9 +352,15 @@ export default function App() {
       durationLoopMountedRef.current = true;
       return;
     }
-    sendWorkspaceState();
+    sendWsRef.current();
     project.markUnsaved();
-  }, [duration, loop, sendWorkspaceState, project.markUnsaved]);
+  }, [duration, loop, project.markUnsaved]);
+
+  // Save workspace state when node layout changes (drag/resize end)
+  onLayoutCommitRef.current = () => {
+    sendWorkspaceStateNow();
+    project.markUnsaved();
+  };
 
   // Buffer for thinking content from agent_status (fallback if agent_log misses it)
   const thinkingBufferRef = useRef("");
@@ -348,6 +372,9 @@ export default function App() {
 
     switch (msg.type) {
       case "init":
+        // Reset mount guards so the kf/duration effects skip the restore-triggered fire
+        kfMountedRef.current = false;
+        durationLoopMountedRef.current = false;
         resetUniformHistoryRef.current();
         if (msg.scene_json) setSceneJSON(msg.scene_json);
         if (msg.ui_config) setUiConfig(msg.ui_config);
@@ -449,6 +476,9 @@ export default function App() {
         break;
 
       case "project_loaded":
+        // Reset mount guards so the kf/duration effects skip the restore-triggered fire
+        kfMountedRef.current = false;
+        durationLoopMountedRef.current = false;
         resetUniformHistoryRef.current();
         if (msg.meta) project.setActiveProject(msg.meta.display_name || msg.meta.name);
         if (msg.chat_history) chat.restoreMessages(msg.chat_history);
@@ -493,6 +523,8 @@ export default function App() {
         break;
 
       case "workspace_state_update":
+        kfMountedRef.current = false;
+        durationLoopMountedRef.current = false;
         if (msg.workspace_state) {
           kf.restoreKeyframes(msg.workspace_state.keyframes);
           if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
@@ -510,6 +542,25 @@ export default function App() {
 
   const { connected, send } = useWebSocket(WS_URL, handleMessage);
   sendRef.current = send;
+
+  // Capture uncaught JS errors and send to agent
+  useEffect(() => {
+    const seen = new Set();
+    const forward = (message) => {
+      if (!message || seen.has(message)) return;
+      seen.add(message);
+      setTimeout(() => seen.delete(message), 5000);
+      sendRef.current?.({ type: "console_error", message });
+    };
+    const onError = (e) => forward(e.message || String(e.error || e));
+    const onRejection = (e) => forward(e.reason?.message || String(e.reason || "Unhandled promise rejection"));
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, []);
 
   // Warn before closing tab with unsaved changes
   useEffect(() => {
@@ -589,9 +640,7 @@ export default function App() {
     if (project.activeProject) {
       msg.active_project = project.activeProject;
       msg.thumbnail = captureThumbnail();
-      const ws = getWorkspaceState();
-      ws.node_layouts = getNodeLayouts();
-      msg.workspace_state = ws;
+      msg.workspace_state = getWorkspaceState();
       msg.debug_logs = chat.debugLogs;
       msg.chat_history = chat.messages;
     }
@@ -632,7 +681,7 @@ export default function App() {
       stopRecording();
     } else {
       if (!offlineRecord) setPaused(false);
-      startRecording({ offline: offlineRecord });
+      startRecording({ offline: offlineRecord, fps: recordFps });
     }
   }, [recording, startRecording, stopRecording, offlineRecord]);
 
@@ -838,7 +887,7 @@ export default function App() {
         <Timeline
           paused={paused}
           onTogglePause={handleTogglePause}
-          onPause={() => setPaused(true)}
+          onPause={() => { setPaused(true); if (recording) stopRecording(); }}
           engineRef={engineRef}
           duration={duration}
           onDurationChange={setDuration}
@@ -849,6 +898,8 @@ export default function App() {
           onToggleRecord={handleToggleRecord}
           offlineRecord={offlineRecord}
           onToggleOfflineRecord={handleToggleOfflineRecord}
+          recordFps={recordFps}
+          onRecordFpsChange={setRecordFps}
         />
 
         {apiKey.apiKeyRequired && (
@@ -878,6 +929,13 @@ export default function App() {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodeDragStop={() => {
+            // Use rAF so React has committed position updates before we read them
+            requestAnimationFrame(() => {
+              sendWorkspaceStateNow();
+              project.markUnsaved();
+            });
+          }}
           nodeTypes={nodeTypes}
           deleteKeyCode={null}
           fitView

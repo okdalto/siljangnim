@@ -1,11 +1,13 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 
-export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange, recording, recordingTime, onToggleRecord, offlineRecord, onToggleOfflineRecord }) {
+export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange, recording, recordingTime, onToggleRecord, offlineRecord, onToggleOfflineRecord, recordFps, onRecordFpsChange }) {
   const progressRef = useRef(null);
   const timeDisplayRef = useRef(null);
   const barRef = useRef(null);
   const scrubbing = useRef(false);
   const [durationInput, setDurationInput] = useState(String(duration));
+  const [customFps, setCustomFps] = useState(false);
+  const [fpsInput, setFpsInput] = useState(String(recordFps));
 
   // Sync input when prop changes externally
   useEffect(() => {
@@ -224,6 +226,62 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
           }}
           className="w-12 text-xs text-center bg-zinc-700 border border-zinc-600 rounded px-1 py-0.5 text-zinc-300 outline-none focus:border-blue-500"
         />
+      </div>
+
+      {/* FPS selector */}
+      <div className="flex items-center gap-1">
+        <span className="text-xs text-zinc-500">fps</span>
+        {customFps ? (
+          <input
+            type="text"
+            autoFocus
+            value={fpsInput}
+            onChange={(e) => setFpsInput(e.target.value)}
+            onBlur={() => {
+              const v = parseInt(fpsInput, 10);
+              if (!isNaN(v) && v > 0) {
+                onRecordFpsChange(v);
+              } else {
+                setFpsInput(String(recordFps));
+              }
+              setCustomFps(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.target.blur();
+              if (e.key === "Escape") { setCustomFps(false); setFpsInput(String(recordFps)); }
+            }}
+            disabled={recording}
+            className="w-12 text-xs text-center bg-zinc-700 border border-zinc-600 rounded px-1 py-0.5 text-zinc-300 outline-none focus:border-blue-500"
+          />
+        ) : (
+          <div className="flex items-center gap-0.5">
+            {[24, 30, 60].map((f) => (
+              <button
+                key={f}
+                onClick={() => onRecordFpsChange(f)}
+                disabled={recording}
+                className={`text-xs px-1.5 py-0.5 rounded transition-colors ${
+                  recordFps === f
+                    ? "bg-blue-600 text-white"
+                    : "bg-zinc-700 text-zinc-400 hover:text-zinc-200"
+                } ${recording ? "opacity-40 cursor-not-allowed" : ""}`}
+              >
+                {f}
+              </button>
+            ))}
+            <button
+              onClick={() => { setCustomFps(true); setFpsInput(String(recordFps)); }}
+              disabled={recording}
+              className={`text-xs px-1.5 py-0.5 rounded transition-colors ${
+                ![24, 30, 60].includes(recordFps)
+                  ? "bg-blue-600 text-white"
+                  : "bg-zinc-700 text-zinc-400 hover:text-zinc-200"
+              } ${recording ? "opacity-40 cursor-not-allowed" : ""}`}
+            >
+              {![24, 30, 60].includes(recordFps) ? recordFps : "..."}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
