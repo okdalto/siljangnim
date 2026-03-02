@@ -1,15 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import useExternalUniformChange from "../../hooks/useExternalUniformChange.js";
 
 export default function DropdownControl({ ctrl, onUniformChange }) {
   const [value, setValue] = useState(ctrl.default ?? 0);
 
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.detail.uniform === ctrl.uniform) setValue(e.detail.value);
-    };
-    window.addEventListener("uniform-external-change", handler);
-    return () => window.removeEventListener("uniform-external-change", handler);
-  }, [ctrl.uniform]);
+  useExternalUniformChange(ctrl.uniform, setValue);
 
   const handleChange = useCallback(
     (e) => {

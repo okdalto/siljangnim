@@ -1,20 +1,15 @@
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback } from "react";
+import useExternalUniformChange from "../../hooks/useExternalUniformChange.js";
 
 export default function TextControl({ ctrl, onUniformChange }) {
   const [value, setValue] = useState(ctrl.default ?? 0);
   const [editText, setEditText] = useState(String(ctrl.default ?? 0));
   const inputRef = useRef(null);
 
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.detail.uniform === ctrl.uniform) {
-        setValue(e.detail.value);
-        setEditText(String(e.detail.value));
-      }
-    };
-    window.addEventListener("uniform-external-change", handler);
-    return () => window.removeEventListener("uniform-external-change", handler);
-  }, [ctrl.uniform]);
+  useExternalUniformChange(ctrl.uniform, (v) => {
+    setValue(v);
+    setEditText(String(v));
+  });
 
   const commit = useCallback(() => {
     const v = parseFloat(editText);

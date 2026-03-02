@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import useExternalUniformChange from "../../hooks/useExternalUniformChange.js";
 
 function stepDecimals(step) {
   if (!step || step >= 1) return 0;
@@ -74,16 +75,7 @@ export default function SliderControl({ ctrl, onUniformChange, keyframeManagerRe
     if (ctrl.max != null) setRangeMax(ctrl.max);
   }, [ctrl.min, ctrl.max]);
 
-  // Listen for external value changes (undo/redo)
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.detail.uniform === ctrl.uniform) {
-        setValue(e.detail.value);
-      }
-    };
-    window.addEventListener("uniform-external-change", handler);
-    return () => window.removeEventListener("uniform-external-change", handler);
-  }, [ctrl.uniform]);
+  useExternalUniformChange(ctrl.uniform, setValue);
 
   useEffect(() => {
     if (!hasKf) return;

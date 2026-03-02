@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { NodeResizer } from "@xyflow/react";
-import ReactMarkdown from "react-markdown";
+import FileChip from "../components/chat/FileChip.jsx";
+import MarkdownMessage from "../components/chat/MarkdownMessage.jsx";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -8,39 +9,12 @@ function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      // result is "data:<mime>;base64,<data>" — extract the base64 part
       const b64 = reader.result.split(",")[1];
       resolve(b64);
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
-}
-
-function FileChip({ file, onRemove }) {
-  const isImage = file.mime_type?.startsWith("image/");
-  return (
-    <div className="flex items-center gap-1.5 bg-zinc-700 rounded px-2 py-1 text-xs text-zinc-300 max-w-[180px]">
-      {isImage && file.preview ? (
-        <img src={file.preview} alt="" className="w-5 h-5 rounded object-cover flex-shrink-0" />
-      ) : (
-        <svg className="w-4 h-4 flex-shrink-0 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-        </svg>
-      )}
-      <span className="truncate">{file.name}</span>
-      {onRemove && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          className="ml-auto text-zinc-500 hover:text-zinc-200 flex-shrink-0"
-        >
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      )}
-    </div>
-  );
 }
 
 export default function ChatNode({ data }) {
@@ -223,33 +197,7 @@ export default function ChatNode({ data }) {
             {msg.role === "user" ? (
               msg.text
             ) : (
-              <ReactMarkdown
-                components={{
-                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                  strong: ({ children }) => <strong className="font-semibold text-zinc-100">{children}</strong>,
-                  em: ({ children }) => <em className="italic text-zinc-400">{children}</em>,
-                  code: ({ node, className, children, ...props }) => {
-                    const isBlock = node?.position?.start?.line !== node?.position?.end?.line || className;
-                    return isBlock ? (
-                      <code className="block bg-zinc-950 text-zinc-300 p-2 rounded text-xs font-mono overflow-x-auto whitespace-pre" {...props}>{children}</code>
-                    ) : (
-                      <code className="bg-zinc-700 text-indigo-300 px-1 py-0.5 rounded text-xs font-mono" {...props}>{children}</code>
-                    );
-                  },
-                  pre: ({ children }) => <pre className="bg-zinc-950 rounded my-1 overflow-x-auto">{children}</pre>,
-                  ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-0.5">{children}</ul>,
-                  ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-0.5">{children}</ol>,
-                  li: ({ children }) => <li className="text-zinc-300">{children}</li>,
-                  h1: ({ children }) => <h1 className="text-base font-bold text-zinc-100 mb-1">{children}</h1>,
-                  h2: ({ children }) => <h2 className="text-sm font-bold text-zinc-100 mb-1">{children}</h2>,
-                  h3: ({ children }) => <h3 className="text-sm font-semibold text-zinc-200 mb-1">{children}</h3>,
-                  a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline hover:text-indigo-300">{children}</a>,
-                  blockquote: ({ children }) => <blockquote className="border-l-2 border-zinc-600 pl-2 my-1 text-zinc-400 italic">{children}</blockquote>,
-                  hr: () => <hr className="border-zinc-700 my-2" />,
-                }}
-              >
-                {msg.text}
-              </ReactMarkdown>
+              <MarkdownMessage text={msg.text} />
             )}
           </div>
         ))}

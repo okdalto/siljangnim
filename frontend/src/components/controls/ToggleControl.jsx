@@ -1,17 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import useExternalUniformChange from "../../hooks/useExternalUniformChange.js";
 
 export default function ToggleControl({ ctrl, onUniformChange }) {
   const [checked, setChecked] = useState(!!ctrl.default);
 
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.detail.uniform === ctrl.uniform) {
-        setChecked(e.detail.value > 0.5);
-      }
-    };
-    window.addEventListener("uniform-external-change", handler);
-    return () => window.removeEventListener("uniform-external-change", handler);
-  }, [ctrl.uniform]);
+  useExternalUniformChange(ctrl.uniform, (v) => setChecked(v > 0.5));
 
   const toggle = useCallback(() => {
     setChecked((prev) => {
