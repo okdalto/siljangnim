@@ -339,6 +339,19 @@ TOOLS = [
         },
     },
     {
+        "name": "check_browser_errors",
+        "description": (
+            "Wait ~2 seconds for the browser to render and report any runtime errors "
+            "(WebGL shader errors, JavaScript exceptions, etc.), then return them. "
+            "Call this AFTER update_scene or edit_scene to verify the scene runs "
+            "without errors. If errors are found, fix them immediately."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+        },
+    },
+    {
         "name": "ask_user",
         "description": (
             "Ask the user a clarifying question when their request is ambiguous "

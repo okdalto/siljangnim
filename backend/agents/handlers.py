@@ -63,23 +63,6 @@ def _validate_scene_json(scene: dict) -> list[str]:
 # Edit mode helpers
 # ---------------------------------------------------------------------------
 
-def _apply_edits(current_scene: dict, edits: list[dict]) -> tuple[dict, list[str]]:
-    """Apply a list of path-based edits to the current scene JSON."""
-    scene = json.loads(json.dumps(current_scene))
-    warnings = []
-    for i, edit in enumerate(edits):
-        target = edit.get("target", "")
-        value = edit.get("value")
-        if not target:
-            warnings.append(f"Edit {i}: empty target path, skipped")
-            continue
-        try:
-            _set_nested(scene, target, value)
-        except (KeyError, IndexError, TypeError) as e:
-            warnings.append(f"Edit {i}: failed to set '{target}': {e}")
-    return scene, warnings
-
-
 def _get_nested(obj, path):
     """Get a value from a nested dict using dot-path notation."""
     keys = path.split(".")
@@ -654,6 +637,17 @@ async def _handle_tool(
             return f"Error: command '{cmd_name}' not found on this system."
         except Exception as e:
             return f"Error running command: {e}"
+
+    elif name == "check_browser_errors":
+        # Wait for the frontend to render and report any errors
+        from agents import executor
+        executor._browser_errors.clear()
+        await asyncio.sleep(2)
+        errors = list(executor._browser_errors)
+        executor._browser_errors.clear()
+        if not errors:
+            return "No browser errors detected."
+        return "Browser errors detected:\n" + "\n".join(f"  - {e}" for e in errors)
 
     elif name == "ask_user":
         # Local import to avoid circular dependency (executor → handlers → executor)

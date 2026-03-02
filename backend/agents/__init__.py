@@ -19,4 +19,6 @@ def __getattr__(name):
     """Dynamic proxy for mutable executor state (e.g. _user_answer_future)."""
     if name == "_user_answer_future":
         return _executor._user_answer_future
+    if name == "_browser_errors":
+        return _executor._browser_errors
     raise AttributeError(f"module 'agents' has no attribute {name!r}")

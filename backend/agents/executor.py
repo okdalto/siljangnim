@@ -28,6 +28,9 @@ _conversations: dict[int, list[dict]] = {}
 # Future for ask_user tool — resolved when the user answers
 _user_answer_future: asyncio.Future | None = None
 
+# Browser errors collected during the agent's turn (written by ws_handlers, read by check_browser_errors tool)
+_browser_errors: list[str] = []
+
 
 def _get_conversation_file() -> Path:
     """Return the conversation file path inside the active workspace."""
