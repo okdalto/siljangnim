@@ -20,8 +20,6 @@ import useProjectManager from "./hooks/useProjectManager.js";
 import EngineContext from "./contexts/EngineContext.js";
 import ChatNode from "./nodes/ChatNode.jsx";
 import InspectorNode from "./nodes/InspectorNode.jsx";
-import CameraNode from "./nodes/CameraNode.jsx";
-import Pad2dNode from "./nodes/Pad2dNode.jsx";
 import CustomPanelNode from "./nodes/CustomPanelNode.jsx";
 import ViewportNode from "./nodes/ViewportNode.jsx";
 import DebugLogNode from "./nodes/DebugLogNode.jsx";
@@ -38,8 +36,6 @@ const nodeTypes = {
   viewport: ViewportNode,
   debugLog: DebugLogNode,
   projectBrowser: ProjectBrowserNode,
-  camera: CameraNode,
-  pad2d: Pad2dNode,
   customPanel: CustomPanelNode,
 };
 
@@ -532,9 +528,6 @@ export default function App() {
 
   // Sync data into nodes
   useEffect(() => {
-    const rot3dCtrl = (uiConfig.controls || []).find((c) => c.type === "rotation3d");
-    const pad2dCtrls = (uiConfig.controls || []).filter((c) => c.type === "pad2d");
-
     setNodes((nds) => {
       let updated = nds.map((node) => {
         if (node.id === "chat") {
@@ -613,19 +606,6 @@ export default function App() {
             },
           };
         }
-        if (node.id === "camera") {
-          return {
-            ...node,
-            data: { ...node.data, ctrl: rot3dCtrl, onUniformChange: handleUniformChange },
-          };
-        }
-        if (node.type === "pad2d") {
-          const ctrl = pad2dCtrls.find((c) => `pad2d_${c.uniform}` === node.id);
-          return {
-            ...node,
-            data: { ...node.data, ctrl, onUniformChange: handleUniformChange },
-          };
-        }
         if (node.type === "customPanel") {
           const panelId = node.id.replace("panel_", "");
           const panel = panels.customPanels.get(panelId);
@@ -651,43 +631,6 @@ export default function App() {
         }
         return node;
       });
-
-      // Add/remove camera node
-      const hasCamera = updated.some((n) => n.id === "camera");
-      if (rot3dCtrl && !hasCamera) {
-        updated = [
-          ...updated,
-          {
-            id: "camera",
-            type: "camera",
-            position: { x: 1080, y: 400 },
-            style: { width: 240, height: 280 },
-            data: { ctrl: rot3dCtrl, onUniformChange: handleUniformChange },
-          },
-        ];
-      }
-      if (!rot3dCtrl && hasCamera) {
-        updated = updated.filter((n) => n.id !== "camera");
-      }
-
-      // Add/remove pad2d nodes
-      const pad2dIds = new Set(pad2dCtrls.map((c) => `pad2d_${c.uniform}`));
-      for (const ctrl of pad2dCtrls) {
-        const nodeId = `pad2d_${ctrl.uniform}`;
-        if (!updated.some((n) => n.id === nodeId)) {
-          updated = [
-            ...updated,
-            {
-              id: nodeId,
-              type: "pad2d",
-              position: { x: 1080, y: 700 },
-              style: { width: 220, height: 260 },
-              data: { ctrl, onUniformChange: handleUniformChange },
-            },
-          ];
-        }
-      }
-      updated = updated.filter((n) => n.type !== "pad2d" || pad2dIds.has(n.id));
 
       // Add/remove custom panel nodes
       const panelNodeIds = new Set([...panels.customPanels.keys()].map((id) => `panel_${id}`));

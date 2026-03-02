@@ -224,9 +224,9 @@ Each script function receives a `ctx` object with these fields:
 | ctx.state | object | Persistent state across frames (use this to store variables) |
 | ctx.time | float | Elapsed time in seconds (available in render) |
 | ctx.dt | float | Frame delta time (available in render) |
-| ctx.mouse | [x,y,cx,cy] | Mouse coords normalized 0-1 (available in render) |
-| ctx.mousePrev | [x,y,cx,cy] | Previous frame mouse (available in render) |
-| ctx.mouseDown | boolean | Mouse button pressed (available in render) |
+| ctx.mouse | [x,y,cx,cy] | Mouse position normalized 0-1 in screen space (0,0=top-left). cx,cy = click position. Do NOT divide by resolution. For GL Y, use `1.0 - ctx.mouse[1]` |
+| ctx.mousePrev | [x,y,cx,cy] | Previous frame mouse (same format). Use `ctx.mouse[0] - ctx.mousePrev[0]` for delta |
+| ctx.mouseDown | boolean | Mouse button pressed |
 | ctx.resolution | [w,h] | Canvas size in pixels (available in render) |
 | ctx.frame | int | Frame counter (available in render) |
 | ctx.uniforms | object | Current UI slider values (available in render) |
@@ -252,40 +252,18 @@ The engine exposes these utilities on `ctx.utils` for convenience:
 | `ctx.utils.loadImage(url)` | Load image → `Promise<{texture, width, height}>` (Y-flipped) |
 | `ctx.utils.initWebcam()` | Start webcam → `Promise<{video, texture, stream}>` |
 | `ctx.utils.updateVideoTexture(texture, video)` | Refresh webcam/video texture each frame (Y-flipped) |
+| `ctx.utils.sampleCurve(points, t)` | Sample a graph control's curve at position t (0-1). `points` = `ctx.uniforms.u_curve` |
 
 **Y-coordinate note**: All texture upload utilities automatically flip Y to match \
 GL coordinates (bottom-left origin). Mouse coordinates (`ctx.mouse`) are in \
 screen space (0,0 = top-left, 1,1 = bottom-right). If you need GL-space mouse Y, \
 use `1.0 - ctx.mouse[1]`.
 
-### Canvas 2D text rendering example
+### Canvas 2D text rendering
 
-```javascript
-// setup
-if (!ctx.state.canvas2d) {
-  ctx.state.canvas2d = document.createElement('canvas');
-  ctx.state.ctx2d = ctx.state.canvas2d.getContext('2d');
-  ctx.state.texture = ctx.gl.createTexture();
-}
-
-// render
-const c = ctx.state.canvas2d;
-const c2 = ctx.state.ctx2d;
-c.width = ctx.resolution[0];
-c.height = ctx.resolution[1];
-c2.clearRect(0, 0, c.width, c.height);
-c2.fillStyle = '#fff';
-c2.font = '48px monospace';
-c2.textAlign = 'center';
-c2.fillText('Hello World', c.width/2, c.height/2);
-
-// Upload to WebGL and draw
-const gl = ctx.gl;
-gl.bindTexture(gl.TEXTURE_2D, ctx.state.texture);
-gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-// ... draw fullscreen quad with this texture
-```
+For text/shapes: create an offscreen Canvas 2D in setup, draw to it in render, \
+then upload via `gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas2d)` \
+and draw a fullscreen quad with the texture.
 
 ### GLSL rules (for shaders compiled via ctx.utils.createProgram)
 
@@ -306,26 +284,18 @@ draw geometry, use Canvas 2D for text, etc.
 - For simple 2D drawing (text, shapes), create an offscreen Canvas 2D, \
 draw to it, then upload as a WebGL texture
 
-## KEYBOARD & MOUSE INPUT
+## KEYBOARD INPUT
 
-The viewport accepts keyboard input when focused (user clicks the viewport).
+The viewport accepts keyboard input when focused (user clicks the viewport). \
+When using keyboard input, always tell the user: "Click the viewport to focus it for keyboard input."
 
-Keyboard: Check `ctx.keys.has("KeyW")` etc. in the render function.
+Check `ctx.keys.has("KeyW")` etc. in the render function.
 
 Common KeyboardEvent.code values:
 - Letters: "KeyA" ~ "KeyZ"
 - Arrows: "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"
 - Special: "Space", "ShiftLeft", "ControlLeft", "Enter", "Escape"
 - Digits: "Digit0" ~ "Digit9"
-
-Mouse: ctx.mouse is [x, y, clickX, clickY], ALL values normalized 0-1 in screen space \
-(0,0 = top-left, 1,1 = bottom-right). \
-ctx.mousePrev is the PREVIOUS frame's mouse state (same format). \
-ctx.mouseDown is boolean (true=pressed). \
-Use `ctx.mouse[0] - ctx.mousePrev[0]` to compute mouse velocity/delta per frame. \
-CRITICAL: ctx.mouse values are already in 0-1 normalized coordinates. \
-Do NOT divide by resolution — that would produce near-zero values. \
-When using keyboard input, always tell the user: "Click the viewport to focus it for keyboard input."
 
 ## UI CONFIG FORMAT
 
@@ -341,8 +311,7 @@ When using keyboard input, always tell the user: "Click the viewport to focus it
       "step": 0.01,
       "default": 0.5
     }
-  ],
-  "inspectable_buffers": []
+  ]
 }
 ```
 
@@ -371,13 +340,6 @@ Use to organize controls into logical groups.
 - "text": direct number input field. Needs `default` (number). Outputs float. \
 Example: `{"type":"text","label":"Seed","uniform":"u_seed","default":42}`. \
 Use for seed values, precise parameters, or values with unpredictable range.
-- "rotation3d": 3D arcball rotation for camera orbit. Needs `uniforms` (array of \
-3 uniform names for x/y/z), `target` ([x,y,z] orbit centre), `distance` (orbit \
-radius), `default` ([x,y,z] initial camera position). \
-Example: `{"type":"rotation3d","label":"Camera","uniforms":["u_cam_pos_x",\
-"u_cam_pos_y","u_cam_pos_z"],"target":[0,0,0],"distance":3.0,\
-"default":[2,1.5,2]}`. \
-Use instead of individual camera position sliders for 3D scenes.
 - "graph": editable curve for transfer functions, easing, falloff, etc. \
 Needs min (number), max (number), default (array of [x,y] control points). \
 Uniform stores the control points array. In scripts, use \
@@ -466,25 +428,14 @@ derivatives. Use `list_uploaded_files` to see available derivatives for each fil
     then multiply by each bone's `inverse_bind_matrix` to get the final skinning matrix.
 - `texture_N.png|jpg`: Extracted texture images (embedded textures from FBX/glTF). \
   Load via `ctx.utils.loadImage(derivativeUrl + '/texture_0.png')`.
-- **Warning — skeletal animation is extremely error-prone.** The most common mistakes:
-  1. **Missing bind-pose translation**: If a bone only has rotation keyframes in the \
-     animation data, you still MUST use its bind-pose translation (from the skeleton \
-     hierarchy), NOT (0,0,0). Otherwise the limbs will collapse to the origin.
-  2. **Euler rotation order**: FBX uses ZYX intrinsic rotation order. You must compose \
-     the quaternion/matrix as Rz·Ry·Rx. Using the wrong order (e.g. Rx·Ry·Rz) produces \
-     spiky, distorted meshes. Always implement `fromEulerZYX(rx, ry, rz)`.
-  3. **Matrix multiplication order**: The final skinning matrix for a bone is \
-     `worldMatrix * inverseBindMatrix`. The world matrix is computed root-to-leaf: \
-     `parentWorld * localMatrix`. Getting this order backwards will invert the skeleton.
-  4. **Bind-pose vs animated transform**: For bones without animation tracks, use \
-     their rest/bind-pose transform, not identity.
-  5. **Unskinned vertices cause spikes**: Some vertices may have zero bone weights \
-     (all four weights are 0). These stay locked in bind pose while their skinned \
-     neighbors move, creating sharp spikes. When you detect unskinned vertices, \
-     propagate weights from adjacent skinned vertices (find neighbors via the index \
-     buffer, copy their bone indices/weights) so the entire mesh deforms smoothly.
-  Recommendation: render the static bind pose first and verify the mesh looks correct \
-  before adding animation playback.
+- **Warning — skeletal animation is extremely error-prone.** Common mistakes:
+  1. **Missing bind-pose translation**: Bones with only rotation keyframes still need \
+     bind-pose translation, NOT (0,0,0) — otherwise limbs collapse to origin.
+  2. **Euler rotation order**: FBX uses ZYX intrinsic order (Rz·Ry·Rx). Wrong order → spiky mesh.
+  3. **Matrix order**: Skinning = `worldMatrix * inverseBindMatrix`, world = `parentWorld * localMatrix` (root-to-leaf).
+  4. **Unanimated bones**: Use rest/bind-pose transform, not identity.
+  5. **Zero-weight vertices → spikes**: Propagate weights from adjacent skinned vertices.
+  Always render static bind pose first before adding animation.
 
 Derivatives are served at `/api/uploads/processed/<stem_ext>/<filename>`. \
 Example: for `myFont.ttf`, the atlas is at `/api/uploads/processed/myFont_ttf/atlas.png`.
@@ -549,61 +500,31 @@ Audio playback is automatically synchronized with the timeline (pause, seek, loo
 ### Example — Audio-reactive visual
 
 ```javascript
-// setup
-ctx.audio.load('/api/uploads/music.mp3').then(() => {
-  ctx.audio.play();
-});
-
-const vs = ctx.utils.DEFAULT_QUAD_VERTEX_SHADER;
+// setup — load audio and create a fullscreen quad shader
+ctx.audio.load('/api/uploads/music.mp3').then(() => ctx.audio.play());
 const fs = `#version 300 es
 precision highp float;
-uniform float uBass, uMid, uTreble, uTime;
+uniform float uBass, uTime;
 uniform vec2 uResolution;
 uniform sampler2D uAudioData;
 out vec4 fragColor;
 void main() {
   vec2 uv = gl_FragCoord.xy / uResolution;
-  // Sample FFT texture (row 0 = frequency)
   float freq = texture(uAudioData, vec2(uv.x, 0.25)).r;
-  // Visualize frequency bars
   float bar = step(uv.y, freq);
-  vec3 col = mix(vec3(0.1, 0.2, 0.5), vec3(1.0, 0.3, 0.1), uBass);
+  vec3 col = mix(vec3(0.1,0.2,0.5), vec3(1.0,0.3,0.1), uBass);
   fragColor = vec4(col * bar, 1.0);
 }`;
-ctx.state.prog = ctx.utils.createProgram(vs, fs);
-const positions = ctx.utils.createQuadGeometry();
-const vao = ctx.gl.createVertexArray();
-ctx.gl.bindVertexArray(vao);
-const buf = ctx.gl.createBuffer();
-ctx.gl.bindBuffer(ctx.gl.ARRAY_BUFFER, buf);
-ctx.gl.bufferData(ctx.gl.ARRAY_BUFFER, positions, ctx.gl.STATIC_DRAW);
-ctx.gl.enableVertexAttribArray(0);
-ctx.gl.vertexAttribPointer(0, 2, ctx.gl.FLOAT, false, 0, 0);
-ctx.state.vao = vao;
-ctx.state.buf = buf;
+ctx.state.prog = ctx.utils.createProgram(ctx.utils.DEFAULT_QUAD_VERTEX_SHADER, fs);
+// ... create VAO + buffer with createQuadGeometry() ...
 
-// render
-const gl = ctx.gl;
-gl.viewport(0, 0, ctx.resolution[0], ctx.resolution[1]);
-gl.clear(gl.COLOR_BUFFER_BIT);
+// render — pass audio uniforms and draw
 gl.useProgram(ctx.state.prog);
 gl.uniform1f(gl.getUniformLocation(ctx.state.prog, 'uBass'), ctx.audio.bass);
-gl.uniform1f(gl.getUniformLocation(ctx.state.prog, 'uMid'), ctx.audio.mid);
-gl.uniform1f(gl.getUniformLocation(ctx.state.prog, 'uTreble'), ctx.audio.treble);
-gl.uniform1f(gl.getUniformLocation(ctx.state.prog, 'uTime'), ctx.time);
-gl.uniform2f(gl.getUniformLocation(ctx.state.prog, 'uResolution'), ctx.resolution[0], ctx.resolution[1]);
-if (ctx.audio.fftTexture) {
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, ctx.audio.fftTexture);
-  gl.uniform1i(gl.getUniformLocation(ctx.state.prog, 'uAudioData'), 0);
-}
-gl.bindVertexArray(ctx.state.vao);
+// bind ctx.audio.fftTexture to sample FFT data in the shader
 gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 // cleanup
-ctx.gl.deleteProgram(ctx.state.prog);
-ctx.gl.deleteBuffer(ctx.state.buf);
-ctx.gl.deleteVertexArray(ctx.state.vao);
 ctx.audio.stop();
 ```
 
@@ -681,52 +602,34 @@ The keyframe bridge enables building custom animation editors as panels — \
 for example, a 3D path editor where the user can visually place keyframes \
 and adjust Bezier curves for object positions.
 
-**Example — Interactive control panel:**
-```html
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-  body { font-family: sans-serif; padding: 12px; background: #1a1a2e; color: #eee; margin: 0; }
-  label { display: block; margin: 8px 0 4px; font-size: 13px; }
-  input[type=range] { width: 100%; }
-  .value { font-size: 12px; color: #888; }
-</style>
-</head>
-<body>
-  <label>Speed</label>
-  <input type="range" id="speed" min="0" max="5" step="0.1" value="1">
-  <span class="value" id="speedVal">1.0</span>
-  <label>Scale</label>
-  <input type="range" id="scale" min="0.1" max="3" step="0.1" value="1">
-  <span class="value" id="scaleVal">1.0</span>
-  <script>
-    document.getElementById('speed').addEventListener('input', function(e) {
-      var v = parseFloat(e.target.value);
-      document.getElementById('speedVal').textContent = v.toFixed(1);
-      panel.setUniform('u_speed', v);
-    });
-    document.getElementById('scale').addEventListener('input', function(e) {
-      var v = parseFloat(e.target.value);
-      document.getElementById('scaleVal').textContent = v.toFixed(1);
-      panel.setUniform('u_scale', v);
-    });
-    panel.onUpdate = function(p) {
-      document.getElementById('speed').value = p.uniforms.u_speed || 1;
-      document.getElementById('speedVal').textContent = (p.uniforms.u_speed || 1).toFixed(1);
-    };
-  </script>
-</body>
-</html>
-```
+**Example pattern:** Use `panel.setUniform('u_speed', val)` on input events, \
+and `panel.onUpdate = function(p) { /* sync UI from p.uniforms */ }` to keep \
+the panel in sync. Style with dark background (`#1a1a2e`) to match the UI theme.
 
-**When to use custom panels:**
-- Interactive controls that go beyond simple sliders (2D color pickers, curve editors, etc.)
-- Keyframe animation editors — 3D path editors, Bezier curve editors, motion path tools
-- Data visualization dashboards showing scene metrics
-- Info/help panels with formatted text and diagrams
-- Debugging tools showing real-time uniform values
-- Any custom UI that standard inspector controls cannot provide
+**When to use custom panels:** Interactive controls beyond simple sliders \
+(2D pickers, curve editors), keyframe animation editors, data dashboards, \
+debugging tools, or any custom UI that standard inspector controls cannot provide.
+
+## PANEL TEMPLATES
+
+Use `template` + `config` in open_panel for pre-built interactive panels:
+
+- "orbit_camera": 3D arcball camera with orbit, pan, zoom, wireframe cube preview.
+  Config: { posUniforms: [3 uniform names], targetUniforms: [3 uniform names], \
+initialPosition: [x,y,z], initialTarget: [x,y,z] }
+- "pad2d": 2D XY pad with crosshair visualization.
+  Config: { uniform: "u_name", min: [x,y], max: [x,y], default: [x,y] }
+
+Example:
+  open_panel(id="cam", title="Camera", template="orbit_camera",
+    config={"posUniforms":["u_cx","u_cy","u_cz"], \
+"targetUniforms":["u_tx","u_ty","u_tz"], \
+"initialPosition":[3,2,3], "initialTarget":[0,0,0]})
+
+Templates are preferred over raw HTML for standard controls — they provide \
+high-quality interactions (arcball rotation, pan, zoom) with minimal token usage.
+For 3D scenes that need camera control, use the orbit_camera template instead of \
+individual camera position sliders.
 
 ## RECORDING
 
@@ -928,15 +831,14 @@ TOOLS = [
         "name": "update_ui_config",
         "description": (
             "Save and broadcast UI control configuration. "
-            "The ui_config parameter must be a JSON string with 'controls' array "
-            "and 'inspectable_buffers' array."
+            "The ui_config parameter must be a JSON string with a 'controls' array."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
                 "ui_config": {
                     "type": "string",
-                    "description": "UI config JSON string with 'controls' and 'inspectable_buffers'.",
+                    "description": "UI config JSON string with a 'controls' array.",
                 },
             },
             "required": ["ui_config"],
@@ -1077,7 +979,8 @@ TOOLS = [
             "The panel runs in a sandboxed iframe with a bridge API for communicating "
             "with the WebGL engine (read/write uniforms, access time/frame/mouse). "
             "Use this to create interactive controls, data visualizations, info displays, "
-            "or any custom UI that complements the WebGL scene."
+            "or any custom UI that complements the WebGL scene. "
+            "You can provide raw html OR use a pre-built template with config."
         ),
         "input_schema": {
             "type": "object",
@@ -1092,7 +995,15 @@ TOOLS = [
                 },
                 "html": {
                     "type": "string",
-                    "description": "Complete HTML document to render in the panel iframe. Can include <style> and <script> tags.",
+                    "description": "Complete HTML document to render in the panel iframe. Can include <style> and <script> tags. If template is provided, this is ignored.",
+                },
+                "template": {
+                    "type": "string",
+                    "description": "Name of a pre-built panel template (e.g. 'orbit_camera', 'pad2d'). The template HTML is loaded from backend/panel_templates/{name}.html.",
+                },
+                "config": {
+                    "type": "object",
+                    "description": "Configuration object injected into the template as `const CONFIG = {...};`. Only used with template.",
                 },
                 "width": {
                     "type": "number",
@@ -1103,7 +1014,7 @@ TOOLS = [
                     "description": "Initial height in pixels (default 300).",
                 },
             },
-            "required": ["id", "title", "html"],
+            "required": ["id", "title"],
         },
     },
     {
@@ -1588,12 +1499,29 @@ async def _handle_tool(
         panel_id = input_data.get("id", "")
         title = input_data.get("title", "Panel")
         html = input_data.get("html", "")
+        template = input_data.get("template", "")
+        config_obj = input_data.get("config", {})
         width = input_data.get("width", 320)
         height = input_data.get("height", 300)
         if not panel_id:
             return "Error: 'id' is required."
+
+        # Template takes priority over raw html
+        if template:
+            template_dir = Path(__file__).resolve().parent / "panel_templates"
+            template_path = template_dir / f"{template}.html"
+            if not template_path.exists():
+                available = [f.stem for f in template_dir.glob("*.html")] if template_dir.exists() else []
+                return f"Error: template '{template}' not found. Available: {available}"
+            html = template_path.read_text(encoding="utf-8")
+            # Inject config into the template
+            if config_obj:
+                config_json = json.dumps(config_obj, ensure_ascii=False)
+                html = html.replace("const CONFIG = {};", f"const CONFIG = {config_json};", 1)
+
         if not html:
-            return "Error: 'html' is required."
+            return "Error: either 'html' or 'template' is required."
+
         await broadcast({
             "type": "open_panel",
             "id": panel_id,
