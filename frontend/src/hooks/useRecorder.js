@@ -1,12 +1,13 @@
 import { useState, useRef, useCallback } from "react";
+import { Muxer, ArrayBufferTarget } from "webm-muxer";
 
 /**
  * Hook for recording WebGL canvas to WebM video.
  *
  * Two modes:
  * - Realtime (default): captureStream(fps) records at wall-clock speed.
- * - Offline: captureStream(0) + requestFrame() renders frame-by-frame,
- *   guaranteeing every frame at the target FPS regardless of GPU speed.
+ * - Offline: WebCodecs VideoEncoder with explicit timestamps for frame-exact
+ *   output. Falls back to MediaRecorder if WebCodecs is unavailable.
  */
 export default function useRecorder(engineRef) {
   const [recording, setRecording] = useState(false);
@@ -19,6 +20,8 @@ export default function useRecorder(engineRef) {
   const autoStopRef = useRef(null);
   const filenameRef = useRef(null);
   const offlineRef = useRef(false);
+  // Ref to allow stopRecording to abort an in-progress WebCodecs offline session
+  const offlineAbortRef = useRef(false);
 
   const updateElapsed = useCallback(() => {
     setElapsedTime((performance.now() - startTimeRef.current) / 1000);
@@ -26,7 +29,7 @@ export default function useRecorder(engineRef) {
   }, []);
 
   /** Shared: download blob as file */
-  const downloadBlob = useCallback((blob, mimeType) => {
+  const downloadBlob = useCallback((blob) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -37,6 +40,16 @@ export default function useRecorder(engineRef) {
     URL.revokeObjectURL(url);
   }, []);
 
+  /** Restore engine state after offline recording */
+  const restoreEngine = useCallback(() => {
+    const eng = engineRef.current;
+    if (eng) {
+      eng.seekTo(0);
+      eng.setPaused(false);
+    }
+    offlineRef.current = false;
+  }, [engineRef]);
+
   const stopRecording = useCallback(() => {
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current);
@@ -46,7 +59,9 @@ export default function useRecorder(engineRef) {
       clearTimeout(autoStopRef.current);
       autoStopRef.current = null;
     }
-    // recorder.stop() triggers onstop callback which handles finalization
+    // For WebCodecs offline: signal the rAF loop to stop
+    offlineAbortRef.current = true;
+    // For MediaRecorder (realtime or fallback): stop triggers onstop callback
     const recorder = recorderRef.current;
     if (recorder && recorder.state !== "inactive") {
       recorder.stop();
@@ -60,6 +75,7 @@ export default function useRecorder(engineRef) {
       if (!canvas) return;
 
       offlineRef.current = offline;
+      offlineAbortRef.current = false;
       chunksRef.current = [];
       filenameRef.current = filename || null;
 
@@ -71,7 +87,7 @@ export default function useRecorder(engineRef) {
       const hasAudio =
         audioStream && audioStream.getAudioTracks().length > 0;
 
-      // ── Codec selection ───────────────────────────────
+      // ── Codec selection (for MediaRecorder paths) ─────
       const codecCandidates = hasAudio
         ? [
             "video/webm;codecs=vp9,opus",
@@ -83,29 +99,97 @@ export default function useRecorder(engineRef) {
         codecCandidates.find((c) => MediaRecorder.isTypeSupported(c)) ||
         "video/webm";
 
-      // ── Bitrate (pixels × 12) ────────────────────────
+      // ── Bitrate (pixels x 12) ─────────────────────────
       const pixels = canvas.width * canvas.height;
       const videoBitsPerSecond = pixels * 12;
 
-      const makeOnStop = () => () => {
-        setRecording(false);
-        const blob = new Blob(chunksRef.current, { type: mimeType });
-        chunksRef.current = [];
-        downloadBlob(blob, mimeType);
+      if (offline && typeof VideoEncoder !== "undefined") {
+        // ── Offline: WebCodecs + webm-muxer ─────────────────
+        engine.setPaused(true);
+        engine.seekTo(0);
 
-        // Restore engine after offline recording
-        if (offlineRef.current) {
-          const eng = engineRef.current;
-          if (eng) {
-            eng.seekTo(0);
-            eng.setPaused(false);
+        const target = new ArrayBufferTarget();
+        const muxer = new Muxer({
+          target,
+          video: {
+            codec: "V_VP8",
+            width: canvas.width,
+            height: canvas.height,
+          },
+          firstTimestampBehavior: "offset",
+        });
+
+        const encoder = new VideoEncoder({
+          output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+          error: (e) => console.error("VideoEncoder error:", e),
+        });
+        encoder.configure({
+          codec: "vp8",
+          width: canvas.width,
+          height: canvas.height,
+          bitrate: videoBitsPerSecond,
+          framerate: fps,
+        });
+
+        const dt = 1 / fps;
+        const endTime =
+          duration && duration > 0
+            ? duration
+            : engine._duration > 0
+              ? engine._duration
+              : 30;
+        let currentTime = 0;
+
+        setElapsedTime(0);
+        setRecording(true);
+
+        const BATCH = 6;
+
+        const finalize = async () => {
+          try {
+            await encoder.flush();
+            muxer.finalize();
+            const blob = new Blob([target.buffer], { type: "video/webm" });
+            downloadBlob(blob);
+          } catch (e) {
+            console.error("Offline recording finalize error:", e);
           }
-          offlineRef.current = false;
-        }
-      };
+          setRecording(false);
+          restoreEngine();
+        };
 
-      if (offline) {
-        // ── Offline (frame-by-frame) ────────────────────────
+        const stepFrame = () => {
+          if (offlineAbortRef.current) {
+            finalize();
+            return;
+          }
+
+          for (let i = 0; i < BATCH; i++) {
+            if (currentTime >= endTime) {
+              finalize();
+              return;
+            }
+
+            engine.renderOfflineFrame(currentTime, dt);
+            const gl = engine.gl;
+            if (gl) gl.finish();
+
+            const frame = new VideoFrame(canvas, {
+              timestamp: Math.round(currentTime * 1_000_000),
+            });
+            encoder.encode(frame);
+            frame.close();
+
+            currentTime += dt;
+          }
+
+          setElapsedTime(currentTime);
+          rafRef.current = requestAnimationFrame(stepFrame);
+        };
+
+        rafRef.current = requestAnimationFrame(stepFrame);
+      } else if (offline) {
+        // ── Offline fallback: MediaRecorder (WebCodecs unavailable) ──
         engine.setPaused(true);
         engine.seekTo(0);
 
@@ -118,7 +202,13 @@ export default function useRecorder(engineRef) {
         recorder.ondataavailable = (e) => {
           if (e.data.size > 0) chunksRef.current.push(e.data);
         };
-        recorder.onstop = makeOnStop();
+        recorder.onstop = () => {
+          setRecording(false);
+          const blob = new Blob(chunksRef.current, { type: mimeType });
+          chunksRef.current = [];
+          downloadBlob(blob);
+          restoreEngine();
+        };
         recorder.start(100);
         recorderRef.current = recorder;
 
@@ -177,7 +267,12 @@ export default function useRecorder(engineRef) {
         recorder.ondataavailable = (e) => {
           if (e.data.size > 0) chunksRef.current.push(e.data);
         };
-        recorder.onstop = makeOnStop();
+        recorder.onstop = () => {
+          setRecording(false);
+          const blob = new Blob(chunksRef.current, { type: mimeType });
+          chunksRef.current = [];
+          downloadBlob(blob);
+        };
         recorder.start(100);
         recorderRef.current = recorder;
 
@@ -193,7 +288,7 @@ export default function useRecorder(engineRef) {
         }
       }
     },
-    [engineRef, updateElapsed, stopRecording, downloadBlob]
+    [engineRef, updateElapsed, stopRecording, downloadBlob, restoreEngine]
   );
 
   return { recording, elapsedTime, startRecording, stopRecording };
