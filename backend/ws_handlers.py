@@ -491,6 +491,19 @@ async def handle_request_state(ws, msg, ctx: WsContext):
         panels_data = workspace.read_json("panels.json")
     except (FileNotFoundError, json.JSONDecodeError):
         panels_data = {}
+
+    # Fallback: if no panels but ui_config has controls, create a default controls panel
+    if not panels_data and u.get("controls"):
+        panels_data = {
+            "controls": {
+                "title": "Controls",
+                "controls": u["controls"],
+                "width": 320,
+                "height": 300,
+            }
+        }
+        workspace.write_json("panels.json", panels_data)
+
     await ws.send_text(json.dumps({
         "type": "init",
         "scene_json": s,

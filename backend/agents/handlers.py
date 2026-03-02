@@ -368,6 +368,7 @@ async def _handle_tool(
 
             data = json.loads(json.dumps(data))  # deep copy
             warnings = []
+            applied_count = 0
             for i, edit in enumerate(edits):
                 # Detect edit type: dot-path (has 'path') vs text search-replace (has 'old_text')
                 if "path" in edit:
@@ -381,10 +382,15 @@ async def _handle_tool(
                             _delete_nested(data, dot_path)
                         else:
                             _set_nested(data, dot_path, edit.get("value"))
+                        applied_count += 1
                     except (KeyError, TypeError) as e:
                         warnings.append(f"Edit {i} ({op} '{dot_path}'): {e}")
                 else:
-                    warnings.append(f"Edit {i}: JSON workspace files only support dot-path edits (need 'path' field)")
+                    warnings.append(f"Edit {i}: JSON workspace files only support dot-path edits (need 'path' field). Use edits with 'path' key for dot-path operations.")
+
+            # If no edits were actually applied, return error
+            if applied_count == 0 and warnings:
+                return "Error: no edits applied.\n" + "\n".join(f"  - {w}" for w in warnings)
 
             # scene.json: validate + broadcast
             if rel_path == "scene.json":

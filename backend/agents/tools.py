@@ -24,18 +24,25 @@ TOOLS = [
                 "section": {
                     "type": "string",
                     "description": (
-                        "JSON dot-path for workspace JSON files. "
-                        "e.g. 'script.render', 'uniforms.u_speed', 'keyframes'. "
-                        "Returns only the value at that path."
+                        "JSON dot-path. ONLY works for workspace JSON files "
+                        "(scene.json, workspace_state.json, etc.). "
+                        "Ignored for upload files and project source files. "
+                        "e.g. 'script.render', 'uniforms.u_speed', 'keyframes'."
                     ),
                 },
                 "offset": {
                     "type": "integer",
-                    "description": "Starting line number (1-based). For text file pagination.",
+                    "description": (
+                        "Starting line number (1-based). ONLY works for project source files. "
+                        "Ignored for workspace JSON and upload files."
+                    ),
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Max number of lines to return.",
+                    "description": (
+                        "Max number of lines to return. ONLY works for project source files. "
+                        "Ignored for workspace JSON and upload files."
+                    ),
                 },
             },
             "required": ["path"],
@@ -49,8 +56,9 @@ TOOLS = [
             "Use 'content' for full file replacement or 'edits' for partial modifications. "
             "scene.json writes are validated and broadcast to clients. "
             "workspace_state.json writes are broadcast to clients. "
-            "Edits support both JSON dot-path operations (for JSON files) and "
-            "text search-replace (for any text file)."
+            "IMPORTANT: Workspace JSON files support ONLY dot-path edits. "
+            ".workspace/* text files support ONLY text search-replace edits. "
+            "Edits require the target file to already exist (use content to create new files)."
         ),
         "input_schema": {
             "type": "object",
@@ -73,11 +81,12 @@ TOOLS = [
                     "type": "string",
                     "description": (
                         "JSON array of edit objects for partial modification. "
-                        "JSON dot-path edits (when 'path' field present): "
-                        "[{\"path\": \"script.render\", \"value\": \"...\", \"op\": \"set\"}]. "
-                        "Text search-replace edits (when 'old_text' field present): "
-                        "[{\"old_text\": \"function foo()\", \"new_text\": \"function bar()\"}]. "
-                        "op can be 'set' (default) or 'delete'."
+                        "For workspace JSON files (scene.json, workspace_state.json, etc.): "
+                        "use dot-path edits ONLY — [{\"path\": \"script.render\", \"value\": \"...\", \"op\": \"set\"}]. "
+                        "op can be 'set' (default) or 'delete'. "
+                        "Text search-replace (old_text/new_text) is NOT supported for JSON files. "
+                        "For .workspace/* text files: use text search-replace ONLY — "
+                        "[{\"old_text\": \"function foo()\", \"new_text\": \"function bar()\"}]."
                     ),
                 },
             },
@@ -211,8 +220,8 @@ TOOLS = [
         "name": "run_python",
         "description": (
             "Execute Python code in a sandboxed subprocess. "
-            "Working directory is the active workspace. "
-            "Can read project files, but can only write to .workspace/. "
+            "Working directory is .workspace/projects/<active_project>/, NOT the project root. "
+            "Upload files are at ./uploads/. Use the read_file tool for project source files. "
             "Has access to installed packages (fonttools, numpy, Pillow, etc). "
             "Returns stdout and stderr. Timeout: 30 seconds."
         ),
@@ -232,7 +241,7 @@ TOOLS = [
         "description": (
             "Run a whitelisted shell command. "
             "Allowed commands: pip, ffmpeg, ffprobe, convert, magick. "
-            "Working directory is the active workspace. Timeout: 60 seconds."
+            "Working directory is .workspace/projects/<active_project>/. Timeout: 60 seconds."
         ),
         "input_schema": {
             "type": "object",

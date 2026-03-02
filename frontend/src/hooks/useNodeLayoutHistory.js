@@ -40,7 +40,7 @@ function applySnapshot(setNodes, snapshot) {
   );
 }
 
-export default function useNodeLayoutHistory(nodes, onNodesChange, setNodes, getSeq) {
+export default function useNodeLayoutHistory(nodes, onNodesChange, setNodes, getSeq, onLayoutCommitRef) {
   const historyRef = useRef({ past: [], future: [] });
   const pendingRef = useRef(null); // snapshot taken at drag/resize start
   const activeIdsRef = useRef(new Set()); // node IDs currently being dragged/resized
@@ -98,6 +98,7 @@ export default function useNodeLayoutHistory(nodes, onNodesChange, setNodes, get
                 hist.past.push({ snapshot: beforeSnapshot, seq: getSeq() });
                 if (hist.past.length > MAX_HISTORY) hist.past.shift();
                 hist.future.length = 0; // clear redo stack
+                onLayoutCommitRef?.current?.();
               }
             });
           }
