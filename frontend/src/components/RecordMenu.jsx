@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
-const FORMATS = ["MP4", "WebM"];
+const FORMATS = ["MP4", "WebM", "PNG"];
 const FPS_PRESETS = [24, 30, 60];
 const QUALITIES = ["Low", "Med", "High", "Ultra"];
 const MODES = ["Realtime", "Offline"];
@@ -62,6 +62,7 @@ export default function RecordMenu({
   const [customRes, setCustomRes] = useState(false);
   const [customW, setCustomW] = useState("");
   const [customH, setCustomH] = useState("");
+  const [alpha, setAlpha] = useState(false);
 
   // Outside click → close
   useEffect(() => {
@@ -75,11 +76,12 @@ export default function RecordMenu({
     return () => document.removeEventListener("pointerdown", handler);
   }, [open]);
 
-  // Constraint: MP4 → force Offline
+  // Constraint: MP4/PNG → force Offline
   const handleFormatChange = useCallback(
     (f) => {
       setFormat(f);
-      if (f === "MP4") setMode("Offline");
+      if (f === "MP4" || f === "PNG") setMode("Offline");
+      if (f !== "PNG") setAlpha(false);
     },
     []
   );
@@ -155,9 +157,10 @@ export default function RecordMenu({
       bitrate,
       offline: mode === "Offline",
       resolution: { width: w, height: h },
+      alpha: format === "PNG" && alpha,
     });
     setOpen(false);
-  }, [format, fps, quality, mode, resolution, customRes, customW, customH, canvasWidth, canvasHeight, onStart]);
+  }, [format, fps, quality, mode, resolution, customRes, customW, customH, canvasWidth, canvasHeight, onStart, alpha]);
 
   return (
     <div ref={popoverRef} className="relative">
@@ -257,17 +260,34 @@ export default function RecordMenu({
             )}
           </div>
 
-          {/* Quality */}
-          <div className="mb-2">
-            <div className="text-zinc-500 mb-1">Quality</div>
-            <BtnGroup items={QUALITIES} value={quality} onChange={setQuality} />
-          </div>
+          {/* Quality (hidden for PNG — lossless) */}
+          {format !== "PNG" && (
+            <div className="mb-2">
+              <div className="text-zinc-500 mb-1">Quality</div>
+              <BtnGroup items={QUALITIES} value={quality} onChange={setQuality} />
+            </div>
+          )}
 
           {/* Mode */}
           <div className="mb-2">
             <div className="text-zinc-500 mb-1">Mode</div>
-            <BtnGroup items={MODES} value={mode} onChange={handleModeChange} />
+            <BtnGroup items={MODES} value={mode} onChange={handleModeChange} disabled={format === "PNG"} />
           </div>
+
+          {/* Alpha (PNG only) */}
+          {format === "PNG" && (
+            <div className="mb-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={alpha}
+                  onChange={(e) => setAlpha(e.target.checked)}
+                  className="accent-blue-600"
+                />
+                <span className="text-zinc-400">Transparent background (alpha)</span>
+              </label>
+            </div>
+          )}
 
           {/* Resolution */}
           <div className="mb-3">
