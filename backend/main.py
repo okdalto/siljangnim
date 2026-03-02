@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 
 logger = logging.getLogger(__name__)
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
@@ -159,6 +159,34 @@ async def project_thumbnail(name: str):
         return Response(status_code=404)
     except (PermissionError, FileNotFoundError):
         return Response(status_code=404)
+
+
+@app.get("/api/projects/{name}/export")
+async def export_project(name: str):
+    """Export a project as a ZIP file download."""
+    try:
+        zip_bytes = projects.export_project_zip(name)
+        return Response(
+            content=zip_bytes,
+            media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="{name}.zip"'},
+        )
+    except (PermissionError, FileNotFoundError):
+        return Response(status_code=404)
+
+
+@app.post("/api/projects/import")
+async def import_project(file: UploadFile):
+    """Import a project from an uploaded ZIP file."""
+    try:
+        zip_bytes = await file.read()
+        meta = projects.import_project_zip(zip_bytes)
+        return meta
+    except ValueError as e:
+        return Response(status_code=400, content=str(e))
+    except Exception as e:
+        logger.error("Import failed: %s", e)
+        return Response(status_code=500, content=str(e))
 
 
 @app.get("/api/projects/{name}/scene")
@@ -375,6 +403,17 @@ async def websocket_endpoint(ws: WebSocket):
     except (FileNotFoundError, json.JSONDecodeError):
         panels = {}
 
+    # Resolve active project meta (null for _untitled)
+    active_project_meta = None
+    active_name = workspace.get_active_project_name()
+    if active_name and active_name != "_untitled":
+        try:
+            meta_path = workspace.get_workspace_dir() / "meta.json"
+            if meta_path.exists():
+                active_project_meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+
     await ws.send_text(json.dumps({
         "type": "init",
         "scene_json": scene_json,
@@ -384,6 +423,7 @@ async def websocket_endpoint(ws: WebSocket):
         "chat_history": ctx.chat_history,
         "workspace_state": workspace_state,
         "panels": panels,
+        "active_project": active_project_meta,
     }))
 
     if not ctx.api_key:

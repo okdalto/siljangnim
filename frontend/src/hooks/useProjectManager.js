@@ -1,5 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 
+const API_BASE = import.meta.env.DEV
+  ? `http://${window.location.hostname}:8000`
+  : "";
+
 export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages, getNodeLayouts) {
   const [projectList, setProjectList] = useState([]);
   const [activeProject, setActiveProject] = useState(null);
@@ -60,6 +64,21 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
     [sendRef]
   );
 
+  const handleProjectImport = useCallback(async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch(`${API_BASE}/api/projects/import`, {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        // Refresh project list via WebSocket
+        sendRef.current?.({ type: "project_list" });
+      }
+    } catch { /* ignore */ }
+  }, [sendRef]);
+
   const markSaved = useCallback(() => setSaveStatus("saved"), []);
   const markUnsaved = useCallback(() => setSaveStatus("unsaved"), []);
   const markSaving = useCallback(() => setSaveStatus("saving"), []);
@@ -72,6 +91,7 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
     handleProjectSave,
     handleProjectLoad,
     handleProjectDelete,
+    handleProjectImport,
     setProjectList,
     setActiveProject,
     markSaved,

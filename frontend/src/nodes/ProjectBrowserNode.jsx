@@ -28,6 +28,7 @@ export default function ProjectBrowserNode({ data }) {
     onSave,
     onLoad,
     onDelete,
+    onImport,
     onDeleteWorkspaceFile,
     workspaceFilesVersion,
   } = data;
@@ -36,6 +37,7 @@ export default function ProjectBrowserNode({ data }) {
   const [savedFeedback, setSavedFeedback] = useState(false);
   const savedTimerRef = useRef(null);
   const scrollRef = useRef(null);
+  const importInputRef = useRef(null);
 
   // Workspace files state
   const [wsFiles, setWsFiles] = useState([]);
@@ -94,10 +96,29 @@ export default function ProjectBrowserNode({ data }) {
     <div className="w-full h-full bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
       <NodeResizer minWidth={260} minHeight={200} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
 
+      {/* Hidden file input for import */}
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".zip"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onImport?.(file);
+          e.target.value = "";
+        }}
+      />
+
       {/* Header */}
       <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab flex items-center justify-between">
         Projects
         <div className="flex items-center gap-1.5 nodrag">
+          <button
+            onClick={() => importInputRef.current?.click()}
+            className="text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-700 hover:bg-zinc-600 px-2 py-0.5 rounded transition-colors"
+          >
+            Import
+          </button>
           {saving ? (
             <button
               onClick={() => setSaving(false)}

@@ -89,6 +89,7 @@ export default class GLEngine {
     // Handle context loss
     canvas.addEventListener("webglcontextlost", (e) => {
       e.preventDefault();
+      this._scriptCtx = null; // prevent hot-reload after context restore
       this.stop();
     });
     canvas.addEventListener("webglcontextrestored", () => {
@@ -106,6 +107,40 @@ export default class GLEngine {
     const gl = this.gl;
     if (!gl) return;
 
+    // --- HOT RELOAD: setup이 동일하면 render/cleanup만 교체 ---
+    const newScript = sceneJSON.script || {};
+    const prevScript = this._scene?.script || {};
+    if (
+      this._scriptCtx &&
+      newScript.setup === prevScript.setup &&
+      newScript.setup !== undefined
+    ) {
+      this._scene = sceneJSON;
+      this._lastErrorMessage = null;
+      try {
+        this._scriptRenderFn = newScript.render
+          ? new Function("ctx", newScript.render)
+          : null;
+        // cleanup 함수는 교체만 하고 실행하지 않음 — state 보존이 목적
+        this._scriptCleanupFn = newScript.cleanup
+          ? new Function("ctx", newScript.cleanup)
+          : null;
+      } catch (err) {
+        console.error("[GLEngine] Hot-reload compile error:", err);
+        this.onError?.(err);
+      }
+      // Merge new uniform defaults (only if not already set)
+      if (sceneJSON.uniforms) {
+        for (const [name, def] of Object.entries(sceneJSON.uniforms)) {
+          if (def?.value !== undefined && !(name in this._customUniforms)) {
+            this._customUniforms[name] = def.value;
+          }
+        }
+      }
+      return;
+    }
+
+    // --- FULL RELOAD ---
     this._disposeScene();
     this._scene = sceneJSON;
     this._lastErrorMessage = null; // reset error debounce for new scene
