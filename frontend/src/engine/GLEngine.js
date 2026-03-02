@@ -105,6 +105,47 @@ export default class GLEngine {
   }
 
   /**
+   * Recreate the WebGL2 context with different options (e.g. alpha).
+   * Saves the current scene, destroys old context, creates new one,
+   * re-enables extensions, and reloads the scene.
+   */
+  recreateContext({ alpha = false } = {}) {
+    const savedScene = this._scene;
+    const wasRunning = this._running;
+
+    // Dispose current scene & stop render loop
+    this.stop();
+    this._disposeScene();
+
+    // Lose old context
+    const loseExt = this.gl.getExtension("WEBGL_lose_context");
+    if (loseExt) loseExt.loseContext();
+
+    // Create new context
+    this.gl = this.canvas.getContext("webgl2", {
+      alpha,
+      antialias: true,
+      preserveDrawingBuffer: true,
+    });
+    if (!this.gl) {
+      throw new Error("WebGL2 not supported on context recreation");
+    }
+
+    // Re-enable extensions
+    this._extColorBufferFloat = this.gl.getExtension("EXT_color_buffer_float");
+    this._extFloatLinear = this.gl.getExtension("OES_texture_float_linear");
+
+    // Reload scene
+    if (savedScene) {
+      this.loadScene(savedScene);
+    }
+
+    if (wasRunning) {
+      this.start();
+    }
+  }
+
+  /**
    * Load a scene JSON and set up script execution.
    */
   loadScene(sceneJSON) {

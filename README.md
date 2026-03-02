@@ -1,12 +1,16 @@
 <p align="center">
-  <img src="frontend/public/logo.svg" alt="실장님" width="128" height="128" />
+  <img src="frontend/public/logo.svg" alt="Siljangnim" width="128" height="128" />
 </p>
 
-<h1 align="center">실장님 (Siljangnim)</h1>
+<h1 align="center">Siljangnim</h1>
 
 <p align="center">
   AI-powered real-time graphics creation tool.<br/>
   Describe visuals in natural language — Claude generates WebGL2 shaders that render live in your browser.
+</p>
+
+<p align="center">
+  <a href="README.ko.md">한국어</a>
 </p>
 
 ![WebGL2](https://img.shields.io/badge/WebGL2-ES_3.0-blue)
@@ -14,13 +18,15 @@
 
 ## What can it do?
 
+**If you can imagine it, it can build it.** Need to load a 3D model? It writes the loader. Want audio-reactive visuals? It reads the file, analyzes the spectrum, and wires it to the shader. You don't write code — you describe what you want, and the agent figures out the rest.
+
 Chat with the AI agent in plain language — it writes WebGL2 shaders, builds UI panels, and wires everything together in real-time.
 
 ### Visual Creation
 
 Tell it what you want to see:
 
-> "파란 파도가 화면을 천천히 가로지르는 셰이더 만들어줘"
+> "Make blue waves slowly crossing the screen"
 >
 > "Make a reaction-diffusion simulation with mouse interaction"
 >
@@ -32,7 +38,7 @@ The agent writes GLSL shaders, compiles them, and renders them live — multi-pa
 
 The agent creates interactive control panels based on what the scene needs:
 
-> "색상이랑 속도 조절할 수 있게 컨트롤 패널 만들어줘"
+> "Add a control panel to adjust color and speed"
 
 It generates sliders, color pickers, toggles, 2D pads, dropdowns, camera orbit controls, buffer previews, and more. All controls are linked to shader uniforms with undo/redo and keyframe animation support.
 
@@ -50,13 +56,13 @@ It generates sliders, color pickers, toggles, 2D pads, dropdowns, camera orbit c
 
 Upload an audio file or use a URL — the agent analyzes bass/mid/treble, FFT, and waveform data in real-time:
 
-> "이 음악에 반응하는 비주얼 만들어줘. 베이스에 원이 커지고 하이에 색이 바뀌게"
+> "Create visuals that react to this music — circles grow on bass, colors shift on highs"
 
 ### MediaPipe Hand/Pose/Face Tracking
 
 Webcam-based real-time tracking using MediaPipe Vision:
 
-> "웹캠으로 손 인식해서 두 손으로 pinch하면 와이어프레임 박스가 나타나게 해줘"
+> "Use the webcam for hand tracking — show a wireframe box when both hands pinch"
 
 Supports 33-point body pose, 21-point hand landmarks (2 hands), and 478-point face mesh — all available as GPU textures for shader consumption.
 
@@ -72,7 +78,7 @@ Upload images, fonts, SVGs, audio, video, and 3D models. Each file is automatica
 
 ### Recording & Export
 
-Record the viewport to MP4 (offline, frame-exact) or WebM (realtime or offline) with configurable FPS, quality, and resolution.
+Record the viewport to MP4 (offline, frame-exact), WebM (realtime or offline), or PNG sequence (with optional alpha transparency) — configurable FPS, quality, and resolution.
 
 ### Timeline & Keyframe Animation
 

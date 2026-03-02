@@ -125,6 +125,8 @@ export default function App() {
   const { onNodesChange, undo, redo, historyRef: layoutHistoryRef } =
     useNodeLayoutHistory(nodes, onNodesChangeSnapped, setNodes, getSeq, onLayoutCommitRef);
 
+  const rfInstanceRef = useRef(null);
+
   // Guard: suppress workspace-state saves until init has fully settled
   const initSettledRef = useRef(false);
 
@@ -181,12 +183,17 @@ export default function App() {
 
   const getMessages = useCallback(() => messagesRef.current, []);
   const getNodeLayouts = useCallback(() => {
-    return nodesRef.current.map((n) => ({
-      id: n.id,
-      type: n.type,
-      position: { ...n.position },
-      style: n.style ? { ...n.style } : undefined,
-    }));
+    const rf = rfInstanceRef.current;
+    return nodesRef.current.map((n) => {
+      const internal = rf?.getInternalNode(n.id);
+      const pos = internal?.position ?? n.position;
+      return {
+        id: n.id,
+        type: n.type,
+        position: { x: pos.x, y: pos.y },
+        style: n.style ? { ...n.style } : undefined,
+      };
+    });
   }, []);
 
   const getWorkspaceState = useCallback(() => {
@@ -968,6 +975,7 @@ export default function App() {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onInit={(instance) => { rfInstanceRef.current = instance; }}
           onNodeDragStop={() => {
             if (!initSettledRef.current) return; // suppress during init/project load
             // Use rAF so React has committed position updates before we read them

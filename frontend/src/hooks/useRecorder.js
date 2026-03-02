@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Muxer as Mp4Muxer, ArrayBufferTarget as Mp4Target } from "mp4-muxer";
 import { Muxer as WebmMuxer, ArrayBufferTarget as WebmTarget } from "webm-muxer";
+import { zipSync } from "fflate";
 
 /**
  * Hook for recording WebGL canvas.
@@ -26,6 +27,7 @@ export default function useRecorder(engineRef) {
   const offlineAbortRef = useRef(false);
   const finalizeRef = useRef(null);
   const savedSizeRef = useRef(null);
+  const alphaRef = useRef(false);
 
   const updateElapsed = useCallback(() => {
     setElapsedTime((performance.now() - startTimeRef.current) / 1000);
@@ -48,6 +50,11 @@ export default function useRecorder(engineRef) {
   const restoreEngine = useCallback(() => {
     const eng = engineRef.current;
     if (eng) {
+      // Restore alpha:false context if we switched to alpha
+      if (alphaRef.current) {
+        eng.recreateContext({ alpha: false });
+        alphaRef.current = false;
+      }
       // Restore canvas size if overridden
       if (savedSizeRef.current) {
         eng.resize(savedSizeRef.current.width, savedSizeRef.current.height);
@@ -82,7 +89,7 @@ export default function useRecorder(engineRef) {
   }, []);
 
   const startRecording = useCallback(
-    ({ fps = 30, duration, filename, offline = false, format = "mp4", bitrate, resolution } = {}) => {
+    ({ fps = 30, duration, filename, offline = false, format = "mp4", bitrate, resolution, alpha = false } = {}) => {
       const engine = engineRef.current;
       const canvas = engine?.canvas;
       if (!canvas) return;
@@ -132,7 +139,86 @@ export default function useRecorder(engineRef) {
         }
       };
 
-      if (offline && format === "mp4" && typeof VideoEncoder !== "undefined") {
+      if (offline && format === "png") {
+        // ── Offline PNG Sequence: frame-by-frame → ZIP ──────────────
+        engine.setPaused(true);
+        engine.seekTo(0);
+
+        // Switch to alpha context if requested
+        if (alpha) {
+          alphaRef.current = true;
+          engine.recreateContext({ alpha: true });
+        }
+
+        const dt = 1 / fps;
+        const endTime =
+          duration && duration > 0
+            ? duration
+            : engine._duration > 0
+              ? engine._duration
+              : 30;
+        let currentTime = 0;
+        let frameIndex = 0;
+        const pngBuffers = {};
+
+        setElapsedTime(0);
+        setRecording(true);
+
+        let finalized = false;
+
+        const finalize = async () => {
+          if (finalized) return;
+          finalized = true;
+          finalizeRef.current = null;
+          if (rafRef.current) {
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = null;
+          }
+          try {
+            const zipped = zipSync(pngBuffers, { level: 0 });
+            const blob = new Blob([zipped], { type: "application/zip" });
+            downloadBlob(blob, filenameRef.current || `png_sequence_${Date.now()}.zip`);
+          } catch (e) {
+            console.error("PNG sequence ZIP error:", e);
+          }
+          setRecording(false);
+          restoreEngine();
+        };
+
+        finalizeRef.current = finalize;
+
+        const stepFrame = async () => {
+          if (offlineAbortRef.current) {
+            await finalize();
+            return;
+          }
+
+          if (currentTime >= endTime) {
+            await finalize();
+            return;
+          }
+
+          engine.renderOfflineFrame(currentTime, dt);
+          const gl = engine.gl;
+          if (gl) gl.finish();
+
+          // Capture PNG blob from canvas
+          const blob = await new Promise((resolve) =>
+            engine.canvas.toBlob(resolve, "image/png")
+          );
+          const arrayBuf = await blob.arrayBuffer();
+          const padded = String(frameIndex).padStart(6, "0");
+          pngBuffers[`frame_${padded}.png`] = new Uint8Array(arrayBuf);
+
+          frameIndex++;
+          currentTime += dt;
+          setElapsedTime(currentTime);
+
+          rafRef.current = requestAnimationFrame(stepFrame);
+        };
+
+        rafRef.current = requestAnimationFrame(stepFrame);
+      } else if (offline && format === "mp4" && typeof VideoEncoder !== "undefined") {
         // ── Offline MP4: WebCodecs H.264 + mp4-muxer ──────────────
         engine.setPaused(true);
         engine.seekTo(0);
