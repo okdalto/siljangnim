@@ -76,6 +76,13 @@ export default function ProjectBrowserNode({ data }) {
     setSaving(true);
   };
 
+  // Listen for global Cmd+S when no active project
+  useEffect(() => {
+    const handleOpenSave = () => setSaving(true);
+    window.addEventListener("open-save-dialog", handleOpenSave);
+    return () => window.removeEventListener("open-save-dialog", handleOpenSave);
+  }, []);
+
   const handleWsFileDelete = useCallback(async (filepath) => {
     if (onDeleteWorkspaceFile) {
       await onDeleteWorkspaceFile(filepath);
