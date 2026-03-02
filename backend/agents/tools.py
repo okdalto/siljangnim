@@ -2,134 +2,86 @@
 
 TOOLS = [
     {
-        "name": "get_current_scene",
+        "name": "read_file",
         "description": (
-            "Read the current scene.json from workspace. "
-            "Returns the full scene JSON or a message if no scene exists."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {},
-        },
-    },
-    {
-        "name": "read_scene_section",
-        "description": (
-            "Read a specific section of scene.json using a dot-path. "
-            "Much more efficient than get_current_scene when you only need "
-            "a specific part. Examples: 'script.render', 'script.setup', "
-            "'uniforms', 'uniforms.u_speed', 'clearColor'. "
-            "Returns the value at that path as JSON."
+            "Unified file reader. Reads workspace files (scene.json, workspace_state.json, "
+            "panels.json, ui_config.json, debug_logs.json), uploaded files (uploads/xxx), "
+            "and project source files. For JSON workspace files, use 'section' to read a "
+            "specific dot-path (e.g. 'script.render', 'uniforms.u_speed'). "
+            "For large text files, use offset/limit for pagination. "
+            "Upload files include processed derivative metadata."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Dot-separated path into scene.json (e.g. 'script.render', 'uniforms.u_speed').",
+                    "description": (
+                        "File path. Examples: 'scene.json', 'workspace_state.json', "
+                        "'uploads/model.obj', 'frontend/src/App.jsx'."
+                    ),
+                },
+                "section": {
+                    "type": "string",
+                    "description": (
+                        "JSON dot-path for workspace JSON files. "
+                        "e.g. 'script.render', 'uniforms.u_speed', 'keyframes'. "
+                        "Returns only the value at that path."
+                    ),
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Starting line number (1-based). For text file pagination.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max number of lines to return.",
                 },
             },
             "required": ["path"],
         },
     },
     {
-        "name": "update_scene",
+        "name": "write_file",
         "description": (
-            "Validate, save, and broadcast a COMPLETE scene JSON to all clients. "
-            "Use this only when creating a new scene from scratch. "
-            "For modifying existing scenes, prefer edit_scene instead."
+            "Unified file writer. Writes to workspace files (scene.json, workspace_state.json, "
+            "panels.json, ui_config.json, debug_logs.json) and .workspace/ directory. "
+            "Use 'content' for full file replacement or 'edits' for partial modifications. "
+            "scene.json writes are validated and broadcast to clients. "
+            "workspace_state.json writes are broadcast to clients. "
+            "Edits support both JSON dot-path operations (for JSON files) and "
+            "text search-replace (for any text file)."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
-                "scene_json": {
+                "path": {
                     "type": "string",
-                    "description": "Complete scene JSON object as a string.",
+                    "description": (
+                        "File path. Examples: 'scene.json', 'workspace_state.json', "
+                        "'.workspace/notes.txt'."
+                    ),
                 },
-            },
-            "required": ["scene_json"],
-        },
-    },
-    {
-        "name": "edit_scene",
-        "description": (
-            "Apply targeted edits to the current scene.json without replacing the whole file. "
-            "Takes an array of edits, each with a dot-path and new value. "
-            "Much more efficient than update_scene for modifications. "
-            "The edited scene is validated, saved, and broadcast to clients. "
-            "Supports 'set' (default) and 'delete' operations."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
+                "content": {
+                    "type": "string",
+                    "description": (
+                        "Complete file content for full replacement. "
+                        "For JSON files, provide a JSON string."
+                    ),
+                },
                 "edits": {
                     "type": "string",
                     "description": (
-                        "JSON array of edit objects. Each has: "
-                        "'path' (dot-separated target, e.g. 'script.render'), "
-                        "'value' (new value — string, number, object, etc.), "
-                        "'op' (optional: 'set' or 'delete', default 'set'). "
-                        "Example: [{\"path\": \"script.render\", \"value\": \"const gl = ctx.gl;...\"}, "
-                        "{\"path\": \"uniforms.u_new\", \"value\": {\"type\": \"float\", \"value\": 1.0}}]"
+                        "JSON array of edit objects for partial modification. "
+                        "JSON dot-path edits (when 'path' field present): "
+                        "[{\"path\": \"script.render\", \"value\": \"...\", \"op\": \"set\"}]. "
+                        "Text search-replace edits (when 'old_text' field present): "
+                        "[{\"old_text\": \"function foo()\", \"new_text\": \"function bar()\"}]. "
+                        "op can be 'set' (default) or 'delete'."
                     ),
                 },
             },
-            "required": ["edits"],
-        },
-    },
-    {
-        "name": "get_workspace_state",
-        "description": (
-            "Read the current workspace state including keyframe animations, "
-            "timeline duration, and loop setting. Returns the workspace_state.json "
-            "contents, or defaults if no state exists. Use this to check existing "
-            "keyframe animations before modifying scenes."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {},
-        },
-    },
-    {
-        "name": "update_workspace_state",
-        "description": (
-            "Update the workspace state (keyframes, duration, loop). "
-            "The state is saved to workspace_state.json and broadcast to all "
-            "connected clients, immediately updating the timeline and keyframe "
-            "editor in the UI. You can add/remove/modify keyframe tracks, "
-            "change the timeline duration, or toggle looping."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "workspace_state": {
-                    "type": "string",
-                    "description": (
-                        "Complete workspace state JSON string with 'version', "
-                        "'keyframes', 'duration', and 'loop' fields."
-                    ),
-                },
-            },
-            "required": ["workspace_state"],
-        },
-    },
-    {
-        "name": "read_uploaded_file",
-        "description": (
-            "Read an uploaded file from the uploads directory. "
-            "For text files (.obj, .mtl, .glsl, .json, .txt, .csv, etc.), returns the file contents as text. "
-            "For binary files (images, etc.), returns metadata only. "
-            "Use list_uploaded_files first to see available files."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "filename": {
-                    "type": "string",
-                    "description": "Name of the uploaded file to read.",
-                },
-            },
-            "required": ["filename"],
+            "required": ["path"],
         },
     },
     {
@@ -155,54 +107,6 @@ TOOLS = [
                     "description": "Relative path from project root. Defaults to '.' (root).",
                 },
             },
-        },
-    },
-    {
-        "name": "read_file",
-        "description": (
-            "Read a project file by relative path. Returns file contents for text files, "
-            "or metadata for binary files. Supports line-based pagination with offset/limit "
-            "— use these to read large files in chunks instead of all at once. "
-            "Returns total line count so you know if there's more to read."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "Relative path from project root to the file to read.",
-                },
-                "offset": {
-                    "type": "integer",
-                    "description": "Starting line number (1-based). Default: 1.",
-                },
-                "limit": {
-                    "type": "integer",
-                    "description": "Max number of lines to return. Default: all lines (up to 50KB).",
-                },
-            },
-            "required": ["path"],
-        },
-    },
-    {
-        "name": "write_file",
-        "description": (
-            "Write a file to the .workspace/ directory. Only paths under .workspace/ "
-            "are writable. Parent directories are created automatically."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "Relative path under .workspace/ (e.g. '.workspace/notes.txt').",
-                },
-                "content": {
-                    "type": "string",
-                    "description": "File content to write.",
-                },
-            },
-            "required": ["path", "content"],
         },
     },
     {
@@ -346,7 +250,7 @@ TOOLS = [
         "description": (
             "Wait ~2 seconds for the browser to render and report any runtime errors "
             "(WebGL shader errors, JavaScript exceptions, etc.), then return them. "
-            "Call this AFTER update_scene or edit_scene to verify the scene runs "
+            "Call this AFTER write_file(path='scene.json', ...) to verify the scene runs "
             "without errors. If errors are found, fix them immediately."
         ),
         "input_schema": {
