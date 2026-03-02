@@ -433,6 +433,8 @@ export default function App() {
         const name = project.activeProject;
         if (name) {
           handleProjectSaveRef.current?.(name);
+        } else {
+          window.dispatchEvent(new CustomEvent("open-save-dialog"));
         }
       }
     };
