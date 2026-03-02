@@ -131,8 +131,14 @@ _CLASSIFY_SYSTEM = """\
 You classify user requests for a WebGL/shader coding assistant.
 Reply with ONLY one word — STANDARD or COMPLEX.
 
-STANDARD: fixes, tweaks, parameter changes, simple additions, questions, debugging
-COMPLEX: creating shaders from scratch, advanced algorithms, major rewrites, complex multi-part creative work"""
+STANDARD: simple parameter changes (change color, speed, size), toggling options, \
+asking questions about existing code, reading/listing files, simple one-line fixes
+COMPLEX: anything that creates, generates, or builds something new; \
+modifying logic or algorithms; adding features; creative requests; \
+multi-step tasks; debugging non-trivial errors; refactoring; \
+any request that involves writing more than a few lines of code
+
+When in doubt, reply COMPLEX."""
 
 
 async def _classify_prompt(client: anthropic.AsyncAnthropic, user_prompt: str) -> str:
@@ -144,11 +150,11 @@ async def _classify_prompt(client: anthropic.AsyncAnthropic, user_prompt: str) -
             system=_CLASSIFY_SYSTEM,
             messages=[{"role": "user", "content": user_prompt[:500]}],
         )
-        if "COMPLEX" in resp.content[0].text.strip().upper():
-            return "complex"
+        if "STANDARD" in resp.content[0].text.strip().upper():
+            return "standard"
     except Exception:
         pass
-    return "standard"
+    return "complex"
 
 
 def _strip_thinking(messages: list[dict]) -> None:

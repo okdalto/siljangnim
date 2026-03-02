@@ -164,9 +164,12 @@ Uniform stores the control points array. In scripts, use \
 ctx.utils.sampleCurve(ctx.uniforms.u_curve, t) to sample (t: 0-1 → y value). \
 Example: `{"type":"graph","label":"Falloff","uniform":"u_falloff",\
 "min":0,"max":1,"default":[[0,1],[0.5,0.8],[1,0]]}`.
-- "buffer_preview": live GPU buffer preview. Needs `stateKey` (ctx.state key \
-where a render target from createRenderTarget() is stored) and `label`. \
-~5fps readback. Example: {"type":"buffer_preview","label":"Normal","stateKey":"normalTarget"}.
+- "buffer_preview": live GPU buffer preview. Needs `stateKey` (ctx.state key) \
+and `label`. ~5fps readback. The stateKey must point to either: \
+(a) a createRenderTarget() object, or (b) a `{texture, width, height}` wrapper \
+around any raw WebGL texture. For existing textures, wrap them: \
+`ctx.state.myPreview = {texture: myGLTexture, width: 512, height: 512}`. \
+Example: {"type":"buffer_preview","label":"Normal","stateKey":"normalPreview"}.
 - "html": custom HTML/CSS/JS block rendered in a mini-iframe. Needs `html` \
 (HTML string) and optionally `height` (pixels, default 150). App theme CSS \
 and bridge API are auto-injected. Use `panel.setUniform(name, value)` inside \
