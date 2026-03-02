@@ -30,6 +30,8 @@ import Timeline from "./components/Timeline.jsx";
 import SnapGuides from "./components/SnapGuides.jsx";
 import KeyframeEditor from "./components/KeyframeEditor.jsx";
 
+let _undoSeq = 0;
+
 const nodeTypes = {
   chat: ChatNode,
   inspector: InspectorNode,
@@ -85,7 +87,9 @@ export default function App() {
   const [nodes, setNodes, rawOnNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState([]);
   const { onNodesChange: onNodesChangeSnapped, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes);
-  const { onNodesChange, undo, redo } = useNodeLayoutHistory(nodes, onNodesChangeSnapped, setNodes);
+  const getSeq = useCallback(() => ++_undoSeq, []);
+  const { onNodesChange, undo, redo, historyRef: layoutHistoryRef } =
+    useNodeLayoutHistory(nodes, onNodesChangeSnapped, setNodes, getSeq);
 
   // Scene state
   const [sceneJSON, setSceneJSON] = useState(null);
@@ -221,12 +225,20 @@ export default function App() {
       if (kf.isEditorOpen.current) {
         if (e.shiftKey) kf.redoKeyframes();
         else kf.undoKeyframes();
+      } else if (e.shiftKey) {
+        const uFuture = uniformHistoryRef.current.future;
+        const lFuture = layoutHistoryRef.current.future;
+        const uSeq = uFuture.length > 0 ? uFuture[uFuture.length - 1].seq ?? 0 : -1;
+        const lSeq = lFuture.length > 0 ? lFuture[lFuture.length - 1].seq ?? 0 : -1;
+        if (uSeq < 0 && lSeq < 0) return;
+        if (uSeq >= lSeq) redoUniform(); else redo();
       } else {
-        if (e.shiftKey) {
-          if (!redoUniform()) redo();
-        } else {
-          if (!undoUniform()) undo();
-        }
+        const uPast = uniformHistoryRef.current.past;
+        const lPast = layoutHistoryRef.current.past;
+        const uSeq = uPast.length > 0 ? uPast[uPast.length - 1].seq ?? 0 : -1;
+        const lSeq = lPast.length > 0 ? lPast[lPast.length - 1].seq ?? 0 : -1;
+        if (uSeq < 0 && lSeq < 0) return;
+        if (uSeq >= lSeq) undoUniform(); else undo();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -446,7 +458,7 @@ export default function App() {
       } else {
         const oldValue = vals[uniform] ?? value;
         if (oldValue !== value) {
-          h.past.push({ uniform, oldValue, newValue: value });
+          h.past.push({ uniform, oldValue, newValue: value, seq: ++_undoSeq });
           if (h.past.length > 100) h.past.shift();
           h.future.length = 0;
         }

@@ -40,7 +40,7 @@ function applySnapshot(setNodes, snapshot) {
   );
 }
 
-export default function useNodeLayoutHistory(nodes, onNodesChange, setNodes) {
+export default function useNodeLayoutHistory(nodes, onNodesChange, setNodes, getSeq) {
   const historyRef = useRef({ past: [], future: [] });
   const pendingRef = useRef(null); // snapshot taken at drag/resize start
   const activeIdsRef = useRef(new Set()); // node IDs currently being dragged/resized
@@ -95,7 +95,7 @@ export default function useNodeLayoutHistory(nodes, onNodesChange, setNodes) {
               }
               if (changed) {
                 const hist = historyRef.current;
-                hist.past.push(beforeSnapshot);
+                hist.past.push({ snapshot: beforeSnapshot, seq: getSeq() });
                 if (hist.past.length > MAX_HISTORY) hist.past.shift();
                 hist.future.length = 0; // clear redo stack
               }
@@ -113,18 +113,18 @@ export default function useNodeLayoutHistory(nodes, onNodesChange, setNodes) {
   const undo = useCallback(() => {
     const h = historyRef.current;
     if (h.past.length === 0) return;
-    const snapshot = h.past.pop();
-    h.future.push(takeSnapshot(nodesRef.current));
-    applySnapshot(setNodes, snapshot);
+    const entry = h.past.pop();
+    h.future.push({ snapshot: takeSnapshot(nodesRef.current), seq: entry.seq });
+    applySnapshot(setNodes, entry.snapshot);
   }, [setNodes]);
 
   const redo = useCallback(() => {
     const h = historyRef.current;
     if (h.future.length === 0) return;
-    const snapshot = h.future.pop();
-    h.past.push(takeSnapshot(nodesRef.current));
-    applySnapshot(setNodes, snapshot);
+    const entry = h.future.pop();
+    h.past.push({ snapshot: takeSnapshot(nodesRef.current), seq: entry.seq });
+    applySnapshot(setNodes, entry.snapshot);
   }, [setNodes]);
 
-  return { onNodesChange: wrappedOnNodesChange, undo, redo };
+  return { onNodesChange: wrappedOnNodesChange, undo, redo, historyRef };
 }
