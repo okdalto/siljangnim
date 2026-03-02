@@ -123,6 +123,51 @@ _MAX_TURNS = 30
 _MAX_COMPACT_RETRIES = 2
 
 
+# ---------------------------------------------------------------------------
+# Prompt classifier — routes to appropriate model
+# ---------------------------------------------------------------------------
+
+_CLASSIFY_SYSTEM = """\
+You classify user requests for a WebGL/shader coding assistant.
+Reply with ONLY one word — STANDARD or COMPLEX.
+
+STANDARD: fixes, tweaks, parameter changes, simple additions, questions, debugging
+COMPLEX: creating shaders from scratch, advanced algorithms, major rewrites, complex multi-part creative work"""
+
+
+async def _classify_prompt(client: anthropic.AsyncAnthropic, user_prompt: str) -> str:
+    """Classify prompt complexity. Returns 'standard' or 'complex'."""
+    try:
+        resp = await client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=16,
+            system=_CLASSIFY_SYSTEM,
+            messages=[{"role": "user", "content": user_prompt[:500]}],
+        )
+        if "COMPLEX" in resp.content[0].text.strip().upper():
+            return "complex"
+    except Exception:
+        pass
+    return "standard"
+
+
+def _strip_thinking(messages: list[dict]) -> None:
+    """Remove thinking blocks from all assistant messages in-place."""
+    for msg in messages:
+        if msg.get("role") != "assistant":
+            continue
+        content = msg.get("content")
+        if not isinstance(content, list):
+            continue
+        filtered = [
+            block for block in content
+            if not (isinstance(block, dict) and block.get("type") == "thinking")
+        ]
+        if not filtered:
+            filtered = [{"type": "text", "text": "(continued)"}]
+        msg["content"] = filtered
+
+
 def _compact_messages(messages: list[dict]) -> None:
     """Compact conversation history in-place to reduce token usage.
 
@@ -223,6 +268,16 @@ async def run_agent(
 
     client = anthropic.AsyncAnthropic()
 
+    # Classify prompt and choose model
+    tier = await _classify_prompt(client, user_prompt)
+    if tier == "complex":
+        model_name = "claude-opus-4-6"
+        max_tokens = 65536
+    else:
+        model_name = "claude-sonnet-4-6"
+        max_tokens = 16384
+    await log("System", f"Model: {model_name}", "info")
+
     # Build user message content
     if files:
         content = _build_multimodal_content(user_prompt, files)
@@ -263,8 +318,8 @@ async def run_agent(
 
             try:
                 async with client.messages.stream(
-                    model="claude-opus-4-6",
-                    max_tokens=65536,
+                    model=model_name,
+                    max_tokens=max_tokens,
                     thinking={"type": "adaptive"},
                     system=SYSTEM_PROMPT,
                     tools=TOOLS,
@@ -308,6 +363,14 @@ async def run_agent(
                     response = await stream.get_final_message()
             except anthropic.BadRequestError as e:
                 err_msg = str(e)
+                # Thinking block compatibility issue (e.g., cross-model signatures)
+                if "thinking" in err_msg.lower() or "signature" in err_msg.lower():
+                    await log("System", "Stripping thinking blocks for model compatibility...", "info")
+                    _strip_thinking(messages)
+                    compact_retries += 1
+                    if compact_retries > _MAX_COMPACT_RETRIES:
+                        raise
+                    continue
                 if "prompt is too long" in err_msg or "non-empty content" in err_msg:
                     await log("System", f"Bad request — compacting and retrying: {err_msg[:200]}", "info")
                     if on_status:
