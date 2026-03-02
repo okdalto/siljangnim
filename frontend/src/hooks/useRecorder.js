@@ -6,9 +6,11 @@ import { zipSync } from "fflate";
 /**
  * Hook for recording WebGL canvas.
  *
- * Three paths:
+ * Paths:
+ * - PNG + offline: frame-by-frame → ZIP (fflate)
  * - MP4 + offline: WebCodecs H.264 + mp4-muxer → MP4
  * - WebM + offline: WebCodecs VP9 + webm-muxer → WebM
+ * - MP4 + realtime: WebCodecs H.264 + mp4-muxer (live capture) → MP4
  * - WebM + realtime: captureStream → MediaRecorder → WebM
  *
  * Falls back to MediaRecorder when WebCodecs is unavailable.
@@ -512,8 +514,99 @@ export default function useRecorder(engineRef) {
         };
 
         rafRef.current = requestAnimationFrame(stepFrame);
+      } else if (!offline && format === "mp4" && typeof VideoEncoder !== "undefined") {
+        // ── Realtime MP4: WebCodecs H.264 + mp4-muxer (live capture) ──
+        const target = new Mp4Target();
+        const muxer = new Mp4Muxer({
+          target,
+          video: {
+            codec: "avc",
+            width: canvas.width,
+            height: canvas.height,
+          },
+          fastStart: "in-memory",
+        });
+
+        const encoder = new VideoEncoder({
+          output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+          error: (e) => console.error("VideoEncoder error:", e),
+        });
+        encoder.configure({
+          codec: "avc1.4d0032",
+          width: canvas.width,
+          height: canvas.height,
+          bitrate: videoBitsPerSecond,
+          framerate: fps,
+        });
+
+        startTimeRef.current = performance.now();
+        setElapsedTime(0);
+        setRecording(true);
+
+        let finalized = false;
+        const frameInterval = 1000 / fps;
+        let lastFrameTime = 0;
+
+        const finalize = async () => {
+          if (finalized) return;
+          finalized = true;
+          finalizeRef.current = null;
+          if (rafRef.current) {
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = null;
+          }
+          try {
+            await encoder.flush();
+            muxer.finalize();
+            const blob = new Blob([target.buffer], { type: "video/mp4" });
+            downloadBlob(blob, `recording_${Date.now()}.mp4`);
+          } catch (e) {
+            console.error("Realtime MP4 finalize error:", e);
+          }
+          encoder.close();
+          setRecording(false);
+          restoreOnRealtimeStop();
+        };
+
+        finalizeRef.current = finalize;
+
+        encoder.addEventListener("error", () => {
+          console.error("VideoEncoder fatal error – aborting recording");
+          if (rafRef.current) {
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = null;
+          }
+          encoder.close();
+          setRecording(false);
+          restoreOnRealtimeStop();
+        });
+
+        const captureLoop = () => {
+          if (finalized) return;
+
+          const now = performance.now();
+          setElapsedTime((now - startTimeRef.current) / 1000);
+
+          if (now - lastFrameTime >= frameInterval) {
+            lastFrameTime = now;
+            const timestamp = Math.round((now - startTimeRef.current) * 1000);
+            const frame = new VideoFrame(canvas, { timestamp });
+            encoder.encode(frame);
+            frame.close();
+          }
+
+          rafRef.current = requestAnimationFrame(captureLoop);
+        };
+
+        rafRef.current = requestAnimationFrame(captureLoop);
+
+        if (duration && duration > 0) {
+          autoStopRef.current = setTimeout(() => {
+            finalize();
+          }, duration * 1000);
+        }
       } else {
-        // ── Realtime (WebM only) ────────────────────────────────
+        // ── Realtime WebM: MediaRecorder ────────────────────────
         const videoStream = canvas.captureStream(fps);
 
         const combinedStream = hasAudio

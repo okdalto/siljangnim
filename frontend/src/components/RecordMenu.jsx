@@ -76,21 +76,19 @@ export default function RecordMenu({
     return () => document.removeEventListener("pointerdown", handler);
   }, [open]);
 
-  // Constraint: MP4/PNG → force Offline
+  // Constraint: PNG → force Offline
   const handleFormatChange = useCallback(
     (f) => {
       setFormat(f);
-      if (f === "MP4" || f === "PNG") setMode("Offline");
+      if (f === "PNG") setMode("Offline");
       if (f !== "PNG") setAlpha(false);
     },
     []
   );
 
-  // Constraint: Realtime → force WebM
   const handleModeChange = useCallback(
     (m) => {
       setMode(m);
-      if (m === "Realtime") setFormat("WebM");
     },
     []
   );
