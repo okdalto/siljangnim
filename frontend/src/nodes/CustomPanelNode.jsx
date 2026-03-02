@@ -1,6 +1,30 @@
 import { useEffect, useRef, useCallback } from "react";
 import { NodeResizer } from "@xyflow/react";
 
+import SliderControl from "../components/controls/SliderControl.jsx";
+import ColorControl from "../components/controls/ColorControl.jsx";
+import ToggleControl from "../components/controls/ToggleControl.jsx";
+import ButtonControl from "../components/controls/ButtonControl.jsx";
+import DropdownControl from "../components/controls/DropdownControl.jsx";
+import Pad2dControl from "../components/controls/Pad2dControl.jsx";
+import SeparatorControl from "../components/controls/SeparatorControl.jsx";
+import TextControl from "../components/controls/TextControl.jsx";
+import GraphControl from "../components/controls/GraphControl.jsx";
+
+/* ── Control type → component mapping ───────────────────────────── */
+
+const CONTROL_MAP = {
+  slider: SliderControl,
+  color: ColorControl,
+  toggle: ToggleControl,
+  button: ButtonControl,
+  dropdown: DropdownControl,
+  pad2d: Pad2dControl,
+  separator: SeparatorControl,
+  text: TextControl,
+  graph: GraphControl,
+};
+
 /* ── Bridge script injected into every custom panel iframe ──────── */
 
 const BRIDGE_SCRIPT = `
@@ -75,12 +99,20 @@ function injectBridge(html) {
 /* ── CustomPanelNode ────────────────────────────────────────────── */
 
 export default function CustomPanelNode({ data }) {
-  const { title, html, onUniformChange, engineRef, onClose, keyframeManagerRef, onKeyframesChange, onDurationChange, onLoopChange, duration, loop } = data;
+  const {
+    title, html, controls,
+    onUniformChange, engineRef, onClose,
+    keyframeManagerRef, onKeyframesChange, onDurationChange, onLoopChange,
+    onOpenKeyframeEditor,
+    duration, loop,
+  } = data;
   const iframeRef = useRef(null);
   const rafRef = useRef(null);
+  const isNativeControls = !!controls;
 
-  // Listen for postMessage from iframe
+  // Listen for postMessage from iframe (only for HTML panels)
   useEffect(() => {
+    if (isNativeControls) return;
     const handler = (e) => {
       const iframe = iframeRef.current;
       if (!iframe || e.source !== iframe.contentWindow) return;
@@ -96,10 +128,11 @@ export default function CustomPanelNode({ data }) {
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  }, [onUniformChange, onKeyframesChange, onDurationChange, onLoopChange]);
+  }, [isNativeControls, onUniformChange, onKeyframesChange, onDurationChange, onLoopChange]);
 
-  // Send engine state to iframe every frame
+  // Send engine state to iframe every frame (only for HTML panels)
   useEffect(() => {
+    if (isNativeControls) return;
     const tick = () => {
       const iframe = iframeRef.current;
       const engine = engineRef?.current;
@@ -126,13 +159,11 @@ export default function CustomPanelNode({ data }) {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [engineRef, keyframeManagerRef, duration, loop]);
+  }, [isNativeControls, engineRef, keyframeManagerRef, duration, loop]);
 
   const handleClose = useCallback(() => {
     onClose?.();
   }, [onClose]);
-
-  const srcdoc = injectBridge(html || "");
 
   return (
     <div className="w-full h-full bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
@@ -152,14 +183,33 @@ export default function CustomPanelNode({ data }) {
           ×
         </button>
       </div>
-      <div className="flex-1 nodrag nowheel overflow-hidden">
-        <iframe
-          ref={iframeRef}
-          srcDoc={srcdoc}
-          sandbox="allow-scripts"
-          className="w-full h-full border-0"
-          style={{ background: "#fff" }}
-        />
+      <div className="flex-1 nodrag nowheel overflow-auto">
+        {isNativeControls ? (
+          <div className="p-3 space-y-1">
+            {controls.map((ctrl, i) => {
+              const Comp = CONTROL_MAP[ctrl.type];
+              if (!Comp) return null;
+              return (
+                <Comp
+                  key={ctrl.uniform || `sep_${i}`}
+                  ctrl={ctrl}
+                  onUniformChange={onUniformChange}
+                  keyframeManagerRef={keyframeManagerRef}
+                  engineRef={engineRef}
+                  onOpenKeyframeEditor={onOpenKeyframeEditor}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <iframe
+            ref={iframeRef}
+            srcDoc={injectBridge(html || "")}
+            sandbox="allow-scripts"
+            className="w-full h-full border-0"
+            style={{ background: "#fff" }}
+          />
+        )}
       </div>
     </div>
   );

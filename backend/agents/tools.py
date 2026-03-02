@@ -78,23 +78,6 @@ TOOLS = [
         },
     },
     {
-        "name": "update_ui_config",
-        "description": (
-            "Save and broadcast UI control configuration. "
-            "The ui_config parameter must be a JSON string with a 'controls' array."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "ui_config": {
-                    "type": "string",
-                    "description": "UI config JSON string with a 'controls' array.",
-                },
-            },
-            "required": ["ui_config"],
-        },
-    },
-    {
         "name": "get_workspace_state",
         "description": (
             "Read the current workspace state including keyframe animations, "
@@ -225,12 +208,12 @@ TOOLS = [
     {
         "name": "open_panel",
         "description": (
-            "Open a custom HTML/CSS/JS panel as a draggable node in the UI. "
-            "The panel runs in a sandboxed iframe with a bridge API for communicating "
-            "with the WebGL engine (read/write uniforms, access time/frame/mouse). "
-            "Use this to create interactive controls, data visualizations, info displays, "
-            "or any custom UI that complements the WebGL scene. "
-            "You can provide raw html OR use a pre-built template with config."
+            "Open a panel as a draggable node in the UI. "
+            "Use template='controls' with config.controls array to render native "
+            "React controls (sliders, color pickers, toggles, etc.) that integrate "
+            "with undo/redo and keyframe editing — this is the preferred method for "
+            "parameter UI. Use raw html or other templates (orbit_camera, pad2d) only "
+            "for custom interactive panels that need HTML/JS."
         ),
         "input_schema": {
             "type": "object",
@@ -249,11 +232,18 @@ TOOLS = [
                 },
                 "template": {
                     "type": "string",
-                    "description": "Name of a pre-built panel template (e.g. 'orbit_camera', 'pad2d'). The template HTML is loaded from backend/panel_templates/{name}.html.",
+                    "description": (
+                        "Panel template name. Use 'controls' for native React controls "
+                        "(sliders, color pickers, toggles, etc.) — pass controls array in config.controls. "
+                        "Other templates: 'orbit_camera', 'pad2d' (loaded from backend/panel_templates/{name}.html)."
+                    ),
                 },
                 "config": {
                     "type": "object",
-                    "description": "Configuration object injected into the template as `const CONFIG = {...};`. Only used with template.",
+                    "description": (
+                        "Configuration object. For template='controls', must contain a 'controls' array "
+                        "(same format as ui_config controls). For other templates, injected as `const CONFIG = {...};`."
+                    ),
                 },
                 "width": {
                     "type": "number",
