@@ -352,6 +352,11 @@ export default function App() {
         if (msg.scene_json) setSceneJSON(msg.scene_json);
         if (msg.ui_config) setUiConfig(msg.ui_config);
         if (msg.projects) project.setProjectList(msg.projects);
+        if (msg.active_project) {
+          project.setActiveProject(msg.active_project.display_name || msg.active_project.name);
+        } else {
+          project.setActiveProject(null);
+        }
         if (msg.chat_history?.length) chat.restoreMessages(msg.chat_history);
         chat.setProcessing(!!msg.is_processing);
         if (msg.workspace_state) {
@@ -438,14 +443,14 @@ export default function App() {
         break;
 
       case "project_saved":
-        if (msg.meta) project.setActiveProject(msg.meta.name);
+        if (msg.meta) project.setActiveProject(msg.meta.display_name || msg.meta.name);
         dirtyRef.current = false;
         project.markSaved();
         break;
 
       case "project_loaded":
         resetUniformHistoryRef.current();
-        if (msg.meta) project.setActiveProject(msg.meta.name);
+        if (msg.meta) project.setActiveProject(msg.meta.display_name || msg.meta.name);
         if (msg.chat_history) chat.restoreMessages(msg.chat_history);
         if (msg.scene_json) setSceneJSON(msg.scene_json);
         if (msg.ui_config) setUiConfig(msg.ui_config);
@@ -716,6 +721,7 @@ export default function App() {
               onSave: project.handleProjectSave,
               onLoad: project.handleProjectLoad,
               onDelete: project.handleProjectDelete,
+              onImport: project.handleProjectImport,
               onDeleteWorkspaceFile: handleDeleteWorkspaceFile,
               workspaceFilesVersion,
             },

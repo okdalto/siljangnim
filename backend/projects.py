@@ -10,10 +10,12 @@ which folder all workspace I/O targets.
 """
 
 import base64
+import io
 import json
 import logging
 import re
 import shutil
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -239,6 +241,80 @@ def _safe_project_file_path(project_name: str, filepath: str) -> Path:
     if not str(resolved).startswith(str(project_dir.resolve())):
         raise PermissionError(f"Path escapes project sandbox: {filepath}")
     return resolved
+
+
+def export_project_zip(name: str) -> bytes:
+    """Export a project folder as a ZIP archive (in-memory)."""
+    project_dir = _safe_project_path(name)
+    if not project_dir.exists():
+        raise FileNotFoundError(f"Project not found: {name}")
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for p in project_dir.rglob("*"):
+            if p.is_file():
+                zf.write(p, p.relative_to(project_dir))
+    return buf.getvalue()
+
+
+def import_project_zip(zip_bytes: bytes) -> dict:
+    """Import a project from ZIP bytes. Returns the new project's meta dict."""
+    buf = io.BytesIO(zip_bytes)
+    if not zipfile.is_zipfile(buf):
+        raise ValueError("Invalid ZIP file")
+
+    buf.seek(0)
+    with zipfile.ZipFile(buf, "r") as zf:
+        names = zf.namelist()
+        # Validate: must contain meta.json or scene.json
+        if "meta.json" not in names and "scene.json" not in names:
+            raise ValueError("ZIP must contain meta.json or scene.json")
+
+        # Determine project name
+        project_name = "imported"
+        if "meta.json" in names:
+            try:
+                meta = json.loads(zf.read("meta.json"))
+                project_name = meta.get("name") or "imported"
+            except (json.JSONDecodeError, KeyError):
+                pass
+
+        # Resolve name conflicts with -2, -3, ... suffix
+        sanitized = _sanitize_name(project_name)
+        candidate = sanitized
+        counter = 2
+        while (PROJECTS_DIR / candidate).exists():
+            candidate = f"{sanitized}-{counter}"
+            counter += 1
+
+        project_dir = PROJECTS_DIR / candidate
+        project_dir.mkdir(parents=True, exist_ok=True)
+
+        # Extract all files
+        zf.extractall(project_dir)
+
+    # Update meta.json with the (possibly renamed) project name
+    now = datetime.now(timezone.utc).isoformat()
+    meta_path = project_dir / "meta.json"
+    if meta_path.exists():
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            meta = {}
+    else:
+        meta = {}
+
+    meta["name"] = candidate
+    if "display_name" not in meta:
+        meta["display_name"] = candidate
+    meta["updated_at"] = now
+    if "created_at" not in meta:
+        meta["created_at"] = now
+    meta["has_thumbnail"] = (project_dir / "thumbnail.jpg").exists()
+
+    meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+
+    return meta
 
 
 def list_project_files(name: str) -> list[dict]:

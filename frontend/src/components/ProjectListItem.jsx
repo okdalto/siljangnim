@@ -40,6 +40,16 @@ function TrashIcon() {
   );
 }
 
+function DownloadIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  );
+}
+
 function FolderBrowseIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline">
@@ -86,6 +96,21 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
     clearTimeout(deleteTimerRef.current);
     setConfirmDelete(false);
   };
+
+  const handleExport = useCallback(async (e) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch(`${API_BASE}/api/projects/${encodeURIComponent(p.name)}/export`);
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${p.display_name || p.name}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch { /* ignore */ }
+  }, [p.name, p.display_name]);
 
   const handleBrowseFiles = useCallback(async (e) => {
     e.stopPropagation();
@@ -162,6 +187,13 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
                     title="Browse files"
                   >
                     <FolderBrowseIcon />
+                  </button>
+                  <button
+                    onClick={handleExport}
+                    className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                    title="Export as ZIP"
+                  >
+                    <DownloadIcon />
                   </button>
                   <button
                     onClick={handleDeleteClick}
