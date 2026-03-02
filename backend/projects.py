@@ -3,25 +3,25 @@ Project save/load for siljangnim.
 
 Each project is a folder under .workspace/projects/ containing:
   meta.json, scene.json, ui_config.json, chat_history.json, thumbnail.jpg
+
+Projects ARE the workspace — no file copying between generated/ and project folders.
+The active workspace pointer (workspace.set_workspace_dir) simply switches
+which folder all workspace I/O targets.
 """
 
 import base64
 import json
+import logging
 import re
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
-WORKSPACE_DIR = Path(__file__).resolve().parent.parent / ".workspace"
-GENERATED_DIR = WORKSPACE_DIR / "generated"
-PROJECTS_DIR = WORKSPACE_DIR / "projects"
+import workspace
 
-# Files to copy between generated/ and project folders
-_COPY_FILES = [
-    "scene.json",
-    "ui_config.json",
-    "workspace_state.json",
-]
+logger = logging.getLogger(__name__)
+
+PROJECTS_DIR = workspace._PROJECTS_DIR
 
 
 def _sanitize_name(name: str) -> str:
@@ -47,25 +47,47 @@ def save_project(
     description: str = "",
     thumbnail_b64: str | None = None,
 ) -> dict:
-    """Copy current generated/ state into a named project folder."""
+    """Save the current workspace as a named project.
+
+    - If the active workspace is _untitled and name is new, MOVE the folder.
+    - If re-saving the same project, just update metadata.
+    - If saving to a different name, COPY the current workspace.
+    """
+    sanitized = _sanitize_name(name)
     project_dir = _safe_project_path(name)
-    project_dir.mkdir(parents=True, exist_ok=True)
+    current_dir = workspace.get_workspace_dir()
+    current_name = workspace.get_active_project_name()
 
-    # Copy workspace files
-    for fname in _COPY_FILES:
-        src = GENERATED_DIR / fname
-        if src.exists():
-            shutil.copy2(src, project_dir / fname)
-
-    # Copy uploads directory
-    src_uploads = GENERATED_DIR / "uploads"
-    dst_uploads = project_dir / "uploads"
-    if src_uploads.exists() and any(src_uploads.iterdir()):
-        if dst_uploads.exists():
-            shutil.rmtree(dst_uploads)
-        shutil.copytree(src_uploads, dst_uploads)
-    elif dst_uploads.exists():
-        shutil.rmtree(dst_uploads)
+    # First save: _untitled → named project (move)
+    if current_name == workspace._DEFAULT_PROJECT and sanitized != workspace._DEFAULT_PROJECT:
+        if project_dir.exists():
+            # Target already exists — merge current into it
+            for item in current_dir.iterdir():
+                dest = project_dir / item.name
+                if item.is_dir():
+                    if dest.exists():
+                        shutil.rmtree(dest)
+                    shutil.copytree(item, dest)
+                else:
+                    shutil.copy2(item, dest)
+            # Clean up _untitled
+            shutil.rmtree(current_dir)
+            current_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            # Simple rename
+            project_dir.parent.mkdir(parents=True, exist_ok=True)
+            current_dir.rename(project_dir)
+        # Switch pointer to the new project
+        workspace.set_workspace_dir(sanitized)
+    elif current_name != sanitized:
+        # Saving active project under a different name (copy)
+        if project_dir.exists():
+            shutil.rmtree(project_dir)
+        shutil.copytree(current_dir, project_dir)
+        workspace.set_workspace_dir(sanitized)
+    else:
+        # Re-saving the same project — workspace already points here
+        project_dir.mkdir(parents=True, exist_ok=True)
 
     # Save chat history
     (project_dir / "chat_history.json").write_text(
@@ -76,7 +98,6 @@ def save_project(
     has_thumbnail = False
     if thumbnail_b64:
         try:
-            # Strip data URL prefix if present
             if "," in thumbnail_b64:
                 thumbnail_b64 = thumbnail_b64.split(",", 1)[1]
             thumb_bytes = base64.b64decode(thumbnail_b64)
@@ -87,7 +108,6 @@ def save_project(
 
     # Write meta.json
     now = datetime.now(timezone.utc).isoformat()
-    sanitized = _sanitize_name(name)
 
     # Preserve created_at if project already exists
     meta_path = project_dir / "meta.json"
@@ -113,32 +133,20 @@ def save_project(
 
 
 def load_project(name: str) -> dict:
-    """Restore a saved project into generated/ and return its data."""
+    """Switch to a saved project and return its data. No file copying."""
     project_dir = _safe_project_path(name)
     if not project_dir.exists():
         raise FileNotFoundError(f"Project not found: {name}")
+
+    sanitized = _sanitize_name(name)
+
+    # Switch workspace pointer — this is the key change (no file copying)
+    workspace.set_workspace_dir(sanitized)
 
     meta = json.loads(
         (project_dir / "meta.json").read_text(encoding="utf-8")
     )
 
-    # Copy files back to generated/
-    for fname in _COPY_FILES:
-        src = project_dir / fname
-        if src.exists():
-            shutil.copy2(src, GENERATED_DIR / fname)
-
-    # Restore uploads directory
-    src_uploads = project_dir / "uploads"
-    dst_uploads = GENERATED_DIR / "uploads"
-    if dst_uploads.exists():
-        shutil.rmtree(dst_uploads)
-    if src_uploads.exists():
-        shutil.copytree(src_uploads, dst_uploads)
-    else:
-        dst_uploads.mkdir(parents=True, exist_ok=True)
-
-    # Read data to return to frontend
     chat_history = []
     ch_path = project_dir / "chat_history.json"
     if ch_path.exists():
@@ -189,11 +197,21 @@ def list_projects() -> list[dict]:
 
 
 def delete_project(name: str) -> None:
-    """Delete a project folder entirely."""
+    """Delete a project folder entirely.
+
+    If the deleted project is currently active, switch to _untitled.
+    """
     project_dir = _safe_project_path(name)
     if not project_dir.exists():
         raise FileNotFoundError(f"Project not found: {name}")
+
+    sanitized = _sanitize_name(name)
+    is_active = (workspace.get_active_project_name() == sanitized)
+
     shutil.rmtree(project_dir)
+
+    if is_active:
+        workspace.new_untitled_workspace()
 
 
 def _safe_project_file_path(project_name: str, filepath: str) -> Path:

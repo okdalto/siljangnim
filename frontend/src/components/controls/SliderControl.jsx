@@ -74,6 +74,17 @@ export default function SliderControl({ ctrl, onUniformChange, keyframeManagerRe
     if (ctrl.max != null) setRangeMax(ctrl.max);
   }, [ctrl.min, ctrl.max]);
 
+  // Listen for external value changes (undo/redo)
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail.uniform === ctrl.uniform) {
+        setValue(e.detail.value);
+      }
+    };
+    window.addEventListener("uniform-external-change", handler);
+    return () => window.removeEventListener("uniform-external-change", handler);
+  }, [ctrl.uniform]);
+
   useEffect(() => {
     if (!hasKf) return;
     let rafId;

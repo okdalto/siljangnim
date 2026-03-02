@@ -156,36 +156,62 @@ export default function App() {
   const uniformCoalesceRef = useRef({ uniform: null, timer: null });
   const uniformValuesRef = useRef({});
 
+  // Initialize uniform tracking from sceneJSON (live engine values = ground truth).
+  // Controls now receive these merged values via ctrl.default, so both are in sync.
   useEffect(() => {
     if (sceneJSON?.uniforms) {
       const vals = uniformValuesRef.current;
       for (const [name, def] of Object.entries(sceneJSON.uniforms)) {
-        if (def.value !== undefined) vals[name] = def.value;
+        if (def.value !== undefined && !(name in vals)) {
+          vals[name] = def.value;
+        }
       }
     }
   }, [sceneJSON]);
+
+  // Fallback: controls whose uniform isn't in sceneJSON
+  useEffect(() => {
+    const vals = uniformValuesRef.current;
+    for (const ctrl of uiConfig.controls || []) {
+      if (ctrl.uniform && ctrl.default !== undefined && !(ctrl.uniform in vals)) {
+        vals[ctrl.uniform] = ctrl.default;
+      }
+    }
+  }, [uiConfig]);
+
+  const resetUniformHistory = useCallback(() => {
+    uniformHistoryRef.current = { past: [], future: [] };
+    uniformValuesRef.current = {};
+    if (uniformCoalesceRef.current.timer) clearTimeout(uniformCoalesceRef.current.timer);
+    uniformCoalesceRef.current = { uniform: null, timer: null };
+  }, []);
+  const resetUniformHistoryRef = useRef(resetUniformHistory);
+  resetUniformHistoryRef.current = resetUniformHistory;
+
+  const _applyUniformExternal = useCallback((uniform, value) => {
+    uniformValuesRef.current[uniform] = value;
+    if (engineRef.current) engineRef.current.updateUniform(uniform, value);
+    sendRef.current?.({ type: "set_uniform", uniform, value });
+    window.dispatchEvent(new CustomEvent("uniform-external-change", { detail: { uniform, value } }));
+  }, []);
 
   const undoUniform = useCallback(() => {
     const h = uniformHistoryRef.current;
     if (h.past.length === 0) return false;
     const entry = h.past.pop();
     h.future.push(entry);
-    uniformValuesRef.current[entry.uniform] = entry.oldValue;
-    if (engineRef.current) engineRef.current.updateUniform(entry.uniform, entry.oldValue);
-    sendRef.current?.({ type: "set_uniform", uniform: entry.uniform, value: entry.oldValue });
+    _applyUniformExternal(entry.uniform, entry.oldValue);
     return true;
-  }, []);
+  }, [_applyUniformExternal]);
 
   const redoUniform = useCallback(() => {
     const h = uniformHistoryRef.current;
     if (h.future.length === 0) return false;
     const entry = h.future.pop();
     h.past.push(entry);
-    uniformValuesRef.current[entry.uniform] = entry.newValue;
-    if (engineRef.current) engineRef.current.updateUniform(entry.uniform, entry.newValue);
-    sendRef.current?.({ type: "set_uniform", uniform: entry.uniform, value: entry.newValue });
+    _applyUniformExternal(entry.uniform, entry.newValue);
     return true;
-  }, []);
+  }, [_applyUniformExternal]);
 
   // Undo/Redo shortcuts
   useEffect(() => {
@@ -244,6 +270,7 @@ export default function App() {
 
     switch (msg.type) {
       case "init":
+        resetUniformHistoryRef.current();
         if (msg.scene_json) setSceneJSON(msg.scene_json);
         if (msg.ui_config) setUiConfig(msg.ui_config);
         if (msg.projects) project.setProjectList(msg.projects);
@@ -317,6 +344,7 @@ export default function App() {
         break;
 
       case "project_loaded":
+        resetUniformHistoryRef.current();
         if (msg.meta) project.setActiveProject(msg.meta.name);
         if (msg.chat_history) chat.restoreMessages(msg.chat_history);
         if (msg.scene_json) setSceneJSON(msg.scene_json);
@@ -411,20 +439,25 @@ export default function App() {
       const c = uniformCoalesceRef.current;
       const vals = uniformValuesRef.current;
 
-      // Coalesce rapid changes to the same uniform (e.g. slider drag)
+      // Coalesce rapid changes to the same uniform (e.g. slider drag).
+      // 50ms window — long enough to batch continuous drag events (~16ms at 60fps)
+      // but short enough that separate user actions always create new entries.
       if (c.uniform === uniform && c.timer) {
         clearTimeout(c.timer);
         if (h.past.length > 0) {
           h.past[h.past.length - 1].newValue = value;
         }
       } else {
-        const oldValue = vals[uniform];
-        h.past.push({ uniform, oldValue, newValue: value });
-        if (h.past.length > 100) h.past.shift();
-        h.future.length = 0;
+        const oldValue = vals[uniform] ?? value;
+        if (oldValue !== value) {
+          h.past.push({ uniform, oldValue, newValue: value });
+          if (h.past.length > 100) h.past.shift();
+          h.future.length = 0;
+        }
       }
       c.uniform = uniform;
-      c.timer = setTimeout(() => { c.uniform = null; c.timer = null; }, 500);
+      if (c.timer) clearTimeout(c.timer);
+      c.timer = setTimeout(() => { c.uniform = null; c.timer = null; }, 50);
 
       vals[uniform] = value;
       if (engineRef.current) engineRef.current.updateUniform(uniform, value);
@@ -450,6 +483,7 @@ export default function App() {
       msg.workspace_state = getWorkspaceState();
     }
     chat.clearAll();
+    resetUniformHistory();
     setSceneJSON(null);
     setUiConfig({ controls: [], inspectable_buffers: [] });
     project.setActiveProject(null);
@@ -459,7 +493,7 @@ export default function App() {
     dirtyRef.current = false;
     project.markSaved();
     send(msg);
-  }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, chat.clearAll, kf.resetKeyframes, project.setActiveProject, project.markSaved]);
+  }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, chat.clearAll, resetUniformHistory, kf.resetKeyframes, project.setActiveProject, project.markSaved]);
 
   const API_BASE = import.meta.env.DEV
     ? `http://${window.location.hostname}:8000`
@@ -519,11 +553,32 @@ export default function App() {
           };
         }
         if (node.id === "inspector") {
+          // Merge live uniform values into controls so sliders start at
+          // the actual engine value, not just ctrl.default
+          const uniforms = sceneJSON?.uniforms;
+          const mergedControls = (uiConfig.controls || []).map((ctrl) => {
+            if (uniforms && ctrl.uniform && uniforms[ctrl.uniform]) {
+              const live = uniforms[ctrl.uniform].value;
+              if (live !== undefined && ctrl.type !== "color") {
+                return { ...ctrl, default: live };
+              }
+              // For color controls, convert [r,g,b,a] floats → hex+alpha
+              if (live !== undefined && ctrl.type === "color" && Array.isArray(live) && live.length >= 3) {
+                const toHex = (v) => Math.round(v * 255).toString(16).padStart(2, "0");
+                let hex = `#${toHex(live[0])}${toHex(live[1])}${toHex(live[2])}`;
+                if (live.length >= 4 && live[3] < 1) {
+                  hex += toHex(live[3]);
+                }
+                return { ...ctrl, default: hex };
+              }
+            }
+            return ctrl;
+          });
           return {
             ...node,
             data: {
               ...node.data,
-              controls: uiConfig.controls || [],
+              controls: mergedControls,
               onUniformChange: handleUniformChange,
               keyframeManagerRef: kf.keyframeManagerRef,
               engineRef,

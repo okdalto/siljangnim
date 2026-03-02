@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 export default function ColorControl({ ctrl, onUniformChange }) {
   const [color, setColor] = useState(() => {
@@ -13,6 +13,23 @@ export default function ColorControl({ ctrl, onUniformChange }) {
     }
     return 1;
   });
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail.uniform === ctrl.uniform) {
+        const v = e.detail.value;
+        if (Array.isArray(v) && v.length >= 3) {
+          const r = Math.round(v[0] * 255).toString(16).padStart(2, "0");
+          const g = Math.round(v[1] * 255).toString(16).padStart(2, "0");
+          const b = Math.round(v[2] * 255).toString(16).padStart(2, "0");
+          setColor(`#${r}${g}${b}`);
+          if (v.length >= 4) setAlpha(v[3]);
+        }
+      }
+    };
+    window.addEventListener("uniform-external-change", handler);
+    return () => window.removeEventListener("uniform-external-change", handler);
+  }, [ctrl.uniform]);
 
   const emit = useCallback(
     (hex, a) => {

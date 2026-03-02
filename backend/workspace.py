@@ -1,29 +1,183 @@
 """
 Sandboxed workspace I/O for siljangnim.
 
-All AI-generated outputs MUST be written strictly inside WORKSPACE_DIR.
+All AI-generated outputs MUST be written strictly inside the active workspace dir.
 This module enforces path safety so no agent can escape the sandbox.
+
+The active workspace is a folder under .workspace/projects/<name>/.
+A pointer file (.active_project) tracks which project is active across restarts.
 """
 
 import json
+import logging
 import mimetypes
 import shutil
 from pathlib import Path
 
-WORKSPACE_DIR = Path(__file__).resolve().parent.parent / ".workspace" / "generated"
-UPLOADS_DIR = WORKSPACE_DIR / "uploads"
+logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Base directory constants
+# ---------------------------------------------------------------------------
+
+_BASE_DIR = Path(__file__).resolve().parent.parent / ".workspace"
+_PROJECTS_DIR = _BASE_DIR / "projects"
+_DEFAULT_PROJECT = "_untitled"
+_ACTIVE_PROJECT_FILE = _BASE_DIR / ".active_project"
+
+# Dynamic pointer — changed via set_workspace_dir()
+_active_workspace_dir: Path = _PROJECTS_DIR / _DEFAULT_PROJECT
+
+
+# ---------------------------------------------------------------------------
+# Public accessors
+# ---------------------------------------------------------------------------
+
+def get_workspace_dir() -> Path:
+    """Return the currently active workspace directory."""
+    return _active_workspace_dir
+
+
+def get_uploads_dir() -> Path:
+    """Return the uploads directory inside the active workspace."""
+    return _active_workspace_dir / "uploads"
+
+
+def get_processed_dir(filename: str) -> Path:
+    """Get processed output directory for a file (stem_ext form to avoid collisions).
+
+    Example: logo.png → processed/logo_png/
+    """
+    p = Path(filename)
+    return get_uploads_dir() / "processed" / f"{p.stem}_{p.suffix.lstrip('.')}"
+
+
+def get_active_project_name() -> str:
+    """Return the sanitized name of the currently active project."""
+    return _active_workspace_dir.name
+
+
+def set_workspace_dir(name: str) -> None:
+    """Switch the active workspace pointer to projects/<name>/.
+
+    Creates the directory if it doesn't exist, and persists the choice
+    to .active_project so it survives server restarts.
+    """
+    global _active_workspace_dir
+    target = _PROJECTS_DIR / name
+    target.mkdir(parents=True, exist_ok=True)
+    _active_workspace_dir = target
+    _persist_active_project(name)
+    logger.info("Workspace switched to: %s", name)
+
+
+# ---------------------------------------------------------------------------
+# Initialization & migration
+# ---------------------------------------------------------------------------
+
+def init_workspace() -> None:
+    """Call once at server startup.
+
+    1. Migrate legacy generated/ → _untitled/ if needed.
+    2. Restore the last active project from .active_project.
+    3. Ensure the workspace directory exists.
+    """
+    _PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Migration: move generated/ contents to _untitled/
+    legacy_dir = _BASE_DIR / "generated"
+    if legacy_dir.exists() and any(legacy_dir.iterdir()):
+        untitled = _PROJECTS_DIR / _DEFAULT_PROJECT
+        if untitled.exists() and any(untitled.iterdir()):
+            # Both exist — merge generated/ into _untitled/ (generated/ wins)
+            for item in legacy_dir.iterdir():
+                dest = untitled / item.name
+                if item.is_dir():
+                    if dest.exists():
+                        shutil.rmtree(dest)
+                    shutil.copytree(item, dest)
+                else:
+                    shutil.copy2(item, dest)
+            shutil.rmtree(legacy_dir)
+        else:
+            untitled.parent.mkdir(parents=True, exist_ok=True)
+            legacy_dir.rename(untitled)
+        logger.info("Migrated generated/ → projects/%s/", _DEFAULT_PROJECT)
+
+    # Clean up empty generated/ dir if it still exists
+    if legacy_dir.exists() and not any(legacy_dir.iterdir()):
+        legacy_dir.rmdir()
+
+    # Restore last active project
+    _restore_active_project()
+
+
+def new_untitled_workspace() -> None:
+    """Reset to a fresh _untitled workspace.
+
+    Removes any existing _untitled/ contents and creates a clean directory.
+    """
+    untitled = _PROJECTS_DIR / _DEFAULT_PROJECT
+    if untitled.exists():
+        shutil.rmtree(untitled)
+    untitled.mkdir(parents=True, exist_ok=True)
+    set_workspace_dir(_DEFAULT_PROJECT)
+
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
+
+def _persist_active_project(name: str) -> None:
+    """Write the active project name to the pointer file."""
+    _ACTIVE_PROJECT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _ACTIVE_PROJECT_FILE.write_text(name, encoding="utf-8")
+
+
+def _restore_active_project() -> None:
+    """Read the pointer file and switch to that project (if it exists)."""
+    global _active_workspace_dir
+    if _ACTIVE_PROJECT_FILE.exists():
+        try:
+            name = _ACTIVE_PROJECT_FILE.read_text(encoding="utf-8").strip()
+            target = _PROJECTS_DIR / name
+            if target.exists():
+                _active_workspace_dir = target
+                logger.info("Restored active project: %s", name)
+                return
+        except OSError:
+            pass
+
+    # Fallback to _untitled
+    _active_workspace_dir = _PROJECTS_DIR / _DEFAULT_PROJECT
+    _active_workspace_dir.mkdir(parents=True, exist_ok=True)
+    _persist_active_project(_DEFAULT_PROJECT)
+
+
+# ---------------------------------------------------------------------------
+# Sandboxed path resolution
+# ---------------------------------------------------------------------------
 
 def _safe_path(filename: str) -> Path:
     """Resolve a filename inside the sandbox and reject directory traversal."""
-    resolved = (WORKSPACE_DIR / filename).resolve()
-    if not str(resolved).startswith(str(WORKSPACE_DIR.resolve())):
+    ws = get_workspace_dir()
+    resolved = (ws / filename).resolve()
+    if not str(resolved).startswith(str(ws.resolve())):
         raise PermissionError(f"Path escapes sandbox: {filename}")
     return resolved
 
 
+def safe_path(filename: str) -> Path:
+    """Public alias for _safe_path."""
+    return _safe_path(filename)
+
+
+# ---------------------------------------------------------------------------
+# File I/O
+# ---------------------------------------------------------------------------
+
 def write_file(filename: str, content: str) -> Path:
-    """Write content to a file inside the generated workspace."""
+    """Write content to a file inside the active workspace."""
     path = _safe_path(filename)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
@@ -31,7 +185,7 @@ def write_file(filename: str, content: str) -> Path:
 
 
 def read_file(filename: str) -> str:
-    """Read a file from the generated workspace."""
+    """Read a file from the active workspace."""
     path = _safe_path(filename)
     if not path.exists():
         raise FileNotFoundError(f"File not found in workspace: {filename}")
@@ -39,28 +193,30 @@ def read_file(filename: str) -> str:
 
 
 def list_files() -> list[str]:
-    """List all files in the generated workspace (relative paths)."""
-    if not WORKSPACE_DIR.exists():
+    """List all files in the active workspace (relative paths)."""
+    ws = get_workspace_dir()
+    if not ws.exists():
         return []
     return [
-        str(p.relative_to(WORKSPACE_DIR))
-        for p in WORKSPACE_DIR.rglob("*")
+        str(p.relative_to(ws))
+        for p in ws.rglob("*")
         if p.is_file() and p.name != ".gitkeep"
     ]
 
 
 def list_files_detailed() -> list[dict]:
     """List all files with size, mime_type, modified metadata."""
-    if not WORKSPACE_DIR.exists():
+    ws = get_workspace_dir()
+    if not ws.exists():
         return []
     files = []
-    for p in WORKSPACE_DIR.rglob("*"):
+    for p in ws.rglob("*"):
         if not p.is_file() or p.name == ".gitkeep":
             continue
         stat = p.stat()
         mime, _ = mimetypes.guess_type(str(p))
         files.append({
-            "path": str(p.relative_to(WORKSPACE_DIR)),
+            "path": str(p.relative_to(ws)),
             "size": stat.st_size,
             "mime_type": mime or "application/octet-stream",
             "modified": stat.st_mtime,
@@ -92,9 +248,10 @@ def read_json(filename: str) -> dict:
 # ---------------------------------------------------------------------------
 
 def _safe_upload_path(filename: str) -> Path:
-    """Resolve a filename inside UPLOADS_DIR and reject directory traversal."""
-    resolved = (UPLOADS_DIR / filename).resolve()
-    if not str(resolved).startswith(str(UPLOADS_DIR.resolve())):
+    """Resolve a filename inside the uploads dir and reject directory traversal."""
+    uploads = get_uploads_dir()
+    resolved = (uploads / filename).resolve()
+    if not str(resolved).startswith(str(uploads.resolve())):
         raise PermissionError(f"Path escapes upload sandbox: {filename}")
     return resolved
 
@@ -125,11 +282,12 @@ def read_upload_text(filename: str) -> str:
 
 def list_uploads() -> list[str]:
     """List all files in the uploads directory."""
-    if not UPLOADS_DIR.exists():
+    uploads = get_uploads_dir()
+    if not uploads.exists():
         return []
     return [
-        str(p.relative_to(UPLOADS_DIR))
-        for p in UPLOADS_DIR.rglob("*")
+        str(p.relative_to(uploads))
+        for p in uploads.rglob("*")
         if p.is_file()
     ]
 
@@ -149,26 +307,15 @@ def get_upload_info(filename: str) -> dict:
 
 def clear_uploads() -> None:
     """Remove all files from the uploads directory."""
-    if UPLOADS_DIR.exists():
-        shutil.rmtree(UPLOADS_DIR)
-    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    uploads = get_uploads_dir()
+    if uploads.exists():
+        shutil.rmtree(uploads)
+    uploads.mkdir(parents=True, exist_ok=True)
 
 
 # ---------------------------------------------------------------------------
 # Processed file derivatives
 # ---------------------------------------------------------------------------
-
-PROCESSED_DIR = UPLOADS_DIR / "processed"
-
-
-def get_processed_dir(filename: str) -> Path:
-    """Get processed output directory for a file (stem_ext form to avoid collisions).
-
-    Example: logo.png → processed/logo_png/
-    """
-    p = Path(filename)
-    return PROCESSED_DIR / f"{p.stem}_{p.suffix.lstrip('.')}"
-
 
 def read_processed_manifest(filename: str) -> dict | None:
     """Read the processing manifest for a file, or None if not processed."""
