@@ -6,9 +6,12 @@ Rendering is done client-side via WebGL2. Backend manages Claude Agent SDK agent
 import asyncio
 import base64
 import json
+import logging
 import re
 from contextlib import asynccontextmanager
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -102,6 +105,12 @@ _MAX_AUTO_FIX = 3
 async def lifespan(app: FastAPI):
     global _api_key
     _api_key = config.load_api_key()
+
+    # Initialize workspace (migration + restore active project)
+    workspace.init_workspace()
+
+    # Load agent conversations for the active workspace
+    agents.load_conversations()
 
     # Seed defaults
     existing = workspace.list_files()
@@ -756,21 +765,12 @@ async def websocket_endpoint(ws: WebSocket):
                 _chat_history.clear()
                 await agents.reset_agent(_AGENT_WS_ID)
 
-                # 2. Reset workspace files to defaults
+                # 2. Switch to a fresh _untitled workspace
+                workspace.new_untitled_workspace()
+
+                # 3. Seed default files
                 workspace.write_json("scene.json", DEFAULT_SCENE_JSON)
                 workspace.write_json("ui_config.json", DEFAULT_UI_CONFIG)
-
-                # 3. Clear uploads
-                workspace.clear_uploads()
-
-                # Clean up old files
-                for old_file in ["scene.py", "pipeline.json", "uniforms.json", "renderer_status.json", "workspace_state.json"]:
-                    try:
-                        p = workspace._safe_path(old_file)
-                        if p.exists():
-                            p.unlink()
-                    except Exception:
-                        pass
 
                 # 4. Broadcast init with default scene
                 await manager.broadcast({
@@ -828,6 +828,8 @@ async def websocket_endpoint(ws: WebSocket):
                     result = projects.load_project(msg.get("name", ""))
                     _chat_history.clear()
                     _chat_history.extend(result["chat_history"])
+                    # Reload agent conversations for the new workspace
+                    agents.load_conversations()
                     await ws.send_text(json.dumps({
                         "type": "project_loaded",
                         **result,

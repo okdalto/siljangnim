@@ -24,7 +24,6 @@ import workspace
 # ---------------------------------------------------------------------------
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
-_WORKSPACE_DIR = _PROJECT_ROOT / ".workspace"
 
 _IGNORED_DIRS = {
     ".git", "node_modules", ".venv", "__pycache__", "dist",
@@ -49,7 +48,11 @@ BroadcastCallback = Callable[[dict], Awaitable[None]]
 # ---------------------------------------------------------------------------
 
 _conversations: dict[int, list[dict]] = {}
-_CONVERSATION_FILE = Path(__file__).resolve().parent.parent / ".workspace" / "generated" / "conversation.json"
+
+
+def _get_conversation_file() -> Path:
+    """Return the conversation file path inside the active workspace."""
+    return workspace.get_workspace_dir() / "conversation.json"
 
 # Future for ask_user tool — resolved when the user answers
 _user_answer_future: asyncio.Future | None = None
@@ -58,28 +61,31 @@ _user_answer_future: asyncio.Future | None = None
 def _save_conversations() -> None:
     """Persist conversation history to disk."""
     try:
-        _CONVERSATION_FILE.parent.mkdir(parents=True, exist_ok=True)
-        _CONVERSATION_FILE.write_text(
+        conv_file = _get_conversation_file()
+        conv_file.parent.mkdir(parents=True, exist_ok=True)
+        conv_file.write_text(
             json.dumps(_conversations, ensure_ascii=False), encoding="utf-8"
         )
     except OSError:
         pass
 
 
-def _load_conversations() -> None:
-    """Load conversation history from disk on startup."""
+def load_conversations() -> None:
+    """Load conversation history from disk.
+
+    Called after workspace.init_workspace() so the active workspace is set.
+    """
     global _conversations
     try:
-        if _CONVERSATION_FILE.exists():
-            data = json.loads(_CONVERSATION_FILE.read_text(encoding="utf-8"))
+        conv_file = _get_conversation_file()
+        if conv_file.exists():
+            data = json.loads(conv_file.read_text(encoding="utf-8"))
             # JSON keys are strings — convert back to int
             _conversations = {int(k): v for k, v in data.items()}
+        else:
+            _conversations = {}
     except (OSError, json.JSONDecodeError, ValueError):
         _conversations = {}
-
-
-# Load on module import
-_load_conversations()
 
 # ---------------------------------------------------------------------------
 # Scene JSON validation
@@ -618,7 +624,7 @@ existing patterns before writing scripts.
 You can run Python code and limited shell commands to process data, \
 convert files, or install packages.
 
-- `run_python(code)`: Execute Python code in .workspace/generated/. \
+- `run_python(code)`: Execute Python code in the active workspace directory. \
 Use this to parse uploaded files, transform data, generate textures, \
 or create any WebGL-ready assets. Has access to all installed packages.
 - `run_command(command)`: Run whitelisted commands (pip, ffmpeg, ffprobe, \
@@ -1147,7 +1153,7 @@ TOOLS = [
         "name": "run_python",
         "description": (
             "Execute Python code in a sandboxed subprocess. "
-            "Working directory is .workspace/generated/. "
+            "Working directory is the active workspace. "
             "Can read project files, but can only write to .workspace/. "
             "Has access to installed packages (fonttools, numpy, Pillow, etc). "
             "Returns stdout and stderr. Timeout: 30 seconds."
@@ -1168,7 +1174,7 @@ TOOLS = [
         "description": (
             "Run a whitelisted shell command. "
             "Allowed commands: pip, ffmpeg, ffprobe, convert, magick. "
-            "Working directory is .workspace/generated/. Timeout: 60 seconds."
+            "Working directory is the active workspace. Timeout: 60 seconds."
         ),
         "input_schema": {
             "type": "object",
@@ -1568,7 +1574,7 @@ async def _handle_tool(
             return "Error: path is outside the project root."
         # Check that the path is under .workspace/
         try:
-            resolved.relative_to(_WORKSPACE_DIR.resolve())
+            resolved.relative_to(workspace._BASE_DIR.resolve())
         except ValueError:
             return "Write access denied. Only .workspace/ is writable."
         try:
@@ -1628,7 +1634,7 @@ async def _handle_tool(
         code = input_data.get("code", "")
         if not code.strip():
             return "Error: empty code."
-        gen_dir = _WORKSPACE_DIR / "generated"
+        gen_dir = workspace.get_workspace_dir()
         gen_dir.mkdir(parents=True, exist_ok=True)
         tmp_file = gen_dir / "_run_tmp.py"
         try:
@@ -1673,7 +1679,7 @@ async def _handle_tool(
         # Rewrite pip to use the current Python interpreter
         if cmd_name == "pip":
             args = [sys.executable, "-m", "pip"] + args[1:]
-        gen_dir = _WORKSPACE_DIR / "generated"
+        gen_dir = workspace.get_workspace_dir()
         gen_dir.mkdir(parents=True, exist_ok=True)
         try:
             result = subprocess.run(

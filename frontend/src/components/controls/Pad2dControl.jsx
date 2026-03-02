@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 
 export default function Pad2dControl({ ctrl, onUniformChange }) {
   const minX = ctrl.min?.[0] ?? -1;
@@ -8,6 +8,17 @@ export default function Pad2dControl({ ctrl, onUniformChange }) {
   const [pos, setPos] = useState(ctrl.default || [0, 0]);
   const padRef = useRef(null);
   const dragging = useRef(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail.uniform === ctrl.uniform) {
+        const v = e.detail.value;
+        if (Array.isArray(v) && v.length >= 2) setPos(v);
+      }
+    };
+    window.addEventListener("uniform-external-change", handler);
+    return () => window.removeEventListener("uniform-external-change", handler);
+  }, [ctrl.uniform]);
 
   const updateFromPointer = useCallback(
     (e) => {
