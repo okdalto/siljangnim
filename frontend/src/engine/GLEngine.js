@@ -504,22 +504,24 @@ export default class GLEngine {
       dstW = Math.round(dstH * aspect);
     }
 
-    // Reuse or recreate readback FBO
-    if (!this._readbackFBO || this._readbackW !== dstW || this._readbackH !== dstH) {
-      if (this._readbackFBO) {
-        gl.deleteFramebuffer(this._readbackFBO);
-        gl.deleteTexture(this._readbackTex);
+    // Per-key readback FBO cache to avoid thrashing with multiple targets
+    if (!this._readbackCache) this._readbackCache = {};
+    let rb = this._readbackCache[stateKey];
+    if (!rb || rb.w !== dstW || rb.h !== dstH) {
+      if (rb) {
+        gl.deleteFramebuffer(rb.fbo);
+        gl.deleteTexture(rb.tex);
       }
-      this._readbackTex = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, this._readbackTex);
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, dstW, dstH, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      this._readbackFBO = gl.createFramebuffer();
-      gl.bindFramebuffer(gl.FRAMEBUFFER, this._readbackFBO);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._readbackTex, 0);
-      this._readbackW = dstW;
-      this._readbackH = dstH;
+      const fbo = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      rb = { fbo, tex, w: dstW, h: dstH };
+      this._readbackCache[stateKey] = rb;
     }
 
     // Save current framebuffer binding
@@ -528,7 +530,7 @@ export default class GLEngine {
 
     // Blit source FBO → readback FBO (downscale)
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, rt.framebuffer);
-    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._readbackFBO);
+    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, rb.fbo);
     gl.blitFramebuffer(
       0, 0, rt.width, rt.height,
       0, 0, dstW, dstH,
@@ -536,7 +538,7 @@ export default class GLEngine {
     );
 
     // Read pixels
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._readbackFBO);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, rb.fbo);
     const pixels = new Uint8Array(dstW * dstH * 4);
     gl.readPixels(0, 0, dstW, dstH, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
@@ -589,6 +591,16 @@ export default class GLEngine {
     this.canvas.height = height;
   }
 
+  _disposeReadbackCache() {
+    if (this._readbackCache) {
+      for (const rb of Object.values(this._readbackCache)) {
+        this.gl?.deleteFramebuffer(rb.fbo);
+        this.gl?.deleteTexture(rb.tex);
+      }
+      this._readbackCache = null;
+    }
+  }
+
   _disposeScene() {
     const gl = this.gl;
     if (!gl) return;
@@ -607,6 +619,7 @@ export default class GLEngine {
     this._scriptCleanupFn = null;
 
     this._audioManager?.reset();
+    this._disposeReadbackCache();
 
     this._customUniforms = {};
     this._keyboardBindings = {};
@@ -617,15 +630,7 @@ export default class GLEngine {
     this.stop();
     this._disposeScene();
     this._audioManager?.dispose();
-    // Clean up readback FBO used by captureBuffer
-    if (this._readbackFBO) {
-      this.gl?.deleteFramebuffer(this._readbackFBO);
-      this.gl?.deleteTexture(this._readbackTex);
-      this._readbackFBO = null;
-      this._readbackTex = null;
-      this._readbackW = 0;
-      this._readbackH = 0;
-    }
+    this._disposeReadbackCache();
     this._scene = null;
   }
 }

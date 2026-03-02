@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function BufferPreviewControl({ ctrl, engineRef }) {
   const canvasRef = useRef(null);
+  const [aspect, setAspect] = useState(1);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -14,10 +15,10 @@ export default function BufferPreviewControl({ ctrl, engineRef }) {
       const imageData = engine.captureBuffer(ctrl.stateKey, ctrl.maxSize || 256);
       if (!imageData) return;
 
-      // Resize canvas to match captured buffer dimensions
       if (canvas.width !== imageData.width || canvas.height !== imageData.height) {
         canvas.width = imageData.width;
         canvas.height = imageData.height;
+        setAspect(imageData.width / imageData.height);
       }
       ctx2d.putImageData(imageData, 0, 0);
     }, 200); // ~5fps
@@ -31,7 +32,7 @@ export default function BufferPreviewControl({ ctrl, engineRef }) {
       <canvas
         ref={canvasRef}
         className="w-full rounded"
-        style={{ background: "#000", aspectRatio: "1 / 1", imageRendering: "pixelated" }}
+        style={{ background: "#000", aspectRatio: `${aspect}` }}
       />
     </div>
   );
