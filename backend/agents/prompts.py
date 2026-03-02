@@ -69,6 +69,7 @@ The engine exposes these utilities on `ctx.utils` for convenience:
 | `ctx.utils.loadImage(url)` | Load image → `Promise<{texture, width, height}>` (Y-flipped) |
 | `ctx.utils.initWebcam()` | Start webcam → `Promise<{video, texture, stream}>` |
 | `ctx.utils.updateVideoTexture(texture, video)` | Refresh webcam/video texture each frame (Y-flipped) |
+| `ctx.utils.createRenderTarget(w, h, opts?)` | FBO render target creation → `{framebuffer, texture, width, height}`. Store in `ctx.state`. opts: `{internalFormat, format, type, filter, depth}` |
 | `ctx.utils.sampleCurve(points, t)` | Sample a graph control's curve at position t (0-1). `points` = `ctx.uniforms.u_curve` |
 
 **Y-coordinate note**: All texture upload utilities automatically flip Y to match \
@@ -163,6 +164,9 @@ Uniform stores the control points array. In scripts, use \
 ctx.utils.sampleCurve(ctx.uniforms.u_curve, t) to sample (t: 0-1 → y value). \
 Example: `{"type":"graph","label":"Falloff","uniform":"u_falloff",\
 "min":0,"max":1,"default":[[0,1],[0.5,0.8],[1,0]]}`.
+- "buffer_preview": live GPU buffer preview. Needs `stateKey` (ctx.state key \
+where a render target from createRenderTarget() is stored) and `label`. \
+~5fps readback. Example: {"type":"buffer_preview","label":"Normal","stateKey":"normalTarget"}.
 - "html": custom HTML/CSS/JS block rendered in a mini-iframe. Needs `html` \
 (HTML string) and optionally `height` (pixels, default 150). App theme CSS \
 and bridge API are auto-injected. Use `panel.setUniform(name, value)` inside \

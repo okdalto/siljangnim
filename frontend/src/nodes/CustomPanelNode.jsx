@@ -11,6 +11,7 @@ import SeparatorControl from "../components/controls/SeparatorControl.jsx";
 import TextControl from "../components/controls/TextControl.jsx";
 import GraphControl from "../components/controls/GraphControl.jsx";
 import HtmlControl from "../components/controls/HtmlControl.jsx";
+import BufferPreviewControl from "../components/controls/BufferPreviewControl.jsx";
 import BRIDGE_SCRIPT from "../constants/panelBridge.js";
 import PANEL_THEME_CSS from "../constants/panelTheme.js";
 
@@ -27,6 +28,7 @@ const CONTROL_MAP = {
   text: TextControl,
   graph: GraphControl,
   html: HtmlControl,
+  buffer_preview: BufferPreviewControl,
 };
 
 /* ── Inject bridge + theme CSS into HTML panel iframe ─────────── */
