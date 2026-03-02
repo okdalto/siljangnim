@@ -12,6 +12,72 @@
 ![WebGL2](https://img.shields.io/badge/WebGL2-ES_3.0-blue)
 ![License](https://img.shields.io/badge/license-GPLv3-green)
 
+## What can it do?
+
+Chat with the AI agent in plain language — it writes WebGL2 shaders, builds UI panels, and wires everything together in real-time.
+
+### Visual Creation
+
+Tell it what you want to see:
+
+> "파란 파도가 화면을 천천히 가로지르는 셰이더 만들어줘"
+>
+> "Make a reaction-diffusion simulation with mouse interaction"
+>
+> "Create a raymarched scene with a reflective sphere on an infinite plane"
+
+The agent writes GLSL shaders, compiles them, and renders them live — multi-pass buffers, 3D geometry, post-processing, all handled automatically.
+
+### Auto-generated UI Controls
+
+The agent creates interactive control panels based on what the scene needs:
+
+> "색상이랑 속도 조절할 수 있게 컨트롤 패널 만들어줘"
+
+It generates sliders, color pickers, toggles, 2D pads, dropdowns, camera orbit controls, buffer previews, and more. All controls are linked to shader uniforms with undo/redo and keyframe animation support.
+
+```
+┌─ Wave Controls ─────────────────┐
+│ Speed       ●━━━━━━━━━━━  0.8   │
+│ Amplitude   ━━━━●━━━━━━━  0.4   │
+│ Color       [■ #3b82f6]        │
+│ Wireframe   [  ○ OFF  ]        │
+│ Shape       [ Sphere ▾ ]       │
+└─────────────────────────────────┘
+```
+
+### Audio-reactive Visuals
+
+Upload an audio file or use a URL — the agent analyzes bass/mid/treble, FFT, and waveform data in real-time:
+
+> "이 음악에 반응하는 비주얼 만들어줘. 베이스에 원이 커지고 하이에 색이 바뀌게"
+
+### MediaPipe Hand/Pose/Face Tracking
+
+Webcam-based real-time tracking using MediaPipe Vision:
+
+> "웹캠으로 손 인식해서 두 손으로 pinch하면 와이어프레임 박스가 나타나게 해줘"
+
+Supports 33-point body pose, 21-point hand landmarks (2 hands), and 478-point face mesh — all available as GPU textures for shader consumption.
+
+### 3D Models & Skeletal Animation
+
+Upload `.obj`, `.fbx`, `.gltf`, `.glb` files — the agent auto-processes geometry, materials, textures, and skeletal animation data:
+
+> "Upload a character model and render it with rim lighting and idle animation"
+
+### File Processing & Upload
+
+Upload images, fonts, SVGs, audio, video, and 3D models. Each file is automatically processed into WebGL-ready derivatives (bitmap atlases, spectrograms, geometry JSON, etc.).
+
+### Recording & Export
+
+Record the viewport to MP4 (offline, frame-exact) or WebM (realtime or offline) with configurable FPS, quality, and resolution.
+
+### Timeline & Keyframe Animation
+
+Animate any uniform over time with keyframes, cubic Hermite interpolation, and easing. Scrub, loop, and adjust duration from the timeline bar.
+
 ## Warnings
 
 > **Security** — The AI agent can execute arbitrary Python code on the host machine. There is no container or OS-level sandbox. **Do not expose this application to the public internet.** See [Security Notice](#security-notice) for details.
@@ -50,32 +116,19 @@ npm run dev -- --host 0.0.0.0 --port 5173
 
 </details>
 
-## Features
-
-- **Natural Language Shader Generation** — Describe what you want in chat; Claude generates GLSL shaders
-- **Multi-Pass Rendering** — Buffer chaining (BufferA/B/C/D), ping-pong double buffering, feedback loops
-- **2D & 3D** — Fullscreen shader art and 3D geometry (box, sphere, plane)
-- **Interactive UI Controls** — Auto-generated sliders, 2D pads, 3D camera controls, color pickers
-- **Image Textures** — Upload images and use them as shader textures
-- **Timeline** — Play/pause, time scrubbing, loop/once toggle
-- **Project Management** — Save and load entire projects with scenes, chat history, and uploads
-
 ## Usage
 
-1. **Describe the visuals you want in the chat**
-   > "Create a shader with blue waves slowly moving across the screen"
-
-2. **See results in the viewport** — Shaders are compiled and rendered automatically
-
-3. **Adjust parameters in the Inspector** — Sliders, color pickers, and other controls are auto-generated
-
-4. **Control animation with the timeline** — Scrub, loop, and adjust duration
-
-5. **Save your project and load it later**
+1. **Describe the visuals you want in the chat** — in any language
+2. **See results in the viewport** — shaders compile and render automatically
+3. **Adjust parameters** — via auto-generated control panels
+4. **Animate with the timeline** — keyframes, scrubbing, loop
+5. **Record or save** — export video or save the project for later
 
 | Key | Action |
 |-----|--------|
 | `Space` | Toggle play / pause |
+| `Ctrl/Cmd + Z` | Undo (uniforms, layout, keyframes) |
+| `Ctrl/Cmd + S` | Save project |
 
 ## Project Structure
 
