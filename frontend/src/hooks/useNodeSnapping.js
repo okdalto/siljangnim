@@ -31,7 +31,7 @@ function findEdgeSnap(edges, otherEdgesList, axis, movingKeys) {
 
   let bestDist = Infinity;
   let bestOffset = 0;
-  let bestGuides = [];
+  const candidates = [];
 
   for (const movingKey of searchKeys) {
     const movingVal = edges[movingKey];
@@ -39,18 +39,32 @@ function findEdgeSnap(edges, otherEdgesList, axis, movingKeys) {
       for (const otherKey of otherKeys) {
         const otherVal = other[otherKey];
         const dist = Math.abs(movingVal - otherVal);
-        if (dist < SNAP_THRESHOLD && dist < bestDist) {
-          bestDist = dist;
-          bestOffset = otherVal - movingVal;
-          bestGuides = axis === "x"
-            ? [{ axis: "x", position: otherVal, from: Math.min(edges.top, other.top), to: Math.max(edges.bottom, other.bottom) }]
-            : [{ axis: "y", position: otherVal, from: Math.min(edges.left, other.left), to: Math.max(edges.right, other.right) }];
+        if (dist < SNAP_THRESHOLD) {
+          const offset = otherVal - movingVal;
+          candidates.push({ dist, offset, otherVal, other });
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestOffset = offset;
+          }
         }
       }
     }
   }
 
-  return { offset: bestOffset, guides: bestGuides, snapped: bestDist < Infinity };
+  // Collect guides for ALL matches compatible with the best offset (within 1px).
+  // This shows snap guides on both sides when both edges align simultaneously.
+  const guides = [];
+  for (const c of candidates) {
+    if (Math.abs(c.offset - bestOffset) <= 1) {
+      guides.push(
+        axis === "x"
+          ? { axis: "x", position: c.otherVal, from: Math.min(edges.top, c.other.top), to: Math.max(edges.bottom, c.other.bottom) }
+          : { axis: "y", position: c.otherVal, from: Math.min(edges.left, c.other.left), to: Math.max(edges.right, c.other.right) }
+      );
+    }
+  }
+
+  return { offset: bestOffset, guides, snapped: bestDist < Infinity };
 }
 
 function findSizeMatch(resizingEdges, otherEdgesList) {
@@ -177,6 +191,9 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
         let xGuides = [];
         if (lock.x !== null && Math.abs(dragging.position.x - lock.x) <= SNAP_EXIT_THRESHOLD) {
           xOffset = lock.x - dragging.position.x;
+          // Show guides at locked position
+          const lockedEdges = getNodeEdges({ ...movingNode, position: { x: lock.x, y: dragging.position.y } });
+          xGuides = findEdgeSnap(lockedEdges, otherEdges, "x").guides;
         } else {
           lock.x = null;
           const xSnap = findEdgeSnap(movingEdges, otherEdges, "x");
@@ -198,6 +215,9 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
         let yGuides = [];
         if (lock.y !== null && Math.abs(dragging.position.y - lock.y) <= SNAP_EXIT_THRESHOLD) {
           yOffset = lock.y - dragging.position.y;
+          // Show guides at locked position
+          const lockedEdges = getNodeEdges({ ...movingNode, position: { x: dragging.position.x, y: lock.y } });
+          yGuides = findEdgeSnap(lockedEdges, otherEdges, "y").guides;
         } else {
           lock.y = null;
           const ySnap = findEdgeSnap(movingEdges, otherEdges, "y");
