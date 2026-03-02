@@ -484,33 +484,51 @@ export default class GLEngine {
   }
 
   /**
-   * Capture a render target buffer as ImageData for preview.
-   * Looks up stateKey in ctx.state, downscales via blitFramebuffer, reads pixels.
+   * Capture a buffer as ImageData for preview.
+   * Supports both createRenderTarget() objects (_isRenderTarget) and
+   * raw { texture, width, height } objects in ctx.state[stateKey].
    */
   captureBuffer(stateKey, maxSize = 256) {
     const gl = this.gl;
     const ctx = this._scriptCtx;
     if (!gl || !ctx) return null;
     const rt = ctx.state[stateKey];
-    if (!rt || !rt._isRenderTarget) return null;
+    if (!rt) return null;
 
-    const aspect = rt.width / rt.height;
+    // Determine source FBO and dimensions
+    let srcFBO, srcW, srcH;
+    let useTempFBO = false;
+    if (rt._isRenderTarget) {
+      srcFBO = rt.framebuffer;
+      srcW = rt.width;
+      srcH = rt.height;
+    } else if (rt.texture && rt.width && rt.height) {
+      // Raw texture wrapper — need a temp FBO to read from it
+      srcW = rt.width;
+      srcH = rt.height;
+      useTempFBO = true;
+    } else {
+      return null;
+    }
+
+    const aspect = srcW / srcH;
     let dstW, dstH;
-    if (rt.width >= rt.height) {
-      dstW = Math.min(rt.width, maxSize);
+    if (srcW >= srcH) {
+      dstW = Math.min(srcW, maxSize);
       dstH = Math.round(dstW / aspect);
     } else {
-      dstH = Math.min(rt.height, maxSize);
+      dstH = Math.min(srcH, maxSize);
       dstW = Math.round(dstH * aspect);
     }
 
-    // Per-key readback FBO cache to avoid thrashing with multiple targets
+    // Per-key readback FBO cache
     if (!this._readbackCache) this._readbackCache = {};
     let rb = this._readbackCache[stateKey];
     if (!rb || rb.w !== dstW || rb.h !== dstH) {
       if (rb) {
         gl.deleteFramebuffer(rb.fbo);
         gl.deleteTexture(rb.tex);
+        if (rb.srcFBO) gl.deleteFramebuffer(rb.srcFBO);
       }
       const tex = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -520,8 +538,18 @@ export default class GLEngine {
       const fbo = gl.createFramebuffer();
       gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
-      rb = { fbo, tex, w: dstW, h: dstH };
+      rb = { fbo, tex, w: dstW, h: dstH, srcFBO: null };
       this._readbackCache[stateKey] = rb;
+    }
+
+    // For raw textures, use a cached source FBO and attach the texture each frame
+    if (useTempFBO) {
+      if (!rb.srcFBO) {
+        rb.srcFBO = gl.createFramebuffer();
+      }
+      gl.bindFramebuffer(gl.FRAMEBUFFER, rb.srcFBO);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rt.texture, 0);
+      srcFBO = rb.srcFBO;
     }
 
     // Save current framebuffer binding
@@ -529,10 +557,10 @@ export default class GLEngine {
     const prevDrawFBO = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
 
     // Blit source FBO → readback FBO (downscale)
-    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, rt.framebuffer);
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFBO);
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, rb.fbo);
     gl.blitFramebuffer(
-      0, 0, rt.width, rt.height,
+      0, 0, srcW, srcH,
       0, 0, dstW, dstH,
       gl.COLOR_BUFFER_BIT, gl.LINEAR
     );
@@ -596,6 +624,7 @@ export default class GLEngine {
       for (const rb of Object.values(this._readbackCache)) {
         this.gl?.deleteFramebuffer(rb.fbo);
         this.gl?.deleteTexture(rb.tex);
+        if (rb.srcFBO) this.gl?.deleteFramebuffer(rb.srcFBO);
       }
       this._readbackCache = null;
     }
