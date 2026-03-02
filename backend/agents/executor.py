@@ -189,6 +189,19 @@ def _compact_messages(messages: list[dict]) -> None:
 # Agent execution loop
 # ---------------------------------------------------------------------------
 
+def _drain_injected(queue: asyncio.Queue | None) -> list[str]:
+    """Drain all pending messages from the injection queue."""
+    items = []
+    if queue is None:
+        return items
+    while not queue.empty():
+        try:
+            items.append(queue.get_nowait())
+        except asyncio.QueueEmpty:
+            break
+    return items
+
+
 async def run_agent(
     ws_id: int,
     user_prompt: str,
@@ -197,6 +210,7 @@ async def run_agent(
     on_text: Callable[[str], Awaitable[None]] | None = None,
     on_status: StatusCallback | None = None,
     files: list[dict] | None = None,
+    injected_queue: asyncio.Queue | None = None,
 ) -> dict:
     """Run the agent for one user prompt using the Anthropic API directly.
 
@@ -287,6 +301,8 @@ async def run_agent(
                             if current_block_type == "thinking" and thinking_chunks:
                                 full_thinking = "".join(thinking_chunks)
                                 await log("Agent", full_thinking, "thinking")
+                                if on_status:
+                                    await on_status("thinking", full_thinking)
                             current_block_type = None
 
                     response = await stream.get_final_message()
@@ -385,8 +401,18 @@ async def run_agent(
                 })
                 continue
 
-            # If the model stopped for a reason other than tool_use, we're done
+            # If the model stopped for a reason other than tool_use, check
+            # for injected user messages before finishing.
             if response.stop_reason != "tool_use":
+                injected = _drain_injected(injected_queue)
+                if injected:
+                    combined = "\n\n".join(injected)
+                    await log("System", f"Injecting user message into conversation", "info")
+                    messages.append({
+                        "role": "user",
+                        "content": f"[User message]: {combined}",
+                    })
+                    continue
                 break
 
             # Execute tool calls and build tool_result messages
@@ -412,7 +438,17 @@ async def run_agent(
                         tr["is_error"] = True
                     tool_results.append(tr)
 
-            messages.append({"role": "user", "content": tool_results})
+            # Inject any queued user messages alongside tool results
+            user_content = list(tool_results)
+            injected = _drain_injected(injected_queue)
+            if injected:
+                combined = "\n\n".join(injected)
+                await log("System", f"Injecting user message into conversation", "info")
+                user_content.append({
+                    "type": "text",
+                    "text": f"[User message]: {combined}",
+                })
+            messages.append({"role": "user", "content": user_content})
 
             # If approaching turn limit, tell the agent to wrap up
             if turns == _MAX_TURNS - 1:

@@ -48,7 +48,7 @@ const initialNodes = [
     id: "chat",
     type: "chat",
     position: { x: 50, y: 550 },
-    style: { width: 320, height: 380 },
+    style: { width: 670, height: 380 },
     data: { messages: [], onSend: () => { } },
   },
   {
@@ -62,14 +62,14 @@ const initialNodes = [
     id: "debugLog",
     type: "debugLog",
     position: { x: 750, y: 50 },
-    style: { width: 320, height: 300 },
+    style: { width: 320, height: 480 },
     data: { logs: [] },
   },
   {
     id: "projectBrowser",
     type: "projectBrowser",
-    position: { x: 1080, y: 50 },
-    style: { width: 320, height: 400 },
+    position: { x: 1100, y: 50 },
+    style: { width: 320, height: 480 },
     data: { projects: [], activeProject: null, onSave: () => { }, onLoad: () => { }, onDelete: () => { } },
   },
 ];
@@ -122,7 +122,8 @@ export default function App() {
     };
   }, [duration, loop, kf.getKeyframeTracks]);
 
-  const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState);
+  const getDebugLogs = useCallback(() => chat.debugLogs, [chat.debugLogs]);
+  const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs);
 
   // Recording
   const { recording, elapsedTime: recordingTime, startRecording, stopRecording } = useRecorder(engineRef);
@@ -263,6 +264,10 @@ export default function App() {
     project.markUnsaved();
   }, [duration, loop, sendWorkspaceState, project.markUnsaved]);
 
+  // Buffer for thinking content from agent_status (fallback if agent_log misses it)
+  const thinkingBufferRef = useRef("");
+  const thinkingLogReceivedRef = useRef(false);
+
   // Handle incoming WebSocket messages (dispatcher)
   const handleMessage = useCallback((msg) => {
     if (!msg || !msg.type) return;
@@ -285,6 +290,7 @@ export default function App() {
           setLoop(true);
         }
         panels.restorePanels(msg.panels || {});
+        if (msg.debug_logs) chat.setDebugLogs(msg.debug_logs);
         project.markSaved();
         break;
 
@@ -293,6 +299,13 @@ export default function App() {
         break;
 
       case "chat_done":
+        // Fallback: if thinking content was buffered from agent_status but never
+        // received via agent_log, flush it to debug logs now
+        if (thinkingBufferRef.current && !thinkingLogReceivedRef.current) {
+          chat.addLog({ agent: "Agent", message: thinkingBufferRef.current, level: "thinking" });
+        }
+        thinkingBufferRef.current = "";
+        thinkingLogReceivedRef.current = false;
         chat.setProcessing(false);
         chat.setAgentStatus(null);
         chat.setPendingQuestion(null);
@@ -303,6 +316,9 @@ export default function App() {
 
       case "agent_status":
         chat.setAgentStatus({ status: msg.status, detail: msg.detail });
+        if (msg.status === "thinking" && msg.detail) {
+          thinkingBufferRef.current = msg.detail;
+        }
         break;
 
       case "scene_update":
@@ -327,6 +343,15 @@ export default function App() {
 
       case "agent_log":
         chat.addLog({ agent: msg.agent, message: msg.message, level: msg.level });
+        // Mark that full thinking was received via agent_log (clear fallback buffer)
+        if (msg.level === "thinking" && msg.message !== "[Thinking started]" && !msg.message.startsWith("Tool:")) {
+          thinkingBufferRef.current = "";
+          thinkingLogReceivedRef.current = true;
+        }
+        break;
+
+      case "message_injected":
+        chat.addLog({ agent: "System", message: "Message queued for agent", level: "info" });
         break;
 
       case "agent_question":
@@ -359,7 +384,7 @@ export default function App() {
           setLoop(true);
         }
         panels.restorePanels(msg.panels || {});
-        chat.setDebugLogs([]);
+        chat.setDebugLogs(msg.debug_logs || []);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = false;
         project.markSaved();
@@ -484,6 +509,7 @@ export default function App() {
       msg.active_project = project.activeProject;
       msg.thumbnail = captureThumbnail();
       msg.workspace_state = getWorkspaceState();
+      msg.debug_logs = chat.debugLogs;
     }
     chat.clearAll();
     resetUniformHistory();

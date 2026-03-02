@@ -175,6 +175,17 @@ export default function ViewportNode({ data }) {
     engine.releaseAllKeys();
   }, []);
 
+  // Fullscreen toggle — only the canvas container, no UI chrome
+  const toggleFullscreen = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      el.requestFullscreen();
+    }
+  }, []);
+
   return (
     <>
       <NodeResizer minWidth={320} minHeight={240} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
@@ -194,13 +205,25 @@ export default function ViewportNode({ data }) {
             <span className="px-1.5 py-px rounded-full bg-indigo-900 text-indigo-400">
               WebGL2
             </span>
+            <button
+              onClick={toggleFullscreen}
+              className="text-zinc-400 hover:text-zinc-200 transition-colors nodrag"
+              title="Fullscreen"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 3 21 3 21 9" />
+                <polyline points="9 21 3 21 3 15" />
+                <line x1="21" y1="3" x2="14" y2="10" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+            </button>
           </div>
         </div>
 
         {/* Canvas */}
         <div
           ref={containerRef}
-          className="flex-1 relative nodrag min-h-0"
+          className="flex-1 relative nodrag min-h-0 bg-black"
           tabIndex={0}
           style={{ outline: "none" }}
           onMouseMove={handleMouseMove}

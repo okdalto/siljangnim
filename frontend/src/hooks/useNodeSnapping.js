@@ -78,6 +78,10 @@ function findSizeMatch(resizingEdges, otherEdgesList) {
 export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) {
   const [guides, setGuides] = useState([]);
   const lastSnappedPosition = useRef({});
+  // Drag snap hysteresis: { [nodeId]: { x: snappedPosX | null, y: snappedPosY | null } }
+  const dragSnapLock = useRef({});
+  // Drag start info for overlap escape: { [nodeId]: { x, y, escapedX, escapedY } }
+  const dragStartInfo = useRef({});
   // Resize snap lock: { lockedWidth, lockedHeight, lockedPosX, lockedPosY, widthTarget, heightTarget }
   const resizeLock = useRef({});
   // Resize direction detected on first frame: { xEdge: 'left'|'right', yEdge: 'top'|'bottom' }
@@ -101,9 +105,13 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
 
       if (dragEnd || resizeEnd) {
         setGuides([]);
-        if (dragEnd && lastSnappedPosition.current[dragEnd.id]) {
-          dragEnd.position = lastSnappedPosition.current[dragEnd.id];
-          delete lastSnappedPosition.current[dragEnd.id];
+        if (dragEnd) {
+          delete dragSnapLock.current[dragEnd.id];
+          delete dragStartInfo.current[dragEnd.id];
+          if (lastSnappedPosition.current[dragEnd.id]) {
+            dragEnd.position = lastSnappedPosition.current[dragEnd.id];
+            delete lastSnappedPosition.current[dragEnd.id];
+          }
         }
         if (resizeEnd) {
           const lock = resizeLock.current[resizeEnd.id];
@@ -136,6 +144,23 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
           return;
         }
 
+        // Track drag start position for overlap escape
+        if (!dragStartInfo.current[dragging.id]) {
+          dragStartInfo.current[dragging.id] = {
+            x: movingNode.position.x,
+            y: movingNode.position.y,
+            escapedX: false,
+            escapedY: false,
+          };
+        }
+        const startInfo = dragStartInfo.current[dragging.id];
+        if (!startInfo.escapedX && Math.abs(dragging.position.x - startInfo.x) > SNAP_THRESHOLD) {
+          startInfo.escapedX = true;
+        }
+        if (!startInfo.escapedY && Math.abs(dragging.position.y - startInfo.y) > SNAP_THRESHOLD) {
+          startInfo.escapedY = true;
+        }
+
         const movingEdges = getNodeEdges({
           ...movingNode,
           position: dragging.position,
@@ -145,14 +170,56 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
           .filter((n) => n.id !== dragging.id)
           .map(getNodeEdges);
 
-        const xSnap = findEdgeSnap(movingEdges, otherEdges, "x");
-        const ySnap = findEdgeSnap(movingEdges, otherEdges, "y");
+        const lock = dragSnapLock.current[dragging.id] || { x: null, y: null };
 
-        setGuides([...xSnap.guides, ...ySnap.guides]);
+        // X-axis snap with hysteresis
+        let xOffset = 0;
+        let xGuides = [];
+        if (lock.x !== null && Math.abs(dragging.position.x - lock.x) <= SNAP_EXIT_THRESHOLD) {
+          xOffset = lock.x - dragging.position.x;
+        } else {
+          lock.x = null;
+          const xSnap = findEdgeSnap(movingEdges, otherEdges, "x");
+          const snappedX = dragging.position.x + xSnap.offset;
+          // Suppress snap that would pull back to start position (overlap escape)
+          if (xSnap.snapped && !startInfo.escapedX && Math.abs(snappedX - startInfo.x) < 2) {
+            // Don't snap — let the node escape from overlap
+          } else {
+            xOffset = xSnap.offset;
+            xGuides = xSnap.guides;
+            if (xSnap.snapped) {
+              lock.x = snappedX;
+            }
+          }
+        }
+
+        // Y-axis snap with hysteresis
+        let yOffset = 0;
+        let yGuides = [];
+        if (lock.y !== null && Math.abs(dragging.position.y - lock.y) <= SNAP_EXIT_THRESHOLD) {
+          yOffset = lock.y - dragging.position.y;
+        } else {
+          lock.y = null;
+          const ySnap = findEdgeSnap(movingEdges, otherEdges, "y");
+          const snappedY = dragging.position.y + ySnap.offset;
+          // Suppress snap that would pull back to start position (overlap escape)
+          if (ySnap.snapped && !startInfo.escapedY && Math.abs(snappedY - startInfo.y) < 2) {
+            // Don't snap — let the node escape from overlap
+          } else {
+            yOffset = ySnap.offset;
+            yGuides = ySnap.guides;
+            if (ySnap.snapped) {
+              lock.y = snappedY;
+            }
+          }
+        }
+
+        dragSnapLock.current[dragging.id] = lock;
+        setGuides([...xGuides, ...yGuides]);
 
         const snappedPos = {
-          x: dragging.position.x + xSnap.offset,
-          y: dragging.position.y + ySnap.offset,
+          x: dragging.position.x + xOffset,
+          y: dragging.position.y + yOffset,
         };
         dragging.position = snappedPos;
         lastSnappedPosition.current[dragging.id] = snappedPos;

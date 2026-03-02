@@ -32,6 +32,7 @@ class WsContext:
     manager: object = None  # ConnectionManager instance
     AGENT_WS_ID: int = 0
     MAX_AUTO_FIX: int = 3
+    injected_messages: asyncio.Queue = field(default_factory=asyncio.Queue)
 
 
 # ---------------------------------------------------------------------------
@@ -79,6 +80,9 @@ async def _auto_save_project(msg: dict, ctx: WsContext):
         ws_data = msg.get("workspace_state")
         if ws_data:
             workspace.write_json("workspace_state.json", ws_data)
+        debug_logs = msg.get("debug_logs")
+        if debug_logs is not None:
+            workspace.write_json("debug_logs.json", debug_logs)
         projects.save_project(
             name=name,
             chat_history=ctx.chat_history,
@@ -164,16 +168,15 @@ async def handle_prompt(ws, msg, ctx: WsContext):
         await ws.send_text(json.dumps({"type": "api_key_required"}))
         return
 
-    if ctx.agent_busy:
-        await ws.send_text(json.dumps({
-            "type": "agent_log",
-            "agent": "System",
-            "message": "Agent is busy, please wait...",
-            "level": "error",
-        }))
-        return
-
     user_prompt = msg.get("text", "")
+
+    if ctx.agent_busy:
+        # Queue the message for injection at the next agent turn boundary
+        if user_prompt.strip():
+            ctx.injected_messages.put_nowait(user_prompt)
+            ctx.chat_history.append({"role": "user", "text": user_prompt})
+            await ctx.manager.broadcast({"type": "message_injected"})
+        return
 
     # Process uploaded files
     from main import _process_uploads, _process_uploaded_files
@@ -234,6 +237,7 @@ async def handle_prompt(ws, msg, ctx: WsContext):
                 on_text=_on_text,
                 on_status=_on_status,
                 files=_files,
+                injected_queue=ctx.injected_messages,
             )
 
             await ctx.manager.broadcast({"type": "chat_done"})
@@ -261,6 +265,12 @@ async def handle_prompt(ws, msg, ctx: WsContext):
         finally:
             ctx.agent_task = None
             ctx.agent_busy = False
+            # Drain any unconsumed injected messages
+            while not ctx.injected_messages.empty():
+                try:
+                    ctx.injected_messages.get_nowait()
+                except asyncio.QueueEmpty:
+                    break
             _drain_pending_errors(ctx)
 
     ctx.agent_task = asyncio.create_task(_run_agent_task())
@@ -352,6 +362,7 @@ async def handle_new_project(ws, msg, ctx: WsContext):
         "projects": projects.list_projects(),
         "workspace_state": {},
         "panels": {},
+        "debug_logs": [],
     })
 
 
@@ -360,6 +371,9 @@ async def handle_project_save(ws, msg, ctx: WsContext):
         ws_data = msg.get("workspace_state")
         if ws_data:
             workspace.write_json("workspace_state.json", ws_data)
+        debug_logs = msg.get("debug_logs")
+        if debug_logs is not None:
+            workspace.write_json("debug_logs.json", debug_logs)
         thumbnail_b64 = msg.get("thumbnail")
         meta = projects.save_project(
             name=msg.get("name", "untitled"),

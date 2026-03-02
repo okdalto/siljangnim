@@ -163,6 +163,14 @@ Uniform stores the control points array. In scripts, use \
 ctx.utils.sampleCurve(ctx.uniforms.u_curve, t) to sample (t: 0-1 → y value). \
 Example: `{"type":"graph","label":"Falloff","uniform":"u_falloff",\
 "min":0,"max":1,"default":[[0,1],[0.5,0.8],[1,0]]}`.
+- "html": custom HTML/CSS/JS block rendered in a mini-iframe. Needs `html` \
+(HTML string) and optionally `height` (pixels, default 150). App theme CSS \
+and bridge API are auto-injected. Use `panel.setUniform(name, value)` inside \
+the html to change uniforms — changes go through the main undo history (Cmd+Z). \
+Use `panel.onUpdate` to receive engine state every frame. \
+Example: `{"type":"html","html":"<canvas id='viz'></canvas><script>...</script>","height":200}`. \
+Use for custom visualizations, specialized inputs, or anything beyond standard controls. \
+Combine freely with native controls (slider, color, etc.) in the same controls array.
 
 Create intuitive labels (e.g. "Glow Intensity" not "u_glow").
 
@@ -419,13 +427,23 @@ The keyframe bridge enables building custom animation editors as panels — \
 for example, a 3D path editor where the user can visually place keyframes \
 and adjust Bezier curves for object positions.
 
+All panel iframes (both full HTML panels and inline html controls) automatically \
+receive app theme CSS: dark background, styled form elements, and CSS variables \
+(--bg-primary, --bg-secondary, --border, --accent, --text-primary, etc.). \
+No manual dark-theme styling needed.
+
 **Example pattern:** Use `panel.setUniform('u_speed', val)` on input events, \
 and `panel.onUpdate = function(p) { /* sync UI from p.uniforms */ }` to keep \
-the panel in sync. Style with dark background (`#1a1a2e`) to match the UI theme.
+the panel in sync.
 
 **When to use custom panels:** Interactive controls beyond simple sliders \
 (2D pickers, curve editors), keyframe animation editors, data dashboards, \
 debugging tools, or any custom UI that standard inspector controls cannot provide.
+
+**Hybrid panels:** Use native controls (slider, color, toggle) for standard \
+parameters and `{"type":"html",...}` blocks for custom UI — all in the same \
+controls array. Native controls get full undo/keyframe integration; html blocks \
+get undo via `panel.setUniform()` and theme CSS automatically.
 
 ## PANEL TEMPLATES
 
@@ -450,7 +468,7 @@ initialPosition: [x,y,z], initialTarget: [x,y,z] }
 
 **When to use each:**
 - `template="controls"`: ALWAYS use this for parameter UI (sliders, colors, toggles, \
-dropdowns, buttons, graphs, text inputs, separators). This is the default choice.
+dropdowns, buttons, graphs, text inputs, separators, and html blocks). This is the default choice.
 - `template="orbit_camera"` / `template="pad2d"`: Use for specialized spatial controls.
 - Raw `html`: Only for fully custom interactive panels that need HTML/JS \
 (data dashboards, custom visualizations, animation path editors).

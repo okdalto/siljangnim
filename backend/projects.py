@@ -178,6 +178,14 @@ def load_project(name: str) -> dict:
         except (json.JSONDecodeError, OSError):
             pass
 
+    debug_logs = []
+    dl_path = project_dir / "debug_logs.json"
+    if dl_path.exists():
+        try:
+            debug_logs = json.loads(dl_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+
     return {
         "meta": meta,
         "chat_history": chat_history,
@@ -185,6 +193,7 @@ def load_project(name: str) -> dict:
         "ui_config": ui_config,
         "workspace_state": workspace_state,
         "panels": panels,
+        "debug_logs": debug_logs,
     }
 
 

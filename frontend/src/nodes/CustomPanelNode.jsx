@@ -10,6 +10,9 @@ import Pad2dControl from "../components/controls/Pad2dControl.jsx";
 import SeparatorControl from "../components/controls/SeparatorControl.jsx";
 import TextControl from "../components/controls/TextControl.jsx";
 import GraphControl from "../components/controls/GraphControl.jsx";
+import HtmlControl from "../components/controls/HtmlControl.jsx";
+import BRIDGE_SCRIPT from "../constants/panelBridge.js";
+import PANEL_THEME_CSS from "../constants/panelTheme.js";
 
 /* ── Control type → component mapping ───────────────────────────── */
 
@@ -23,77 +26,21 @@ const CONTROL_MAP = {
   separator: SeparatorControl,
   text: TextControl,
   graph: GraphControl,
+  html: HtmlControl,
 };
 
-/* ── Bridge script injected into every custom panel iframe ──────── */
+/* ── Inject bridge + theme CSS into HTML panel iframe ─────────── */
 
-const BRIDGE_SCRIPT = `
-<script>
-window.panel = {
-  // Uniforms
-  setUniform(name, value) {
-    window.parent.postMessage({ type: 'panel:setUniform', uniform: name, value: value }, '*');
-  },
-  uniforms: {},
-
-  // Timeline
-  time: 0,
-  frame: 0,
-  mouse: [0, 0, 0, 0],
-  duration: 30,
-  loop: true,
-
-  // Keyframes: { uniformName: [{ time, value, inTangent, outTangent, linear }] }
-  keyframes: {},
-
-  // Set keyframes for a uniform track
-  setKeyframes(uniform, keyframeArray) {
-    window.parent.postMessage({ type: 'panel:setKeyframes', uniform: uniform, keyframes: keyframeArray }, '*');
-  },
-
-  // Clear all keyframes for a uniform
-  clearKeyframes(uniform) {
-    window.parent.postMessage({ type: 'panel:setKeyframes', uniform: uniform, keyframes: [] }, '*');
-  },
-
-  // Set timeline duration
-  setDuration(d) {
-    window.parent.postMessage({ type: 'panel:setDuration', duration: d }, '*');
-  },
-
-  // Set timeline loop
-  setLoop(l) {
-    window.parent.postMessage({ type: 'panel:setLoop', loop: l }, '*');
-  },
-
-  onUpdate: null,
-};
-window.addEventListener('message', function(e) {
-  if (e.data && e.data.type === 'panel:state') {
-    window.panel.uniforms = e.data.uniforms || window.panel.uniforms;
-    window.panel.time = e.data.time !== undefined ? e.data.time : window.panel.time;
-    window.panel.frame = e.data.frame !== undefined ? e.data.frame : window.panel.frame;
-    window.panel.mouse = e.data.mouse || window.panel.mouse;
-    window.panel.duration = e.data.duration !== undefined ? e.data.duration : window.panel.duration;
-    window.panel.loop = e.data.loop !== undefined ? e.data.loop : window.panel.loop;
-    if (e.data.keyframes !== undefined) window.panel.keyframes = e.data.keyframes;
-    if (typeof window.panel.onUpdate === 'function') {
-      window.panel.onUpdate(window.panel);
-    }
-  }
-});
-<\/script>
-`;
+const INJECT_PAYLOAD = PANEL_THEME_CSS + BRIDGE_SCRIPT;
 
 function injectBridge(html) {
-  // Insert bridge script right before </head> or at the start of <body> or prepend
   if (html.includes("</head>")) {
-    return html.replace("</head>", BRIDGE_SCRIPT + "</head>");
+    return html.replace("</head>", INJECT_PAYLOAD + "</head>");
   }
   if (html.includes("<body")) {
-    return html.replace(/<body([^>]*)>/, `<body$1>${BRIDGE_SCRIPT}`);
+    return html.replace(/<body([^>]*)>/, `<body$1>${INJECT_PAYLOAD}`);
   }
-  return BRIDGE_SCRIPT + html;
+  return INJECT_PAYLOAD + html;
 }
 
 /* ── CustomPanelNode ────────────────────────────────────────────── */
@@ -207,7 +154,7 @@ export default function CustomPanelNode({ data }) {
             srcDoc={injectBridge(html || "")}
             sandbox="allow-scripts"
             className="w-full h-full border-0"
-            style={{ background: "#fff" }}
+            style={{ background: "#18181b" }}
           />
         )}
       </div>
