@@ -52,7 +52,7 @@ export default function InspectorNode({ data }) {
           <p className="text-zinc-500 text-sm italic">No controls yet.</p>
         )}
         {controls
-          .filter((c) => c.type !== "rotation3d" && c.type !== "pad2d")
+          .filter((c) => c.type !== "rotation3d")
           .map((ctrl) => {
             const Component = controlMap[ctrl.type];
             if (!Component) return null;
