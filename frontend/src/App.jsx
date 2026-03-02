@@ -12,6 +12,11 @@ import useWebSocket from "./hooks/useWebSocket.js";
 import useNodeSnapping from "./hooks/useNodeSnapping.js";
 import useNodeLayoutHistory from "./hooks/useNodeLayoutHistory.js";
 import useRecorder from "./hooks/useRecorder.js";
+import useApiKey from "./hooks/useApiKey.js";
+import useChat from "./hooks/useChat.js";
+import useCustomPanels from "./hooks/useCustomPanels.js";
+import useKeyframes from "./hooks/useKeyframes.js";
+import useProjectManager from "./hooks/useProjectManager.js";
 import EngineContext from "./contexts/EngineContext.js";
 import ChatNode from "./nodes/ChatNode.jsx";
 import InspectorNode from "./nodes/InspectorNode.jsx";
@@ -26,7 +31,6 @@ import Toolbar from "./components/Toolbar.jsx";
 import Timeline from "./components/Timeline.jsx";
 import SnapGuides from "./components/SnapGuides.jsx";
 import KeyframeEditor from "./components/KeyframeEditor.jsx";
-import KeyframeManager from "./engine/KeyframeManager.js";
 
 const nodeTypes = {
   chat: ChatNode,
@@ -42,15 +46,6 @@ const nodeTypes = {
 const WS_URL = import.meta.env.DEV
   ? `ws://${window.location.hostname}:8000/ws`
   : `ws://${window.location.hostname}:${window.location.port}/ws`;
-
-function loadJson(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 const initialNodes = [
   {
@@ -96,9 +91,6 @@ export default function App() {
   const { onNodesChange: onNodesChangeSnapped, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes);
   const { onNodesChange, undo, redo } = useNodeLayoutHistory(nodes, onNodesChangeSnapped, setNodes);
 
-  // Chat state (restored from localStorage)
-  const [messages, setMessages] = useState(() => loadJson("siljangnim:messages", []));
-
   // Scene state
   const [sceneJSON, setSceneJSON] = useState(null);
   const [uiConfig, setUiConfig] = useState({ controls: [], inspectable_buffers: [] });
@@ -108,7 +100,45 @@ export default function App() {
   const [loop, setLoop] = useState(true);
   const [offlineRecord, setOfflineRecord] = useState(false);
 
-  // Spacebar toggle pause (ignore when typing in inputs)
+  // Workspace files version counter
+  const [workspaceFilesVersion, setWorkspaceFilesVersion] = useState(0);
+
+  // Engine ref (shared via EngineContext and node data)
+  const engineRef = useRef(null);
+  const sendRef = useRef(null);
+
+  // --- Custom hooks ---
+  const apiKey = useApiKey(sendRef);
+  const chat = useChat(sendRef);
+  const panels = useCustomPanels(sendRef);
+  const kf = useKeyframes(engineRef);
+
+  const captureThumbnail = useCallback(() => {
+    if (engineRef.current?.canvas) {
+      try {
+        return engineRef.current.canvas.toDataURL("image/jpeg", 0.8);
+      } catch { /* canvas may be tainted */ }
+    }
+    return null;
+  }, []);
+
+  const getWorkspaceState = useCallback(() => {
+    return {
+      version: 1,
+      keyframes: kf.getKeyframeTracks(),
+      duration,
+      loop,
+    };
+  }, [duration, loop, kf.getKeyframeTracks]);
+
+  const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState);
+
+  // Recording
+  const { recording, elapsedTime: recordingTime, startRecording, stopRecording } = useRecorder(engineRef);
+  const recorderFnsRef = useRef({ startRecording, stopRecording });
+  recorderFnsRef.current = { startRecording, stopRecording };
+
+  // Spacebar toggle pause
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.code !== "Space") return;
@@ -121,38 +151,40 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Keyframe undo/redo history
-  const kfHistoryRef = useRef({ past: [], future: [] });
-  const kfEditorOpenRef = useRef(false);
+  // --- Uniform change undo/redo ---
+  const uniformHistoryRef = useRef({ past: [], future: [] });
+  const uniformCoalesceRef = useRef({ uniform: null, timer: null });
+  const uniformValuesRef = useRef({});
 
-  const undoKeyframes = useCallback(() => {
-    const h = kfHistoryRef.current;
-    if (h.past.length === 0) return;
-    const entry = h.past.pop();
-    const km = keyframeManagerRef.current;
-    const currentKfs = km.getTrack(entry.uniform);
-    h.future.push({ uniform: entry.uniform, keyframes: [...currentKfs] });
-    if (entry.keyframes.length === 0) {
-      km.clearTrack(entry.uniform);
-    } else {
-      km.setTrack(entry.uniform, entry.keyframes);
+  useEffect(() => {
+    if (sceneJSON?.uniforms) {
+      const vals = uniformValuesRef.current;
+      for (const [name, def] of Object.entries(sceneJSON.uniforms)) {
+        if (def.value !== undefined) vals[name] = def.value;
+      }
     }
-    setKeyframeVersion((v) => v + 1);
+  }, [sceneJSON]);
+
+  const undoUniform = useCallback(() => {
+    const h = uniformHistoryRef.current;
+    if (h.past.length === 0) return false;
+    const entry = h.past.pop();
+    h.future.push(entry);
+    uniformValuesRef.current[entry.uniform] = entry.oldValue;
+    if (engineRef.current) engineRef.current.updateUniform(entry.uniform, entry.oldValue);
+    sendRef.current?.({ type: "set_uniform", uniform: entry.uniform, value: entry.oldValue });
+    return true;
   }, []);
 
-  const redoKeyframes = useCallback(() => {
-    const h = kfHistoryRef.current;
-    if (h.future.length === 0) return;
+  const redoUniform = useCallback(() => {
+    const h = uniformHistoryRef.current;
+    if (h.future.length === 0) return false;
     const entry = h.future.pop();
-    const km = keyframeManagerRef.current;
-    const currentKfs = km.getTrack(entry.uniform);
-    h.past.push({ uniform: entry.uniform, keyframes: [...currentKfs] });
-    if (entry.keyframes.length === 0) {
-      km.clearTrack(entry.uniform);
-    } else {
-      km.setTrack(entry.uniform, entry.keyframes);
-    }
-    setKeyframeVersion((v) => v + 1);
+    h.past.push(entry);
+    uniformValuesRef.current[entry.uniform] = entry.newValue;
+    if (engineRef.current) engineRef.current.updateUniform(entry.uniform, entry.newValue);
+    sendRef.current?.({ type: "set_uniform", uniform: entry.uniform, value: entry.newValue });
+    return true;
   }, []);
 
   // Undo/Redo shortcuts
@@ -160,140 +192,27 @@ export default function App() {
     const handleKeyDown = (e) => {
       if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
       const tag = e.target.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable) return;
+      const isTextEntry = tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable ||
+        (tag === "INPUT" && ["text", "number", "search", "url", "email", "password"].includes(e.target.type));
+      if (isTextEntry) return;
       e.preventDefault();
-      if (kfEditorOpenRef.current) {
-        if (e.shiftKey) {
-          redoKeyframes();
-        } else {
-          undoKeyframes();
-        }
+      if (kf.isEditorOpen.current) {
+        if (e.shiftKey) kf.redoKeyframes();
+        else kf.undoKeyframes();
       } else {
         if (e.shiftKey) {
-          redo();
+          if (!redoUniform()) redo();
         } else {
-          undo();
+          if (!undoUniform()) undo();
         }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo, redo, undoKeyframes, redoKeyframes]);
+  }, [undo, redo, kf.undoKeyframes, kf.redoKeyframes, kf.isEditorOpen, undoUniform, redoUniform]);
 
-  // Engine ref (shared via EngineContext and node data)
-  const engineRef = useRef(null);
-
-  // Keyframe animation (restore from localStorage)
-  const keyframeManagerRef = useRef(() => {
-    const km = new KeyframeManager();
-    try {
-      const raw = localStorage.getItem("siljangnim:keyframes");
-      if (raw) {
-        const tracks = JSON.parse(raw);
-        for (const [uniform, kfs] of Object.entries(tracks)) {
-          km.setTrack(uniform, kfs);
-        }
-      }
-    } catch {}
-    return km;
-  });
-  // Lazy init: replace the factory with its result on first access
-  if (typeof keyframeManagerRef.current === "function") {
-    keyframeManagerRef.current = keyframeManagerRef.current();
-  }
-  const [keyframeVersion, setKeyframeVersion] = useState(0);
-  const [keyframeEditorTarget, setKeyframeEditorTarget] = useState(null); // { uniform, label, min, max }
-  kfEditorOpenRef.current = keyframeEditorTarget != null;
-
-  // Connect keyframe manager to engine when engine is available
-  useEffect(() => {
-    const engine = engineRef.current;
-    if (engine) engine.setKeyframeManager(keyframeManagerRef.current);
-  });
-
-  const handleOpenKeyframeEditor = useCallback((ctrl) => {
-    setKeyframeEditorTarget({
-      uniform: ctrl.uniform,
-      label: ctrl.label,
-      min: ctrl.min ?? 0,
-      max: ctrl.max ?? 1,
-    });
-  }, []);
-
-  const handleKeyframesChange = useCallback((newKeyframes) => {
-    if (!keyframeEditorTarget) return;
-    const km = keyframeManagerRef.current;
-    const uniform = keyframeEditorTarget.uniform;
-    // Push current state to undo stack
-    const prevKfs = km.getTrack(uniform);
-    kfHistoryRef.current.past.push({ uniform, keyframes: [...prevKfs] });
-    if (kfHistoryRef.current.past.length > 50) kfHistoryRef.current.past.shift();
-    kfHistoryRef.current.future.length = 0;
-
-    if (newKeyframes.length === 0) {
-      km.clearTrack(uniform);
-    } else {
-      km.setTrack(uniform, newKeyframes);
-    }
-    setKeyframeVersion((v) => v + 1);
-  }, [keyframeEditorTarget]);
-
-  // Recording
-  const { recording, elapsedTime: recordingTime, startRecording, stopRecording } = useRecorder(engineRef);
-  const recorderFnsRef = useRef({ startRecording, stopRecording });
-  recorderFnsRef.current = { startRecording, stopRecording };
-
-  // API key state
-  const [apiKeyRequired, setApiKeyRequired] = useState(false);
-  const [apiKeyError, setApiKeyError] = useState("");
-  const [apiKeyLoading, setApiKeyLoading] = useState(false);
-
-  // Debug log state (restored from localStorage)
-  const [debugLogs, setDebugLogs] = useState(() => loadJson("siljangnim:debugLogs", []));
-
-  // Project state
-  const [projectList, setProjectList] = useState([]);
-  const [activeProject, setActiveProject] = useState(null);
-
-  // Agent processing state
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [agentStatus, setAgentStatus] = useState(null); // {status, detail}
-
-  // Agent question state (ask_user tool)
-  const [pendingQuestion, setPendingQuestion] = useState(null);
-  // { question: string, options: [{label, description}] }
-
-  // Save status: "saved" | "unsaved" | "saving"
-  const [saveStatus, setSaveStatus] = useState("saved");
-
-  // Custom panels: Map<id, {title, html, width, height}>
-  const [customPanels, setCustomPanels] = useState(new Map());
-
-  // Workspace files version counter — bump to trigger re-fetch in ProjectBrowserNode
-  const [workspaceFilesVersion, setWorkspaceFilesVersion] = useState(0);
-
-  const captureThumbnail = useCallback(() => {
-    if (engineRef.current?.canvas) {
-      try {
-        return engineRef.current.canvas.toDataURL("image/jpeg", 0.8);
-      } catch { /* canvas may be tainted */ }
-    }
-    return null;
-  }, []);
-
-  // Collect workspace state for persistence
-  const getWorkspaceState = useCallback(() => {
-    return {
-      version: 1,
-      keyframes: keyframeManagerRef.current.tracks,
-      duration,
-      loop,
-    };
-  }, [duration, loop]);
-
-  // Debounced send workspace state to backend (2s)
+  // Debounced send workspace state to backend
   const wsStateTimerRef = useRef(null);
-  const sendRef = useRef(null);
   const sendWorkspaceState = useCallback(() => {
     if (wsStateTimerRef.current) clearTimeout(wsStateTimerRef.current);
     wsStateTimerRef.current = setTimeout(() => {
@@ -301,13 +220,13 @@ export default function App() {
     }, 2000);
   }, [getWorkspaceState]);
 
-  // Send workspace state when keyframes, duration, or loop change
+  // Send workspace state when keyframes change
   useEffect(() => {
-    if (keyframeVersion > 0) {
+    if (kf.keyframeVersion > 0) {
       sendWorkspaceState();
-      setSaveStatus("unsaved");
+      project.markUnsaved();
     }
-  }, [keyframeVersion, sendWorkspaceState]);
+  }, [kf.keyframeVersion, sendWorkspaceState, project.markUnsaved]);
 
   const durationLoopMountedRef = useRef(false);
   useEffect(() => {
@@ -316,182 +235,113 @@ export default function App() {
       return;
     }
     sendWorkspaceState();
-    setSaveStatus("unsaved");
-  }, [duration, loop, sendWorkspaceState]);
+    project.markUnsaved();
+  }, [duration, loop, sendWorkspaceState, project.markUnsaved]);
 
-  // Auto-save: when activeProject exists and dirty, save every 20s
-  const autoSaveTimerRef = useRef(null);
-  useEffect(() => {
-    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    if (!activeProject || saveStatus === "saved") return;
-    autoSaveTimerRef.current = setTimeout(() => {
-      setSaveStatus("saving");
-      sendRef.current?.({
-        type: "project_save",
-        name: activeProject,
-        workspace_state: getWorkspaceState(),
-        thumbnail: captureThumbnail(),
-      });
-    }, 20000);
-    return () => clearTimeout(autoSaveTimerRef.current);
-  }, [activeProject, saveStatus, getWorkspaceState, captureThumbnail]);
-
-  // Handle every incoming WebSocket message
+  // Handle incoming WebSocket messages (dispatcher)
   const handleMessage = useCallback((msg) => {
     if (!msg || !msg.type) return;
 
     switch (msg.type) {
       case "init":
-        if (msg.scene_json) {
-          setSceneJSON(msg.scene_json);
-        }
+        if (msg.scene_json) setSceneJSON(msg.scene_json);
         if (msg.ui_config) setUiConfig(msg.ui_config);
-        if (msg.projects) setProjectList(msg.projects);
-        if (msg.chat_history?.length) setMessages(msg.chat_history);
-        setIsProcessing(!!msg.is_processing);
-        // Restore workspace state (keyframes, duration, loop)
+        if (msg.projects) project.setProjectList(msg.projects);
+        if (msg.chat_history?.length) chat.restoreMessages(msg.chat_history);
+        chat.setProcessing(!!msg.is_processing);
         if (msg.workspace_state) {
-          const ws = msg.workspace_state;
-          if (ws.keyframes && typeof ws.keyframes === "object") {
-            const km = keyframeManagerRef.current;
-            // Clear existing tracks
-            for (const u of Object.keys(km.tracks)) km.clearTrack(u);
-            for (const [u, kfs] of Object.entries(ws.keyframes)) {
-              km.setTrack(u, kfs);
-            }
-            setKeyframeVersion((v) => v + 1);
-          }
-          if (typeof ws.duration === "number") setDuration(ws.duration);
-          if (typeof ws.loop === "boolean") setLoop(ws.loop);
+          kf.restoreKeyframes(msg.workspace_state.keyframes);
+          if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
+          if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
         } else {
-          // No workspace state: reset to defaults
-          const km = keyframeManagerRef.current;
-          for (const u of Object.keys(km.tracks)) km.clearTrack(u);
-          setKeyframeVersion((v) => v + 1);
+          kf.restoreKeyframes(null);
           setDuration(30);
           setLoop(true);
         }
-        setSaveStatus("saved");
+        project.markSaved();
         break;
 
       case "assistant_text":
-        setMessages((prev) => [...prev, { role: "assistant", text: msg.text }]);
+        chat.addAssistantText(msg.text);
         break;
 
       case "chat_done":
-        setIsProcessing(false);
-        setAgentStatus(null);
-        setPendingQuestion(null);
+        chat.setProcessing(false);
+        chat.setAgentStatus(null);
+        chat.setPendingQuestion(null);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = true;
-        setSaveStatus("unsaved");
+        project.markUnsaved();
         break;
 
       case "agent_status":
-        setAgentStatus({ status: msg.status, detail: msg.detail });
+        chat.setAgentStatus({ status: msg.status, detail: msg.detail });
         break;
 
       case "scene_update":
-        if (msg.scene_json) {
-          setSceneJSON(msg.scene_json);
-        }
+        if (msg.scene_json) setSceneJSON(msg.scene_json);
         if (msg.ui_config) setUiConfig(msg.ui_config);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = true;
-        setSaveStatus("unsaved");
+        project.markUnsaved();
         break;
 
       case "api_key_required":
-        setApiKeyRequired(true);
+        apiKey.setRequired();
         break;
 
       case "api_key_valid":
-        setApiKeyRequired(false);
-        setApiKeyError("");
-        setApiKeyLoading(false);
+        apiKey.setValid();
         break;
 
       case "api_key_invalid":
-        setApiKeyError(msg.error || "Invalid API key");
-        setApiKeyLoading(false);
+        apiKey.setInvalid(msg.error);
         break;
 
       case "agent_log":
-        setDebugLogs((prev) => [
-          ...prev,
-          { agent: msg.agent, message: msg.message, level: msg.level },
-        ]);
+        chat.addLog({ agent: msg.agent, message: msg.message, level: msg.level });
         break;
 
       case "agent_question":
-        setPendingQuestion({
-          question: msg.question,
-          options: msg.options || [],
-        });
+        chat.setPendingQuestion({ question: msg.question, options: msg.options || [] });
         break;
 
       case "project_list":
-        setProjectList(msg.projects || []);
+        project.setProjectList(msg.projects || []);
         break;
 
       case "project_saved":
-        if (msg.meta) setActiveProject(msg.meta.name);
+        if (msg.meta) project.setActiveProject(msg.meta.name);
         dirtyRef.current = false;
-        setSaveStatus("saved");
+        project.markSaved();
         break;
 
       case "project_loaded":
-        if (msg.meta) setActiveProject(msg.meta.name);
-        if (msg.chat_history) setMessages(msg.chat_history);
-        if (msg.scene_json) {
-          setSceneJSON(msg.scene_json);
-        }
+        if (msg.meta) project.setActiveProject(msg.meta.name);
+        if (msg.chat_history) chat.restoreMessages(msg.chat_history);
+        if (msg.scene_json) setSceneJSON(msg.scene_json);
         if (msg.ui_config) setUiConfig(msg.ui_config);
-        // Restore workspace state
         if (msg.workspace_state) {
-          const ws = msg.workspace_state;
-          if (ws.keyframes && typeof ws.keyframes === "object") {
-            const km = keyframeManagerRef.current;
-            for (const u of Object.keys(km.tracks)) km.clearTrack(u);
-            for (const [u, kfs] of Object.entries(ws.keyframes)) {
-              km.setTrack(u, kfs);
-            }
-            setKeyframeVersion((v) => v + 1);
-          }
-          if (typeof ws.duration === "number") setDuration(ws.duration);
-          if (typeof ws.loop === "boolean") setLoop(ws.loop);
+          kf.restoreKeyframes(msg.workspace_state.keyframes);
+          if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
+          if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
         } else {
-          const km = keyframeManagerRef.current;
-          for (const u of Object.keys(km.tracks)) km.clearTrack(u);
-          setKeyframeVersion((v) => v + 1);
+          kf.restoreKeyframes(null);
           setDuration(30);
           setLoop(true);
         }
-        setDebugLogs([]);
+        chat.setDebugLogs([]);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = false;
-        setSaveStatus("saved");
+        project.markSaved();
         break;
 
       case "open_panel":
-        setCustomPanels((prev) => {
-          const next = new Map(prev);
-          next.set(msg.id, {
-            title: msg.title || "Panel",
-            html: msg.html || "",
-            width: msg.width || 320,
-            height: msg.height || 300,
-          });
-          return next;
-        });
+        panels.openPanel(msg.id, msg);
         break;
 
       case "close_panel":
-        setCustomPanels((prev) => {
-          const next = new Map(prev);
-          next.delete(msg.id);
-          return next;
-        });
+        panels.closePanel(msg.id);
         break;
 
       case "start_recording":
@@ -509,27 +359,16 @@ export default function App() {
 
       case "workspace_state_update":
         if (msg.workspace_state) {
-          const ws = msg.workspace_state;
-          if (ws.keyframes && typeof ws.keyframes === "object") {
-            const km = keyframeManagerRef.current;
-            for (const u of Object.keys(km.tracks)) km.clearTrack(u);
-            for (const [u, kfs] of Object.entries(ws.keyframes)) {
-              km.setTrack(u, kfs);
-            }
-            setKeyframeVersion((v) => v + 1);
-          }
-          if (typeof ws.duration === "number") setDuration(ws.duration);
-          if (typeof ws.loop === "boolean") setLoop(ws.loop);
+          kf.restoreKeyframes(msg.workspace_state.keyframes);
+          if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
+          if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
         }
         break;
 
       case "project_save_error":
       case "project_load_error":
       case "project_delete_error":
-        setDebugLogs((prev) => [
-          ...prev,
-          { agent: "System", message: msg.error, level: "error" },
-        ]);
+        chat.addErrorLog(msg.error);
         break;
     }
   }, []);
@@ -537,142 +376,90 @@ export default function App() {
   const { connected, send } = useWebSocket(WS_URL, handleMessage);
   sendRef.current = send;
 
-  // Persist to localStorage
-  useEffect(() => {
-    localStorage.setItem("siljangnim:messages", JSON.stringify(messages));
-  }, [messages]);
-
-  useEffect(() => {
-    localStorage.setItem("siljangnim:debugLogs", JSON.stringify(debugLogs));
-  }, [debugLogs]);
-
-  // Persist keyframes to localStorage
-  useEffect(() => {
-    if (keyframeVersion > 0) {
-      localStorage.setItem("siljangnim:keyframes", JSON.stringify(keyframeManagerRef.current.tracks));
-    }
-  }, [keyframeVersion]);
-
-  // Callbacks
-  const handleSend = useCallback(
-    (text, files) => {
-      const msg = { role: "user", text };
-      if (files?.length) {
-        msg.files = files.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
-      }
-      setMessages((prev) => [...prev, msg]);
-      setIsProcessing(true);
-
-      const wsMsg = { type: "prompt", text };
-      if (files?.length) wsMsg.files = files;
-      send(wsMsg);
-    },
-    [send]
-  );
-
-  const handleUniformChange = useCallback(
-    (uniform, value) => {
-      // Update engine directly for immediate visual feedback
-      if (engineRef.current) {
-        engineRef.current.updateUniform(uniform, value);
-      }
-      // Persist to backend
-      send({ type: "set_uniform", uniform, value });
-    },
-    [send]
-  );
-
-  const handleNewChat = useCallback(() => {
-    setMessages([]);
-    send({ type: "new_chat" });
-  }, [send]);
-
-  const handleAnswer = useCallback((text) => {
-    setMessages((prev) => [...prev, { role: "user", text }]);
-    setPendingQuestion(null);
-    send({ type: "user_answer", text });
-  }, [send]);
-
   // Warn before closing tab with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e) => {
-      if (dirtyRef.current) {
+      if (project.saveStatusRef.current === "unsaved") {
         e.preventDefault();
         e.returnValue = "";
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, []);
+  }, [project.saveStatusRef]);
+
+  // Cmd+S / Ctrl+S to save current project
+  const handleProjectSaveRef = useRef(null);
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        const name = project.activeProject;
+        if (name) {
+          handleProjectSaveRef.current?.(name);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [project.activeProject]);
+  handleProjectSaveRef.current = project.handleProjectSave;
+
+  const handleUniformChange = useCallback(
+    (uniform, value) => {
+      const h = uniformHistoryRef.current;
+      const c = uniformCoalesceRef.current;
+      const vals = uniformValuesRef.current;
+
+      // Coalesce rapid changes to the same uniform (e.g. slider drag)
+      if (c.uniform === uniform && c.timer) {
+        clearTimeout(c.timer);
+        if (h.past.length > 0) {
+          h.past[h.past.length - 1].newValue = value;
+        }
+      } else {
+        const oldValue = vals[uniform];
+        h.past.push({ uniform, oldValue, newValue: value });
+        if (h.past.length > 100) h.past.shift();
+        h.future.length = 0;
+      }
+      c.uniform = uniform;
+      c.timer = setTimeout(() => { c.uniform = null; c.timer = null; }, 500);
+
+      vals[uniform] = value;
+      if (engineRef.current) engineRef.current.updateUniform(uniform, value);
+      send({ type: "set_uniform", uniform, value });
+      dirtyRef.current = true;
+      project.markUnsaved();
+    },
+    [send, project.markUnsaved]
+  );
 
   const handleNewProject = useCallback(() => {
-    if (dirtyRef.current) {
+    if (project.saveStatus === "unsaved") {
       if (!window.confirm(
-        activeProject
-          ? `Save changes to "${activeProject}" before creating a new project?\n\nClick OK to save and continue, or Cancel to stay.`
-          : "You have unsaved changes. Discard them and create a new project?"
+        project.activeProject
+          ? `"${project.activeProject}"에 저장되지 않은 변경사항이 있습니다. 새 프로젝트를 만들까요?`
+          : "저장되지 않은 변경사항이 있습니다. 새 프로젝트를 만들까요?"
       )) return;
     }
     const msg = { type: "new_project" };
-    if (activeProject) {
-      msg.active_project = activeProject;
+    if (project.activeProject) {
+      msg.active_project = project.activeProject;
       msg.thumbnail = captureThumbnail();
       msg.workspace_state = getWorkspaceState();
     }
-    setMessages([]);
-    setDebugLogs([]);
+    chat.clearAll();
     setSceneJSON(null);
     setUiConfig({ controls: [], inspectable_buffers: [] });
-    setActiveProject(null);
-    // Reset keyframes, duration, loop to defaults
-    const km = keyframeManagerRef.current;
-    for (const u of Object.keys(km.tracks)) km.clearTrack(u);
-    setKeyframeVersion((v) => v + 1);
+    project.setActiveProject(null);
+    kf.resetKeyframes();
     setDuration(30);
     setLoop(true);
     dirtyRef.current = false;
-    setSaveStatus("saved");
+    project.markSaved();
     send(msg);
-  }, [send, activeProject, captureThumbnail, getWorkspaceState]);
-
-  const handleProjectSave = useCallback(
-    (name, description) => {
-      setSaveStatus("saving");
-      send({
-        type: "project_save", name,
-        description: description || "",
-        thumbnail: captureThumbnail(),
-        workspace_state: getWorkspaceState(),
-      });
-    },
-    [send, captureThumbnail, getWorkspaceState]
-  );
-
-  const handleProjectLoad = useCallback(
-    (name) => {
-      if (dirtyRef.current && activeProject && activeProject !== name) {
-        if (!window.confirm(
-          `Save changes to "${activeProject}" before loading "${name}"?\n\nClick OK to save and continue, or Cancel to stay.`
-        )) return;
-      }
-      const msg = { type: "project_load", name };
-      if (activeProject && activeProject !== name) {
-        msg.active_project = activeProject;
-        msg.thumbnail = captureThumbnail();
-        msg.workspace_state = getWorkspaceState();
-      }
-      send(msg);
-    },
-    [send, activeProject, captureThumbnail, getWorkspaceState]
-  );
-
-  const handleProjectDelete = useCallback(
-    (name) => {
-      send({ type: "project_delete", name });
-      setActiveProject((prev) => (prev === name ? null : prev));
-    },
-    [send]
-  );
+  }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, chat.clearAll, kf.resetKeyframes, project.setActiveProject, project.markSaved]);
 
   const API_BASE = import.meta.env.DEV
     ? `http://${window.location.hostname}:8000`
@@ -684,17 +471,13 @@ export default function App() {
         const res = await fetch(`${API_BASE}/api/workspace/files/${encodeURIComponent(filepath)}`, {
           method: "DELETE",
         });
-        if (res.ok) {
-          setWorkspaceFilesVersion((v) => v + 1);
-        }
+        if (res.ok) setWorkspaceFilesVersion((v) => v + 1);
       } catch { /* ignore */ }
     },
     [API_BASE]
   );
 
-  const handleTogglePause = useCallback(() => {
-    setPaused((p) => !p);
-  }, []);
+  const handleTogglePause = useCallback(() => setPaused((p) => !p), []);
 
   const handleToggleRecord = useCallback(() => {
     if (recording) {
@@ -705,59 +488,15 @@ export default function App() {
     }
   }, [recording, startRecording, stopRecording, offlineRecord]);
 
-  const handleToggleOfflineRecord = useCallback(() => {
-    setOfflineRecord((v) => !v);
-  }, []);
-
-  const handleApiKeySubmit = useCallback(
-    (key) => {
-      setApiKeyLoading(true);
-      setApiKeyError("");
-      send({ type: "set_api_key", key });
-    },
-    [send]
-  );
+  const handleToggleOfflineRecord = useCallback(() => setOfflineRecord((v) => !v), []);
 
   const handleShaderError = useCallback((err) => {
     const message = err.message || String(err);
-    setDebugLogs((prev) => [
-      ...prev,
-      { agent: "WebGL", message, level: "error" },
-    ]);
-    // Forward to backend for automatic agent fix
+    chat.addLog({ agent: "WebGL", message, level: "error" });
     sendRef.current?.({ type: "console_error", message });
-  }, []);
+  }, [chat.addLog]);
 
-  const handleClosePanel = useCallback(
-    (panelId) => {
-      setCustomPanels((prev) => {
-        const next = new Map(prev);
-        next.delete(panelId);
-        return next;
-      });
-      send({ type: "close_panel", id: panelId });
-    },
-    [send]
-  );
-
-  // Panel keyframe change handler
-  const handlePanelKeyframesChange = useCallback((uniform, keyframes) => {
-    const km = keyframeManagerRef.current;
-    // Push to undo stack
-    const prevKfs = km.getTrack(uniform);
-    kfHistoryRef.current.past.push({ uniform, keyframes: [...prevKfs] });
-    if (kfHistoryRef.current.past.length > 50) kfHistoryRef.current.past.shift();
-    kfHistoryRef.current.future.length = 0;
-
-    if (!keyframes || keyframes.length === 0) {
-      km.clearTrack(uniform);
-    } else {
-      km.setTrack(uniform, keyframes);
-    }
-    setKeyframeVersion((v) => v + 1);
-  }, []);
-
-  // Sync data into nodes (including dynamic camera node creation/removal)
+  // Sync data into nodes
   useEffect(() => {
     const rot3dCtrl = (uiConfig.controls || []).find((c) => c.type === "rotation3d");
     const pad2dCtrls = (uiConfig.controls || []).filter((c) => c.type === "pad2d");
@@ -767,7 +506,16 @@ export default function App() {
         if (node.id === "chat") {
           return {
             ...node,
-            data: { ...node.data, messages, onSend: handleSend, isProcessing, agentStatus, onNewChat: handleNewChat, pendingQuestion, onAnswer: handleAnswer },
+            data: {
+              ...node.data,
+              messages: chat.messages,
+              onSend: chat.handleSend,
+              isProcessing: chat.isProcessing,
+              agentStatus: chat.agentStatus,
+              onNewChat: chat.handleNewChat,
+              pendingQuestion: chat.pendingQuestion,
+              onAnswer: chat.handleAnswer,
+            },
           };
         }
         if (node.id === "inspector") {
@@ -777,9 +525,9 @@ export default function App() {
               ...node.data,
               controls: uiConfig.controls || [],
               onUniformChange: handleUniformChange,
-              keyframeManagerRef,
+              keyframeManagerRef: kf.keyframeManagerRef,
               engineRef,
-              onOpenKeyframeEditor: handleOpenKeyframeEditor,
+              onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
             },
           };
         }
@@ -792,7 +540,7 @@ export default function App() {
         if (node.id === "debugLog") {
           return {
             ...node,
-            data: { ...node.data, logs: debugLogs },
+            data: { ...node.data, logs: chat.debugLogs },
           };
         }
         if (node.id === "projectBrowser") {
@@ -800,11 +548,11 @@ export default function App() {
             ...node,
             data: {
               ...node.data,
-              projects: projectList,
-              activeProject,
-              onSave: handleProjectSave,
-              onLoad: handleProjectLoad,
-              onDelete: handleProjectDelete,
+              projects: project.projectList,
+              activeProject: project.activeProject,
+              onSave: project.handleProjectSave,
+              onLoad: project.handleProjectLoad,
+              onDelete: project.handleProjectDelete,
               onDeleteWorkspaceFile: handleDeleteWorkspaceFile,
               workspaceFilesVersion,
             },
@@ -813,11 +561,7 @@ export default function App() {
         if (node.id === "camera") {
           return {
             ...node,
-            data: {
-              ...node.data,
-              ctrl: rot3dCtrl,
-              onUniformChange: handleUniformChange,
-            },
+            data: { ...node.data, ctrl: rot3dCtrl, onUniformChange: handleUniformChange },
           };
         }
         if (node.type === "pad2d") {
@@ -829,7 +573,7 @@ export default function App() {
         }
         if (node.type === "customPanel") {
           const panelId = node.id.replace("panel_", "");
-          const panel = customPanels.get(panelId);
+          const panel = panels.customPanels.get(panelId);
           if (panel) {
             return {
               ...node,
@@ -839,9 +583,9 @@ export default function App() {
                 html: panel.html,
                 onUniformChange: handleUniformChange,
                 engineRef,
-                onClose: () => handleClosePanel(panelId),
-                keyframeManagerRef,
-                onKeyframesChange: handlePanelKeyframesChange,
+                onClose: () => panels.handleClosePanel(panelId),
+                keyframeManagerRef: kf.keyframeManagerRef,
+                onKeyframesChange: kf.handlePanelKeyframesChange,
                 onDurationChange: setDuration,
                 onLoopChange: setLoop,
                 duration,
@@ -853,7 +597,7 @@ export default function App() {
         return node;
       });
 
-      // Add camera node if rotation3d control exists but node doesn't
+      // Add/remove camera node
       const hasCamera = updated.some((n) => n.id === "camera");
       if (rot3dCtrl && !hasCamera) {
         updated = [
@@ -867,12 +611,11 @@ export default function App() {
           },
         ];
       }
-      // Remove camera node if no rotation3d control
       if (!rot3dCtrl && hasCamera) {
         updated = updated.filter((n) => n.id !== "camera");
       }
 
-      // Add pad2d nodes for each pad2d control that doesn't have a node yet
+      // Add/remove pad2d nodes
       const pad2dIds = new Set(pad2dCtrls.map((c) => `pad2d_${c.uniform}`));
       for (const ctrl of pad2dCtrls) {
         const nodeId = `pad2d_${ctrl.uniform}`;
@@ -889,12 +632,11 @@ export default function App() {
           ];
         }
       }
-      // Remove pad2d nodes whose controls no longer exist
       updated = updated.filter((n) => n.type !== "pad2d" || pad2dIds.has(n.id));
 
-      // Add custom panel nodes for each panel that doesn't have a node yet
-      const panelNodeIds = new Set([...customPanels.keys()].map((id) => `panel_${id}`));
-      for (const [panelId, panel] of customPanels) {
+      // Add/remove custom panel nodes
+      const panelNodeIds = new Set([...panels.customPanels.keys()].map((id) => `panel_${id}`));
+      for (const [panelId, panel] of panels.customPanels) {
         const nodeId = `panel_${panelId}`;
         if (!updated.some((n) => n.id === nodeId)) {
           updated = [
@@ -909,9 +651,9 @@ export default function App() {
                 html: panel.html,
                 onUniformChange: handleUniformChange,
                 engineRef,
-                onClose: () => handleClosePanel(panelId),
-                keyframeManagerRef,
-                onKeyframesChange: handlePanelKeyframesChange,
+                onClose: () => panels.handleClosePanel(panelId),
+                keyframeManagerRef: kf.keyframeManagerRef,
+                onKeyframesChange: kf.handlePanelKeyframesChange,
                 onDurationChange: setDuration,
                 onLoopChange: setLoop,
                 duration,
@@ -921,21 +663,29 @@ export default function App() {
           ];
         }
       }
-      // Remove custom panel nodes whose panels no longer exist
       updated = updated.filter((n) => n.type !== "customPanel" || panelNodeIds.has(n.id));
 
       return updated;
     });
-  }, [messages, handleSend, isProcessing, agentStatus, handleNewChat, pendingQuestion, handleAnswer, sceneJSON, paused, uiConfig, handleUniformChange, debugLogs, projectList, activeProject, handleProjectSave, handleProjectLoad, handleProjectDelete, handleDeleteWorkspaceFile, workspaceFilesVersion, handleShaderError, customPanels, handleClosePanel, setNodes, handleOpenKeyframeEditor, keyframeVersion, handlePanelKeyframesChange, duration, loop]);
+  }, [
+    chat.messages, chat.handleSend, chat.isProcessing, chat.agentStatus, chat.handleNewChat,
+    chat.pendingQuestion, chat.handleAnswer, chat.debugLogs,
+    sceneJSON, paused, uiConfig, handleUniformChange,
+    project.projectList, project.activeProject, project.handleProjectSave, project.handleProjectLoad, project.handleProjectDelete,
+    handleDeleteWorkspaceFile, workspaceFilesVersion, handleShaderError,
+    panels.customPanels, panels.handleClosePanel,
+    setNodes, kf.handleOpenKeyframeEditor, kf.keyframeVersion, kf.handlePanelKeyframesChange, kf.keyframeManagerRef,
+    duration, loop,
+  ]);
 
   return (
     <EngineContext.Provider value={engineRef}>
       <div className="w-screen h-screen pt-10 pb-10">
         <Toolbar
           onNewProject={handleNewProject}
-          activeProject={activeProject}
+          activeProject={project.activeProject}
           connected={connected}
-          saveStatus={saveStatus}
+          saveStatus={project.saveStatus}
         />
         <Timeline
           paused={paused}
@@ -953,25 +703,25 @@ export default function App() {
           onToggleOfflineRecord={handleToggleOfflineRecord}
         />
 
-        {apiKeyRequired && (
+        {apiKey.apiKeyRequired && (
           <ApiKeyModal
-            onSubmit={handleApiKeySubmit}
-            error={apiKeyError}
-            loading={apiKeyLoading}
+            onSubmit={apiKey.handleApiKeySubmit}
+            error={apiKey.apiKeyError}
+            loading={apiKey.apiKeyLoading}
           />
         )}
 
-        {keyframeEditorTarget && (
+        {kf.keyframeEditorTarget && (
           <KeyframeEditor
-            uniformName={keyframeEditorTarget.uniform}
-            label={keyframeEditorTarget.label}
-            min={keyframeEditorTarget.min}
-            max={keyframeEditorTarget.max}
+            uniformName={kf.keyframeEditorTarget.uniform}
+            label={kf.keyframeEditorTarget.label}
+            min={kf.keyframeEditorTarget.min}
+            max={kf.keyframeEditorTarget.max}
             duration={duration}
-            keyframes={keyframeManagerRef.current.getTrack(keyframeEditorTarget.uniform)}
+            keyframes={kf.keyframeManagerRef.current.getTrack(kf.keyframeEditorTarget.uniform)}
             engineRef={engineRef}
-            onKeyframesChange={handleKeyframesChange}
-            onClose={() => setKeyframeEditorTarget(null)}
+            onKeyframesChange={kf.handleKeyframesChange}
+            onClose={kf.closeEditor}
           />
         )}
 
