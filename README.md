@@ -1,6 +1,13 @@
-# siljangnim
+<p align="center">
+  <img src="frontend/public/logo.svg" alt="실장님" width="128" height="128" />
+</p>
 
-AI-powered real-time graphics creation tool. Describe visuals in natural language — Claude generates WebGL2 shaders that render live in your browser.
+<h1 align="center">실장님 (Siljangnim)</h1>
+
+<p align="center">
+  AI-powered real-time graphics creation tool.<br/>
+  Describe visuals in natural language — Claude generates WebGL2 shaders that render live in your browser.
+</p>
 
 ![WebGL2](https://img.shields.io/badge/WebGL2-ES_3.0-blue)
 ![License](https://img.shields.io/badge/license-GPLv3-green)

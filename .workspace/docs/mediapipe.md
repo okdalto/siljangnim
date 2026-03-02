@@ -41,10 +41,11 @@ z is relative depth (smaller = closer to camera). In shaders, use `1.0 - y` for 
 ## Example — Webcam + Pose landmarks
 
 ```javascript
-// setup
-const cam = await ctx.utils.initWebcam();
-ctx.state.cam = cam;
-await ctx.mediapipe.init({ tasks: ['pose'] });
+// setup (NO await — use .then() chains)
+ctx.utils.initWebcam().then(cam => {
+  ctx.state.cam = cam;
+  return ctx.mediapipe.init({ tasks: ['pose'] });
+}).then(() => { ctx.state.ready = true; });
 
 const vs = ctx.utils.DEFAULT_QUAD_VERTEX_SHADER;
 const fs = `#version 300 es
@@ -71,7 +72,7 @@ ctx.state.prog = ctx.utils.createProgram(vs, fs);
 // ... create VAO + quad buffer ...
 
 // render
-if (ctx.state.cam) {
+if (ctx.state.ready && ctx.state.cam) {
   ctx.utils.updateVideoTexture(ctx.state.cam.texture, ctx.state.cam.video);
   ctx.mediapipe.detect(ctx.state.cam.video);
   const gl = ctx.gl;
@@ -89,4 +90,18 @@ if (ctx.state.cam) {
 }
 ```
 
-Always tell the user the browser will ask for camera permission when using webcam + MediaPipe.
+## Important notes
+
+- Always tell the user the browser will ask for camera permission when using webcam + MediaPipe.
+- The `setup` function does NOT support `await`. Use `.then()` chains or fire-and-forget with a `ctx.state.ready` guard in render:
+  ```javascript
+  // setup — NO await allowed
+  ctx.utils.initWebcam().then(cam => {
+    ctx.state.cam = cam;
+    return ctx.mediapipe.init({ tasks: ['hands'] });
+  }).then(() => { ctx.state.ready = true; });
+
+  // render — guard until ready
+  if (!ctx.state.ready) return;
+  ```
+- The engine's CDN version is pinned to `@mediapipe/tasks-vision@0.10.18` and model files are loaded from `storage.googleapis.com`. Do NOT use `@latest` or jsDelivr URLs for `.task` model files — they return 404.

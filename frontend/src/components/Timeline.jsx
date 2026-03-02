@@ -1,13 +1,12 @@
 import { useRef, useEffect, useState, useCallback } from "react";
+import RecordMenu from "./RecordMenu.jsx";
 
-export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange, recording, recordingTime, onToggleRecord, offlineRecord, onToggleOfflineRecord, recordFps, onRecordFpsChange }) {
+export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange, recording, recordingTime, onStartRecord, onStopRecord, canvasWidth, canvasHeight }) {
   const progressRef = useRef(null);
   const timeDisplayRef = useRef(null);
   const barRef = useRef(null);
   const scrubbing = useRef(false);
   const [durationInput, setDurationInput] = useState(String(duration));
-  const [customFps, setCustomFps] = useState(false);
-  const [fpsInput, setFpsInput] = useState(String(recordFps));
 
   // Sync input when prop changes externally
   useEffect(() => {
@@ -149,43 +148,15 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
         </svg>
       </button>
 
-      {/* Record toggle */}
-      <button
-        onClick={onToggleRecord}
-        className={`flex items-center justify-center gap-1 h-6 transition-colors ${recording ? "text-red-400 hover:text-red-300" : "text-zinc-500 hover:text-zinc-300"}`}
-        title={recording ? "Stop recording" : "Start recording"}
-      >
-        <span
-          className={`inline-block w-3 h-3 rounded-full ${recording ? "bg-red-500" : "bg-red-800 border border-red-600"}`}
-          style={recording ? { animation: "rec-blink 1s ease-in-out infinite" } : undefined}
-        />
-        {recording && (
-          <span className="text-xs font-mono text-red-400 min-w-[36px]">
-            {Math.floor(recordingTime / 60).toString().padStart(2, "0")}:{Math.floor(recordingTime % 60).toString().padStart(2, "0")}
-          </span>
-        )}
-      </button>
-      {/* Offline record toggle */}
-      <div className="relative group">
-        <button
-          onClick={onToggleOfflineRecord}
-          className={`flex items-center justify-center w-6 h-6 transition-colors ${offlineRecord ? "text-indigo-400 hover:text-indigo-300" : "text-zinc-500 hover:text-zinc-300"}`}
-          disabled={recording}
-          style={recording ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="8" cy="8" r="6.5" />
-            <polyline points="8,4 8,8 11,10" />
-          </svg>
-        </button>
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-600 shadow-xl text-[11px] text-zinc-300 whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
-          {offlineRecord
-            ? "Offline mode ON — renders every frame at exact FPS"
-            : "Realtime mode — click to switch to offline (frame-exact)"}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-zinc-600" />
-        </div>
-      </div>
-      <style>{`@keyframes rec-blink { 0%,100% { opacity:1 } 50% { opacity:0.3 } }`}</style>
+      {/* Record menu (popover) */}
+      <RecordMenu
+        recording={recording}
+        recordingTime={recordingTime}
+        onStart={onStartRecord}
+        onStop={onStopRecord}
+        canvasWidth={canvasWidth}
+        canvasHeight={canvasHeight}
+      />
 
       {/* Scrub bar */}
       <div
@@ -226,62 +197,6 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
           }}
           className="w-12 text-xs text-center bg-zinc-700 border border-zinc-600 rounded px-1 py-0.5 text-zinc-300 outline-none focus:border-blue-500"
         />
-      </div>
-
-      {/* FPS selector */}
-      <div className="flex items-center gap-1">
-        <span className="text-xs text-zinc-500">fps</span>
-        {customFps ? (
-          <input
-            type="text"
-            autoFocus
-            value={fpsInput}
-            onChange={(e) => setFpsInput(e.target.value)}
-            onBlur={() => {
-              const v = parseInt(fpsInput, 10);
-              if (!isNaN(v) && v > 0) {
-                onRecordFpsChange(v);
-              } else {
-                setFpsInput(String(recordFps));
-              }
-              setCustomFps(false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") e.target.blur();
-              if (e.key === "Escape") { setCustomFps(false); setFpsInput(String(recordFps)); }
-            }}
-            disabled={recording}
-            className="w-12 text-xs text-center bg-zinc-700 border border-zinc-600 rounded px-1 py-0.5 text-zinc-300 outline-none focus:border-blue-500"
-          />
-        ) : (
-          <div className="flex items-center gap-0.5">
-            {[24, 30, 60].map((f) => (
-              <button
-                key={f}
-                onClick={() => onRecordFpsChange(f)}
-                disabled={recording}
-                className={`text-xs px-1.5 py-0.5 rounded transition-colors ${
-                  recordFps === f
-                    ? "bg-blue-600 text-white"
-                    : "bg-zinc-700 text-zinc-400 hover:text-zinc-200"
-                } ${recording ? "opacity-40 cursor-not-allowed" : ""}`}
-              >
-                {f}
-              </button>
-            ))}
-            <button
-              onClick={() => { setCustomFps(true); setFpsInput(String(recordFps)); }}
-              disabled={recording}
-              className={`text-xs px-1.5 py-0.5 rounded transition-colors ${
-                ![24, 30, 60].includes(recordFps)
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-700 text-zinc-400 hover:text-zinc-200"
-              } ${recording ? "opacity-40 cursor-not-allowed" : ""}`}
-            >
-              {![24, 30, 60].includes(recordFps) ? recordFps : "..."}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
