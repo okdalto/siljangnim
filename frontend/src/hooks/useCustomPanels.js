@@ -24,6 +24,21 @@ export default function useCustomPanels(sendRef) {
     });
   }, []);
 
+  const restorePanels = useCallback((panelsObj) => {
+    const next = new Map();
+    if (panelsObj) {
+      for (const [id, data] of Object.entries(panelsObj)) {
+        next.set(id, {
+          title: data.title || "Panel",
+          html: data.html || "",
+          width: data.width || 320,
+          height: data.height || 300,
+        });
+      }
+    }
+    setCustomPanels(next);
+  }, []);
+
   const handleClosePanel = useCallback(
     (panelId) => {
       setCustomPanels((prev) => {
@@ -41,5 +56,6 @@ export default function useCustomPanels(sendRef) {
     handleClosePanel,
     openPanel,
     closePanel,
+    restorePanels,
   };
 }

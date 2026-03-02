@@ -3,13 +3,11 @@ siljangnim Backend — FastAPI + WebSocket server.
 Rendering is done client-side via WebGL2. Backend manages Claude Agent SDK agent and state.
 """
 
-import asyncio
 import base64
 import json
 import logging
 import re
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -18,101 +16,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
 import workspace
+from workspace import DEFAULT_SCENE_JSON, DEFAULT_UI_CONFIG
 import config
 import agents
 import projects
+from ws_handlers import WsContext, HANDLERS
 
 
 # ---------------------------------------------------------------------------
-# Default scene JSON (simple color gradient)
+# Lifespan
 # ---------------------------------------------------------------------------
-
-DEFAULT_SCENE_JSON = {
-    "version": 1,
-    "render_mode": "script",
-    "script": {
-        "setup": (
-            "const gl = ctx.gl;\n"
-            "const prog = ctx.utils.createProgram(\n"
-            "  ctx.utils.DEFAULT_QUAD_VERTEX_SHADER,\n"
-            "  `#version 300 es\n"
-            "precision highp float;\n"
-            "in vec2 v_uv;\n"
-            "uniform float u_time;\n"
-            "out vec4 fragColor;\n"
-            "void main() {\n"
-            "  vec2 uv = v_uv;\n"
-            "  vec3 col = 0.5 + 0.5 * cos(u_time + uv.xyx + vec3(0.0, 2.0, 4.0));\n"
-            "  fragColor = vec4(col, 1.0);\n"
-            "}\n"
-            "`);\n"
-            "const quad = ctx.utils.createQuadGeometry();\n"
-            "const vao = gl.createVertexArray();\n"
-            "gl.bindVertexArray(vao);\n"
-            "const buf = gl.createBuffer();\n"
-            "gl.bindBuffer(gl.ARRAY_BUFFER, buf);\n"
-            "gl.bufferData(gl.ARRAY_BUFFER, quad.positions, gl.STATIC_DRAW);\n"
-            "const loc = gl.getAttribLocation(prog, 'a_position');\n"
-            "gl.enableVertexAttribArray(loc);\n"
-            "gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);\n"
-            "gl.bindVertexArray(null);\n"
-            "ctx.state.prog = prog;\n"
-            "ctx.state.vao = vao;\n"
-            "ctx.state.buf = buf;\n"
-        ),
-        "render": (
-            "const gl = ctx.gl;\n"
-            "gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);\n"
-            "gl.clearColor(0.08, 0.08, 0.12, 1.0);\n"
-            "gl.clear(gl.COLOR_BUFFER_BIT);\n"
-            "gl.useProgram(ctx.state.prog);\n"
-            "const tLoc = gl.getUniformLocation(ctx.state.prog, 'u_time');\n"
-            "if (tLoc) gl.uniform1f(tLoc, ctx.time);\n"
-            "gl.bindVertexArray(ctx.state.vao);\n"
-            "gl.drawArrays(gl.TRIANGLES, 0, 6);\n"
-            "gl.bindVertexArray(null);\n"
-        ),
-        "cleanup": (
-            "const gl = ctx.gl;\n"
-            "gl.deleteProgram(ctx.state.prog);\n"
-            "gl.deleteVertexArray(ctx.state.vao);\n"
-            "gl.deleteBuffer(ctx.state.buf);\n"
-        ),
-    },
-    "uniforms": {},
-    "clearColor": [0.08, 0.08, 0.12, 1.0],
-}
-
-DEFAULT_UI_CONFIG = {"controls": [], "inspectable_buffers": []}
-
-
-# ---------------------------------------------------------------------------
-# API key state
-# ---------------------------------------------------------------------------
-
-_api_key: str | None = None
-_chat_history: list[dict] = []
-_global_agent_busy: bool = False  # any agent running?
-_AGENT_WS_ID = 0  # fixed conversation key (single-user app)
-
-# Console error auto-fix state
-_pending_console_errors: list[str] = []
-_auto_fix_count: int = 0
-_MAX_AUTO_FIX = 3
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _api_key
-    _api_key = config.load_api_key()
+    ctx.api_key = config.load_api_key()
 
-    # Initialize workspace (migration + restore active project)
     workspace.init_workspace()
-
-    # Load agent conversations for the active workspace
     agents.load_conversations()
 
-    # Seed defaults
     existing = workspace.list_files()
     if "scene.json" not in existing:
         workspace.write_json("scene.json", DEFAULT_SCENE_JSON)
@@ -164,6 +85,9 @@ class ConnectionManager:
 
 
 manager = ConnectionManager()
+
+# Shared WebSocket context (replaces module-level globals)
+ctx = WsContext(manager=manager)
 
 
 # ---------------------------------------------------------------------------
@@ -259,11 +183,11 @@ async def debug_state():
     """Server-wide state summary for debugging."""
     conversations = agents.get_debug_conversations()
     return {
-        "api_key_set": _api_key is not None,
-        "global_agent_busy": _global_agent_busy,
+        "api_key_set": ctx.api_key is not None,
+        "global_agent_busy": ctx.agent_busy,
         "active_connections": len(manager.active),
-        "agent_ws_id": _AGENT_WS_ID,
-        "chat_history_length": len(_chat_history),
+        "agent_ws_id": ctx.AGENT_WS_ID,
+        "chat_history_length": len(ctx.chat_history),
         "conversation_count": len(conversations),
         "conversation_lengths": {str(k): len(v) for k, v in conversations.items()},
         "workspace_files": workspace.list_files(),
@@ -275,8 +199,8 @@ async def debug_state():
 async def debug_chat_history():
     """Return the full chat history."""
     return {
-        "count": len(_chat_history),
-        "messages": _chat_history,
+        "count": len(ctx.chat_history),
+        "messages": ctx.chat_history,
     }
 
 
@@ -338,6 +262,7 @@ async def get_upload(filename: str):
 
 MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB
 
+
 def _sanitize_filename(name: str) -> str:
     """Sanitize a filename — keep alphanumeric, dots, hyphens, underscores."""
     name = name.strip().replace(" ", "_")
@@ -374,8 +299,6 @@ def _process_uploads(raw_files: list[dict]) -> list[dict]:
 
 async def _process_uploaded_files(saved_files: list[dict], broadcast):
     """Run asset processing pipeline for uploaded files before agent starts."""
-    import logging
-    logger = logging.getLogger(__name__)
     from processors import run_pipeline
 
     for f in saved_files:
@@ -424,89 +347,11 @@ async def _process_uploaded_files(saved_files: list[dict], broadcast):
 
 
 # ---------------------------------------------------------------------------
-# Auto-fix: trigger agent to fix a runtime error
-# ---------------------------------------------------------------------------
-
-async def _trigger_auto_fix(error_message: str):
-    global _global_agent_busy, _auto_fix_count
-    if _global_agent_busy or not _api_key:
-        _pending_console_errors.append(error_message)
-        return
-
-    _auto_fix_count += 1
-    prompt = (
-        f"[Runtime Error] The script produced this error:\n"
-        f"{error_message}\n"
-        f"Please fix the script so this error no longer occurs."
-    )
-    _chat_history.append({"role": "user", "text": prompt})
-    _global_agent_busy = True
-
-    # Notify frontend
-    await manager.broadcast({"type": "assistant_text", "text": ""})  # signal processing start
-    await manager.broadcast({
-        "type": "agent_log",
-        "agent": "System",
-        "message": f"Auto-fix #{_auto_fix_count}: {error_message}",
-        "level": "info",
-    })
-
-    async def log_callback(agent_name: str, message: str, level: str):
-        await manager.broadcast({
-            "type": "agent_log",
-            "agent": agent_name,
-            "message": message,
-            "level": level,
-        })
-
-    async def on_text(text: str):
-        _chat_history.append({"role": "assistant", "text": text})
-        await manager.broadcast({"type": "assistant_text", "text": text})
-
-    async def on_status(status_type: str, detail: str):
-        await manager.broadcast({
-            "type": "agent_status",
-            "status": status_type,
-            "detail": detail,
-        })
-
-    try:
-        await agents.run_agent(
-            ws_id=_AGENT_WS_ID,
-            user_prompt=prompt,
-            log=log_callback,
-            broadcast=manager.broadcast,
-            on_text=on_text,
-            on_status=on_status,
-            files=[],
-        )
-        await manager.broadcast({"type": "chat_done"})
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        await manager.broadcast({
-            "type": "agent_log",
-            "agent": "System",
-            "message": f"Auto-fix agent error: {e}",
-            "level": "error",
-        })
-        await manager.broadcast({"type": "chat_done"})
-    finally:
-        _global_agent_busy = False
-        # Drain pending console errors
-        if _pending_console_errors and _auto_fix_count < _MAX_AUTO_FIX:
-            next_err = _pending_console_errors.pop(0)
-            _pending_console_errors.clear()
-            asyncio.create_task(_trigger_auto_fix(next_err))
-
-
-# ---------------------------------------------------------------------------
 # WebSocket endpoint
 # ---------------------------------------------------------------------------
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
-    global _api_key, _global_agent_busy, _auto_fix_count
     await manager.connect(ws)
 
     # Send initial state
@@ -525,17 +370,23 @@ async def websocket_endpoint(ws: WebSocket):
     except FileNotFoundError:
         workspace_state = {}
 
+    try:
+        panels = workspace.read_json("panels.json")
+    except FileNotFoundError:
+        panels = {}
+
     await ws.send_text(json.dumps({
         "type": "init",
         "scene_json": scene_json,
         "ui_config": ui_config,
         "projects": projects.list_projects(),
-        "is_processing": _global_agent_busy,
-        "chat_history": _chat_history,
+        "is_processing": ctx.agent_busy,
+        "chat_history": ctx.chat_history,
         "workspace_state": workspace_state,
+        "panels": panels,
     }))
 
-    if not _api_key:
+    if not ctx.api_key:
         await ws.send_text(json.dumps({"type": "api_key_required"}))
 
     try:
@@ -544,338 +395,9 @@ async def websocket_endpoint(ws: WebSocket):
             msg = json.loads(raw)
             msg_type = msg.get("type")
 
-            if msg_type == "set_api_key":
-                key = msg.get("key", "").strip()
-                valid, error = await config.validate_api_key(key)
-                if valid:
-                    config.save_api_key(key)
-                    _api_key = key
-                    await ws.send_text(json.dumps({"type": "api_key_valid"}))
-                else:
-                    await ws.send_text(json.dumps({
-                        "type": "api_key_invalid",
-                        "error": error,
-                    }))
-
-            elif msg_type == "prompt":
-                _auto_fix_count = 0  # reset auto-fix counter on manual input
-                if not _api_key:
-                    await ws.send_text(json.dumps({"type": "api_key_required"}))
-                    continue
-
-                # Prevent concurrent agent runs
-                if _global_agent_busy:
-                    await ws.send_text(json.dumps({
-                        "type": "agent_log",
-                        "agent": "System",
-                        "message": "Agent is busy, please wait...",
-                        "level": "error",
-                    }))
-                    continue
-
-                user_prompt = msg.get("text", "")
-
-                # Process uploaded files
-                raw_files = msg.get("files", [])
-                saved_files = []
-                if raw_files:
-                    try:
-                        saved_files = _process_uploads(raw_files)
-                    except ValueError as e:
-                        await ws.send_text(json.dumps({
-                            "type": "agent_log",
-                            "agent": "System",
-                            "message": str(e),
-                            "level": "error",
-                        }))
-                        continue
-
-                history_entry = {"role": "user", "text": user_prompt}
-                if saved_files:
-                    history_entry["files"] = [
-                        {"name": f["name"], "mime_type": f["mime_type"], "size": f["size"]}
-                        for f in saved_files
-                    ]
-                _chat_history.append(history_entry)
-
-                async def log_callback(agent_name: str, message: str, level: str):
-                    await manager.broadcast({
-                        "type": "agent_log",
-                        "agent": agent_name,
-                        "message": message,
-                        "level": level,
-                    })
-
-                async def on_text(text: str):
-                    _chat_history.append({"role": "assistant", "text": text})
-                    await manager.broadcast({"type": "assistant_text", "text": text})
-
-                async def on_status(status_type: str, detail: str):
-                    await manager.broadcast({
-                        "type": "agent_status",
-                        "status": status_type,
-                        "detail": detail,
-                    })
-
-                _global_agent_busy = True
-
-                async def _run_agent_task(
-                    _user_prompt=user_prompt,
-                    _log=log_callback,
-                    _on_text=on_text,
-                    _on_status=on_status,
-                    _files=saved_files,
-                ):
-                    global _global_agent_busy
-                    try:
-                        # Process uploaded files BEFORE agent starts,
-                        # so derivatives are available when the agent queries them
-                        if _files:
-                            await manager.broadcast({
-                                "type": "agent_log",
-                                "agent": "System",
-                                "message": f"Processing {len(_files)} uploaded file(s)...",
-                                "level": "info",
-                            })
-                            await _process_uploaded_files(_files, manager.broadcast)
-                            await manager.broadcast({
-                                "type": "agent_log",
-                                "agent": "System",
-                                "message": "File processing complete",
-                                "level": "info",
-                            })
-
-                        await agents.run_agent(
-                            ws_id=_AGENT_WS_ID,
-                            user_prompt=_user_prompt,
-                            log=_log,
-                            broadcast=manager.broadcast,
-                            on_text=_on_text,
-                            on_status=_on_status,
-                            files=_files,
-                        )
-
-                        await manager.broadcast({"type": "chat_done"})
-
-                    except Exception as e:
-                        import traceback
-                        traceback.print_exc()
-                        await manager.broadcast({
-                            "type": "agent_log",
-                            "agent": "System",
-                            "message": f"Agent error: {e}",
-                            "level": "error",
-                        })
-                        await manager.broadcast({
-                            "type": "assistant_text",
-                            "text": f"Error: {e}",
-                        })
-                        await manager.broadcast({"type": "chat_done"})
-                    finally:
-                        _global_agent_busy = False
-                        # Drain pending console errors
-                        if _pending_console_errors and _auto_fix_count < _MAX_AUTO_FIX:
-                            next_err = _pending_console_errors.pop(0)
-                            _pending_console_errors.clear()  # collapse duplicates
-                            asyncio.create_task(_trigger_auto_fix(next_err))
-
-                asyncio.create_task(_run_agent_task())
-
-            elif msg_type == "user_answer":
-                answer_text = msg.get("text", "")
-                if agents._user_answer_future and not agents._user_answer_future.done():
-                    agents._user_answer_future.set_result(answer_text)
-
-            elif msg_type == "console_error":
-                error_msg = msg.get("message", "")
-                if not error_msg:
-                    pass
-                elif _global_agent_busy:
-                    # Agent is busy — queue the error (deduplicate)
-                    if error_msg not in _pending_console_errors:
-                        _pending_console_errors.append(error_msg)
-                elif _auto_fix_count < _MAX_AUTO_FIX:
-                    asyncio.create_task(_trigger_auto_fix(error_msg))
-                else:
-                    # Max auto-fix reached — notify user
-                    await manager.broadcast({
-                        "type": "agent_log",
-                        "agent": "System",
-                        "message": f"Auto-fix limit ({_MAX_AUTO_FIX}) reached. Please fix the error manually or send a new prompt to reset.",
-                        "level": "warning",
-                    })
-
-            elif msg_type == "set_uniform":
-                uniform = msg.get("uniform")
-                value = msg.get("value")
-                if uniform is not None and value is not None:
-                    # Update uniform in scene.json for persistence
-                    try:
-                        scene = workspace.read_json("scene.json")
-                        if "uniforms" not in scene:
-                            scene["uniforms"] = {}
-                        if uniform in scene["uniforms"]:
-                            scene["uniforms"][uniform]["value"] = value
-                        else:
-                            # Infer type from value
-                            if isinstance(value, list):
-                                utype = f"vec{len(value)}"
-                            elif isinstance(value, bool):
-                                utype = "bool"
-                            else:
-                                utype = "float"
-                            scene["uniforms"][uniform] = {"type": utype, "value": value}
-                        workspace.write_json("scene.json", scene)
-                    except FileNotFoundError:
-                        pass
-
-            elif msg_type == "update_workspace_state":
-                ws_data = msg.get("workspace_state", {})
-                if ws_data:
-                    workspace.write_json("workspace_state.json", ws_data)
-
-            elif msg_type == "new_chat":
-                _chat_history.clear()
-                await agents.reset_agent(_AGENT_WS_ID)
-                await ws.send_text(json.dumps({
-                    "type": "agent_log",
-                    "agent": "System",
-                    "message": "Chat history cleared",
-                    "level": "info",
-                }))
-
-            elif msg_type == "new_project":
-                # Auto-save current project before resetting
-                _auto_save_name = msg.get("active_project")
-                if _auto_save_name:
-                    try:
-                        ws_data = msg.get("workspace_state")
-                        if ws_data:
-                            workspace.write_json("workspace_state.json", ws_data)
-                        projects.save_project(
-                            name=_auto_save_name,
-                            chat_history=_chat_history,
-                            thumbnail_b64=msg.get("thumbnail"),
-                        )
-                    except Exception as e:
-                        logger.warning("Auto-save failed for %s: %s",
-                                       _auto_save_name, e)
-
-                # 1. Clear chat history and agent session
-                _chat_history.clear()
-                await agents.reset_agent(_AGENT_WS_ID)
-
-                # 2. Switch to a fresh _untitled workspace
-                workspace.new_untitled_workspace()
-
-                # 3. Seed default files
-                workspace.write_json("scene.json", DEFAULT_SCENE_JSON)
-                workspace.write_json("ui_config.json", DEFAULT_UI_CONFIG)
-
-                # 4. Broadcast init with default scene
-                await manager.broadcast({
-                    "type": "init",
-                    "scene_json": DEFAULT_SCENE_JSON,
-                    "ui_config": DEFAULT_UI_CONFIG,
-                    "projects": projects.list_projects(),
-                    "workspace_state": {},
-                })
-
-            elif msg_type == "project_save":
-                try:
-                    ws_data = msg.get("workspace_state")
-                    if ws_data:
-                        workspace.write_json("workspace_state.json", ws_data)
-                    thumbnail_b64 = msg.get("thumbnail")
-                    meta = projects.save_project(
-                        name=msg.get("name", "untitled"),
-                        chat_history=_chat_history,
-                        description=msg.get("description", ""),
-                        thumbnail_b64=thumbnail_b64,
-                    )
-                    await ws.send_text(json.dumps({
-                        "type": "project_saved",
-                        "meta": meta,
-                    }))
-                    await manager.broadcast({
-                        "type": "project_list",
-                        "projects": projects.list_projects(),
-                    })
-                except Exception as e:
-                    await ws.send_text(json.dumps({
-                        "type": "project_save_error",
-                        "error": str(e),
-                    }))
-
-            elif msg_type == "project_load":
-                # Auto-save current project before loading another
-                _auto_save_name = msg.get("active_project")
-                if _auto_save_name:
-                    try:
-                        ws_data = msg.get("workspace_state")
-                        if ws_data:
-                            workspace.write_json("workspace_state.json", ws_data)
-                        projects.save_project(
-                            name=_auto_save_name,
-                            chat_history=_chat_history,
-                            thumbnail_b64=msg.get("thumbnail"),
-                        )
-                    except Exception as e:
-                        logger.warning("Auto-save failed for %s: %s",
-                                       _auto_save_name, e)
-
-                try:
-                    result = projects.load_project(msg.get("name", ""))
-                    _chat_history.clear()
-                    _chat_history.extend(result["chat_history"])
-                    # Reload agent conversations for the new workspace
-                    agents.load_conversations()
-                    await ws.send_text(json.dumps({
-                        "type": "project_loaded",
-                        **result,
-                    }))
-                except Exception as e:
-                    await ws.send_text(json.dumps({
-                        "type": "project_load_error",
-                        "error": str(e),
-                    }))
-
-            elif msg_type == "project_list":
-                await ws.send_text(json.dumps({
-                    "type": "project_list",
-                    "projects": projects.list_projects(),
-                }))
-
-            elif msg_type == "project_delete":
-                try:
-                    projects.delete_project(msg.get("name", ""))
-                    await manager.broadcast({
-                        "type": "project_list",
-                        "projects": projects.list_projects(),
-                    })
-                except Exception as e:
-                    await ws.send_text(json.dumps({
-                        "type": "project_delete_error",
-                        "error": str(e),
-                    }))
-
-            elif msg_type == "request_state":
-                try:
-                    s = workspace.read_json("scene.json")
-                    u = workspace.read_json("ui_config.json")
-                except FileNotFoundError:
-                    s, u = DEFAULT_SCENE_JSON, DEFAULT_UI_CONFIG
-                try:
-                    ws_state = workspace.read_json("workspace_state.json")
-                except FileNotFoundError:
-                    ws_state = {}
-                await ws.send_text(json.dumps({
-                    "type": "init",
-                    "scene_json": s,
-                    "ui_config": u,
-                    "projects": projects.list_projects(),
-                    "workspace_state": ws_state,
-                }))
+            handler = HANDLERS.get(msg_type)
+            if handler:
+                await handler(ws, msg, ctx)
 
     except (WebSocketDisconnect, RuntimeError):
         try:

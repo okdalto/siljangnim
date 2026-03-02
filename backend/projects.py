@@ -170,12 +170,21 @@ def load_project(name: str) -> dict:
         except (json.JSONDecodeError, OSError):
             pass
 
+    panels = {}
+    panels_path = project_dir / "panels.json"
+    if panels_path.exists():
+        try:
+            panels = json.loads(panels_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+
     return {
         "meta": meta,
         "chat_history": chat_history,
         "scene_json": scene_json,
         "ui_config": ui_config,
         "workspace_state": workspace_state,
+        "panels": panels,
     }
 
 
