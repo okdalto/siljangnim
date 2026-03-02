@@ -280,24 +280,36 @@ export default function App() {
         if (e.shiftKey) kf.redoKeyframes();
         else kf.undoKeyframes();
       } else if (e.shiftKey) {
+        // REDO: 3-way seq comparison
         const uFuture = uniformHistoryRef.current.future;
         const lFuture = layoutHistoryRef.current.future;
+        const pFuture = panels.panelHistoryRef.current.future;
         const uSeq = uFuture.length > 0 ? uFuture[uFuture.length - 1].seq ?? 0 : -1;
         const lSeq = lFuture.length > 0 ? lFuture[lFuture.length - 1].seq ?? 0 : -1;
-        if (uSeq < 0 && lSeq < 0) return;
-        if (uSeq >= lSeq) redoUniform(); else redo();
+        const pSeq = pFuture.length > 0 ? pFuture[pFuture.length - 1].seq ?? 0 : -1;
+        const maxSeq = Math.max(uSeq, lSeq, pSeq);
+        if (maxSeq < 0) return;
+        if (pSeq === maxSeq) panels.redoPanelClose();
+        else if (uSeq >= lSeq) redoUniform();
+        else redo();
       } else {
+        // UNDO: 3-way seq comparison
         const uPast = uniformHistoryRef.current.past;
         const lPast = layoutHistoryRef.current.past;
+        const pPast = panels.panelHistoryRef.current.past;
         const uSeq = uPast.length > 0 ? uPast[uPast.length - 1].seq ?? 0 : -1;
         const lSeq = lPast.length > 0 ? lPast[lPast.length - 1].seq ?? 0 : -1;
-        if (uSeq < 0 && lSeq < 0) return;
-        if (uSeq >= lSeq) undoUniform(); else undo();
+        const pSeq = pPast.length > 0 ? pPast[pPast.length - 1].seq ?? 0 : -1;
+        const maxSeq = Math.max(uSeq, lSeq, pSeq);
+        if (maxSeq < 0) return;
+        if (pSeq === maxSeq) panels.undoPanelClose();
+        else if (uSeq >= lSeq) undoUniform();
+        else undo();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo, redo, kf.undoKeyframes, kf.redoKeyframes, kf.isEditorOpen, undoUniform, redoUniform]);
+  }, [undo, redo, kf.undoKeyframes, kf.redoKeyframes, kf.isEditorOpen, undoUniform, redoUniform, panels.undoPanelClose, panels.redoPanelClose]);
 
   // Debounced send workspace state to backend
   const wsStateTimerRef = useRef(null);
@@ -627,6 +639,16 @@ export default function App() {
     sendRef.current?.({ type: "console_error", message });
   }, [chat.addLog]);
 
+  // Wrap panel close to capture node position + assign undo seq
+  const handlePanelClose = useCallback((panelId) => {
+    const node = nodesRef.current.find((n) => n.id === `panel_${panelId}`);
+    panels.handleClosePanel(panelId, {
+      seq: ++_undoSeq,
+      nodePosition: node?.position,
+      nodeStyle: node?.style,
+    });
+  }, [panels.handleClosePanel]);
+
   // Merge live uniform values from sceneJSON into a controls array
   const mergeControlDefaults = useCallback((controls) => {
     if (!controls || !sceneJSON?.uniforms) return controls;
@@ -712,7 +734,7 @@ export default function App() {
                 controls: panel.controls ? mergeControlDefaults(panel.controls) : undefined,
                 onUniformChange: handleUniformChange,
                 engineRef,
-                onClose: () => panels.handleClosePanel(panelId),
+                onClose: () => handlePanelClose(panelId),
                 keyframeManagerRef: kf.keyframeManagerRef,
                 onKeyframesChange: kf.handlePanelKeyframesChange,
                 onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
@@ -748,7 +770,7 @@ export default function App() {
                 controls: panel.controls ? mergeControlDefaults(panel.controls) : undefined,
                 onUniformChange: handleUniformChange,
                 engineRef,
-                onClose: () => panels.handleClosePanel(panelId),
+                onClose: () => handlePanelClose(panelId),
                 keyframeManagerRef: kf.keyframeManagerRef,
                 onKeyframesChange: kf.handlePanelKeyframesChange,
                 onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
@@ -776,6 +798,15 @@ export default function App() {
         pendingLayoutsRef.current = null;
       }
 
+      // Restore position for undo'd panel close
+      if (panels.pendingRestoreRef.current) {
+        const r = panels.pendingRestoreRef.current;
+        updated = updated.map((n) =>
+          n.id === r.id ? { ...n, position: r.position || n.position, style: r.style || n.style } : n
+        );
+        panels.pendingRestoreRef.current = null;
+      }
+
       return updated;
     });
   }, [
@@ -784,7 +815,7 @@ export default function App() {
     sceneJSON, paused, uiConfig, handleUniformChange,
     project.projectList, project.activeProject, project.handleProjectSave, project.handleProjectLoad, project.handleProjectDelete,
     handleDeleteWorkspaceFile, workspaceFilesVersion, handleShaderError,
-    panels.customPanels, panels.handleClosePanel, mergeControlDefaults,
+    panels.customPanels, handlePanelClose, mergeControlDefaults,
     setNodes, kf.handleOpenKeyframeEditor, kf.keyframeVersion, kf.handlePanelKeyframesChange, kf.keyframeManagerRef,
     duration, loop,
   ]);
@@ -856,27 +887,6 @@ export default function App() {
           />
         </ReactFlow>
 
-        {/* Panel close undo toast */}
-        {panels.recentlyClosed && (
-          <div className="fixed bottom-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-zinc-800 border border-zinc-600 rounded-lg px-4 py-2.5 shadow-xl text-sm text-zinc-200 animate-[fadeIn_150ms_ease-out]">
-            <span>"{panels.recentlyClosed.data.title}" 패널이 닫혔습니다</span>
-            <button
-              onClick={panels.undoClosePanel}
-              className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
-            >
-              실행취소
-            </button>
-            <button
-              onClick={panels.dismissUndo}
-              className="text-zinc-500 hover:text-zinc-300 transition-colors"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-        )}
       </div>
     </EngineContext.Provider>
   );

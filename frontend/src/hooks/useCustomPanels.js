@@ -1,26 +1,11 @@
 import { useCallback, useRef, useState } from "react";
 
-const UNDO_TIMEOUT = 5000;
-
 export default function useCustomPanels(sendRef) {
   const [customPanels, setCustomPanels] = useState(new Map());
-  // Recently closed panel for undo: { id, data } | null
-  const [recentlyClosed, setRecentlyClosed] = useState(null);
-  const undoTimerRef = useRef(null);
-
-  // Finalize a pending close (send to backend, clear undo state)
-  const _finalizePendingClose = useCallback(() => {
-    if (undoTimerRef.current) {
-      clearTimeout(undoTimerRef.current);
-      undoTimerRef.current = null;
-    }
-    setRecentlyClosed((prev) => {
-      if (prev) {
-        sendRef.current?.({ type: "close_panel", id: prev.id });
-      }
-      return null;
-    });
-  }, [sendRef]);
+  const customPanelsRef = useRef(customPanels);
+  customPanelsRef.current = customPanels;
+  const historyRef = useRef({ past: [], future: [] });
+  const pendingRestoreRef = useRef(null);
 
   const openPanel = useCallback((id, data) => {
     setCustomPanels((prev) => {
@@ -49,12 +34,9 @@ export default function useCustomPanels(sendRef) {
   }, []);
 
   const restorePanels = useCallback((panelsObj) => {
-    // Clear any pending undo when panels are fully restored (project load, etc.)
-    if (undoTimerRef.current) {
-      clearTimeout(undoTimerRef.current);
-      undoTimerRef.current = null;
-    }
-    setRecentlyClosed(null);
+    // Reset history when panels are fully restored (project load, etc.)
+    historyRef.current = { past: [], future: [] };
+    pendingRestoreRef.current = null;
 
     const next = new Map();
     if (panelsObj) {
@@ -76,56 +58,79 @@ export default function useCustomPanels(sendRef) {
   }, []);
 
   const handleClosePanel = useCallback(
-    (panelId) => {
-      // Finalize any previous pending close first
-      _finalizePendingClose();
+    (panelId, opts = {}) => {
+      const { seq, nodePosition, nodeStyle } = opts;
 
-      // Save panel data for undo before removing
+      // Read panel data and push to history outside the updater to avoid
+      // double-push in React StrictMode (updaters may run twice).
+      const panelData = customPanelsRef.current.get(panelId);
+      if (panelData) {
+        historyRef.current.past.push({
+          id: panelId,
+          data: { ...panelData },
+          nodePosition,
+          nodeStyle,
+          seq,
+        });
+        historyRef.current.future = [];
+      }
+
       setCustomPanels((prev) => {
-        const panelData = prev.get(panelId);
-        if (panelData) {
-          setRecentlyClosed({ id: panelId, data: { ...panelData } });
-        }
         const next = new Map(prev);
         next.delete(panelId);
         return next;
       });
 
-      // Start undo timer — backend is notified only after timeout
-      undoTimerRef.current = setTimeout(() => {
-        undoTimerRef.current = null;
-        setRecentlyClosed((prev) => {
-          if (prev && prev.id === panelId) {
-            sendRef.current?.({ type: "close_panel", id: panelId });
-          }
-          return null;
-        });
-      }, UNDO_TIMEOUT);
+      // Immediately notify backend
+      sendRef.current?.({ type: "close_panel", id: panelId });
     },
-    [sendRef, _finalizePendingClose]
+    [sendRef]
   );
 
-  const undoClosePanel = useCallback(() => {
-    if (undoTimerRef.current) {
-      clearTimeout(undoTimerRef.current);
-      undoTimerRef.current = null;
-    }
-    setRecentlyClosed((prev) => {
-      if (prev) {
-        // Re-add the panel
-        setCustomPanels((panels) => {
-          const next = new Map(panels);
-          next.set(prev.id, prev.data);
-          return next;
-        });
-      }
-      return null;
-    });
-  }, []);
+  const undoPanelClose = useCallback(() => {
+    const h = historyRef.current;
+    if (h.past.length === 0) return false;
+    const entry = h.past.pop();
+    h.future.push(entry);
 
-  const dismissUndo = useCallback(() => {
-    _finalizePendingClose();
-  }, [_finalizePendingClose]);
+    // Re-add the panel to the map
+    setCustomPanels((prev) => {
+      const next = new Map(prev);
+      next.set(entry.id, entry.data);
+      return next;
+    });
+
+    // Set pending restore so App.jsx can place the node back at its old position
+    pendingRestoreRef.current = {
+      id: `panel_${entry.id}`,
+      position: entry.nodePosition,
+      style: entry.nodeStyle,
+    };
+
+    // Notify backend to restore the panel in panels.json
+    sendRef.current?.({ type: "restore_panel", id: entry.id, data: entry.data });
+
+    return true;
+  }, [sendRef]);
+
+  const redoPanelClose = useCallback(() => {
+    const h = historyRef.current;
+    if (h.future.length === 0) return false;
+    const entry = h.future.pop();
+    h.past.push(entry);
+
+    // Remove from map
+    setCustomPanels((prev) => {
+      const next = new Map(prev);
+      next.delete(entry.id);
+      return next;
+    });
+
+    // Notify backend
+    sendRef.current?.({ type: "close_panel", id: entry.id });
+
+    return true;
+  }, [sendRef]);
 
   return {
     customPanels,
@@ -133,8 +138,9 @@ export default function useCustomPanels(sendRef) {
     openPanel,
     closePanel,
     restorePanels,
-    recentlyClosed,
-    undoClosePanel,
-    dismissUndo,
+    panelHistoryRef: historyRef,
+    undoPanelClose,
+    redoPanelClose,
+    pendingRestoreRef,
   };
 }

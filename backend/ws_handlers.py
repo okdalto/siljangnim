@@ -453,6 +453,20 @@ async def handle_close_panel(ws, msg, ctx: WsContext):
     await ctx.manager.broadcast({"type": "close_panel", "id": panel_id})
 
 
+async def handle_restore_panel(ws, msg, ctx: WsContext):
+    """Restore a previously closed panel back into panels.json."""
+    panel_id = msg.get("id", "")
+    panel_data = msg.get("data", {})
+    if not panel_id:
+        return
+    try:
+        panels = workspace.read_json("panels.json")
+    except (FileNotFoundError, json.JSONDecodeError):
+        panels = {}
+    panels[panel_id] = panel_data
+    workspace.write_json("panels.json", panels)
+
+
 async def handle_cancel_agent(ws, msg, ctx: WsContext):
     """Cancel the currently running agent task."""
     if ctx.agent_task and not ctx.agent_task.done():
@@ -505,6 +519,7 @@ HANDLERS = {
     "project_list": handle_project_list,
     "project_delete": handle_project_delete,
     "close_panel": handle_close_panel,
+    "restore_panel": handle_restore_panel,
     "cancel_agent": handle_cancel_agent,
     "request_state": handle_request_state,
 }
