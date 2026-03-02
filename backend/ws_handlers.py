@@ -279,6 +279,9 @@ async def handle_console_error(ws, msg, ctx: WsContext):
     elif ctx.agent_busy:
         if error_msg not in ctx.pending_errors:
             ctx.pending_errors.append(error_msg)
+        # Also push to shared list so the agent can check via check_browser_errors tool
+        if error_msg not in agents._browser_errors:
+            agents._browser_errors.append(error_msg)
     elif ctx.auto_fix_count < ctx.MAX_AUTO_FIX:
         asyncio.create_task(_trigger_auto_fix(error_msg, ctx))
     else:

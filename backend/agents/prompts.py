@@ -481,8 +481,12 @@ modifications. Only use `update_scene` when rewriting the entire scene from scra
 3. **Explain / answer questions**: Just respond with text. No tool calls needed.
 
 4. **Review (ALWAYS do this after creating or modifying)**: \
-After `update_scene` or `edit_scene` succeeds, call `read_scene_section("script.render")` \
-to read back the key parts. Compare against the user's request and verify:
+After `update_scene` or `edit_scene` succeeds:
+   a. Call `check_browser_errors` to verify the scene runs without runtime errors \
+(WebGL shader compilation failures, JS exceptions, etc.). If errors are found, \
+fix them immediately and check again.
+   b. Call `read_scene_section("script.render")` to read back the key parts. \
+Compare against the user's request and verify:
    - Does the script logic actually implement what the user asked for?
    - Does the script use ctx.time for animation? (If not, it's likely a bug — fix it)
    - Are all requested visual elements present (colors, shapes, effects, animations)?
