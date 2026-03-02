@@ -19,7 +19,6 @@ import useKeyframes from "./hooks/useKeyframes.js";
 import useProjectManager from "./hooks/useProjectManager.js";
 import EngineContext from "./contexts/EngineContext.js";
 import ChatNode from "./nodes/ChatNode.jsx";
-import InspectorNode from "./nodes/InspectorNode.jsx";
 import CustomPanelNode from "./nodes/CustomPanelNode.jsx";
 import ViewportNode from "./nodes/ViewportNode.jsx";
 import DebugLogNode from "./nodes/DebugLogNode.jsx";
@@ -34,7 +33,6 @@ let _undoSeq = 0;
 
 const nodeTypes = {
   chat: ChatNode,
-  inspector: InspectorNode,
   viewport: ViewportNode,
   debugLog: DebugLogNode,
   projectBrowser: ProjectBrowserNode,
@@ -52,13 +50,6 @@ const initialNodes = [
     position: { x: 50, y: 550 },
     style: { width: 320, height: 380 },
     data: { messages: [], onSend: () => { } },
-  },
-  {
-    id: "inspector",
-    type: "inspector",
-    position: { x: 400, y: 550 },
-    style: { width: 320, height: 380 },
-    data: { controls: [], onUniformChange: () => { } },
   },
   {
     id: "viewport",
@@ -293,6 +284,7 @@ export default function App() {
           setDuration(30);
           setLoop(true);
         }
+        panels.restorePanels(msg.panels || {});
         project.markSaved();
         break;
 
@@ -366,6 +358,7 @@ export default function App() {
           setDuration(30);
           setLoop(true);
         }
+        panels.restorePanels(msg.panels || {});
         chat.setDebugLogs([]);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = false;
@@ -496,6 +489,7 @@ export default function App() {
     resetUniformHistory();
     setSceneJSON(null);
     setUiConfig({ controls: [], inspectable_buffers: [] });
+    panels.restorePanels({});
     project.setActiveProject(null);
     kf.resetKeyframes();
     setDuration(30);
@@ -503,7 +497,7 @@ export default function App() {
     dirtyRef.current = false;
     project.markSaved();
     send(msg);
-  }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, chat.clearAll, resetUniformHistory, kf.resetKeyframes, project.setActiveProject, project.markSaved]);
+  }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, chat.clearAll, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, project.markSaved]);
 
   const API_BASE = import.meta.env.DEV
     ? `http://${window.location.hostname}:8000`
@@ -554,42 +548,9 @@ export default function App() {
               isProcessing: chat.isProcessing,
               agentStatus: chat.agentStatus,
               onNewChat: chat.handleNewChat,
+              onCancel: chat.handleCancel,
               pendingQuestion: chat.pendingQuestion,
               onAnswer: chat.handleAnswer,
-            },
-          };
-        }
-        if (node.id === "inspector") {
-          // Merge live uniform values into controls so sliders start at
-          // the actual engine value, not just ctrl.default
-          const uniforms = sceneJSON?.uniforms;
-          const mergedControls = (uiConfig.controls || []).map((ctrl) => {
-            if (uniforms && ctrl.uniform && uniforms[ctrl.uniform]) {
-              const live = uniforms[ctrl.uniform].value;
-              if (live !== undefined && ctrl.type !== "color") {
-                return { ...ctrl, default: live };
-              }
-              // For color controls, convert [r,g,b,a] floats → hex+alpha
-              if (live !== undefined && ctrl.type === "color" && Array.isArray(live) && live.length >= 3) {
-                const toHex = (v) => Math.round(v * 255).toString(16).padStart(2, "0");
-                let hex = `#${toHex(live[0])}${toHex(live[1])}${toHex(live[2])}`;
-                if (live.length >= 4 && live[3] < 1) {
-                  hex += toHex(live[3]);
-                }
-                return { ...ctrl, default: hex };
-              }
-            }
-            return ctrl;
-          });
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              controls: mergedControls,
-              onUniformChange: handleUniformChange,
-              keyframeManagerRef: kf.keyframeManagerRef,
-              engineRef,
-              onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
             },
           };
         }
@@ -680,7 +641,7 @@ export default function App() {
       return updated;
     });
   }, [
-    chat.messages, chat.handleSend, chat.isProcessing, chat.agentStatus, chat.handleNewChat,
+    chat.messages, chat.handleSend, chat.isProcessing, chat.agentStatus, chat.handleNewChat, chat.handleCancel,
     chat.pendingQuestion, chat.handleAnswer, chat.debugLogs,
     sceneJSON, paused, uiConfig, handleUniformChange,
     project.projectList, project.activeProject, project.handleProjectSave, project.handleProjectLoad, project.handleProjectDelete,

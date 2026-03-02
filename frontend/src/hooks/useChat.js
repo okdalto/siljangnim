@@ -47,6 +47,10 @@ export default function useChat(sendRef) {
     [sendRef]
   );
 
+  const handleCancel = useCallback(() => {
+    sendRef.current?.({ type: "cancel_agent" });
+  }, [sendRef]);
+
   // Dispatcher methods for handleMessage
   const addAssistantText = useCallback((text) => {
     setMessages((prev) => [...prev, { role: "assistant", text }]);
@@ -81,6 +85,7 @@ export default function useChat(sendRef) {
     handleSend,
     handleNewChat,
     handleAnswer,
+    handleCancel,
     addAssistantText,
     addLog,
     addErrorLog,

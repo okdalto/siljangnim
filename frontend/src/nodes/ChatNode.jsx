@@ -21,7 +21,7 @@ export default function ChatNode({ data }) {
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat, pendingQuestion, onAnswer } = data;
+  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer } = data;
   const messagesEndRef = useRef(null);
   const messagesRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -301,13 +301,23 @@ export default function ChatNode({ data }) {
           className="flex-1 bg-zinc-800 text-zinc-100 text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
           style={{ maxHeight: "120px", overflowY: "auto" }}
         />
-        <button
-          type="submit"
-          disabled={isProcessing && !pendingQuestion}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
-        >
-          Send
-        </button>
+        {isProcessing && !pendingQuestion ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="bg-red-600 hover:bg-red-500 text-white text-sm px-4 py-2 rounded-lg transition-colors"
+          >
+            Stop
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={isProcessing && !pendingQuestion}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
+          >
+            Send
+          </button>
+        )}
       </form>
     </div>
   );
