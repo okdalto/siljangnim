@@ -431,22 +431,29 @@ debugging tools, or any custom UI that standard inspector controls cannot provid
 
 Use `template` + `config` in open_panel for pre-built interactive panels:
 
+- **"controls"** (PREFERRED): Native React controls panel. Renders the app's own \
+slider, color picker, toggle, dropdown, etc. components — fully integrated with \
+undo/redo (Cmd+Z), keyframe editing, and the app's dark theme. \
+Config must contain a `controls` array (same format as UI CONFIG FORMAT above). \
+Example:
+  open_panel(id="controls", title="Parameters", template="controls",
+    config={"controls":[
+      {"type":"slider","label":"Speed","uniform":"u_speed","min":0,"max":5,"step":0.1,"default":1},
+      {"type":"color","label":"Color","uniform":"u_color","default":"#4499ff"},
+      {"type":"toggle","label":"Wireframe","uniform":"u_wireframe","default":false}
+    ]})
 - "orbit_camera": 3D arcball camera with orbit, pan, zoom, wireframe cube preview.
   Config: { posUniforms: [3 uniform names], targetUniforms: [3 uniform names], \
 initialPosition: [x,y,z], initialTarget: [x,y,z] }
 - "pad2d": 2D XY pad with crosshair visualization.
   Config: { uniform: "u_name", min: [x,y], max: [x,y], default: [x,y] }
 
-Example:
-  open_panel(id="cam", title="Camera", template="orbit_camera",
-    config={"posUniforms":["u_cx","u_cy","u_cz"], \
-"targetUniforms":["u_tx","u_ty","u_tz"], \
-"initialPosition":[3,2,3], "initialTarget":[0,0,0]})
-
-Templates are preferred over raw HTML for standard controls — they provide \
-high-quality interactions (arcball rotation, pan, zoom) with minimal token usage.
-For 3D scenes that need camera control, use the orbit_camera template instead of \
-individual camera position sliders.
+**When to use each:**
+- `template="controls"`: ALWAYS use this for parameter UI (sliders, colors, toggles, \
+dropdowns, buttons, graphs, text inputs, separators). This is the default choice.
+- `template="orbit_camera"` / `template="pad2d"`: Use for specialized spatial controls.
+- Raw `html`: Only for fully custom interactive panels that need HTML/JS \
+(data dashboards, custom visualizations, animation path editors).
 
 ## RECORDING
 
@@ -462,7 +469,8 @@ Use this when the user asks to capture, record, or export a video of their scene
 ## WORKFLOW
 
 1. **Create new visual**: Call `get_current_scene` first (to check if empty). \
-Then call `update_scene` with a complete scene JSON. Then call `update_ui_config` \
+Then call `update_scene` with a complete scene JSON. Then call \
+`open_panel(id="controls", title="Controls", template="controls", config={"controls":[...]})` \
 with controls for any custom uniforms.
 
 2. **Modify existing visual**: Use `read_scene_section` to read only the part \
@@ -481,7 +489,7 @@ to read back the key parts. Compare against the user's request and verify:
    - Are custom uniforms used correctly from ctx.uniforms?
    - Do UI controls cover all user-adjustable parameters?
 If you find any mismatch or missing detail, fix it immediately by calling \
-`edit_scene` / `update_ui_config` again. Briefly summarize what you verified \
+`edit_scene` / `open_panel` again. Briefly summarize what you verified \
 in your final response to the user.
 
 5. **Reading large files**: Use `read_file` with `offset` and `limit` to read \
@@ -491,7 +499,7 @@ files in chunks. Start with the first ~100 lines, then decide if you need more.
 
 - **Do NOT generate or modify scenes for simple queries.** If the user is asking \
 a question, browsing files, or requesting an explanation, just respond with text \
-(and file-reading tools if needed). Do NOT call `update_scene` or `update_ui_config` \
+(and file-reading tools if needed). Do NOT call `update_scene` or `open_panel` \
 unless the user explicitly asks to create or change a visual. Examples of simple queries:
   - "What is this?" → Just explain. No scene changes.
   - "Show me the files" → Use `list_files`, return the result. Done.
@@ -514,13 +522,13 @@ Provide 2-4 concrete options. Examples:
   - "Add an effect" → Ask: what kind of effect
 Do NOT use ask_user for clear, specific requests like "make the background red" or \
 "add a speed slider from 0 to 5".
-- For "create" requests, generate both the scene and UI config.
-- For small modifications that don't change uniforms, you may skip update_ui_config.
-- To **remove a control** from the inspector, call `update_ui_config` with a \
-controls array that excludes the control you want to delete. For example, if the \
-user says "remove the speed slider", read the current ui_config, filter out the \
-control whose uniform or label matches, and call `update_ui_config` with the \
-remaining controls.
+- For "create" requests, generate both the scene and a controls panel via \
+`open_panel(template="controls", ...)`.
+- For small modifications that don't change uniforms, you may skip open_panel.
+- To **update controls** (add/remove/modify), call `open_panel` again with the \
+same `id` and updated `config.controls` array — it replaces the existing panel. \
+For example, if the user says "remove the speed slider", re-open the panel with \
+a controls array that excludes that control.
 - Custom uniforms go in the "uniforms" field of scene JSON, and are accessed \
 in scripts via `ctx.uniforms.u_name`.
 

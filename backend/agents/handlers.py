@@ -247,26 +247,6 @@ async def _handle_tool(
             result += "\nWarnings:\n" + "\n".join(f"  - {w}" for w in warnings)
         return result
 
-    elif name == "update_ui_config":
-        raw = input_data.get("ui_config", "")
-        try:
-            if isinstance(raw, str):
-                ui_config = json.loads(raw)
-            else:
-                ui_config = raw
-        except json.JSONDecodeError as e:
-            return f"Invalid JSON: {e}"
-
-        try:
-            workspace.write_json("ui_config.json", ui_config)
-        except OSError as e:
-            return f"Error writing ui_config.json: {e}"
-        await broadcast({
-            "type": "scene_update",
-            "ui_config": ui_config,
-        })
-        return "ok — ui_config saved and broadcast to clients."
-
     elif name == "get_workspace_state":
         try:
             ws_state = workspace.read_json("workspace_state.json")
@@ -502,6 +482,34 @@ async def _handle_tool(
         if not panel_id:
             return "Error: 'id' is required."
 
+        # Native controls mode — no iframe, React renders the controls
+        if template == "controls":
+            controls = config_obj.get("controls", [])
+            if not controls:
+                return "Error: config.controls array is required for template='controls'."
+            panel_data = {
+                "type": "open_panel",
+                "id": panel_id,
+                "title": title,
+                "controls": controls,
+                "width": width,
+                "height": height,
+            }
+            await broadcast(panel_data)
+            # Persist to panels.json
+            try:
+                panels = workspace.read_json("panels.json")
+            except (FileNotFoundError, json.JSONDecodeError):
+                panels = {}
+            panels[panel_id] = {
+                "title": title,
+                "controls": controls,
+                "width": width,
+                "height": height,
+            }
+            workspace.write_json("panels.json", panels)
+            return f"ok — native controls panel '{panel_id}' opened."
+
         # Template takes priority over raw html
         if template:
             template_dir = Path(__file__).resolve().parent.parent / "panel_templates"
@@ -518,14 +526,27 @@ async def _handle_tool(
         if not html:
             return "Error: either 'html' or 'template' is required."
 
-        await broadcast({
+        panel_msg = {
             "type": "open_panel",
             "id": panel_id,
             "title": title,
             "html": html,
             "width": width,
             "height": height,
-        })
+        }
+        await broadcast(panel_msg)
+        # Persist to panels.json
+        try:
+            panels = workspace.read_json("panels.json")
+        except (FileNotFoundError, json.JSONDecodeError):
+            panels = {}
+        panels[panel_id] = {
+            "title": title,
+            "html": html,
+            "width": width,
+            "height": height,
+        }
+        workspace.write_json("panels.json", panels)
         return f"ok — panel '{panel_id}' opened."
 
     elif name == "close_panel":
@@ -536,6 +557,14 @@ async def _handle_tool(
             "type": "close_panel",
             "id": panel_id,
         })
+        # Remove from panels.json
+        try:
+            panels = workspace.read_json("panels.json")
+            if panel_id in panels:
+                del panels[panel_id]
+                workspace.write_json("panels.json", panels)
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
         return f"ok — panel '{panel_id}' closed."
 
     elif name == "start_recording":

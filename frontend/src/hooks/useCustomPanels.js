@@ -6,12 +6,17 @@ export default function useCustomPanels(sendRef) {
   const openPanel = useCallback((id, data) => {
     setCustomPanels((prev) => {
       const next = new Map(prev);
-      next.set(id, {
+      const entry = {
         title: data.title || "Panel",
-        html: data.html || "",
         width: data.width || 320,
         height: data.height || 300,
-      });
+      };
+      if (data.controls) {
+        entry.controls = data.controls;
+      } else {
+        entry.html = data.html || "";
+      }
+      next.set(id, entry);
       return next;
     });
   }, []);
@@ -28,12 +33,17 @@ export default function useCustomPanels(sendRef) {
     const next = new Map();
     if (panelsObj) {
       for (const [id, data] of Object.entries(panelsObj)) {
-        next.set(id, {
+        const entry = {
           title: data.title || "Panel",
-          html: data.html || "",
           width: data.width || 320,
           height: data.height || 300,
-        });
+        };
+        if (data.controls) {
+          entry.controls = data.controls;
+        } else {
+          entry.html = data.html || "";
+        }
+        next.set(id, entry);
       }
     }
     setCustomPanels(next);

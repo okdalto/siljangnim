@@ -534,6 +534,31 @@ export default function App() {
     sendRef.current?.({ type: "console_error", message });
   }, [chat.addLog]);
 
+  // Merge live uniform values from sceneJSON into a controls array
+  const mergeControlDefaults = useCallback((controls) => {
+    if (!controls || !sceneJSON?.uniforms) return controls;
+    return controls.map((ctrl) => {
+      if (!ctrl.uniform) return ctrl;
+      const uDef = sceneJSON.uniforms[ctrl.uniform];
+      if (!uDef || uDef.value === undefined) return ctrl;
+      let liveVal = uDef.value;
+      // Convert vec3/vec4 [r,g,b] or [r,g,b,a] (0-1) to hex for color controls
+      if (ctrl.type === "color" && Array.isArray(liveVal)) {
+        const to255 = (v) => Math.round(Math.min(1, Math.max(0, v)) * 255);
+        const r = to255(liveVal[0]);
+        const g = to255(liveVal[1]);
+        const b = to255(liveVal[2]);
+        if (liveVal.length >= 4) {
+          const a = to255(liveVal[3]);
+          liveVal = `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}${a.toString(16).padStart(2, "0")}`;
+        } else {
+          liveVal = `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+        }
+      }
+      return { ...ctrl, default: liveVal };
+    });
+  }, [sceneJSON]);
+
   // Sync data into nodes
   useEffect(() => {
     setNodes((nds) => {
@@ -591,11 +616,13 @@ export default function App() {
                 ...node.data,
                 title: panel.title,
                 html: panel.html,
+                controls: panel.controls ? mergeControlDefaults(panel.controls) : undefined,
                 onUniformChange: handleUniformChange,
                 engineRef,
                 onClose: () => panels.handleClosePanel(panelId),
                 keyframeManagerRef: kf.keyframeManagerRef,
                 onKeyframesChange: kf.handlePanelKeyframesChange,
+                onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
                 onDurationChange: setDuration,
                 onLoopChange: setLoop,
                 duration,
@@ -622,11 +649,13 @@ export default function App() {
               data: {
                 title: panel.title,
                 html: panel.html,
+                controls: panel.controls ? mergeControlDefaults(panel.controls) : undefined,
                 onUniformChange: handleUniformChange,
                 engineRef,
                 onClose: () => panels.handleClosePanel(panelId),
                 keyframeManagerRef: kf.keyframeManagerRef,
                 onKeyframesChange: kf.handlePanelKeyframesChange,
+                onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
                 onDurationChange: setDuration,
                 onLoopChange: setLoop,
                 duration,
@@ -646,7 +675,7 @@ export default function App() {
     sceneJSON, paused, uiConfig, handleUniformChange,
     project.projectList, project.activeProject, project.handleProjectSave, project.handleProjectLoad, project.handleProjectDelete,
     handleDeleteWorkspaceFile, workspaceFilesVersion, handleShaderError,
-    panels.customPanels, panels.handleClosePanel,
+    panels.customPanels, panels.handleClosePanel, mergeControlDefaults,
     setNodes, kf.handleOpenKeyframeEditor, kf.keyframeVersion, kf.handlePanelKeyframesChange, kf.keyframeManagerRef,
     duration, loop,
   ]);

@@ -340,6 +340,7 @@ async def handle_new_project(ws, msg, ctx: WsContext):
 
     workspace.write_json("scene.json", DEFAULT_SCENE_JSON)
     workspace.write_json("ui_config.json", DEFAULT_UI_CONFIG)
+    workspace.write_json("panels.json", {})
 
     await ctx.manager.broadcast({
         "type": "init",
@@ -347,6 +348,7 @@ async def handle_new_project(ws, msg, ctx: WsContext):
         "ui_config": DEFAULT_UI_CONFIG,
         "projects": projects.list_projects(),
         "workspace_state": {},
+        "panels": {},
     })
 
 
@@ -416,6 +418,21 @@ async def handle_project_delete(ws, msg, ctx: WsContext):
         }))
 
 
+async def handle_close_panel(ws, msg, ctx: WsContext):
+    """Remove a panel from panels.json and broadcast close."""
+    panel_id = msg.get("id", "")
+    if not panel_id:
+        return
+    try:
+        panels = workspace.read_json("panels.json")
+        if panel_id in panels:
+            del panels[panel_id]
+            workspace.write_json("panels.json", panels)
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+    await ctx.manager.broadcast({"type": "close_panel", "id": panel_id})
+
+
 async def handle_cancel_agent(ws, msg, ctx: WsContext):
     """Cancel the currently running agent task."""
     if ctx.agent_task and not ctx.agent_task.done():
@@ -436,12 +453,17 @@ async def handle_request_state(ws, msg, ctx: WsContext):
         ws_state = workspace.read_json("workspace_state.json")
     except FileNotFoundError:
         ws_state = {}
+    try:
+        panels_data = workspace.read_json("panels.json")
+    except (FileNotFoundError, json.JSONDecodeError):
+        panels_data = {}
     await ws.send_text(json.dumps({
         "type": "init",
         "scene_json": s,
         "ui_config": u,
         "projects": projects.list_projects(),
         "workspace_state": ws_state,
+        "panels": panels_data,
     }))
 
 
@@ -462,6 +484,7 @@ HANDLERS = {
     "project_load": handle_project_load,
     "project_list": handle_project_list,
     "project_delete": handle_project_delete,
+    "close_panel": handle_close_panel,
     "cancel_agent": handle_cancel_agent,
     "request_state": handle_request_state,
 }
