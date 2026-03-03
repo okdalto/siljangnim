@@ -932,6 +932,11 @@ async def run_agent(
                 is_overloaded = isinstance(e, anthropic.APIStatusError) and e.status_code == 529
                 if is_overloaded:
                     overload_retries += 1
+                    # Fallback: Opus → Sonnet after 2 failed attempts
+                    if overload_retries >= 2 and model_name == "claude-opus-4-6":
+                        model_name = "claude-sonnet-4-6"
+                        max_tokens = 16384
+                        await log("System", f"Falling back to {model_name} due to overload", "info")
                     if overload_retries > _MAX_OVERLOAD_RETRIES:
                         await log("System", f"API overloaded after {_MAX_OVERLOAD_RETRIES} retries — giving up", "error")
                         raise
@@ -1016,6 +1021,11 @@ async def run_agent(
                 # (e.g. raised as generic APIError during streaming)
                 if "overloaded" in err_str:
                     overload_retries += 1
+                    # Fallback: Opus → Sonnet after 2 failed attempts
+                    if overload_retries >= 2 and model_name == "claude-opus-4-6":
+                        model_name = "claude-sonnet-4-6"
+                        max_tokens = 16384
+                        await log("System", f"Falling back to {model_name} due to overload", "info")
                     if overload_retries > _MAX_OVERLOAD_RETRIES:
                         await log("System", f"API overloaded after {_MAX_OVERLOAD_RETRIES} retries — giving up", "error")
                         raise
