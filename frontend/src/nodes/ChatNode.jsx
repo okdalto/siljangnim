@@ -231,8 +231,8 @@ export default function ChatNode({ data }) {
                   : "Thinking"}
               </span>
             </div>
-            {agentStatus?.status === "thinking" && agentStatus.detail && (
-              <p ref={thinkingRef} className="mt-1.5 text-xs text-zinc-600 italic leading-relaxed max-h-24 overflow-y-auto">
+            {agentStatus?.detail && (
+              <p ref={thinkingRef} className="mt-1.5 text-xs italic leading-relaxed max-h-32 overflow-y-auto whitespace-pre-wrap break-words" style={{ color: "var(--chrome-text-muted)" }}>
                 {agentStatus.detail}
               </p>
             )}

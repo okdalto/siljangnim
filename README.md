@@ -6,7 +6,7 @@
 
 <p align="center">
   AI-powered real-time graphics creation tool.<br/>
-  Describe visuals in natural language — Claude generates WebGL2 shaders that render live in your browser.
+  Describe visuals in natural language — AI generates WebGL2 shaders that render live in your browser.
 </p>
 
 <p align="center">
@@ -84,15 +84,52 @@ Record the viewport to MP4 (offline, frame-exact), WebM (realtime or offline), o
 
 Animate any uniform over time with keyframes, cubic Hermite interpolation, and easing. Scrub, loop, and adjust duration from the timeline bar.
 
+## Supported AI Providers
+
+Siljangnim supports multiple AI providers. Choose one that fits your needs:
+
+| Provider | Models | Best for |
+|----------|--------|----------|
+| **Anthropic (Claude)** | Claude Opus 4.6, Claude Sonnet 4.6 | Best quality, recommended for complex scenes |
+| **OpenAI** | GPT-4.1 | Good alternative, strong tool calling |
+| **Google Gemini** | Gemini 2.5 Flash | Fast, large context window |
+| **Zhipu AI (GLM)** | GLM-4-Plus | Chinese language support |
+| **Custom (OpenAI-compatible)** | Any model | Self-hosted / local models |
+
+### Custom Model Setup (vLLM, Ollama, etc.)
+
+You can connect any OpenAI-compatible API server — vLLM, Ollama, TGI, LM Studio, etc.
+
+**Example: Running Qwen3.5-27B with vLLM**
+
+```bash
+# Start vLLM server
+vllm serve Qwen/Qwen3.5-27B \
+  --max-model-len 131072 \
+  --enable-auto-tool-choice \
+  --tool-call-parser hermes
+```
+
+Then in the app's API settings modal:
+1. Select **Custom** provider
+2. Set **Base URL** to your server (e.g. `http://localhost:8000/v1/`)
+3. Set **Model Name** (e.g. `Qwen/Qwen3.5-27B`)
+4. Set **Max Tokens** (e.g. `4096` — this is the max *output* length, not context size)
+5. API Key is optional for local servers
+
+> **Tip:** For best results with custom models, use models with 27B+ parameters that support tool calling. Smaller models may struggle with complex shader generation.
+
+> **Tip:** `--max-model-len` controls how much of the model's context window vLLM allocates. Set it as high as your GPU memory allows — it is *not* the same as `max_tokens` in the app settings.
+
 ## Warnings
 
 > **Security** — The AI agent can execute arbitrary Python code on the host machine. There is no container or OS-level sandbox. **Do not expose this application to the public internet.** See [Security Notice](#security-notice) for details.
 
-> **Cost** — Every chat message calls the Anthropic API. Complex scenes may trigger multiple tool-use rounds per prompt, each consuming tokens. A single conversation can easily use **$1–5+ of API credits**. Monitor your usage at [console.anthropic.com](https://console.anthropic.com/).
+> **Cost** — When using cloud APIs (Anthropic, OpenAI, Gemini, GLM), every chat message costs tokens. Complex scenes may trigger multiple tool-use rounds per prompt. A single conversation can easily use **$1–5+ of API credits**. Monitor your usage on your provider's dashboard. Self-hosted custom models have no per-token cost.
 
 ## Quick Start
 
-**Prerequisites:** Python 3.10+, Node.js 18+, [Anthropic API key](https://console.anthropic.com/)
+**Prerequisites:** Python 3.10+, Node.js 18+, an API key from any [supported provider](#supported-ai-providers)
 
 **macOS / Linux:**
 
@@ -194,7 +231,7 @@ siljangnim/
 | Frontend | React 19, Vite, TailwindCSS v4, @xyflow/react |
 | Rendering | WebGL2 (ES 3.0), custom GLEngine |
 | Backend | FastAPI, WebSocket, Uvicorn |
-| AI | Anthropic Claude API (tool calling) |
+| AI | Anthropic Claude, OpenAI, Gemini, GLM, or any OpenAI-compatible API |
 
 ## Security Notice
 

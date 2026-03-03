@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from collections import Counter
 from pathlib import Path
 from typing import Callable, Awaitable
 
@@ -10,7 +11,7 @@ import openai as openai_lib
 
 import config as app_config
 import workspace
-from agents.prompts import SYSTEM_PROMPT
+from agents.prompts import SYSTEM_PROMPT, build_system_prompt
 from agents.tools import TOOLS
 from agents.handlers import _handle_tool, BroadcastCallback
 
@@ -124,6 +125,10 @@ def _build_multimodal_content(user_prompt: str, files: list[dict]) -> list[dict]
 _MAX_TURNS = 30
 _MAX_COMPACT_RETRIES = 2
 _MAX_OVERLOAD_RETRIES = 5
+
+# Loop detection: break when the same tool+args pattern repeats too often.
+_LOOP_WARN_THRESHOLD = 3   # inject warning after this many identical calls
+_LOOP_BREAK_THRESHOLD = 5  # force stop after this many
 
 
 # ---------------------------------------------------------------------------
@@ -351,6 +356,7 @@ async def _call_anthropic(
     messages: list[dict],
     log: LogCallback,
     on_status: StatusCallback | None,
+    system_prompt: str = SYSTEM_PROMPT,
 ) -> tuple[list[dict], str]:
     """Stream Anthropic API call. Returns (content_blocks, stop_reason).
 
@@ -366,7 +372,7 @@ async def _call_anthropic(
         model=model_name,
         max_tokens=max_tokens,
         thinking={"type": "adaptive"},
-        system=SYSTEM_PROMPT,
+        system=system_prompt,
         tools=TOOLS,
         messages=messages,
     ) as stream:
@@ -441,9 +447,12 @@ async def _call_openai_compat(
     messages: list[dict],
     log: LogCallback,
     on_status: StatusCallback | None,
+    system_prompt: str = SYSTEM_PROMPT,
+    tool_choice: str = "auto",
 ) -> tuple[list[dict], str]:
     """Stream an OpenAI-compatible API call. Returns (content_blocks, stop_reason).
 
+    tool_choice: "auto" (default), "required" (force tool use), or "none".
     Works for openai, gemini, glm, and custom providers.
     """
     api_key = app_config.get_api_key(provider) or "not-needed"
@@ -462,23 +471,49 @@ async def _call_openai_compat(
         model_name = model_cfg["model"]
         max_tokens = model_cfg["max_tokens"]
 
-    openai_messages = _convert_messages_to_openai(SYSTEM_PROMPT, messages)
+    openai_messages = _convert_messages_to_openai(system_prompt, messages)
     openai_tools = _convert_tools_to_openai(TOOLS)
+
+    # For custom providers, cap max_tokens so input + output fits the context
+    # window (users often set max_tokens equal to context size).
+    _effective_max = max_tokens
+    if provider == "custom":
+        _input_chars = len(json.dumps(openai_messages, ensure_ascii=False))
+        if openai_tools:
+            _input_chars += len(json.dumps(openai_tools, ensure_ascii=False))
+        _est_input_tokens = int(_input_chars / 3.5)
+        _effective_max = max(max_tokens - _est_input_tokens, max_tokens // 4)
+        _effective_max = max(_effective_max, 1024)
+        _effective_max = min(_effective_max, max_tokens)
 
     if on_status:
         await on_status("thinking", f"Calling {provider} API...")
 
+    # Build tool_choice kwarg
+    _tc_kwarg = {}
+    if openai_tools:
+        _tc_kwarg["tools"] = openai_tools
+        if tool_choice != "auto":
+            _tc_kwarg["tool_choice"] = tool_choice
+    else:
+        _tc_kwarg["tools"] = openai_lib.NOT_GIVEN
+
     stream = await client.chat.completions.create(
         model=model_name,
-        max_tokens=max_tokens,
+        max_tokens=_effective_max,
         messages=openai_messages,
-        tools=openai_tools if openai_tools else openai_lib.NOT_GIVEN,
         stream=True,
+        **_tc_kwarg,
     )
 
     content_text = ""
+    thinking_text = ""       # <think> block or reasoning_content
+    _in_think_tag = False    # streaming parser state for <think>...</think>
     tool_calls_acc: dict[int, dict] = {}
     finish_reason = None
+    _status_chars = 0        # track chars sent as status to throttle updates
+    _status_think_chars = 0  # track thinking chars for throttled updates
+    _status_tool_chars = 0   # track tool argument chars for progress
 
     async for chunk in stream:
         if not chunk.choices:
@@ -486,8 +521,63 @@ async def _call_openai_compat(
         choice = chunk.choices[0]
         delta = choice.delta
 
+        # Some providers (vLLM for Qwen/DeepSeek) expose reasoning via
+        # a dedicated `reasoning_content` field on the delta.
+        _reasoning = getattr(delta, "reasoning_content", None)
+        if _reasoning:
+            thinking_text += _reasoning
+            if on_status and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
+                _status_think_chars = len(thinking_text)
+                await on_status("thinking", thinking_text)
+
         if delta and delta.content:
-            content_text += delta.content
+            raw = delta.content
+
+            # Parse <think>...</think> tags inline during streaming.
+            # Models like Qwen3.5 and DeepSeek R1 wrap reasoning in these.
+            if _in_think_tag:
+                close_idx = raw.find("</think>")
+                if close_idx != -1:
+                    thinking_text += raw[:close_idx]
+                    _in_think_tag = False
+                    remainder = raw[close_idx + len("</think>"):]
+                    if remainder:
+                        content_text += remainder
+                else:
+                    thinking_text += raw
+                if on_status and thinking_text and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
+                    _status_think_chars = len(thinking_text)
+                    await on_status("thinking", thinking_text)
+                continue
+            else:
+                open_idx = raw.find("<think>")
+                if open_idx != -1:
+                    # Text before <think> is content
+                    before = raw[:open_idx]
+                    if before:
+                        content_text += before
+                    after = raw[open_idx + len("<think>"):]
+                    close_idx = after.find("</think>")
+                    if close_idx != -1:
+                        thinking_text += after[:close_idx]
+                        remainder = after[close_idx + len("</think>"):]
+                        if remainder:
+                            content_text += remainder
+                    else:
+                        thinking_text += after
+                        _in_think_tag = True
+                    if on_status and thinking_text and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
+                        _status_think_chars = len(thinking_text)
+                        await on_status("thinking", thinking_text)
+                    continue
+
+                content_text += raw
+
+            # Stream partial text as "thinking" status so the UI shows progress.
+            # First chunk sent immediately, then throttled every 40 chars.
+            if on_status and (_status_chars == 0 or len(content_text) - _status_chars >= 40):
+                _status_chars = len(content_text)
+                await on_status("thinking", content_text)
 
         if delta and delta.tool_calls:
             for tc in delta.tool_calls:
@@ -503,14 +593,26 @@ async def _call_openai_compat(
                             await on_status("tool_use", tc.function.name)
                     if tc.function.arguments:
                         tool_calls_acc[idx]["arguments"] += tc.function.arguments
+                        # Show progress while tool arguments stream in
+                        total_args = sum(len(t["arguments"]) for t in tool_calls_acc.values())
+                        if on_status and total_args - _status_tool_chars >= 200:
+                            _status_tool_chars = total_args
+                            name = tool_calls_acc[idx]["name"] or "tool"
+                            await on_status("thinking", f"Generating {name} arguments...")
 
         if choice.finish_reason:
             finish_reason = choice.finish_reason
 
+    # Log thinking if captured (either from <think> tags or reasoning_content)
+    if thinking_text.strip() and log:
+        await log("Agent", thinking_text.strip(), "thinking")
+    if on_status and thinking_text.strip():
+        await on_status("thinking", thinking_text.strip())
+
     # Build normalized content blocks (same format as Anthropic)
     content_blocks = []
     if content_text and content_text.strip():
-        content_blocks.append({"type": "text", "text": content_text})
+        content_blocks.append({"type": "text", "text": content_text.strip()})
 
     for idx in sorted(tool_calls_acc.keys()):
         tc = tool_calls_acc[idx]
@@ -593,6 +695,9 @@ async def run_agent(
 
     await log("System", f"Provider: {provider} | Model: {model_name}", "info")
 
+    # Build dynamic system prompt (filtered for custom providers)
+    system_prompt = build_system_prompt(provider, user_prompt, has_files=bool(files))
+
     # Build user message content
     if files:
         content = _build_multimodal_content(user_prompt, files)
@@ -606,16 +711,32 @@ async def run_agent(
     turns = 0
     compact_retries = 0
     overload_retries = 0
+    connection_retries = 0  # separate counter for transient connection drops
+    force_tool_retries = 0
+    _MAX_FORCE_TOOL = 1
+    _MAX_CONNECTION_RETRIES = 2
+    _force_tool_choice = "auto"  # escalated to "required" after empty/text-only response
+    recent_tool_sigs: list[str] = []  # track (name|input_hash) for loop detection
 
     try:
         while turns < _MAX_TURNS:
             turns += 1
 
             # Pre-flight compaction: estimate token count (~4 chars/token)
-            # and compact if approaching the 200k input limit.
+            # and compact if approaching the context limit.
+            # For custom providers, use max_tokens as a proxy for context size
+            # (compact when input estimate exceeds context - output budget).
             _est_tokens = len(json.dumps(messages, ensure_ascii=False)) // 4
-            if _est_tokens > 150_000:
-                await log("System", f"Estimated ~{_est_tokens} tokens — compacting before API call...", "info")
+            if provider == "custom":
+                # Assume context ≈ max_tokens * 4 (generous), compact at 60%
+                _compact_threshold = max(max_tokens * 2, 4000)
+            elif provider in _OPENAI_COMPAT_MODELS:
+                _model_cfg = _OPENAI_COMPAT_MODELS[provider]
+                _compact_threshold = max(_model_cfg["max_tokens"] * 4, 30_000)
+            else:
+                _compact_threshold = 150_000
+            if _est_tokens > _compact_threshold:
+                await log("System", f"Estimated ~{_est_tokens} tokens (limit ~{_compact_threshold}) — compacting...", "info")
                 if on_status:
                     await on_status("thinking", "Compacting conversation...")
                 _compact_messages(messages)
@@ -631,10 +752,13 @@ async def run_agent(
                 if provider in _OPENAI_COMPAT_MODELS or provider == "custom":
                     content_blocks, stop_reason = await _call_openai_compat(
                         provider, messages, log, on_status,
+                        system_prompt=system_prompt,
+                        tool_choice=_force_tool_choice,
                     )
                 else:
                     content_blocks, stop_reason = await _call_anthropic(
                         client, model_name, max_tokens, messages, log, on_status,
+                        system_prompt=system_prompt,
                     )
 
             # --- Anthropic-specific error handling ---
@@ -690,6 +814,19 @@ async def run_agent(
                 # OpenAI-compatible provider retries (openai, gemini, glm, custom)
                 if provider in _OPENAI_COMPAT_MODELS or provider == "custom":
                     if isinstance(e, openai_lib.APIStatusError):
+                        if e.status_code == 400:
+                            err_body = str(e).lower()
+                            if "context length" in err_body or "input" in err_body and "token" in err_body or "reduce the length" in err_body:
+                                compact_retries += 1
+                                if compact_retries > _MAX_COMPACT_RETRIES:
+                                    await log("System", f"Context too long after {_MAX_COMPACT_RETRIES} compactions — giving up", "error")
+                                    raise
+                                await log("System", f"Context length exceeded — compacting ({compact_retries}/{_MAX_COMPACT_RETRIES})...", "info")
+                                if on_status:
+                                    await on_status("thinking", "Context too long, compacting...")
+                                _compact_messages(messages)
+                                continue
+                            raise
                         if e.status_code == 429:
                             overload_retries += 1
                             if overload_retries > _MAX_OVERLOAD_RETRIES:
@@ -723,20 +860,33 @@ async def run_agent(
                         await asyncio.sleep(2)
                         continue
 
-                # Transient connection errors (either provider)
-                if any(k in err_str for k in ("incomplete chunked", "connection", "reset by peer", "timed out")):
-                    compact_retries += 1
-                    if compact_retries > _MAX_COMPACT_RETRIES:
-                        await log("System", f"Connection error after retries: {e}", "error")
+                # Transient connection errors (either provider) — retry without
+                # compaction since these are network issues, not input size issues.
+                if any(k in err_str for k in ("incomplete chunked", "peer closed", "connection", "reset by peer", "timed out")):
+                    connection_retries += 1
+                    if connection_retries > _MAX_CONNECTION_RETRIES:
+                        await log("System", f"Server connection failed after {_MAX_CONNECTION_RETRIES} retries: {e}", "error")
                         raise
-                    await log("System", f"Connection interrupted — retrying ({compact_retries}/{_MAX_COMPACT_RETRIES})...", "info")
+                    delay = min(2 ** connection_retries, 10)
+                    await log("System", f"Server disconnected — retrying in {delay}s ({connection_retries}/{_MAX_CONNECTION_RETRIES})...", "info")
                     if on_status:
-                        await on_status("thinking", "Connection lost, retrying...")
-                    await asyncio.sleep(2)
+                        await on_status("thinking", f"Server disconnected, retrying in {delay}s...")
+                    await asyncio.sleep(delay)
                     continue
                 raise
 
             # --- Process content blocks (unified format for both providers) ---
+
+            # Handle empty response: model returned nothing at all
+            if not content_blocks:
+                await log("System", f"Model returned empty response (stop_reason={stop_reason})", "warning")
+                if force_tool_retries < _MAX_FORCE_TOOL:
+                    force_tool_retries += 1
+                    _force_tool_choice = "required"
+                    await log("System", "Retrying with tool_choice=required", "info")
+                    continue
+                break
+
             for block in content_blocks:
                 if block["type"] == "text":
                     last_text = block["text"]
@@ -774,6 +924,16 @@ async def run_agent(
             # If the model stopped for a reason other than tool_use, check
             # for injected user messages before finishing.
             if stop_reason != "tool_use":
+                # If the model responded with only text and no tool calls,
+                # retry with tool_choice="required" to force tool use.
+                has_tool_calls = any(b["type"] == "tool_use" for b in content_blocks)
+                if not has_tool_calls and force_tool_retries < _MAX_FORCE_TOOL:
+                    force_tool_retries += 1
+                    _force_tool_choice = "required"
+                    await log("System", "No tool calls — retrying with tool_choice=required", "info")
+                    continue
+                # Reset to auto for subsequent turns after forced tool use
+                _force_tool_choice = "auto"
                 injected = _drain_injected(injected_queue)
                 if injected:
                     combined = "\n\n".join(injected)
@@ -790,6 +950,9 @@ async def run_agent(
             for block in content_blocks:
                 if block["type"] == "tool_use":
                     is_error = False
+                    # Show which tool is being executed
+                    if on_status:
+                        await on_status("thinking", f"Running {block['name']}...")
                     try:
                         result_str = await _handle_tool(block["name"], block["input"], broadcast)
                         if result_str and result_str.startswith("Error"):
@@ -807,6 +970,49 @@ async def run_agent(
                         tr["is_error"] = True
                     tool_results.append(tr)
 
+                    # Show tool result summary in thinking panel
+                    if on_status:
+                        preview = (result_str or "")[:120]
+                        if is_error:
+                            await on_status("thinking", f"{block['name']} → Error: {preview}")
+                        else:
+                            await on_status("thinking", f"{block['name']} → {preview}")
+
+                    # Track for loop detection
+                    _input_key = json.dumps(block["input"], sort_keys=True, ensure_ascii=False)
+                    _sig = f"{block['name']}|{hash(_input_key)}"
+                    recent_tool_sigs.append(_sig)
+
+            # --- Loop detection ---
+            # Check if the same tool+args signature repeats too many times
+            # in the recent history (look at the last 10 calls).
+            _loop_detected = False
+            if len(recent_tool_sigs) >= _LOOP_WARN_THRESHOLD:
+                _window = recent_tool_sigs[-10:]
+                _counts = Counter(_window)
+                _top_sig, _top_count = _counts.most_common(1)[0]
+                _loop_tool_name = _top_sig.split("|")[0]
+
+                if _top_count >= _LOOP_BREAK_THRESHOLD:
+                    await log("System", f"Loop detected: {_loop_tool_name} called {_top_count} times with same args — forcing stop", "warning")
+                    if on_status:
+                        await on_status("thinking", f"Loop detected: {_loop_tool_name} repeated {_top_count}x — stopping agent")
+                    # Add tool results so conversation stays valid, then break
+                    messages.append({"role": "user", "content": list(tool_results) + [{
+                        "type": "text",
+                        "text": f"SYSTEM: Loop detected — you have called {_loop_tool_name} {_top_count} times with identical arguments. This is an infinite loop. Stop and tell the user what happened.",
+                    }]})
+                    _loop_detected = True
+                elif _top_count >= _LOOP_WARN_THRESHOLD:
+                    await log("System", f"Repeated tool call: {_loop_tool_name} ({_top_count}x) — warning agent", "warning")
+                    if on_status:
+                        await on_status("thinking", f"Warning: {_loop_tool_name} called {_top_count}x with same args")
+
+            if _loop_detected:
+                # Give the agent one final turn to explain, then break
+                turns = _MAX_TURNS - 1
+                continue
+
             # Inject any queued user messages alongside tool results
             user_content = list(tool_results)
             injected = _drain_injected(injected_queue)
@@ -817,6 +1023,19 @@ async def run_agent(
                     "type": "text",
                     "text": f"[User message]: {combined}",
                 })
+
+            # Inject loop warning alongside tool results (before appending to messages)
+            if len(recent_tool_sigs) >= _LOOP_WARN_THRESHOLD:
+                _window = recent_tool_sigs[-10:]
+                _counts = Counter(_window)
+                _top_sig, _top_count = _counts.most_common(1)[0]
+                if _top_count >= _LOOP_WARN_THRESHOLD:
+                    _loop_tool_name = _top_sig.split("|")[0]
+                    user_content.append({
+                        "type": "text",
+                        "text": f"WARNING: You have called {_loop_tool_name} {_top_count} times with the same arguments. You may be stuck in a loop. Try a completely different approach or provide your current results to the user.",
+                    })
+
             messages.append({"role": "user", "content": user_content})
 
             # If approaching turn limit, tell the agent to wrap up

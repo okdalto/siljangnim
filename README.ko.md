@@ -84,15 +84,52 @@ MediaPipe Vision을 활용한 웹캠 기반 실시간 트래킹:
 
 키프레임, 큐빅 에르미트 보간, 이징으로 모든 유니폼을 시간에 따라 애니메이션할 수 있습니다. 타임라인 바에서 스크럽, 루프, 길이 조절이 가능합니다.
 
+## 지원 AI 프로바이더
+
+다양한 AI 프로바이더를 지원합니다. 용도에 맞게 선택하세요:
+
+| 프로바이더 | 모델 | 특징 |
+|------------|------|------|
+| **Anthropic (Claude)** | Claude Opus 4.6, Claude Sonnet 4.6 | 최고 품질, 복잡한 씬에 추천 |
+| **OpenAI** | GPT-4.1 | 좋은 대안, 강력한 도구 호출 |
+| **Google Gemini** | Gemini 2.5 Flash | 빠른 속도, 큰 컨텍스트 윈도우 |
+| **Zhipu AI (GLM)** | GLM-4-Plus | 중국어 지원 |
+| **커스텀 (OpenAI 호환)** | 모든 모델 | 셀프 호스팅 / 로컬 모델 |
+
+### 커스텀 모델 연결 (vLLM, Ollama 등)
+
+OpenAI 호환 API 서버라면 무엇이든 연결할 수 있습니다 — vLLM, Ollama, TGI, LM Studio 등.
+
+**예시: vLLM으로 Qwen3.5-27B 실행**
+
+```bash
+# vLLM 서버 시작
+vllm serve Qwen/Qwen3.5-27B \
+  --max-model-len 131072 \
+  --enable-auto-tool-choice \
+  --tool-call-parser hermes
+```
+
+앱의 API 설정 모달에서:
+1. **Custom** 프로바이더 선택
+2. **Base URL**에 서버 주소 입력 (예: `http://localhost:8000/v1/`)
+3. **Model Name**에 모델명 입력 (예: `Qwen/Qwen3.5-27B`)
+4. **Max Tokens** 설정 (예: `4096` — 이것은 최대 *출력* 길이이며, 컨텍스트 크기가 아닙니다)
+5. API Key는 로컬 서버의 경우 비워도 됩니다
+
+> **팁:** 커스텀 모델은 도구 호출(tool calling)을 지원하는 27B 이상 모델을 권장합니다. 작은 모델은 복잡한 셰이더 생성에 어려움을 겪을 수 있습니다.
+
+> **팁:** `--max-model-len`은 vLLM이 할당하는 컨텍스트 윈도우 크기입니다. GPU 메모리가 허용하는 한 크게 설정하세요 — 앱 설정의 `max_tokens`와는 다릅니다.
+
 ## 주의사항
 
 > **보안** — AI 에이전트는 호스트 머신에서 임의의 Python 코드를 실행할 수 있습니다. 컨테이너나 OS 수준의 샌드박스가 없습니다. **이 애플리케이션을 공용 인터넷에 노출하지 마세요.** 자세한 내용은 [보안 안내](#보안-안내)를 참조하세요.
 
-> **비용** — 모든 채팅 메시지는 Anthropic API를 호출합니다. 복잡한 씬은 프롬프트당 여러 차례의 도구 사용 라운드를 발생시킬 수 있으며, 각각 토큰을 소모합니다. 단일 대화로 쉽게 **$1–5+ 이상의 API 크레딧**을 사용할 수 있습니다. [console.anthropic.com](https://console.anthropic.com/)에서 사용량을 모니터링하세요.
+> **비용** — 클라우드 API (Anthropic, OpenAI, Gemini, GLM) 사용 시 모든 채팅 메시지는 토큰을 소모합니다. 복잡한 씬은 프롬프트당 여러 차례의 도구 사용 라운드를 발생시킬 수 있습니다. 단일 대화로 쉽게 **$1–5+ 이상의 API 크레딧**을 사용할 수 있습니다. 프로바이더 대시보드에서 사용량을 모니터링하세요. 셀프 호스팅 커스텀 모델은 토큰당 비용이 없습니다.
 
 ## 빠른 시작
 
-**필수 조건:** Python 3.10+, Node.js 18+, [Anthropic API 키](https://console.anthropic.com/)
+**필수 조건:** Python 3.10+, Node.js 18+, [지원 프로바이더](#지원-ai-프로바이더) 중 하나의 API 키
 
 **macOS / Linux:**
 
