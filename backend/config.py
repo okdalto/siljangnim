@@ -265,8 +265,8 @@ async def _validate_gemini_key(key: str) -> tuple[bool, str]:
             base_url=PROVIDERS["gemini"]["base_url"],
         )
         await client.chat.completions.create(
-            model="gemini-2.5-flash",
-            max_tokens=1,
+            model="gemini-2.5-flash-lite",
+            max_tokens=16,
             messages=[{"role": "user", "content": "hi"}],
         )
         return True, ""
