@@ -7,8 +7,12 @@ from collections import Counter
 from pathlib import Path
 from typing import Callable, Awaitable
 
+import base64
+
 import anthropic
 import openai as openai_lib
+from google import genai
+from google.genai import types as genai_types
 
 _logger = logging.getLogger(__name__)
 
@@ -440,9 +444,227 @@ async def _call_anthropic(
 # Model configuration for OpenAI-compatible providers
 _OPENAI_COMPAT_MODELS = {
     "openai": {"model": "gpt-5.2", "max_tokens": 32768},
-    "gemini": {"model": "gemini-3.1-pro-preview", "max_tokens": 65536},
     "glm":    {"model": "glm-4-plus", "max_tokens": 4096},
 }
+
+# Gemini native SDK configuration
+_GEMINI_MODEL = "gemini-3.1-pro-preview"
+_GEMINI_MAX_TOKENS = 65536
+
+
+# ---------------------------------------------------------------------------
+# Gemini native SDK conversion helpers
+# ---------------------------------------------------------------------------
+
+def _convert_messages_to_gemini(
+    system: str, messages: list[dict],
+) -> tuple[str, list[genai_types.Content]]:
+    """Convert internal (Anthropic-format) messages to Gemini native format.
+
+    Returns (system_instruction, contents_list).
+    """
+    contents: list[genai_types.Content] = []
+
+    for msg in messages:
+        role = msg["role"]
+        raw_content = msg.get("content")
+
+        if role == "user":
+            parts: list[genai_types.Part] = []
+
+            if isinstance(raw_content, str):
+                parts.append(genai_types.Part(text=raw_content))
+            elif isinstance(raw_content, list):
+                for block in raw_content:
+                    if not isinstance(block, dict):
+                        continue
+                    btype = block.get("type", "")
+
+                    if btype == "text":
+                        parts.append(genai_types.Part(text=block["text"]))
+
+                    elif btype == "tool_result":
+                        # Tool result → function response
+                        parts.append(genai_types.Part.from_function_response(
+                            name=block.get("tool_use_id", "unknown"),
+                            response={"result": block.get("content", "")},
+                        ))
+
+                    elif btype == "image":
+                        source = block.get("source", {})
+                        data_b64 = source.get("data", "")
+                        mime = source.get("media_type", "image/png")
+                        if data_b64:
+                            parts.append(genai_types.Part.from_bytes(
+                                data=base64.b64decode(data_b64),
+                                mime_type=mime,
+                            ))
+                    # Skip other block types
+
+            if parts:
+                contents.append(genai_types.Content(role="user", parts=parts))
+
+        elif role == "assistant":
+            parts = []
+
+            if isinstance(raw_content, str):
+                if raw_content.strip():
+                    parts.append(genai_types.Part(text=raw_content))
+            elif isinstance(raw_content, list):
+                for block in raw_content:
+                    if not isinstance(block, dict):
+                        continue
+                    btype = block.get("type", "")
+
+                    if btype == "text":
+                        if block.get("text", "").strip():
+                            parts.append(genai_types.Part(text=block["text"]))
+
+                    elif btype == "tool_use":
+                        parts.append(genai_types.Part.from_function_call(
+                            name=block["name"],
+                            args=block.get("input", {}),
+                        ))
+
+                    # Skip thinking blocks
+
+            if parts:
+                contents.append(genai_types.Content(role="model", parts=parts))
+
+    return system, contents
+
+
+def _convert_tools_to_gemini(tools: list[dict]) -> list[genai_types.Tool]:
+    """Convert Anthropic tool definitions to Gemini function declarations."""
+    declarations = []
+    for tool in tools:
+        declarations.append(genai_types.FunctionDeclaration(
+            name=tool["name"],
+            description=tool.get("description", ""),
+            parameters_json_schema=tool.get("input_schema", {"type": "object", "properties": {}}),
+        ))
+    return [genai_types.Tool(function_declarations=declarations)]
+
+
+# ---------------------------------------------------------------------------
+# Gemini native API call
+# ---------------------------------------------------------------------------
+
+async def _call_gemini_native(
+    messages: list[dict],
+    log: LogCallback,
+    on_status: StatusCallback | None,
+    system_prompt: str = SYSTEM_PROMPT,
+    tools: list[dict] = TOOLS,
+    use_stream: bool = True,
+) -> tuple[list[dict], str]:
+    """Call Gemini via native SDK with thinking streaming. Returns (content_blocks, stop_reason)."""
+    client = genai.Client(api_key=app_config.get_api_key("gemini"))
+
+    system_instruction, contents = _convert_messages_to_gemini(system_prompt, messages)
+    gemini_tools = _convert_tools_to_gemini(tools)
+
+    config = genai_types.GenerateContentConfig(
+        system_instruction=system_instruction,
+        tools=gemini_tools,
+        thinking_config=genai_types.ThinkingConfig(
+            include_thoughts=True,
+            thinking_budget=8192,
+        ),
+        max_output_tokens=_GEMINI_MAX_TOKENS,
+    )
+
+    if on_status:
+        await on_status("thinking", "Calling Gemini API...")
+
+    thinking_text = ""
+    content_text = ""
+    tool_calls: list[dict] = []  # list of {name, args}
+    _got_first_content = False
+
+    # Background heartbeat
+    async def _heartbeat():
+        elapsed = 0
+        while True:
+            await asyncio.sleep(3)
+            elapsed += 3
+            if _got_first_content:
+                return
+            if on_status:
+                await on_status("thinking", f"Model is thinking... ({elapsed}s)")
+
+    _heartbeat_task = asyncio.create_task(_heartbeat())
+
+    try:
+        _status_think_chars = 0
+        _status_content_chars = 0
+
+        stream = await client.aio.models.generate_content_stream(
+            model=_GEMINI_MODEL,
+            contents=contents,
+            config=config,
+        )
+        async for chunk in stream:
+            if not chunk.candidates:
+                continue
+            candidate = chunk.candidates[0]
+            if not candidate.content or not candidate.content.parts:
+                continue
+
+            for part in candidate.content.parts:
+                _got_first_content = True
+
+                if getattr(part, "thought", False):
+                    # Thinking part
+                    thinking_text += part.text or ""
+                    if on_status and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
+                        _status_think_chars = len(thinking_text)
+                        await on_status("thinking", thinking_text)
+
+                elif part.text:
+                    # Regular content text
+                    content_text += part.text
+                    if on_status and (_status_content_chars == 0 or len(content_text) - _status_content_chars >= 40):
+                        _status_content_chars = len(content_text)
+                        await on_status("thinking", content_text)
+
+                elif part.function_call:
+                    fc = part.function_call
+                    tool_calls.append({
+                        "name": fc.name,
+                        "args": dict(fc.args) if fc.args else {},
+                    })
+                    if on_status:
+                        await on_status("tool_use", fc.name)
+
+    finally:
+        _heartbeat_task.cancel()
+
+    # Log thinking
+    if thinking_text.strip() and log:
+        await log("Agent", thinking_text.strip(), "thinking")
+    if on_status and thinking_text.strip():
+        await on_status("thinking", thinking_text.strip())
+
+    # Build normalized content blocks
+    content_blocks: list[dict] = []
+
+    if thinking_text.strip():
+        content_blocks.append({"type": "thinking", "thinking": thinking_text.strip()})
+
+    if content_text.strip():
+        content_blocks.append({"type": "text", "text": content_text.strip()})
+
+    for i, tc in enumerate(tool_calls):
+        content_blocks.append({
+            "type": "tool_use",
+            "id": f"call_{i}",
+            "name": tc["name"],
+            "input": tc["args"],
+        })
+
+    stop_reason = "tool_use" if tool_calls else "end_turn"
+    return content_blocks, stop_reason
 
 
 def _strip_think_tags(text: str) -> tuple[str, str]:
@@ -827,7 +1049,11 @@ async def run_agent(
     provider = app_config.get_provider()
 
     # Provider-specific setup
-    if provider == "custom":
+    if provider == "gemini":
+        model_name = _GEMINI_MODEL
+        max_tokens = _GEMINI_MAX_TOKENS
+        client = None
+    elif provider == "custom":
         model_name = app_config.get_custom_model()
         max_tokens = app_config.get_custom_max_tokens()
         client = None
@@ -892,6 +1118,8 @@ async def run_agent(
             if provider == "custom":
                 _ctx_win = app_config.get_custom_context_window()
                 _compact_threshold = max(int(_ctx_win * 0.6), 4000)
+            elif provider == "gemini":
+                _compact_threshold = max(_GEMINI_MAX_TOKENS * 4, 30_000)
             elif provider in _OPENAI_COMPAT_MODELS:
                 _model_cfg = _OPENAI_COMPAT_MODELS[provider]
                 _compact_threshold = max(_model_cfg["max_tokens"] * 4, 30_000)
@@ -912,7 +1140,14 @@ async def run_agent(
 
             # --- Call the appropriate provider ---
             try:
-                if provider in _OPENAI_COMPAT_MODELS or provider == "custom":
+                if provider == "gemini":
+                    content_blocks, stop_reason = await _call_gemini_native(
+                        messages, log, on_status,
+                        system_prompt=system_prompt,
+                        tools=tools,
+                        use_stream=_use_stream,
+                    )
+                elif provider in _OPENAI_COMPAT_MODELS or provider == "custom":
                     content_blocks, stop_reason = await _call_openai_compat(
                         provider, messages, log, on_status,
                         system_prompt=system_prompt,
@@ -1060,7 +1295,8 @@ async def run_agent(
                 # Covers: overloaded_error (529), api_error (500), rate_limit_error, etc.
                 _is_server_error = any(k in err_str for k in (
                     "overloaded", "internal server error", "'type': 'api_error'",
-                    "rate_limit", "server_error",
+                    "rate_limit", "server_error", "unavailable", "high demand",
+                    "503",
                 ))
                 if _is_server_error:
                     overload_retries += 1
