@@ -537,6 +537,16 @@ async def _call_openai_compat(
     else:
         _tc_kwarg["tools"] = openai_lib.NOT_GIVEN
 
+    # Gemini: request thinking content so it streams during reasoning
+    if provider == "gemini":
+        _tc_kwarg["extra_body"] = {
+            "google": {
+                "thinking_config": {
+                    "include_thoughts": True,
+                }
+            }
+        }
+
     # Shared state populated by either streaming or non-streaming path
     content_text = ""
     thinking_text = ""
