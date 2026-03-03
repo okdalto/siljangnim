@@ -12,6 +12,8 @@ export default function GraphControl({ ctrl, onUniformChange }) {
   const canvasRef = useRef(null);
   const dragging = useRef(null);
   const containerRef = useRef(null);
+  const pointsRef = useRef(points);
+  pointsRef.current = points;
 
   const PAD = 20;
 
@@ -120,13 +122,14 @@ export default function GraphControl({ ctrl, onUniformChange }) {
 
   const findPoint = useCallback(
     (cx, cy, w, h) => {
-      for (let i = 0; i < points.length; i++) {
-        const [px, py] = toCanvas(points[i][0], points[i][1], w, h);
+      const pts = pointsRef.current;
+      for (let i = 0; i < pts.length; i++) {
+        const [px, py] = toCanvas(pts[i][0], pts[i][1], w, h);
         if (Math.hypot(cx - px, cy - py) < 10) return i;
       }
       return -1;
     },
-    [points, toCanvas]
+    [toCanvas]
   );
 
   const handlePointerDown = useCallback(
@@ -140,14 +143,9 @@ export default function GraphControl({ ctrl, onUniformChange }) {
       if (idx >= 0) {
         dragging.current = idx;
         cvs.setPointerCapture(e.pointerId);
-      } else {
-        const [x, y] = fromCanvas(cx, cy, cvs.width, cvs.height);
-        const newPts = [...points, [x, y]].sort((a, b) => a[0] - b[0]);
-        setPoints(newPts);
-        emit(newPts);
       }
     },
-    [points, findPoint, fromCanvas, emit]
+    [findPoint]
   );
 
   const handlePointerMove = useCallback(
@@ -160,13 +158,14 @@ export default function GraphControl({ ctrl, onUniformChange }) {
       const cy = e.clientY - rect.top;
       let [x, y] = fromCanvas(cx, cy, cvs.width, cvs.height);
       const idx = dragging.current;
+      const pts = pointsRef.current;
       if (idx === 0) x = 0;
-      else if (idx === points.length - 1) x = 1;
-      const newPts = points.map((p, i) => (i === idx ? [x, y] : [...p]));
+      else if (idx === pts.length - 1) x = 1;
+      const newPts = pts.map((p, i) => (i === idx ? [x, y] : [...p]));
       setPoints(newPts);
       emit(newPts);
     },
-    [points, fromCanvas, emit]
+    [fromCanvas, emit]
   );
 
   const handlePointerUp = useCallback(() => {
@@ -180,14 +179,22 @@ export default function GraphControl({ ctrl, onUniformChange }) {
       const rect = cvs.getBoundingClientRect();
       const cx = e.clientX - rect.left;
       const cy = e.clientY - rect.top;
+      const pts = pointsRef.current;
       const idx = findPoint(cx, cy, cvs.width, cvs.height);
-      if (idx > 0 && idx < points.length - 1) {
-        const newPts = points.filter((_, i) => i !== idx);
+      if (idx > 0 && idx < pts.length - 1) {
+        // Double-click on existing middle point → delete it
+        const newPts = pts.filter((_, i) => i !== idx);
+        setPoints(newPts);
+        emit(newPts);
+      } else if (idx < 0) {
+        // Double-click on empty area → add new point
+        const [x, y] = fromCanvas(cx, cy, cvs.width, cvs.height);
+        const newPts = [...pts, [x, y]].sort((a, b) => a[0] - b[0]);
         setPoints(newPts);
         emit(newPts);
       }
     },
-    [points, findPoint, emit]
+    [findPoint, fromCanvas, emit]
   );
 
   const handleReset = useCallback(() => {
