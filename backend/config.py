@@ -1,7 +1,12 @@
 """
 API key and provider management for siljangnim.
 
-Supports multiple AI providers (Anthropic Claude, GLM/Zhipu AI).
+Supports multiple AI providers:
+  - anthropic (Claude)
+  - openai (GPT-4o, etc.)
+  - gemini (Google Gemini via OpenAI-compatible endpoint)
+  - glm (Zhipu AI via OpenAI-compatible endpoint)
+
 Reads/writes configuration from backend/.env using python-dotenv.
 """
 
@@ -10,10 +15,31 @@ from pathlib import Path
 
 from dotenv import load_dotenv, set_key
 import anthropic
+import openai
 
 ENV_PATH = Path(__file__).resolve().parent / ".env"
 
-# Default GLM endpoints
+# Provider definitions: env key name, default base_url (None = SDK default)
+PROVIDERS = {
+    "anthropic": {
+        "env_key": "ANTHROPIC_API_KEY",
+        "base_url": None,
+    },
+    "openai": {
+        "env_key": "OPENAI_API_KEY",
+        "base_url": None,  # SDK default: https://api.openai.com/v1
+    },
+    "gemini": {
+        "env_key": "GEMINI_API_KEY",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+    },
+    "glm": {
+        "env_key": "GLM_API_KEY",
+        "base_url": None,  # resolved from GLM_ENDPOINTS
+    },
+}
+
+# GLM has user-selectable endpoints
 GLM_ENDPOINTS = {
     "open.bigmodel.cn": "https://open.bigmodel.cn/api/paas/v4/",
     "api.z.ai": "https://api.z.ai/api/paas/v4/",
@@ -35,27 +61,33 @@ def load_config() -> str | None:
     _glm_base_url = os.environ.get(
         "GLM_BASE_URL", GLM_ENDPOINTS["open.bigmodel.cn"]
     )
-    if _current_provider == "glm":
-        return os.environ.get("GLM_API_KEY")
-    return os.environ.get("ANTHROPIC_API_KEY")
+    return get_api_key(_current_provider)
 
 
 def get_provider() -> str:
-    """Return the currently active provider name ('anthropic' or 'glm')."""
+    """Return the currently active provider name."""
     return _current_provider
 
 
 def get_api_key(provider: str | None = None) -> str | None:
     """Return the API key for the given provider (defaults to active)."""
     provider = provider or _current_provider
+    info = PROVIDERS.get(provider)
+    if not info:
+        return None
+    return os.environ.get(info["env_key"])
+
+
+def get_base_url(provider: str | None = None) -> str | None:
+    """Return the base URL for the given provider.
+
+    Returns None if the provider should use its SDK default.
+    """
+    provider = provider or _current_provider
     if provider == "glm":
-        return os.environ.get("GLM_API_KEY")
-    return os.environ.get("ANTHROPIC_API_KEY")
-
-
-def get_glm_base_url() -> str:
-    """Return the GLM base URL."""
-    return _glm_base_url
+        return _glm_base_url
+    info = PROVIDERS.get(provider)
+    return info["base_url"] if info else None
 
 
 def save_api_key(provider: str, key: str, endpoint: str | None = None) -> None:
@@ -63,19 +95,24 @@ def save_api_key(provider: str, key: str, endpoint: str | None = None) -> None:
     global _current_provider, _glm_base_url
     ENV_PATH.touch(exist_ok=True)
 
+    info = PROVIDERS.get(provider)
+    if not info:
+        raise ValueError(f"Unknown provider: {provider}")
+
+    # Save the key
+    set_key(str(ENV_PATH), info["env_key"], key)
+    os.environ[info["env_key"]] = key
+
+    # GLM endpoint handling
     if provider == "glm":
-        set_key(str(ENV_PATH), "GLM_API_KEY", key)
-        os.environ["GLM_API_KEY"] = key
         if endpoint and endpoint in GLM_ENDPOINTS:
             _glm_base_url = GLM_ENDPOINTS[endpoint]
         elif endpoint:
             _glm_base_url = endpoint
         set_key(str(ENV_PATH), "GLM_BASE_URL", _glm_base_url)
         os.environ["GLM_BASE_URL"] = _glm_base_url
-    else:
-        set_key(str(ENV_PATH), "ANTHROPIC_API_KEY", key)
-        os.environ["ANTHROPIC_API_KEY"] = key
 
+    # Set active provider
     _current_provider = provider
     set_key(str(ENV_PATH), "AI_PROVIDER", provider)
     os.environ["AI_PROVIDER"] = provider
@@ -83,9 +120,15 @@ def save_api_key(provider: str, key: str, endpoint: str | None = None) -> None:
 
 async def validate_api_key(provider: str, key: str, endpoint: str | None = None) -> tuple[bool, str]:
     """Validate an API key for the given provider. Returns (valid, error_message)."""
+    if provider == "anthropic":
+        return await _validate_anthropic_key(key)
+    if provider == "openai":
+        return await _validate_openai_key(key)
+    if provider == "gemini":
+        return await _validate_gemini_key(key)
     if provider == "glm":
         return await _validate_glm_key(key, endpoint)
-    return await _validate_anthropic_key(key)
+    return False, f"Unknown provider: {provider}"
 
 
 async def _validate_anthropic_key(key: str) -> tuple[bool, str]:
@@ -106,10 +149,49 @@ async def _validate_anthropic_key(key: str) -> tuple[bool, str]:
         return False, str(e)
 
 
+async def _validate_openai_key(key: str) -> tuple[bool, str]:
+    """Make a minimal OpenAI API call to verify the key."""
+    try:
+        client = openai.AsyncOpenAI(api_key=key)
+        await client.chat.completions.create(
+            model="gpt-4o-mini",
+            max_tokens=1,
+            messages=[{"role": "user", "content": "hi"}],
+        )
+        return True, ""
+    except openai.AuthenticationError:
+        return False, "Invalid API key"
+    except openai.APIConnectionError:
+        return False, "Could not connect to OpenAI API"
+    except Exception as e:
+        return False, str(e)
+
+
+async def _validate_gemini_key(key: str) -> tuple[bool, str]:
+    """Make a minimal Gemini API call via OpenAI-compatible endpoint."""
+    try:
+        client = openai.AsyncOpenAI(
+            api_key=key,
+            base_url=PROVIDERS["gemini"]["base_url"],
+        )
+        await client.chat.completions.create(
+            model="gemini-2.5-flash",
+            max_tokens=1,
+            messages=[{"role": "user", "content": "hi"}],
+        )
+        return True, ""
+    except Exception as e:
+        err_str = str(e).lower()
+        if "api key" in err_str or "401" in err_str or "403" in err_str or "permission" in err_str:
+            return False, "Invalid API key"
+        if "connect" in err_str:
+            return False, "Could not connect to Gemini API"
+        return False, str(e)
+
+
 async def _validate_glm_key(key: str, endpoint: str | None = None) -> tuple[bool, str]:
     """Make a minimal GLM API call to verify the key."""
     try:
-        import openai
         base_url = GLM_ENDPOINTS.get(endpoint, _glm_base_url) if endpoint else _glm_base_url
         client = openai.AsyncOpenAI(api_key=key, base_url=base_url)
         await client.chat.completions.create(

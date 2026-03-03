@@ -428,26 +428,42 @@ async def _call_anthropic(
     return content_blocks, response.stop_reason
 
 
-async def _call_glm(
+# Model configuration for OpenAI-compatible providers
+_OPENAI_COMPAT_MODELS = {
+    "openai": {"model": "gpt-4.1", "max_tokens": 32768},
+    "gemini": {"model": "gemini-2.5-flash", "max_tokens": 8192},
+    "glm":    {"model": "glm-4-plus", "max_tokens": 4096},
+}
+
+
+async def _call_openai_compat(
+    provider: str,
     messages: list[dict],
     log: LogCallback,
     on_status: StatusCallback | None,
 ) -> tuple[list[dict], str]:
-    """Stream GLM API call via OpenAI SDK. Returns (content_blocks, stop_reason)."""
-    client = openai_lib.AsyncOpenAI(
-        api_key=app_config.get_api_key("glm"),
-        base_url=app_config.get_glm_base_url(),
-    )
+    """Stream an OpenAI-compatible API call. Returns (content_blocks, stop_reason).
 
+    Works for openai, gemini, and glm providers.
+    """
+    api_key = app_config.get_api_key(provider)
+    base_url = app_config.get_base_url(provider)
+
+    client_kwargs = {"api_key": api_key}
+    if base_url:
+        client_kwargs["base_url"] = base_url
+    client = openai_lib.AsyncOpenAI(**client_kwargs)
+
+    model_cfg = _OPENAI_COMPAT_MODELS[provider]
     openai_messages = _convert_messages_to_openai(SYSTEM_PROMPT, messages)
     openai_tools = _convert_tools_to_openai(TOOLS)
 
     if on_status:
-        await on_status("thinking", "Calling GLM API...")
+        await on_status("thinking", f"Calling {provider} API...")
 
     stream = await client.chat.completions.create(
-        model="glm-4-plus",
-        max_tokens=4096,
+        model=model_cfg["model"],
+        max_tokens=model_cfg["max_tokens"],
         messages=openai_messages,
         tools=openai_tools if openai_tools else openai_lib.NOT_GIVEN,
         stream=True,
@@ -538,7 +554,7 @@ async def run_agent(
 ) -> dict:
     """Run the agent for one user prompt.
 
-    Supports both Anthropic and GLM providers (selected via config).
+    Supports Anthropic, OpenAI, Gemini, and GLM providers (selected via config).
     Returns {"chat_text": str} with the agent's conversational reply.
     """
     await log("System", f"Starting agent for: \"{user_prompt}\"", "info")
@@ -549,10 +565,11 @@ async def run_agent(
     provider = app_config.get_provider()
 
     # Provider-specific setup
-    if provider == "glm":
-        model_name = "glm-4-plus"
-        max_tokens = 4096
-        client = None  # GLM uses its own client inside _call_glm
+    if provider in _OPENAI_COMPAT_MODELS:
+        model_cfg = _OPENAI_COMPAT_MODELS[provider]
+        model_name = model_cfg["model"]
+        max_tokens = model_cfg["max_tokens"]
+        client = None  # OpenAI-compat providers create their own client
     else:
         client = anthropic.AsyncAnthropic()
         tier = await _classify_prompt(client, user_prompt)
@@ -600,9 +617,9 @@ async def run_agent(
 
             # --- Call the appropriate provider ---
             try:
-                if provider == "glm":
-                    content_blocks, stop_reason = await _call_glm(
-                        messages, log, on_status,
+                if provider in _OPENAI_COMPAT_MODELS:
+                    content_blocks, stop_reason = await _call_openai_compat(
+                        provider, messages, log, on_status,
                     )
                 else:
                     content_blocks, stop_reason = await _call_anthropic(
@@ -659,8 +676,8 @@ async def run_agent(
             except Exception as e:
                 err_str = str(e).lower()
 
-                # GLM-specific retries
-                if provider == "glm":
+                # OpenAI-compatible provider retries (openai, gemini, glm)
+                if provider in _OPENAI_COMPAT_MODELS:
                     if isinstance(e, openai_lib.APIStatusError):
                         if e.status_code == 429:
                             overload_retries += 1
@@ -676,9 +693,9 @@ async def run_agent(
                         if e.status_code >= 500:
                             compact_retries += 1
                             if compact_retries > _MAX_COMPACT_RETRIES:
-                                await log("System", f"GLM server error after retries: {e}", "error")
+                                await log("System", f"{provider} server error after retries: {e}", "error")
                                 raise
-                            await log("System", f"GLM server error — retrying ({compact_retries}/{_MAX_COMPACT_RETRIES})...", "info")
+                            await log("System", f"{provider} server error — retrying ({compact_retries}/{_MAX_COMPACT_RETRIES})...", "info")
                             if on_status:
                                 await on_status("thinking", "Server error, retrying...")
                             await asyncio.sleep(2)
@@ -687,7 +704,7 @@ async def run_agent(
                     if isinstance(e, (openai_lib.APIConnectionError, openai_lib.APITimeoutError)):
                         compact_retries += 1
                         if compact_retries > _MAX_COMPACT_RETRIES:
-                            await log("System", f"GLM connection error after retries: {e}", "error")
+                            await log("System", f"{provider} connection error after retries: {e}", "error")
                             raise
                         await log("System", f"Connection interrupted — retrying ({compact_retries}/{_MAX_COMPACT_RETRIES})...", "info")
                         if on_status:
