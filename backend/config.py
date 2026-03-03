@@ -245,7 +245,7 @@ async def _validate_openai_key(key: str) -> tuple[bool, str]:
         client = openai.AsyncOpenAI(api_key=key)
         await client.chat.completions.create(
             model="gpt-5.2",
-            max_completion_tokens=1,
+            max_completion_tokens=16,
             messages=[{"role": "user", "content": "hi"}],
         )
         return True, ""
