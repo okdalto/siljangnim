@@ -705,18 +705,19 @@ async def _tool_run_command(input_data: dict, broadcast: BroadcastCallback) -> s
 
 
 async def _tool_check_browser_errors(input_data: dict, broadcast: BroadcastCallback, ws_id: int = 0) -> str:
-    # Wait for the frontend to render and report any errors
+    # Return any browser errors that have arrived (before or during the wait).
     from agents import executor
     errors_list = executor._browser_errors.setdefault(ws_id, [])
-    errors_list.clear()
     event = executor._browser_error_events.setdefault(ws_id, asyncio.Event())
     event.clear()
 
-    # Wait for an error to arrive or timeout after 3 seconds
-    try:
-        await asyncio.wait_for(event.wait(), timeout=3.0)
-    except asyncio.TimeoutError:
-        pass
+    # If errors already queued, return immediately.
+    # Otherwise wait up to 3 seconds for one to arrive.
+    if not errors_list:
+        try:
+            await asyncio.wait_for(event.wait(), timeout=3.0)
+        except asyncio.TimeoutError:
+            pass
 
     errors = list(errors_list)
     errors_list.clear()

@@ -8,6 +8,8 @@ export default function ViewportNode({ data }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const engineInternalRef = useRef(null);
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
   const [fps, setFps] = useState(0);
   const [resolution, setResolution] = useState([0, 0]);
   const [fixedResolution, setFixedResolution] = useState(null); // null = auto
@@ -24,7 +26,7 @@ export default function ViewportNode({ data }) {
       engine.onError = (err) => {
         console.error("[ViewportNode] GLEngine error:", err);
         setError(err.message || String(err));
-        onError?.(err);
+        onErrorRef.current?.(err);
       };
       engine.onFPS = setFps;
       engineInternalRef.current = engine;

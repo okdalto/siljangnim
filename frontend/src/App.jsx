@@ -586,6 +586,7 @@ export default function App() {
           onNewProject={handleNewProject}
           activeProject={project.activeProject}
           connected={connected}
+          provider={apiKey.savedConfig?.provider}
           saveStatus={project.saveStatus}
           onChangeApiKey={() => apiKey.setRequired()}
         />

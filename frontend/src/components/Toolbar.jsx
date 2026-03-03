@@ -1,6 +1,8 @@
 import SettingsMenu from "./SettingsMenu.jsx";
 
-export default function Toolbar({ onNewProject, activeProject, connected, saveStatus, onChangeApiKey }) {
+const PROVIDER_LABELS = { anthropic: "Claude", openai: "OpenAI", gemini: "Gemini", glm: "GLM", custom: "Custom" };
+
+export default function Toolbar({ onNewProject, activeProject, connected, provider, saveStatus, onChangeApiKey }) {
   return (
     <div
       className="fixed top-0 left-0 right-0 z-40 h-10 flex items-center justify-between px-4 text-sm"
@@ -39,7 +41,7 @@ export default function Toolbar({ onNewProject, activeProject, connected, saveSt
               connected ? "bg-emerald-400" : "bg-red-400"
             }`}
           />
-          {connected ? "Connected" : "Disconnected"}
+          {connected ? (provider ? PROVIDER_LABELS[provider] || provider : "Connected") : "Disconnected"}
         </div>
         <SettingsMenu onChangeApiKey={onChangeApiKey} />
       </div>

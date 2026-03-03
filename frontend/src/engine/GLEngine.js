@@ -173,6 +173,7 @@ export default class GLEngine {
       } catch (err) {
         console.error("[GLEngine] Hot-reload compile error:", err);
         this.onError?.(err);
+        window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
       }
       // Merge new uniform defaults (only if not already set)
       if (sceneJSON.uniforms) {
@@ -386,6 +387,7 @@ export default class GLEngine {
     } catch (err) {
       console.error("[GLEngine] Script error:", err);
       this.onError?.(err);
+      window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
     }
 
     // Parse custom uniforms
@@ -500,6 +502,7 @@ export default class GLEngine {
       if (err.message !== this._lastErrorMessage) {
         this._lastErrorMessage = err.message;
         this.onError?.(err);
+        window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
       }
     }
     this._frameCount++;
@@ -565,6 +568,7 @@ export default class GLEngine {
         if (err.message !== this._lastErrorMessage) {
           this._lastErrorMessage = err.message;
           this.onError?.(err);
+          window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
         }
       }
     }
