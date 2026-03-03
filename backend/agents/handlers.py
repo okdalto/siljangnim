@@ -1,6 +1,7 @@
 """Tool handler + scene helpers for the siljangnim agent."""
 
 import asyncio
+import copy
 import json
 import os
 import shlex
@@ -354,7 +355,7 @@ async def _tool_write_file(input_data: dict, broadcast: BroadcastCallback) -> st
             else:
                 data = {}
 
-        data = json.loads(json.dumps(data))  # deep copy
+        data = copy.deepcopy(data)
         warnings = []
         applied_count = 0
         for i, edit in enumerate(edits):
@@ -703,31 +704,41 @@ async def _tool_run_command(input_data: dict, broadcast: BroadcastCallback) -> s
         return f"Error running command: {e}"
 
 
-async def _tool_check_browser_errors(input_data: dict, broadcast: BroadcastCallback) -> str:
+async def _tool_check_browser_errors(input_data: dict, broadcast: BroadcastCallback, ws_id: int = 0) -> str:
     # Wait for the frontend to render and report any errors
     from agents import executor
-    executor._browser_errors.clear()
-    await asyncio.sleep(2)
-    errors = list(executor._browser_errors)
-    executor._browser_errors.clear()
+    errors_list = executor._browser_errors.setdefault(ws_id, [])
+    errors_list.clear()
+    event = executor._browser_error_events.setdefault(ws_id, asyncio.Event())
+    event.clear()
+
+    # Wait for an error to arrive or timeout after 3 seconds
+    try:
+        await asyncio.wait_for(event.wait(), timeout=3.0)
+    except asyncio.TimeoutError:
+        pass
+
+    errors = list(errors_list)
+    errors_list.clear()
     if not errors:
         return "No browser errors detected."
     return "Browser errors detected:\n" + "\n".join(f"  - {e}" for e in errors)
 
 
-async def _tool_ask_user(input_data: dict, broadcast: BroadcastCallback) -> str:
+async def _tool_ask_user(input_data: dict, broadcast: BroadcastCallback, ws_id: int = 0) -> str:
     # Local import to avoid circular dependency (executor → handlers → executor)
     from agents import executor
     question = input_data.get("question", "")
     options = input_data.get("options", [])
-    executor._user_answer_future = asyncio.get_event_loop().create_future()
+    future = asyncio.get_running_loop().create_future()
+    executor._user_answer_futures[ws_id] = future
     await broadcast({
         "type": "agent_question",
         "question": question,
         "options": options,
     })
-    answer = await executor._user_answer_future
-    executor._user_answer_future = None
+    answer = await future
+    executor._user_answer_futures.pop(ws_id, None)
     return f"The user answered: {answer}"
 
 
@@ -755,9 +766,12 @@ async def _handle_tool(
     name: str,
     input_data: dict,
     broadcast: BroadcastCallback,
+    ws_id: int = 0,
 ) -> str:
     """Execute a tool call and return the result as a plain string."""
     handler = _TOOL_HANDLERS.get(name)
     if handler:
+        if name in ("check_browser_errors", "ask_user"):
+            return await handler(input_data, broadcast, ws_id)
         return await handler(input_data, broadcast)
     return f"Unknown tool: {name}"

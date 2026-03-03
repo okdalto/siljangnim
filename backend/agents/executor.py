@@ -2,12 +2,15 @@
 
 import asyncio
 import json
+import logging
 from collections import Counter
 from pathlib import Path
 from typing import Callable, Awaitable
 
 import anthropic
 import openai as openai_lib
+
+_logger = logging.getLogger(__name__)
 
 import config as app_config
 import workspace
@@ -28,11 +31,14 @@ StatusCallback = Callable[[str, str], Awaitable[None]]  # (status_type, detail)
 
 _conversations: dict[int, list[dict]] = {}
 
-# Future for ask_user tool — resolved when the user answers
-_user_answer_future: asyncio.Future | None = None
+# Per-session futures for ask_user tool — resolved when the user answers
+_user_answer_futures: dict[int, asyncio.Future] = {}
 
-# Browser errors collected during the agent's turn (written by ws_handlers, read by check_browser_errors tool)
-_browser_errors: list[str] = []
+# Per-session browser errors collected during the agent's turn
+_browser_errors: dict[int, list[str]] = {}
+
+# Per-session events signalling that a browser error has arrived
+_browser_error_events: dict[int, asyncio.Event] = {}
 
 
 def _get_conversation_file() -> Path:
@@ -160,8 +166,8 @@ async def _classify_prompt(client: anthropic.AsyncAnthropic, user_prompt: str) -
         )
         if "STANDARD" in resp.content[0].text.strip().upper():
             return "standard"
-    except Exception:
-        pass
+    except Exception as e:
+        _logger.debug("Prompt classification failed: %s", e)
     return "complex"
 
 
@@ -193,6 +199,9 @@ def _compact_messages(messages: list[dict]) -> None:
     _TRUNC = 200
     _SAFE_TOKENS = 120_000  # target after compaction (~4 chars/token)
 
+    # Strip all thinking blocks up front (reuses _strip_thinking)
+    _strip_thinking(messages)
+
     for msg in messages:
         content = msg.get("content")
         if not isinstance(content, list):
@@ -200,18 +209,6 @@ def _compact_messages(messages: list[dict]) -> None:
             if isinstance(content, str) and len(content) > 10_000:
                 msg["content"] = content[:10_000] + "\n...(truncated)"
             continue
-
-        # --- Strip thinking blocks from assistant messages ---
-        if msg.get("role") == "assistant":
-            filtered = [
-                block for block in content
-                if not (isinstance(block, dict) and block.get("type") == "thinking")
-            ]
-            # Keep at least a placeholder so content is never empty
-            if not filtered:
-                filtered = [{"type": "text", "text": "(thinking only)"}]
-            msg["content"] = filtered
-            content = msg["content"]
 
         # --- Truncate large payloads ---
         for block in content:
@@ -443,6 +440,26 @@ _OPENAI_COMPAT_MODELS = {
 }
 
 
+def _strip_think_tags(text: str) -> tuple[str, str]:
+    """Extract and remove <think>...</think> blocks from text.
+
+    Returns (clean_content, thinking_text).
+    """
+    thinking_parts: list[str] = []
+    clean = text
+    while "<think>" in clean:
+        start = clean.find("<think>")
+        end = clean.find("</think>", start)
+        if end == -1:
+            # Unclosed tag — everything after <think> is thinking
+            thinking_parts.append(clean[start + len("<think>"):])
+            clean = clean[:start]
+            break
+        thinking_parts.append(clean[start + len("<think>"):end])
+        clean = clean[:start] + clean[end + len("</think>"):]
+    return clean.strip(), "\n".join(thinking_parts)
+
+
 async def _call_openai_compat(
     provider: str,
     messages: list[dict],
@@ -451,9 +468,12 @@ async def _call_openai_compat(
     system_prompt: str = SYSTEM_PROMPT,
     tools: list[dict] = TOOLS,
     tool_choice: str = "auto",
+    use_stream: bool = True,
 ) -> tuple[list[dict], str]:
-    """Stream an OpenAI-compatible API call. Returns (content_blocks, stop_reason).
+    """Call an OpenAI-compatible API. Returns (content_blocks, stop_reason).
 
+    use_stream: True for SSE streaming (real-time progress), False for a single
+        HTTP request (more reliable — no mid-stream disconnections).
     tool_choice: "auto" (default), "required" (force tool use), or "none".
     Works for openai, gemini, glm, and custom providers.
     """
@@ -506,124 +526,171 @@ async def _call_openai_compat(
     else:
         _tc_kwarg["tools"] = openai_lib.NOT_GIVEN
 
-    stream = await client.chat.completions.create(
-        model=model_name,
-        max_tokens=_effective_max,
-        messages=openai_messages,
-        stream=True,
-        **_tc_kwarg,
-    )
-
+    # Shared state populated by either streaming or non-streaming path
     content_text = ""
-    thinking_text = ""       # <think> block or reasoning_content
-    _in_think_tag = False    # streaming parser state for <think>...</think>
+    thinking_text = ""
     tool_calls_acc: dict[int, dict] = {}
     finish_reason = None
-    _status_chars = 0        # track chars sent as status to throttle updates
-    _status_think_chars = 0  # track thinking chars for throttled updates
-    _status_tool_chars = 0   # track tool argument chars for progress
-
     _stream_interrupted = False
-    try:
-        async for chunk in stream:
-            if not chunk.choices:
-                continue
-            choice = chunk.choices[0]
-            delta = choice.delta
 
-            # Some providers (vLLM for Qwen/DeepSeek) expose reasoning via
-            # a dedicated `reasoning_content` field on the delta.
-            _reasoning = getattr(delta, "reasoning_content", None)
-            if _reasoning:
-                thinking_text += _reasoning
-                if on_status and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
-                    _status_think_chars = len(thinking_text)
-                    await on_status("thinking", thinking_text)
+    if not use_stream:
+        # ----- Non-streaming path (reliable, no mid-stream drops) -----
+        if on_status:
+            await on_status("thinking", f"Calling {provider} API...")
 
-            if delta and delta.content:
-                raw = delta.content
+        response = await client.chat.completions.create(
+            model=model_name,
+            max_tokens=_effective_max,
+            messages=openai_messages,
+            stream=False,
+            **_tc_kwarg,
+        )
 
-                # Parse <think>...</think> tags inline during streaming.
-                # Models like Qwen3.5 and DeepSeek R1 wrap reasoning in these.
-                if _in_think_tag:
-                    close_idx = raw.find("</think>")
-                    if close_idx != -1:
-                        thinking_text += raw[:close_idx]
-                        _in_think_tag = False
-                        remainder = raw[close_idx + len("</think>"):]
-                        if remainder:
-                            content_text += remainder
-                    else:
-                        thinking_text += raw
-                    if on_status and thinking_text and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
+        if not response.choices:
+            return [], "end_turn"
+
+        choice = response.choices[0]
+        finish_reason = choice.finish_reason
+        content_text = choice.message.content or ""
+
+        # Extract reasoning_content (vLLM for Qwen/DeepSeek)
+        _reasoning = getattr(choice.message, "reasoning_content", None)
+        if _reasoning:
+            thinking_text = _reasoning
+
+        # Strip <think>...</think> tags from content
+        content_text, _think_from_tags = _strip_think_tags(content_text)
+        if _think_from_tags:
+            thinking_text = (thinking_text + "\n" + _think_from_tags).strip()
+
+        # Extract tool calls
+        for i, tc in enumerate(choice.message.tool_calls or []):
+            tool_calls_acc[i] = {
+                "id": tc.id or f"call_{i}",
+                "name": tc.function.name or "",
+                "arguments": tc.function.arguments or "",
+            }
+
+        if on_status and content_text.strip():
+            await on_status("thinking", content_text.strip())
+
+    else:
+        # ----- Streaming path (real-time progress) -----
+        stream = await client.chat.completions.create(
+            model=model_name,
+            max_tokens=_effective_max,
+            messages=openai_messages,
+            stream=True,
+            **_tc_kwarg,
+        )
+
+        _in_think_tag = False
+        _status_chars = 0
+        _status_think_chars = 0
+        _status_tool_chars = 0
+
+        try:
+            async for chunk in stream:
+                if not chunk.choices:
+                    continue
+                choice = chunk.choices[0]
+                delta = choice.delta
+
+                # Some providers (vLLM for Qwen/DeepSeek) expose reasoning via
+                # a dedicated `reasoning_content` field on the delta.
+                _reasoning = getattr(delta, "reasoning_content", None)
+                if _reasoning:
+                    thinking_text += _reasoning
+                    if on_status and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
                         _status_think_chars = len(thinking_text)
                         await on_status("thinking", thinking_text)
-                    continue
-                else:
-                    open_idx = raw.find("<think>")
-                    if open_idx != -1:
-                        # Text before <think> is content
-                        before = raw[:open_idx]
-                        if before:
-                            content_text += before
-                        after = raw[open_idx + len("<think>"):]
-                        close_idx = after.find("</think>")
+
+                if delta and delta.content:
+                    raw = delta.content
+
+                    # Parse <think>...</think> tags inline during streaming.
+                    # Models like Qwen3.5 and DeepSeek R1 wrap reasoning in these.
+                    if _in_think_tag:
+                        close_idx = raw.find("</think>")
                         if close_idx != -1:
-                            thinking_text += after[:close_idx]
-                            remainder = after[close_idx + len("</think>"):]
+                            thinking_text += raw[:close_idx]
+                            _in_think_tag = False
+                            remainder = raw[close_idx + len("</think>"):]
                             if remainder:
                                 content_text += remainder
                         else:
-                            thinking_text += after
-                            _in_think_tag = True
+                            thinking_text += raw
                         if on_status and thinking_text and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
                             _status_think_chars = len(thinking_text)
                             await on_status("thinking", thinking_text)
                         continue
+                    else:
+                        open_idx = raw.find("<think>")
+                        if open_idx != -1:
+                            # Text before <think> is content
+                            before = raw[:open_idx]
+                            if before:
+                                content_text += before
+                            after = raw[open_idx + len("<think>"):]
+                            close_idx = after.find("</think>")
+                            if close_idx != -1:
+                                thinking_text += after[:close_idx]
+                                remainder = after[close_idx + len("</think>"):]
+                                if remainder:
+                                    content_text += remainder
+                            else:
+                                thinking_text += after
+                                _in_think_tag = True
+                            if on_status and thinking_text and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
+                                _status_think_chars = len(thinking_text)
+                                await on_status("thinking", thinking_text)
+                            continue
 
-                    content_text += raw
+                        content_text += raw
 
-                # Stream partial text as "thinking" status so the UI shows progress.
-                # First chunk sent immediately, then throttled every 40 chars.
-                if on_status and (_status_chars == 0 or len(content_text) - _status_chars >= 40):
-                    _status_chars = len(content_text)
-                    await on_status("thinking", content_text)
+                    # Stream partial text as "thinking" status so the UI shows progress.
+                    # First chunk sent immediately, then throttled every 40 chars.
+                    if on_status and (_status_chars == 0 or len(content_text) - _status_chars >= 40):
+                        _status_chars = len(content_text)
+                        await on_status("thinking", content_text)
 
-            if delta and delta.tool_calls:
-                for tc in delta.tool_calls:
-                    idx = tc.index
-                    if idx not in tool_calls_acc:
-                        tool_calls_acc[idx] = {"id": "", "name": "", "arguments": ""}
-                    if tc.id:
-                        tool_calls_acc[idx]["id"] = tc.id
-                    if tc.function:
-                        if tc.function.name:
-                            tool_calls_acc[idx]["name"] = tc.function.name
-                            if on_status:
-                                await on_status("tool_use", tc.function.name)
-                        if tc.function.arguments:
-                            tool_calls_acc[idx]["arguments"] += tc.function.arguments
-                            # Show progress while tool arguments stream in
-                            total_args = sum(len(t["arguments"]) for t in tool_calls_acc.values())
-                            if on_status and total_args - _status_tool_chars >= 200:
-                                _status_tool_chars = total_args
-                                name = tool_calls_acc[idx]["name"] or "tool"
-                                await on_status("thinking", f"Generating {name} arguments...")
+                if delta and delta.tool_calls:
+                    for tc in delta.tool_calls:
+                        idx = tc.index
+                        if idx not in tool_calls_acc:
+                            tool_calls_acc[idx] = {"id": "", "name": "", "arguments": ""}
+                        if tc.id:
+                            tool_calls_acc[idx]["id"] = tc.id
+                        if tc.function:
+                            if tc.function.name:
+                                tool_calls_acc[idx]["name"] = tc.function.name
+                                if on_status:
+                                    await on_status("tool_use", tc.function.name)
+                            if tc.function.arguments:
+                                tool_calls_acc[idx]["arguments"] += tc.function.arguments
+                                # Show progress while tool arguments stream in
+                                total_args = sum(len(t["arguments"]) for t in tool_calls_acc.values())
+                                if on_status and total_args - _status_tool_chars >= 200:
+                                    _status_tool_chars = total_args
+                                    name = tool_calls_acc[idx]["name"] or "tool"
+                                    await on_status("thinking", f"Generating {name} arguments...")
 
-            if choice.finish_reason:
-                finish_reason = choice.finish_reason
+                if choice.finish_reason:
+                    finish_reason = choice.finish_reason
 
-    except Exception as stream_err:
-        # If the stream breaks mid-way (e.g. vLLM drops the connection after
-        # finishing generation but before properly closing the SSE stream),
-        # use whatever content we already accumulated instead of failing.
-        _has_partial = bool(content_text.strip() or tool_calls_acc)
-        if _has_partial:
-            if log:
-                await log("System", f"Stream interrupted but partial response recovered: {stream_err}", "info")
-            _stream_interrupted = True
-        else:
-            raise  # nothing received — propagate the error
+        except Exception as stream_err:
+            # If the stream breaks mid-way (e.g. vLLM drops the connection after
+            # finishing generation but before properly closing the SSE stream),
+            # use whatever content we already accumulated instead of failing.
+            _has_partial = bool(content_text.strip() or tool_calls_acc)
+            if _has_partial:
+                if log:
+                    await log("System", f"Stream interrupted but partial response recovered: {stream_err}", "info")
+                _stream_interrupted = True
+            else:
+                raise  # nothing received — propagate the error
+
+    # ----- Shared post-processing -----
 
     # Log thinking if captured (either from <think> tags or reasoning_content)
     if thinking_text.strip() and log:
@@ -636,11 +703,19 @@ async def _call_openai_compat(
     if content_text and content_text.strip():
         content_blocks.append({"type": "text", "text": content_text.strip()})
 
+    _dropped_tools = 0
     for idx in sorted(tool_calls_acc.keys()):
         tc = tool_calls_acc[idx]
         try:
             args = json.loads(tc["arguments"]) if tc["arguments"] else {}
         except json.JSONDecodeError:
+            if _stream_interrupted:
+                # Stream broke mid-generation — arguments are truncated JSON.
+                # Drop this tool call entirely instead of executing with empty args.
+                _dropped_tools += 1
+                if log:
+                    await log("System", f"Dropped truncated tool call: {tc['name']} (stream interrupted)", "info")
+                continue
             args = {}
         content_blocks.append({
             "type": "tool_use",
@@ -648,6 +723,16 @@ async def _call_openai_compat(
             "name": tc["name"],
             "input": args,
         })
+
+    # If all tool calls were dropped due to stream interruption, treat as
+    # max_tokens so the caller retries cleanly instead of executing garbage.
+    if _stream_interrupted and _dropped_tools and not any(
+        b["type"] == "tool_use" for b in content_blocks
+    ):
+        if log:
+            await log("System", f"All {_dropped_tools} tool call(s) had truncated arguments — treating as max_tokens", "info")
+        # Keep any text content that was successfully received
+        return content_blocks, "max_tokens"
 
     # Map OpenAI finish_reason to Anthropic stop_reason.
     # If the stream was interrupted, infer the reason from content:
@@ -745,6 +830,10 @@ async def run_agent(
     _MAX_CONNECTION_RETRIES = 3
     _force_tool_choice = "auto"  # escalated to "required" after empty/text-only response
     recent_tool_sigs: list[str] = []  # track (name|input_hash) for loop detection
+    _use_stream = True  # auto-switched to False after stream interruptions
+
+    # Cumulative message size for token estimation (avoids re-serialising every turn)
+    _msg_size_acc = sum(len(json.dumps(m, ensure_ascii=False)) for m in messages)
 
     try:
         while turns < _MAX_TURNS:
@@ -754,7 +843,7 @@ async def run_agent(
             # and compact if approaching the context limit.
             # For custom providers, use max_tokens as a proxy for context size
             # (compact when input estimate exceeds context - output budget).
-            _est_tokens = len(json.dumps(messages, ensure_ascii=False)) // 4
+            _est_tokens = _msg_size_acc // 4
             if provider == "custom":
                 # Assume context ≈ max_tokens * 4 (generous), compact at 60%
                 _compact_threshold = max(max_tokens * 2, 4000)
@@ -768,6 +857,7 @@ async def run_agent(
                 if on_status:
                     await on_status("thinking", "Compacting conversation...")
                 _compact_messages(messages)
+                _msg_size_acc = sum(len(json.dumps(m, ensure_ascii=False)) for m in messages)
 
             # Sanitize: remove any messages with empty content before API call
             messages[:] = [
@@ -783,6 +873,7 @@ async def run_agent(
                         system_prompt=system_prompt,
                         tools=tools,
                         tool_choice=_force_tool_choice,
+                        use_stream=_use_stream,
                     )
                 else:
                     content_blocks, stop_reason = await _call_anthropic(
@@ -806,6 +897,7 @@ async def run_agent(
                     if on_status:
                         await on_status("thinking", "Compacting conversation...")
                     _compact_messages(messages)
+                    _msg_size_acc = sum(len(json.dumps(m, ensure_ascii=False)) for m in messages)
                     compact_retries += 1
                     if compact_retries > _MAX_COMPACT_RETRIES:
                         await log("System", "Max compact retries — cannot reduce further", "error")
@@ -827,14 +919,15 @@ async def run_agent(
                         await on_status("thinking", f"Server busy, retrying in {delay}s...")
                     await asyncio.sleep(delay)
                     continue
-                compact_retries += 1
-                if compact_retries > _MAX_COMPACT_RETRIES:
-                    await log("System", f"API error after retries: {e}", "error")
+                connection_retries += 1
+                if connection_retries > _MAX_CONNECTION_RETRIES:
+                    await log("System", f"API connection error after {_MAX_CONNECTION_RETRIES} retries: {e}", "error")
                     raise
-                await log("System", f"Connection interrupted — retrying ({compact_retries}/{_MAX_COMPACT_RETRIES})...", "info")
+                delay = min(2 ** connection_retries, 10)
+                await log("System", f"Connection interrupted — retrying in {delay}s ({connection_retries}/{_MAX_CONNECTION_RETRIES})...", "info")
                 if on_status:
                     await on_status("thinking", "Connection lost, retrying...")
-                await asyncio.sleep(2)
+                await asyncio.sleep(delay)
                 continue
 
             # --- Generic error handling (covers GLM + transient errors) ---
@@ -846,7 +939,9 @@ async def run_agent(
                     if isinstance(e, openai_lib.APIStatusError):
                         if e.status_code == 400:
                             err_body = str(e).lower()
-                            if "context length" in err_body or "input" in err_body and "token" in err_body or "reduce the length" in err_body:
+                            if ("context length" in err_body
+                                    or ("input" in err_body and "token" in err_body)
+                                    or "reduce the length" in err_body):
                                 compact_retries += 1
                                 if compact_retries > _MAX_COMPACT_RETRIES:
                                     await log("System", f"Context too long after {_MAX_COMPACT_RETRIES} compactions — giving up", "error")
@@ -855,6 +950,7 @@ async def run_agent(
                                 if on_status:
                                     await on_status("thinking", "Context too long, compacting...")
                                 _compact_messages(messages)
+                                _msg_size_acc = sum(len(json.dumps(m, ensure_ascii=False)) for m in messages)
                                 continue
                             raise
                         if e.status_code == 429:
@@ -884,6 +980,10 @@ async def run_agent(
                         if compact_retries > _MAX_COMPACT_RETRIES:
                             await log("System", f"{provider} connection error after retries: {e}", "error")
                             raise
+                        # Switch to non-streaming for reliability on next attempt
+                        if _use_stream and provider == "custom":
+                            _use_stream = False
+                            await log("System", "Switching to non-streaming mode for reliability", "info")
                         await log("System", f"Connection interrupted — retrying ({compact_retries}/{_MAX_COMPACT_RETRIES})...", "info")
                         if on_status:
                             await on_status("thinking", "Connection lost, retrying...")
@@ -897,6 +997,10 @@ async def run_agent(
                     if connection_retries > _MAX_CONNECTION_RETRIES:
                         await log("System", f"Server connection failed after {_MAX_CONNECTION_RETRIES} retries: {e}", "error")
                         raise
+                    # Switch to non-streaming for reliability on next attempt
+                    if _use_stream and provider == "custom":
+                        _use_stream = False
+                        await log("System", "Switching to non-streaming mode for reliability", "info")
                     delay = min(2 ** connection_retries, 10)
                     await log("System", f"Server disconnected — retrying in {delay}s ({connection_retries}/{_MAX_CONNECTION_RETRIES})...", "info")
                     if on_status:
@@ -910,7 +1014,9 @@ async def run_agent(
             # Handle empty response: model returned nothing at all
             if not content_blocks:
                 await log("System", f"Model returned empty response (stop_reason={stop_reason})", "warning")
-                if force_tool_retries < _MAX_FORCE_TOOL:
+                if force_tool_retries < _MAX_FORCE_TOOL and (
+                    provider in _OPENAI_COMPAT_MODELS or provider == "custom"
+                ):
                     force_tool_retries += 1
                     _force_tool_choice = "required"
                     await log("System", "Retrying with tool_choice=required", "info")
@@ -933,10 +1039,17 @@ async def run_agent(
                         await on_status("tool_use", block["name"])
 
             # Append assistant message to history
-            messages.append({"role": "assistant", "content": content_blocks})
+            _asst_msg = {"role": "assistant", "content": content_blocks}
+            messages.append(_asst_msg)
+            _msg_size_acc += len(json.dumps(_asst_msg, ensure_ascii=False))
 
-            # If the response was cut off due to token limit, compact & retry
+            # If the response was cut off due to token limit, compact & retry.
+            # Also handles stream interruptions that dropped all tool calls.
             if stop_reason == "max_tokens":
+                # If this came from a stream interruption, switch to non-streaming
+                if _use_stream and provider == "custom":
+                    _use_stream = False
+                    await log("System", "Switching to non-streaming mode for reliability", "info")
                 compact_retries += 1
                 if compact_retries > _MAX_COMPACT_RETRIES:
                     await log("System", "Max compact retries reached — using partial response", "info")
@@ -945,10 +1058,13 @@ async def run_agent(
                 if on_status:
                     await on_status("thinking", "Compacting conversation...")
                 _compact_messages(messages)
-                messages.append({
+                _msg_size_acc = sum(len(json.dumps(m, ensure_ascii=False)) for m in messages)
+                _cont_msg = {
                     "role": "user",
                     "content": "You were cut off due to token limit. Continue where you left off.",
-                })
+                }
+                messages.append(_cont_msg)
+                _msg_size_acc += len(json.dumps(_cont_msg, ensure_ascii=False))
                 continue
 
             # If the model stopped for a reason other than tool_use, check
@@ -957,7 +1073,9 @@ async def run_agent(
                 # If the model responded with only text and no tool calls,
                 # retry with tool_choice="required" to force tool use.
                 has_tool_calls = any(b["type"] == "tool_use" for b in content_blocks)
-                if not has_tool_calls and force_tool_retries < _MAX_FORCE_TOOL:
+                if not has_tool_calls and force_tool_retries < _MAX_FORCE_TOOL and (
+                    provider in _OPENAI_COMPAT_MODELS or provider == "custom"
+                ):
                     force_tool_retries += 1
                     _force_tool_choice = "required"
                     await log("System", "No tool calls — retrying with tool_choice=required", "info")
@@ -968,10 +1086,12 @@ async def run_agent(
                 if injected:
                     combined = "\n\n".join(injected)
                     await log("System", f"Injecting user message into conversation", "info")
-                    messages.append({
+                    _inj_msg = {
                         "role": "user",
                         "content": f"[User message]: {combined}",
-                    })
+                    }
+                    messages.append(_inj_msg)
+                    _msg_size_acc += len(json.dumps(_inj_msg, ensure_ascii=False))
                     continue
                 break
 
@@ -984,7 +1104,7 @@ async def run_agent(
                     if on_status:
                         await on_status("thinking", f"Running {block['name']}...")
                     try:
-                        result_str = await _handle_tool(block["name"], block["input"], broadcast)
+                        result_str = await _handle_tool(block["name"], block["input"], broadcast, ws_id)
                         if result_str and result_str.startswith("Error"):
                             is_error = True
                     except Exception as e:
@@ -1028,10 +1148,12 @@ async def run_agent(
                     if on_status:
                         await on_status("thinking", f"Loop detected: {_loop_tool_name} repeated {_top_count}x — stopping agent")
                     # Add tool results so conversation stays valid, then break
-                    messages.append({"role": "user", "content": list(tool_results) + [{
+                    _loop_msg = {"role": "user", "content": list(tool_results) + [{
                         "type": "text",
                         "text": f"SYSTEM: Loop detected — you have called {_loop_tool_name} {_top_count} times with identical arguments. This is an infinite loop. Stop and tell the user what happened.",
-                    }]})
+                    }]}
+                    messages.append(_loop_msg)
+                    _msg_size_acc += len(json.dumps(_loop_msg, ensure_ascii=False))
                     _loop_detected = True
                 elif _top_count >= _LOOP_WARN_THRESHOLD:
                     await log("System", f"Repeated tool call: {_loop_tool_name} ({_top_count}x) — warning agent", "warning")
@@ -1066,14 +1188,18 @@ async def run_agent(
                         "text": f"WARNING: You have called {_loop_tool_name} {_top_count} times with the same arguments. You may be stuck in a loop. Try a completely different approach or provide your current results to the user.",
                     })
 
-            messages.append({"role": "user", "content": user_content})
+            _user_msg = {"role": "user", "content": user_content}
+            messages.append(_user_msg)
+            _msg_size_acc += len(json.dumps(_user_msg, ensure_ascii=False))
 
             # If approaching turn limit, tell the agent to wrap up
             if turns == _MAX_TURNS - 1:
-                messages.append({
+                _wrap_msg = {
                     "role": "user",
                     "content": "You are running out of turns. Please provide your final response now — summarize what you accomplished and any remaining issues.",
-                })
+                }
+                messages.append(_wrap_msg)
+                _msg_size_acc += len(json.dumps(_wrap_msg, ensure_ascii=False))
 
         # Log completion
         await log(
@@ -1121,9 +1247,3 @@ async def reset_agent(ws_id: int) -> None:
     """Clear conversation history so the next query starts fresh."""
     _conversations.pop(ws_id, None)
     _save_conversations()
-
-
-async def destroy_client(ws_id: int) -> None:
-    """Clean up when a WebSocket disconnects."""
-    # Don't clear — keep history so it survives refresh/reconnect
-    pass

@@ -305,8 +305,9 @@ async def handle_prompt(ws, msg, ctx: WsContext):
 
 async def handle_user_answer(ws, msg, ctx: WsContext):
     answer_text = msg.get("text", "")
-    if agents._user_answer_future and not agents._user_answer_future.done():
-        agents._user_answer_future.set_result(answer_text)
+    future = agents._user_answer_futures.get(ctx.AGENT_WS_ID)
+    if future and not future.done():
+        future.set_result(answer_text)
 
 
 async def handle_console_error(ws, msg, ctx: WsContext):
@@ -316,9 +317,14 @@ async def handle_console_error(ws, msg, ctx: WsContext):
     elif ctx.agent_busy:
         if error_msg not in ctx.pending_errors:
             ctx.pending_errors.append(error_msg)
-        # Also push to shared list so the agent can check via check_browser_errors tool
-        if error_msg not in agents._browser_errors:
-            agents._browser_errors.append(error_msg)
+        # Also push to per-session list so the agent can check via check_browser_errors tool
+        ws_errors = agents._browser_errors.setdefault(ctx.AGENT_WS_ID, [])
+        if error_msg not in ws_errors:
+            ws_errors.append(error_msg)
+        # Signal the waiting event so check_browser_errors returns immediately
+        event = agents._browser_error_events.get(ctx.AGENT_WS_ID)
+        if event:
+            event.set()
     elif ctx.auto_fix_count < ctx.MAX_AUTO_FIX:
         asyncio.create_task(_trigger_auto_fix(error_msg, ctx))
     else:
@@ -497,8 +503,9 @@ async def handle_cancel_agent(ws, msg, ctx: WsContext):
     """Cancel the currently running agent task."""
     if ctx.agent_task and not ctx.agent_task.done():
         # Cancel the user_answer_future if pending (e.g. ask_user wait)
-        if agents._user_answer_future and not agents._user_answer_future.done():
-            agents._user_answer_future.cancel()
+        future = agents._user_answer_futures.get(ctx.AGENT_WS_ID)
+        if future and not future.done():
+            future.cancel()
         ctx.agent_task.cancel()
         logger.info("Agent cancel requested by user")
 
