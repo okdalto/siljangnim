@@ -93,7 +93,10 @@ export default function ProjectBrowserNode({ data }) {
   }, [onDeleteWorkspaceFile, fetchWsFiles]);
 
   return (
-    <div className="w-full h-full bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+    <div
+      className="w-full h-full rounded-xl shadow-2xl flex flex-col overflow-hidden"
+      style={{ background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
+    >
       <NodeResizer minWidth={260} minHeight={200} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
 
       {/* Hidden file input for import */}
@@ -110,7 +113,10 @@ export default function ProjectBrowserNode({ data }) {
       />
 
       {/* Header */}
-      <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab flex items-center justify-between">
+      <div
+        className="px-4 py-2 text-sm font-semibold cursor-grab flex items-center justify-between"
+        style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
+      >
         Projects
         <div className="flex items-center gap-1.5 nodrag">
           <button

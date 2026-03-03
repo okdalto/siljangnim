@@ -155,13 +155,21 @@ async def handle_set_api_key(ws, msg, ctx: WsContext):
     endpoint = msg.get("endpoint")
     base_url = msg.get("base_url")
     model = msg.get("model")
+    max_tokens = msg.get("max_tokens")
+    if isinstance(max_tokens, (int, float)):
+        max_tokens = int(max_tokens)
+    else:
+        max_tokens = None
+    # If no new key provided, fall back to the existing saved key for this provider
+    if not key:
+        key = config.get_api_key(provider) or ""
     valid, error = await config.validate_api_key(
         provider, key, endpoint, base_url=base_url, model=model,
     )
     if valid:
-        config.save_api_key(provider, key, endpoint, base_url=base_url, model=model)
+        config.save_api_key(provider, key, endpoint, base_url=base_url, model=model, max_tokens=max_tokens)
         ctx.api_key = key or "custom"  # custom provider may have empty key
-        await ws.send_text(json.dumps({"type": "api_key_valid", "provider": provider}))
+        await ws.send_text(json.dumps({"type": "api_key_valid", "provider": provider, "config": config.get_saved_config()}))
     else:
         await ws.send_text(json.dumps({
             "type": "api_key_invalid",
@@ -186,7 +194,7 @@ async def handle_prompt(ws, msg, ctx: WsContext):
         return
 
     # Process uploaded files
-    from main import _process_uploads, _process_uploaded_files
+    from uploads import _process_uploads, _process_uploaded_files
     raw_files = msg.get("files", [])
     saved_files = []
     if raw_files:
@@ -484,6 +492,7 @@ async def handle_cancel_agent(ws, msg, ctx: WsContext):
 
 
 async def handle_request_state(ws, msg, ctx: WsContext):
+    import config
     try:
         s = workspace.read_json("scene.json")
         u = workspace.read_json("ui_config.json")
@@ -493,22 +502,7 @@ async def handle_request_state(ws, msg, ctx: WsContext):
         ws_state = workspace.read_json("workspace_state.json")
     except FileNotFoundError:
         ws_state = {}
-    try:
-        panels_data = workspace.read_json("panels.json")
-    except (FileNotFoundError, json.JSONDecodeError):
-        panels_data = {}
-
-    # Fallback: if no panels but ui_config has controls, create a default controls panel
-    if not panels_data and u.get("controls"):
-        panels_data = {
-            "controls": {
-                "title": "Controls",
-                "controls": u["controls"],
-                "width": 320,
-                "height": 300,
-            }
-        }
-        workspace.write_json("panels.json", panels_data)
+    panels_data = workspace.ensure_default_panels(u)
 
     await ws.send_text(json.dumps({
         "type": "init",
@@ -517,6 +511,7 @@ async def handle_request_state(ws, msg, ctx: WsContext):
         "projects": projects.list_projects(),
         "workspace_state": ws_state,
         "panels": panels_data,
+        "api_config": config.get_saved_config(),
     }))
 
 

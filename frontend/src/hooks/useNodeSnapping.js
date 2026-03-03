@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
-const SNAP_THRESHOLD = 8;
-const SNAP_EXIT_THRESHOLD = 12;
+const DEFAULT_SNAP_THRESHOLD = 8;
 
 function getNodeEdges(node) {
   const w = node.measured?.width ?? node.width ?? node.style?.width ?? 0;
@@ -20,7 +19,7 @@ function getNodeEdges(node) {
   };
 }
 
-function findEdgeSnap(edges, otherEdgesList, axis, movingKeys) {
+function findEdgeSnap(edges, otherEdgesList, axis, movingKeys, threshold) {
   const otherKeys =
     axis === "x"
       ? ["left", "right", "centerX"]
@@ -39,7 +38,7 @@ function findEdgeSnap(edges, otherEdgesList, axis, movingKeys) {
       for (const otherKey of otherKeys) {
         const otherVal = other[otherKey];
         const dist = Math.abs(movingVal - otherVal);
-        if (dist < SNAP_THRESHOLD) {
+        if (dist < threshold) {
           const offset = otherVal - movingVal;
           candidates.push({ dist, offset, otherVal, other });
           if (dist < bestDist) {
@@ -67,20 +66,20 @@ function findEdgeSnap(edges, otherEdgesList, axis, movingKeys) {
   return { offset: bestOffset, guides, snapped: bestDist < Infinity };
 }
 
-function findSizeMatch(resizingEdges, otherEdgesList) {
+function findSizeMatch(resizingEdges, otherEdgesList, threshold) {
   let widthSnap = null;
   let heightSnap = null;
 
   for (const other of otherEdgesList) {
     if (widthSnap === null) {
       const dist = Math.abs(resizingEdges.width - other.width);
-      if (dist > 0 && dist < SNAP_THRESHOLD) {
+      if (dist > 0 && dist < threshold) {
         widthSnap = other.width;
       }
     }
     if (heightSnap === null) {
       const dist = Math.abs(resizingEdges.height - other.height);
-      if (dist > 0 && dist < SNAP_THRESHOLD) {
+      if (dist > 0 && dist < threshold) {
         heightSnap = other.height;
       }
     }
@@ -89,7 +88,7 @@ function findSizeMatch(resizingEdges, otherEdgesList) {
   return { widthSnap, heightSnap };
 }
 
-export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) {
+export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes, snapSettings) {
   const [guides, setGuides] = useState([]);
   const lastSnappedPosition = useRef({});
   // Drag snap hysteresis: { [nodeId]: { x: snappedPosX | null, y: snappedPosY | null } }
@@ -103,6 +102,17 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
 
   const onNodesChange = useCallback(
     (changes) => {
+      const snapEnabled = snapSettings?.snapEnabled ?? true;
+      const SNAP_THRESHOLD = snapSettings?.snapThreshold ?? DEFAULT_SNAP_THRESHOLD;
+      const SNAP_EXIT_THRESHOLD = SNAP_THRESHOLD * 1.5;
+
+      // If snapping is disabled, pass through directly
+      if (!snapEnabled) {
+        if (guides.length > 0) setGuides([]);
+        originalOnNodesChange(changes);
+        return;
+      }
+
       const dragging = changes.find(
         (c) => c.type === "position" && c.dragging === true
       );
@@ -193,10 +203,10 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
           xOffset = lock.x - dragging.position.x;
           // Show guides at locked position
           const lockedEdges = getNodeEdges({ ...movingNode, position: { x: lock.x, y: dragging.position.y } });
-          xGuides = findEdgeSnap(lockedEdges, otherEdges, "x").guides;
+          xGuides = findEdgeSnap(lockedEdges, otherEdges, "x", undefined, SNAP_THRESHOLD).guides;
         } else {
           lock.x = null;
-          const xSnap = findEdgeSnap(movingEdges, otherEdges, "x");
+          const xSnap = findEdgeSnap(movingEdges, otherEdges, "x", undefined, SNAP_THRESHOLD);
           const snappedX = dragging.position.x + xSnap.offset;
           // Suppress snap that would pull back to start position (overlap escape)
           if (xSnap.snapped && !startInfo.escapedX && Math.abs(snappedX - startInfo.x) < 2) {
@@ -217,10 +227,10 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
           yOffset = lock.y - dragging.position.y;
           // Show guides at locked position
           const lockedEdges = getNodeEdges({ ...movingNode, position: { x: dragging.position.x, y: lock.y } });
-          yGuides = findEdgeSnap(lockedEdges, otherEdges, "y").guides;
+          yGuides = findEdgeSnap(lockedEdges, otherEdges, "y", undefined, SNAP_THRESHOLD).guides;
         } else {
           lock.y = null;
-          const ySnap = findEdgeSnap(movingEdges, otherEdges, "y");
+          const ySnap = findEdgeSnap(movingEdges, otherEdges, "y", undefined, SNAP_THRESHOLD);
           const snappedY = dragging.position.y + ySnap.offset;
           // Suppress snap that would pull back to start position (overlap escape)
           if (ySnap.snapped && !startInfo.escapedY && Math.abs(snappedY - startInfo.y) < 2) {
@@ -336,8 +346,8 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
 
         // --- X-axis (width) snapping ---
         if (!widthLocked) {
-          const xSnap = findEdgeSnap(resizingEdges, otherEdges, "x", xEdge);
-          const sizeMatch = findSizeMatch(resizingEdges, otherEdges);
+          const xSnap = findEdgeSnap(resizingEdges, otherEdges, "x", xEdge, SNAP_THRESHOLD);
+          const sizeMatch = findSizeMatch(resizingEdges, otherEdges, SNAP_THRESHOLD);
 
           let snapWidth = rawWidth;
           let snapPosX = rawPosX;
@@ -383,14 +393,14 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
             width: finalWidth,
             height: rawHeight,
           });
-          const xSnap = findEdgeSnap(lockedEdges, otherEdges, "x", xEdge);
+          const xSnap = findEdgeSnap(lockedEdges, otherEdges, "x", xEdge, SNAP_THRESHOLD);
           if (xSnap.snapped) allGuides.push(...xSnap.guides);
         }
 
         // --- Y-axis (height) snapping ---
         if (!heightLocked) {
-          const ySnap = findEdgeSnap(resizingEdges, otherEdges, "y", yEdge);
-          const sizeMatch = findSizeMatch(resizingEdges, otherEdges);
+          const ySnap = findEdgeSnap(resizingEdges, otherEdges, "y", yEdge, SNAP_THRESHOLD);
+          const sizeMatch = findSizeMatch(resizingEdges, otherEdges, SNAP_THRESHOLD);
 
           let snapHeight = rawHeight;
           let snapPosY = rawPosY;
@@ -436,7 +446,7 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
             width: rawWidth,
             height: finalHeight,
           });
-          const ySnap = findEdgeSnap(lockedEdges, otherEdges, "y", yEdge);
+          const ySnap = findEdgeSnap(lockedEdges, otherEdges, "y", yEdge, SNAP_THRESHOLD);
           if (ySnap.snapped) allGuides.push(...ySnap.guides);
         }
 
@@ -460,7 +470,7 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes) 
 
       originalOnNodesChange(changes);
     },
-    [nodes, originalOnNodesChange, setNodes, guides.length]
+    [nodes, originalOnNodesChange, setNodes, guides.length, snapSettings?.snapEnabled, snapSettings?.snapThreshold]
   );
 
   return { onNodesChange, guides };

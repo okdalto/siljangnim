@@ -93,10 +93,16 @@ export default function DebugLogNode({ data }) {
   }, []);
 
   return (
-    <div className="w-full h-full bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+    <div
+      className="w-full h-full rounded-xl shadow-2xl flex flex-col overflow-hidden"
+      style={{ background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
+    >
       <NodeResizer minWidth={300} minHeight={150} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
       {/* Header */}
-      <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab">
+      <div
+        className="px-4 py-2 text-sm font-semibold cursor-grab"
+        style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
+      >
         Debug Log
       </div>
 

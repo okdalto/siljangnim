@@ -4,6 +4,7 @@ export default function useApiKey(sendRef) {
   const [apiKeyRequired, setApiKeyRequired] = useState(false);
   const [apiKeyError, setApiKeyError] = useState("");
   const [apiKeyLoading, setApiKeyLoading] = useState(false);
+  const [savedConfig, setSavedConfig] = useState(null);
 
   const handleApiKeySubmit = useCallback(
     (provider, key, { endpoint, base_url, model } = {}) => {
@@ -33,9 +34,11 @@ export default function useApiKey(sendRef) {
     apiKeyRequired,
     apiKeyError,
     apiKeyLoading,
+    savedConfig,
     handleApiKeySubmit,
     setRequired,
     setValid,
     setInvalid,
+    setSavedConfig,
   };
 }

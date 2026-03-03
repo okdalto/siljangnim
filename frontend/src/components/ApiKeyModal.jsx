@@ -13,72 +13,103 @@ const GLM_ENDPOINTS = [
   { id: "api.z.ai", label: "api.z.ai" },
 ];
 
-export default function ApiKeyModal({ onSubmit, error, loading }) {
+export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedConfig }) {
   const [key, setKey] = useState("");
-  const [provider, setProvider] = useState("anthropic");
-  const [endpoint, setEndpoint] = useState("open.bigmodel.cn");
-  const [baseUrl, setBaseUrl] = useState("http://localhost:8000/v1/");
-  const [model, setModel] = useState("");
+  const [provider, setProvider] = useState(savedConfig?.provider || "anthropic");
+  const [endpoint, setEndpoint] = useState(savedConfig?.endpoint || "open.bigmodel.cn");
+  const [baseUrl, setBaseUrl] = useState(savedConfig?.base_url || "http://localhost:8000/v1/");
+  const [model, setModel] = useState(savedConfig?.model || "");
+  const [maxTokens, setMaxTokens] = useState(savedConfig?.max_tokens || 4096);
+
+  const providerHasKey = savedConfig?.provider_keys?.[provider] ?? false;
+  const isActiveProvider = provider === savedConfig?.provider;
 
   const currentProvider = PROVIDERS.find((p) => p.id === provider);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (loading) return;
     if (provider === "custom") {
-      if (!baseUrl.trim() || !model.trim() || loading) return;
-      onSubmit(provider, key.trim(), { base_url: baseUrl.trim(), model: model.trim() });
+      if (!baseUrl.trim() || !model.trim()) return;
+      onSubmit(provider, key.trim(), { base_url: baseUrl.trim(), model: model.trim(), max_tokens: parseInt(maxTokens, 10) || 4096 });
     } else {
-      if (!key.trim() || loading) return;
+      if (!key.trim() && !providerHasKey) return;
       onSubmit(provider, key.trim(), {
         endpoint: provider === "glm" ? endpoint : undefined,
       });
     }
   };
 
-  const isSubmitDisabled = provider === "custom"
-    ? (!baseUrl.trim() || !model.trim() || loading)
-    : (!key.trim() || loading);
+  const isSubmitDisabled = loading || (provider === "custom"
+    ? (!baseUrl.trim() || !model.trim())
+    : (!key.trim() && !providerHasKey));
 
   const inputCls =
-    "w-full bg-zinc-800 text-zinc-100 text-sm rounded-lg px-4 py-3 outline-none border border-zinc-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-mono";
+    "w-full text-sm rounded-lg px-4 py-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-mono";
+  const inputStyle = { background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--input-text)" };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <form
         onSubmit={handleSubmit}
-        className="bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 space-y-5"
+        className="rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 space-y-5 relative"
+        style={{ background: "var(--chrome-bg)", border: "1px solid var(--chrome-border)" }}
       >
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 transition-colors"
+            style={{ color: "var(--chrome-text-muted)" }}
+            title="Close"
+          >
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M5 5l10 10M15 5L5 15" />
+            </svg>
+          </button>
+        )}
         <div>
-          <h2 className="text-lg font-semibold text-zinc-100">
+          <h2 className="text-lg font-semibold" style={{ color: "var(--chrome-text)" }}>
             AI Provider Setup
           </h2>
-          <p className="text-sm text-zinc-400 mt-1">
+          <p className="text-sm mt-1" style={{ color: "var(--chrome-text-secondary)" }}>
             Choose a provider and enter your API key to get started.
           </p>
         </div>
 
         {/* Provider toggle */}
         <div className="flex gap-1.5 flex-wrap">
-          {PROVIDERS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => { setProvider(p.id); setKey(""); }}
-              className={`text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors ${
-                provider === p.id
-                  ? "bg-indigo-600 border-indigo-500 text-white"
-                  : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+          {PROVIDERS.map((p) => {
+            const hasKey = savedConfig?.provider_keys?.[p.id];
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => { setProvider(p.id); setKey(""); }}
+                className="text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1.5"
+                style={
+                  provider === p.id
+                    ? { background: "#6366f1", borderColor: "#6366f1", color: "#fff" }
+                    : { background: "var(--input-bg)", borderColor: "var(--input-border)", color: "var(--chrome-text-secondary)" }
+                }
+              >
+                {p.label}
+                {hasKey && (
+                  <span
+                    className="inline-block w-1.5 h-1.5 rounded-full"
+                    style={{ background: provider === p.id ? "#a5f3fc" : "#22c55e" }}
+                    title="Key saved"
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* GLM endpoint selector */}
         {provider === "glm" && (
           <div className="space-y-1">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+            <label className="text-xs uppercase tracking-wide" style={{ color: "var(--chrome-text-muted)" }}>
               Endpoint
             </label>
             <div className="flex gap-2">
@@ -87,11 +118,12 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
                   key={ep.id}
                   type="button"
                   onClick={() => setEndpoint(ep.id)}
-                  className={`flex-1 text-xs font-mono px-3 py-1.5 rounded-md border transition-colors ${
+                  className="flex-1 text-xs font-mono px-3 py-1.5 rounded-md border transition-colors"
+                  style={
                     endpoint === ep.id
-                      ? "bg-zinc-700 border-zinc-500 text-zinc-200"
-                      : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:border-zinc-600"
-                  }`}
+                      ? { background: "var(--chrome-bg-elevated)", borderColor: "var(--chrome-border-subtle)", color: "var(--chrome-text)" }
+                      : { background: "var(--input-bg)", borderColor: "var(--input-border)", color: "var(--chrome-text-muted)" }
+                  }
                 >
                   {ep.label}
                 </button>
@@ -104,7 +136,7 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
         {provider === "custom" && (
           <div className="space-y-3">
             <div className="space-y-1">
-              <label className="text-xs text-zinc-500 uppercase tracking-wide">
+              <label className="text-xs uppercase tracking-wide" style={{ color: "var(--chrome-text-muted)" }}>
                 Base URL
               </label>
               <input
@@ -113,10 +145,11 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
                 onChange={(e) => setBaseUrl(e.target.value)}
                 placeholder="http://localhost:8000/v1/"
                 className={inputCls}
+                style={inputStyle}
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-zinc-500 uppercase tracking-wide">
+              <label className="text-xs uppercase tracking-wide" style={{ color: "var(--chrome-text-muted)" }}>
                 Model Name
               </label>
               <input
@@ -125,6 +158,21 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
                 onChange={(e) => setModel(e.target.value)}
                 placeholder="Qwen/Qwen3.5-4B"
                 className={inputCls}
+                style={inputStyle}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-wide" style={{ color: "var(--chrome-text-muted)" }}>
+                Max Tokens
+              </label>
+              <input
+                type="number"
+                value={maxTokens}
+                onChange={(e) => setMaxTokens(e.target.value)}
+                min={1}
+                placeholder="4096"
+                className={inputCls}
+                style={inputStyle}
               />
             </div>
           </div>
@@ -135,17 +183,23 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
             type="password"
             value={key}
             onChange={(e) => setKey(e.target.value)}
-            placeholder={currentProvider?.placeholder}
+            placeholder={providerHasKey ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022 (saved)" : currentProvider?.placeholder}
             autoFocus={provider !== "custom"}
             className={inputCls}
+            style={inputStyle}
           />
-          {provider === "custom" && (
+          {providerHasKey && (
+            <p className="text-xs" style={{ color: "var(--chrome-text-muted)" }}>
+              Key saved. Leave empty to keep current key, or enter a new one to replace it.
+            </p>
+          )}
+          {provider === "custom" && !providerHasKey && (
             <p className="text-xs text-zinc-500">
               Leave empty if your server doesn't require authentication.
             </p>
           )}
           {error && (
-            <p className="text-sm text-red-400">{error}</p>
+            <p className="text-sm text-red-400 max-h-20 overflow-y-auto break-words">{error}</p>
           )}
         </div>
 
@@ -154,7 +208,7 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
           disabled={isSubmitDisabled}
           className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white text-sm font-medium px-4 py-3 rounded-lg transition-colors"
         >
-          {loading ? "Validating..." : "Connect"}
+          {loading ? "Validating..." : (providerHasKey && !key.trim()) ? "Switch Provider" : "Connect"}
         </button>
       </form>
     </div>

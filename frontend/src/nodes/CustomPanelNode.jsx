@@ -115,18 +115,25 @@ export default function CustomPanelNode({ data }) {
   }, [onClose]);
 
   return (
-    <div className="w-full h-full bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+    <div
+      className="w-full h-full rounded-xl shadow-2xl flex flex-col overflow-hidden"
+      style={{ background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
+    >
       <NodeResizer
         minWidth={200}
         minHeight={150}
         lineStyle={{ borderColor: "transparent" }}
         handleStyle={{ opacity: 0 }}
       />
-      <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab flex items-center justify-between">
+      <div
+        className="px-4 py-2 text-sm font-semibold cursor-grab flex items-center justify-between"
+        style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
+      >
         <span>{title || "Custom Panel"}</span>
         <button
           onClick={handleClose}
-          className="text-zinc-500 hover:text-zinc-200 transition-colors text-lg leading-none"
+          className="transition-colors text-lg leading-none"
+          style={{ color: "var(--chrome-text-muted)" }}
           title="Close panel"
         >
           ×
@@ -156,7 +163,7 @@ export default function CustomPanelNode({ data }) {
             srcDoc={injectBridge(html || "")}
             sandbox="allow-scripts"
             className="w-full h-full border-0"
-            style={{ background: "#18181b" }}
+            style={{ background: "var(--node-bg)" }}
           />
         )}
       </div>

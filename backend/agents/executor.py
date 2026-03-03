@@ -456,7 +456,7 @@ async def _call_openai_compat(
 
     if provider == "custom":
         model_name = app_config.get_custom_model()
-        max_tokens = 4096
+        max_tokens = app_config.get_custom_max_tokens()
     else:
         model_cfg = _OPENAI_COMPAT_MODELS[provider]
         model_name = model_cfg["model"]
@@ -509,7 +509,7 @@ async def _call_openai_compat(
 
     # Build normalized content blocks (same format as Anthropic)
     content_blocks = []
-    if content_text:
+    if content_text and content_text.strip():
         content_blocks.append({"type": "text", "text": content_text})
 
     for idx in sorted(tool_calls_acc.keys()):
@@ -574,7 +574,7 @@ async def run_agent(
     # Provider-specific setup
     if provider == "custom":
         model_name = app_config.get_custom_model()
-        max_tokens = 4096
+        max_tokens = app_config.get_custom_max_tokens()
         client = None
     elif provider in _OPENAI_COMPAT_MODELS:
         model_cfg = _OPENAI_COMPAT_MODELS[provider]
@@ -740,9 +740,10 @@ async def run_agent(
             for block in content_blocks:
                 if block["type"] == "text":
                     last_text = block["text"]
-                    await log("Agent", block["text"], "info")
-                    if on_text:
-                        await on_text(block["text"])
+                    if block["text"].strip():
+                        await log("Agent", block["text"], "info")
+                        if on_text:
+                            await on_text(block["text"])
                 elif block["type"] == "tool_use":
                     input_str = json.dumps(block["input"])
                     if len(input_str) > 200:

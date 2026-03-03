@@ -391,3 +391,27 @@ DEFAULT_SCENE_JSON = {
 }
 
 DEFAULT_UI_CONFIG = {"controls": [], "inspectable_buffers": []}
+
+
+def ensure_default_panels(ui_config: dict) -> dict:
+    """Read panels.json; if empty and ui_config has controls, create a default panel.
+
+    Returns the panels dict (possibly newly created).
+    """
+    try:
+        panels = read_json("panels.json")
+    except (FileNotFoundError, json.JSONDecodeError):
+        panels = {}
+
+    if not panels and ui_config.get("controls"):
+        panels = {
+            "controls": {
+                "title": "Controls",
+                "controls": ui_config["controls"],
+                "width": 320,
+                "height": 300,
+            }
+        }
+        write_json("panels.json", panels)
+
+    return panels
