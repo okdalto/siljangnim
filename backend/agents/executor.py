@@ -440,7 +440,7 @@ async def _call_anthropic(
 # Model configuration for OpenAI-compatible providers
 _OPENAI_COMPAT_MODELS = {
     "openai": {"model": "gpt-5.2", "max_tokens": 32768},
-    "gemini": {"model": "gemini-2.5-flash", "max_tokens": 8192},
+    "gemini": {"model": "gemini-2.5-pro", "max_tokens": 65536},
     "glm":    {"model": "glm-4-plus", "max_tokens": 4096},
 }
 
@@ -544,10 +544,10 @@ async def _call_openai_compat(
     finish_reason = None
     _stream_interrupted = False
 
-    # OpenAI newer models (gpt-5.x etc.) require max_completion_tokens instead of max_tokens.
+    # OpenAI and Gemini newer models require max_completion_tokens instead of max_tokens.
     _token_kwarg = (
         {"max_completion_tokens": _effective_max}
-        if provider == "openai"
+        if provider in ("openai", "gemini")
         else {"max_tokens": _effective_max}
     )
 
