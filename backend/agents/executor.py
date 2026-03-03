@@ -296,6 +296,7 @@ async def run_agent(
     last_text = ""
     turns = 0
     compact_retries = 0
+    overload_retries = 0
 
     try:
         while turns < _MAX_TURNS:
@@ -389,9 +390,23 @@ async def run_agent(
                     continue
                 raise
             except (anthropic.APIConnectionError, anthropic.APITimeoutError, anthropic.APIStatusError) as e:
-                # Connection dropped mid-stream or server error (5xx)
+                # Connection dropped mid-stream or server error (5xx / 529 overloaded)
                 if isinstance(e, anthropic.APIStatusError) and e.status_code < 500:
                     raise  # only retry server errors, not client errors
+                # Overloaded (529) — dedicated retry with exponential backoff
+                _MAX_OVERLOAD_RETRIES = 5
+                is_overloaded = isinstance(e, anthropic.APIStatusError) and e.status_code == 529
+                if is_overloaded:
+                    overload_retries += 1
+                    if overload_retries > _MAX_OVERLOAD_RETRIES:
+                        await log("System", f"API overloaded after {_MAX_OVERLOAD_RETRIES} retries — giving up", "error")
+                        raise
+                    delay = min(2 ** overload_retries, 30)  # 2, 4, 8, 16, 30
+                    await log("System", f"API overloaded — retrying in {delay}s ({overload_retries}/{_MAX_OVERLOAD_RETRIES})...", "info")
+                    if on_status:
+                        await on_status("thinking", f"Server busy, retrying in {delay}s...")
+                    await asyncio.sleep(delay)
+                    continue
                 compact_retries += 1
                 if compact_retries > _MAX_COMPACT_RETRIES:
                     await log("System", f"API error after retries: {e}", "error")
