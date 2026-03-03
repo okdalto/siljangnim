@@ -606,9 +606,16 @@ async def _call_openai_compat(
         _status_chars = 0
         _status_think_chars = 0
         _status_tool_chars = 0
+        _heartbeat_counter = 0  # periodic "still thinking" indicator
 
         try:
             async for chunk in stream:
+                # Heartbeat: some models (Gemini) send empty chunks during thinking.
+                # Periodically update status so the UI doesn't appear frozen.
+                _heartbeat_counter += 1
+                if _heartbeat_counter % 20 == 0 and on_status and not content_text:
+                    _secs = _heartbeat_counter // 4  # rough seconds estimate
+                    await on_status("thinking", f"Model is thinking... ({_secs}s)")
                 if not chunk.choices:
                     continue
                 choice = chunk.choices[0]
