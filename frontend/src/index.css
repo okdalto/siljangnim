@@ -75,6 +75,14 @@ body,
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Default cursor on pane, grabbing when dragging */
+.react-flow__pane {
+  cursor: default !important;
+}
+.react-flow__pane:active {
+  cursor: grabbing !important;
+}
+
 /* Selected node highlight (via custom data-attribute, decoupled from ReactFlow) */
 .react-flow__node[data-custom-selected] {
   outline: 2px solid var(--accent-hover) !important;

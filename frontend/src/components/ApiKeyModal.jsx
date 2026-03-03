@@ -19,7 +19,8 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
   const [endpoint, setEndpoint] = useState(savedConfig?.endpoint || "open.bigmodel.cn");
   const [baseUrl, setBaseUrl] = useState(savedConfig?.base_url || "http://localhost:8000/v1/");
   const [model, setModel] = useState(savedConfig?.model || "");
-  const [maxTokens, setMaxTokens] = useState(savedConfig?.max_tokens || 4096);
+  const [maxTokens, setMaxTokens] = useState(savedConfig?.max_tokens || 8192);
+  const [contextWindow, setContextWindow] = useState(savedConfig?.context_window || 131072);
 
   const providerHasKey = savedConfig?.provider_keys?.[provider] ?? false;
   const isActiveProvider = provider === savedConfig?.provider;
@@ -31,7 +32,7 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
     if (loading) return;
     if (provider === "custom") {
       if (!baseUrl.trim() || !model.trim()) return;
-      onSubmit(provider, key.trim(), { base_url: baseUrl.trim(), model: model.trim(), max_tokens: parseInt(maxTokens, 10) || 4096 });
+      onSubmit(provider, key.trim(), { base_url: baseUrl.trim(), model: model.trim(), max_tokens: parseInt(maxTokens, 10) || 8192, context_window: parseInt(contextWindow, 10) || 131072 });
     } else {
       if (!key.trim() && !providerHasKey) return;
       onSubmit(provider, key.trim(), {
@@ -161,19 +162,35 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
                 style={inputStyle}
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs uppercase tracking-wide" style={{ color: "var(--chrome-text-muted)" }}>
-                Max Tokens
-              </label>
-              <input
-                type="number"
-                value={maxTokens}
-                onChange={(e) => setMaxTokens(e.target.value)}
-                min={1}
-                placeholder="4096"
-                className={inputCls}
-                style={inputStyle}
-              />
+            <div className="flex gap-3">
+              <div className="flex-1 space-y-1">
+                <label className="text-xs uppercase tracking-wide" style={{ color: "var(--chrome-text-muted)" }}>
+                  Max Tokens
+                </label>
+                <input
+                  type="number"
+                  value={maxTokens}
+                  onChange={(e) => setMaxTokens(e.target.value)}
+                  min={1}
+                  placeholder="8192"
+                  className={inputCls}
+                  style={inputStyle}
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <label className="text-xs uppercase tracking-wide" style={{ color: "var(--chrome-text-muted)" }}>
+                  Context Window
+                </label>
+                <input
+                  type="number"
+                  value={contextWindow}
+                  onChange={(e) => setContextWindow(e.target.value)}
+                  min={1}
+                  placeholder="131072"
+                  className={inputCls}
+                  style={inputStyle}
+                />
+              </div>
             </div>
           </div>
         )}

@@ -160,6 +160,11 @@ async def handle_set_api_key(ws, msg, ctx: WsContext):
         max_tokens = int(max_tokens)
     else:
         max_tokens = None
+    context_window = msg.get("context_window")
+    if isinstance(context_window, (int, float)):
+        context_window = int(context_window)
+    else:
+        context_window = None
     # If no new key provided, fall back to the existing saved key for this provider
     if not key:
         key = config.get_api_key(provider) or ""
@@ -167,7 +172,7 @@ async def handle_set_api_key(ws, msg, ctx: WsContext):
         provider, key, endpoint, base_url=base_url, model=model,
     )
     if valid:
-        config.save_api_key(provider, key, endpoint, base_url=base_url, model=model, max_tokens=max_tokens)
+        config.save_api_key(provider, key, endpoint, base_url=base_url, model=model, max_tokens=max_tokens, context_window=context_window)
         ctx.api_key = key or "custom"  # custom provider may have empty key
         await ws.send_text(json.dumps({"type": "api_key_valid", "provider": provider, "config": config.get_saved_config()}))
     else:

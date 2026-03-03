@@ -56,6 +56,7 @@ _glm_base_url: str = GLM_ENDPOINTS["open.bigmodel.cn"]
 _custom_base_url: str = "http://localhost:8000/v1/"
 _custom_model: str = ""
 _custom_max_tokens: int = 4096
+_custom_context_window: int = 32768
 
 
 def load_config() -> str | None:
@@ -63,7 +64,7 @@ def load_config() -> str | None:
 
     Returns the API key for the active provider (or None).
     """
-    global _current_provider, _glm_base_url, _custom_base_url, _custom_model, _custom_max_tokens
+    global _current_provider, _glm_base_url, _custom_base_url, _custom_model, _custom_max_tokens, _custom_context_window
     load_dotenv(ENV_PATH, override=True)
     _current_provider = os.environ.get("AI_PROVIDER", "anthropic")
     _glm_base_url = os.environ.get(
@@ -75,6 +76,10 @@ def load_config() -> str | None:
         _custom_max_tokens = int(os.environ.get("CUSTOM_MAX_TOKENS", "4096"))
     except (ValueError, TypeError):
         _custom_max_tokens = 4096
+    try:
+        _custom_context_window = int(os.environ.get("CUSTOM_CONTEXT_WINDOW", "32768"))
+    except (ValueError, TypeError):
+        _custom_context_window = 32768
     return get_api_key(_current_provider)
 
 
@@ -116,6 +121,11 @@ def get_custom_max_tokens() -> int:
     return _custom_max_tokens
 
 
+def get_custom_context_window() -> int:
+    """Return the custom provider's context window size."""
+    return _custom_context_window
+
+
 def get_saved_config() -> dict:
     """Return the current config state (without the API key itself)."""
     return {
@@ -129,6 +139,7 @@ def get_saved_config() -> dict:
         "base_url": _custom_base_url,
         "model": _custom_model,
         "max_tokens": _custom_max_tokens,
+        "context_window": _custom_context_window,
     }
 
 
@@ -140,9 +151,10 @@ def save_api_key(
     base_url: str | None = None,
     model: str | None = None,
     max_tokens: int | None = None,
+    context_window: int | None = None,
 ) -> None:
     """Persist the API key for a provider to backend/.env and set it in the current process."""
-    global _current_provider, _glm_base_url, _custom_base_url, _custom_model, _custom_max_tokens
+    global _current_provider, _glm_base_url, _custom_base_url, _custom_model, _custom_max_tokens, _custom_context_window
     ENV_PATH.touch(exist_ok=True)
 
     info = PROVIDERS.get(provider)
@@ -170,12 +182,16 @@ def save_api_key(
             _custom_model = model
         if max_tokens is not None:
             _custom_max_tokens = max_tokens
+        if context_window is not None:
+            _custom_context_window = context_window
         set_key(str(ENV_PATH), "CUSTOM_BASE_URL", _custom_base_url)
         os.environ["CUSTOM_BASE_URL"] = _custom_base_url
         set_key(str(ENV_PATH), "CUSTOM_MODEL", _custom_model)
         os.environ["CUSTOM_MODEL"] = _custom_model
         set_key(str(ENV_PATH), "CUSTOM_MAX_TOKENS", str(_custom_max_tokens))
         os.environ["CUSTOM_MAX_TOKENS"] = str(_custom_max_tokens)
+        set_key(str(ENV_PATH), "CUSTOM_CONTEXT_WINDOW", str(_custom_context_window))
+        os.environ["CUSTOM_CONTEXT_WINDOW"] = str(_custom_context_window)
 
     # Set active provider
     _current_provider = provider

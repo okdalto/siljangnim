@@ -135,6 +135,11 @@ _MAX_OVERLOAD_RETRIES = 5
 # Loop detection: break when the same tool+args pattern repeats too often.
 _LOOP_WARN_THRESHOLD = 3   # inject warning after this many identical calls
 _LOOP_BREAK_THRESHOLD = 5  # force stop after this many
+# Stricter thresholds for custom/small models that loop more easily
+_LOOP_WARN_THRESHOLD_CUSTOM = 2
+_LOOP_BREAK_THRESHOLD_CUSTOM = 3
+# Max unique tool calls to execute per single API response (custom providers)
+_MAX_TOOLS_PER_RESPONSE_CUSTOM = 4
 
 
 # ---------------------------------------------------------------------------
@@ -502,17 +507,23 @@ async def _call_openai_compat(
     openai_messages = _convert_messages_to_openai(system_prompt, messages)
     openai_tools = _convert_tools_to_openai(tools)
 
-    # For custom providers, cap max_tokens so input + output fits the context
-    # window (users often set max_tokens equal to context size).
+    # For custom providers, cap output tokens so input + output fits the context window.
     _effective_max = max_tokens
     if provider == "custom":
+        _context_window = app_config.get_custom_context_window()
         _input_chars = len(json.dumps(openai_messages, ensure_ascii=False))
         if openai_tools:
             _input_chars += len(json.dumps(openai_tools, ensure_ascii=False))
         _est_input_tokens = int(_input_chars / 3.5)
-        _effective_max = max(max_tokens - _est_input_tokens, max_tokens // 4)
+        _available = _context_window - _est_input_tokens
+        _effective_max = min(max_tokens, _available)
         _effective_max = max(_effective_max, 1024)
-        _effective_max = min(_effective_max, max_tokens)
+
+    if provider == "custom":
+        await log("System",
+            f"[API call] tokens: ~{_est_input_tokens} in / {_effective_max} out "
+            f"(ctx_window={_context_window}, max_tokens={max_tokens})",
+            "info")
 
     if on_status:
         await on_status("thinking", f"Calling {provider} API...")
@@ -841,12 +852,16 @@ async def run_agent(
 
             # Pre-flight compaction: estimate token count (~4 chars/token)
             # and compact if approaching the context limit.
-            # For custom providers, use max_tokens as a proxy for context size
-            # (compact when input estimate exceeds context - output budget).
             _est_tokens = _msg_size_acc // 4
+
             if provider == "custom":
-                # Assume context ≈ max_tokens * 4 (generous), compact at 60%
-                _compact_threshold = max(max_tokens * 2, 4000)
+                await log("System",
+                    f"[Turn {turns}/{_MAX_TURNS}] tool_choice={_force_tool_choice}, "
+                    f"msg_tokens~{_est_tokens}, stream={_use_stream}",
+                    "info")
+            if provider == "custom":
+                _ctx_win = app_config.get_custom_context_window()
+                _compact_threshold = max(int(_ctx_win * 0.6), 4000)
             elif provider in _OPENAI_COMPAT_MODELS:
                 _model_cfg = _OPENAI_COMPAT_MODELS[provider]
                 _compact_threshold = max(_model_cfg["max_tokens"] * 4, 30_000)
@@ -1080,7 +1095,6 @@ async def run_agent(
                     _force_tool_choice = "required"
                     await log("System", "No tool calls — retrying with tool_choice=required", "info")
                     continue
-                # Reset to auto for subsequent turns after forced tool use
                 _force_tool_choice = "auto"
                 injected = _drain_injected(injected_queue)
                 if injected:
@@ -1095,55 +1109,119 @@ async def run_agent(
                     continue
                 break
 
+            # Reset tool_choice to auto now that we have successful tool calls.
+            # This is critical: if _force_tool_choice was "required" (from a
+            # previous empty response retry), it must be reset here so the model
+            # can respond with text-only when it's done.  Without this reset,
+            # the model gets stuck in an infinite loop — forced to call tools
+            # every turn even after completing the task.
+            _force_tool_choice = "auto"
+
+            # --- Per-response deduplication for custom providers ---
+            # Small models often emit the same tool call multiple times in one
+            # response.  Deduplicate by (name, input) — execute each unique
+            # call only once, return the same result for duplicates.
+            _is_custom = provider == "custom"
+            _tool_blocks = [b for b in content_blocks if b["type"] == "tool_use"]
+
+            _capped_ids: list[str] = []  # tool_use_ids that were capped (not executed)
+            if _is_custom and len(_tool_blocks) > 1:
+                _seen_sigs: dict[str, str] = {}   # sig → tool_use_id of first occurrence
+                _deduped: list[dict] = []
+                _dup_ids: dict[str, str] = {}     # dup tool_use_id → first tool_use_id
+                for b in _tool_blocks:
+                    _ik = json.dumps(b["input"], sort_keys=True, ensure_ascii=False)
+                    _s = f"{b['name']}|{hash(_ik)}"
+                    if _s in _seen_sigs:
+                        _dup_ids[b["id"]] = _seen_sigs[_s]
+                        await log("System", f"Dedup: skipping duplicate {b['name']} call in same response", "info")
+                    else:
+                        _seen_sigs[_s] = b["id"]
+                        _deduped.append(b)
+                # Cap total tool calls per response
+                if len(_deduped) > _MAX_TOOLS_PER_RESPONSE_CUSTOM:
+                    await log("System", f"Capping tool calls: {len(_deduped)} → {_MAX_TOOLS_PER_RESPONSE_CUSTOM}", "info")
+                    _capped_ids = [b["id"] for b in _deduped[_MAX_TOOLS_PER_RESPONSE_CUSTOM:]]
+                    _deduped = _deduped[:_MAX_TOOLS_PER_RESPONSE_CUSTOM]
+                _tool_blocks = _deduped
+            else:
+                _dup_ids = {}
+
+            # Select loop thresholds based on provider
+            _warn_thresh = _LOOP_WARN_THRESHOLD_CUSTOM if _is_custom else _LOOP_WARN_THRESHOLD
+            _break_thresh = _LOOP_BREAK_THRESHOLD_CUSTOM if _is_custom else _LOOP_BREAK_THRESHOLD
+
             # Execute tool calls and build tool_result messages
             tool_results = []
-            for block in content_blocks:
-                if block["type"] == "tool_use":
-                    is_error = False
-                    # Show which tool is being executed
-                    if on_status:
-                        await on_status("thinking", f"Running {block['name']}...")
-                    try:
-                        result_str = await _handle_tool(block["name"], block["input"], broadcast, ws_id)
-                        if result_str and result_str.startswith("Error"):
-                            is_error = True
-                    except Exception as e:
-                        result_str = f"Error executing tool '{block['name']}': {e}"
+            _executed_results: dict[str, dict] = {}  # tool_use_id → tool_result (for dedup)
+
+            for block in _tool_blocks:
+                is_error = False
+                # Show which tool is being executed
+                if on_status:
+                    await on_status("thinking", f"Running {block['name']}...")
+                try:
+                    result_str = await _handle_tool(block["name"], block["input"], broadcast, ws_id)
+                    if result_str and result_str.startswith("Error"):
                         is_error = True
-                        await log("System", result_str, "error")
-                    tr = {
-                        "type": "tool_result",
-                        "tool_use_id": block["id"],
-                        "content": result_str or "(empty result)",
-                    }
+                except Exception as e:
+                    result_str = f"Error executing tool '{block['name']}': {e}"
+                    is_error = True
+                    await log("System", result_str, "error")
+                tr = {
+                    "type": "tool_result",
+                    "tool_use_id": block["id"],
+                    "content": result_str or "(empty result)",
+                }
+                if is_error:
+                    tr["is_error"] = True
+                tool_results.append(tr)
+                _executed_results[block["id"]] = tr
+
+                # Show tool result summary in thinking panel
+                if on_status:
+                    preview = (result_str or "")[:120]
                     if is_error:
-                        tr["is_error"] = True
-                    tool_results.append(tr)
+                        await on_status("thinking", f"{block['name']} → Error: {preview}")
+                    else:
+                        await on_status("thinking", f"{block['name']} → {preview}")
 
-                    # Show tool result summary in thinking panel
-                    if on_status:
-                        preview = (result_str or "")[:120]
-                        if is_error:
-                            await on_status("thinking", f"{block['name']} → Error: {preview}")
-                        else:
-                            await on_status("thinking", f"{block['name']} → {preview}")
+                # Track for loop detection
+                _input_key = json.dumps(block["input"], sort_keys=True, ensure_ascii=False)
+                _sig = f"{block['name']}|{hash(_input_key)}"
+                recent_tool_sigs.append(_sig)
 
-                    # Track for loop detection
-                    _input_key = json.dumps(block["input"], sort_keys=True, ensure_ascii=False)
-                    _sig = f"{block['name']}|{hash(_input_key)}"
-                    recent_tool_sigs.append(_sig)
+            # Add tool_result entries for deduplicated calls (copy result from first)
+            for _dup_id, _first_id in _dup_ids.items():
+                _first_tr = _executed_results.get(_first_id)
+                if _first_tr:
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": _dup_id,
+                        "content": _first_tr["content"],
+                        **({"is_error": True} if _first_tr.get("is_error") else {}),
+                    })
+
+            # Add placeholder results for capped tool calls (not executed)
+            for _cap_id in _capped_ids:
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": _cap_id,
+                    "content": "Tool call skipped: too many tool calls in one response. Try calling fewer tools at once.",
+                    "is_error": True,
+                })
 
             # --- Loop detection ---
             # Check if the same tool+args signature repeats too many times
             # in the recent history (look at the last 10 calls).
             _loop_detected = False
-            if len(recent_tool_sigs) >= _LOOP_WARN_THRESHOLD:
+            if len(recent_tool_sigs) >= _warn_thresh:
                 _window = recent_tool_sigs[-10:]
                 _counts = Counter(_window)
                 _top_sig, _top_count = _counts.most_common(1)[0]
                 _loop_tool_name = _top_sig.split("|")[0]
 
-                if _top_count >= _LOOP_BREAK_THRESHOLD:
+                if _top_count >= _break_thresh:
                     await log("System", f"Loop detected: {_loop_tool_name} called {_top_count} times with same args — forcing stop", "warning")
                     if on_status:
                         await on_status("thinking", f"Loop detected: {_loop_tool_name} repeated {_top_count}x — stopping agent")
@@ -1155,15 +1233,13 @@ async def run_agent(
                     messages.append(_loop_msg)
                     _msg_size_acc += len(json.dumps(_loop_msg, ensure_ascii=False))
                     _loop_detected = True
-                elif _top_count >= _LOOP_WARN_THRESHOLD:
+                elif _top_count >= _warn_thresh:
                     await log("System", f"Repeated tool call: {_loop_tool_name} ({_top_count}x) — warning agent", "warning")
                     if on_status:
                         await on_status("thinking", f"Warning: {_loop_tool_name} called {_top_count}x with same args")
 
             if _loop_detected:
-                # Give the agent one final turn to explain, then break
-                turns = _MAX_TURNS - 1
-                continue
+                break
 
             # Inject any queued user messages alongside tool results
             user_content = list(tool_results)
@@ -1177,11 +1253,11 @@ async def run_agent(
                 })
 
             # Inject loop warning alongside tool results (before appending to messages)
-            if len(recent_tool_sigs) >= _LOOP_WARN_THRESHOLD:
+            if len(recent_tool_sigs) >= _warn_thresh:
                 _window = recent_tool_sigs[-10:]
                 _counts = Counter(_window)
                 _top_sig, _top_count = _counts.most_common(1)[0]
-                if _top_count >= _LOOP_WARN_THRESHOLD:
+                if _top_count >= _warn_thresh:
                     _loop_tool_name = _top_sig.split("|")[0]
                     user_content.append({
                         "type": "text",
