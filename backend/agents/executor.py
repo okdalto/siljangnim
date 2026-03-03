@@ -444,9 +444,9 @@ async def _call_openai_compat(
 ) -> tuple[list[dict], str]:
     """Stream an OpenAI-compatible API call. Returns (content_blocks, stop_reason).
 
-    Works for openai, gemini, and glm providers.
+    Works for openai, gemini, glm, and custom providers.
     """
-    api_key = app_config.get_api_key(provider)
+    api_key = app_config.get_api_key(provider) or "not-needed"
     base_url = app_config.get_base_url(provider)
 
     client_kwargs = {"api_key": api_key}
@@ -454,7 +454,14 @@ async def _call_openai_compat(
         client_kwargs["base_url"] = base_url
     client = openai_lib.AsyncOpenAI(**client_kwargs)
 
-    model_cfg = _OPENAI_COMPAT_MODELS[provider]
+    if provider == "custom":
+        model_name = app_config.get_custom_model()
+        max_tokens = 4096
+    else:
+        model_cfg = _OPENAI_COMPAT_MODELS[provider]
+        model_name = model_cfg["model"]
+        max_tokens = model_cfg["max_tokens"]
+
     openai_messages = _convert_messages_to_openai(SYSTEM_PROMPT, messages)
     openai_tools = _convert_tools_to_openai(TOOLS)
 
@@ -462,8 +469,8 @@ async def _call_openai_compat(
         await on_status("thinking", f"Calling {provider} API...")
 
     stream = await client.chat.completions.create(
-        model=model_cfg["model"],
-        max_tokens=model_cfg["max_tokens"],
+        model=model_name,
+        max_tokens=max_tokens,
         messages=openai_messages,
         tools=openai_tools if openai_tools else openai_lib.NOT_GIVEN,
         stream=True,
@@ -565,7 +572,11 @@ async def run_agent(
     provider = app_config.get_provider()
 
     # Provider-specific setup
-    if provider in _OPENAI_COMPAT_MODELS:
+    if provider == "custom":
+        model_name = app_config.get_custom_model()
+        max_tokens = 4096
+        client = None
+    elif provider in _OPENAI_COMPAT_MODELS:
         model_cfg = _OPENAI_COMPAT_MODELS[provider]
         model_name = model_cfg["model"]
         max_tokens = model_cfg["max_tokens"]
@@ -617,7 +628,7 @@ async def run_agent(
 
             # --- Call the appropriate provider ---
             try:
-                if provider in _OPENAI_COMPAT_MODELS:
+                if provider in _OPENAI_COMPAT_MODELS or provider == "custom":
                     content_blocks, stop_reason = await _call_openai_compat(
                         provider, messages, log, on_status,
                     )
@@ -676,8 +687,8 @@ async def run_agent(
             except Exception as e:
                 err_str = str(e).lower()
 
-                # OpenAI-compatible provider retries (openai, gemini, glm)
-                if provider in _OPENAI_COMPAT_MODELS:
+                # OpenAI-compatible provider retries (openai, gemini, glm, custom)
+                if provider in _OPENAI_COMPAT_MODELS or provider == "custom":
                     if isinstance(e, openai_lib.APIStatusError):
                         if e.status_code == 429:
                             overload_retries += 1

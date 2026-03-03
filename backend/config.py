@@ -6,6 +6,7 @@ Supports multiple AI providers:
   - openai (GPT-4o, etc.)
   - gemini (Google Gemini via OpenAI-compatible endpoint)
   - glm (Zhipu AI via OpenAI-compatible endpoint)
+  - custom (any OpenAI-compatible server: vLLM, Ollama, TGI, etc.)
 
 Reads/writes configuration from backend/.env using python-dotenv.
 """
@@ -37,6 +38,10 @@ PROVIDERS = {
         "env_key": "GLM_API_KEY",
         "base_url": None,  # resolved from GLM_ENDPOINTS
     },
+    "custom": {
+        "env_key": "CUSTOM_API_KEY",
+        "base_url": None,  # resolved from CUSTOM_BASE_URL env
+    },
 }
 
 # GLM has user-selectable endpoints
@@ -48,6 +53,8 @@ GLM_ENDPOINTS = {
 # In-memory cache of current provider state
 _current_provider: str = "anthropic"
 _glm_base_url: str = GLM_ENDPOINTS["open.bigmodel.cn"]
+_custom_base_url: str = "http://localhost:8000/v1/"
+_custom_model: str = ""
 
 
 def load_config() -> str | None:
@@ -55,12 +62,14 @@ def load_config() -> str | None:
 
     Returns the API key for the active provider (or None).
     """
-    global _current_provider, _glm_base_url
+    global _current_provider, _glm_base_url, _custom_base_url, _custom_model
     load_dotenv(ENV_PATH, override=True)
     _current_provider = os.environ.get("AI_PROVIDER", "anthropic")
     _glm_base_url = os.environ.get(
         "GLM_BASE_URL", GLM_ENDPOINTS["open.bigmodel.cn"]
     )
+    _custom_base_url = os.environ.get("CUSTOM_BASE_URL", "http://localhost:8000/v1/")
+    _custom_model = os.environ.get("CUSTOM_MODEL", "")
     return get_api_key(_current_provider)
 
 
@@ -86,13 +95,27 @@ def get_base_url(provider: str | None = None) -> str | None:
     provider = provider or _current_provider
     if provider == "glm":
         return _glm_base_url
+    if provider == "custom":
+        return _custom_base_url
     info = PROVIDERS.get(provider)
     return info["base_url"] if info else None
 
 
-def save_api_key(provider: str, key: str, endpoint: str | None = None) -> None:
+def get_custom_model() -> str:
+    """Return the custom provider's model name."""
+    return _custom_model
+
+
+def save_api_key(
+    provider: str,
+    key: str,
+    endpoint: str | None = None,
+    *,
+    base_url: str | None = None,
+    model: str | None = None,
+) -> None:
     """Persist the API key for a provider to backend/.env and set it in the current process."""
-    global _current_provider, _glm_base_url
+    global _current_provider, _glm_base_url, _custom_base_url, _custom_model
     ENV_PATH.touch(exist_ok=True)
 
     info = PROVIDERS.get(provider)
@@ -112,13 +135,31 @@ def save_api_key(provider: str, key: str, endpoint: str | None = None) -> None:
         set_key(str(ENV_PATH), "GLM_BASE_URL", _glm_base_url)
         os.environ["GLM_BASE_URL"] = _glm_base_url
 
+    # Custom provider handling
+    if provider == "custom":
+        if base_url:
+            _custom_base_url = base_url
+        if model:
+            _custom_model = model
+        set_key(str(ENV_PATH), "CUSTOM_BASE_URL", _custom_base_url)
+        os.environ["CUSTOM_BASE_URL"] = _custom_base_url
+        set_key(str(ENV_PATH), "CUSTOM_MODEL", _custom_model)
+        os.environ["CUSTOM_MODEL"] = _custom_model
+
     # Set active provider
     _current_provider = provider
     set_key(str(ENV_PATH), "AI_PROVIDER", provider)
     os.environ["AI_PROVIDER"] = provider
 
 
-async def validate_api_key(provider: str, key: str, endpoint: str | None = None) -> tuple[bool, str]:
+async def validate_api_key(
+    provider: str,
+    key: str,
+    endpoint: str | None = None,
+    *,
+    base_url: str | None = None,
+    model: str | None = None,
+) -> tuple[bool, str]:
     """Validate an API key for the given provider. Returns (valid, error_message)."""
     if provider == "anthropic":
         return await _validate_anthropic_key(key)
@@ -128,6 +169,8 @@ async def validate_api_key(provider: str, key: str, endpoint: str | None = None)
         return await _validate_gemini_key(key)
     if provider == "glm":
         return await _validate_glm_key(key, endpoint)
+    if provider == "custom":
+        return await _validate_custom(key, base_url, model)
     return False, f"Unknown provider: {provider}"
 
 
@@ -206,4 +249,30 @@ async def _validate_glm_key(key: str, endpoint: str | None = None) -> tuple[bool
             return False, "Invalid API key"
         if "connect" in err_str:
             return False, "Could not connect to GLM API"
+        return False, str(e)
+
+
+async def _validate_custom(key: str, base_url: str | None, model: str | None) -> tuple[bool, str]:
+    """Validate a custom OpenAI-compatible endpoint by making a test call."""
+    if not base_url:
+        return False, "Base URL is required"
+    if not model:
+        return False, "Model name is required"
+    try:
+        # Some local servers don't require an API key; use a placeholder
+        client = openai.AsyncOpenAI(api_key=key or "not-needed", base_url=base_url)
+        await client.chat.completions.create(
+            model=model,
+            max_tokens=1,
+            messages=[{"role": "user", "content": "hi"}],
+        )
+        return True, ""
+    except openai.APIConnectionError:
+        return False, f"Could not connect to {base_url}"
+    except Exception as e:
+        err_str = str(e).lower()
+        if "model" in err_str and ("not found" in err_str or "does not exist" in err_str):
+            return False, f"Model '{model}' not found on server"
+        if "connect" in err_str or "refused" in err_str:
+            return False, f"Could not connect to {base_url}"
         return False, str(e)

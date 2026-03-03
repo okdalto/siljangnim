@@ -153,10 +153,14 @@ async def handle_set_api_key(ws, msg, ctx: WsContext):
     key = msg.get("key", "").strip()
     provider = msg.get("provider", "anthropic")
     endpoint = msg.get("endpoint")
-    valid, error = await config.validate_api_key(provider, key, endpoint)
+    base_url = msg.get("base_url")
+    model = msg.get("model")
+    valid, error = await config.validate_api_key(
+        provider, key, endpoint, base_url=base_url, model=model,
+    )
     if valid:
-        config.save_api_key(provider, key, endpoint)
-        ctx.api_key = key
+        config.save_api_key(provider, key, endpoint, base_url=base_url, model=model)
+        ctx.api_key = key or "custom"  # custom provider may have empty key
         await ws.send_text(json.dumps({"type": "api_key_valid", "provider": provider}))
     else:
         await ws.send_text(json.dumps({

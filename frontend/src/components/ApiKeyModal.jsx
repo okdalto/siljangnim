@@ -5,6 +5,7 @@ const PROVIDERS = [
   { id: "openai", label: "OpenAI", placeholder: "sk-..." },
   { id: "gemini", label: "Gemini", placeholder: "AIza..." },
   { id: "glm", label: "GLM", placeholder: "your-glm-api-key..." },
+  { id: "custom", label: "Custom", placeholder: "API key (optional)" },
 ];
 
 const GLM_ENDPOINTS = [
@@ -16,14 +17,30 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
   const [key, setKey] = useState("");
   const [provider, setProvider] = useState("anthropic");
   const [endpoint, setEndpoint] = useState("open.bigmodel.cn");
+  const [baseUrl, setBaseUrl] = useState("http://localhost:8000/v1/");
+  const [model, setModel] = useState("");
 
   const currentProvider = PROVIDERS.find((p) => p.id === provider);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!key.trim() || loading) return;
-    onSubmit(provider, key.trim(), provider === "glm" ? endpoint : undefined);
+    if (provider === "custom") {
+      if (!baseUrl.trim() || !model.trim() || loading) return;
+      onSubmit(provider, key.trim(), { base_url: baseUrl.trim(), model: model.trim() });
+    } else {
+      if (!key.trim() || loading) return;
+      onSubmit(provider, key.trim(), {
+        endpoint: provider === "glm" ? endpoint : undefined,
+      });
+    }
   };
+
+  const isSubmitDisabled = provider === "custom"
+    ? (!baseUrl.trim() || !model.trim() || loading)
+    : (!key.trim() || loading);
+
+  const inputCls =
+    "w-full bg-zinc-800 text-zinc-100 text-sm rounded-lg px-4 py-3 outline-none border border-zinc-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-mono";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -41,13 +58,13 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
         </div>
 
         {/* Provider toggle */}
-        <div className="flex gap-2">
+        <div className="flex gap-1.5 flex-wrap">
           {PROVIDERS.map((p) => (
             <button
               key={p.id}
               type="button"
               onClick={() => { setProvider(p.id); setKey(""); }}
-              className={`flex-1 text-sm font-medium px-4 py-2 rounded-lg border transition-colors ${
+              className={`text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors ${
                 provider === p.id
                   ? "bg-indigo-600 border-indigo-500 text-white"
                   : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500"
@@ -83,15 +100,50 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
           </div>
         )}
 
+        {/* Custom provider fields */}
+        {provider === "custom" && (
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-500 uppercase tracking-wide">
+                Base URL
+              </label>
+              <input
+                type="text"
+                value={baseUrl}
+                onChange={(e) => setBaseUrl(e.target.value)}
+                placeholder="http://localhost:8000/v1/"
+                className={inputCls}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-500 uppercase tracking-wide">
+                Model Name
+              </label>
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="Qwen/Qwen3.5-4B"
+                className={inputCls}
+              />
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2">
           <input
             type="password"
             value={key}
             onChange={(e) => setKey(e.target.value)}
             placeholder={currentProvider?.placeholder}
-            autoFocus
-            className="w-full bg-zinc-800 text-zinc-100 text-sm rounded-lg px-4 py-3 outline-none border border-zinc-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-mono"
+            autoFocus={provider !== "custom"}
+            className={inputCls}
           />
+          {provider === "custom" && (
+            <p className="text-xs text-zinc-500">
+              Leave empty if your server doesn't require authentication.
+            </p>
+          )}
           {error && (
             <p className="text-sm text-red-400">{error}</p>
           )}
@@ -99,7 +151,7 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
 
         <button
           type="submit"
-          disabled={!key.trim() || loading}
+          disabled={isSubmitDisabled}
           className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white text-sm font-medium px-4 py-3 rounded-lg transition-colors"
         >
           {loading ? "Validating..." : "Connect"}
