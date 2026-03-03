@@ -2,6 +2,8 @@ import { useState } from "react";
 
 const PROVIDERS = [
   { id: "anthropic", label: "Claude", placeholder: "sk-ant-api03-..." },
+  { id: "openai", label: "OpenAI", placeholder: "sk-..." },
+  { id: "gemini", label: "Gemini", placeholder: "AIza..." },
   { id: "glm", label: "GLM", placeholder: "your-glm-api-key..." },
 ];
 
