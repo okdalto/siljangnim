@@ -7,10 +7,10 @@ export default function useApiKey(sendRef) {
   const [savedConfig, setSavedConfig] = useState(null);
 
   const handleApiKeySubmit = useCallback(
-    (provider, key, { endpoint, base_url, model } = {}) => {
+    (provider, key, { endpoint, base_url, model, max_tokens } = {}) => {
       setApiKeyLoading(true);
       setApiKeyError("");
-      sendRef.current?.({ type: "set_api_key", provider, key, endpoint, base_url, model });
+      sendRef.current?.({ type: "set_api_key", provider, key, endpoint, base_url, model, max_tokens });
     },
     [sendRef]
   );

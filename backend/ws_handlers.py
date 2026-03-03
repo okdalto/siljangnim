@@ -266,6 +266,16 @@ async def handle_prompt(ws, msg, ctx: WsContext):
         except Exception as e:
             import traceback
             traceback.print_exc()
+
+            # Build a user-friendly error message for common cases
+            err_str = str(e).lower()
+            if "incomplete chunked" in err_str or "peer closed" in err_str or "connection" in err_str and "reset" in err_str:
+                user_msg = "서버 연결이 끊어졌습니다. vLLM/모델 서버가 메모리 부족으로 중단되었을 수 있습니다. --max-model-len을 줄이거나 양자화 모델을 사용해 보세요."
+            elif "context length" in err_str or "too long" in err_str:
+                user_msg = "입력이 모델의 컨텍스트 한도를 초과했습니다. 대화를 새로 시작하거나 --max-model-len을 늘려 보세요."
+            else:
+                user_msg = str(e)
+
             await ctx.manager.broadcast({
                 "type": "agent_log",
                 "agent": "System",
@@ -274,7 +284,7 @@ async def handle_prompt(ws, msg, ctx: WsContext):
             })
             await ctx.manager.broadcast({
                 "type": "assistant_text",
-                "text": f"Error: {e}",
+                "text": f"Error: {user_msg}",
             })
             await ctx.manager.broadcast({"type": "chat_done"})
         finally:
