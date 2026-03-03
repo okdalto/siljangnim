@@ -1,12 +1,26 @@
 import { useState } from "react";
 
+const PROVIDERS = [
+  { id: "anthropic", label: "Claude", placeholder: "sk-ant-api03-..." },
+  { id: "glm", label: "GLM", placeholder: "your-glm-api-key..." },
+];
+
+const GLM_ENDPOINTS = [
+  { id: "open.bigmodel.cn", label: "open.bigmodel.cn" },
+  { id: "api.z.ai", label: "api.z.ai" },
+];
+
 export default function ApiKeyModal({ onSubmit, error, loading }) {
   const [key, setKey] = useState("");
+  const [provider, setProvider] = useState("anthropic");
+  const [endpoint, setEndpoint] = useState("open.bigmodel.cn");
+
+  const currentProvider = PROVIDERS.find((p) => p.id === provider);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!key.trim() || loading) return;
-    onSubmit(key.trim());
+    onSubmit(provider, key.trim(), provider === "glm" ? endpoint : undefined);
   };
 
   return (
@@ -17,20 +31,62 @@ export default function ApiKeyModal({ onSubmit, error, loading }) {
       >
         <div>
           <h2 className="text-lg font-semibold text-zinc-100">
-            Anthropic API Key
+            AI Provider Setup
           </h2>
           <p className="text-sm text-zinc-400 mt-1">
-            실장님 uses Claude to generate shaders. Enter your API key to get
-            started.
+            Choose a provider and enter your API key to get started.
           </p>
         </div>
+
+        {/* Provider toggle */}
+        <div className="flex gap-2">
+          {PROVIDERS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => { setProvider(p.id); setKey(""); }}
+              className={`flex-1 text-sm font-medium px-4 py-2 rounded-lg border transition-colors ${
+                provider === p.id
+                  ? "bg-indigo-600 border-indigo-500 text-white"
+                  : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        {/* GLM endpoint selector */}
+        {provider === "glm" && (
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+              Endpoint
+            </label>
+            <div className="flex gap-2">
+              {GLM_ENDPOINTS.map((ep) => (
+                <button
+                  key={ep.id}
+                  type="button"
+                  onClick={() => setEndpoint(ep.id)}
+                  className={`flex-1 text-xs font-mono px-3 py-1.5 rounded-md border transition-colors ${
+                    endpoint === ep.id
+                      ? "bg-zinc-700 border-zinc-500 text-zinc-200"
+                      : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:border-zinc-600"
+                  }`}
+                >
+                  {ep.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2">
           <input
             type="password"
             value={key}
             onChange={(e) => setKey(e.target.value)}
-            placeholder="sk-ant-api03-..."
+            placeholder={currentProvider?.placeholder}
             autoFocus
             className="w-full bg-zinc-800 text-zinc-100 text-sm rounded-lg px-4 py-3 outline-none border border-zinc-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-mono"
           />

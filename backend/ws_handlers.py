@@ -151,11 +151,13 @@ async def _trigger_auto_fix(error_message: str, ctx: WsContext):
 async def handle_set_api_key(ws, msg, ctx: WsContext):
     import config
     key = msg.get("key", "").strip()
-    valid, error = await config.validate_api_key(key)
+    provider = msg.get("provider", "anthropic")
+    endpoint = msg.get("endpoint")
+    valid, error = await config.validate_api_key(provider, key, endpoint)
     if valid:
-        config.save_api_key(key)
+        config.save_api_key(provider, key, endpoint)
         ctx.api_key = key
-        await ws.send_text(json.dumps({"type": "api_key_valid"}))
+        await ws.send_text(json.dumps({"type": "api_key_valid", "provider": provider}))
     else:
         await ws.send_text(json.dumps({
             "type": "api_key_invalid",
