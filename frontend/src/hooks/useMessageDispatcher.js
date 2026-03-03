@@ -1,16 +1,24 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 
-export default function useMessageDispatcher({
-  chat, apiKey, project, panels, kf,
-  setSceneJSON, setUiConfig, setDuration, setLoop,
-  setWorkspaceFilesVersion, dirtyRef, setPaused,
-  recorderFnsRef, pendingLayoutsRef, setNodes,
-  resetUniformHistoryRef, initSettledRef,
-  wsStateTimerRef, kfMountedRef, durationLoopMountedRef,
-  thinkingBufferRef, thinkingLogReceivedRef,
-  settingsRef,
-}) {
+/**
+ * @param {Object} params - All dependencies for message handling (chat, apiKey, project, panels, kf, state setters, refs)
+ * @returns {(msg: {type: string, [key: string]: any}) => void} handleMessage callback
+ */
+export default function useMessageDispatcher(params) {
+  const deps = useRef(params);
+  deps.current = params;
+
   const handleMessage = useCallback((msg) => {
+    const {
+      chat, apiKey, project, panels, kf,
+      setSceneJSON, setUiConfig, setDuration, setLoop,
+      setWorkspaceFilesVersion, dirtyRef, setPaused,
+      recorderFnsRef, pendingLayoutsRef, setNodes,
+      resetUniformHistoryRef, initSettledRef,
+      wsStateTimerRef, kfMountedRef, durationLoopMountedRef,
+      thinkingBufferRef, thinkingLogReceivedRef,
+      settingsRef,
+    } = deps.current;
     if (!msg || !msg.type) return;
 
     switch (msg.type) {

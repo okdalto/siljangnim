@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { NodeResizer } from "@xyflow/react";
 import FileChip from "../components/chat/FileChip.jsx";
 import MarkdownMessage from "../components/chat/MarkdownMessage.jsx";
+import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -38,15 +39,7 @@ export default function ChatNode({ data }) {
     }
   }, [agentStatus?.detail]);
 
-  useEffect(() => {
-    const el = messagesRef.current;
-    if (!el) return;
-    const handleWheel = (e) => {
-      e.stopPropagation();
-    };
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => el.removeEventListener("wheel", handleWheel);
-  }, []);
+  useStopWheelPropagation(messagesRef);
 
   const processFiles = useCallback(async (fileList) => {
     const newFiles = [];
@@ -196,7 +189,7 @@ export default function ChatNode({ data }) {
             }`}
             style={
               msg.role === "user"
-                ? { background: "#6366f1", color: "#fff" }
+                ? { background: "var(--accent)", color: "var(--accent-text)" }
                 : { background: "var(--chrome-bg-elevated)", color: "var(--chrome-text)" }
             }
           >

@@ -4,10 +4,10 @@ import FileTree from "../components/fileBrowser/FileTree.jsx";
 import FilePreview from "../components/fileBrowser/FilePreview.jsx";
 import SaveProjectForm from "../components/SaveProjectForm.jsx";
 import ProjectListItem from "../components/ProjectListItem.jsx";
+import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
+import { API_BASE } from "../constants/api.js";
 
-const API_BASE = import.meta.env.DEV
-  ? `http://${window.location.hostname}:8000`
-  : "";
+const SAVE_FEEDBACK_MS = 1500;
 
 function ChevronIcon({ open }) {
   return (
@@ -58,20 +58,14 @@ export default function ProjectBrowserNode({ data }) {
     fetchWsFiles();
   }, [fetchWsFiles, workspaceFilesVersion]);
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const handleWheel = (e) => e.stopPropagation();
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => el.removeEventListener("wheel", handleWheel);
-  }, []);
+  useStopWheelPropagation(scrollRef);
 
   const handleQuickSave = () => {
     if (!activeProject) return;
     onSave?.(activeProject);
     clearTimeout(savedTimerRef.current);
     setSavedFeedback(true);
-    savedTimerRef.current = setTimeout(() => setSavedFeedback(false), 1500);
+    savedTimerRef.current = setTimeout(() => setSavedFeedback(false), SAVE_FEEDBACK_MS);
   };
 
   const handleOpenSaveAs = () => {

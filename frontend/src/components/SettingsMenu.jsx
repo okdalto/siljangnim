@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useContext, useCallback } from "react";
 import SettingsContext from "../contexts/SettingsContext.js";
+import useClickOutside from "../hooks/useClickOutside.js";
 
 /* ── Helper components ──────────────────────────────────────────── */
 
@@ -32,7 +33,7 @@ function ToggleSwitch({ checked, onChange }) {
       onClick={() => onChange(!checked)}
       className="relative w-8 h-[18px] rounded-full transition-colors flex-shrink-0"
       style={{
-        backgroundColor: checked ? "#6366f1" : "var(--input-bg)",
+        backgroundColor: checked ? "var(--accent)" : "var(--input-bg)",
       }}
     >
       <span
@@ -91,17 +92,7 @@ export default function SettingsMenu({ onChangeApiKey }) {
   const popoverRef = useRef(null);
   const { settings, update } = useContext(SettingsContext);
 
-  // Outside click → close
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("pointerdown", handler);
-    return () => document.removeEventListener("pointerdown", handler);
-  }, [open]);
+  useClickOutside(popoverRef, open, () => setOpen(false));
 
   return (
     <div ref={popoverRef} className="relative">
@@ -141,9 +132,9 @@ export default function SettingsMenu({ onChangeApiKey }) {
                   className="text-xs px-2.5 py-1 rounded transition-colors capitalize"
                   style={{
                     backgroundColor:
-                      settings.theme === t ? "#6366f1" : "var(--input-bg)",
+                      settings.theme === t ? "var(--accent)" : "var(--input-bg)",
                     color:
-                      settings.theme === t ? "#fff" : "var(--chrome-text-secondary)",
+                      settings.theme === t ? "var(--accent-text)" : "var(--chrome-text-secondary)",
                   }}
                 >
                   {t}

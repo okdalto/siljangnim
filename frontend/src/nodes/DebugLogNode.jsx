@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { NodeResizer } from "@xyflow/react";
+import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 
 const AGENT_COLORS = {
   "Art Director": "text-purple-400",
@@ -82,15 +83,7 @@ export default function DebugLogNode({ data }) {
     }
   }, [logs]);
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const handleWheel = (e) => {
-      e.stopPropagation();
-    };
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => el.removeEventListener("wheel", handleWheel);
-  }, []);
+  useStopWheelPropagation(scrollRef);
 
   return (
     <div

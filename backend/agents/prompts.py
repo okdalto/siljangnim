@@ -434,6 +434,37 @@ what you verified in your final response to the user.
 
 5. **Reading large files**: Use `read_file` with `offset` and `limit` to read \
 files in chunks. Start with the first ~100 lines, then decide if you need more.""",
+        "content_custom": """\
+## WORKFLOW
+
+1. **Create new visual**: Call `read_file(path="scene.json")` first (to check if empty). \
+Then call `write_file(path="scene.json", content=...)` with a complete scene JSON. Then call \
+`open_panel(id="controls", title="Controls", template="controls", config={"controls":[...]})` \
+with controls for any custom uniforms.
+
+2. **Modify existing visual**: Use `read_file(path="scene.json", section="script.render")` \
+to read only the part you need to change. Then use \
+`write_file(path="scene.json", edits=[...])` to apply targeted dot-path edits — \
+this is much more efficient than full replacement for modifications. Only use \
+`write_file(path="scene.json", content=...)` when rewriting the entire scene from scratch.
+
+3. **Explain / answer questions**: Just respond with text. No tool calls needed.
+
+4. **Review (ALWAYS do this after creating or modifying)**: \
+After writing scene.json succeeds, call \
+`read_file(path="scene.json", section="script.render")` to read back \
+the key parts. Compare against the user's request and verify:
+   - Does the script logic actually implement what the user asked for?
+   - Does the script use ctx.time for animation? (If not, it's likely a bug — fix it)
+   - Are all requested visual elements present (colors, shapes, effects, animations)?
+   - Are custom uniforms used correctly from ctx.uniforms?
+   - Do UI controls cover all user-adjustable parameters?
+If you find any mismatch or missing detail, fix it immediately by calling \
+`write_file(path="scene.json", edits=[...])` / `open_panel` again. Briefly summarize \
+what you verified in your final response to the user.
+
+5. **Reading large files**: Use `read_file` with `offset` and `limit` to read \
+files in chunks. Start with the first ~100 lines, then decide if you need more.""",
     },
     {
         "id": "rules",
@@ -528,12 +559,14 @@ def build_system_prompt(
     prompt_lower = user_prompt.lower()
     sections: list[str] = []
     for s in PROMPT_SECTIONS:
+        # Use custom-specific content when available
+        content = s.get("content_custom", s["content"])
         if s["core"]:
-            sections.append(s["content"])
+            sections.append(content)
         elif has_files and s["id"] in _FILE_SECTIONS:
-            sections.append(s["content"])
+            sections.append(content)
         elif any(kw in prompt_lower for kw in s["keywords"]):
-            sections.append(s["content"])
+            sections.append(content)
 
     # Custom providers get an extra instruction to explain reasoning
     # before tool calls (they lack Anthropic's built-in thinking blocks).

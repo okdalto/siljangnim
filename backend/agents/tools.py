@@ -1,5 +1,16 @@
 """Anthropic tool definitions (JSON Schema) for the siljangnim agent."""
 
+# Tools excluded from the tool list for custom providers (small models).
+_CUSTOM_EXCLUDED_TOOLS = {"check_browser_errors"}
+
+
+def get_tools(provider: str = "anthropic") -> list[dict]:
+    """Return tool definitions, optionally filtered by provider."""
+    if provider == "custom":
+        return [t for t in TOOLS if t["name"] not in _CUSTOM_EXCLUDED_TOOLS]
+    return TOOLS
+
+
 TOOLS = [
     {
         "name": "read_file",

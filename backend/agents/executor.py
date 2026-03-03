@@ -12,7 +12,7 @@ import openai as openai_lib
 import config as app_config
 import workspace
 from agents.prompts import SYSTEM_PROMPT, build_system_prompt
-from agents.tools import TOOLS
+from agents.tools import TOOLS, get_tools
 from agents.handlers import _handle_tool, BroadcastCallback
 
 # ---------------------------------------------------------------------------
@@ -357,6 +357,7 @@ async def _call_anthropic(
     log: LogCallback,
     on_status: StatusCallback | None,
     system_prompt: str = SYSTEM_PROMPT,
+    tools: list[dict] = TOOLS,
 ) -> tuple[list[dict], str]:
     """Stream Anthropic API call. Returns (content_blocks, stop_reason).
 
@@ -373,7 +374,7 @@ async def _call_anthropic(
         max_tokens=max_tokens,
         thinking={"type": "adaptive"},
         system=system_prompt,
-        tools=TOOLS,
+        tools=tools,
         messages=messages,
     ) as stream:
         async for event in stream:
@@ -448,6 +449,7 @@ async def _call_openai_compat(
     log: LogCallback,
     on_status: StatusCallback | None,
     system_prompt: str = SYSTEM_PROMPT,
+    tools: list[dict] = TOOLS,
     tool_choice: str = "auto",
 ) -> tuple[list[dict], str]:
     """Stream an OpenAI-compatible API call. Returns (content_blocks, stop_reason).
@@ -458,7 +460,13 @@ async def _call_openai_compat(
     api_key = app_config.get_api_key(provider) or "not-needed"
     base_url = app_config.get_base_url(provider)
 
-    client_kwargs = {"api_key": api_key}
+    import httpx
+    client_kwargs = {
+        "api_key": api_key,
+        # Long timeout for reasoning models (Qwen3.5, DeepSeek R1, etc.)
+        # that may take minutes to generate thinking tokens before responding.
+        "timeout": httpx.Timeout(timeout=600.0, connect=10.0),
+    }
     if base_url:
         client_kwargs["base_url"] = base_url
     client = openai_lib.AsyncOpenAI(**client_kwargs)
@@ -472,7 +480,7 @@ async def _call_openai_compat(
         max_tokens = model_cfg["max_tokens"]
 
     openai_messages = _convert_messages_to_openai(system_prompt, messages)
-    openai_tools = _convert_tools_to_openai(TOOLS)
+    openai_tools = _convert_tools_to_openai(tools)
 
     # For custom providers, cap max_tokens so input + output fits the context
     # window (users often set max_tokens equal to context size).
@@ -515,93 +523,107 @@ async def _call_openai_compat(
     _status_think_chars = 0  # track thinking chars for throttled updates
     _status_tool_chars = 0   # track tool argument chars for progress
 
-    async for chunk in stream:
-        if not chunk.choices:
-            continue
-        choice = chunk.choices[0]
-        delta = choice.delta
+    _stream_interrupted = False
+    try:
+        async for chunk in stream:
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            delta = choice.delta
 
-        # Some providers (vLLM for Qwen/DeepSeek) expose reasoning via
-        # a dedicated `reasoning_content` field on the delta.
-        _reasoning = getattr(delta, "reasoning_content", None)
-        if _reasoning:
-            thinking_text += _reasoning
-            if on_status and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
-                _status_think_chars = len(thinking_text)
-                await on_status("thinking", thinking_text)
-
-        if delta and delta.content:
-            raw = delta.content
-
-            # Parse <think>...</think> tags inline during streaming.
-            # Models like Qwen3.5 and DeepSeek R1 wrap reasoning in these.
-            if _in_think_tag:
-                close_idx = raw.find("</think>")
-                if close_idx != -1:
-                    thinking_text += raw[:close_idx]
-                    _in_think_tag = False
-                    remainder = raw[close_idx + len("</think>"):]
-                    if remainder:
-                        content_text += remainder
-                else:
-                    thinking_text += raw
-                if on_status and thinking_text and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
+            # Some providers (vLLM for Qwen/DeepSeek) expose reasoning via
+            # a dedicated `reasoning_content` field on the delta.
+            _reasoning = getattr(delta, "reasoning_content", None)
+            if _reasoning:
+                thinking_text += _reasoning
+                if on_status and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
                     _status_think_chars = len(thinking_text)
                     await on_status("thinking", thinking_text)
-                continue
-            else:
-                open_idx = raw.find("<think>")
-                if open_idx != -1:
-                    # Text before <think> is content
-                    before = raw[:open_idx]
-                    if before:
-                        content_text += before
-                    after = raw[open_idx + len("<think>"):]
-                    close_idx = after.find("</think>")
+
+            if delta and delta.content:
+                raw = delta.content
+
+                # Parse <think>...</think> tags inline during streaming.
+                # Models like Qwen3.5 and DeepSeek R1 wrap reasoning in these.
+                if _in_think_tag:
+                    close_idx = raw.find("</think>")
                     if close_idx != -1:
-                        thinking_text += after[:close_idx]
-                        remainder = after[close_idx + len("</think>"):]
+                        thinking_text += raw[:close_idx]
+                        _in_think_tag = False
+                        remainder = raw[close_idx + len("</think>"):]
                         if remainder:
                             content_text += remainder
                     else:
-                        thinking_text += after
-                        _in_think_tag = True
+                        thinking_text += raw
                     if on_status and thinking_text and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
                         _status_think_chars = len(thinking_text)
                         await on_status("thinking", thinking_text)
                     continue
+                else:
+                    open_idx = raw.find("<think>")
+                    if open_idx != -1:
+                        # Text before <think> is content
+                        before = raw[:open_idx]
+                        if before:
+                            content_text += before
+                        after = raw[open_idx + len("<think>"):]
+                        close_idx = after.find("</think>")
+                        if close_idx != -1:
+                            thinking_text += after[:close_idx]
+                            remainder = after[close_idx + len("</think>"):]
+                            if remainder:
+                                content_text += remainder
+                        else:
+                            thinking_text += after
+                            _in_think_tag = True
+                        if on_status and thinking_text and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
+                            _status_think_chars = len(thinking_text)
+                            await on_status("thinking", thinking_text)
+                        continue
 
-                content_text += raw
+                    content_text += raw
 
-            # Stream partial text as "thinking" status so the UI shows progress.
-            # First chunk sent immediately, then throttled every 40 chars.
-            if on_status and (_status_chars == 0 or len(content_text) - _status_chars >= 40):
-                _status_chars = len(content_text)
-                await on_status("thinking", content_text)
+                # Stream partial text as "thinking" status so the UI shows progress.
+                # First chunk sent immediately, then throttled every 40 chars.
+                if on_status and (_status_chars == 0 or len(content_text) - _status_chars >= 40):
+                    _status_chars = len(content_text)
+                    await on_status("thinking", content_text)
 
-        if delta and delta.tool_calls:
-            for tc in delta.tool_calls:
-                idx = tc.index
-                if idx not in tool_calls_acc:
-                    tool_calls_acc[idx] = {"id": "", "name": "", "arguments": ""}
-                if tc.id:
-                    tool_calls_acc[idx]["id"] = tc.id
-                if tc.function:
-                    if tc.function.name:
-                        tool_calls_acc[idx]["name"] = tc.function.name
-                        if on_status:
-                            await on_status("tool_use", tc.function.name)
-                    if tc.function.arguments:
-                        tool_calls_acc[idx]["arguments"] += tc.function.arguments
-                        # Show progress while tool arguments stream in
-                        total_args = sum(len(t["arguments"]) for t in tool_calls_acc.values())
-                        if on_status and total_args - _status_tool_chars >= 200:
-                            _status_tool_chars = total_args
-                            name = tool_calls_acc[idx]["name"] or "tool"
-                            await on_status("thinking", f"Generating {name} arguments...")
+            if delta and delta.tool_calls:
+                for tc in delta.tool_calls:
+                    idx = tc.index
+                    if idx not in tool_calls_acc:
+                        tool_calls_acc[idx] = {"id": "", "name": "", "arguments": ""}
+                    if tc.id:
+                        tool_calls_acc[idx]["id"] = tc.id
+                    if tc.function:
+                        if tc.function.name:
+                            tool_calls_acc[idx]["name"] = tc.function.name
+                            if on_status:
+                                await on_status("tool_use", tc.function.name)
+                        if tc.function.arguments:
+                            tool_calls_acc[idx]["arguments"] += tc.function.arguments
+                            # Show progress while tool arguments stream in
+                            total_args = sum(len(t["arguments"]) for t in tool_calls_acc.values())
+                            if on_status and total_args - _status_tool_chars >= 200:
+                                _status_tool_chars = total_args
+                                name = tool_calls_acc[idx]["name"] or "tool"
+                                await on_status("thinking", f"Generating {name} arguments...")
 
-        if choice.finish_reason:
-            finish_reason = choice.finish_reason
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+
+    except Exception as stream_err:
+        # If the stream breaks mid-way (e.g. vLLM drops the connection after
+        # finishing generation but before properly closing the SSE stream),
+        # use whatever content we already accumulated instead of failing.
+        _has_partial = bool(content_text.strip() or tool_calls_acc)
+        if _has_partial:
+            if log:
+                await log("System", f"Stream interrupted but partial response recovered: {stream_err}", "info")
+            _stream_interrupted = True
+        else:
+            raise  # nothing received — propagate the error
 
     # Log thinking if captured (either from <think> tags or reasoning_content)
     if thinking_text.strip() and log:
@@ -627,9 +649,14 @@ async def _call_openai_compat(
             "input": args,
         })
 
-    # Map OpenAI finish_reason to Anthropic stop_reason
+    # Map OpenAI finish_reason to Anthropic stop_reason.
+    # If the stream was interrupted, infer the reason from content:
+    # tool calls present → "tool_use", otherwise "end_turn".
     _REASON_MAP = {"stop": "end_turn", "tool_calls": "tool_use", "length": "max_tokens"}
-    stop_reason = _REASON_MAP.get(finish_reason, "end_turn")
+    if _stream_interrupted and finish_reason is None:
+        stop_reason = "tool_use" if tool_calls_acc else "end_turn"
+    else:
+        stop_reason = _REASON_MAP.get(finish_reason, "end_turn")
 
     return content_blocks, stop_reason
 
@@ -695,8 +722,9 @@ async def run_agent(
 
     await log("System", f"Provider: {provider} | Model: {model_name}", "info")
 
-    # Build dynamic system prompt (filtered for custom providers)
+    # Build dynamic system prompt and tool list (filtered for custom providers)
     system_prompt = build_system_prompt(provider, user_prompt, has_files=bool(files))
+    tools = get_tools(provider)
 
     # Build user message content
     if files:
@@ -714,7 +742,7 @@ async def run_agent(
     connection_retries = 0  # separate counter for transient connection drops
     force_tool_retries = 0
     _MAX_FORCE_TOOL = 1
-    _MAX_CONNECTION_RETRIES = 2
+    _MAX_CONNECTION_RETRIES = 3
     _force_tool_choice = "auto"  # escalated to "required" after empty/text-only response
     recent_tool_sigs: list[str] = []  # track (name|input_hash) for loop detection
 
@@ -753,12 +781,14 @@ async def run_agent(
                     content_blocks, stop_reason = await _call_openai_compat(
                         provider, messages, log, on_status,
                         system_prompt=system_prompt,
+                        tools=tools,
                         tool_choice=_force_tool_choice,
                     )
                 else:
                     content_blocks, stop_reason = await _call_anthropic(
                         client, model_name, max_tokens, messages, log, on_status,
                         system_prompt=system_prompt,
+                        tools=tools,
                     )
 
             # --- Anthropic-specific error handling ---
