@@ -610,16 +610,23 @@ async def _call_openai_compat(
         _status_chars = 0
         _status_think_chars = 0
         _status_tool_chars = 0
-        _heartbeat_counter = 0  # periodic "still thinking" indicator
+        _got_first_content = False
+
+        # Background heartbeat: sends periodic status while waiting for chunks
+        async def _heartbeat():
+            elapsed = 0
+            while True:
+                await asyncio.sleep(3)
+                elapsed += 3
+                if _got_first_content:
+                    return
+                if on_status:
+                    await on_status("thinking", f"Model is thinking... ({elapsed}s)")
+
+        _heartbeat_task = asyncio.create_task(_heartbeat())
 
         try:
             async for chunk in stream:
-                # Heartbeat: some models (Gemini) send empty chunks during thinking.
-                # Periodically update status so the UI doesn't appear frozen.
-                _heartbeat_counter += 1
-                if _heartbeat_counter % 20 == 0 and on_status and not content_text:
-                    _secs = _heartbeat_counter // 4  # rough seconds estimate
-                    await on_status("thinking", f"Model is thinking... ({_secs}s)")
                 if not chunk.choices:
                     continue
                 choice = chunk.choices[0]
@@ -629,12 +636,14 @@ async def _call_openai_compat(
                 # a dedicated `reasoning_content` field on the delta.
                 _reasoning = getattr(delta, "reasoning_content", None)
                 if _reasoning:
+                    _got_first_content = True
                     thinking_text += _reasoning
                     if on_status and (len(thinking_text) - _status_think_chars >= 40 or _status_think_chars == 0):
                         _status_think_chars = len(thinking_text)
                         await on_status("thinking", thinking_text)
 
                 if delta and delta.content:
+                    _got_first_content = True
                     raw = delta.content
 
                     # Parse <think>...</think> tags inline during streaming.
@@ -684,6 +693,7 @@ async def _call_openai_compat(
                         await on_status("thinking", content_text)
 
                 if delta and delta.tool_calls:
+                    _got_first_content = True
                     for tc in delta.tool_calls:
                         idx = tc.index
                         if idx not in tool_calls_acc:
@@ -718,6 +728,8 @@ async def _call_openai_compat(
                 _stream_interrupted = True
             else:
                 raise  # nothing received — propagate the error
+        finally:
+            _heartbeat_task.cancel()
 
     # ----- Shared post-processing -----
 
