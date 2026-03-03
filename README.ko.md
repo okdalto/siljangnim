@@ -94,6 +94,8 @@ MediaPipe Vision을 활용한 웹캠 기반 실시간 트래킹:
 
 **필수 조건:** Python 3.10+, Node.js 18+, [Anthropic API 키](https://console.anthropic.com/)
 
+**macOS / Linux:**
+
 ```bash
 git clone https://github.com/okdalto/siljangnim.git
 cd siljangnim
@@ -101,10 +103,20 @@ chmod +x run.sh
 ./run.sh
 ```
 
+**Windows:**
+
+```powershell
+git clone https://github.com/okdalto/siljangnim.git
+cd siljangnim
+run.bat
+```
+
 **http://localhost:5173** 을 열고, 프롬프트에 따라 API 키를 입력하세요 — `backend/.env`에 자동 저장됩니다.
 
 <details>
 <summary><strong>수동 설정</strong></summary>
+
+**macOS / Linux:**
 
 ```bash
 # 백엔드
@@ -112,6 +124,23 @@ cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 echo "ANTHROPIC_API_KEY=sk-ant-..." > .env   # 선택사항
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# 프론트엔드 (새 터미널)
+cd frontend
+npm install
+npm run dev -- --host 0.0.0.0 --port 5173
+```
+
+**Windows:**
+
+```powershell
+# 백엔드
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+echo ANTHROPIC_API_KEY=sk-ant-... > .env   # 선택사항
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 # 프론트엔드 (새 터미널)
@@ -154,7 +183,8 @@ siljangnim/
 │   │   └── components/   # 툴바, 타임라인, 스냅 가이드
 │   └── package.json
 ├── .workspace/           # 런타임 데이터 (씬, 업로드, 프로젝트)
-└── run.sh                # 원클릭 실행 스크립트
+├── run.sh                # 원클릭 실행 스크립트 (macOS/Linux)
+└── run.bat               # 원클릭 실행 스크립트 (Windows)
 ```
 
 ## 기술 스택

@@ -94,6 +94,8 @@ Animate any uniform over time with keyframes, cubic Hermite interpolation, and e
 
 **Prerequisites:** Python 3.10+, Node.js 18+, [Anthropic API key](https://console.anthropic.com/)
 
+**macOS / Linux:**
+
 ```bash
 git clone https://github.com/okdalto/siljangnim.git
 cd siljangnim
@@ -101,10 +103,20 @@ chmod +x run.sh
 ./run.sh
 ```
 
+**Windows:**
+
+```powershell
+git clone https://github.com/okdalto/siljangnim.git
+cd siljangnim
+run.bat
+```
+
 Open **http://localhost:5173**. Enter your API key when prompted — it saves to `backend/.env` automatically.
 
 <details>
 <summary><strong>Manual setup</strong></summary>
+
+**macOS / Linux:**
 
 ```bash
 # Backend
@@ -112,6 +124,23 @@ cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 echo "ANTHROPIC_API_KEY=sk-ant-..." > .env   # optional
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# Frontend (new terminal)
+cd frontend
+npm install
+npm run dev -- --host 0.0.0.0 --port 5173
+```
+
+**Windows:**
+
+```powershell
+# Backend
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+echo ANTHROPIC_API_KEY=sk-ant-... > .env   # optional
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 # Frontend (new terminal)
@@ -154,7 +183,8 @@ siljangnim/
 │   │   └── components/   # Toolbar, Timeline, SnapGuides
 │   └── package.json
 ├── .workspace/           # Runtime data (scenes, uploads, projects)
-└── run.sh                # One-click startup script
+├── run.sh                # One-click startup script (macOS/Linux)
+└── run.bat               # One-click startup script (Windows)
 ```
 
 ## Tech Stack
