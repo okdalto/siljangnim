@@ -33,8 +33,10 @@ import Toolbar from "./components/Toolbar.jsx";
 import Timeline from "./components/Timeline.jsx";
 import SnapGuides from "./components/SnapGuides.jsx";
 import KeyframeEditor from "./components/KeyframeEditor.jsx";
+import { API_BASE } from "./constants/api.js";
+import { nextUndoSeq } from "./utils/undoSeq.js";
 
-let _undoSeq = 0;
+const UNIFORM_HISTORY_LIMIT = 100;
 
 const nodeTypes = {
   chat: ChatNode,
@@ -86,7 +88,7 @@ export default function App() {
   const [nodes, setNodes, rawOnNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState([]);
   const { onNodesChange: onNodesChangeSnapped, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes, settings);
-  const getSeq = useCallback(() => ++_undoSeq, []);
+  const getSeq = useCallback(() => nextUndoSeq(), []);
   const onLayoutCommitRef = useRef(null);
   const { onNodesChange, undo, redo, historyRef: layoutHistoryRef } =
     useNodeLayoutHistory(nodes, onNodesChangeSnapped, setNodes, getSeq, onLayoutCommitRef);
@@ -411,8 +413,8 @@ export default function App() {
       } else {
         const oldValue = vals[uniform] ?? value;
         if (oldValue !== value) {
-          h.past.push({ uniform, oldValue, newValue: value, seq: ++_undoSeq });
-          if (h.past.length > 100) h.past.shift();
+          h.past.push({ uniform, oldValue, newValue: value, seq: nextUndoSeq() });
+          if (h.past.length > UNIFORM_HISTORY_LIMIT) h.past.shift();
           h.future.length = 0;
         }
       }
@@ -459,10 +461,6 @@ export default function App() {
     send(msg);
   }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, getNodeLayouts, chat.clearAll, chat.messages, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, project.markSaved, settings.defaultDuration, settings.defaultLoop]);
 
-  const API_BASE = import.meta.env.DEV
-    ? `http://${window.location.hostname}:8000`
-    : "";
-
   const handleDeleteWorkspaceFile = useCallback(
     async (filepath) => {
       try {
@@ -472,7 +470,7 @@ export default function App() {
         if (res.ok) setWorkspaceFilesVersion((v) => v + 1);
       } catch { /* ignore */ }
     },
-    [API_BASE]
+    []
   );
 
   const handleTogglePause = useCallback(() => setPaused((p) => !p), []);
@@ -539,7 +537,7 @@ export default function App() {
   const handlePanelClose = useCallback((panelId) => {
     const node = nodesRef.current.find((n) => n.id === `panel_${panelId}`);
     panels.handleClosePanel(panelId, {
-      seq: ++_undoSeq,
+      seq: nextUndoSeq(),
       nodePosition: node?.position,
       nodeStyle: node?.style,
     });

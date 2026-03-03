@@ -269,8 +269,10 @@ async def handle_prompt(ws, msg, ctx: WsContext):
 
             # Build a user-friendly error message for common cases
             err_str = str(e).lower()
-            if "incomplete chunked" in err_str or "peer closed" in err_str or "connection" in err_str and "reset" in err_str:
-                user_msg = "서버 연결이 끊어졌습니다. vLLM/모델 서버가 메모리 부족으로 중단되었을 수 있습니다. --max-model-len을 줄이거나 양자화 모델을 사용해 보세요."
+            if "timed out" in err_str or "timeout" in err_str:
+                user_msg = "모델 서버 응답 대기 시간이 초과되었습니다. 모델이 너무 긴 응답을 생성 중이거나 서버가 과부하 상태일 수 있습니다. 다시 시도해 주세요."
+            elif "incomplete chunked" in err_str or "peer closed" in err_str or ("connection" in err_str and "reset" in err_str):
+                user_msg = "모델 서버와의 연결이 끊어졌습니다. 서버 로그를 확인하고 다시 시도해 주세요."
             elif "context length" in err_str or "too long" in err_str:
                 user_msg = "입력이 모델의 컨텍스트 한도를 초과했습니다. 대화를 새로 시작하거나 --max-model-len을 늘려 보세요."
             else:

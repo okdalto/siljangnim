@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
+import useClickOutside from "../hooks/useClickOutside.js";
 
 const FORMATS = ["MP4", "WebM", "PNG"];
 const FPS_PRESETS = [24, 30, 60];
@@ -29,7 +30,7 @@ function BtnGroup({ items, value, onChange, disabled }) {
             className={`text-xs px-2 py-1 rounded transition-colors ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
             style={
               value === val
-                ? { background: "#3b82f6", color: "#fff" }
+                ? { background: "var(--accent)", color: "var(--accent-text)" }
                 : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
             }
           >
@@ -65,17 +66,7 @@ export default function RecordMenu({
   const [customH, setCustomH] = useState("");
   const [alpha, setAlpha] = useState(false);
 
-  // Outside click → close
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("pointerdown", handler);
-    return () => document.removeEventListener("pointerdown", handler);
-  }, [open]);
+  useClickOutside(popoverRef, open, () => setOpen(false));
 
   // Constraint: PNG → force Offline
   const handleFormatChange = useCallback(
@@ -240,7 +231,7 @@ export default function RecordMenu({
                     className="text-xs px-2 py-1 rounded transition-colors"
                     style={
                       fps === f && !customFps
-                        ? { background: "#3b82f6", color: "#fff" }
+                        ? { background: "var(--accent)", color: "var(--accent-text)" }
                         : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
                     }
                   >
@@ -255,7 +246,7 @@ export default function RecordMenu({
                   className="text-xs px-2 py-1 rounded transition-colors"
                   style={
                     !FPS_PRESETS.includes(fps)
-                      ? { background: "#3b82f6", color: "#fff" }
+                      ? { background: "var(--accent)", color: "var(--accent-text)" }
                       : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
                   }
                 >
@@ -334,7 +325,7 @@ export default function RecordMenu({
                     className="text-xs px-2 py-1 rounded transition-colors"
                     style={
                       resolution === p.label && !customRes
-                        ? { background: "#3b82f6", color: "#fff" }
+                        ? { background: "var(--accent)", color: "var(--accent-text)" }
                         : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
                     }
                   >

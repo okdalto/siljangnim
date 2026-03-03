@@ -89,7 +89,7 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
                 className="text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1.5"
                 style={
                   provider === p.id
-                    ? { background: "#6366f1", borderColor: "#6366f1", color: "#fff" }
+                    ? { background: "var(--accent)", borderColor: "var(--accent)", color: "var(--accent-text)" }
                     : { background: "var(--input-bg)", borderColor: "var(--input-border)", color: "var(--chrome-text-secondary)" }
                 }
               >

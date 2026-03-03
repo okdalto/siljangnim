@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { saveJson } from "../utils/localStorage.js";
 
 const STORAGE_KEY = "app-settings";
 
@@ -24,14 +25,13 @@ function loadSettings() {
   return { ...DEFAULTS };
 }
 
+/** @returns {{ settings: Record<string, any>, update: (key: string, value: any) => void }} */
 export default function useSettings() {
   const [settings, setSettings] = useState(loadSettings);
 
   // Persist to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    } catch { /* ignore */ }
+    saveJson(STORAGE_KEY, settings);
   }, [settings]);
 
   // Apply data-theme attribute

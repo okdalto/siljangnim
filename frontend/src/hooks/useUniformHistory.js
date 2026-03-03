@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef } from "react";
 
-let _undoSeq = 0;
-export function getUndoSeq() { return ++_undoSeq; }
-export function setUndoSeqSource(fn) { _undoSeq = 0; /* shared via getUndoSeq */ }
-
+/**
+ * @param {React.RefObject} engineRef - Reference to the WebGL engine
+ * @param {React.RefObject} sendRef - Reference to the WebSocket send function
+ * @param {Object|null} sceneJSON - Current scene JSON with uniform definitions
+ * @param {{ controls: Array }} uiConfig - UI configuration with control definitions
+ * @returns {{ uniformHistoryRef: React.RefObject, uniformCoalesceRef: React.RefObject, uniformValuesRef: React.RefObject, resetUniformHistory: Function, undoUniform: Function, redoUniform: Function }}
+ */
 export default function useUniformHistory(engineRef, sendRef, sceneJSON, uiConfig) {
   const uniformHistoryRef = useRef({ past: [], future: [] });
   const uniformCoalesceRef = useRef({ uniform: null, timer: null });

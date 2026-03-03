@@ -1,8 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-
-const API_BASE = import.meta.env.DEV
-  ? `http://${window.location.hostname}:8000`
-  : "";
+import { API_BASE } from "../constants/api.js";
 
 export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages) {
   const [projectList, setProjectList] = useState([]);

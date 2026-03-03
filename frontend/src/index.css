@@ -18,6 +18,10 @@
   --input-bg: #3f3f46;
   --input-border: #52525b;
   --input-text: #d4d4d8;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-active: #4f46e5;
+  --accent-text: #ffffff;
 }
 
 [data-theme="light"] {
@@ -37,6 +41,10 @@
   --input-bg: #e4e4e7;
   --input-border: #d4d4d8;
   --input-text: #27272a;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-active: #4f46e5;
+  --accent-text: #ffffff;
 }
 
 html,
@@ -69,7 +77,7 @@ body,
 
 /* Selected node highlight (via custom data-attribute, decoupled from ReactFlow) */
 .react-flow__node[data-custom-selected] {
-  outline: 2px solid #818cf8 !important;
+  outline: 2px solid var(--accent-hover) !important;
   outline-offset: 0px !important;
   border-radius: 12px;
 }
