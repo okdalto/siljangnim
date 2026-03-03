@@ -927,9 +927,19 @@ async def run_agent(
                     continue
                 raise
             except (anthropic.APIConnectionError, anthropic.APITimeoutError, anthropic.APIStatusError) as e:
-                if isinstance(e, anthropic.APIStatusError) and e.status_code < 500:
+                # Check the error body for server-side errors that arrive via SSE
+                # streaming (status_code may be 200 even though the body is a 500/529).
+                _err_body = str(e).lower()
+                _is_body_server_error = any(k in _err_body for k in (
+                    "api_error", "overloaded_error", "internal server error",
+                    "server_error", "rate_limit_error",
+                ))
+                if isinstance(e, anthropic.APIStatusError) and e.status_code < 500 and not _is_body_server_error:
                     raise
-                is_overloaded = isinstance(e, anthropic.APIStatusError) and e.status_code == 529
+                is_overloaded = (
+                    (isinstance(e, anthropic.APIStatusError) and e.status_code == 529)
+                    or "overloaded" in _err_body
+                )
                 if is_overloaded:
                     overload_retries += 1
                     # Fallback: Opus → Sonnet after 2 failed attempts
@@ -947,13 +957,18 @@ async def run_agent(
                     await asyncio.sleep(delay)
                     continue
                 connection_retries += 1
+                # Fallback: Opus → Sonnet after 2 failed server errors
+                if connection_retries >= 2 and model_name == "claude-opus-4-6":
+                    model_name = "claude-sonnet-4-6"
+                    max_tokens = 16384
+                    await log("System", f"Falling back to {model_name} due to server errors", "info")
                 if connection_retries > _MAX_CONNECTION_RETRIES:
-                    await log("System", f"API connection error after {_MAX_CONNECTION_RETRIES} retries: {e}", "error")
+                    await log("System", f"API server error after {_MAX_CONNECTION_RETRIES} retries: {e}", "error")
                     raise
                 delay = min(2 ** connection_retries, 10)
-                await log("System", f"Connection interrupted — retrying in {delay}s ({connection_retries}/{_MAX_CONNECTION_RETRIES})...", "info")
+                await log("System", f"API error — retrying in {delay}s ({connection_retries}/{_MAX_CONNECTION_RETRIES})...", "info")
                 if on_status:
-                    await on_status("thinking", "Connection lost, retrying...")
+                    await on_status("thinking", f"Server error, retrying in {delay}s...")
                 await asyncio.sleep(delay)
                 continue
 
