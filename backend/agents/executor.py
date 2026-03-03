@@ -1017,22 +1017,27 @@ async def run_agent(
                         await asyncio.sleep(2)
                         continue
 
-                # Overloaded errors that slipped through the typed handler
-                # (e.g. raised as generic APIError during streaming)
-                if "overloaded" in err_str:
+                # Anthropic server-side errors that slipped through the typed handler
+                # (e.g. raised as generic APIError during streaming instead of APIStatusError).
+                # Covers: overloaded_error (529), api_error (500), rate_limit_error, etc.
+                _is_server_error = any(k in err_str for k in (
+                    "overloaded", "internal server error", "'type': 'api_error'",
+                    "rate_limit", "server_error",
+                ))
+                if _is_server_error:
                     overload_retries += 1
                     # Fallback: Opus → Sonnet after 2 failed attempts
                     if overload_retries >= 2 and model_name == "claude-opus-4-6":
                         model_name = "claude-sonnet-4-6"
                         max_tokens = 16384
-                        await log("System", f"Falling back to {model_name} due to overload", "info")
+                        await log("System", f"Falling back to {model_name} due to server errors", "info")
                     if overload_retries > _MAX_OVERLOAD_RETRIES:
-                        await log("System", f"API overloaded after {_MAX_OVERLOAD_RETRIES} retries — giving up", "error")
+                        await log("System", f"API server error after {_MAX_OVERLOAD_RETRIES} retries — giving up", "error")
                         raise
                     delay = min(2 ** overload_retries, 30)
-                    await log("System", f"API overloaded — retrying in {delay}s ({overload_retries}/{_MAX_OVERLOAD_RETRIES})...", "info")
+                    await log("System", f"API server error — retrying in {delay}s ({overload_retries}/{_MAX_OVERLOAD_RETRIES})...", "info")
                     if on_status:
-                        await on_status("thinking", f"Server busy, retrying in {delay}s...")
+                        await on_status("thinking", f"Server error, retrying in {delay}s...")
                     await asyncio.sleep(delay)
                     continue
 
