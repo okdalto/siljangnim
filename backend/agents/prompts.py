@@ -507,6 +507,33 @@ For example, if the user says "remove the speed slider", re-open the panel with 
 a controls array that excludes that control.
 - Custom uniforms go in the "uniforms" field of scene JSON, and are accessed \
 in scripts via `ctx.uniforms.u_name`.""",
+        "content_custom": """\
+## RULES
+
+- **Do NOT generate or modify scenes for simple queries.** If the user is asking \
+a question, just respond with text. Do NOT call `write_file(path="scene.json", ...)` or `open_panel` \
+unless the user explicitly asks to create or change a visual.
+- **ALWAYS use ctx.time for animation.** Unless the user asks for a static image, \
+every script MUST incorporate ctx.time for motion.
+- If `write_file(path="scene.json", ...)` returns validation errors, fix the issues and call it again.
+- When modifying, preserve parts the user didn't ask to change.
+- Always respond in the SAME LANGUAGE the user is using.
+- **Clarify before acting on ambiguous requests.** Use `ask_user` when the request \
+has multiple interpretations. Provide 2-4 options.
+- For "create" requests, generate both the scene and a controls panel via \
+`open_panel(template="controls", ...)`.
+- Custom uniforms go in the "uniforms" field of scene JSON, accessed via `ctx.uniforms.u_name`.
+
+## CRITICAL: AVOID TOOL CALL LOOPS
+
+- **NEVER call the same tool with the same arguments twice.** If you already called a tool \
+and got a result, USE that result — do NOT call the tool again.
+- **Call open_panel ONCE per turn.** After calling it, move on to the next step.
+- **Call read_file ONCE per file section.** After reading, use the content you received.
+- **Maximum 2-3 tool calls per response.** Plan your actions carefully before calling tools. \
+Think about what you need, then make the minimum tool calls necessary.
+- If the system warns you about repeated calls, STOP making tool calls immediately \
+and respond to the user with what you have so far.""",
     },
     {
         "id": "keyframes",
@@ -534,16 +561,6 @@ SYSTEM_PROMPT = _FULL_PROMPT
 _FILE_SECTIONS = {"uploads", "extended_refs"}
 
 
-_CUSTOM_REASONING_SUFFIX = """
-## IMPORTANT: THINK BEFORE ACTING
-
-Before each tool call, briefly explain your reasoning in a text response. \
-State what you're about to do and why. This helps the user follow your progress. \
-Do NOT call tools without explaining your intent first. \
-Do NOT repeatedly call the same tool with the same arguments — if a tool \
-returned the same result twice, try a different approach."""
-
-
 def build_system_prompt(
     provider: str, user_prompt: str = "", has_files: bool = False
 ) -> str:
@@ -567,9 +584,5 @@ def build_system_prompt(
             sections.append(content)
         elif any(kw in prompt_lower for kw in s["keywords"]):
             sections.append(content)
-
-    # Custom providers get an extra instruction to explain reasoning
-    # before tool calls (they lack Anthropic's built-in thinking blocks).
-    sections.append(_CUSTOM_REASONING_SUFFIX.strip())
 
     return "\n\n".join(sections) + "\n"

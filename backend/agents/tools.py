@@ -1,13 +1,121 @@
 """Anthropic tool definitions (JSON Schema) for the siljangnim agent."""
 
+import copy
+
 # Tools excluded from the tool list for custom providers (small models).
 _CUSTOM_EXCLUDED_TOOLS = {"check_browser_errors"}
 
+# Slim tool schemas for custom providers — shorter descriptions to save tokens.
+_CUSTOM_SLIM: dict[str, dict] = {
+    "read_file": {
+        "description": "Read a file. Workspace JSON files support 'section' for dot-path access.",
+        "properties": {
+            "path": {"type": "string", "description": "File path (e.g. 'scene.json', 'uploads/img.png')."},
+            "section": {"type": "string", "description": "JSON dot-path (e.g. 'script.render'). Workspace JSON only."},
+            "offset": {"type": "integer", "description": "Start line (1-based). Source files only."},
+            "limit": {"type": "integer", "description": "Max lines. Source files only."},
+        },
+    },
+    "write_file": {
+        "description": (
+            "Write a file. Use 'content' for full replacement or 'edits' for partial changes. "
+            "JSON files: dot-path edits [{\"path\":\"key\",\"value\":\"...\"}]. "
+            "Text files: search-replace [{\"old_text\":\"...\",\"new_text\":\"...\"}]."
+        ),
+        "properties": {
+            "path": {"type": "string", "description": "File path (e.g. 'scene.json')."},
+            "content": {"type": "string", "description": "Full file content for replacement."},
+            "edits": {"type": "string", "description": "JSON array of edit objects."},
+        },
+    },
+    "list_uploaded_files": {
+        "description": "List uploaded files.",
+    },
+    "list_files": {
+        "description": "List directory contents.",
+        "properties": {
+            "path": {"type": "string", "description": "Relative path. Defaults to '.'."},
+        },
+    },
+    "open_panel": {
+        "description": "Open a UI panel. Use template='controls' with config.controls for sliders/pickers.",
+        "properties": {
+            "id": {"type": "string", "description": "Panel ID."},
+            "title": {"type": "string", "description": "Panel title."},
+            "html": {"type": "string", "description": "HTML content for iframe."},
+            "template": {"type": "string", "description": "'controls', 'orbit_camera', or 'pad2d'."},
+            "config": {"type": "object", "description": "Config for template."},
+            "width": {"type": "number", "description": "Width in px."},
+            "height": {"type": "number", "description": "Height in px."},
+        },
+    },
+    "close_panel": {
+        "description": "Close a panel by ID.",
+    },
+    "start_recording": {
+        "description": "Start recording canvas to WebM.",
+        "properties": {
+            "duration": {"type": "number", "description": "Auto-stop after N seconds."},
+            "fps": {"type": "number", "description": "FPS (default 30)."},
+        },
+    },
+    "stop_recording": {
+        "description": "Stop recording.",
+    },
+    "run_python": {
+        "description": "Run Python code. Working dir: .workspace/projects/<project>/. Timeout: 30s.",
+        "properties": {
+            "code": {"type": "string", "description": "Python code."},
+        },
+    },
+    "run_command": {
+        "description": "Run shell command (pip, ffmpeg, ffprobe, convert, magick only). Timeout: 60s.",
+        "properties": {
+            "command": {"type": "string", "description": "Command to run."},
+        },
+    },
+    "ask_user": {
+        "description": "Ask user a question with 2-4 options.",
+        "properties": {
+            "question": {"type": "string", "description": "Question text."},
+            "options": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "label": {"type": "string"},
+                        "description": {"type": "string"},
+                    },
+                    "required": ["label", "description"],
+                },
+                "description": "Options list.",
+            },
+        },
+    },
+}
+
+
+def _make_slim_tool(tool: dict) -> dict:
+    """Create a slim copy of a tool definition using _CUSTOM_SLIM overrides."""
+    name = tool["name"]
+    slim = _CUSTOM_SLIM.get(name)
+    if not slim:
+        return tool
+    t = copy.deepcopy(tool)
+    t["description"] = slim["description"]
+    if "properties" in slim:
+        t["input_schema"]["properties"] = slim["properties"]
+    return t
+
 
 def get_tools(provider: str = "anthropic") -> list[dict]:
-    """Return tool definitions, optionally filtered by provider."""
+    """Return tool definitions, optionally filtered/slimmed by provider."""
     if provider == "custom":
-        return [t for t in TOOLS if t["name"] not in _CUSTOM_EXCLUDED_TOOLS]
+        return [
+            _make_slim_tool(t)
+            for t in TOOLS
+            if t["name"] not in _CUSTOM_EXCLUDED_TOOLS
+        ]
     return TOOLS
 
 
