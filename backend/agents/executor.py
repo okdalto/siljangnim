@@ -440,7 +440,7 @@ async def _call_anthropic(
 # Model configuration for OpenAI-compatible providers
 _OPENAI_COMPAT_MODELS = {
     "openai": {"model": "gpt-5.2", "max_tokens": 32768},
-    "gemini": {"model": "gemini-2.5-pro", "max_tokens": 65536},
+    "gemini": {"model": "gemini-3.1-pro-preview", "max_tokens": 65536},
     "glm":    {"model": "glm-4-plus", "max_tokens": 4096},
 }
 
