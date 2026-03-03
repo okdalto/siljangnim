@@ -67,10 +67,8 @@ body,
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Selected node highlight */
-.react-flow .react-flow__node.selected,
-.react-flow .react-flow__node.selected:focus,
-.react-flow .react-flow__node.selected:focus-visible {
+/* Selected node highlight (via custom data-attribute, decoupled from ReactFlow) */
+.react-flow__node[data-custom-selected] {
   outline: 2px solid #818cf8 !important;
   outline-offset: 0px !important;
   border-radius: 12px;

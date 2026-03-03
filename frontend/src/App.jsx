@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -108,6 +108,12 @@ export default function App() {
   // Workspace files version counter
   const [workspaceFilesVersion, setWorkspaceFilesVersion] = useState(0);
 
+  // Custom selection state — completely decoupled from ReactFlow's node state.
+  // This avoids race conditions caused by frequent setNodes calls from useNodeDataSync.
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const selectedIdsRef = useRef(selectedIds);
+  selectedIdsRef.current = selectedIds;
+
   // Engine ref (shared via EngineContext and node data)
   const engineRef = useRef(null);
   const sendRef = useRef(null);
@@ -204,9 +210,9 @@ export default function App() {
       e.preventDefault();
       const rf = rfInstanceRef.current;
       if (!rf) return;
-      const selected = nodesRef.current.filter((n) => n.selected);
+      const ids = selectedIdsRef.current;
       rf.fitView({
-        nodes: selected.length > 0 ? selected.map((n) => ({ id: n.id })) : undefined,
+        nodes: ids.size > 0 ? [...ids].map((id) => ({ id })) : undefined,
         duration: 300,
         padding: 0.15,
       });
@@ -482,58 +488,52 @@ export default function App() {
     sendRef.current?.({ type: "console_error", message });
   }, [chat.addLog]);
 
-  // --- Node selection (two-part system) ---
-  // Part 1: Track multi-select modifier on pointerdown (capture phase = fires first)
-  const multiKeyRef = useRef(false);
-  useEffect(() => {
-    const track = (e) => { multiKeyRef.current = e.shiftKey || e.metaKey || e.ctrlKey; };
-    window.addEventListener('pointerdown', track, true);
-    return () => window.removeEventListener('pointerdown', track, true);
-  }, []);
-
-  // Part 2: pointerdown — immediate selection + rAF fallback.
-  // pointerdown fires before ReactFlow's mousedown/click, so ReactFlow may
-  // override our selection.  The guard (Part 3) blocks Shift-deselects, and
-  // the rAF fallback re-checks after all handlers to catch remaining misses.
+  // --- Node selection (fully decoupled from ReactFlow's node state) ---
+  // Uses a separate selectedIds state + DOM data-attribute for visual feedback.
+  // This is immune to race conditions from frequent setNodes calls.
   useEffect(() => {
     const handlePointerDown = (e) => {
-      if (!e.target.closest('.react-flow')) return;
+      const flowEl = e.target.closest('.react-flow');
+      if (!flowEl) return;
+      if (e.target.closest('.react-flow__controls') ||
+          e.target.closest('.react-flow__minimap') ||
+          e.target.closest('.react-flow__panel')) return;
+
       const nodeEl = e.target.closest('.react-flow__node');
-      if (!nodeEl) return;
+
+      if (!nodeEl) {
+        // Pane click — deselect all
+        if (selectedIdsRef.current.size > 0) setSelectedIds(new Set());
+        return;
+      }
+
       const nodeId = nodeEl.getAttribute('data-id');
       if (!nodeId) return;
+
       const isMulti = e.shiftKey || e.metaKey || e.ctrlKey;
-      const prevSelected = new Set(
-        nodesRef.current.filter((n) => n.selected).map((n) => n.id)
-      );
-      const applySelection = () => {
-        setNodes((nds) =>
-          nds.map((n) => {
-            if (n.id === nodeId) return { ...n, selected: true };
-            if (isMulti) return { ...n, selected: prevSelected.has(n.id) };
-            return { ...n, selected: false };
-          })
-        );
-      };
-      applySelection();
-      // Fallback: re-check after ReactFlow's handlers have all run
-      requestAnimationFrame(() => {
-        const node = nodesRef.current.find((n) => n.id === nodeId);
-        if (!node?.selected) applySelection();
+
+      setSelectedIds((prev) => {
+        const next = isMulti ? new Set(prev) : new Set();
+        next.add(nodeId);
+        return next;
       });
     };
+
     window.addEventListener('pointerdown', handlePointerDown);
     return () => window.removeEventListener('pointerdown', handlePointerDown);
-  }, [setNodes]);
+  }, []);
 
-  // Part 3: Intercept onNodesChange — when a multi-select key is held,
-  // block ReactFlow's deselect changes so previously selected nodes stay.
-  const onNodesChangeGuarded = useCallback((changes) => {
-    if (multiKeyRef.current) {
-      changes = changes.filter((c) => !(c.type === 'select' && c.selected === false));
-    }
-    onNodesChange(changes);
-  }, [onNodesChange]);
+  // Sync selection to DOM data-attribute (useLayoutEffect = before paint, no flash)
+  useLayoutEffect(() => {
+    document.querySelectorAll('.react-flow__node').forEach((el) => {
+      const nodeId = el.getAttribute('data-id');
+      if (selectedIds.has(nodeId)) {
+        el.setAttribute('data-custom-selected', '');
+      } else {
+        el.removeAttribute('data-custom-selected');
+      }
+    });
+  }, [selectedIds]);
 
   // Wrap panel close to capture node position + assign undo seq
   const handlePanelClose = useCallback((panelId) => {
@@ -635,7 +635,7 @@ export default function App() {
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChangeGuarded}
+          onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onInit={(instance) => { rfInstanceRef.current = instance; }}
           onNodeDragStop={() => {
@@ -648,6 +648,7 @@ export default function App() {
           }}
           nodeTypes={nodeTypes}
           deleteKeyCode={null}
+          elementsSelectable={false}
           fitView
           minZoom={0.1}
           maxZoom={4}
