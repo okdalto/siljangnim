@@ -106,11 +106,15 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
   }, [durationInput, duration, onDurationChange]);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 h-10 bg-zinc-800 border-t border-zinc-700 flex items-center gap-3 px-4 text-sm text-zinc-300 select-none">
+    <div
+      className="fixed bottom-0 left-0 right-0 z-40 h-10 flex items-center gap-3 px-4 text-sm select-none"
+      style={{ background: "var(--chrome-bg)", borderTop: "1px solid var(--chrome-border)", color: "var(--chrome-text)" }}
+    >
       {/* Play / Pause */}
       <button
         onClick={onTogglePause}
-        className="flex items-center justify-center w-6 h-6 text-zinc-400 hover:text-zinc-100 transition-colors"
+        className="flex items-center justify-center w-6 h-6 transition-colors"
+        style={{ color: "var(--chrome-text-secondary)" }}
         title={paused ? "Play" : "Pause"}
       >
         {paused ? (
@@ -161,8 +165,8 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
       {/* Scrub bar */}
       <div
         ref={barRef}
-        className="flex-1 h-2 bg-zinc-700 rounded-full overflow-hidden relative"
-        style={{ cursor: duration > 0 ? "pointer" : "default" }}
+        className="flex-1 h-2 rounded-full overflow-hidden relative"
+        style={{ cursor: duration > 0 ? "pointer" : "default", background: "var(--input-bg)" }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -177,14 +181,15 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
       {/* Time display */}
       <span
         ref={timeDisplayRef}
-        className="text-xs text-zinc-400 font-mono whitespace-nowrap min-w-[100px] text-right"
+        className="text-xs font-mono whitespace-nowrap min-w-[100px] text-right"
+        style={{ color: "var(--chrome-text-secondary)" }}
       >
         0.00 / {duration > 0 ? duration.toFixed(2) : "\u221E"}
       </span>
 
       {/* Duration input */}
       <div className="flex items-center gap-1">
-        <span className="text-xs text-zinc-500">dur</span>
+        <span className="text-xs" style={{ color: "var(--chrome-text-muted)" }}>dur</span>
         <input
           type="text"
           value={durationInput}
@@ -195,7 +200,8 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
               e.target.blur();
             }
           }}
-          className="w-12 text-xs text-center bg-zinc-700 border border-zinc-600 rounded px-1 py-0.5 text-zinc-300 outline-none focus:border-blue-500"
+          className="w-12 text-xs text-center rounded px-1 py-0.5 outline-none focus:border-blue-500"
+          style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--input-text)" }}
         />
       </div>
     </div>

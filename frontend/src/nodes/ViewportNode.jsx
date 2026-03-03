@@ -189,9 +189,15 @@ export default function ViewportNode({ data }) {
   return (
     <>
       <NodeResizer minWidth={320} minHeight={240} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
-      <div className="w-full h-full bg-black rounded-xl overflow-hidden border border-zinc-700 shadow-2xl flex flex-col">
+      <div
+        className="w-full h-full rounded-xl overflow-hidden shadow-2xl flex flex-col"
+        style={{ background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
+      >
         {/* Header */}
-        <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab shrink-0 flex items-center justify-between leading-5">
+        <div
+          className="px-4 py-2 text-sm font-semibold cursor-grab shrink-0 flex items-center justify-between leading-5"
+          style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
+        >
           <span>Viewport</span>
           <div className="flex items-center gap-2 text-[10px] tabular-nums leading-5 -mt-px">
             <ResolutionSelector
@@ -199,7 +205,7 @@ export default function ViewportNode({ data }) {
               fixedResolution={fixedResolution}
               onResolutionChange={setFixedResolution}
             />
-            <span className="text-zinc-500">
+            <span style={{ color: "var(--chrome-text-muted)" }}>
               {fps} FPS
             </span>
             <span className="px-1.5 py-px rounded-full bg-indigo-900 text-indigo-400">
@@ -207,7 +213,8 @@ export default function ViewportNode({ data }) {
             </span>
             <button
               onClick={toggleFullscreen}
-              className="text-zinc-400 hover:text-zinc-200 transition-colors nodrag"
+              className="transition-colors nodrag"
+              style={{ color: "var(--chrome-text-secondary)" }}
               title="Fullscreen"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -260,7 +267,7 @@ export default function ViewportNode({ data }) {
             </div>
           )}
           {!sceneJSON && !error && (
-            <div className="absolute inset-0 flex items-center justify-center text-zinc-500 text-sm">
+            <div className="absolute inset-0 flex items-center justify-center text-sm" style={{ color: "var(--chrome-text-muted)" }}>
               No scene loaded
             </div>
           )}

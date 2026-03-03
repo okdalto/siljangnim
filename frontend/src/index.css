@@ -1,5 +1,44 @@
 @import "tailwindcss";
 
+/* ── Dark / Light CSS variables ──────────────────────────────────── */
+:root {
+  --chrome-bg: #18181b;
+  --chrome-bg-elevated: #27272a;
+  --chrome-border: #3f3f46;
+  --chrome-border-subtle: #52525b;
+  --chrome-text: #d4d4d8;
+  --chrome-text-secondary: #a1a1aa;
+  --chrome-text-muted: #71717a;
+  --app-bg: #0a0a0a;
+  --app-text: #e0e0e0;
+  --grid-color: #333;
+  --node-bg: #18181b;
+  --node-header-bg: #27272a;
+  --node-border: #3f3f46;
+  --input-bg: #3f3f46;
+  --input-border: #52525b;
+  --input-text: #d4d4d8;
+}
+
+[data-theme="light"] {
+  --chrome-bg: #f4f4f5;
+  --chrome-bg-elevated: #ffffff;
+  --chrome-border: #d4d4d8;
+  --chrome-border-subtle: #a1a1aa;
+  --chrome-text: #27272a;
+  --chrome-text-secondary: #52525b;
+  --chrome-text-muted: #71717a;
+  --app-bg: #e4e4e7;
+  --app-text: #18181b;
+  --grid-color: #a1a1aa;
+  --node-bg: #ffffff;
+  --node-header-bg: #f4f4f5;
+  --node-border: #d4d4d8;
+  --input-bg: #e4e4e7;
+  --input-border: #d4d4d8;
+  --input-text: #27272a;
+}
+
 html,
 body,
 #root {
@@ -8,8 +47,8 @@ body,
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #0a0a0a;
-  color: #e0e0e0;
+  background: var(--app-bg);
+  color: var(--app-text);
   font-family: "Inter", system-ui, -apple-system, sans-serif;
 }
 
@@ -28,8 +67,32 @@ body,
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Selected node highlight */
+.react-flow .react-flow__node.selected,
+.react-flow .react-flow__node.selected:focus,
+.react-flow .react-flow__node.selected:focus-visible {
+  outline: 2px solid #818cf8 !important;
+  outline-offset: 0px !important;
+  border-radius: 12px;
+}
+
 /* Allow text selection inside chat messages */
 .react-flow__node .nowheel.nodrag {
   user-select: text;
   -webkit-user-select: text;
+}
+
+/* React Flow controls — themed via CSS variables */
+.react-flow__controls {
+  background: var(--chrome-bg) !important;
+  border-color: var(--chrome-border) !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+}
+.react-flow__controls button {
+  background: var(--chrome-bg) !important;
+  border-color: var(--chrome-border) !important;
+  fill: var(--chrome-text-secondary) !important;
+}
+.react-flow__controls button:hover {
+  background: var(--chrome-bg-elevated) !important;
 }

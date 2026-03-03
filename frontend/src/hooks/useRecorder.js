@@ -220,245 +220,147 @@ export default function useRecorder(engineRef) {
         };
 
         rafRef.current = requestAnimationFrame(stepFrame);
-      } else if (offline && format === "mp4" && typeof VideoEncoder !== "undefined") {
-        // ── Offline MP4: WebCodecs H.264 + mp4-muxer ──────────────
-        engine.setPaused(true);
-        engine.seekTo(0);
+      } else if (offline && (format === "mp4" || format === "webm") && typeof VideoEncoder !== "undefined") {
+        // ── Offline WebCodecs (MP4 or WebM) ──────────────
+        const offlineWebCodecsRecord = ({
+          MuxerClass, TargetClass, muxerVideoCodec, encoderCodec,
+          blobType, fileExt, muxerExtraOpts,
+        }) => {
+          engine.setPaused(true);
+          engine.seekTo(0);
 
-        const target = new Mp4Target();
-        const muxer = new Mp4Muxer({
-          target,
-          video: {
-            codec: "avc",
+          const target = new TargetClass();
+          const muxer = new MuxerClass({
+            target,
+            video: {
+              codec: muxerVideoCodec,
+              width: canvas.width,
+              height: canvas.height,
+            },
+            ...muxerExtraOpts,
+          });
+
+          const encoder = new VideoEncoder({
+            output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+            error: (e) => console.error("VideoEncoder error:", e),
+          });
+          encoder.configure({
+            codec: encoderCodec,
             width: canvas.width,
             height: canvas.height,
-          },
-          fastStart: "in-memory",
-        });
+            bitrate: videoBitsPerSecond,
+            framerate: fps,
+          });
 
-        const encoder = new VideoEncoder({
-          output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
-          error: (e) => console.error("VideoEncoder error:", e),
-        });
-        encoder.configure({
-          codec: "avc1.4d0032",
-          width: canvas.width,
-          height: canvas.height,
-          bitrate: videoBitsPerSecond,
-          framerate: fps,
-        });
+          const dt = 1 / fps;
+          const endTime =
+            duration && duration > 0
+              ? duration
+              : engine._duration > 0
+                ? engine._duration
+                : 30;
+          let currentTime = 0;
 
-        const dt = 1 / fps;
-        const endTime =
-          duration && duration > 0
-            ? duration
-            : engine._duration > 0
-              ? engine._duration
-              : 30;
-        let currentTime = 0;
+          setElapsedTime(0);
+          setRecording(true);
 
-        setElapsedTime(0);
-        setRecording(true);
+          const BATCH = 6;
+          const MAX_QUEUE = 10;
+          let finalized = false;
 
-        const BATCH = 6;
-        const MAX_QUEUE = 10;
-        let finalized = false;
+          const finalize = async () => {
+            if (finalized) return;
+            finalized = true;
+            finalizeRef.current = null;
+            if (rafRef.current) {
+              cancelAnimationFrame(rafRef.current);
+              rafRef.current = null;
+            }
+            try {
+              await encoder.flush();
+              muxer.finalize();
+              const blob = new Blob([target.buffer], { type: blobType });
+              downloadBlob(blob, `recording_${Date.now()}.${fileExt}`);
+            } catch (e) {
+              console.error("Offline recording finalize error:", e);
+            }
+            encoder.close();
+            setRecording(false);
+            restoreEngine();
+          };
 
-        const finalize = async () => {
-          if (finalized) return;
-          finalized = true;
-          finalizeRef.current = null;
-          if (rafRef.current) {
-            cancelAnimationFrame(rafRef.current);
-            rafRef.current = null;
-          }
-          try {
-            await encoder.flush();
-            muxer.finalize();
-            const blob = new Blob([target.buffer], { type: "video/mp4" });
-            downloadBlob(blob, `recording_${Date.now()}.mp4`);
-          } catch (e) {
-            console.error("Offline recording finalize error:", e);
-          }
-          encoder.close();
-          setRecording(false);
-          restoreEngine();
-        };
+          finalizeRef.current = finalize;
 
-        finalizeRef.current = finalize;
+          encoder.addEventListener("error", () => {
+            console.error("VideoEncoder fatal error – aborting recording");
+            if (rafRef.current) {
+              cancelAnimationFrame(rafRef.current);
+              rafRef.current = null;
+            }
+            encoder.close();
+            setRecording(false);
+            restoreEngine();
+          });
 
-        encoder.addEventListener("error", () => {
-          console.error("VideoEncoder fatal error – aborting recording");
-          if (rafRef.current) {
-            cancelAnimationFrame(rafRef.current);
-            rafRef.current = null;
-          }
-          encoder.close();
-          setRecording(false);
-          restoreEngine();
-        });
-
-        const stepFrame = () => {
-          if (offlineAbortRef.current) {
-            finalize();
-            return;
-          }
-
-          if (encoder.encodeQueueSize >= MAX_QUEUE) {
-            encoder.addEventListener(
-              "dequeue",
-              () => {
-                rafRef.current = requestAnimationFrame(stepFrame);
-              },
-              { once: true },
-            );
-            return;
-          }
-
-          for (let i = 0; i < BATCH; i++) {
-            if (currentTime >= endTime) {
+          const stepFrame = () => {
+            if (offlineAbortRef.current) {
               finalize();
               return;
             }
-            if (encoder.encodeQueueSize >= MAX_QUEUE) break;
 
-            engine.renderOfflineFrame(currentTime, dt);
-            const gl = engine.gl;
-            if (gl) gl.finish();
-
-            const frame = new VideoFrame(canvas, {
-              timestamp: Math.round(currentTime * 1_000_000),
-            });
-            encoder.encode(frame);
-            frame.close();
-
-            currentTime += dt;
-          }
-
-          setElapsedTime(currentTime);
-          rafRef.current = requestAnimationFrame(stepFrame);
-        };
-
-        rafRef.current = requestAnimationFrame(stepFrame);
-      } else if (offline && format === "webm" && typeof VideoEncoder !== "undefined") {
-        // ── Offline WebM: WebCodecs VP9 + webm-muxer ──────────────
-        engine.setPaused(true);
-        engine.seekTo(0);
-
-        const target = new WebmTarget();
-        const muxer = new WebmMuxer({
-          target,
-          video: {
-            codec: "V_VP9",
-            width: canvas.width,
-            height: canvas.height,
-          },
-        });
-
-        const encoder = new VideoEncoder({
-          output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
-          error: (e) => console.error("VideoEncoder error:", e),
-        });
-        encoder.configure({
-          codec: "vp09.00.10.08",
-          width: canvas.width,
-          height: canvas.height,
-          bitrate: videoBitsPerSecond,
-          framerate: fps,
-        });
-
-        const dt = 1 / fps;
-        const endTime =
-          duration && duration > 0
-            ? duration
-            : engine._duration > 0
-              ? engine._duration
-              : 30;
-        let currentTime = 0;
-
-        setElapsedTime(0);
-        setRecording(true);
-
-        const BATCH = 6;
-        const MAX_QUEUE = 10;
-        let finalized = false;
-
-        const finalize = async () => {
-          if (finalized) return;
-          finalized = true;
-          finalizeRef.current = null;
-          if (rafRef.current) {
-            cancelAnimationFrame(rafRef.current);
-            rafRef.current = null;
-          }
-          try {
-            await encoder.flush();
-            muxer.finalize();
-            const blob = new Blob([target.buffer], { type: "video/webm" });
-            downloadBlob(blob, `recording_${Date.now()}.webm`);
-          } catch (e) {
-            console.error("Offline WebM recording finalize error:", e);
-          }
-          encoder.close();
-          setRecording(false);
-          restoreEngine();
-        };
-
-        finalizeRef.current = finalize;
-
-        encoder.addEventListener("error", () => {
-          console.error("VideoEncoder fatal error – aborting recording");
-          if (rafRef.current) {
-            cancelAnimationFrame(rafRef.current);
-            rafRef.current = null;
-          }
-          encoder.close();
-          setRecording(false);
-          restoreEngine();
-        });
-
-        const stepFrame = () => {
-          if (offlineAbortRef.current) {
-            finalize();
-            return;
-          }
-
-          if (encoder.encodeQueueSize >= MAX_QUEUE) {
-            encoder.addEventListener(
-              "dequeue",
-              () => {
-                rafRef.current = requestAnimationFrame(stepFrame);
-              },
-              { once: true },
-            );
-            return;
-          }
-
-          for (let i = 0; i < BATCH; i++) {
-            if (currentTime >= endTime) {
-              finalize();
+            if (encoder.encodeQueueSize >= MAX_QUEUE) {
+              encoder.addEventListener(
+                "dequeue",
+                () => {
+                  rafRef.current = requestAnimationFrame(stepFrame);
+                },
+                { once: true },
+              );
               return;
             }
-            if (encoder.encodeQueueSize >= MAX_QUEUE) break;
 
-            engine.renderOfflineFrame(currentTime, dt);
-            const gl = engine.gl;
-            if (gl) gl.finish();
+            for (let i = 0; i < BATCH; i++) {
+              if (currentTime >= endTime) {
+                finalize();
+                return;
+              }
+              if (encoder.encodeQueueSize >= MAX_QUEUE) break;
 
-            const frame = new VideoFrame(canvas, {
-              timestamp: Math.round(currentTime * 1_000_000),
-            });
-            encoder.encode(frame);
-            frame.close();
+              engine.renderOfflineFrame(currentTime, dt);
+              const gl = engine.gl;
+              if (gl) gl.finish();
 
-            currentTime += dt;
-          }
+              const frame = new VideoFrame(canvas, {
+                timestamp: Math.round(currentTime * 1_000_000),
+              });
+              encoder.encode(frame);
+              frame.close();
 
-          setElapsedTime(currentTime);
+              currentTime += dt;
+            }
+
+            setElapsedTime(currentTime);
+            rafRef.current = requestAnimationFrame(stepFrame);
+          };
+
           rafRef.current = requestAnimationFrame(stepFrame);
         };
 
-        rafRef.current = requestAnimationFrame(stepFrame);
+        if (format === "mp4") {
+          offlineWebCodecsRecord({
+            MuxerClass: Mp4Muxer, TargetClass: Mp4Target,
+            muxerVideoCodec: "avc", encoderCodec: "avc1.4d0032",
+            blobType: "video/mp4", fileExt: "mp4",
+            muxerExtraOpts: { fastStart: "in-memory" },
+          });
+        } else {
+          offlineWebCodecsRecord({
+            MuxerClass: WebmMuxer, TargetClass: WebmTarget,
+            muxerVideoCodec: "V_VP9", encoderCodec: "vp09.00.10.08",
+            blobType: "video/webm", fileExt: "webm",
+            muxerExtraOpts: {},
+          });
+        }
       } else if (offline) {
         // ── Offline fallback: MediaRecorder (WebCodecs unavailable) ──
         engine.setPaused(true);

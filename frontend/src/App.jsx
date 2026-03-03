@@ -17,7 +17,12 @@ import useChat from "./hooks/useChat.js";
 import useCustomPanels from "./hooks/useCustomPanels.js";
 import useKeyframes from "./hooks/useKeyframes.js";
 import useProjectManager from "./hooks/useProjectManager.js";
+import useSettings from "./hooks/useSettings.js";
+import useUniformHistory from "./hooks/useUniformHistory.js";
+import useMessageDispatcher from "./hooks/useMessageDispatcher.js";
+import useNodeDataSync from "./hooks/useNodeDataSync.js";
 import EngineContext from "./contexts/EngineContext.js";
+import SettingsContext from "./contexts/SettingsContext.js";
 import ChatNode from "./nodes/ChatNode.jsx";
 import CustomPanelNode from "./nodes/CustomPanelNode.jsx";
 import ViewportNode from "./nodes/ViewportNode.jsx";
@@ -30,48 +35,6 @@ import SnapGuides from "./components/SnapGuides.jsx";
 import KeyframeEditor from "./components/KeyframeEditor.jsx";
 
 let _undoSeq = 0;
-
-const _PLACEMENT_GAP = 20;
-
-/**
- * Find a non-overlapping position for a new panel among existing nodes.
- * Tries placing to the right of each node, then below, picking the
- * candidate closest to the origin to keep the layout compact.
- */
-function findEmptyPosition(existingNodes, width, height) {
-  const boxes = existingNodes.map((n) => ({
-    x: n.position.x,
-    y: n.position.y,
-    w: n.measured?.width ?? n.width ?? parseFloat(n.style?.width) ?? 320,
-    h: n.measured?.height ?? n.height ?? parseFloat(n.style?.height) ?? 300,
-  }));
-
-  const overlaps = (cx, cy) =>
-    boxes.some(
-      (b) =>
-        cx < b.x + b.w + _PLACEMENT_GAP &&
-        cx + width + _PLACEMENT_GAP > b.x &&
-        cy < b.y + b.h + _PLACEMENT_GAP &&
-        cy + height + _PLACEMENT_GAP > b.y
-    );
-
-  // Build candidate positions: right-of and below each node
-  const candidates = [];
-  for (const b of boxes) {
-    candidates.push({ x: b.x + b.w + _PLACEMENT_GAP, y: b.y });
-    candidates.push({ x: b.x, y: b.y + b.h + _PLACEMENT_GAP });
-  }
-  // Sort by distance from origin (prefer compact placement)
-  candidates.sort((a, b) => a.x + a.y - (b.x + b.y));
-
-  for (const c of candidates) {
-    if (!overlaps(c.x, c.y)) return c;
-  }
-
-  // Fallback: cascade from default position
-  const n = existingNodes.filter((nd) => nd.type === "customPanel").length;
-  return { x: 750 + n * 30, y: 400 + n * 30 };
-}
 
 const nodeTypes = {
   chat: ChatNode,
@@ -117,9 +80,12 @@ const initialNodes = [
 ];
 
 export default function App() {
+  const settingsCtx = useSettings();
+  const { settings } = settingsCtx;
+
   const [nodes, setNodes, rawOnNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState([]);
-  const { onNodesChange: onNodesChangeSnapped, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes);
+  const { onNodesChange: onNodesChangeSnapped, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes, settings);
   const getSeq = useCallback(() => ++_undoSeq, []);
   const onLayoutCommitRef = useRef(null);
   const { onNodesChange, undo, redo, historyRef: layoutHistoryRef } =
@@ -229,67 +195,34 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // --- Uniform change undo/redo ---
-  const uniformHistoryRef = useRef({ past: [], future: [] });
-  const uniformCoalesceRef = useRef({ uniform: null, timer: null });
-  const uniformValuesRef = useRef({});
-
-  // Initialize uniform tracking from sceneJSON (live engine values = ground truth).
-  // Controls now receive these merged values via ctrl.default, so both are in sync.
+  // F key → fit view to selected nodes (or all)
   useEffect(() => {
-    if (sceneJSON?.uniforms) {
-      const vals = uniformValuesRef.current;
-      for (const [name, def] of Object.entries(sceneJSON.uniforms)) {
-        if (def.value !== undefined && !(name in vals)) {
-          vals[name] = def.value;
-        }
-      }
-    }
-  }, [sceneJSON]);
-
-  // Fallback: controls whose uniform isn't in sceneJSON
-  useEffect(() => {
-    const vals = uniformValuesRef.current;
-    for (const ctrl of uiConfig.controls || []) {
-      if (ctrl.uniform && ctrl.default !== undefined && !(ctrl.uniform in vals)) {
-        vals[ctrl.uniform] = ctrl.default;
-      }
-    }
-  }, [uiConfig]);
-
-  const resetUniformHistory = useCallback(() => {
-    uniformHistoryRef.current = { past: [], future: [] };
-    uniformValuesRef.current = {};
-    if (uniformCoalesceRef.current.timer) clearTimeout(uniformCoalesceRef.current.timer);
-    uniformCoalesceRef.current = { uniform: null, timer: null };
+    const handleKeyDown = (e) => {
+      if (e.code !== "KeyF") return;
+      const tag = e.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable) return;
+      e.preventDefault();
+      const rf = rfInstanceRef.current;
+      if (!rf) return;
+      const selected = nodesRef.current.filter((n) => n.selected);
+      rf.fitView({
+        nodes: selected.length > 0 ? selected.map((n) => ({ id: n.id })) : undefined,
+        duration: 300,
+        padding: 0.15,
+      });
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // --- Uniform change undo/redo (extracted hook) ---
+  const {
+    uniformHistoryRef, uniformCoalesceRef, uniformValuesRef,
+    resetUniformHistory, undoUniform, redoUniform,
+  } = useUniformHistory(engineRef, sendRef, sceneJSON, uiConfig);
+
   const resetUniformHistoryRef = useRef(resetUniformHistory);
   resetUniformHistoryRef.current = resetUniformHistory;
-
-  const _applyUniformExternal = useCallback((uniform, value) => {
-    uniformValuesRef.current[uniform] = value;
-    if (engineRef.current) engineRef.current.updateUniform(uniform, value);
-    sendRef.current?.({ type: "set_uniform", uniform, value });
-    window.dispatchEvent(new CustomEvent("uniform-external-change", { detail: { uniform, value } }));
-  }, []);
-
-  const undoUniform = useCallback(() => {
-    const h = uniformHistoryRef.current;
-    if (h.past.length === 0) return false;
-    const entry = h.past.pop();
-    h.future.push(entry);
-    _applyUniformExternal(entry.uniform, entry.oldValue);
-    return true;
-  }, [_applyUniformExternal]);
-
-  const redoUniform = useCallback(() => {
-    const h = uniformHistoryRef.current;
-    if (h.future.length === 0) return false;
-    const entry = h.future.pop();
-    h.past.push(entry);
-    _applyUniformExternal(entry.uniform, entry.newValue);
-    return true;
-  }, [_applyUniformExternal]);
 
   // Undo/Redo shortcuts
   useEffect(() => {
@@ -388,207 +321,21 @@ export default function App() {
   const thinkingBufferRef = useRef("");
   const thinkingLogReceivedRef = useRef(false);
 
-  // Handle incoming WebSocket messages (dispatcher)
-  const handleMessage = useCallback((msg) => {
-    if (!msg || !msg.type) return;
+  // Settings ref for message dispatcher (avoids stale closure in [] deps callback)
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
 
-    switch (msg.type) {
-      case "init":
-        // Suppress layout saves until init settles (prevent overwriting saved positions)
-        initSettledRef.current = false;
-        // Cancel any pending debounced workspace state save
-        if (wsStateTimerRef.current) { clearTimeout(wsStateTimerRef.current); wsStateTimerRef.current = null; }
-        // Reset mount guards so the kf/duration effects skip the restore-triggered fire
-        kfMountedRef.current = false;
-        durationLoopMountedRef.current = false;
-        resetUniformHistoryRef.current();
-        if (msg.scene_json) setSceneJSON(msg.scene_json);
-        if (msg.ui_config) setUiConfig(msg.ui_config);
-        if (msg.projects) project.setProjectList(msg.projects);
-        if (msg.active_project) {
-          project.setActiveProject(msg.active_project.display_name || msg.active_project.name);
-        } else {
-          project.setActiveProject(null);
-        }
-        if (msg.chat_history?.length) chat.restoreMessages(msg.chat_history);
-        chat.setProcessing(!!msg.is_processing);
-        if (msg.workspace_state) {
-          kf.restoreKeyframes(msg.workspace_state.keyframes);
-          if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
-          if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
-          if (msg.workspace_state.node_layouts) {
-            pendingLayoutsRef.current = msg.workspace_state.node_layouts;
-            // Direct application for core nodes — belt-and-suspenders alongside pendingLayoutsRef
-            const layoutMap = new Map(msg.workspace_state.node_layouts.map((l) => [l.id, l]));
-            setNodes((nds) => nds.map((n) => {
-              const saved = layoutMap.get(n.id);
-              return saved ? { ...n, position: saved.position, style: saved.style || n.style } : n;
-            }));
-          }
-        } else {
-          kf.restoreKeyframes(null);
-          setDuration(30);
-          setLoop(true);
-        }
-        panels.restorePanels(msg.panels || {});
-        if (msg.debug_logs) chat.setDebugLogs(msg.debug_logs);
-        project.markSaved();
-        // Allow layout saves after React Flow has fully reconciled (double-rAF)
-        requestAnimationFrame(() => requestAnimationFrame(() => { initSettledRef.current = true; }));
-        break;
-
-      case "assistant_text":
-        chat.addAssistantText(msg.text);
-        break;
-
-      case "chat_done":
-        // Fallback: if thinking content was buffered from agent_status but never
-        // received via agent_log, flush it to debug logs now
-        if (thinkingBufferRef.current && !thinkingLogReceivedRef.current) {
-          chat.addLog({ agent: "Agent", message: thinkingBufferRef.current, level: "thinking" });
-        }
-        thinkingBufferRef.current = "";
-        thinkingLogReceivedRef.current = false;
-        chat.setProcessing(false);
-        chat.setAgentStatus(null);
-        chat.setPendingQuestion(null);
-        setWorkspaceFilesVersion((v) => v + 1);
-        dirtyRef.current = true;
-        project.markUnsaved();
-        break;
-
-      case "agent_status":
-        chat.setAgentStatus({ status: msg.status, detail: msg.detail });
-        if (msg.status === "thinking" && msg.detail) {
-          thinkingBufferRef.current = msg.detail;
-        }
-        break;
-
-      case "scene_update":
-        if (msg.scene_json) setSceneJSON(msg.scene_json);
-        if (msg.ui_config) setUiConfig(msg.ui_config);
-        setWorkspaceFilesVersion((v) => v + 1);
-        dirtyRef.current = true;
-        project.markUnsaved();
-        break;
-
-      case "api_key_required":
-        apiKey.setRequired();
-        break;
-
-      case "api_key_valid":
-        apiKey.setValid();
-        break;
-
-      case "api_key_invalid":
-        apiKey.setInvalid(msg.error);
-        break;
-
-      case "agent_log":
-        chat.addLog({ agent: msg.agent, message: msg.message, level: msg.level });
-        // Mark that full thinking was received via agent_log (clear fallback buffer)
-        if (msg.level === "thinking" && msg.message !== "[Thinking started]" && !msg.message.startsWith("Tool:")) {
-          thinkingBufferRef.current = "";
-          thinkingLogReceivedRef.current = true;
-        }
-        break;
-
-      case "message_injected":
-        chat.addLog({ agent: "System", message: "Message queued for agent", level: "info" });
-        break;
-
-      case "agent_question":
-        chat.setPendingQuestion({ question: msg.question, options: msg.options || [] });
-        break;
-
-      case "project_list":
-        project.setProjectList(msg.projects || []);
-        break;
-
-      case "project_saved":
-        if (msg.meta) project.setActiveProject(msg.meta.display_name || msg.meta.name);
-        dirtyRef.current = false;
-        project.markSaved();
-        break;
-
-      case "project_loaded":
-        // Suppress layout saves until project load settles
-        initSettledRef.current = false;
-        // Cancel any pending debounced workspace state save
-        if (wsStateTimerRef.current) { clearTimeout(wsStateTimerRef.current); wsStateTimerRef.current = null; }
-        // Reset mount guards so the kf/duration effects skip the restore-triggered fire
-        kfMountedRef.current = false;
-        durationLoopMountedRef.current = false;
-        resetUniformHistoryRef.current();
-        if (msg.meta) project.setActiveProject(msg.meta.display_name || msg.meta.name);
-        if (msg.chat_history) chat.restoreMessages(msg.chat_history);
-        if (msg.scene_json) setSceneJSON(msg.scene_json);
-        if (msg.ui_config) setUiConfig(msg.ui_config);
-        if (msg.workspace_state) {
-          kf.restoreKeyframes(msg.workspace_state.keyframes);
-          if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
-          if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
-          if (msg.workspace_state.node_layouts) {
-            pendingLayoutsRef.current = msg.workspace_state.node_layouts;
-            // Direct application for core nodes — belt-and-suspenders alongside pendingLayoutsRef
-            const layoutMap = new Map(msg.workspace_state.node_layouts.map((l) => [l.id, l]));
-            setNodes((nds) => nds.map((n) => {
-              const saved = layoutMap.get(n.id);
-              return saved ? { ...n, position: saved.position, style: saved.style || n.style } : n;
-            }));
-          }
-        } else {
-          kf.restoreKeyframes(null);
-          setDuration(30);
-          setLoop(true);
-        }
-        panels.restorePanels(msg.panels || {});
-        chat.setDebugLogs(msg.debug_logs || []);
-        setWorkspaceFilesVersion((v) => v + 1);
-        dirtyRef.current = false;
-        project.markSaved();
-        // Allow layout saves after React Flow has fully reconciled (double-rAF)
-        requestAnimationFrame(() => requestAnimationFrame(() => { initSettledRef.current = true; }));
-        break;
-
-      case "open_panel":
-        panels.openPanel(msg.id, msg);
-        break;
-
-      case "close_panel":
-        panels.closePanel(msg.id);
-        break;
-
-      case "start_recording":
-        setPaused(false);
-        recorderFnsRef.current.startRecording({
-          fps: msg.fps || 30,
-          duration: msg.duration,
-          filename: msg.filename,
-        });
-        break;
-
-      case "stop_recording":
-        recorderFnsRef.current.stopRecording();
-        break;
-
-      case "workspace_state_update":
-        kfMountedRef.current = false;
-        durationLoopMountedRef.current = false;
-        if (msg.workspace_state) {
-          kf.restoreKeyframes(msg.workspace_state.keyframes);
-          if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
-          if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
-        }
-        break;
-
-      case "project_save_error":
-      case "project_load_error":
-      case "project_delete_error":
-        chat.addErrorLog(msg.error);
-        break;
-    }
-  }, []);
+  // Handle incoming WebSocket messages (extracted hook)
+  const handleMessage = useMessageDispatcher({
+    chat, apiKey, project, panels, kf,
+    setSceneJSON, setUiConfig, setDuration, setLoop,
+    setWorkspaceFilesVersion, dirtyRef, setPaused,
+    recorderFnsRef, pendingLayoutsRef, setNodes,
+    resetUniformHistoryRef, initSettledRef,
+    wsStateTimerRef, kfMountedRef, durationLoopMountedRef,
+    thinkingBufferRef, thinkingLogReceivedRef,
+    settingsRef,
+  });
 
   const { connected, send } = useWebSocket(WS_URL, handleMessage);
   sendRef.current = send;
@@ -650,8 +397,6 @@ export default function App() {
       const vals = uniformValuesRef.current;
 
       // Coalesce rapid changes to the same uniform (e.g. slider drag).
-      // 50ms window — long enough to batch continuous drag events (~16ms at 60fps)
-      // but short enough that separate user actions always create new entries.
       if (c.uniform === uniform && c.timer) {
         clearTimeout(c.timer);
         if (h.past.length > 0) {
@@ -701,12 +446,12 @@ export default function App() {
     panels.restorePanels({});
     project.setActiveProject(null);
     kf.resetKeyframes();
-    setDuration(30);
-    setLoop(true);
+    setDuration(settings.defaultDuration);
+    setLoop(settings.defaultLoop);
     dirtyRef.current = false;
     project.markSaved();
     send(msg);
-  }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, getNodeLayouts, chat.clearAll, chat.messages, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, project.markSaved]);
+  }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, getNodeLayouts, chat.clearAll, chat.messages, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, project.markSaved, settings.defaultDuration, settings.defaultLoop]);
 
   const API_BASE = import.meta.env.DEV
     ? `http://${window.location.hostname}:8000`
@@ -736,6 +481,59 @@ export default function App() {
     chat.addLog({ agent: "WebGL", message, level: "error" });
     sendRef.current?.({ type: "console_error", message });
   }, [chat.addLog]);
+
+  // --- Node selection (two-part system) ---
+  // Part 1: Track multi-select modifier on pointerdown (capture phase = fires first)
+  const multiKeyRef = useRef(false);
+  useEffect(() => {
+    const track = (e) => { multiKeyRef.current = e.shiftKey || e.metaKey || e.ctrlKey; };
+    window.addEventListener('pointerdown', track, true);
+    return () => window.removeEventListener('pointerdown', track, true);
+  }, []);
+
+  // Part 2: pointerdown — immediate selection + rAF fallback.
+  // pointerdown fires before ReactFlow's mousedown/click, so ReactFlow may
+  // override our selection.  The guard (Part 3) blocks Shift-deselects, and
+  // the rAF fallback re-checks after all handlers to catch remaining misses.
+  useEffect(() => {
+    const handlePointerDown = (e) => {
+      if (!e.target.closest('.react-flow')) return;
+      const nodeEl = e.target.closest('.react-flow__node');
+      if (!nodeEl) return;
+      const nodeId = nodeEl.getAttribute('data-id');
+      if (!nodeId) return;
+      const isMulti = e.shiftKey || e.metaKey || e.ctrlKey;
+      const prevSelected = new Set(
+        nodesRef.current.filter((n) => n.selected).map((n) => n.id)
+      );
+      const applySelection = () => {
+        setNodes((nds) =>
+          nds.map((n) => {
+            if (n.id === nodeId) return { ...n, selected: true };
+            if (isMulti) return { ...n, selected: prevSelected.has(n.id) };
+            return { ...n, selected: false };
+          })
+        );
+      };
+      applySelection();
+      // Fallback: re-check after ReactFlow's handlers have all run
+      requestAnimationFrame(() => {
+        const node = nodesRef.current.find((n) => n.id === nodeId);
+        if (!node?.selected) applySelection();
+      });
+    };
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => window.removeEventListener('pointerdown', handlePointerDown);
+  }, [setNodes]);
+
+  // Part 3: Intercept onNodesChange — when a multi-select key is held,
+  // block ReactFlow's deselect changes so previously selected nodes stay.
+  const onNodesChangeGuarded = useCallback((changes) => {
+    if (multiKeyRef.current) {
+      changes = changes.filter((c) => !(c.type === 'select' && c.selected === false));
+    }
+    onNodesChange(changes);
+  }, [onNodesChange]);
 
   // Wrap panel close to capture node position + assign undo seq
   const handlePanelClose = useCallback((panelId) => {
@@ -772,157 +570,18 @@ export default function App() {
     });
   }, [sceneJSON]);
 
-  // Sync data into nodes
-  useEffect(() => {
-    setNodes((nds) => {
-      let updated = nds.map((node) => {
-        if (node.id === "chat") {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              messages: chat.messages,
-              onSend: chat.handleSend,
-              isProcessing: chat.isProcessing,
-              agentStatus: chat.agentStatus,
-              onNewChat: chat.handleNewChat,
-              onCancel: chat.handleCancel,
-              pendingQuestion: chat.pendingQuestion,
-              onAnswer: chat.handleAnswer,
-            },
-          };
-        }
-        if (node.id === "viewport") {
-          return {
-            ...node,
-            data: { ...node.data, sceneJSON, engineRef, paused, onError: handleShaderError },
-          };
-        }
-        if (node.id === "debugLog") {
-          return {
-            ...node,
-            data: { ...node.data, logs: chat.debugLogs },
-          };
-        }
-        if (node.id === "projectBrowser") {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              projects: project.projectList,
-              activeProject: project.activeProject,
-              onSave: project.handleProjectSave,
-              onLoad: project.handleProjectLoad,
-              onDelete: project.handleProjectDelete,
-              onImport: project.handleProjectImport,
-              onDeleteWorkspaceFile: handleDeleteWorkspaceFile,
-              workspaceFilesVersion,
-            },
-          };
-        }
-        if (node.type === "customPanel") {
-          const panelId = node.id.replace("panel_", "");
-          const panel = panels.customPanels.get(panelId);
-          if (panel) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                title: panel.title,
-                html: panel.html,
-                controls: panel.controls ? mergeControlDefaults(panel.controls) : undefined,
-                onUniformChange: handleUniformChange,
-                engineRef,
-                onClose: () => handlePanelClose(panelId),
-                keyframeManagerRef: kf.keyframeManagerRef,
-                onKeyframesChange: kf.handlePanelKeyframesChange,
-                onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
-                onDurationChange: setDuration,
-                onLoopChange: setLoop,
-                duration,
-                loop,
-              },
-            };
-          }
-        }
-        return node;
-      });
-
-      // Add/remove custom panel nodes
-      const panelNodeIds = new Set([...panels.customPanels.keys()].map((id) => `panel_${id}`));
-      for (const [panelId, panel] of panels.customPanels) {
-        const nodeId = `panel_${panelId}`;
-        if (!updated.some((n) => n.id === nodeId)) {
-          const pw = panel.width || 320;
-          const ph = panel.height || 300;
-          const pos = findEmptyPosition(updated, pw, ph);
-          updated = [
-            ...updated,
-            {
-              id: nodeId,
-              type: "customPanel",
-              position: pos,
-              style: { width: pw, height: ph },
-              data: {
-                title: panel.title,
-                html: panel.html,
-                controls: panel.controls ? mergeControlDefaults(panel.controls) : undefined,
-                onUniformChange: handleUniformChange,
-                engineRef,
-                onClose: () => handlePanelClose(panelId),
-                keyframeManagerRef: kf.keyframeManagerRef,
-                onKeyframesChange: kf.handlePanelKeyframesChange,
-                onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
-                onDurationChange: setDuration,
-                onLoopChange: setLoop,
-                duration,
-                loop,
-              },
-            },
-          ];
-        }
-      }
-      updated = updated.filter((n) => n.type !== "customPanel" || panelNodeIds.has(n.id));
-
-      // Apply pending node layouts from project load (incremental — keep unapplied entries for nodes not yet created)
-      if (pendingLayoutsRef.current) {
-        const layoutMap = new Map(pendingLayoutsRef.current.map((l) => [l.id, l]));
-        const appliedIds = new Set();
-        updated = updated.map((n) => {
-          const saved = layoutMap.get(n.id);
-          if (saved) {
-            appliedIds.add(n.id);
-            return { ...n, position: saved.position, style: saved.style || n.style };
-          }
-          return n;
-        });
-        const remaining = pendingLayoutsRef.current.filter((l) => !appliedIds.has(l.id));
-        pendingLayoutsRef.current = remaining.length > 0 ? remaining : null;
-      }
-
-      // Restore position for undo'd panel close
-      if (panels.pendingRestoreRef.current) {
-        const r = panels.pendingRestoreRef.current;
-        updated = updated.map((n) =>
-          n.id === r.id ? { ...n, position: r.position || n.position, style: r.style || n.style } : n
-        );
-        panels.pendingRestoreRef.current = null;
-      }
-
-      return updated;
-    });
-  }, [
-    chat.messages, chat.handleSend, chat.isProcessing, chat.agentStatus, chat.handleNewChat, chat.handleCancel,
-    chat.pendingQuestion, chat.handleAnswer, chat.debugLogs,
-    sceneJSON, paused, uiConfig, handleUniformChange,
-    project.projectList, project.activeProject, project.handleProjectSave, project.handleProjectLoad, project.handleProjectDelete,
-    handleDeleteWorkspaceFile, workspaceFilesVersion, handleShaderError,
-    panels.customPanels, handlePanelClose, mergeControlDefaults,
-    setNodes, kf.handleOpenKeyframeEditor, kf.keyframeVersion, kf.handlePanelKeyframesChange, kf.keyframeManagerRef,
-    duration, loop,
-  ]);
+  // Sync data into nodes (extracted hook)
+  useNodeDataSync({
+    setNodes, chat, sceneJSON, paused, uiConfig,
+    handleUniformChange, project, handleDeleteWorkspaceFile,
+    workspaceFilesVersion, handleShaderError,
+    panels, handlePanelClose, mergeControlDefaults,
+    kf, duration, loop, engineRef, pendingLayoutsRef,
+    setDuration, setLoop,
+  });
 
   return (
+    <SettingsContext.Provider value={settingsCtx}>
     <EngineContext.Provider value={engineRef}>
       <div className="w-screen h-screen pt-10 pb-10">
         <Toolbar
@@ -930,6 +589,7 @@ export default function App() {
           activeProject={project.activeProject}
           connected={connected}
           saveStatus={project.saveStatus}
+          onChangeApiKey={() => apiKey.setRequired()}
         />
         <Timeline
           paused={paused}
@@ -953,6 +613,8 @@ export default function App() {
             onSubmit={apiKey.handleApiKeySubmit}
             error={apiKey.apiKeyError}
             loading={apiKey.apiKeyLoading}
+            onClose={() => apiKey.setValid()}
+            savedConfig={apiKey.savedConfig}
           />
         )}
 
@@ -973,7 +635,7 @@ export default function App() {
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
+          onNodesChange={onNodesChangeGuarded}
           onEdgesChange={onEdgesChange}
           onInit={(instance) => { rfInstanceRef.current = instance; }}
           onNodeDragStop={() => {
@@ -993,13 +655,12 @@ export default function App() {
           proOptions={{ hideAttribution: true }}
         >
           <SnapGuides guides={guides} />
-          <Background color="#333" gap={24} size={1} />
-          <Controls
-            className="!bg-zinc-800 !border-zinc-700 !shadow-xl [&>button]:!bg-zinc-800 [&>button]:!border-zinc-700 [&>button]:!fill-zinc-400 [&>button:hover]:!bg-zinc-700"
-          />
+          <Background color="var(--grid-color)" gap={settings.gridGap} size={settings.gridDotSize} style={{ backgroundColor: settings.canvasBg }} />
+          <Controls />
         </ReactFlow>
 
       </div>
     </EngineContext.Provider>
+    </SettingsContext.Provider>
   );
 }

@@ -26,11 +26,12 @@ function BtnGroup({ items, value, onChange, disabled }) {
             key={val}
             onClick={() => onChange(val)}
             disabled={disabled}
-            className={`text-xs px-2 py-1 rounded transition-colors ${
+            className={`text-xs px-2 py-1 rounded transition-colors ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
+            style={
               value === val
-                ? "bg-blue-600 text-white"
-                : "bg-zinc-700 text-zinc-400 hover:text-zinc-200"
-            } ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
+                ? { background: "#3b82f6", color: "#fff" }
+                : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
+            }
           >
             {label}
           </button>
@@ -200,16 +201,19 @@ export default function RecordMenu({
 
       {/* Popover */}
       {open && !recording && (
-        <div className="absolute bottom-full left-0 mb-2 w-72 bg-zinc-800 border border-zinc-600 rounded-lg shadow-xl p-3 text-xs text-zinc-300 z-50">
+        <div
+          className="absolute bottom-full left-0 mb-2 w-72 rounded-lg shadow-xl p-3 text-xs z-50"
+          style={{ background: "var(--chrome-bg-elevated)", border: "1px solid var(--chrome-border)", color: "var(--chrome-text)" }}
+        >
           {/* Format */}
           <div className="mb-2">
-            <div className="text-zinc-500 mb-1">Format</div>
+            <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>Format</div>
             <BtnGroup items={FORMATS} value={format} onChange={handleFormatChange} />
           </div>
 
           {/* FPS */}
           <div className="mb-2">
-            <div className="text-zinc-500 mb-1">FPS</div>
+            <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>FPS</div>
             {customFps ? (
               <input
                 type="text"
@@ -224,7 +228,8 @@ export default function RecordMenu({
                     setFpsInput(String(fps));
                   }
                 }}
-                className="w-16 text-xs text-center bg-zinc-700 border border-zinc-600 rounded px-1 py-1 text-zinc-300 outline-none focus:border-blue-500"
+                className="w-16 text-xs text-center rounded px-1 py-1 outline-none focus:border-blue-500"
+                style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--input-text)" }}
               />
             ) : (
               <div className="flex gap-0.5">
@@ -232,11 +237,12 @@ export default function RecordMenu({
                   <button
                     key={f}
                     onClick={() => handleFpsPreset(f)}
-                    className={`text-xs px-2 py-1 rounded transition-colors ${
+                    className="text-xs px-2 py-1 rounded transition-colors"
+                    style={
                       fps === f && !customFps
-                        ? "bg-blue-600 text-white"
-                        : "bg-zinc-700 text-zinc-400 hover:text-zinc-200"
-                    }`}
+                        ? { background: "#3b82f6", color: "#fff" }
+                        : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
+                    }
                   >
                     {f}
                   </button>
@@ -246,11 +252,12 @@ export default function RecordMenu({
                     setCustomFps(true);
                     setFpsInput(String(fps));
                   }}
-                  className={`text-xs px-2 py-1 rounded transition-colors ${
+                  className="text-xs px-2 py-1 rounded transition-colors"
+                  style={
                     !FPS_PRESETS.includes(fps)
-                      ? "bg-blue-600 text-white"
-                      : "bg-zinc-700 text-zinc-400 hover:text-zinc-200"
-                  }`}
+                      ? { background: "#3b82f6", color: "#fff" }
+                      : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
+                  }
                 >
                   {!FPS_PRESETS.includes(fps) ? fps : "..."}
                 </button>
@@ -261,14 +268,14 @@ export default function RecordMenu({
           {/* Quality (hidden for PNG — lossless) */}
           {format !== "PNG" && (
             <div className="mb-2">
-              <div className="text-zinc-500 mb-1">Quality</div>
+              <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>Quality</div>
               <BtnGroup items={QUALITIES} value={quality} onChange={setQuality} />
             </div>
           )}
 
           {/* Mode */}
           <div className="mb-2">
-            <div className="text-zinc-500 mb-1">Mode</div>
+            <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>Mode</div>
             <BtnGroup items={MODES} value={mode} onChange={handleModeChange} disabled={format === "PNG"} />
           </div>
 
@@ -282,14 +289,14 @@ export default function RecordMenu({
                   onChange={(e) => setAlpha(e.target.checked)}
                   className="accent-blue-600"
                 />
-                <span className="text-zinc-400">Transparent background (alpha)</span>
+                <span style={{ color: "var(--chrome-text-secondary)" }}>Transparent background (alpha)</span>
               </label>
             </div>
           )}
 
           {/* Resolution */}
           <div className="mb-3">
-            <div className="text-zinc-500 mb-1">Resolution</div>
+            <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>Resolution</div>
             {customRes ? (
               <div className="flex items-center gap-1">
                 <input
@@ -298,19 +305,22 @@ export default function RecordMenu({
                   placeholder="W"
                   value={customW}
                   onChange={(e) => setCustomW(e.target.value)}
-                  className="w-16 text-xs text-center bg-zinc-700 border border-zinc-600 rounded px-1 py-1 text-zinc-300 outline-none focus:border-blue-500"
+                  className="w-16 text-xs text-center rounded px-1 py-1 outline-none focus:border-blue-500"
+                  style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--input-text)" }}
                 />
-                <span className="text-zinc-500">×</span>
+                <span style={{ color: "var(--chrome-text-muted)" }}>×</span>
                 <input
                   type="text"
                   placeholder="H"
                   value={customH}
                   onChange={(e) => setCustomH(e.target.value)}
-                  className="w-16 text-xs text-center bg-zinc-700 border border-zinc-600 rounded px-1 py-1 text-zinc-300 outline-none focus:border-blue-500"
+                  className="w-16 text-xs text-center rounded px-1 py-1 outline-none focus:border-blue-500"
+                  style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--input-text)" }}
                 />
                 <button
                   onClick={() => setCustomRes(false)}
-                  className="text-xs px-1.5 py-1 rounded bg-zinc-700 text-zinc-400 hover:text-zinc-200"
+                  className="text-xs px-1.5 py-1 rounded"
+                  style={{ background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }}
                 >
                   Cancel
                 </button>
@@ -321,11 +331,12 @@ export default function RecordMenu({
                   <button
                     key={p.label}
                     onClick={() => handleResolutionChange(p.label)}
-                    className={`text-xs px-2 py-1 rounded transition-colors ${
+                    className="text-xs px-2 py-1 rounded transition-colors"
+                    style={
                       resolution === p.label && !customRes
-                        ? "bg-blue-600 text-white"
-                        : "bg-zinc-700 text-zinc-400 hover:text-zinc-200"
-                    }`}
+                        ? { background: "#3b82f6", color: "#fff" }
+                        : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
+                    }
                   >
                     {p.label === "Canvas"
                       ? `Canvas (${canvasWidth}×${canvasHeight})`
@@ -338,7 +349,8 @@ export default function RecordMenu({
                     setCustomW(String(canvasWidth));
                     setCustomH(String(canvasHeight));
                   }}
-                  className="text-xs px-2 py-1 rounded transition-colors bg-zinc-700 text-zinc-400 hover:text-zinc-200"
+                  className="text-xs px-2 py-1 rounded transition-colors"
+                  style={{ background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }}
                 >
                   Custom
                 </button>

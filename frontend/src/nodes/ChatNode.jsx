@@ -145,14 +145,18 @@ export default function ChatNode({ data }) {
 
   return (
     <div
-      className="w-full h-full bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col overflow-hidden"
+      className="w-full h-full rounded-xl shadow-2xl flex flex-col overflow-hidden"
+      style={{ background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <NodeResizer minWidth={280} minHeight={200} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
       {/* Header */}
-      <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-sm font-semibold text-zinc-300 cursor-grab flex items-center justify-between">
+      <div
+        className="px-4 py-2 text-sm font-semibold cursor-grab flex items-center justify-between"
+        style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
+      >
         Chat
         <button
           type="button"
@@ -182,16 +186,19 @@ export default function ChatNode({ data }) {
       {/* Messages */}
       <div ref={messagesRef} className="flex-1 overflow-y-auto p-3 space-y-2 text-sm nowheel nodrag">
         {messages.length === 0 && (
-          <p className="text-zinc-500 italic">Describe what you want to create...</p>
+          <p className="italic" style={{ color: "var(--chrome-text-muted)" }}>Describe what you want to create...</p>
         )}
         {messages.map((msg, i) => (
           <div
             key={i}
             className={`px-3 py-2 rounded-lg max-w-[90%] ${
-              msg.role === "user"
-                ? "bg-indigo-600 text-white ml-auto"
-                : "bg-zinc-800 text-zinc-300"
+              msg.role === "user" ? "ml-auto" : ""
             }`}
+            style={
+              msg.role === "user"
+                ? { background: "#6366f1", color: "#fff" }
+                : { background: "var(--chrome-bg-elevated)", color: "var(--chrome-text)" }
+            }
           >
             {/* Show attached file chips on user messages */}
             {msg.role === "user" && msg.files?.length > 0 && (
@@ -209,7 +216,7 @@ export default function ChatNode({ data }) {
           </div>
         ))}
         {isProcessing && !pendingQuestion && (
-          <div className="px-3 py-2 rounded-lg max-w-[90%] bg-zinc-800 text-zinc-500">
+          <div className="px-3 py-2 rounded-lg max-w-[90%]" style={{ background: "var(--chrome-bg-elevated)", color: "var(--chrome-text-muted)" }}>
             <div className="flex items-center gap-1.5">
               <span className="flex gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:0ms]" />
@@ -232,14 +239,15 @@ export default function ChatNode({ data }) {
           </div>
         )}
         {pendingQuestion && (
-          <div className="px-3 py-2 rounded-lg max-w-[90%] bg-zinc-800 text-zinc-300 space-y-2">
+          <div className="px-3 py-2 rounded-lg max-w-[90%] space-y-2" style={{ background: "var(--chrome-bg-elevated)", color: "var(--chrome-text)" }}>
             <p className="text-sm font-medium">{pendingQuestion.question}</p>
             <div className="flex flex-col gap-1.5">
               {pendingQuestion.options.map((opt, i) => (
                 <button
                   key={i}
                   onClick={() => onAnswer?.(opt.label)}
-                  className="text-left px-3 py-2 rounded-lg bg-zinc-700 hover:bg-indigo-600 transition-colors text-sm"
+                  className="text-left px-3 py-2 rounded-lg hover:bg-indigo-600 transition-colors text-sm"
+                  style={{ background: "var(--input-bg)" }}
                 >
                   <span className="font-medium text-zinc-100">{opt.label}</span>
                   {opt.description && (
@@ -255,7 +263,7 @@ export default function ChatNode({ data }) {
 
       {/* Attached files preview */}
       {attachedFiles.length > 0 && (
-        <div className="px-2 pt-2 flex flex-wrap gap-1 border-t border-zinc-700/50">
+        <div className="px-2 pt-2 flex flex-wrap gap-1" style={{ borderTop: "1px solid var(--node-border)" }}>
           {attachedFiles.map((file, i) => (
             <FileChip key={i} file={file} onRemove={() => removeFile(i)} />
           ))}
@@ -263,7 +271,7 @@ export default function ChatNode({ data }) {
       )}
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-2 border-t border-zinc-700 flex gap-2 nodrag">
+      <form onSubmit={handleSubmit} className="p-2 flex gap-2 nodrag" style={{ borderTop: "1px solid var(--node-border)" }}>
         {/* Hidden file input */}
         <input
           ref={fileInputRef}
@@ -304,8 +312,8 @@ export default function ChatNode({ data }) {
           }}
           placeholder={pendingQuestion ? "Type your answer..." : isProcessing ? "Type to send while agent is working..." : "Type a prompt... (Shift+Enter for newline)"}
           rows={1}
-          className="flex-1 bg-zinc-800 text-zinc-100 text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
-          style={{ maxHeight: "120px", overflowY: "auto" }}
+          className="flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+          style={{ background: "var(--input-bg)", color: "var(--input-text)", maxHeight: "120px", overflowY: "auto" }}
         />
         <button
           type="submit"
