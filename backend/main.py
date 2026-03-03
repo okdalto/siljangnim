@@ -29,7 +29,7 @@ from ws_handlers import WsContext, HANDLERS
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    ctx.api_key = config.load_api_key()
+    ctx.api_key = config.load_config()
 
     workspace.init_workspace()
     agents.load_conversations()

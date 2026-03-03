@@ -6,7 +6,9 @@ from pathlib import Path
 from typing import Callable, Awaitable
 
 import anthropic
+import openai as openai_lib
 
+import config as app_config
 import workspace
 from agents.prompts import SYSTEM_PROMPT
 from agents.tools import TOOLS
@@ -121,10 +123,11 @@ def _build_multimodal_content(user_prompt: str, files: list[dict]) -> list[dict]
 
 _MAX_TURNS = 30
 _MAX_COMPACT_RETRIES = 2
+_MAX_OVERLOAD_RETRIES = 5
 
 
 # ---------------------------------------------------------------------------
-# Prompt classifier — routes to appropriate model
+# Prompt classifier — routes to appropriate model (Anthropic only)
 # ---------------------------------------------------------------------------
 
 _CLASSIFY_SYSTEM = """\
@@ -237,6 +240,276 @@ def _compact_messages(messages: list[dict]) -> None:
 
 
 # ---------------------------------------------------------------------------
+# GLM (OpenAI-compatible) conversion helpers
+# ---------------------------------------------------------------------------
+
+def _convert_messages_to_openai(system: str, messages: list[dict]) -> list[dict]:
+    """Convert internal (Anthropic-format) messages to OpenAI chat format."""
+    result = [{"role": "system", "content": system}]
+
+    for msg in messages:
+        role = msg["role"]
+        content = msg.get("content")
+
+        if role == "user":
+            if isinstance(content, str):
+                result.append({"role": "user", "content": content})
+            elif isinstance(content, list):
+                tool_results = [
+                    b for b in content
+                    if isinstance(b, dict) and b.get("type") == "tool_result"
+                ]
+                other_blocks = [
+                    b for b in content
+                    if not (isinstance(b, dict) and b.get("type") == "tool_result")
+                ]
+
+                for tr in tool_results:
+                    result.append({
+                        "role": "tool",
+                        "tool_call_id": tr.get("tool_use_id", ""),
+                        "content": tr.get("content", ""),
+                    })
+
+                if other_blocks:
+                    parts = []
+                    for block in other_blocks:
+                        if not isinstance(block, dict):
+                            continue
+                        if block.get("type") == "text":
+                            parts.append({"type": "text", "text": block["text"]})
+                        elif block.get("type") == "image":
+                            source = block.get("source", {})
+                            mime = source.get("media_type", "image/png")
+                            data = source.get("data", "")
+                            parts.append({
+                                "type": "image_url",
+                                "image_url": {"url": f"data:{mime};base64,{data}"},
+                            })
+                    if parts:
+                        if len(parts) == 1 and parts[0].get("type") == "text":
+                            result.append({"role": "user", "content": parts[0]["text"]})
+                        else:
+                            result.append({"role": "user", "content": parts})
+
+        elif role == "assistant":
+            if isinstance(content, str):
+                result.append({"role": "assistant", "content": content})
+            elif isinstance(content, list):
+                text_parts = []
+                tool_calls = []
+                for block in content:
+                    if not isinstance(block, dict):
+                        continue
+                    if block.get("type") == "text":
+                        text_parts.append(block["text"])
+                    elif block.get("type") == "tool_use":
+                        tool_calls.append({
+                            "id": block["id"],
+                            "type": "function",
+                            "function": {
+                                "name": block["name"],
+                                "arguments": json.dumps(block.get("input", {})),
+                            },
+                        })
+                    # Skip thinking blocks
+
+                text_content = "\n".join(text_parts) if text_parts else None
+                if not text_content and not tool_calls:
+                    text_content = "(continued)"
+                msg_dict = {"role": "assistant", "content": text_content}
+                if tool_calls:
+                    msg_dict["tool_calls"] = tool_calls
+                result.append(msg_dict)
+
+    return result
+
+
+def _convert_tools_to_openai(tools: list[dict]) -> list[dict]:
+    """Convert Anthropic tool definitions to OpenAI function-calling format."""
+    result = []
+    for tool in tools:
+        result.append({
+            "type": "function",
+            "function": {
+                "name": tool["name"],
+                "description": tool.get("description", ""),
+                "parameters": tool.get("input_schema", {"type": "object", "properties": {}}),
+            },
+        })
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Provider-specific API call functions
+# ---------------------------------------------------------------------------
+
+async def _call_anthropic(
+    client: anthropic.AsyncAnthropic,
+    model_name: str,
+    max_tokens: int,
+    messages: list[dict],
+    log: LogCallback,
+    on_status: StatusCallback | None,
+) -> tuple[list[dict], str]:
+    """Stream Anthropic API call. Returns (content_blocks, stop_reason).
+
+    content_blocks: list of dicts with 'type' and type-specific fields.
+    stop_reason: 'end_turn', 'tool_use', or 'max_tokens'.
+    Raises anthropic exceptions on error (handled by caller).
+    """
+    current_block_type = None
+    thinking_chunks: list[str] = []
+    thinking_len = 0
+
+    async with client.messages.stream(
+        model=model_name,
+        max_tokens=max_tokens,
+        thinking={"type": "adaptive"},
+        system=SYSTEM_PROMPT,
+        tools=TOOLS,
+        messages=messages,
+    ) as stream:
+        async for event in stream:
+            if event.type == "content_block_start":
+                current_block_type = event.content_block.type
+                if current_block_type == "thinking":
+                    thinking_chunks = []
+                    thinking_len = 0
+                    await log("Agent", "[Thinking started]", "thinking")
+                    if on_status:
+                        await on_status("thinking", "")
+                elif current_block_type == "tool_use":
+                    tool_name = getattr(event.content_block, "name", "")
+                    if on_status:
+                        await on_status("tool_use", tool_name)
+
+            elif event.type == "content_block_delta":
+                delta = event.delta
+                delta_type = getattr(delta, "type", "")
+                if delta_type == "thinking_delta":
+                    chunk = getattr(delta, "thinking", "")
+                    if chunk:
+                        thinking_chunks.append(chunk)
+                        thinking_len += len(chunk)
+                        if thinking_len % 300 < len(chunk):
+                            if on_status:
+                                await on_status("thinking", "".join(thinking_chunks))
+
+            elif event.type == "content_block_stop":
+                if current_block_type == "thinking" and thinking_chunks:
+                    full_thinking = "".join(thinking_chunks)
+                    await log("Agent", full_thinking, "thinking")
+                    if on_status:
+                        await on_status("thinking", full_thinking)
+                current_block_type = None
+
+        response = await stream.get_final_message()
+
+    # Serialize content blocks to internal dict format
+    content_blocks = []
+    for block in response.content:
+        if block.type == "thinking":
+            content_blocks.append({
+                "type": "thinking",
+                "thinking": block.thinking,
+                "signature": block.signature,
+            })
+        elif block.type == "text":
+            content_blocks.append({"type": "text", "text": block.text})
+        elif block.type == "tool_use":
+            content_blocks.append({
+                "type": "tool_use",
+                "id": block.id,
+                "name": block.name,
+                "input": block.input,
+            })
+
+    return content_blocks, response.stop_reason
+
+
+async def _call_glm(
+    messages: list[dict],
+    log: LogCallback,
+    on_status: StatusCallback | None,
+) -> tuple[list[dict], str]:
+    """Stream GLM API call via OpenAI SDK. Returns (content_blocks, stop_reason)."""
+    client = openai_lib.AsyncOpenAI(
+        api_key=app_config.get_api_key("glm"),
+        base_url=app_config.get_glm_base_url(),
+    )
+
+    openai_messages = _convert_messages_to_openai(SYSTEM_PROMPT, messages)
+    openai_tools = _convert_tools_to_openai(TOOLS)
+
+    if on_status:
+        await on_status("thinking", "Calling GLM API...")
+
+    stream = await client.chat.completions.create(
+        model="glm-4-plus",
+        max_tokens=4096,
+        messages=openai_messages,
+        tools=openai_tools if openai_tools else openai_lib.NOT_GIVEN,
+        stream=True,
+    )
+
+    content_text = ""
+    tool_calls_acc: dict[int, dict] = {}
+    finish_reason = None
+
+    async for chunk in stream:
+        if not chunk.choices:
+            continue
+        choice = chunk.choices[0]
+        delta = choice.delta
+
+        if delta and delta.content:
+            content_text += delta.content
+
+        if delta and delta.tool_calls:
+            for tc in delta.tool_calls:
+                idx = tc.index
+                if idx not in tool_calls_acc:
+                    tool_calls_acc[idx] = {"id": "", "name": "", "arguments": ""}
+                if tc.id:
+                    tool_calls_acc[idx]["id"] = tc.id
+                if tc.function:
+                    if tc.function.name:
+                        tool_calls_acc[idx]["name"] = tc.function.name
+                        if on_status:
+                            await on_status("tool_use", tc.function.name)
+                    if tc.function.arguments:
+                        tool_calls_acc[idx]["arguments"] += tc.function.arguments
+
+        if choice.finish_reason:
+            finish_reason = choice.finish_reason
+
+    # Build normalized content blocks (same format as Anthropic)
+    content_blocks = []
+    if content_text:
+        content_blocks.append({"type": "text", "text": content_text})
+
+    for idx in sorted(tool_calls_acc.keys()):
+        tc = tool_calls_acc[idx]
+        try:
+            args = json.loads(tc["arguments"]) if tc["arguments"] else {}
+        except json.JSONDecodeError:
+            args = {}
+        content_blocks.append({
+            "type": "tool_use",
+            "id": tc["id"],
+            "name": tc["name"],
+            "input": args,
+        })
+
+    # Map OpenAI finish_reason to Anthropic stop_reason
+    _REASON_MAP = {"stop": "end_turn", "tool_calls": "tool_use", "length": "max_tokens"}
+    stop_reason = _REASON_MAP.get(finish_reason, "end_turn")
+
+    return content_blocks, stop_reason
+
+
+# ---------------------------------------------------------------------------
 # Agent execution loop
 # ---------------------------------------------------------------------------
 
@@ -263,8 +536,9 @@ async def run_agent(
     files: list[dict] | None = None,
     injected_queue: asyncio.Queue | None = None,
 ) -> dict:
-    """Run the agent for one user prompt using the Anthropic API directly.
+    """Run the agent for one user prompt.
 
+    Supports both Anthropic and GLM providers (selected via config).
     Returns {"chat_text": str} with the agent's conversational reply.
     """
     await log("System", f"Starting agent for: \"{user_prompt}\"", "info")
@@ -272,17 +546,24 @@ async def run_agent(
         file_names = ", ".join(f["name"] for f in files)
         await log("System", f"Files attached: {file_names}", "info")
 
-    client = anthropic.AsyncAnthropic()
+    provider = app_config.get_provider()
 
-    # Classify prompt and choose model
-    tier = await _classify_prompt(client, user_prompt)
-    if tier == "complex":
-        model_name = "claude-opus-4-6"
-        max_tokens = 65536
+    # Provider-specific setup
+    if provider == "glm":
+        model_name = "glm-4-plus"
+        max_tokens = 4096
+        client = None  # GLM uses its own client inside _call_glm
     else:
-        model_name = "claude-sonnet-4-6"
-        max_tokens = 16384
-    await log("System", f"Model: {model_name}", "info")
+        client = anthropic.AsyncAnthropic()
+        tier = await _classify_prompt(client, user_prompt)
+        if tier == "complex":
+            model_name = "claude-opus-4-6"
+            max_tokens = 65536
+        else:
+            model_name = "claude-sonnet-4-6"
+            max_tokens = 16384
+
+    await log("System", f"Provider: {provider} | Model: {model_name}", "info")
 
     # Build user message content
     if files:
@@ -317,60 +598,20 @@ async def run_agent(
                 if m.get("content") not in (None, "", [], [{}])
             ]
 
-            # Stream the API call so thinking/status updates reach the
-            # frontend in real-time instead of blocking until completion.
-            current_block_type = None
-            thinking_chunks: list[str] = []
-            thinking_len = 0
-
+            # --- Call the appropriate provider ---
             try:
-                async with client.messages.stream(
-                    model=model_name,
-                    max_tokens=max_tokens,
-                    thinking={"type": "adaptive"},
-                    system=SYSTEM_PROMPT,
-                    tools=TOOLS,
-                    messages=messages,
-                ) as stream:
-                    async for event in stream:
-                        if event.type == "content_block_start":
-                            current_block_type = event.content_block.type
-                            if current_block_type == "thinking":
-                                thinking_chunks = []
-                                thinking_len = 0
-                                await log("Agent", "[Thinking started]", "thinking")
-                                if on_status:
-                                    await on_status("thinking", "")
-                            elif current_block_type == "tool_use":
-                                tool_name = getattr(event.content_block, "name", "")
-                                if on_status:
-                                    await on_status("tool_use", tool_name)
+                if provider == "glm":
+                    content_blocks, stop_reason = await _call_glm(
+                        messages, log, on_status,
+                    )
+                else:
+                    content_blocks, stop_reason = await _call_anthropic(
+                        client, model_name, max_tokens, messages, log, on_status,
+                    )
 
-                        elif event.type == "content_block_delta":
-                            delta = event.delta
-                            delta_type = getattr(delta, "type", "")
-                            if delta_type == "thinking_delta":
-                                chunk = getattr(delta, "thinking", "")
-                                if chunk:
-                                    thinking_chunks.append(chunk)
-                                    thinking_len += len(chunk)
-                                    # Send periodic updates (~every 300 chars)
-                                    if thinking_len % 300 < len(chunk):
-                                        if on_status:
-                                            await on_status("thinking", "".join(thinking_chunks))
-
-                        elif event.type == "content_block_stop":
-                            if current_block_type == "thinking" and thinking_chunks:
-                                full_thinking = "".join(thinking_chunks)
-                                await log("Agent", full_thinking, "thinking")
-                                if on_status:
-                                    await on_status("thinking", full_thinking)
-                            current_block_type = None
-
-                    response = await stream.get_final_message()
+            # --- Anthropic-specific error handling ---
             except anthropic.BadRequestError as e:
                 err_msg = str(e)
-                # Thinking block compatibility issue (e.g., cross-model signatures)
                 if "thinking" in err_msg.lower() or "signature" in err_msg.lower():
                     await log("System", "Stripping thinking blocks for model compatibility...", "info")
                     _strip_thinking(messages)
@@ -390,18 +631,15 @@ async def run_agent(
                     continue
                 raise
             except (anthropic.APIConnectionError, anthropic.APITimeoutError, anthropic.APIStatusError) as e:
-                # Connection dropped mid-stream or server error (5xx / 529 overloaded)
                 if isinstance(e, anthropic.APIStatusError) and e.status_code < 500:
-                    raise  # only retry server errors, not client errors
-                # Overloaded (529) — dedicated retry with exponential backoff
-                _MAX_OVERLOAD_RETRIES = 5
+                    raise
                 is_overloaded = isinstance(e, anthropic.APIStatusError) and e.status_code == 529
                 if is_overloaded:
                     overload_retries += 1
                     if overload_retries > _MAX_OVERLOAD_RETRIES:
                         await log("System", f"API overloaded after {_MAX_OVERLOAD_RETRIES} retries — giving up", "error")
                         raise
-                    delay = min(2 ** overload_retries, 30)  # 2, 4, 8, 16, 30
+                    delay = min(2 ** overload_retries, 30)
                     await log("System", f"API overloaded — retrying in {delay}s ({overload_retries}/{_MAX_OVERLOAD_RETRIES})...", "info")
                     if on_status:
                         await on_status("thinking", f"Server busy, retrying in {delay}s...")
@@ -416,9 +654,48 @@ async def run_agent(
                     await on_status("thinking", "Connection lost, retrying...")
                 await asyncio.sleep(2)
                 continue
+
+            # --- Generic error handling (covers GLM + transient errors) ---
             except Exception as e:
-                # Catch transient connection errors (e.g. httpx.RemoteProtocolError)
                 err_str = str(e).lower()
+
+                # GLM-specific retries
+                if provider == "glm":
+                    if isinstance(e, openai_lib.APIStatusError):
+                        if e.status_code == 429:
+                            overload_retries += 1
+                            if overload_retries > _MAX_OVERLOAD_RETRIES:
+                                await log("System", f"Rate limited after {_MAX_OVERLOAD_RETRIES} retries — giving up", "error")
+                                raise
+                            delay = min(2 ** overload_retries, 30)
+                            await log("System", f"Rate limited — retrying in {delay}s ({overload_retries}/{_MAX_OVERLOAD_RETRIES})...", "info")
+                            if on_status:
+                                await on_status("thinking", f"Rate limited, retrying in {delay}s...")
+                            await asyncio.sleep(delay)
+                            continue
+                        if e.status_code >= 500:
+                            compact_retries += 1
+                            if compact_retries > _MAX_COMPACT_RETRIES:
+                                await log("System", f"GLM server error after retries: {e}", "error")
+                                raise
+                            await log("System", f"GLM server error — retrying ({compact_retries}/{_MAX_COMPACT_RETRIES})...", "info")
+                            if on_status:
+                                await on_status("thinking", "Server error, retrying...")
+                            await asyncio.sleep(2)
+                            continue
+                        raise  # client error, don't retry
+                    if isinstance(e, (openai_lib.APIConnectionError, openai_lib.APITimeoutError)):
+                        compact_retries += 1
+                        if compact_retries > _MAX_COMPACT_RETRIES:
+                            await log("System", f"GLM connection error after retries: {e}", "error")
+                            raise
+                        await log("System", f"Connection interrupted — retrying ({compact_retries}/{_MAX_COMPACT_RETRIES})...", "info")
+                        if on_status:
+                            await on_status("thinking", "Connection lost, retrying...")
+                        await asyncio.sleep(2)
+                        continue
+
+                # Transient connection errors (either provider)
                 if any(k in err_str for k in ("incomplete chunked", "connection", "reset by peer", "timed out")):
                     compact_retries += 1
                     if compact_retries > _MAX_COMPACT_RETRIES:
@@ -431,46 +708,26 @@ async def run_agent(
                     continue
                 raise
 
-            # Process completed response blocks (text, tool_use logging)
-            for block in response.content:
-                if block.type == "text":
-                    last_text = block.text
-                    await log("Agent", block.text, "info")
+            # --- Process content blocks (unified format for both providers) ---
+            for block in content_blocks:
+                if block["type"] == "text":
+                    last_text = block["text"]
+                    await log("Agent", block["text"], "info")
                     if on_text:
-                        await on_text(block.text)
-                elif block.type == "tool_use":
-                    input_str = json.dumps(block.input)
+                        await on_text(block["text"])
+                elif block["type"] == "tool_use":
+                    input_str = json.dumps(block["input"])
                     if len(input_str) > 200:
                         input_str = input_str[:200] + "..."
-                    await log("Agent", f"Tool: {block.name}({input_str})", "thinking")
+                    await log("Agent", f"Tool: {block['name']}({input_str})", "thinking")
                     if on_status:
-                        await on_status("tool_use", block.name)
+                        await on_status("tool_use", block["name"])
 
-            # Append assistant message to history (serialize only API-accepted fields)
-            assistant_content = []
-            for block in response.content:
-                if block.type == "thinking":
-                    assistant_content.append({
-                        "type": "thinking",
-                        "thinking": block.thinking,
-                        "signature": block.signature,
-                    })
-                elif block.type == "text":
-                    assistant_content.append({
-                        "type": "text",
-                        "text": block.text,
-                    })
-                elif block.type == "tool_use":
-                    assistant_content.append({
-                        "type": "tool_use",
-                        "id": block.id,
-                        "name": block.name,
-                        "input": block.input,
-                    })
-            messages.append({"role": "assistant", "content": assistant_content})
+            # Append assistant message to history
+            messages.append({"role": "assistant", "content": content_blocks})
 
             # If the response was cut off due to token limit, compact & retry
-            if response.stop_reason == "max_tokens":
+            if stop_reason == "max_tokens":
                 compact_retries += 1
                 if compact_retries > _MAX_COMPACT_RETRIES:
                     await log("System", "Max compact retries reached — using partial response", "info")
@@ -487,7 +744,7 @@ async def run_agent(
 
             # If the model stopped for a reason other than tool_use, check
             # for injected user messages before finishing.
-            if response.stop_reason != "tool_use":
+            if stop_reason != "tool_use":
                 injected = _drain_injected(injected_queue)
                 if injected:
                     combined = "\n\n".join(injected)
@@ -501,21 +758,20 @@ async def run_agent(
 
             # Execute tool calls and build tool_result messages
             tool_results = []
-            for block in response.content:
-                if block.type == "tool_use":
+            for block in content_blocks:
+                if block["type"] == "tool_use":
                     is_error = False
                     try:
-                        result_str = await _handle_tool(block.name, block.input, broadcast)
-                        # Detect error strings returned by _handle_tool
+                        result_str = await _handle_tool(block["name"], block["input"], broadcast)
                         if result_str and result_str.startswith("Error"):
                             is_error = True
                     except Exception as e:
-                        result_str = f"Error executing tool '{block.name}': {e}"
+                        result_str = f"Error executing tool '{block['name']}': {e}"
                         is_error = True
                         await log("System", result_str, "error")
                     tr = {
                         "type": "tool_result",
-                        "tool_use_id": block.id,
+                        "tool_use_id": block["id"],
                         "content": result_str or "(empty result)",
                     }
                     if is_error:
