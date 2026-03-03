@@ -439,7 +439,7 @@ async def _call_anthropic(
 
 # Model configuration for OpenAI-compatible providers
 _OPENAI_COMPAT_MODELS = {
-    "openai": {"model": "gpt-4.1", "max_tokens": 32768},
+    "openai": {"model": "gpt-5.2", "max_tokens": 32768},
     "gemini": {"model": "gemini-2.5-flash", "max_tokens": 8192},
     "glm":    {"model": "glm-4-plus", "max_tokens": 4096},
 }
@@ -544,6 +544,13 @@ async def _call_openai_compat(
     finish_reason = None
     _stream_interrupted = False
 
+    # OpenAI newer models (gpt-5.x etc.) require max_completion_tokens instead of max_tokens.
+    _token_kwarg = (
+        {"max_completion_tokens": _effective_max}
+        if provider == "openai"
+        else {"max_tokens": _effective_max}
+    )
+
     if not use_stream:
         # ----- Non-streaming path (reliable, no mid-stream drops) -----
         if on_status:
@@ -551,9 +558,9 @@ async def _call_openai_compat(
 
         response = await client.chat.completions.create(
             model=model_name,
-            max_tokens=_effective_max,
             messages=openai_messages,
             stream=False,
+            **_token_kwarg,
             **_tc_kwarg,
         )
 
@@ -589,9 +596,9 @@ async def _call_openai_compat(
         # ----- Streaming path (real-time progress) -----
         stream = await client.chat.completions.create(
             model=model_name,
-            max_tokens=_effective_max,
             messages=openai_messages,
             stream=True,
+            **_token_kwarg,
             **_tc_kwarg,
         )
 
@@ -1004,6 +1011,20 @@ async def run_agent(
                             await on_status("thinking", "Connection lost, retrying...")
                         await asyncio.sleep(2)
                         continue
+
+                # Overloaded errors that slipped through the typed handler
+                # (e.g. raised as generic APIError during streaming)
+                if "overloaded" in err_str:
+                    overload_retries += 1
+                    if overload_retries > _MAX_OVERLOAD_RETRIES:
+                        await log("System", f"API overloaded after {_MAX_OVERLOAD_RETRIES} retries — giving up", "error")
+                        raise
+                    delay = min(2 ** overload_retries, 30)
+                    await log("System", f"API overloaded — retrying in {delay}s ({overload_retries}/{_MAX_OVERLOAD_RETRIES})...", "info")
+                    if on_status:
+                        await on_status("thinking", f"Server busy, retrying in {delay}s...")
+                    await asyncio.sleep(delay)
+                    continue
 
                 # Transient connection errors (either provider) — retry without
                 # compaction since these are network issues, not input size issues.
