@@ -35,14 +35,19 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
 
       {/* Right: connection status + settings */}
       <div className="flex items-center gap-3 text-xs">
-        <div className="flex items-center gap-2" style={{ color: "var(--chrome-text)" }}>
+        <button
+          onClick={onChangeApiKey}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+          style={{ color: "var(--chrome-text)" }}
+          title="Change provider"
+        >
           <div
             className={`w-2 h-2 rounded-full ${
               connected ? "bg-emerald-400" : "bg-red-400"
             }`}
           />
           {connected ? (provider ? PROVIDER_LABELS[provider] || provider : "Connected") : "Disconnected"}
-        </div>
+        </button>
         <SettingsMenu onChangeApiKey={onChangeApiKey} />
       </div>
     </div>

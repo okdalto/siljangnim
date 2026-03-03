@@ -50,9 +50,10 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
   const inputStyle = { background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--input-text)" };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <form
         onSubmit={handleSubmit}
+        onClick={(e) => e.stopPropagation()}
         className="rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4 space-y-5 relative"
         style={{ background: "var(--chrome-bg)", border: "1px solid var(--chrome-border)" }}
       >
