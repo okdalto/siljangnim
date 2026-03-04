@@ -71,11 +71,14 @@ def _drain_pending_errors(ctx: WsContext):
         asyncio.create_task(_trigger_auto_fix(next_err, ctx))
 
 
-async def _auto_save_project(msg: dict, ctx: WsContext):
-    """Auto-save the currently active project (shared by new_project / project_load)."""
+async def _auto_save_project(msg: dict, ctx: WsContext) -> dict | None:
+    """Auto-save the currently active project (shared by new_project / project_load).
+
+    Returns the saved meta dict, or None if no save occurred.
+    """
     name = msg.get("active_project")
     if not name:
-        return
+        return None
     try:
         ws_data = msg.get("workspace_state")
         if ws_data:
@@ -84,13 +87,15 @@ async def _auto_save_project(msg: dict, ctx: WsContext):
         if debug_logs is not None:
             workspace.write_json("debug_logs.json", debug_logs)
         chat_history = msg.get("chat_history") or ctx.chat_history
-        projects.save_project(
+        meta = projects.save_project(
             name=name,
             chat_history=chat_history,
             thumbnail_b64=msg.get("thumbnail"),
         )
+        return meta
     except Exception as e:
         logger.warning("Auto-save failed for %s: %s", name, e)
+        return None
 
 
 async def _trigger_auto_fix(error_message: str, ctx: WsContext):
@@ -437,7 +442,12 @@ async def handle_project_save(ws, msg, ctx: WsContext):
 
 
 async def handle_project_load(ws, msg, ctx: WsContext):
-    await _auto_save_project(msg, ctx)
+    saved_meta = await _auto_save_project(msg, ctx)
+    if saved_meta:
+        await ctx.manager.broadcast({
+            "type": "project_list",
+            "projects": projects.list_projects(),
+        })
     try:
         result = projects.load_project(msg.get("name", ""))
         ctx.chat_history.clear()

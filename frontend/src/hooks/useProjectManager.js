@@ -28,21 +28,18 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
 
   const handleProjectLoad = useCallback(
     (name) => {
-      if (saveStatusRef.current === "unsaved" && activeProject && activeProject !== name) {
-        if (
-          !window.confirm(
-            `"${activeProject}"에 저장되지 않은 변경사항이 있습니다. "${name}"을(를) 불러올까요?`
-          )
-        )
-          return;
-      }
       const msg = { type: "project_load", name };
-      if (activeProject && activeProject !== name) {
-        msg.active_project = activeProject;
-        msg.thumbnail = captureThumbnail();
-        msg.workspace_state = getWorkspaceState();
-        msg.debug_logs = getDebugLogs();
-        msg.chat_history = getMessages?.() || [];
+      if (saveStatusRef.current === "unsaved" && activeProject && activeProject !== name) {
+        const wantSave = window.confirm(
+          `"${activeProject}"에 저장되지 않은 변경사항이 있습니다. 저장할까요?`
+        );
+        if (wantSave) {
+          msg.active_project = activeProject;
+          msg.thumbnail = captureThumbnail();
+          msg.workspace_state = getWorkspaceState();
+          msg.debug_logs = getDebugLogs();
+          msg.chat_history = getMessages?.() || [];
+        }
       }
       sendRef.current?.(msg);
     },
