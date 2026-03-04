@@ -45,7 +45,12 @@ The scene JSON uses a script-based approach where you write raw WebGL2 JavaScrip
 }
 ```
 
-The `script.render` field is REQUIRED. `script.setup` and `script.cleanup` are optional.""",
+The `script.render` field is REQUIRED. `script.setup` and `script.cleanup` are optional.
+
+Script fields (setup/render/cleanup) are JSON strings where \\n represents newlines.
+GLSL shaders within scripts are regular JavaScript strings — do NOT use template literals.
+Example shader in setup: "const fs = '#version 300 es\\nprecision highp float;\\n...';"
+""",
     },
     {
         "id": "ctx_api",
@@ -149,7 +154,10 @@ and draw a fullscreen quad with the texture.""",
 - You have full access to `ctx.gl` (WebGL2) — you can create shaders, \
 draw geometry, use Canvas 2D for text, etc.
 - For simple 2D drawing (text, shapes), create an offscreen Canvas 2D, \
-draw to it, then upload as a WebGL texture""",
+draw to it, then upload as a WebGL texture
+- **NEVER use `||` for uniform defaults** — `0` is falsy in JS! \
+Use `??` instead: `ctx.uniforms.u_val ?? 1.0` (not `ctx.uniforms.u_val || 1.0`). \
+Same for conditionals: use `!= null` or `!== undefined`, not `if (value)`.""",
     },
     {
         "id": "keyboard",
@@ -403,6 +411,9 @@ Use this when the user asks to capture, record, or export a video of their scene
 ## WORKFLOW
 
 1. **Create new visual**: Call `read_file(path="scene.json")` first (to check if empty). \
+For complex simulations, use list_files and read_file to examine existing project \
+scenes (e.g. reaction-diffusion, fur) for reusable patterns like ping-pong FBOs, \
+matrix utilities, and camera control. \
 Then call `write_file(path="scene.json", content=...)` with a complete scene JSON. Then call \
 `open_panel(id="controls", title="Controls", template="controls", config={"controls":[...]})` \
 with controls for any custom uniforms.
@@ -438,6 +449,9 @@ files in chunks. Start with the first ~100 lines, then decide if you need more."
 ## WORKFLOW
 
 1. **Create new visual**: Call `read_file(path="scene.json")` first (to check if empty). \
+For complex simulations, use list_files and read_file to examine existing project \
+scenes (e.g. reaction-diffusion, fur) for reusable patterns like ping-pong FBOs, \
+matrix utilities, and camera control. \
 Then call `write_file(path="scene.json", content=...)` with a complete scene JSON. Then call \
 `open_panel(id="controls", title="Controls", template="controls", config={"controls":[...]})` \
 with controls for any custom uniforms.
@@ -534,6 +548,29 @@ and got a result, USE that result — do NOT call the tool again.
 Think about what you need, then make the minimum tool calls necessary.
 - If the system warns you about repeated calls, STOP making tool calls immediately \
 and respond to the user with what you have so far.""",
+    },
+    {
+        "id": "gpu_simulation",
+        "core": False,
+        "keywords": [
+            "simulation", "particle", "physarum", "fluid", "compute",
+            "ping-pong", "volume", "voxel", "agent", "trail",
+            "시뮬레이션", "파티클", "유체", "볼륨",
+        ],
+        "content": """\
+### GPU Simulation Patterns (WebGL2)
+
+WebGL2 has no compute shaders. Common workarounds:
+- **Ping-pong FBOs**: Two textures alternating read/write for simulation state (see reaction-diffusion, fur projects)
+- **Texture-based particles**: Store position/velocity in RGBA32F textures, update via fragment shader
+- **Volume data**: Two approaches:
+  - 3D textures: cleaner GLSL with native trilinear filtering via texture(sampler3D, uvw),
+    but writes require per-slice rendering via framebufferTextureLayer()
+  - 2D atlas: single draw call for writes, but needs manual coordinate math and slice boundary handling
+- **Agent deposits to volume**: Render agents as GL_POINTS, vertex shader maps 3D pos to target coordinates
+- Use EXT_color_buffer_float for float FBOs, gl.drawBuffers for MRT (multiple render targets)
+- Before creating complex simulations, read existing scene.json files for reusable patterns
+  (e.g. reaction-diffusion, fur projects have ping-pong FBO and shader patterns).""",
     },
     {
         "id": "keyframes",
