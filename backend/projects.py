@@ -29,9 +29,22 @@ PROJECTS_DIR = workspace._PROJECTS_DIR
 def _sanitize_name(name: str) -> str:
     """Convert a display name into a safe directory name."""
     s = name.strip().lower()
-    s = re.sub(r"[^a-z0-9]+", "-", s)
+    s = re.sub(r"[^a-z0-9_]+", "-", s)
     s = s.strip("-")
     return s or "untitled"
+
+
+def _strip_version_suffix(sanitized: str) -> str:
+    """my-project_2 → my-project"""
+    return re.sub(r"_\d+$", "", sanitized)
+
+
+def _next_version_name(base: str) -> str:
+    """my-project → my-project_1 (next available suffix)"""
+    counter = 1
+    while (PROJECTS_DIR / f"{base}_{counter}").exists():
+        counter += 1
+    return f"{base}_{counter}"
 
 
 def _safe_project_path(name: str) -> Path:
@@ -56,40 +69,27 @@ def save_project(
     - If saving to a different name, COPY the current workspace.
     """
     sanitized = _sanitize_name(name)
-    project_dir = _safe_project_path(name)
+    base = _strip_version_suffix(sanitized)
     current_dir = workspace.get_workspace_dir()
     current_name = workspace.get_active_project_name()
 
-    # First save: _untitled → named project (move)
-    if current_name == workspace._DEFAULT_PROJECT and sanitized != workspace._DEFAULT_PROJECT:
-        if project_dir.exists():
-            # Target already exists — merge current into it
-            for item in current_dir.iterdir():
-                dest = project_dir / item.name
-                if item.is_dir():
-                    if dest.exists():
-                        shutil.rmtree(dest)
-                    shutil.copytree(item, dest)
-                else:
-                    shutil.copy2(item, dest)
-            # Clean up _untitled
-            shutil.rmtree(current_dir)
-            current_dir.mkdir(parents=True, exist_ok=True)
-        else:
-            # Simple rename
-            project_dir.parent.mkdir(parents=True, exist_ok=True)
-            current_dir.rename(project_dir)
-        # Switch pointer to the new project
-        workspace.set_workspace_dir(sanitized)
-    elif current_name != sanitized:
-        # Saving active project under a different name (copy)
-        if project_dir.exists():
-            shutil.rmtree(project_dir)
-        shutil.copytree(current_dir, project_dir)
-        workspace.set_workspace_dir(sanitized)
+    # Determine target directory name (always create a new version if base already exists)
+    if (PROJECTS_DIR / base).exists():
+        target_name = _next_version_name(base)
     else:
-        # Re-saving the same project — workspace already points here
-        project_dir.mkdir(parents=True, exist_ok=True)
+        target_name = base
+
+    project_dir = PROJECTS_DIR / target_name
+
+    # First save: _untitled → named project (move)
+    if current_name == workspace._DEFAULT_PROJECT and target_name != workspace._DEFAULT_PROJECT:
+        project_dir.parent.mkdir(parents=True, exist_ok=True)
+        current_dir.rename(project_dir)
+        workspace.set_workspace_dir(target_name)
+    else:
+        # Copy current workspace to new version
+        shutil.copytree(current_dir, project_dir)
+        workspace.set_workspace_dir(target_name)
 
     # Save chat history
     (project_dir / "chat_history.json").write_text(
@@ -121,9 +121,25 @@ def save_project(
         except (json.JSONDecodeError, OSError):
             pass
 
+    # Build display_name: use base project's display_name + new version suffix
+    display_name = name.strip()
+    if target_name != base:
+        # Try to get original display_name from base project
+        base_meta_path = PROJECTS_DIR / base / "meta.json"
+        if base_meta_path.exists():
+            try:
+                base_meta = json.loads(base_meta_path.read_text(encoding="utf-8"))
+                base_display = base_meta.get("display_name", name.strip())
+                # Strip any existing version suffix from display name
+                base_display = re.sub(r"_\d+$", "", base_display)
+                suffix = target_name[len(base):]  # e.g. "_2"
+                display_name = f"{base_display}{suffix}"
+            except (json.JSONDecodeError, OSError):
+                pass
+
     meta = {
-        "name": sanitized,
-        "display_name": name.strip(),
+        "name": target_name,
+        "display_name": display_name,
         "description": description,
         "created_at": created_at,
         "updated_at": now,

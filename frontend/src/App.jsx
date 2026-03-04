@@ -432,20 +432,18 @@ export default function App() {
   );
 
   const handleNewProject = useCallback(() => {
-    if (project.saveStatus === "unsaved") {
-      if (!window.confirm(
-        project.activeProject
-          ? `"${project.activeProject}"에 저장되지 않은 변경사항이 있습니다. 새 프로젝트를 만들까요?`
-          : "저장되지 않은 변경사항이 있습니다. 새 프로젝트를 만들까요?"
-      )) return;
-    }
     const msg = { type: "new_project" };
-    if (project.activeProject) {
-      msg.active_project = project.activeProject;
-      msg.thumbnail = captureThumbnail();
-      msg.workspace_state = getWorkspaceState();
-      msg.debug_logs = chat.debugLogs;
-      msg.chat_history = chat.messages;
+    if (project.activeProject && project.saveStatus === "unsaved") {
+      const wantSave = window.confirm(
+        `"${project.activeProject}"에 저장되지 않은 변경사항이 있습니다. 저장할까요?`
+      );
+      if (wantSave) {
+        msg.active_project = project.activeProject;
+        msg.thumbnail = captureThumbnail();
+        msg.workspace_state = getWorkspaceState();
+        msg.debug_logs = chat.debugLogs;
+        msg.chat_history = chat.messages;
+      }
     }
     chat.clearAll();
     resetUniformHistory();

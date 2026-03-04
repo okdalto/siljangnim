@@ -159,7 +159,6 @@ export default function ProjectBrowserNode({ data }) {
       {/* Save form */}
       {saving && (
         <SaveProjectForm
-          projects={projects}
           onSave={onSave}
           onCancel={() => setSaving(false)}
         />
