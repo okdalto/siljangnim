@@ -283,6 +283,36 @@ async def _tool_read_file(input_data: dict, broadcast: BroadcastCallback) -> str
     return f"{header}\n\n{result}{truncated}"
 
 
+async def _tool_write_scene(input_data: dict, broadcast: BroadcastCallback) -> str:
+    """Create/replace scene.json from raw script parameters."""
+    scene = {"version": 1, "render_mode": "script", "script": {}}
+
+    for key in ("setup", "render", "cleanup"):
+        val = input_data.get(key)
+        if val:
+            scene["script"][key] = val
+
+    if not scene["script"].get("render"):
+        return "Error: 'render' is required."
+
+    if "uniforms" in input_data:
+        scene["uniforms"] = input_data["uniforms"]
+    if "clearColor" in input_data:
+        scene["clearColor"] = input_data["clearColor"]
+
+    _normalize_script_strings(scene)
+    errors = _validate_scene_json(scene)
+    if errors:
+        return "Validation errors:\n" + "\n".join(f"  - {e}" for e in errors)
+
+    try:
+        workspace.write_json("scene.json", scene)
+    except OSError as e:
+        return f"Error writing scene.json: {e}"
+    await broadcast({"type": "scene_update", "scene_json": scene})
+    return "ok — scene saved and broadcast."
+
+
 async def _tool_write_file(input_data: dict, broadcast: BroadcastCallback) -> str:
     rel_path = input_data.get("path", "")
     if not rel_path:
@@ -785,6 +815,7 @@ async def _tool_ask_user(input_data: dict, broadcast: BroadcastCallback, ws_id: 
 
 _TOOL_HANDLERS = {
     "read_file": _tool_read_file,
+    "write_scene": _tool_write_scene,
     "write_file": _tool_write_file,
     "list_uploaded_files": _tool_list_uploaded_files,
     "list_files": _tool_list_files,

@@ -92,6 +92,16 @@ _CUSTOM_SLIM: dict[str, dict] = {
             },
         },
     },
+    "write_scene": {
+        "description": "Create/replace scene.json. Pass raw JS code — no escaping needed.",
+        "properties": {
+            "setup": {"type": "string", "description": "JS for script.setup."},
+            "render": {"type": "string", "description": "JS for script.render. REQUIRED."},
+            "cleanup": {"type": "string", "description": "JS for script.cleanup."},
+            "uniforms": {"type": "object", "description": "Uniform defs."},
+            "clearColor": {"type": "array", "description": "[r,g,b,a]."},
+        },
+    },
 }
 
 
@@ -385,6 +395,26 @@ TOOLS = [
         "input_schema": {
             "type": "object",
             "properties": {},
+        },
+    },
+    {
+        "name": "write_scene",
+        "description": (
+            "Create or fully replace scene.json. Pass raw JS code directly as "
+            "separate parameters — NO JSON escaping needed. The server assembles "
+            "the scene JSON automatically. Use this for new scenes or full rewrites. "
+            "For partial edits to an existing scene, use write_file with dot-path edits."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "setup": {"type": "string", "description": "JS code for script.setup (runs once on load)."},
+                "render": {"type": "string", "description": "JS code for script.render (runs every frame). REQUIRED."},
+                "cleanup": {"type": "string", "description": "JS code for script.cleanup (runs on dispose)."},
+                "uniforms": {"type": "object", "description": "Uniform definitions, e.g. {\"u_speed\": {\"type\": \"float\", \"value\": 1.0}}"},
+                "clearColor": {"type": "array", "items": {"type": "number"}, "description": "[r,g,b,a] clear color (0-1). Default: [0,0,0,1]"},
+            },
+            "required": ["render"],
         },
     },
     {

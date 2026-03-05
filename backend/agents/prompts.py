@@ -47,9 +47,11 @@ The scene JSON uses a script-based approach where you write raw WebGL2 JavaScrip
 
 The `script.render` field is REQUIRED. `script.setup` and `script.cleanup` are optional.
 
-Script fields (setup/render/cleanup) are JSON strings where \\n represents newlines.
+Script fields (setup/render/cleanup) are JSON strings where `\\n` represents newlines.
 GLSL shaders within scripts are regular JavaScript strings — do NOT use template literals.
-Example shader in setup: "const fs = '#version 300 es\\nprecision highp float;\\n...';"
+Example shader in setup: `"const fs = '#version 300 es\\nprecision highp float;\\n...';"`.
+When using `run_python` to build scene JSON, use `json.dumps(dict)` for correct escaping — \
+do NOT manually escape newlines or backslashes. See "JSON string escaping" in Script mode rules.
 """,
     },
     {
@@ -84,6 +86,8 @@ Each script function receives a `ctx` object with these fields:
         "keywords": [
             "texture", "shader", "geometry", "sphere", "box", "plane", "quad",
             "webcam", "render target", "fbo", "curve", "텍스처",
+            "matrix", "행렬", "quaternion", "쿼터니언", "ping pong", "핑퐁",
+            "orbit", "camera", "카메라", "noise", "노이즈", "verlet", "physics", "물리",
         ],
         "content": """\
 ### ctx.utils — helper functions
@@ -110,7 +114,147 @@ The engine exposes these utilities on `ctx.utils` for convenience:
 **Y-coordinate note**: All texture upload utilities automatically flip Y to match \
 GL coordinates (bottom-left origin). Mouse coordinates (`ctx.mouse`) are in \
 screen space (0,0 = top-left, 1,1 = bottom-right). If you need GL-space mouse Y, \
-use `1.0 - ctx.mouse[1]`.""",
+use `1.0 - ctx.mouse[1]`.
+
+---
+
+### ctx.utils.mat4 — 4x4 Matrix operations
+
+All functions return `Float32Array(16)` in column-major order. Pure math, no GL calls.
+
+| Function | Description |
+|----------|-------------|
+| `ctx.utils.mat4.identity()` | Identity matrix |
+| `ctx.utils.mat4.perspective(fovDeg, aspect, near, far)` | Perspective projection |
+| `ctx.utils.mat4.ortho(left, right, bottom, top, near, far)` | Orthographic projection |
+| `ctx.utils.mat4.lookAt(eye, target, up)` | View matrix from eye/target/up vectors |
+| `ctx.utils.mat4.multiply(a, b)` | Multiply two 4x4 matrices |
+| `ctx.utils.mat4.invert(m)` | Invert a 4x4 matrix |
+| `ctx.utils.mat4.transpose(m)` | Transpose a 4x4 matrix |
+| `ctx.utils.mat4.fromTranslation(x, y, z)` | Translation matrix |
+| `ctx.utils.mat4.fromScaling(x, y, z)` | Scale matrix |
+| `ctx.utils.mat4.fromXRotation(rad)` | Rotation around X axis |
+| `ctx.utils.mat4.fromYRotation(rad)` | Rotation around Y axis |
+| `ctx.utils.mat4.fromZRotation(rad)` | Rotation around Z axis |
+| `ctx.utils.mat4.fromEulerZYX(rx, ry, rz)` | Rotation from Euler angles (degrees) |
+| `ctx.utils.mat4.transformPoint(m, [x,y,z])` | Transform a 3D point → `[x,y,z]` |
+
+### ctx.utils.quat — Quaternion operations
+
+Quaternions are `[x, y, z, w]` arrays. Pure math, no GL calls.
+
+| Function | Description |
+|----------|-------------|
+| `ctx.utils.quat.create()` | Identity quaternion `[0,0,0,1]` |
+| `ctx.utils.quat.fromAxisAngle(ax, ay, az, rad)` | Quaternion from axis + angle |
+| `ctx.utils.quat.fromEuler(rx, ry, rz)` | From Euler angles (degrees) |
+| `ctx.utils.quat.multiply(a, b)` | Multiply two quaternions |
+| `ctx.utils.quat.normalize(q)` | Normalize quaternion |
+| `ctx.utils.quat.conjugate(q)` | Conjugate (inverse for unit quat) |
+| `ctx.utils.quat.rotateVec3(q, [x,y,z])` | Rotate a 3D vector → `[x,y,z]` |
+| `ctx.utils.quat.toMat4(q)` | Convert to 4x4 rotation matrix |
+| `ctx.utils.quat.fromMat4(m)` | Extract quaternion from 4x4 matrix |
+| `ctx.utils.quat.slerp(a, b, t)` | Spherical linear interpolation |
+| `ctx.utils.quat.nlerp(a, b, t)` | Normalized linear interpolation (faster) |
+
+### ctx.utils.createPingPong(w, h, opts?) — Ping-pong FBO
+
+Creates a pair of FBOs for multi-pass rendering (e.g. fluid sim, blur).
+
+Options: `{ internalFormat, format, type, filter, depth, count }` — `count` > 1 enables MRT.
+
+```js
+// setup:
+ctx.state.pp = ctx.utils.createPingPong(ctx.canvas.width, ctx.canvas.height, { type: gl.FLOAT, internalFormat: gl.RGBA32F });
+// render:
+gl.bindFramebuffer(gl.FRAMEBUFFER, ctx.state.pp.write().framebuffer);
+// ... draw pass ...
+ctx.state.pp.swap();
+gl.bindTexture(gl.TEXTURE_2D, ctx.state.pp.read().texture);
+// cleanup:
+ctx.state.pp.dispose();
+```
+
+| Method | Description |
+|--------|-------------|
+| `.read()` | `{ framebuffer, texture, textures[] }` — current read target |
+| `.write()` | `{ framebuffer, texture, textures[] }` — current write target |
+| `.swap()` | Swap read/write targets |
+| `.resize(w, h)` | Resize (recreates textures) |
+| `.dispose()` | Free GL resources |
+
+### ctx.utils.createOrbitCamera(opts?) — Orbit camera
+
+Options: `{ distance, theta, phi, target, damping, zoomSpeed, rotateSpeed, panSpeed }`
+
+```js
+// setup:
+ctx.state.cam = ctx.utils.createOrbitCamera({ distance: 5 });
+// render:
+ctx.state.cam.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt);
+const view = ctx.state.cam.getViewMatrix();
+const proj = ctx.state.cam.getProjectionMatrix(ctx.resolution[0]/ctx.resolution[1]);
+```
+
+| Method | Description |
+|--------|-------------|
+| `.update(mouse, mousePrev, mouseDown, keys, dt)` | Update camera from input |
+| `.getViewMatrix()` | Get 4x4 view matrix |
+| `.getProjectionMatrix(aspect, fov?, near?, far?)` | Get 4x4 projection matrix |
+| `.getEye()` | Get camera position `[x,y,z]` |
+| `.setTarget(x, y, z)` | Set look-at target |
+| `.setDistance(d)` | Set orbit distance |
+| `.setRotation(theta, phi)` | Set angles (radians) |
+| `.zoom(delta)` | Zoom by delta amount |
+| `.reset()` | Reset to initial values |
+
+Hold Shift + drag to pan.
+
+### ctx.utils.noise — GLSL noise strings
+
+GLSL code strings to prepend to fragment shaders. Each is a self-contained function block.
+
+| Constant | Provides | Depends on |
+|----------|----------|------------|
+| `ctx.utils.noise.HASH` | `hash1()`, `hash2()`, `hash3()`, `hash1v3()` | — |
+| `ctx.utils.noise.SIMPLEX_3D` | `float snoise(vec3)` | — (self-contained) |
+| `ctx.utils.noise.PERLIN_3D` | `float pnoise(vec3)` | HASH |
+| `ctx.utils.noise.VALUE_3D` | `float vnoise(vec3)` | HASH |
+| `ctx.utils.noise.FBM` | `float fbm(vec3, int octaves)` | SIMPLEX_3D |
+| `ctx.utils.noise.VORONOI` | `vec2 voronoi(vec2)` | HASH |
+
+Usage: concatenate needed blocks into your shader source string:
+```js
+const frag = '#version 300 es\\nprecision highp float;\\n'
+  + ctx.utils.noise.HASH + ctx.utils.noise.SIMPLEX_3D + ctx.utils.noise.FBM
+  + 'out vec4 fragColor;\\nvoid main() { float n = fbm(vec3(uv, time), 4); ... }';
+```
+
+### ctx.utils.createVerletSystem(opts?) — 2D Verlet physics
+
+Options: `{ gravity: [gx,gy], damping, iterations, bounds: {x,y,w,h} }`
+
+```js
+// setup:
+ctx.state.phys = ctx.utils.createVerletSystem({ gravity: [0, 980], bounds: { x: 0, y: 0, w: 800, h: 600 } });
+const p0 = ctx.state.phys.addPoint(400, 100, true);  // pinned
+const p1 = ctx.state.phys.addPoint(400, 200);
+ctx.state.phys.addConstraint(p0, p1);
+// render:
+ctx.state.phys.step(ctx.dt);
+const pts = ctx.state.phys.getPoints();
+```
+
+| Method | Description |
+|--------|-------------|
+| `.addPoint(x, y, pinned?)` | Add point, returns id |
+| `.addConstraint(id1, id2, dist?)` | Add distance constraint (auto-calculates dist if omitted) |
+| `.removePoint(id)` | Remove point and its constraints |
+| `.removeConstraint(id)` | Remove constraint |
+| `.step(dt)` | Advance physics simulation |
+| `.getPoints()` | `[{id, x, y, px, py, pinned}]` |
+| `.getConstraints()` | `[{id, p1, p2, dist}]` |
+| `.clear()` | Remove all points and constraints |""",
     },
     {
         "id": "canvas2d_text",
@@ -157,7 +301,17 @@ draw geometry, use Canvas 2D for text, etc.
 draw to it, then upload as a WebGL texture
 - **NEVER use `||` for uniform defaults** — `0` is falsy in JS! \
 Use `??` instead: `ctx.uniforms.u_val ?? 1.0` (not `ctx.uniforms.u_val || 1.0`). \
-Same for conditionals: use `!= null` or `!== undefined`, not `if (value)`.""",
+Same for conditionals: use `!= null` or `!== undefined`, not `if (value)`.
+
+### JSON string escaping
+
+**Preferred: use `write_scene` tool** — pass raw JS code as separate parameters. \
+The server assembles the JSON automatically. No escaping needed at all.
+
+**Legacy: `write_file(path="scene.json", content=...)` or `run_python` + `json.dumps`:**
+- Newlines → `\\n`, literal backslash → `\\\\`, double quotes → `\\"`
+- With `run_python`: use `json.dumps(scene_dict)` for automatic escaping
+- Do NOT manually escape — trust `json.dumps()`""",
     },
     {
         "id": "keyboard",
@@ -340,6 +494,10 @@ Unified file I/O with 4 tools:
   - **Engine source files** (`frontend/src/engine/*`, `backend/agents/*`): writable for bug fixes. \
     Use `read_file` first to understand the code, then `write_file` with text edits. \
     Changes take effect after hot-reload (frontend) or server restart (backend).
+- `write_scene(render, setup?, cleanup?, uniforms?, clearColor?)`: \
+  Create or fully replace scene.json. Pass raw JS code as separate string parameters — \
+  NO JSON escaping needed. The server assembles the scene JSON automatically. \
+  Use this for new scenes or full rewrites. For partial edits, use `write_file` with dot-path edits.
 - `list_files(path)`: List directory contents (project-wide, read-only).
 - `list_uploaded_files`: See all uploaded files with derivative metadata.
 
@@ -417,15 +575,16 @@ Use this when the user asks to capture, record, or export a video of their scene
 For complex simulations, use list_files and read_file to examine existing project \
 scenes (e.g. reaction-diffusion, fur) for reusable patterns like ping-pong FBOs, \
 matrix utilities, and camera control. \
-Then call `write_file(path="scene.json", content=...)` with a complete scene JSON. Then call \
+Then call `write_scene(render=..., setup=..., cleanup=..., uniforms=..., clearColor=...)` \
+to create the scene — pass raw JS code directly, NO JSON escaping needed. Then call \
 `open_panel(id="controls", title="Controls", template="controls", config={"controls":[...]})` \
 with controls for any custom uniforms.
 
 2. **Modify existing visual**: Use `read_file(path="scene.json", section="script.render")` \
 to read only the part you need to change. Then use \
 `write_file(path="scene.json", edits=[...])` to apply targeted dot-path edits — \
-this is much more efficient than full replacement for modifications. Only use \
-`write_file(path="scene.json", content=...)` when rewriting the entire scene from scratch.
+this is much more efficient than full replacement for modifications. For full rewrites, \
+use `write_scene(render=..., ...)` instead of `write_file` content mode.
 
 3. **Explain / answer questions**: Just respond with text. No tool calls needed.
 
@@ -455,15 +614,16 @@ files in chunks. Start with the first ~100 lines, then decide if you need more."
 For complex simulations, use list_files and read_file to examine existing project \
 scenes (e.g. reaction-diffusion, fur) for reusable patterns like ping-pong FBOs, \
 matrix utilities, and camera control. \
-Then call `write_file(path="scene.json", content=...)` with a complete scene JSON. Then call \
+Then call `write_scene(render=..., setup=..., cleanup=..., uniforms=..., clearColor=...)` \
+to create the scene — pass raw JS code directly, NO JSON escaping needed. Then call \
 `open_panel(id="controls", title="Controls", template="controls", config={"controls":[...]})` \
 with controls for any custom uniforms.
 
 2. **Modify existing visual**: Use `read_file(path="scene.json", section="script.render")` \
 to read only the part you need to change. Then use \
 `write_file(path="scene.json", edits=[...])` to apply targeted dot-path edits — \
-this is much more efficient than full replacement for modifications. Only use \
-`write_file(path="scene.json", content=...)` when rewriting the entire scene from scratch.
+this is much more efficient than full replacement for modifications. For full rewrites, \
+use `write_scene(render=..., ...)` instead of `write_file` content mode.
 
 3. **Explain / answer questions**: Just respond with text. No tool calls needed.
 
@@ -492,7 +652,7 @@ files in chunks. Start with the first ~100 lines, then decide if you need more."
 
 - **Do NOT generate or modify scenes for simple queries.** If the user is asking \
 a question, browsing files, or requesting an explanation, just respond with text \
-(and file-reading tools if needed). Do NOT call `write_file(path="scene.json", ...)` or `open_panel` \
+(and file-reading tools if needed). Do NOT call `write_scene`, `write_file(path="scene.json", ...)`, or `open_panel` \
 unless the user explicitly asks to create or change a visual. Examples of simple queries:
   - "What is this?" → Just explain. No scene changes.
   - "Show me the files" → Use `list_files`, return the result. Done.
