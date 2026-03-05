@@ -13,7 +13,54 @@ import { zipSync } from "fflate";
  *   recorderRef, chunksRef, mimeType, videoBitsPerSecond,
  *   // Realtime paths only:
  *   startTimeRef, restoreOnRealtimeStop, stopRecording, updateElapsed, autoStopRef,
+ *   // Audio:
+ *   hasAudio, audioStream, audioBuffer,
  */
+
+// ---- Audio helpers ----
+
+async function renderOfflineAudio(audioBuffer, endTime) {
+  const { sampleRate, numberOfChannels } = audioBuffer;
+  const totalSamples = Math.ceil(sampleRate * endTime);
+  const offlineCtx = new OfflineAudioContext(numberOfChannels, totalSamples, sampleRate);
+  const source = offlineCtx.createBufferSource();
+  source.buffer = audioBuffer;
+  source.loop = true;
+  source.connect(offlineCtx.destination);
+  source.start(0);
+  return offlineCtx.startRendering();
+}
+
+async function encodeOfflineAudio(renderedBuffer, audioEncoder) {
+  const { sampleRate, numberOfChannels } = renderedBuffer;
+  const CHUNK_FRAMES = 960; // 20ms @ 48kHz
+  const totalFrames = renderedBuffer.length;
+
+  // Extract channel data
+  const channels = [];
+  for (let ch = 0; ch < numberOfChannels; ch++) {
+    channels.push(renderedBuffer.getChannelData(ch));
+  }
+
+  for (let offset = 0; offset < totalFrames; offset += CHUNK_FRAMES) {
+    const frames = Math.min(CHUNK_FRAMES, totalFrames - offset);
+    const planarData = new Float32Array(frames * numberOfChannels);
+    for (let ch = 0; ch < numberOfChannels; ch++) {
+      planarData.set(channels[ch].subarray(offset, offset + frames), ch * frames);
+    }
+
+    const audioData = new AudioData({
+      format: "f32-planar",
+      sampleRate,
+      numberOfFrames: frames,
+      numberOfChannels,
+      timestamp: Math.round((offset / sampleRate) * 1_000_000),
+      data: planarData,
+    });
+    audioEncoder.encode(audioData);
+    audioData.close();
+  }
+}
 
 export function startOfflinePng(ctx) {
   const {
@@ -103,6 +150,7 @@ export function startOfflinePng(ctx) {
 export function startOfflineWebCodecs(ctx) {
   const {
     engine, canvas, fps, duration, format, videoBitsPerSecond,
+    hasAudio, audioBuffer,
     setRecording, setElapsedTime, downloadBlob,
     rafRef, finalizeRef, offlineAbortRef,
     restoreEngine,
@@ -114,21 +162,31 @@ export function startOfflineWebCodecs(ctx) {
         muxerVideoCodec: "avc", encoderCodec: "avc1.4d0032",
         blobType: "video/mp4", fileExt: "mp4",
         muxerExtraOpts: { fastStart: "in-memory" },
+        audioCodecMuxer: "aac", audioCodecEncoder: "aac",
       }
     : {
         MuxerClass: WebmMuxer, TargetClass: WebmTarget,
         muxerVideoCodec: "V_VP9", encoderCodec: "vp09.00.10.08",
         blobType: "video/webm", fileExt: "webm",
         muxerExtraOpts: {},
+        audioCodecMuxer: "A_OPUS", audioCodecEncoder: "opus",
       };
 
-  const { MuxerClass, TargetClass, muxerVideoCodec, encoderCodec, blobType, fileExt, muxerExtraOpts } = configs;
+  const { MuxerClass, TargetClass, muxerVideoCodec, encoderCodec, blobType, fileExt, muxerExtraOpts, audioCodecMuxer, audioCodecEncoder } = configs;
 
   engine.setPaused(true);
   engine.seekTo(0);
 
+  const dt = 1 / fps;
+  const endTime =
+    duration && duration > 0
+      ? duration
+      : engine._duration > 0
+        ? engine._duration
+        : 30;
+
   const target = new TargetClass();
-  const muxer = new MuxerClass({
+  const muxerOpts = {
     target,
     video: {
       codec: muxerVideoCodec,
@@ -136,7 +194,34 @@ export function startOfflineWebCodecs(ctx) {
       height: canvas.height,
     },
     ...muxerExtraOpts,
-  });
+  };
+
+  // Audio track in muxer
+  let audioEncoder = null;
+  const useAudio = hasAudio && audioBuffer && typeof AudioEncoder !== "undefined";
+  if (useAudio) {
+    muxerOpts.audio = {
+      codec: audioCodecMuxer,
+      sampleRate: audioBuffer.sampleRate,
+      numberOfChannels: audioBuffer.numberOfChannels,
+    };
+  }
+
+  const muxer = new MuxerClass(muxerOpts);
+
+  // Audio encoder
+  if (useAudio) {
+    audioEncoder = new AudioEncoder({
+      output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
+      error: (e) => console.error("AudioEncoder error:", e),
+    });
+    audioEncoder.configure({
+      codec: audioCodecEncoder,
+      sampleRate: audioBuffer.sampleRate,
+      numberOfChannels: audioBuffer.numberOfChannels,
+      bitrate: 128000,
+    });
+  }
 
   const encoder = new VideoEncoder({
     output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
@@ -150,13 +235,6 @@ export function startOfflineWebCodecs(ctx) {
     framerate: fps,
   });
 
-  const dt = 1 / fps;
-  const endTime =
-    duration && duration > 0
-      ? duration
-      : engine._duration > 0
-        ? engine._duration
-        : 30;
   let currentTime = 0;
 
   setElapsedTime(0);
@@ -175,6 +253,7 @@ export function startOfflineWebCodecs(ctx) {
       rafRef.current = null;
     }
     try {
+      if (audioEncoder) await audioEncoder.flush();
       await encoder.flush();
       muxer.finalize();
       const blob = new Blob([target.buffer], { type: blobType });
@@ -182,6 +261,7 @@ export function startOfflineWebCodecs(ctx) {
     } catch (e) {
       console.error("Offline recording finalize error:", e);
     }
+    if (audioEncoder) audioEncoder.close();
     encoder.close();
     setRecording(false);
     restoreEngine();
@@ -195,9 +275,22 @@ export function startOfflineWebCodecs(ctx) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
+    if (audioEncoder) audioEncoder.close();
     encoder.close();
     setRecording(false);
     restoreEngine();
+  });
+
+  // Kick off audio rendering + encoding before video frames
+  const audioReady = useAudio
+    ? renderOfflineAudio(audioBuffer, endTime).then((rendered) =>
+        encodeOfflineAudio(rendered, audioEncoder)
+      )
+    : Promise.resolve();
+
+  // Start video frames once audio is queued
+  audioReady.then(() => {
+    rafRef.current = requestAnimationFrame(stepFrame);
   });
 
   const stepFrame = () => {
@@ -240,8 +333,6 @@ export function startOfflineWebCodecs(ctx) {
     setElapsedTime(currentTime);
     rafRef.current = requestAnimationFrame(stepFrame);
   };
-
-  rafRef.current = requestAnimationFrame(stepFrame);
 }
 
 export function startOfflineFallback(ctx) {
@@ -311,13 +402,14 @@ export function startOfflineFallback(ctx) {
 export function startRealtimeMp4(ctx) {
   const {
     canvas, fps, duration, videoBitsPerSecond,
+    hasAudio, audioStream,
     setRecording, setElapsedTime, downloadBlob,
     rafRef, finalizeRef, startTimeRef, autoStopRef,
     restoreOnRealtimeStop,
   } = ctx;
 
   const target = new Mp4Target();
-  const muxer = new Mp4Muxer({
+  const muxerOpts = {
     target,
     video: {
       codec: "avc",
@@ -326,7 +418,56 @@ export function startRealtimeMp4(ctx) {
     },
     fastStart: "in-memory",
     firstTimestampBehavior: "offset",
-  });
+  };
+
+  // Audio setup
+  let audioEncoder = null;
+  let audioReader = null;
+  if (hasAudio && audioStream) {
+    const audioTrack = audioStream.getAudioTracks()[0];
+    const audioSettings = audioTrack.getSettings();
+    const sampleRate = audioSettings.sampleRate || 48000;
+    const numberOfChannels = audioSettings.channelCount || 2;
+    muxerOpts.audio = { codec: "aac", sampleRate, numberOfChannels };
+  }
+
+  const muxer = new Mp4Muxer(muxerOpts);
+
+  if (hasAudio && audioStream) {
+    const audioTrack = audioStream.getAudioTracks()[0];
+    const audioSettings = audioTrack.getSettings();
+    const sampleRate = audioSettings.sampleRate || 48000;
+    const numberOfChannels = audioSettings.channelCount || 2;
+
+    audioEncoder = new AudioEncoder({
+      output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
+      error: (e) => console.error("AudioEncoder error:", e),
+    });
+    audioEncoder.configure({
+      codec: "aac",
+      sampleRate,
+      numberOfChannels,
+      bitrate: 128000,
+    });
+
+    // Read audio frames via MediaStreamTrackProcessor
+    if (typeof MediaStreamTrackProcessor !== "undefined") {
+      const processor = new MediaStreamTrackProcessor({ track: audioTrack });
+      audioReader = processor.readable.getReader();
+      (async () => {
+        try {
+          while (true) {
+            const { value, done } = await audioReader.read();
+            if (done) break;
+            audioEncoder.encode(value);
+            value.close();
+          }
+        } catch (_) {
+          // reader cancelled on finalize
+        }
+      })();
+    }
+  }
 
   const encoder = new VideoEncoder({
     output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
@@ -357,6 +498,8 @@ export function startRealtimeMp4(ctx) {
       rafRef.current = null;
     }
     try {
+      if (audioReader) await audioReader.cancel();
+      if (audioEncoder) await audioEncoder.flush();
       await encoder.flush();
       muxer.finalize();
       const blob = new Blob([target.buffer], { type: "video/mp4" });
@@ -364,6 +507,7 @@ export function startRealtimeMp4(ctx) {
     } catch (e) {
       console.error("Realtime MP4 finalize error:", e);
     }
+    if (audioEncoder) audioEncoder.close();
     encoder.close();
     setRecording(false);
     restoreOnRealtimeStop();
@@ -377,6 +521,7 @@ export function startRealtimeMp4(ctx) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
+    if (audioEncoder) audioEncoder.close();
     encoder.close();
     setRecording(false);
     restoreOnRealtimeStop();

@@ -106,13 +106,20 @@ export default function useRecorder(engineRef) {
         engine.resize(resolution.width, resolution.height);
       }
 
-      // Audio stream (realtime only)
+      // Audio
+      const audioManager = engine._audioManager;
       const audioStream =
-        !offline && engine._audioManager
-          ? engine._audioManager.getAudioStream()
+        !offline && audioManager
+          ? audioManager.getAudioStream()
           : null;
-      const hasAudio =
-        audioStream && audioStream.getAudioTracks().length > 0;
+      const audioBuffer =
+        offline && audioManager
+          ? (audioManager._buffer ?? null)
+          : null;
+      const hasAudio = offline
+        ? audioBuffer !== null
+        : audioStream && audioStream.getAudioTracks().length > 0;
+
 
       // Codec selection (for MediaRecorder paths)
       const codecCandidates = hasAudio
@@ -138,7 +145,7 @@ export default function useRecorder(engineRef) {
       // Shared context for all strategies
       const ctx = {
         engine, canvas, fps, duration, format, alpha,
-        videoBitsPerSecond, mimeType, hasAudio, audioStream,
+        videoBitsPerSecond, mimeType, hasAudio, audioStream, audioBuffer,
         setRecording, setElapsedTime, downloadBlob,
         rafRef, finalizeRef, offlineAbortRef, alphaRef, filenameRef,
         recorderRef, chunksRef, startTimeRef, autoStopRef,

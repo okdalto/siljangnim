@@ -32,6 +32,46 @@ and access real-time FFT data for audio-reactive visuals.
 
 Audio playback is automatically synchronized with the timeline (pause, seek, loop).
 
+## Custom Sound Generation (Web Audio API)
+
+If you need to generate sounds procedurally (oscillators, noise, etc.) instead of
+loading audio files, use the engine-provided AudioContext so that sound is captured
+during recording:
+
+| Property | Description |
+|----------|-------------|
+| `ctx.audioContext` | Engine-managed `AudioContext` — use instead of `new AudioContext()` |
+| `ctx.audioDestination` | `GainNode` that routes to both speakers AND recording pipeline |
+
+**IMPORTANT**: Always use `ctx.audioContext` / `ctx.audioDestination` instead of
+creating your own `AudioContext` or connecting to `ac.destination`.
+Otherwise the sound will play but will NOT be captured in video recordings.
+
+### Example — Procedural beep
+
+```javascript
+// setup
+const ac = ctx.audioContext;
+const dest = ctx.audioDestination;
+
+ctx.state.playBeep = function(freq, vol) {
+  if (ac.state === 'suspended') ac.resume();
+  const osc = ac.createOscillator();
+  const gain = ac.createGain();
+  const now = ac.currentTime;
+  osc.frequency.setValueAtTime(freq, now);
+  gain.gain.setValueAtTime(vol, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+  osc.connect(gain);
+  gain.connect(dest);   // ← ctx.audioDestination (NOT ac.destination)
+  osc.start(now);
+  osc.stop(now + 0.35);
+};
+
+// render — trigger on some condition
+if (someCondition) ctx.state.playBeep(440, 0.5);
+```
+
 ## Example — Audio-reactive visual
 
 ```javascript

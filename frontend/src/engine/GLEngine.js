@@ -10,6 +10,12 @@ import { createQuadGeometry, createBoxGeometry, createSphereGeometry, createPlan
 import AudioManager from "./AudioManager.js";
 import MediaPipeManager from "./MediaPipeManager.js";
 import { sampleCurve } from "../utils/curves.js";
+import * as mat4 from "./mat4.js";
+import * as quat from "./quat.js";
+import { createPingPong } from "./pingPong.js";
+import { createOrbitCamera } from "./orbitCamera.js";
+import * as noise from "./noise.js";
+import { createVerletSystem } from "./verletPhysics.js";
 
 const GEOMETRY_CREATORS = {
   quad: createQuadGeometry,
@@ -50,6 +56,7 @@ export default class GLEngine {
     this._paused = false;
     this._pausedTime = 0;
     this._pauseStart = 0;
+    this._needsPausedRender = false;
 
     // Scene data
     this._scene = null;
@@ -297,6 +304,14 @@ export default class GLEngine {
           }
         },
 
+        // --- New utility modules ---
+        mat4,
+        quat,
+        createPingPong: (w, h, opts) => createPingPong(this.gl, w, h, opts),
+        createOrbitCamera,
+        noise,
+        createVerletSystem,
+
         createRenderTarget: (width, height, options = {}) => {
           const g = this.gl;
           const {
@@ -330,6 +345,8 @@ export default class GLEngine {
     };
     // Audio API (methods delegate to AudioManager, properties updated per frame)
     this._audioManager.reset();
+    ctx.audioContext = this._audioManager.getAudioContext();
+    ctx.audioDestination = this._audioManager.getRecordingDestination();
     ctx.audio = {
       load: (url) => this._audioManager.load(url),
       play: (offset) => this._audioManager.play(offset),
@@ -474,7 +491,23 @@ export default class GLEngine {
     // Always report current time (for timeline UI even when paused)
     this.onTime?.(this.getCurrentTime());
 
-    if (this._paused) return;
+    if (this._paused) {
+      if (this._needsPausedRender) {
+        this._needsPausedRender = false;
+        const wasPaused = this._paused;
+        try {
+          this._renderFrame(this.getCurrentTime(), 0);
+          this._frameCount++;
+        } catch (e) {
+          // ignore render errors during paused frame
+        }
+        // Script may have unpaused during render — restore paused state
+        if (wasPaused && !this._paused) {
+          this.setPaused(true);
+        }
+      }
+      return;
+    }
 
     const now = performance.now() / 1000;
     const dt = now - this._lastFrameTime;
@@ -691,6 +724,7 @@ export default class GLEngine {
 
   updateUniform(name, value) {
     this._customUniforms[name] = value;
+    this._needsPausedRender = true;
   }
 
   setKeyframeManager(km) {
