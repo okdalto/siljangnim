@@ -378,21 +378,12 @@ async def handle_console_error(ws, msg, ctx: WsContext):
         event = agents._browser_error_events.get(ctx.AGENT_WS_ID)
         if event:
             event.set()
-    elif _classify_error(error_msg) == "engine":
-        # Engine errors cannot be fixed by editing scene.json — log but don't auto-fix
-        await ctx.manager.broadcast({
-            "type": "agent_log",
-            "agent": "System",
-            "message": f"Engine error (not auto-fixable): {error_msg}",
-            "level": "warning",
-        })
-    elif ctx.auto_fix_count < ctx.MAX_AUTO_FIX:
-        asyncio.create_task(_trigger_auto_fix(error_msg, ctx))
     else:
+        # Log to debug panel only — no auto-fix
         await ctx.manager.broadcast({
             "type": "agent_log",
             "agent": "System",
-            "message": f"Auto-fix limit ({ctx.MAX_AUTO_FIX}) reached. Please fix the error manually or send a new prompt to reset.",
+            "message": f"Browser error: {error_msg}",
             "level": "warning",
         })
 

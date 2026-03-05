@@ -78,7 +78,9 @@ Each script function receives a `ctx` object with these fields:
 | ctx.uniforms | object | Current UI slider values (available in render) |
 | ctx.keys | Set | Currently pressed key codes (available in render) |
 | ctx.utils | object | Utility functions (see below) |
-| ctx.audio | object | Audio playback & analysis (see below) |""",
+| ctx.audio | object | Audio playback & analysis (see below) |
+| ctx.audioContext | AudioContext | Engine-managed AudioContext for procedural sound |
+| ctx.audioDestination | GainNode | Connect here instead of ac.destination (routes to speakers + recording) |""",
     },
     {
         "id": "ctx_utils",
@@ -460,6 +462,8 @@ Derivatives are served at `/api/uploads/processed/<stem_ext>/<filename>`.""",
 ## EXTENDED APIs (Audio, MediaPipe, Webcam)
 
 `ctx.audio` — audio playback & real-time FFT analysis (bass/mid/treble/energy, fftTexture). \
+`ctx.audioContext` — engine-managed AudioContext for procedural sound (use instead of `new AudioContext()`). \
+`ctx.audioDestination` — GainNode routing to speakers + recording (use instead of `ac.destination`). \
 `ctx.mediapipe` — face mesh, body pose, hand tracking via MediaPipe Vision (lazy CDN load). \
 `ctx.utils.initWebcam()` — webcam stream → `{video, texture, stream}`. \
 For detailed API docs, methods, properties, and examples: \

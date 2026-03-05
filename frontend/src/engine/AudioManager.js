@@ -78,6 +78,11 @@ export default class AudioManager {
       this._streamDest = this._audioContext.createMediaStreamDestination();
       this._gainNode.connect(this._streamDest);
 
+      // Pass-through node for script-generated audio → speakers + recording
+      this._scriptGain = this._audioContext.createGain();
+      this._scriptGain.connect(this._audioContext.destination);
+      this._scriptGain.connect(this._streamDest);
+
       this.frequencyData = new Uint8Array(this._analyser.frequencyBinCount);
       this.waveformData = new Uint8Array(this._analyser.frequencyBinCount);
     }
@@ -151,10 +156,35 @@ export default class AudioManager {
   }
 
   /**
+   * Return the AudioContext, creating it if needed.
+   */
+  getAudioContext() {
+    this._ensureContext();
+    return this._audioContext;
+  }
+
+  /**
+   * Return a destination node for script-generated audio.
+   * Audio connected here routes to both speakers and recording.
+   */
+  getRecordingDestination() {
+    this._ensureContext();
+    return this._scriptGain;
+  }
+
+  /**
    * Return the audio MediaStream for recording, or null if unavailable.
    */
   getAudioStream() {
+    this._ensureContext();
     return this._streamDest?.stream ?? null;
+  }
+
+  /**
+   * Return the decoded AudioBuffer for offline rendering, or null.
+   */
+  getAudioBuffer() {
+    return this._buffer ?? null;
   }
 
   // ---- Engine integration (called by GLEngine) ----
