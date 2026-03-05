@@ -85,47 +85,30 @@ def load_conversations() -> None:
 # ---------------------------------------------------------------------------
 
 def _build_multimodal_content(user_prompt: str, files: list[dict]) -> list[dict]:
-    """Build a multimodal content block list from user prompt + attached files.
+    """Build a content block list from user prompt + attached files.
 
-    Returns a list of Anthropic content blocks (image / text).
+    All files are referenced by path only — the agent should use read_file
+    to access contents when needed.
     """
-    image_mimes = {"image/png", "image/jpeg", "image/gif", "image/webp"}
-    content_blocks: list[dict] = []
-    non_image_descriptions: list[str] = []
+    file_descriptions: list[str] = []
 
     for f in files:
         mime = f.get("mime_type", "")
         name = f.get("name", "unknown")
-        data_b64 = f.get("data_b64", "")
-
-        if mime in image_mimes and data_b64:
-            content_blocks.append({
-                "type": "image",
-                "source": {
-                    "type": "base64",
-                    "media_type": mime,
-                    "data": data_b64,
-                },
-            })
-            content_blocks.append({
-                "type": "text",
-                "text": f"[Uploaded image: {name} ({f.get('size', 0)} bytes)]",
-            })
-        else:
-            non_image_descriptions.append(
-                f"[Uploaded file: {name} ({f.get('size', 0)} bytes, {mime}) — "
-                f"use read_file tool with path='uploads/<filename>' to read its contents. "
-                f"The file is accessible at /api/uploads/{name}]"
-            )
+        size = f.get("size", 0)
+        file_descriptions.append(
+            f"[Uploaded file: {name} ({size} bytes, {mime}) — "
+            f"use read_file tool with path='uploads/{name}' to read its contents. "
+            f"The file is accessible at /api/uploads/{name}]"
+        )
 
     # Compose user text
-    extra_text = "\n".join(non_image_descriptions)
+    extra_text = "\n".join(file_descriptions)
     prompt_text = user_prompt or "The user uploaded these files."
     if extra_text:
         prompt_text += "\n\n" + extra_text
 
-    content_blocks.append({"type": "text", "text": prompt_text})
-    return content_blocks
+    return [{"type": "text", "text": prompt_text}]
 
 
 # ---------------------------------------------------------------------------
@@ -595,6 +578,7 @@ async def _call_gemini_native(
 
     _heartbeat_task = asyncio.create_task(_heartbeat())
 
+    _stream_interrupted = False
     try:
         _status_think_chars = 0
         _status_content_chars = 0
@@ -637,6 +621,14 @@ async def _call_gemini_native(
                     if on_status:
                         await on_status("tool_use", fc.name)
 
+    except Exception as stream_err:
+        _has_partial = bool(content_text.strip() or tool_calls)
+        if _has_partial:
+            if log:
+                await log("System", f"Gemini stream interrupted but partial response recovered: {stream_err}", "info")
+            _stream_interrupted = True
+        else:
+            raise
     finally:
         _heartbeat_task.cancel()
 

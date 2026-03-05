@@ -50,7 +50,7 @@ cleanup() {
 trap cleanup INT TERM
 
 # Start backend (unset CLAUDECODE to allow Agent SDK subprocess spawning)
-(cd "$ROOT/backend" && unset CLAUDECODE && uvicorn main:app --host 0.0.0.0 --port 8000 --reload) &
+(cd "$ROOT/backend" && unset CLAUDECODE && uvicorn main:app --host 0.0.0.0 --port 8000 --reload --ws-max-size 104857600) &
 BACKEND_PID=$!
 
 # Start frontend

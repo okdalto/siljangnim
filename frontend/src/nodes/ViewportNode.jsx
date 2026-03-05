@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { NodeResizer } from "@xyflow/react";
 import GLEngine from "../engine/GLEngine.js";
 import ResolutionSelector from "../components/viewport/ResolutionSelector.jsx";
+import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 
 export default function ViewportNode({ data }) {
   const { sceneJSON, engineRef, onError, paused } = data;
@@ -15,6 +16,8 @@ export default function ViewportNode({ data }) {
   const [fixedResolution, setFixedResolution] = useState(null); // null = auto
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
+
+  useStopWheelPropagation(containerRef);
 
   // Initialize engine on mount
   useEffect(() => {
