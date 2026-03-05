@@ -325,6 +325,7 @@ export function startRealtimeMp4(ctx) {
       height: canvas.height,
     },
     fastStart: "in-memory",
+    firstTimestampBehavior: "offset",
   });
 
   const encoder = new VideoEncoder({
