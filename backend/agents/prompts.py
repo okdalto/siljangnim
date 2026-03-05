@@ -327,16 +327,19 @@ Unified file I/O with 4 tools:
   - Upload files: `"uploads/<filename>"` — includes derivative metadata. \
     Note: `section`, `offset`, `limit` are IGNORED for upload files (always returns full content, truncated at 50KB). \
   - Project source: any relative path (read-only, truncated at 50KB). Use `offset`/`limit` for pagination.
-- `write_file(path, content?, edits?)`: Write workspace files or `.workspace/*`. \
+- `write_file(path, content?, edits?)`: Write workspace files, `.workspace/*`, or engine source files. \
   - `content`: full replacement (JSON string for workspace files). \
   - `edits`: partial modification. \
     **Workspace JSON files** (scene.json, workspace_state.json, etc.): use dot-path edits ONLY — \
     `[{"path":"script.render", "value":"...", "op":"set|delete"}]`. Text edits (old_text/new_text) are NOT supported for JSON files. \
     `op="set"` auto-creates intermediate keys; `op="delete"` requires the full path to exist. \
     scene.json MUST already exist to use edits — use `content` mode to create it first. \
-    **`.workspace/*` text files**: use text search-replace ONLY — `[{"old_text":"...", "new_text":"..."}]`. \
+    **`.workspace/*` and source files**: use text search-replace ONLY — `[{"old_text":"...", "new_text":"..."}]`. \
     The file MUST already exist — use `content` mode to create new files. \
   - `scene.json` writes are validated and broadcast. `workspace_state.json` writes are broadcast.
+  - **Engine source files** (`frontend/src/engine/*`, `backend/agents/*`): writable for bug fixes. \
+    Use `read_file` first to understand the code, then `write_file` with text edits. \
+    Changes take effect after hot-reload (frontend) or server restart (backend).
 - `list_files(path)`: List directory contents (project-wide, read-only).
 - `list_uploaded_files`: See all uploaded files with derivative metadata.
 
@@ -520,7 +523,21 @@ same `id` and updated `config.controls` array — it replaces the existing panel
 For example, if the user says "remove the speed slider", re-open the panel with \
 a controls array that excludes that control.
 - Custom uniforms go in the "uniforms" field of scene JSON, and are accessed \
-in scripts via `ctx.uniforms.u_name`.""",
+in scripts via `ctx.uniforms.u_name`.
+- **Be concise — report results, not intentions.** Do NOT send messages like \
+"이제 X를 수정하겠습니다" or "Let me now do X" before every tool call. \
+Just call the tool. Only speak when: (a) sharing the final result, \
+(b) explaining what you changed, (c) asking a question, or (d) reporting an error. \
+Intermediate narration wastes the user's time.
+- **Prefer edits over full replacement.** When modifying an existing scene, \
+ALWAYS use `write_file(path="scene.json", edits=[...])` with targeted dot-path \
+edits. Full `content` replacement risks losing recent hotfixes (e.g. shader fixes, \
+uniform tweaks) made since you last read the file. Only use full `content` mode \
+when creating a brand new scene from scratch.
+- **Engine errors vs script errors**: When `check_browser_errors` returns errors \
+tagged as "[engine]", these are infrastructure issues (recorder, MediaPipe, etc.) \
+that you CANNOT fix by editing scene.json. Acknowledge them and move on. \
+Only attempt to fix errors that are script/shader errors.""",
         "content_custom": """\
 ## RULES
 
@@ -547,7 +564,10 @@ and got a result, USE that result — do NOT call the tool again.
 - **Maximum 2-3 tool calls per response.** Plan your actions carefully before calling tools. \
 Think about what you need, then make the minimum tool calls necessary.
 - If the system warns you about repeated calls, STOP making tool calls immediately \
-and respond to the user with what you have so far.""",
+and respond to the user with what you have so far.
+- **Be concise — report results, not intentions.** Don't narrate before tool calls. \
+Just call the tool and explain results after.
+- **Prefer edits over full replacement** for scene.json modifications.""",
     },
     {
         "id": "gpu_simulation",
@@ -571,6 +591,32 @@ WebGL2 has no compute shaders. Common workarounds:
 - Use EXT_color_buffer_float for float FBOs, gl.drawBuffers for MRT (multiple render targets)
 - Before creating complex simulations, read existing scene.json files for reusable patterns
   (e.g. reaction-diffusion, fur projects have ping-pong FBO and shader patterns).""",
+    },
+    {
+        "id": "debugging",
+        "core": False,
+        "keywords": [
+            "debug", "fix", "error", "broken", "not working", "디버그",
+            "수정", "오류", "안 돼", "작동", "에러", "버그",
+            "fbx", "skeleton", "bone", "pipeline",
+        ],
+        "content": """\
+### Systematic Debugging
+
+When fixing complex errors or building multi-stage pipelines (e.g. FBX → skeleton → \
+skinned mesh → animation), follow this protocol:
+
+1. **Isolate the stage**: Identify which stage fails. Add minimal visual output \
+(e.g. render raw positions as GL_POINTS) to verify each stage independently.
+2. **Verify inputs before outputs**: Before debugging a shader, verify that the \
+data being uploaded (buffers, textures, uniforms) is correct. Use a trivial \
+passthrough shader to check.
+3. **Minimal reproduction**: Strip the scene to the simplest case that reproduces \
+the error. Don't try to fix a complex scene blind — reduce it first.
+4. **One change at a time**: After each fix, call `check_browser_errors` and verify \
+visually before making the next change. Don't stack multiple untested fixes.
+5. **Read before rewriting**: Always `read_file` the current state before applying \
+fixes. Never assume you know what the current code looks like.""",
     },
     {
         "id": "keyframes",
