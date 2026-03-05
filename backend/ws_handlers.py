@@ -18,6 +18,46 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
+# Error classification
+# ---------------------------------------------------------------------------
+
+# Patterns that indicate engine/infrastructure errors (NOT user script bugs).
+# These should NOT trigger auto-fix because the agent can't fix them by editing scene.json.
+_ENGINE_ERROR_PATTERNS = [
+    "ResizeObserver",
+    "VideoEncoder",
+    "MediaRecorder",
+    "MediaPipe",
+    "captureStream",
+    "WebSocket",
+    "Failed to fetch",
+    "net::ERR_",
+    "NS_ERROR_",
+    "NotAllowedError",
+    "NotSupportedError",
+    "AbortError",
+    "QuotaExceededError",
+    "recorder",
+    "muxer",
+    "mp4-muxer",
+    "webm-muxer",
+]
+
+
+def _classify_error(message: str) -> str:
+    """Classify a browser error as 'script' or 'engine'.
+
+    Script errors are caused by the user's scene.json code and can be auto-fixed.
+    Engine errors are infrastructure issues that the agent cannot fix via scene edits.
+    """
+    msg_lower = message.lower()
+    for pattern in _ENGINE_ERROR_PATTERNS:
+        if pattern.lower() in msg_lower:
+            return "engine"
+    return "script"
+
+
+# ---------------------------------------------------------------------------
 # Shared context — replaces main.py globals
 # ---------------------------------------------------------------------------
 
@@ -325,16 +365,27 @@ async def handle_console_error(ws, msg, ctx: WsContext):
     if not error_msg:
         pass
     elif ctx.agent_busy:
-        if error_msg not in ctx.pending_errors:
-            ctx.pending_errors.append(error_msg)
+        # Classify and tag the error for the agent
+        error_type = _classify_error(error_msg)
+        tagged = f"[{error_type}] {error_msg}" if error_type == "engine" else error_msg
+        if tagged not in ctx.pending_errors:
+            ctx.pending_errors.append(tagged)
         # Also push to per-session list so the agent can check via check_browser_errors tool
         ws_errors = agents._browser_errors.setdefault(ctx.AGENT_WS_ID, [])
-        if error_msg not in ws_errors:
-            ws_errors.append(error_msg)
+        if tagged not in ws_errors:
+            ws_errors.append(tagged)
         # Signal the waiting event so check_browser_errors returns immediately
         event = agents._browser_error_events.get(ctx.AGENT_WS_ID)
         if event:
             event.set()
+    elif _classify_error(error_msg) == "engine":
+        # Engine errors cannot be fixed by editing scene.json — log but don't auto-fix
+        await ctx.manager.broadcast({
+            "type": "agent_log",
+            "agent": "System",
+            "message": f"Engine error (not auto-fixable): {error_msg}",
+            "level": "warning",
+        })
     elif ctx.auto_fix_count < ctx.MAX_AUTO_FIX:
         asyncio.create_task(_trigger_auto_fix(error_msg, ctx))
     else:

@@ -171,12 +171,13 @@ TOOLS = [
         "name": "write_file",
         "description": (
             "Unified file writer. Writes to workspace files (scene.json, workspace_state.json, "
-            "panels.json, ui_config.json, debug_logs.json) and .workspace/ directory. "
+            "panels.json, ui_config.json, debug_logs.json), .workspace/ directory, "
+            "and engine source files (frontend/src/engine/*, backend/agents/*). "
             "Use 'content' for full file replacement or 'edits' for partial modifications. "
             "scene.json writes are validated and broadcast to clients. "
             "workspace_state.json writes are broadcast to clients. "
             "IMPORTANT: Workspace JSON files support ONLY dot-path edits. "
-            ".workspace/* text files support ONLY text search-replace edits. "
+            "Text files (.workspace/*, source files) support ONLY text search-replace edits. "
             "Edits require the target file to already exist (use content to create new files)."
         ),
         "input_schema": {

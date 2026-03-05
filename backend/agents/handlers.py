@@ -30,6 +30,12 @@ _WORKSPACE_FILES = {
     "ui_config.json", "debug_logs.json",
 }
 
+# Directories where the agent is allowed to write (in addition to workspace files)
+_WRITABLE_SOURCE_DIRS = {
+    "frontend/src/engine/",
+    "backend/agents/",
+}
+
 BroadcastCallback = Callable[[dict], Awaitable[None]]
 
 
@@ -44,6 +50,25 @@ def _resolve_project_path(path: str) -> Path | None:
 # ---------------------------------------------------------------------------
 # Scene JSON validation
 # ---------------------------------------------------------------------------
+
+def _normalize_script_strings(scene: dict) -> None:
+    """Fix common JSON escape issues in script strings (setup/render/cleanup).
+
+    LLMs sometimes produce strings with literal tab characters, unescaped
+    backslashes before non-escape sequences, or other encoding issues.
+    This normalises them in-place so the script evaluates correctly.
+    """
+    script = scene.get("script")
+    if not isinstance(script, dict):
+        return
+    for key in ("setup", "render", "cleanup"):
+        val = script.get(key)
+        if not isinstance(val, str):
+            continue
+        # Replace literal tab characters with \\t escape (common LLM mistake)
+        val = val.replace("\t", "    ")
+        script[key] = val
+
 
 def _validate_scene_json(scene: dict) -> list[str]:
     """Validate a scene JSON (script mode only).
@@ -271,8 +296,9 @@ async def _tool_write_file(input_data: dict, broadcast: BroadcastCallback) -> st
     # --- Write permission check ---
     is_workspace_file = rel_path in _WORKSPACE_FILES
     is_under_workspace_dir = rel_path.startswith(".workspace/") or rel_path.startswith(".workspace\\")
-    if not is_workspace_file and not is_under_workspace_dir:
-        return "Write access denied. Only workspace files and .workspace/ are writable."
+    is_writable_source = any(rel_path.startswith(d) for d in _WRITABLE_SOURCE_DIRS)
+    if not is_workspace_file and not is_under_workspace_dir and not is_writable_source:
+        return "Write access denied. Only workspace files, .workspace/, and engine source files are writable."
 
     # --- Full replacement (content mode) ---
     if raw_content is not None:
@@ -286,8 +312,9 @@ async def _tool_write_file(input_data: dict, broadcast: BroadcastCallback) -> st
             except json.JSONDecodeError as e:
                 return f"Invalid JSON: {e}"
 
-            # scene.json: validate + broadcast
+            # scene.json: normalize + validate + broadcast
             if rel_path == "scene.json":
+                _normalize_script_strings(data)
                 errors = _validate_scene_json(data)
                 if errors:
                     error_text = "Validation errors (fix these and try again):\n"
@@ -319,7 +346,7 @@ async def _tool_write_file(input_data: dict, broadcast: BroadcastCallback) -> st
             return f"ok — {rel_path} saved."
 
         else:
-            # .workspace/* plain file write
+            # .workspace/* or writable source file write
             resolved = _resolve_project_path(rel_path)
             if resolved is None:
                 return "Error: path is outside the project root."
@@ -381,8 +408,9 @@ async def _tool_write_file(input_data: dict, broadcast: BroadcastCallback) -> st
         if applied_count == 0 and warnings:
             return "Error: no edits applied.\n" + "\n".join(f"  - {w}" for w in warnings)
 
-        # scene.json: validate + broadcast
+        # scene.json: normalize + validate + broadcast
         if rel_path == "scene.json":
+            _normalize_script_strings(data)
             errors = _validate_scene_json(data)
             if errors:
                 error_text = "Validation errors after edits:\n"
@@ -723,7 +751,15 @@ async def _tool_check_browser_errors(input_data: dict, broadcast: BroadcastCallb
     errors_list.clear()
     if not errors:
         return "No browser errors detected."
-    return "Browser errors detected:\n" + "\n".join(f"  - {e}" for e in errors)
+    # Separate engine errors from script errors
+    engine_errors = [e for e in errors if e.startswith("[engine]")]
+    script_errors = [e for e in errors if not e.startswith("[engine]")]
+    parts = []
+    if script_errors:
+        parts.append("Script errors (fix these in scene.json):\n" + "\n".join(f"  - {e}" for e in script_errors))
+    if engine_errors:
+        parts.append("Engine/infrastructure errors (NOT caused by your script — do NOT try to fix these):\n" + "\n".join(f"  - {e}" for e in engine_errors))
+    return "\n\n".join(parts)
 
 
 async def _tool_ask_user(input_data: dict, broadcast: BroadcastCallback, ws_id: int = 0) -> str:
