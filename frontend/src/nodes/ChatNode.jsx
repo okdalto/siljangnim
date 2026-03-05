@@ -4,8 +4,6 @@ import FileChip from "../components/chat/FileChip.jsx";
 import MarkdownMessage from "../components/chat/MarkdownMessage.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-
 function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -44,10 +42,6 @@ export default function ChatNode({ data }) {
   const processFiles = useCallback(async (fileList) => {
     const newFiles = [];
     for (const file of fileList) {
-      if (file.size > MAX_FILE_SIZE) {
-        alert(`File "${file.name}" exceeds 10 MB limit.`);
-        continue;
-      }
       const b64 = await readFileAsBase64(file);
       const entry = {
         name: file.name,

@@ -11,9 +11,6 @@ import workspace
 
 logger = logging.getLogger(__name__)
 
-MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB
-
-
 def _sanitize_filename(name: str) -> str:
     """Sanitize a filename — keep alphanumeric, dots, hyphens, underscores."""
     name = name.strip().replace(" ", "_")
@@ -30,16 +27,12 @@ def _process_uploads(raw_files: list[dict]) -> list[dict]:
         data_b64 = f.get("data_b64", "")
         size = f.get("size", 0)
 
-        if size > MAX_UPLOAD_SIZE:
-            raise ValueError(f"File '{name}' exceeds 10 MB limit ({size} bytes)")
-
         raw_bytes = base64.b64decode(data_b64)
         workspace.save_upload(name, raw_bytes)
         saved.append({
             "name": name,
             "mime_type": mime,
             "size": len(raw_bytes),
-            "data_b64": data_b64,
         })
     return saved
 
