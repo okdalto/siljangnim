@@ -1,0 +1,527 @@
+/**
+ * Tool handlers — ported from handlers.py.
+ * Removed: run_python, run_command (browser-incompatible).
+ * Uses storage.js for IndexedDB I/O.
+ */
+
+import * as storage from "./storage.js";
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const WORKSPACE_FILES = new Set([
+  "scene.json",
+  "workspace_state.json",
+  "panels.json",
+  "ui_config.json",
+  "debug_logs.json",
+]);
+
+// ---------------------------------------------------------------------------
+// Scene JSON validation
+// ---------------------------------------------------------------------------
+
+function normalizeScriptStrings(scene) {
+  const script = scene?.script;
+  if (!script || typeof script !== "object") return;
+  for (const key of ["setup", "render", "cleanup"]) {
+    if (typeof script[key] === "string") {
+      script[key] = script[key].replace(/\t/g, "    ");
+    }
+  }
+}
+
+function validateSceneJson(scene) {
+  const errors = [];
+  if (!scene || typeof scene !== "object") return ["Scene JSON is not an object"];
+  const script = scene.script;
+  if (!script || typeof script !== "object") {
+    errors.push("Missing 'script' object in scene JSON");
+    return errors;
+  }
+  if (!script.render) {
+    errors.push("Missing 'script.render' code in scene JSON");
+  }
+  return errors;
+}
+
+// ---------------------------------------------------------------------------
+// Nested object helpers (dot-path)
+// ---------------------------------------------------------------------------
+
+function getNested(obj, path) {
+  const keys = path.split(".");
+  let cur = obj;
+  for (const key of keys) {
+    if (cur == null || typeof cur !== "object") throw new Error(`Cannot traverse into non-object at '${key}'`);
+    if (!(key in cur)) throw new Error(`Key '${key}' not found`);
+    cur = cur[key];
+  }
+  return cur;
+}
+
+function setNested(obj, path, value) {
+  const keys = path.split(".");
+  let cur = obj;
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    if (cur == null || typeof cur !== "object") throw new Error(`Cannot traverse at '${key}'`);
+    if (!(key in cur)) cur[key] = {};
+    cur = cur[key];
+  }
+  const finalKey = keys[keys.length - 1];
+  if (cur == null || typeof cur !== "object") throw new Error(`Cannot set '${finalKey}' on non-object`);
+  cur[finalKey] = value;
+}
+
+function deleteNested(obj, path) {
+  const keys = path.split(".");
+  let cur = obj;
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    if (cur == null || typeof cur !== "object" || !(key in cur)) throw new Error(`Key '${key}' not found`);
+    cur = cur[key];
+  }
+  const finalKey = keys[keys.length - 1];
+  if (cur == null || typeof cur !== "object" || !(finalKey in cur)) throw new Error(`Key '${finalKey}' not found`);
+  delete cur[finalKey];
+}
+
+// ---------------------------------------------------------------------------
+// Tool implementations
+// ---------------------------------------------------------------------------
+
+async function toolReadFile(input, broadcast) {
+  const relPath = input.path || "";
+  if (!relPath) return "Error: 'path' is required.";
+  const section = input.section;
+
+  // Workspace JSON files
+  if (WORKSPACE_FILES.has(relPath)) {
+    let data;
+    try {
+      data = await storage.readJson(relPath);
+    } catch {
+      if (relPath === "workspace_state.json") {
+        data = { version: 1, keyframes: {}, duration: 30, loop: true };
+      } else {
+        return `No ${relPath} exists yet. Create a new one.`;
+      }
+    }
+    if (section) {
+      try {
+        const value = getNested(data, section);
+        return typeof value === "string" ? value : JSON.stringify(value, null, 2);
+      } catch (e) {
+        return `Section '${section}' not found: ${e.message}`;
+      }
+    }
+    return JSON.stringify(data, null, 2);
+  }
+
+  // Upload files
+  if (relPath.startsWith("uploads/")) {
+    const filename = relPath.slice(8);
+    try {
+      const info = await storage.getUploadInfo(filename);
+      const textTypes = ["text/", "application/json", "application/xml", "application/javascript"];
+      const textExts = [".obj", ".mtl", ".glsl", ".txt", ".csv", ".json", ".xml", ".html", ".css", ".js", ".py", ".md", ".yaml", ".yml", ".svg"];
+      const isText = textTypes.some((t) => info.mime_type.startsWith(t)) ||
+        textExts.some((ext) => filename.toLowerCase().endsWith(ext));
+
+      if (isText) {
+        const blob = await storage.readUpload(filename);
+        const text = new TextDecoder().decode(blob.data);
+        const content = text.length > 50000 ? text.slice(0, 50000) + "\n... (truncated)" : text;
+        return `File: ${filename} (${info.size} bytes, ${info.mime_type})\n\n${content}`;
+      } else {
+        return (
+          `Binary file: ${filename}\n` +
+          `Size: ${info.size} bytes\n` +
+          `MIME type: ${info.mime_type}\n` +
+          `The file is accessible at: /api/uploads/${filename}`
+        );
+      }
+    } catch {
+      return `File not found: ${filename}`;
+    }
+  }
+
+  // .workspace/* text files
+  if (relPath.startsWith(".workspace/")) {
+    try {
+      const content = await storage.readTextFile(relPath);
+      return `File: ${relPath}\n\n${content}`;
+    } catch {
+      return `Error: '${relPath}' not found.`;
+    }
+  }
+
+  return `Error: '${relPath}' — only workspace files and uploads are accessible in browser mode.`;
+}
+
+async function toolWriteScene(input, broadcast) {
+  const scene = { version: 1, render_mode: "script", script: {} };
+
+  for (const key of ["setup", "render", "cleanup"]) {
+    if (input[key]) scene.script[key] = input[key];
+  }
+
+  if (!scene.script.render) return "Error: 'render' is required.";
+
+  if (input.uniforms) scene.uniforms = input.uniforms;
+  if (input.clearColor) scene.clearColor = input.clearColor;
+
+  normalizeScriptStrings(scene);
+  const errors = validateSceneJson(scene);
+  if (errors.length) return "Validation errors:\n" + errors.map((e) => `  - ${e}`).join("\n");
+
+  await storage.writeJson("scene.json", scene);
+  broadcast({ type: "scene_update", scene_json: scene });
+  return "ok — scene saved and broadcast.";
+}
+
+async function toolWriteFile(input, broadcast) {
+  const relPath = input.path || "";
+  if (!relPath) return "Error: 'path' is required.";
+  const rawContent = input.content;
+  const rawEdits = input.edits;
+
+  if (rawContent == null && rawEdits == null) {
+    return "Error: either 'content' or 'edits' is required.";
+  }
+
+  const isWorkspaceFile = WORKSPACE_FILES.has(relPath);
+  const isUnderWorkspaceDir = relPath.startsWith(".workspace/");
+
+  if (!isWorkspaceFile && !isUnderWorkspaceDir) {
+    return "Write access denied. Only workspace files and .workspace/ are writable in browser mode.";
+  }
+
+  // Full replacement (content mode)
+  if (rawContent != null) {
+    if (isWorkspaceFile) {
+      let data;
+      try {
+        data = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
+      } catch (e) {
+        return `Invalid JSON: ${e.message}`;
+      }
+
+      if (relPath === "scene.json") {
+        normalizeScriptStrings(data);
+        const errors = validateSceneJson(data);
+        if (errors.length) {
+          return "Validation errors (fix these and try again):\n" + errors.map((e) => `  - ${e}`).join("\n");
+        }
+        await storage.writeJson("scene.json", data);
+        broadcast({ type: "scene_update", scene_json: data });
+        return "ok — scene saved and broadcast.";
+      }
+
+      if (relPath === "workspace_state.json") {
+        if (!data.version) data.version = 1;
+        await storage.writeJson("workspace_state.json", data);
+        broadcast({ type: "workspace_state_update", workspace_state: data });
+        return "ok — workspace state saved and broadcast.";
+      }
+
+      await storage.writeJson(relPath, data);
+      return `ok — ${relPath} saved.`;
+    } else {
+      // .workspace/* text file
+      await storage.writeTextFile(relPath, typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent));
+      return `ok — wrote to ${relPath}`;
+    }
+  }
+
+  // Partial edit (edits mode)
+  let edits;
+  try {
+    edits = typeof rawEdits === "string" ? JSON.parse(rawEdits) : rawEdits;
+  } catch (e) {
+    return `Invalid edits JSON: ${e.message}`;
+  }
+  if (!Array.isArray(edits)) return "Error: 'edits' must be a JSON array.";
+
+  if (isWorkspaceFile) {
+    let data;
+    try {
+      data = await storage.readJson(relPath);
+    } catch {
+      if (relPath === "scene.json") return "No scene.json exists. Use write_file with content to create one first.";
+      if (relPath === "workspace_state.json") data = { version: 1, keyframes: {}, duration: 30, loop: true };
+      else data = {};
+    }
+
+    data = JSON.parse(JSON.stringify(data)); // deep clone
+    const warnings = [];
+    let appliedCount = 0;
+
+    for (let i = 0; i < edits.length; i++) {
+      const edit = edits[i];
+      if ("path" in edit) {
+        const dotPath = edit.path;
+        const op = edit.op || "set";
+        if (!dotPath) { warnings.push(`Edit ${i}: empty path, skipped`); continue; }
+        try {
+          if (op === "delete") deleteNested(data, dotPath);
+          else setNested(data, dotPath, edit.value);
+          appliedCount++;
+        } catch (e) {
+          warnings.push(`Edit ${i} (${op} '${dotPath}'): ${e.message}`);
+        }
+      } else {
+        warnings.push(`Edit ${i}: JSON workspace files only support dot-path edits (need 'path' field).`);
+      }
+    }
+
+    if (appliedCount === 0 && warnings.length) {
+      return "Error: no edits applied.\n" + warnings.map((w) => `  - ${w}`).join("\n");
+    }
+
+    if (relPath === "scene.json") {
+      normalizeScriptStrings(data);
+      const errors = validateSceneJson(data);
+      if (errors.length) {
+        let result = "Validation errors after edits:\n" + errors.map((e) => `  - ${e}`).join("\n");
+        if (warnings.length) result += "\nEdit warnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+        return result;
+      }
+      await storage.writeJson("scene.json", data);
+      broadcast({ type: "scene_update", scene_json: data });
+      let result = `ok — ${edits.length} edit(s) applied to scene.json and broadcast.`;
+      if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+      return result;
+    }
+
+    if (relPath === "workspace_state.json") {
+      if (!data.version) data.version = 1;
+      await storage.writeJson("workspace_state.json", data);
+      broadcast({ type: "workspace_state_update", workspace_state: data });
+      let result = `ok — ${edits.length} edit(s) applied to workspace_state.json and broadcast.`;
+      if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+      return result;
+    }
+
+    await storage.writeJson(relPath, data);
+    let result = `ok — ${edits.length} edit(s) applied to ${relPath}.`;
+    if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+    return result;
+  } else {
+    // .workspace/* text file edits
+    let fileText;
+    try {
+      fileText = await storage.readTextFile(relPath);
+    } catch {
+      return `Error: '${relPath}' does not exist.`;
+    }
+
+    const warnings = [];
+    for (let i = 0; i < edits.length; i++) {
+      const edit = edits[i];
+      if ("old_text" in edit) {
+        const oldText = edit.old_text;
+        const newText = edit.new_text || "";
+        if (!fileText.includes(oldText)) {
+          warnings.push(`Edit ${i}: old_text not found, skipped`);
+          continue;
+        }
+        fileText = fileText.replace(oldText, newText);
+      } else {
+        warnings.push(`Edit ${i}: text files require 'old_text' field`);
+      }
+    }
+
+    await storage.writeTextFile(relPath, fileText);
+    let result = `ok — ${edits.length} edit(s) applied to ${relPath}.`;
+    if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+    return result;
+  }
+}
+
+async function toolListUploadedFiles(input, broadcast) {
+  const files = await storage.listUploads();
+  if (!files.length) return "No files have been uploaded yet.";
+  const lines = [];
+  for (const f of files) {
+    try {
+      const info = await storage.getUploadInfo(f);
+      lines.push(`- ${f} (${info.size} bytes, ${info.mime_type})`);
+    } catch {
+      lines.push(`- ${f} (info unavailable)`);
+    }
+  }
+  return "Uploaded files:\n" + lines.join("\n");
+}
+
+async function toolListFiles(input, broadcast) {
+  const prefix = input.path || "";
+  const files = await storage.listFiles(prefix);
+  if (!files.length) return "No workspace files found.";
+  return "Workspace files:\n" + files.map((f) => `  ${f}`).join("\n");
+}
+
+async function toolOpenPanel(input, broadcast) {
+  const panelId = input.id || "";
+  const title = input.title || "Panel";
+  const html = input.html || "";
+  const template = input.template || "";
+  const configObj = input.config || {};
+  const width = input.width || 320;
+  const height = input.height || 300;
+
+  if (!panelId) return "Error: 'id' is required.";
+
+  // Native controls mode
+  if (template === "controls") {
+    const controls = configObj.controls || [];
+    if (!controls.length) return "Error: config.controls array is required for template='controls'.";
+
+    const panelData = {
+      type: "open_panel",
+      id: panelId,
+      title,
+      controls,
+      width,
+      height,
+    };
+    broadcast(panelData);
+
+    // Persist to panels.json
+    let panels = {};
+    try { panels = await storage.readJson("panels.json"); } catch { /* empty */ }
+    panels[panelId] = { title, controls, width, height };
+    await storage.writeJson("panels.json", panels);
+    return `ok — native controls panel '${panelId}' opened.`;
+  }
+
+  if (!html && !template) return "Error: either 'html' or 'template' is required.";
+
+  const panelMsg = {
+    type: "open_panel",
+    id: panelId,
+    title,
+    html: html || "",
+    width,
+    height,
+  };
+  broadcast(panelMsg);
+
+  // Persist
+  let panels = {};
+  try { panels = await storage.readJson("panels.json"); } catch { /* empty */ }
+  panels[panelId] = { title, html: html || "", width, height };
+  await storage.writeJson("panels.json", panels);
+  return `ok — panel '${panelId}' opened.`;
+}
+
+async function toolClosePanel(input, broadcast) {
+  const panelId = input.id || "";
+  if (!panelId) return "Error: 'id' is required.";
+  broadcast({ type: "close_panel", id: panelId });
+  try {
+    const panels = await storage.readJson("panels.json");
+    if (panelId in panels) {
+      delete panels[panelId];
+      await storage.writeJson("panels.json", panels);
+    }
+  } catch { /* ignore */ }
+  return `ok — panel '${panelId}' closed.`;
+}
+
+async function toolStartRecording(input, broadcast) {
+  const msg = { type: "start_recording" };
+  if (input.duration != null) msg.duration = input.duration;
+  if (input.fps != null) msg.fps = input.fps;
+  broadcast(msg);
+  const durationStr = input.duration ? ` for ${input.duration}s` : "";
+  return `ok — recording started${durationStr}.`;
+}
+
+async function toolStopRecording(input, broadcast) {
+  broadcast({ type: "stop_recording" });
+  return "ok — recording stopped. The WebM file will auto-download in the user's browser.";
+}
+
+/**
+ * Check browser errors tool.
+ * The agentEngine collects errors from console_error messages and provides
+ * them through the errorCollector interface.
+ */
+async function toolCheckBrowserErrors(input, broadcast, errorCollector) {
+  // Wait up to 3 seconds for errors to arrive
+  const errors = await errorCollector.waitForErrors(3000);
+
+  if (!errors.length) return "No browser errors detected.";
+
+  const engine = errors.filter((e) => e.startsWith("[engine]"));
+  const script = errors.filter((e) => !e.startsWith("[engine]"));
+  const parts = [];
+  if (script.length) {
+    parts.push("Script errors (fix these in scene.json):\n" + script.map((e) => `  - ${e}`).join("\n"));
+  }
+  if (engine.length) {
+    parts.push("Engine/infrastructure errors (NOT caused by your script — do NOT try to fix these):\n" + engine.map((e) => `  - ${e}`).join("\n"));
+  }
+  return parts.join("\n\n");
+}
+
+/**
+ * Ask user tool — returns a promise that resolves when the user answers.
+ */
+async function toolAskUser(input, broadcast, userAnswerPromise) {
+  const question = input.question || "";
+  const options = input.options || [];
+
+  broadcast({
+    type: "agent_question",
+    question,
+    options,
+  });
+
+  // Wait for user response
+  const answer = await userAnswerPromise();
+  return `The user answered: ${answer}`;
+}
+
+// ---------------------------------------------------------------------------
+// Dispatch table
+// ---------------------------------------------------------------------------
+
+const TOOL_HANDLERS = {
+  read_file: toolReadFile,
+  write_scene: toolWriteScene,
+  write_file: toolWriteFile,
+  list_uploaded_files: toolListUploadedFiles,
+  list_files: toolListFiles,
+  open_panel: toolOpenPanel,
+  close_panel: toolClosePanel,
+  start_recording: toolStartRecording,
+  stop_recording: toolStopRecording,
+  check_browser_errors: toolCheckBrowserErrors,
+  ask_user: toolAskUser,
+};
+
+/**
+ * Execute a tool call and return the result string.
+ *
+ * @param {string} name - Tool name
+ * @param {Object} inputData - Tool input parameters
+ * @param {Function} broadcast - Message dispatch function
+ * @param {Object} [context] - Additional context (errorCollector, userAnswerPromise)
+ * @returns {Promise<string>} Tool result
+ */
+export async function handleTool(name, inputData, broadcast, context = {}) {
+  const handler = TOOL_HANDLERS[name];
+  if (!handler) return `Unknown tool: ${name}`;
+
+  if (name === "check_browser_errors") {
+    return handler(inputData, broadcast, context.errorCollector);
+  }
+  if (name === "ask_user") {
+    return handler(inputData, broadcast, context.userAnswerPromise);
+  }
+  return handler(inputData, broadcast);
+}
