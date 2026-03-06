@@ -187,6 +187,7 @@ export async function runAgent({
 
       // --- Call Anthropic ---
       let contentBlocks, stopReason;
+      let thinkingBuffer = "";
       try {
         const result = await callAnthropic({
           apiKey,
@@ -198,7 +199,8 @@ export async function runAgent({
           signal,
           callbacks: {
             onThinkingDelta(chunk) {
-              onStatus?.("thinking", chunk);
+              thinkingBuffer += chunk;
+              onStatus?.("thinking", thinkingBuffer);
             },
             onTextDelta(chunk) {
               // Text deltas are accumulated; final text handled below
@@ -208,8 +210,8 @@ export async function runAgent({
             },
             onContentBlockStop(type, data) {
               if (type === "thinking") {
+                thinkingBuffer = "";
                 log("Agent", data, "thinking");
-                onStatus?.("thinking", data);
               }
             },
           },
