@@ -240,8 +240,20 @@ export default class GLEngine {
          * Load an image from URL → Promise<{ texture, width, height }>.
          * Y-flipped automatically for GL coordinates.
          */
-        loadImage: (url) => {
+        loadImage: async (url) => {
           const g = this.gl;
+          // For /api/uploads/* URLs, load directly from IndexedDB
+          // (Service Worker may not be active on first load / hard refresh)
+          let imgSrc = url;
+          if (url.includes("/api/uploads/")) {
+            const filename = url.split("/api/uploads/").pop();
+            try {
+              imgSrc = await this._getUploadBlobUrl(filename);
+            } catch {
+              // Fall back to original URL (SW might handle it)
+              imgSrc = url;
+            }
+          }
           return new Promise((resolve, reject) => {
             const img = new Image();
             img.crossOrigin = "anonymous";
@@ -256,10 +268,15 @@ export default class GLEngine {
               g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
               g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.REPEAT);
               g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.REPEAT);
+              // Revoke blob URL to free memory
+              if (imgSrc !== url) URL.revokeObjectURL(imgSrc);
               resolve({ texture, width: img.width, height: img.height });
             };
-            img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
-            img.src = url;
+            img.onerror = () => {
+              if (imgSrc !== url) URL.revokeObjectURL(imgSrc);
+              reject(new Error(`Failed to load image: ${url}`));
+            };
+            img.src = imgSrc;
           });
         },
 
@@ -789,6 +806,38 @@ export default class GLEngine {
     this._customUniforms = {};
     this._keyboardBindings = {};
     this._pressedKeys.clear();
+  }
+
+  /** Load an uploaded file from IndexedDB and return a blob URL. */
+  async _getUploadBlobUrl(filename) {
+    const DB_NAME = "siljangnim";
+    const DB_VERSION = 1;
+    const db = await new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    const tx = db.transaction("blobs", "readonly");
+    const store = tx.objectStore("blobs");
+    const allKeys = await new Promise((resolve, reject) => {
+      const req = store.getAllKeys();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    const matchKey = allKeys.find((k) => k.endsWith(`/uploads/${filename}`));
+    if (!matchKey) throw new Error(`Upload not found: ${filename}`);
+    // Open a new transaction since the previous one may have auto-committed
+    const tx2 = db.transaction("blobs", "readonly");
+    const store2 = tx2.objectStore("blobs");
+    const entry = await new Promise((resolve, reject) => {
+      const req = store2.get(matchKey);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    db.close();
+    if (!entry?.data) throw new Error(`Upload data missing: ${filename}`);
+    const blob = new Blob([entry.data], { type: entry.mimeType || "application/octet-stream" });
+    return URL.createObjectURL(blob);
   }
 
   dispose() {
