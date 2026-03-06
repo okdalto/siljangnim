@@ -1,4 +1,9 @@
 {
+  "build": {
+    "env": {
+      "VITE_MODE": "browser"
+    }
+  },
   "rewrites": [
     { "source": "/api/proxy", "destination": "/api/proxy" },
     { "source": "/(.*)", "destination": "/index.html" }
