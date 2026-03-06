@@ -219,14 +219,32 @@ def _compact_messages(messages: list[dict]) -> None:
                     block["content"] = block["content"][:_TRUNC] + "...(truncated)"
 
     # --- Progressively trim old turns until under token budget ---
+    # Must preserve tool_use / tool_result pairs: never cut between an
+    # assistant message containing tool_use and the following user message
+    # containing the corresponding tool_result.
     keep_recent = 6
     while len(messages) > 4:
         est = len(json.dumps(messages, ensure_ascii=False)) // 4
         if est <= _SAFE_TOKENS:
             break
-        kept = [messages[0]] + messages[-keep_recent:]
+        cut_idx = len(messages) - keep_recent
+        if cut_idx <= 1:
+            break
+        # Ensure we don't cut right after an assistant tool_use message
+        # (i.e. the message at cut_idx must not be a user tool_result)
+        while cut_idx > 1:
+            candidate = messages[cut_idx]
+            if candidate.get("role") == "user" and isinstance(candidate.get("content"), list):
+                has_tool_result = any(
+                    isinstance(b, dict) and b.get("type") == "tool_result"
+                    for b in candidate["content"]
+                )
+                if has_tool_result:
+                    cut_idx -= 1  # include the preceding assistant tool_use too
+                    continue
+            break
+        kept = [messages[0]] + messages[cut_idx:]
         if len(kept) >= len(messages):
-            # Can't trim further
             break
         messages.clear()
         messages.extend(kept)
