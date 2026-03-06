@@ -410,18 +410,12 @@ export async function runAgent({
         break;
       }
       if (maxCount >= LOOP_WARN_THRESHOLD) {
-        // Inject warning into tool results
-        const warningResult = {
-          type: "tool_result",
-          tool_use_id: "loop_warning",
-          content: `WARNING: You have called the same tool ${maxCount} times. If you are stuck in a loop, stop and respond to the user.`,
-          is_error: true,
-        };
-        // Add to last user message
-        const lastMsg = messages[messages.length - 1];
-        if (Array.isArray(lastMsg.content)) {
-          lastMsg.content.push(warningResult);
-        }
+        // Inject warning as a separate user message (not a fake tool_result,
+        // which the API rejects if there's no matching tool_use)
+        messages.push({
+          role: "user",
+          content: `WARNING: You have called the same tool ${maxCount} times. If you are stuck in a loop, try a different approach or respond to the user with what you have.`,
+        });
       }
     }
   } catch (err) {
