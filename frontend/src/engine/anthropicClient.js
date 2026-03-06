@@ -45,9 +45,10 @@ export async function callAnthropic({
     stream: true,
   };
 
-  // Enable adaptive thinking for supported models
+  // Enable thinking with explicit budget to prevent thinking from
+  // consuming all output tokens (adaptive can blow the entire budget)
   if (model.includes("opus") || model.includes("sonnet")) {
-    body.thinking = { type: "adaptive" };
+    body.thinking = { type: "enabled", budget_tokens: Math.min(10000, maxTokens - 4096) };
   }
 
   const response = await fetch(PROXY_URL, {
