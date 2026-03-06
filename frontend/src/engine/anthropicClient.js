@@ -90,11 +90,18 @@ async function parseSSEStream(body, callbacks) {
   let toolInput = "";
   let toolId = "";
   let toolName = "";
-  let stopReason = "end_turn";
+  let stopReason = "stream_incomplete"; // default until message_delta sets it
+
+  const STREAM_READ_TIMEOUT = 120_000; // 2 min timeout between chunks
 
   try {
     while (true) {
-      const { done, value } = await reader.read();
+      // Add timeout to prevent infinite hang if stream stalls
+      const readPromise = reader.read();
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Stream read timeout")), STREAM_READ_TIMEOUT)
+      );
+      const { done, value } = await Promise.race([readPromise, timeoutPromise]);
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });

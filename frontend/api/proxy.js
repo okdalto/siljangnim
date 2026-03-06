@@ -2,7 +2,7 @@
  * Vercel Edge Function — streams Anthropic API responses.
  * Deployed at /api/proxy when frontend is on Vercel.
  */
-export const config = { runtime: "edge" };
+export const config = { runtime: "edge", maxDuration: 300 };
 
 export default async function handler(req) {
   // CORS
