@@ -298,6 +298,24 @@ export async function runAgent({
       // they've been logged already and keeping them risks signature
       // validation errors on subsequent API calls after compaction)
       const storedBlocks = contentBlocks.filter(b => b.type !== "thinking");
+
+      // If the model only produced thinking (no text/tool_use), ask it to continue
+      if (!storedBlocks.length && stopReason !== "max_tokens") {
+        compactRetries++;
+        if (compactRetries <= MAX_COMPACT_RETRIES) {
+          log("System", "Thinking only — nudging model to produce output...", "info");
+          messages.push({
+            role: "assistant",
+            content: [{ type: "text", text: "(continued)" }],
+          });
+          messages.push({
+            role: "user",
+            content: "You only produced thinking but no visible output. Please continue and produce your response (text or tool calls).",
+          });
+          continue;
+        }
+      }
+
       messages.push({
         role: "assistant",
         content: storedBlocks.length ? storedBlocks : [{ type: "text", text: "(continued)" }],
