@@ -254,8 +254,9 @@ const HANDLERS = {
     if (rawFiles.length) {
       for (const f of rawFiles) {
         try {
-          // f is { name, data (base64), mime_type, size }
-          const b64 = f.data.includes(",") ? f.data.split(",")[1] : f.data;
+          // f is { name, data_b64 (base64), mime_type, size }
+          const raw = f.data_b64 || f.data || "";
+          const b64 = raw.includes(",") ? raw.split(",")[1] : raw;
           const binary = atob(b64);
           const bytes = new Uint8Array(binary.length);
           for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
