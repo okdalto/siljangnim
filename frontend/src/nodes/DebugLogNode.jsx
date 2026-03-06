@@ -73,7 +73,7 @@ function ThinkingEntry({ agent, message }) {
   );
 }
 
-export default function DebugLogNode({ data }) {
+export default function DebugLogNode({ data, standalone = false }) {
   const { logs = [] } = data;
   const scrollRef = useRef(null);
 
@@ -87,13 +87,13 @@ export default function DebugLogNode({ data }) {
 
   return (
     <div
-      className="w-full h-full rounded-xl shadow-2xl flex flex-col overflow-hidden"
-      style={{ background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
+      className={`w-full h-full flex flex-col overflow-hidden ${standalone ? "" : "rounded-xl shadow-2xl"}`}
+      style={standalone ? { background: "var(--node-bg)" } : { background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
     >
-      <NodeResizer minWidth={300} minHeight={150} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
+      {!standalone && <NodeResizer minWidth={300} minHeight={150} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />}
       {/* Header */}
       <div
-        className="px-4 py-2 text-sm font-semibold cursor-grab"
+        className={`px-4 py-2 text-sm font-semibold ${standalone ? "" : "cursor-grab"}`}
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
       >
         Debug Log

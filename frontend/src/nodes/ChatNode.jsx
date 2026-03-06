@@ -16,7 +16,7 @@ function readFileAsBase64(file) {
   });
 }
 
-export default function ChatNode({ data }) {
+export default function ChatNode({ data, standalone = false }) {
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -132,16 +132,16 @@ export default function ChatNode({ data }) {
 
   return (
     <div
-      className="w-full h-full rounded-xl shadow-2xl flex flex-col overflow-hidden"
-      style={{ background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
+      className={`w-full h-full flex flex-col overflow-hidden ${standalone ? "" : "rounded-xl shadow-2xl"}`}
+      style={standalone ? { background: "var(--node-bg)" } : { background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <NodeResizer minWidth={280} minHeight={200} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
+      {!standalone && <NodeResizer minWidth={280} minHeight={200} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />}
       {/* Header */}
       <div
-        className="px-4 py-2 text-sm font-semibold cursor-grab flex items-center justify-between"
+        className={`px-4 py-2 text-sm font-semibold flex items-center justify-between ${standalone ? "" : "cursor-grab"}`}
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
       >
         Chat
