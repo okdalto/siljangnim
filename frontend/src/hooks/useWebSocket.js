@@ -27,7 +27,7 @@ export default function useWebSocket(url, onMessage) {
 
     function connect() {
       cleanup();
-      if (cancelled) return;
+      if (cancelled || !url) return;
 
       ws = new WebSocket(url);
       wsRef.current = ws;

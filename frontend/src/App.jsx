@@ -9,6 +9,10 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import useWebSocket from "./hooks/useWebSocket.js";
+import useMessageBus from "./hooks/useMessageBus.js";
+import MessageBus from "./engine/messageBus.js";
+import AgentEngine from "./engine/agentEngine.js";
+import * as storageApi from "./engine/storage.js";
 import useNodeSnapping from "./hooks/useNodeSnapping.js";
 import useNodeLayoutHistory from "./hooks/useNodeLayoutHistory.js";
 import useRecorder from "./hooks/useRecorder.js";
@@ -46,9 +50,19 @@ const nodeTypes = {
   customPanel: CustomPanelNode,
 };
 
+const BROWSER_ONLY = import.meta.env.VITE_MODE === "browser";
+
 const WS_URL = import.meta.env.DEV
   ? `ws://${window.location.hostname}:8000/ws`
   : `ws://${window.location.hostname}:${window.location.port}/ws`;
+
+// Browser-only mode singletons (only created when needed)
+let _messageBus, _agentEngine;
+if (BROWSER_ONLY) {
+  _messageBus = new MessageBus();
+  _agentEngine = new AgentEngine(_messageBus);
+  _messageBus.setEngine(_agentEngine);
+}
 
 const initialNodes = [
   {
@@ -345,8 +359,15 @@ export default function App() {
     settingsRef,
   });
 
-  const { connected, send } = useWebSocket(WS_URL, handleMessage);
+  const ws = useWebSocket(BROWSER_ONLY ? null : WS_URL, handleMessage);
+  const mb = useMessageBus(BROWSER_ONLY ? _messageBus : null, handleMessage);
+  const { connected, send } = BROWSER_ONLY ? mb : ws;
   sendRef.current = send;
+
+  // In browser-only mode, request initial state on mount
+  useEffect(() => {
+    if (BROWSER_ONLY) send({ type: "request_state" });
+  }, [send]);
 
   // Capture uncaught JS errors and send to agent
   useEffect(() => {
@@ -462,10 +483,15 @@ export default function App() {
   const handleDeleteWorkspaceFile = useCallback(
     async (filepath) => {
       try {
-        const res = await fetch(`${API_BASE}/api/workspace/files/${encodeURIComponent(filepath)}`, {
-          method: "DELETE",
-        });
-        if (res.ok) setWorkspaceFilesVersion((v) => v + 1);
+        if (BROWSER_ONLY) {
+          await storageApi.deleteFile(filepath);
+        } else {
+          const res = await fetch(`${API_BASE}/api/workspace/files/${encodeURIComponent(filepath)}`, {
+            method: "DELETE",
+          });
+          if (!res.ok) return;
+        }
+        setWorkspaceFilesVersion((v) => v + 1);
       } catch { /* ignore */ }
     },
     []
