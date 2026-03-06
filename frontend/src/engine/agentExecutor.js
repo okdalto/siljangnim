@@ -268,10 +268,16 @@ export async function runAgent({
         throw err;
       }
 
-      // Handle empty response
+      // Handle empty response — retry once, then give up
       if (!contentBlocks || !contentBlocks.length) {
-        log("System", `Empty response (stop_reason=${stopReason})`, "warning");
-        break;
+        overloadRetries++;
+        if (overloadRetries > 2) {
+          log("System", `Empty response after retries — stopping`, "warning");
+          break;
+        }
+        log("System", `Empty response — retrying (${overloadRetries}/2)...`, "warning");
+        await sleep(2000, signal);
+        continue;
       }
 
       // Process content blocks
