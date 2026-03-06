@@ -112,85 +112,25 @@ body,
 }
 
 /* ── Mobile Layout ──────────────────────────────────────────────── */
-.mobile-layout {
+.mobile-scroll-layout {
   display: flex;
   flex-direction: column;
-  height: calc(100% - 0px); /* full remaining height below toolbar */
   width: 100%;
-  overflow: hidden;
-}
-
-.mobile-panel {
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.mobile-tab-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  height: 56px;
-  flex-shrink: 0;
-  background: color-mix(in srgb, var(--chrome-bg) 80%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--chrome-border);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-.mobile-tab-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  flex: 1;
   height: 100%;
-  position: relative;
-  border: none;
-  background: none;
-  color: var(--chrome-text-muted);
-  cursor: pointer;
-  transition: color 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  gap: 2px;
+  background: var(--app-bg);
 }
 
-.mobile-tab-btn.active {
-  color: var(--accent);
-}
-
-.mobile-tab-indicator {
-  position: absolute;
-  top: 0;
-  left: 25%;
-  right: 25%;
-  height: 2px;
-  background: var(--accent);
-  border-radius: 0 0 1px 1px;
-}
-
-.mobile-tab-icon {
+.mobile-scroll-section {
+  flex-shrink: 0;
+  width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  transition: transform 0.2s ease;
-}
-
-.mobile-tab-btn.active .mobile-tab-icon {
-  transform: scale(1.1);
-}
-
-.mobile-tab-label {
-  font-size: 11px;
-  font-weight: 500;
-  transition: opacity 0.2s ease;
-}
-
-.mobile-tab-btn:not(.active) .mobile-tab-label {
-  opacity: 0.7;
+  flex-direction: column;
+  overflow: hidden;
+  border-bottom: 1px solid var(--chrome-border);
 }
 
 /* ── Mobile media queries ───────────────────────────────────────── */
