@@ -85,6 +85,7 @@ async function parseSSEStream(body, callbacks) {
   let currentBlockIndex = -1;
   let currentBlockType = null;
   let thinkingChunks = [];
+  let signatureChunks = [];
   let textChunks = [];
   let toolInput = "";
   let toolId = "";
@@ -126,6 +127,7 @@ async function parseSSEStream(body, callbacks) {
 
             if (block.type === "thinking") {
               thinkingChunks = [];
+              signatureChunks = [];
               callbacks.onContentBlockStart?.("thinking");
             } else if (block.type === "text") {
               textChunks = [];
@@ -144,6 +146,8 @@ async function parseSSEStream(body, callbacks) {
             if (delta.type === "thinking_delta") {
               thinkingChunks.push(delta.thinking);
               callbacks.onThinkingDelta?.(delta.thinking);
+            } else if (delta.type === "signature_delta") {
+              signatureChunks.push(delta.signature);
             } else if (delta.type === "text_delta") {
               textChunks.push(delta.text);
               callbacks.onTextDelta?.(delta.text);
@@ -156,9 +160,11 @@ async function parseSSEStream(body, callbacks) {
           case "content_block_stop": {
             if (currentBlockType === "thinking") {
               const fullThinking = thinkingChunks.join("");
+              const fullSignature = signatureChunks.join("");
               contentBlocks.push({
                 type: "thinking",
                 thinking: fullThinking,
+                signature: fullSignature,
               });
               callbacks.onContentBlockStop?.("thinking", fullThinking);
             } else if (currentBlockType === "text") {
