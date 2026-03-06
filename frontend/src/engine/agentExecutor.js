@@ -286,8 +286,14 @@ export async function runAgent({
         }
       }
 
-      // Append assistant message to history
-      messages.push({ role: "assistant", content: contentBlocks });
+      // Append assistant message to history (strip thinking blocks —
+      // they've been logged already and keeping them risks signature
+      // validation errors on subsequent API calls after compaction)
+      const storedBlocks = contentBlocks.filter(b => b.type !== "thinking");
+      messages.push({
+        role: "assistant",
+        content: storedBlocks.length ? storedBlocks : [{ type: "text", text: "(continued)" }],
+      });
 
       // Handle max_tokens
       if (stopReason === "max_tokens") {
