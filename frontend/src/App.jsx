@@ -8,6 +8,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+import useMobile from "./hooks/useMobile.js";
 import useWebSocket from "./hooks/useWebSocket.js";
 import useMessageBus from "./hooks/useMessageBus.js";
 import MessageBus from "./engine/messageBus.js";
@@ -35,6 +36,7 @@ import ProjectBrowserNode from "./nodes/ProjectBrowserNode.jsx";
 import ApiKeyModal from "./components/ApiKeyModal.jsx";
 import Toolbar from "./components/Toolbar.jsx";
 import Timeline from "./components/Timeline.jsx";
+import MobileLayout from "./components/MobileLayout.jsx";
 import SnapGuides from "./components/SnapGuides.jsx";
 import KeyframeEditor from "./components/KeyframeEditor.jsx";
 import { API_BASE } from "./constants/api.js";
@@ -96,6 +98,7 @@ const initialNodes = [
 ];
 
 export default function App() {
+  const { isMobile } = useMobile();
   const settingsCtx = useSettings();
   const { settings } = settingsCtx;
 
@@ -605,7 +608,7 @@ export default function App() {
   return (
     <SettingsContext.Provider value={settingsCtx}>
     <EngineContext.Provider value={engineRef}>
-      <div className="w-screen h-screen pt-10 pb-10">
+      <div className={`w-screen h-screen ${isMobile ? "pt-10 pb-0" : "pt-10 pb-10"}`}>
         <Toolbar
           onNewProject={handleNewProject}
           activeProject={project.activeProject}
@@ -614,22 +617,25 @@ export default function App() {
           saveStatus={project.saveStatus}
           onChangeApiKey={() => apiKey.setRequired()}
         />
-        <Timeline
-          paused={paused}
-          onTogglePause={handleTogglePause}
-          onPause={() => { setPaused(true); if (recording) stopRecording(); }}
-          engineRef={engineRef}
-          duration={duration}
-          onDurationChange={setDuration}
-          loop={loop}
-          onLoopChange={setLoop}
-          recording={recording}
-          recordingTime={recordingTime}
-          onStartRecord={handleStartRecord}
-          onStopRecord={stopRecording}
-          canvasWidth={canvasSize.width}
-          canvasHeight={canvasSize.height}
-        />
+
+        {!isMobile && (
+          <Timeline
+            paused={paused}
+            onTogglePause={handleTogglePause}
+            onPause={() => { setPaused(true); if (recording) stopRecording(); }}
+            engineRef={engineRef}
+            duration={duration}
+            onDurationChange={setDuration}
+            loop={loop}
+            onLoopChange={setLoop}
+            recording={recording}
+            recordingTime={recordingTime}
+            onStartRecord={handleStartRecord}
+            onStopRecord={stopRecording}
+            canvasWidth={canvasSize.width}
+            canvasHeight={canvasSize.height}
+          />
+        )}
 
         {apiKey.apiKeyRequired && (
           <ApiKeyModal
@@ -655,33 +661,58 @@ export default function App() {
           />
         )}
 
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onInit={(instance) => { rfInstanceRef.current = instance; }}
-          onNodeDragStop={() => {
-            if (!initSettledRef.current) return; // suppress during init/project load
-            // Use rAF so React has committed position updates before we read them
-            requestAnimationFrame(() => {
-              sendWorkspaceStateNow();
-              project.markUnsaved();
-            });
-          }}
-          nodeTypes={nodeTypes}
-          deleteKeyCode={null}
-          elementsSelectable={false}
-          fitView
-          minZoom={0.1}
-          maxZoom={4}
-          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-          proOptions={{ hideAttribution: true }}
-        >
-          <SnapGuides guides={guides} />
-          <Background color="var(--grid-color)" gap={settings.gridGap} size={settings.gridDotSize} style={{ backgroundColor: settings.canvasBg }} />
-          <Controls />
-        </ReactFlow>
+        {isMobile ? (
+          <MobileLayout
+            sceneJSON={sceneJSON}
+            engineRef={engineRef}
+            paused={paused}
+            onShaderError={handleShaderError}
+            messages={chat.messages}
+            onSend={chat.handleSend}
+            isProcessing={chat.isProcessing}
+            agentStatus={chat.agentStatus}
+            onNewChat={chat.handleNewChat}
+            onCancel={chat.handleCancel}
+            pendingQuestion={chat.pendingQuestion}
+            onAnswer={chat.handleAnswer}
+            debugLogs={chat.debugLogs}
+            projectList={project.projectList}
+            activeProject={project.activeProject}
+            onProjectSave={project.handleProjectSave}
+            onProjectLoad={project.handleProjectLoad}
+            onProjectDelete={project.handleProjectDelete}
+            onProjectImport={project.handleProjectImport}
+            onDeleteWorkspaceFile={handleDeleteWorkspaceFile}
+            workspaceFilesVersion={workspaceFilesVersion}
+          />
+        ) : (
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onInit={(instance) => { rfInstanceRef.current = instance; }}
+            onNodeDragStop={() => {
+              if (!initSettledRef.current) return;
+              requestAnimationFrame(() => {
+                sendWorkspaceStateNow();
+                project.markUnsaved();
+              });
+            }}
+            nodeTypes={nodeTypes}
+            deleteKeyCode={null}
+            elementsSelectable={false}
+            fitView
+            minZoom={0.1}
+            maxZoom={4}
+            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+            proOptions={{ hideAttribution: true }}
+          >
+            <SnapGuides guides={guides} />
+            <Background color="var(--grid-color)" gap={settings.gridGap} size={settings.gridDotSize} style={{ backgroundColor: settings.canvasBg }} />
+            <Controls />
+          </ReactFlow>
+        )}
 
       </div>
     </EngineContext.Provider>

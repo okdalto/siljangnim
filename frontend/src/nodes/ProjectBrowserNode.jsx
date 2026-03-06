@@ -21,7 +21,7 @@ function ChevronIcon({ open }) {
   );
 }
 
-export default function ProjectBrowserNode({ data }) {
+export default function ProjectBrowserNode({ data, standalone = false }) {
   const {
     projects = [],
     activeProject,
@@ -88,10 +88,10 @@ export default function ProjectBrowserNode({ data }) {
 
   return (
     <div
-      className="w-full h-full rounded-xl shadow-2xl flex flex-col overflow-hidden"
-      style={{ background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
+      className={`w-full h-full flex flex-col overflow-hidden ${standalone ? "" : "rounded-xl shadow-2xl"}`}
+      style={standalone ? { background: "var(--node-bg)" } : { background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
     >
-      <NodeResizer minWidth={260} minHeight={200} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
+      {!standalone && <NodeResizer minWidth={260} minHeight={200} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />}
 
       {/* Hidden file input for import */}
       <input
@@ -108,7 +108,7 @@ export default function ProjectBrowserNode({ data }) {
 
       {/* Header */}
       <div
-        className="px-4 py-2 text-sm font-semibold cursor-grab flex items-center justify-between"
+        className={`px-4 py-2 text-sm font-semibold flex items-center justify-between ${standalone ? "" : "cursor-grab"}`}
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
       >
         Projects

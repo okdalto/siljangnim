@@ -4,7 +4,7 @@ import GLEngine from "../engine/GLEngine.js";
 import ResolutionSelector from "../components/viewport/ResolutionSelector.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 
-export default function ViewportNode({ data }) {
+export default function ViewportNode({ data, standalone = false }) {
   const { sceneJSON, engineRef, onError, paused } = data;
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -191,6 +191,75 @@ export default function ViewportNode({ data }) {
     }
   }, []);
 
+  const canvasContent = (
+    <div
+      ref={containerRef}
+      className={`flex-1 relative min-h-0 bg-black ${standalone ? "" : "nodrag"}`}
+      tabIndex={0}
+      style={{ outline: "none" }}
+      onMouseMove={handleMouseMove}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
+      onBlur={handleBlur}
+    >
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full"
+        style={{ imageRendering: "auto" }}
+      />
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4">
+          <div className="bg-red-950 border border-red-800 rounded-lg p-3 max-w-full max-h-full overflow-auto">
+            <div className="flex justify-end mb-1">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(error);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1500);
+                }}
+                className="text-[10px] text-red-400 hover:text-red-200 bg-red-950 hover:bg-red-900 border border-red-800 rounded px-1.5 py-0.5 transition-colors"
+              >
+                {copied ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <p className="text-red-400 text-xs font-mono whitespace-pre-wrap break-all select-text cursor-text">
+              {error}
+            </p>
+          </div>
+        </div>
+      )}
+      {!sceneJSON && !error && (
+        <div className="absolute inset-0 flex items-center justify-center text-sm" style={{ color: "var(--chrome-text-muted)" }}>
+          No scene loaded
+        </div>
+      )}
+    </div>
+  );
+
+  if (standalone) {
+    return (
+      <div className="w-full h-full flex flex-col" style={{ background: "var(--node-bg)" }}>
+        {/* Mini info bar */}
+        <div className="flex items-center justify-between px-3 py-1 text-[10px] tabular-nums shrink-0" style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}>
+          <span className="font-semibold text-xs">Viewport</span>
+          <div className="flex items-center gap-2">
+            <span style={{ color: "var(--chrome-text-muted)" }}>{fps} FPS</span>
+            <span className="px-1.5 py-px rounded-full bg-indigo-900 text-indigo-400">WebGL2</span>
+            <button onClick={toggleFullscreen} className="transition-colors" style={{ color: "var(--chrome-text-secondary)" }} title="Fullscreen">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" />
+                <line x1="21" y1="3" x2="14" y2="10" /><line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        {canvasContent}
+      </div>
+    );
+  }
+
   return (
     <>
       <NodeResizer minWidth={320} minHeight={240} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
@@ -231,52 +300,7 @@ export default function ViewportNode({ data }) {
             </button>
           </div>
         </div>
-
-        {/* Canvas */}
-        <div
-          ref={containerRef}
-          className="flex-1 relative nodrag min-h-0 bg-black"
-          tabIndex={0}
-          style={{ outline: "none" }}
-          onMouseMove={handleMouseMove}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onKeyDown={handleKeyDown}
-          onKeyUp={handleKeyUp}
-          onBlur={handleBlur}
-        >
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 w-full h-full"
-            style={{ imageRendering: "auto" }}
-          />
-          {error && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4 nodrag">
-              <div className="bg-red-950 border border-red-800 rounded-lg p-3 max-w-full max-h-full overflow-auto">
-                <div className="flex justify-end mb-1">
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(error);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 1500);
-                    }}
-                    className="text-[10px] text-red-400 hover:text-red-200 bg-red-950 hover:bg-red-900 border border-red-800 rounded px-1.5 py-0.5 transition-colors"
-                  >
-                    {copied ? "Copied" : "Copy"}
-                  </button>
-                </div>
-                <p className="text-red-400 text-xs font-mono whitespace-pre-wrap break-all select-text cursor-text">
-                  {error}
-                </p>
-              </div>
-            </div>
-          )}
-          {!sceneJSON && !error && (
-            <div className="absolute inset-0 flex items-center justify-center text-sm" style={{ color: "var(--chrome-text-muted)" }}>
-              No scene loaded
-            </div>
-          )}
-        </div>
+        {canvasContent}
       </div>
     </>
   );
