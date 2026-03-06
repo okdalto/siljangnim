@@ -24,6 +24,7 @@ const LOOP_BREAK_THRESHOLD = 5;
 // Model configuration
 const MODEL_COMPLEX = "claude-sonnet-4-6";
 const MODEL_COMPLEX_MAX = 16384;
+const MODEL_THINKING_MAX = 65536; // higher limit when thinking is enabled
 
 // ---------------------------------------------------------------------------
 // Conversation compaction
@@ -143,7 +144,8 @@ export async function runAgent({
   }
 
   const modelName = MODEL_COMPLEX;
-  const maxTokens = MODEL_COMPLEX_MAX;
+  const useThinking = modelName.includes("opus") || modelName.includes("sonnet");
+  const maxTokens = useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX;
 
   log("System", `Model: ${modelName}`, "info");
 
