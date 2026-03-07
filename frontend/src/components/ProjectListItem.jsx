@@ -3,7 +3,7 @@ import FileTree from "./fileBrowser/FileTree.jsx";
 import FilePreview from "./fileBrowser/FilePreview.jsx";
 import CodePreviewPanel from "./CodePreviewPanel.jsx";
 import { timeAgo } from "../utils/timeFormat.js";
-
+import { exportProjectZip } from "../engine/storage.js";
 
 const API_BASE = import.meta.env.DEV
   ? `http://${window.location.hostname}:8000`
@@ -140,15 +140,33 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename }) {
 
   const doExport = useCallback(async (includeChat) => {
     setExportMenuOpen(false);
+    const filename = `${p.display_name || p.name}.zip`;
     try {
+      // Try backend API first
       const url = `${API_BASE}/api/projects/${encodeURIComponent(p.name)}/export${includeChat ? "" : "?no_chat=1"}`;
       const res = await fetch(url);
-      if (!res.ok) return;
-      const blob = await res.blob();
+      if (res.ok) {
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("zip") || contentType.includes("octet-stream")) {
+          const blob = await res.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = filename;
+          a.click();
+          URL.revokeObjectURL(blobUrl);
+          return;
+        }
+      }
+    } catch { /* backend unavailable */ }
+    // Fallback: IndexedDB export (web-only mode)
+    try {
+      const jsonStr = await exportProjectZip(p.name, { includeChat });
+      const blob = new Blob([jsonStr], { type: "application/json" });
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
-      a.download = `${p.display_name || p.name}.zip`;
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(blobUrl);
     } catch { /* ignore */ }

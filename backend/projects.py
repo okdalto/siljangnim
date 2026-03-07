@@ -294,45 +294,80 @@ def export_project_zip(name: str, *, exclude_chat: bool = False) -> bytes:
     return buf.getvalue()
 
 
+def _import_json_bundle(raw: bytes) -> dict:
+    """Import a project from legacy JSON bundle format (IndexedDB export)."""
+    data = json.loads(raw)
+    meta = data.get("meta", {})
+    files = data.get("files", {})
+    if not meta and not files:
+        raise ValueError("Invalid project bundle")
+
+    project_name = meta.get("name") or meta.get("display_name") or "imported"
+    sanitized = _sanitize_name(project_name)
+    candidate = sanitized
+    counter = 2
+    while (PROJECTS_DIR / candidate).exists():
+        candidate = f"{sanitized}-{counter}"
+        counter += 1
+
+    project_dir = PROJECTS_DIR / candidate
+    project_dir.mkdir(parents=True, exist_ok=True)
+
+    # Write each file
+    for rel_path, content in files.items():
+        file_path = (project_dir / rel_path).resolve()
+        if not str(file_path).startswith(str(project_dir.resolve())):
+            continue  # skip path traversal
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(content, (dict, list)):
+            file_path.write_text(json.dumps(content, indent=2), encoding="utf-8")
+        elif isinstance(content, str):
+            file_path.write_text(content, encoding="utf-8")
+
+    return candidate, project_dir
+
+
 def import_project_zip(zip_bytes: bytes) -> dict:
-    """Import a project from ZIP bytes. Returns the new project's meta dict."""
+    """Import a project from ZIP bytes or JSON bundle. Returns the new project's meta dict."""
     buf = io.BytesIO(zip_bytes)
-    if not zipfile.is_zipfile(buf):
-        raise ValueError("Invalid ZIP file")
-
+    is_zip = zipfile.is_zipfile(buf)
     buf.seek(0)
-    with zipfile.ZipFile(buf, "r") as zf:
-        names = zf.namelist()
-        # Validate: must contain meta.json or scene.json
-        if "meta.json" not in names and "scene.json" not in names:
-            raise ValueError("ZIP must contain meta.json or scene.json")
 
-        # Determine project name
-        project_name = "imported"
-        if "meta.json" in names:
-            try:
-                meta = json.loads(zf.read("meta.json"))
-                project_name = meta.get("name") or "imported"
-            except (json.JSONDecodeError, KeyError):
-                pass
+    if is_zip:
+        with zipfile.ZipFile(buf, "r") as zf:
+            names = zf.namelist()
+            if "meta.json" not in names and "scene.json" not in names:
+                raise ValueError("ZIP must contain meta.json or scene.json")
 
-        # Resolve name conflicts with -2, -3, ... suffix
-        sanitized = _sanitize_name(project_name)
-        candidate = sanitized
-        counter = 2
-        while (PROJECTS_DIR / candidate).exists():
-            candidate = f"{sanitized}-{counter}"
-            counter += 1
+            project_name = "imported"
+            if "meta.json" in names:
+                try:
+                    meta = json.loads(zf.read("meta.json"))
+                    project_name = meta.get("name") or "imported"
+                except (json.JSONDecodeError, KeyError):
+                    pass
 
-        project_dir = PROJECTS_DIR / candidate
-        project_dir.mkdir(parents=True, exist_ok=True)
+            sanitized = _sanitize_name(project_name)
+            candidate = sanitized
+            counter = 2
+            while (PROJECTS_DIR / candidate).exists():
+                candidate = f"{sanitized}-{counter}"
+                counter += 1
 
-        # Extract files safely (reject path traversal entries)
-        for member in zf.namelist():
-            member_path = (project_dir / member).resolve()
-            if not str(member_path).startswith(str(project_dir.resolve())):
-                raise ValueError(f"ZIP contains path traversal entry: {member}")
-        zf.extractall(project_dir)
+            project_dir = PROJECTS_DIR / candidate
+            project_dir.mkdir(parents=True, exist_ok=True)
+
+            for member in zf.namelist():
+                member_path = (project_dir / member).resolve()
+                if not str(member_path).startswith(str(project_dir.resolve())):
+                    raise ValueError(f"ZIP contains path traversal entry: {member}")
+            zf.extractall(project_dir)
+    else:
+        # Try legacy JSON bundle format
+        try:
+            candidate, project_dir = _import_json_bundle(zip_bytes)
+        except (json.JSONDecodeError, KeyError, TypeError):
+            raise ValueError("Invalid file: not a ZIP archive or JSON bundle")
 
     # Update meta.json with the (possibly renamed) project name
     now = datetime.now(timezone.utc).isoformat()
