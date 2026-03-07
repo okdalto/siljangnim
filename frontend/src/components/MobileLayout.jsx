@@ -42,9 +42,12 @@ export default function MobileLayout({
   };
 
   const panelEntries = customPanels ? [...customPanels.entries()] : [];
+  const [mobileInput, setMobileInput] = useState("");
 
   const viewportSectionRef = useRef(null);
+  const chatSectionRef = useRef(null);
   const [viewportVisible, setViewportVisible] = useState(true);
+  const [chatBottomVisible, setChatBottomVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -55,6 +58,19 @@ export default function MobileLayout({
         setViewportVisible(entry.isIntersecting);
         if (entry.isIntersecting) setDismissed(false);
       },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Track whether the chat section bottom is visible (sentinel at the end of chat)
+  const chatSentinelRef = useRef(null);
+  useEffect(() => {
+    const el = chatSentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setChatBottomVisible(entry.isIntersecting),
       { threshold: 0.1 }
     );
     observer.observe(el);
@@ -94,16 +110,22 @@ export default function MobileLayout({
           />
         </div>
       ))}
-      <div className="mobile-scroll-section" style={{ height: "55vh", minHeight: 300 }}>
+      <div ref={chatSectionRef} className="mobile-scroll-section" style={{ height: "55vh", minHeight: 300 }}>
         <ChatNode data={chatData} standalone />
       </div>
-      <MobileChatInput
-        onSend={onSend}
-        isProcessing={isProcessing}
-        pendingQuestion={pendingQuestion}
-        onAnswer={onAnswer}
-        onCancel={onCancel}
-      />
+      {/* Sentinel to detect chat bottom visibility */}
+      <div ref={chatSentinelRef} style={{ height: 1, marginTop: -1 }} />
+      {chatBottomVisible && (
+        <MobileChatInput
+          input={mobileInput}
+          onInputChange={setMobileInput}
+          onSend={onSend}
+          isProcessing={isProcessing}
+          pendingQuestion={pendingQuestion}
+          onAnswer={onAnswer}
+          onCancel={onCancel}
+        />
+      )}
       <div className="mobile-scroll-section" style={{ height: "40vh", minHeight: 220 }}>
         <DebugLogNode data={debugData} standalone />
       </div>
@@ -115,6 +137,19 @@ export default function MobileLayout({
           engineRef={engineRef}
           onTap={scrollToViewport}
           onClose={() => setDismissed(true)}
+        />
+      )}
+      {/* Fixed input when chat is off-screen */}
+      {!chatBottomVisible && (
+        <MobileChatInput
+          fixed
+          input={mobileInput}
+          onInputChange={setMobileInput}
+          onSend={onSend}
+          isProcessing={isProcessing}
+          pendingQuestion={pendingQuestion}
+          onAnswer={onAnswer}
+          onCancel={onCancel}
         />
       )}
     </div>
