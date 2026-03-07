@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const SECURITY_CONSENT_KEY = "siljangnim:securityConsent";
 
 const PROVIDERS = [
   { id: "anthropic", label: "Claude", placeholder: "sk-ant-api03-..." },
@@ -21,6 +23,7 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
   const [model, setModel] = useState(savedConfig?.model || "");
   const [maxTokens, setMaxTokens] = useState(savedConfig?.max_tokens || 8192);
   const [contextWindow, setContextWindow] = useState(savedConfig?.context_window || 131072);
+  const [consent, setConsent] = useState(() => localStorage.getItem(SECURITY_CONSENT_KEY) === "true");
 
   const providerHasKey = savedConfig?.provider_keys?.[provider] ?? false;
   const isActiveProvider = provider === savedConfig?.provider;
@@ -30,6 +33,7 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
   const handleSubmit = (e) => {
     e.preventDefault();
     if (loading) return;
+    if (consent) localStorage.setItem(SECURITY_CONSENT_KEY, "true");
     if (provider === "custom") {
       if (!baseUrl.trim() || !model.trim()) return;
       onSubmit(provider, key.trim(), { base_url: baseUrl.trim(), model: model.trim(), max_tokens: parseInt(maxTokens, 10) || 8192, context_window: parseInt(contextWindow, 10) || 131072 });
@@ -41,7 +45,8 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
     }
   };
 
-  const isSubmitDisabled = loading || (provider === "custom"
+  const needsConsent = !localStorage.getItem(SECURITY_CONSENT_KEY);
+  const isSubmitDisabled = loading || (needsConsent && !consent) || (provider === "custom"
     ? (!baseUrl.trim() || !model.trim())
     : (!key.trim() && !providerHasKey));
 
@@ -220,6 +225,35 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
             <p className="text-sm text-red-400 max-h-20 overflow-y-auto break-words">{error}</p>
           )}
         </div>
+
+        {/* Security warning */}
+        {needsConsent && (
+          <div
+            className="rounded-lg p-3 space-y-2"
+            style={{ background: "rgba(234, 179, 8, 0.08)", border: "1px solid rgba(234, 179, 8, 0.25)" }}
+          >
+            <p className="text-xs font-medium" style={{ color: "#eab308" }}>
+              Security Notice
+            </p>
+            <ul className="text-[11px] space-y-1" style={{ color: "var(--chrome-text-secondary)" }}>
+              <li>Your API key is stored in your browser's localStorage and sent to our proxy server to forward to the AI provider.</li>
+              <li>We do not log or store your key on the server, but it is transmitted over the network.</li>
+              <li>Anyone with access to this browser's dev tools can read the stored key.</li>
+              <li>Use a key with spending limits and rotate it regularly.</li>
+            </ul>
+            <label className="flex items-start gap-2 cursor-pointer pt-1">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+                className="mt-0.5 accent-indigo-500"
+              />
+              <span className="text-xs" style={{ color: "var(--chrome-text-secondary)" }}>
+                I understand the risks and agree to proceed.
+              </span>
+            </label>
+          </div>
+        )}
 
         <button
           type="submit"
