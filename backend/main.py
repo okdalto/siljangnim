@@ -181,6 +181,7 @@ async def import_project(file: UploadFile):
         meta = projects.import_project_zip(zip_bytes)
         return meta
     except ValueError as e:
+        logger.warning("Import rejected: %s", e)
         return Response(status_code=400, content=str(e))
     except Exception as e:
         logger.error("Import failed: %s", e)
