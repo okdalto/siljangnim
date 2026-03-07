@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { API_BASE } from "../constants/api.js";
+import { importProjectZip } from "../engine/storage.js";
 
 export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages) {
   const [projectList, setProjectList] = useState([]);
@@ -62,17 +63,25 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
   );
 
   const handleProjectImport = useCallback(async (file) => {
-    const formData = new FormData();
-    formData.append("file", file);
+    // Try backend API first
     try {
+      const formData = new FormData();
+      formData.append("file", file);
       const res = await fetch(`${API_BASE}/api/projects/import`, {
         method: "POST",
         body: formData,
       });
       if (res.ok) {
-        // Refresh project list via WebSocket
         sendRef.current?.({ type: "project_list" });
+        return;
       }
+    } catch { /* backend unavailable */ }
+
+    // Fallback: browser-only import (JSON format from exportProjectZip)
+    try {
+      const text = await file.text();
+      await importProjectZip(text);
+      sendRef.current?.({ type: "project_list" });
     } catch { /* ignore */ }
   }, [sendRef]);
 

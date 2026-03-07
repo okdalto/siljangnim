@@ -125,7 +125,7 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
       <input
         ref={importInputRef}
         type="file"
-        accept=".zip"
+        accept=".zip,.json"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
