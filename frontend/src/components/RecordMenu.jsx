@@ -193,7 +193,7 @@ export default function RecordMenu({
       {/* Popover */}
       {open && !recording && (
         <div
-          className="absolute bottom-full left-0 mb-2 w-72 max-h-[70vh] overflow-y-auto rounded-lg shadow-xl p-3 text-xs z-50"
+          className="absolute bottom-full left-0 mb-12 w-72 max-h-[70vh] overflow-y-auto rounded-lg shadow-xl p-3 text-xs z-50"
           style={{ background: "var(--chrome-bg-elevated)", border: "1px solid var(--chrome-border)", color: "var(--chrome-text)" }}
         >
           {/* Format */}
