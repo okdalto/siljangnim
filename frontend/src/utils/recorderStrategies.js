@@ -208,7 +208,8 @@ export function startOfflineWebCodecs(ctx) {
 
   // Audio track in muxer
   let audioEncoder = null;
-  const useAudio = hasAudio && audioBuffer && typeof AudioEncoder !== "undefined";
+  const useAudio = hasAudio && audioBuffer && typeof AudioEncoder !== "undefined"
+    && audioBuffer.numberOfChannels > 0;
   if (useAudio) {
     muxerOpts.audio = {
       codec: audioCodecMuxer,
