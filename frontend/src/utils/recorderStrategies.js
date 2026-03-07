@@ -21,10 +21,10 @@ import { zipSync } from "fflate";
 
 function avcCodecForResolution(w, h) {
   const pixels = w * h;
-  // Baseline profile, pick level by coded area
-  if (pixels <= 921600)  return "avc1.42001f"; // L3.1 — up to ~1280x720
-  if (pixels <= 2088960) return "avc1.420028"; // L4.0 — up to ~1920x1088
-  return "avc1.42003d";                        // L6.1 — 4K+
+  // High profile — best macOS/QuickTime compatibility
+  if (pixels <= 921600)  return "avc1.64001f"; // High L3.1 — up to ~1280x720
+  if (pixels <= 2088960) return "avc1.640028"; // High L4.0 — up to ~1920x1088
+  return "avc1.640033";                        // High L5.1 — 4K+
 }
 
 // ---- Audio helpers ----
