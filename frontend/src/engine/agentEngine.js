@@ -472,6 +472,16 @@ const HANDLERS = {
     this.broadcast({ type: "project_list", projects });
   },
 
+  async project_rename(msg) {
+    try {
+      await storage.renameProject(msg.name || "", msg.newDisplayName || "");
+      const projects = await storage.listProjects();
+      this.broadcast({ type: "project_list", projects });
+    } catch (e) {
+      this.broadcast({ type: "project_rename_error", error: e.message });
+    }
+  },
+
   async project_delete(msg) {
     try {
       await storage.deleteProject(msg.name || "");

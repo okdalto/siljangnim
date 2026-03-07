@@ -681,6 +681,7 @@ export default function App() {
             onProjectSave={project.handleProjectSave}
             onProjectLoad={project.handleProjectLoad}
             onProjectDelete={project.handleProjectDelete}
+            onProjectRename={project.handleProjectRename}
             onProjectImport={project.handleProjectImport}
             onDeleteWorkspaceFile={handleDeleteWorkspaceFile}
             workspaceFilesVersion={workspaceFilesVersion}

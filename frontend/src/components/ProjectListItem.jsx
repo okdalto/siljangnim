@@ -58,9 +58,14 @@ function FolderBrowseIcon() {
   );
 }
 
-export default function ProjectListItem({ project: p, isActive, onLoad, onDelete }) {
+export default function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const deleteTimerRef = useRef(null);
+
+  // Inline rename
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const editInputRef = useRef(null);
 
   // Code preview
   const [codeExpanded, setCodeExpanded] = useState(false);
@@ -79,6 +84,29 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
       return () => clearTimeout(deleteTimerRef.current);
     }
   }, [confirmDelete]);
+
+  useEffect(() => {
+    if (editing) editInputRef.current?.select();
+  }, [editing]);
+
+  const handleStartRename = (e) => {
+    e.stopPropagation();
+    setEditName(p.display_name || p.name);
+    setEditing(true);
+  };
+
+  const handleCommitRename = () => {
+    const trimmed = editName.trim();
+    if (trimmed && trimmed !== (p.display_name || p.name)) {
+      onRename?.(p.name, trimmed);
+    }
+    setEditing(false);
+  };
+
+  const handleRenameKeyDown = (e) => {
+    if (e.key === "Enter") handleCommitRename();
+    if (e.key === "Escape") setEditing(false);
+  };
 
   const handleDeleteClick = (e) => {
     e.stopPropagation();
@@ -156,9 +184,25 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
           <ThumbnailImg src={thumbUrl()} alt={p.display_name || p.name} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-zinc-200 truncate">
-                {p.display_name || p.name}
-              </span>
+              {editing ? (
+                <input
+                  ref={editInputRef}
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onBlur={handleCommitRename}
+                  onKeyDown={handleRenameKeyDown}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-xs font-medium text-zinc-200 bg-zinc-700 border border-zinc-500 rounded px-1 py-0 outline-none w-full min-w-0"
+                  autoFocus
+                />
+              ) : (
+                <span
+                  className="text-xs font-medium text-zinc-200 truncate"
+                  onDoubleClick={handleStartRename}
+                >
+                  {p.display_name || p.name}
+                </span>
+              )}
               {confirmDelete ? (
                 <span className="flex items-center gap-1 ml-2 flex-shrink-0">
                   <button
