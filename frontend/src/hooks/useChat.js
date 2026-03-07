@@ -34,7 +34,12 @@ export default function useChat(sendRef) {
   );
 
   const handleNewChat = useCallback(() => {
+    // Cancel any in-progress agent before clearing
+    sendRef.current?.({ type: "cancel_agent" });
     setMessages([]);
+    setIsProcessing(false);
+    setAgentStatus(null);
+    setPendingQuestion(null);
     sendRef.current?.({ type: "new_chat" });
   }, [sendRef]);
 
