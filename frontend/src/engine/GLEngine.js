@@ -207,6 +207,7 @@ export default class GLEngine {
       gl: this.gl,
       canvas: this.canvas,
       state: {},
+      uploads: {}, // populated with blob URLs for uploaded files
       utils: {
         createProgram: (vertSource, fragSource) => createProgram(this.gl, vertSource, fragSource),
         compileShader: (type, source) => compileShader(this.gl, type, source),
@@ -405,7 +406,7 @@ export default class GLEngine {
 
     try {
       if (setupBody) {
-        this._scriptSetupFn = new Function("ctx", setupBody);
+        this._scriptSetupFn = new Function("ctx", `return (async () => { ${setupBody} })();`);
       }
       if (renderBody) {
         this._scriptRenderFn = new Function("ctx", renderBody);
@@ -414,10 +415,8 @@ export default class GLEngine {
         this._scriptCleanupFn = new Function("ctx", cleanupBody);
       }
 
-      // Run setup immediately
-      if (this._scriptSetupFn) {
-        this._scriptSetupFn(ctx);
-      }
+      // Pre-populate ctx.uploads with blob URLs, then run setup
+      this._prepareUploadsAndRunSetup(ctx);
     } catch (err) {
       console.error("[GLEngine] Script error:", err);
       this.onError?.(err);
@@ -806,6 +805,58 @@ export default class GLEngine {
     this._customUniforms = {};
     this._keyboardBindings = {};
     this._pressedKeys.clear();
+  }
+
+  /** Pre-populate ctx.uploads with blob URLs for all uploaded files, then run setup. */
+  async _prepareUploadsAndRunSetup(ctx) {
+    try {
+      // Load all upload blob URLs from IndexedDB
+      const DB_NAME = "siljangnim";
+      const DB_VERSION = 1;
+      const db = await new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+
+      const tx = db.transaction("blobs", "readonly");
+      const store = tx.objectStore("blobs");
+      const allKeys = await new Promise((resolve, reject) => {
+        const req = store.getAllKeys();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+
+      const uploadKeys = allKeys.filter((k) => k.includes("/uploads/"));
+      for (const key of uploadKeys) {
+        const tx2 = db.transaction("blobs", "readonly");
+        const store2 = tx2.objectStore("blobs");
+        const entry = await new Promise((resolve, reject) => {
+          const req = store2.get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+        if (entry?.data) {
+          const filename = key.split("/uploads/").pop();
+          const blob = new Blob([entry.data], { type: entry.mimeType || "application/octet-stream" });
+          ctx.uploads[filename] = URL.createObjectURL(blob);
+        }
+      }
+      db.close();
+    } catch (e) {
+      console.warn("[GLEngine] Failed to pre-populate uploads:", e);
+    }
+
+    // Run setup (async)
+    if (this._scriptSetupFn) {
+      try {
+        await this._scriptSetupFn(ctx);
+      } catch (err) {
+        console.error("[GLEngine] Setup error:", err);
+        this.onError?.(err);
+        window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
+      }
+    }
   }
 
   /** Load an uploaded file from IndexedDB and return a blob URL. */
