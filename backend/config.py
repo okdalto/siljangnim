@@ -11,9 +11,12 @@ Supports multiple AI providers:
 Reads/writes configuration from backend/.env using python-dotenv.
 """
 
+import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from dotenv import load_dotenv, set_key
 import anthropic
@@ -182,6 +185,8 @@ def save_api_key(
     # Custom provider handling
     if provider == "custom":
         if base_url:
+            if not _is_valid_base_url(base_url):
+                raise ValueError(f"Invalid base URL: {base_url}")
             _state.custom_base_url = base_url
         if model:
             _state.custom_model = model
@@ -239,9 +244,10 @@ async def _validate_anthropic_key(key: str) -> tuple[bool, str]:
     except anthropic.AuthenticationError:
         return False, "Invalid API key"
     except anthropic.APIConnectionError:
-        return False, "Could not connect to Anthropic API"
+        return False, "Could not connect to API server"
     except Exception as e:
-        return False, str(e)
+        logger.error("API key validation error: %s", e)
+        return False, "Validation failed"
 
 
 async def _validate_openai_key(key: str) -> tuple[bool, str]:
@@ -257,9 +263,10 @@ async def _validate_openai_key(key: str) -> tuple[bool, str]:
     except openai.AuthenticationError:
         return False, "Invalid API key"
     except openai.APIConnectionError:
-        return False, "Could not connect to OpenAI API"
+        return False, "Could not connect to API server"
     except Exception as e:
-        return False, str(e)
+        logger.error("API key validation error: %s", e)
+        return False, "Validation failed"
 
 
 async def _validate_gemini_key(key: str) -> tuple[bool, str]:
@@ -280,8 +287,9 @@ async def _validate_gemini_key(key: str) -> tuple[bool, str]:
         if "api key" in err_str or "401" in err_str or "403" in err_str or "permission" in err_str:
             return False, "Invalid API key"
         if "connect" in err_str:
-            return False, "Could not connect to Gemini API"
-        return False, str(e)
+            return False, "Could not connect to API server"
+        logger.error("API key validation error: %s", e)
+        return False, "Validation failed"
 
 
 async def _validate_glm_key(key: str, endpoint: str | None = None) -> tuple[bool, str]:
@@ -300,14 +308,27 @@ async def _validate_glm_key(key: str, endpoint: str | None = None) -> tuple[bool
         if "auth" in err_str or "api key" in err_str or "401" in err_str:
             return False, "Invalid API key"
         if "connect" in err_str:
-            return False, "Could not connect to GLM API"
-        return False, str(e)
+            return False, "Could not connect to API server"
+        logger.error("API key validation error: %s", e)
+        return False, "Validation failed"
+
+
+def _is_valid_base_url(url: str) -> bool:
+    """Check that a base URL has a valid http/https scheme."""
+    from urllib.parse import urlparse
+    try:
+        parsed = urlparse(url)
+        return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+    except Exception:
+        return False
 
 
 async def _validate_custom(key: str, base_url: str | None, model: str | None) -> tuple[bool, str]:
     """Validate a custom OpenAI-compatible endpoint by making a test call."""
     if not base_url:
         return False, "Base URL is required"
+    if not _is_valid_base_url(base_url):
+        return False, "Base URL must be a valid http:// or https:// URL"
     if not model:
         return False, "Model name is required"
     try:
@@ -320,11 +341,12 @@ async def _validate_custom(key: str, base_url: str | None, model: str | None) ->
         )
         return True, ""
     except openai.APIConnectionError:
-        return False, f"Could not connect to {base_url}"
+        return False, "Could not connect to the custom endpoint"
     except Exception as e:
         err_str = str(e).lower()
         if "model" in err_str and ("not found" in err_str or "does not exist" in err_str):
-            return False, f"Model '{model}' not found on server"
+            return False, "Model not found on server"
         if "connect" in err_str or "refused" in err_str:
-            return False, f"Could not connect to {base_url}"
-        return False, str(e)
+            return False, "Could not connect to the custom endpoint"
+        logger.error("API key validation error: %s", e)
+        return False, "Validation failed"

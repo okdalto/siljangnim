@@ -175,8 +175,7 @@ async def _trigger_auto_fix(error_message: str, ctx: WsContext):
         )
         await ctx.manager.broadcast({"type": "chat_done"})
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        logger.exception("Unhandled error")
         await ctx.manager.broadcast({
             "type": "agent_log",
             "agent": "System",
@@ -258,6 +257,16 @@ async def handle_prompt(ws, msg, ctx: WsContext):
                 "level": "error",
             }))
             return
+
+    # Notify frontend asset system about uploaded files
+    if saved_files:
+        await ctx.manager.broadcast({
+            "type": "files_uploaded",
+            "files": [
+                {"name": f["name"], "mime_type": f.get("mime_type", ""), "size": f.get("size", 0)}
+                for f in saved_files
+            ],
+        })
 
     history_entry = {"role": "user", "text": user_prompt}
     if saved_files:
