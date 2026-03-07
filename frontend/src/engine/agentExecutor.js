@@ -265,6 +265,27 @@ export async function runAgent({
           continue;
         }
 
+        // Network / stream errors (e.g. mobile browser backgrounded)
+        if (status === 0 && (
+          errMsg.includes("fetch") || errMsg.includes("network") ||
+          errMsg.includes("timeout") || errMsg.includes("failed") ||
+          errMsg.includes("terminated") || errMsg.includes("connection")
+        )) {
+          overloadRetries++;
+          if (overloadRetries > MAX_OVERLOAD_RETRIES) throw err;
+          // Wait for page to be visible before retrying
+          if (document.hidden) {
+            log("System", "App backgrounded — will resume when visible...", "info");
+            onStatus?.("thinking", "Paused (app in background)...");
+            await waitForVisible(signal);
+          }
+          const delay = Math.min(2 ** overloadRetries, 10);
+          log("System", `Connection lost — retrying in ${delay}s...`, "info");
+          onStatus?.("thinking", `Reconnecting in ${delay}s...`);
+          await sleep(delay * 1000, signal);
+          continue;
+        }
+
         throw err;
       }
 
@@ -439,6 +460,25 @@ function sleep(ms, signal) {
     if (signal) {
       signal.addEventListener("abort", () => {
         clearTimeout(timer);
+        reject(new DOMException("Aborted", "AbortError"));
+      }, { once: true });
+    }
+  });
+}
+
+function waitForVisible(signal) {
+  if (!document.hidden) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const handler = () => {
+      if (!document.hidden) {
+        document.removeEventListener("visibilitychange", handler);
+        resolve();
+      }
+    };
+    document.addEventListener("visibilitychange", handler);
+    if (signal) {
+      signal.addEventListener("abort", () => {
+        document.removeEventListener("visibilitychange", handler);
         reject(new DOMException("Aborted", "AbortError"));
       }, { once: true });
     }

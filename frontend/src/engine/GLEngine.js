@@ -84,6 +84,7 @@ export default class GLEngine {
     this._scriptSetupFn = null;
     this._scriptRenderFn = null;
     this._scriptCleanupFn = null;
+    this._setupReady = false; // true after async setup() completes
 
     // Timeline
     this._duration = 0;      // 0 = infinite (no loop)
@@ -195,6 +196,7 @@ export default class GLEngine {
 
     // --- FULL RELOAD ---
     this._disposeScene();
+    this._setupReady = false;
     this._scene = sceneJSON;
     this._lastErrorMessage = null; // reset error debounce for new scene
 
@@ -577,7 +579,7 @@ export default class GLEngine {
     this._mouseSnapshot = [...this._mouse];
     this._mouseDownSnapshot = this._mouseDown;
 
-    if (this._scriptRenderFn && this._scriptCtx) {
+    if (this._scriptRenderFn && this._scriptCtx && this._setupReady) {
       const ctx = this._scriptCtx;
       ctx.time = time;
       ctx.dt = dt;
@@ -857,6 +859,7 @@ export default class GLEngine {
         window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
       }
     }
+    this._setupReady = true;
   }
 
   /** Load an uploaded file from IndexedDB and return a blob URL. */

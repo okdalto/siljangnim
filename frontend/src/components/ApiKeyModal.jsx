@@ -59,7 +59,7 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
       <form
         onSubmit={handleSubmit}
         onClick={(e) => e.stopPropagation()}
-        className="rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4 space-y-5 relative"
+        className="rounded-2xl shadow-2xl p-5 sm:p-8 w-full max-w-lg mx-3 sm:mx-4 space-y-5 relative max-h-[90vh] overflow-y-auto"
         style={{ background: "var(--chrome-bg)", border: "1px solid var(--chrome-border)" }}
       >
         {onClose && (
@@ -85,7 +85,7 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
         </div>
 
         {/* Provider toggle */}
-        <div className="flex gap-1.5">
+        <div className="flex flex-wrap gap-1.5">
           {PROVIDERS.map((p) => {
             const hasKey = savedConfig?.provider_keys?.[p.id];
             return (
@@ -93,7 +93,7 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
                 key={p.id}
                 type="button"
                 onClick={() => { setProvider(p.id); setKey(""); }}
-                className="text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1.5"
+                className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1.5"
                 style={
                   provider === p.id
                     ? { background: "var(--accent)", borderColor: "var(--accent)", color: "var(--accent-text)" }
