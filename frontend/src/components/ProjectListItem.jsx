@@ -241,7 +241,7 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
                   </button>
                 </span>
               ) : (
-                <span className="flex items-center gap-1 ml-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="flex items-center gap-1 ml-2 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={handleBrowseFiles}
                     className={`transition-colors ${
