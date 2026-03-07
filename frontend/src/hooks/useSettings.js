@@ -14,6 +14,11 @@ const DEFAULTS = {
   defaultLoop: true,
 };
 
+const THEME_CANVAS_BG = {
+  dark: "#000000",
+  light: "#e4e4e7",
+};
+
 function loadSettings() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -40,7 +45,17 @@ export default function useSettings() {
   }, [settings.theme]);
 
   const update = useCallback((key, value) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+    setSettings((prev) => {
+      const next = { ...prev, [key]: value };
+      // Auto-switch canvas background when theme changes, if it was the theme default
+      if (key === "theme" && THEME_CANVAS_BG[value]) {
+        const oldDefault = THEME_CANVAS_BG[prev.theme] || THEME_CANVAS_BG.dark;
+        if (!prev.canvasBg || prev.canvasBg === oldDefault) {
+          next.canvasBg = THEME_CANVAS_BG[value];
+        }
+      }
+      return next;
+    });
   }, []);
 
   return useMemo(() => ({ settings, update }), [settings, update]);

@@ -22,23 +22,35 @@ import useChat from "./hooks/useChat.js";
 import useCustomPanels from "./hooks/useCustomPanels.js";
 import useKeyframes from "./hooks/useKeyframes.js";
 import useProjectManager from "./hooks/useProjectManager.js";
+import useProjectTree from "./hooks/useProjectTree.js";
 import useSettings from "./hooks/useSettings.js";
 import useUniformHistory from "./hooks/useUniformHistory.js";
 import useMessageDispatcher from "./hooks/useMessageDispatcher.js";
 import useNodeDataSync from "./hooks/useNodeDataSync.js";
+import useAIDebugger from "./hooks/useAIDebugger.js";
+import usePromptMode from "./hooks/usePromptMode.js";
 import EngineContext from "./contexts/EngineContext.js";
 import SettingsContext from "./contexts/SettingsContext.js";
 import ChatNode from "./nodes/ChatNode.jsx";
 import CustomPanelNode from "./nodes/CustomPanelNode.jsx";
 import ViewportNode from "./nodes/ViewportNode.jsx";
 import DebugLogNode from "./nodes/DebugLogNode.jsx";
-import ProjectBrowserNode from "./nodes/ProjectBrowserNode.jsx";
+import AssetNode from "./nodes/AssetNode.jsx";
+import useAssetNodes from "./hooks/useAssetNodes.js";
 import ApiKeyModal from "./components/ApiKeyModal.jsx";
 import MobileLayout from "./components/MobileLayout.jsx";
 import Toolbar from "./components/Toolbar.jsx";
 import Timeline from "./components/Timeline.jsx";
 import SnapGuides from "./components/SnapGuides.jsx";
 import KeyframeEditor from "./components/KeyframeEditor.jsx";
+import ProjectTreeSidebar from "./components/ProjectTreeSidebar.jsx";
+import VersionComparePanel from "./components/VersionComparePanel.jsx";
+import SafeModeBanner from "./components/SafeModeBanner.jsx";
+import GitHubSaveDialog from "./components/GitHubSaveDialog.jsx";
+import GitHubLoadDialog from "./components/GitHubLoadDialog.jsx";
+import useVersionCompare from "./hooks/useVersionCompare.js";
+import useGitHub from "./hooks/useGitHub.js";
+import { isSafeMode } from "./engine/portableSchema.js";
 import { API_BASE } from "./constants/api.js";
 import { nextUndoSeq } from "./utils/undoSeq.js";
 
@@ -48,15 +60,15 @@ const nodeTypes = {
   chat: ChatNode,
   viewport: ViewportNode,
   debugLog: DebugLogNode,
-  projectBrowser: ProjectBrowserNode,
   customPanel: CustomPanelNode,
+  assetNode: AssetNode,
 };
 
 const BROWSER_ONLY = import.meta.env.VITE_MODE === "browser";
 
 const WS_URL = import.meta.env.DEV
   ? `ws://${window.location.hostname}:8000/ws`
-  : `ws://${window.location.hostname}:${window.location.port}/ws`;
+  : `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`;
 
 // Browser-only mode singletons (only created when needed)
 let _messageBus, _agentEngine;
@@ -88,13 +100,6 @@ const initialNodes = [
     style: { width: 320, height: 480 },
     data: { logs: [] },
   },
-  {
-    id: "projectBrowser",
-    type: "projectBrowser",
-    position: { x: 1100, y: 50 },
-    style: { width: 320, height: 480 },
-    data: { projects: [], activeProject: null, onSave: () => { }, onLoad: () => { }, onDelete: () => { } },
-  },
 ];
 
 export default function App() {
@@ -124,8 +129,15 @@ export default function App() {
   const [loop, setLoop] = useState(true);
   const [canvasSize, setCanvasSize] = useState({ width: 670, height: 480 });
 
+  // Backend target (per-project override: auto / webgl / webgpu)
+  const [backendTarget, setBackendTarget] = useState("auto");
+
   // Workspace files version counter
   const [workspaceFilesVersion, setWorkspaceFilesVersion] = useState(0);
+
+  // Safe mode state (v2 manifest trust)
+  const [projectManifest, setProjectManifest] = useState(null);
+  const safeModeActive = isSafeMode(projectManifest);
 
   // Custom selection state — completely decoupled from ReactFlow's node state.
   // This avoids race conditions caused by frequent setNodes calls from useNodeDataSync.
@@ -149,10 +161,22 @@ export default function App() {
     return () => cancelAnimationFrame(rafId);
   }, []);
 
+  // Sync backendTarget from sceneJSON when a project is loaded
+  useEffect(() => {
+    if (sceneJSON?.backendTarget) {
+      setBackendTarget(sceneJSON.backendTarget);
+    }
+  }, [sceneJSON?.backendTarget]);
+
   // --- Custom hooks ---
   const apiKey = useApiKey(sendRef);
   const chat = useChat(sendRef);
   const panels = useCustomPanels(sendRef);
+  const assetNodes = useAssetNodes();
+  // Wire asset context getter to browser-mode agent engine
+  if (BROWSER_ONLY && _agentEngine) {
+    _agentEngine._getAssetContext = assetNodes.getPromptContext;
+  }
   const kf = useKeyframes(engineRef);
 
   const captureThumbnail = useCallback(() => {
@@ -163,6 +187,9 @@ export default function App() {
     }
     return null;
   }, []);
+
+  // Prompt Mode
+  const promptModeHook = usePromptMode();
 
   const getDebugLogs = useCallback(() => chat.debugLogs, [chat.debugLogs]);
 
@@ -194,18 +221,94 @@ export default function App() {
       duration,
       loop,
       node_layouts: getNodeLayouts(),
+      assets: assetNodes.serialize(),
     };
-  }, [duration, loop, kf.getKeyframeTracks, getNodeLayouts]);
+  }, [duration, loop, kf.getKeyframeTracks, getNodeLayouts, assetNodes.serialize]);
 
   // Pending node layouts to apply once after project load
   const pendingLayoutsRef = useRef(null);
 
+  // Overwrite mode: update current node in-place instead of creating a new child
+  const [overwriteMode, setOverwriteMode] = useState(false);
+  const overwriteModeRef = useRef(false);
+  overwriteModeRef.current = overwriteMode;
+
   const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages);
+
+  // Handler: user changes backend target via toolbar
+  const handleBackendTargetChange = useCallback((target) => {
+    setBackendTarget(target);
+    // Persist into sceneJSON so it's saved with the project
+    setSceneJSON((prev) => prev ? { ...prev, backendTarget: target } : prev);
+    dirtyRef.current = true;
+    project.markUnsaved();
+    // Notify backend/agent engine of the change
+    sendRef.current?.({ type: "set_backend_target", backendTarget: target });
+  }, [project.markUnsaved]);
+
+  // Project tree (version history)
+  const tree = useProjectTree(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages);
+  const projectTreeRef = useRef(tree);
+  projectTreeRef.current = tree;
+
+  // Refs for message dispatcher to access current state without stale closures
+  const sceneJSONRef = useRef(sceneJSON);
+  sceneJSONRef.current = sceneJSON;
+  const uiConfigRef = useRef(uiConfig);
+  uiConfigRef.current = uiConfig;
+  const panelsDataRef = useRef(panels.customPanels);
+  panelsDataRef.current = panels.customPanels;
+
+  // AI Debugger (needs sceneJSONRef)
+  const aiDebugger = useAIDebugger(sendRef, sceneJSONRef, chat.addLog);
+
+  const getSceneJSONRef = useRef(() => sceneJSONRef.current);
+  const getUiConfigRef = useRef(() => uiConfigRef.current);
+  const getWorkspaceStateRef = useRef(getWorkspaceState);
+  getWorkspaceStateRef.current = getWorkspaceState;
+  const getPanelsRef = useRef(() => panelsDataRef.current);
+  const getMessagesRef = useRef(() => messagesRef.current);
+  const getDebugLogsRef = useRef(() => chat.debugLogs);
+  const getActiveProjectNameRef = useRef(() => {
+    return project.activeProject ? storageApi.getActiveProjectName() : null;
+  });
+  getActiveProjectNameRef.current = () => {
+    return project.activeProject ? storageApi.getActiveProjectName() : null;
+  };
+
+  // Version compare
+  const apiKeyConfigRef = useRef(apiKey.savedConfig);
+  apiKeyConfigRef.current = apiKey.savedConfig;
+  const compare = useVersionCompare(apiKeyConfigRef);
+
+  // GitHub integration
+  const github = useGitHub();
+  const [showGitHubSave, setShowGitHubSave] = useState(false);
+  const [showGitHubLoad, setShowGitHubLoad] = useState(false);
 
   // Recording
   const { recording, elapsedTime: recordingTime, startRecording, stopRecording } = useRecorder(engineRef);
   const recorderFnsRef = useRef({ startRecording, stopRecording });
   recorderFnsRef.current = { startRecording, stopRecording };
+
+  // Load project tree when active project changes (lazy migration: ensure root node)
+  useEffect(() => {
+    const projName = storageApi.getActiveProjectName();
+    if (projName) {
+      // Ensure root node exists for any project (including _untitled)
+      const currentState = {
+        scene_json: sceneJSONRef.current || {},
+        ui_config: uiConfigRef.current || {},
+        workspace_state: getWorkspaceState(),
+        panels: panelsDataRef.current || {},
+        chat_history: messagesRef.current || [],
+        debug_logs: chat.debugLogs || [],
+      };
+      tree.ensureRoot(projName, currentState).catch(() => { /* non-critical */ });
+    } else {
+      tree.loadTree(null);
+    }
+  }, [project.activeProject, tree.ensureRoot, tree.loadTree, getWorkspaceState, chat.debugLogs]);
 
   // Spacebar toggle pause
   useEffect(() => {
@@ -352,7 +455,7 @@ export default function App() {
 
   // Handle incoming WebSocket messages (extracted hook)
   const handleMessage = useMessageDispatcher({
-    chat, apiKey, project, panels, kf,
+    chat, apiKey, project, panels, kf, assetNodes,
     setSceneJSON, setUiConfig, setDuration, setLoop,
     setWorkspaceFilesVersion, dirtyRef, setPaused,
     recorderFnsRef, pendingLayoutsRef, setNodes,
@@ -360,12 +463,30 @@ export default function App() {
     wsStateTimerRef, kfMountedRef, durationLoopMountedRef,
     thinkingBufferRef, thinkingLogReceivedRef,
     settingsRef,
+    projectTreeRef,
+    getSceneJSONRef, getUiConfigRef, getWorkspaceStateRef,
+    getPanelsRef, getMessagesRef, getDebugLogsRef,
+    getActiveProjectNameRef,
+    setProjectManifest,
+    overwriteModeRef,
   });
 
   const ws = useWebSocket(BROWSER_ONLY ? null : WS_URL, handleMessage);
   const mb = useMessageBus(BROWSER_ONLY ? _messageBus : null, handleMessage);
   const { connected, send } = BROWSER_ONLY ? mb : ws;
   sendRef.current = send;
+
+  // Send prompt mode addition whenever mode changes (pre-computed, not per-prompt)
+  const prevModeRef = useRef(null);
+  useEffect(() => {
+    if (prevModeRef.current === promptModeHook.promptMode) return;
+    prevModeRef.current = promptModeHook.promptMode;
+    import("./engine/promptMode.js").then((mod) => {
+      const interp = mod.interpretPrompt("", promptModeHook.promptMode);
+      const addition = mod.buildModeSystemPrompt(interp);
+      sendRef.current?.({ type: "set_prompt_mode_addition", addition: addition || "" });
+    }).catch(() => {});
+  }, [promptModeHook.promptMode]);
 
   // In browser-only mode, request initial state on mount
   useEffect(() => {
@@ -461,6 +582,98 @@ export default function App() {
     [send, project.markUnsaved]
   );
 
+  // Handle restoring scene from tree node (double-click)
+  const handleTreeNodeRestore = useCallback(async (nodeId) => {
+    const projName = storageApi.getActiveProjectName();
+    if (!projName) return;
+    try {
+      const state = await tree.restoreNode(nodeId, projName);
+      // Reuse the project_loaded message path
+      handleMessage({
+        type: "project_loaded",
+        meta: { name: projName, display_name: project.activeProject },
+        scene_json: state.scene_json,
+        ui_config: state.ui_config,
+        workspace_state: state.workspace_state,
+        panels: state.panels,
+        chat_history: state.chat_history,
+        debug_logs: state.debug_logs,
+      });
+    } catch (err) {
+      chat.addLog({ agent: "System", message: `Failed to restore node: ${err.message}`, level: "error" });
+    }
+  }, [tree.restoreNode, handleMessage, project.activeProject, chat.addLog]);
+
+  // Handle "Continue from here" in tree
+  const handleContinueFromNode = useCallback(async (nodeId) => {
+    await handleTreeNodeRestore(nodeId);
+  }, [handleTreeNodeRestore]);
+
+  // Branch from chat input — set source node for next prompt
+  const handleBranchFromChat = useCallback((nodeId) => {
+    tree.setActiveNodeId(nodeId);
+    // Open sidebar to show the branch context
+    tree.setSidebarOpen(true);
+  }, [tree.setActiveNodeId, tree.setSidebarOpen]);
+
+  // Switch to a branch tip node from chat
+  const handleSwitchToNodeFromChat = useCallback(async (nodeId) => {
+    await handleTreeNodeRestore(nodeId);
+  }, [handleTreeNodeRestore]);
+
+  // Handle branch from tree node
+  const handleTreeBranch = useCallback(async (nodeId, title) => {
+    const projName = storageApi.getActiveProjectName();
+    if (!projName) return;
+    await tree.branchFromNode(nodeId, projName, title);
+  }, [tree.branchFromNode]);
+
+  // Handle rename in tree
+  const handleTreeRename = useCallback(async (nodeId, newTitle) => {
+    const projName = storageApi.getActiveProjectName();
+    if (!projName) return;
+    await tree.renameNode(nodeId, newTitle, projName);
+  }, [tree.renameNode]);
+
+  // Handle toggle favorite
+  const handleTreeToggleFavorite = useCallback(async (nodeId) => {
+    const projName = storageApi.getActiveProjectName();
+    if (!projName) return;
+    await tree.toggleFavorite(nodeId, projName);
+  }, [tree.toggleFavorite]);
+
+  // Handle pin checkpoint
+  const handleTreePinCheckpoint = useCallback(async (nodeId) => {
+    const projName = storageApi.getActiveProjectName();
+    if (!projName) return;
+    await tree.pinCheckpoint(nodeId, projName);
+  }, [tree.pinCheckpoint]);
+
+  // Handle duplicate node (creates a checkpoint copy as a sibling)
+  const handleTreeDuplicate = useCallback(async (nodeId) => {
+    const projName = storageApi.getActiveProjectName();
+    if (!projName) return;
+    await tree.pinCheckpoint(nodeId, projName);
+  }, [tree.pinCheckpoint]);
+
+  // Handle compare
+  const handleStartCompare = useCallback((nodeId) => {
+    compare.startCompare(nodeId);
+  }, [compare.startCompare]);
+
+  const handleSelectCompareTarget = useCallback((nodeId) => {
+    const projName = storageApi.getActiveProjectName();
+    if (!projName) return;
+    compare.selectCompareTarget(nodeId, projName);
+  }, [compare.selectCompareTarget]);
+
+  // Handle delete node
+  const handleTreeDeleteNode = useCallback(async (nodeId) => {
+    const projName = storageApi.getActiveProjectName();
+    if (!projName) return;
+    await tree.deleteNodeTree(nodeId, projName);
+  }, [tree.deleteNodeTree]);
+
   const handleNewProject = useCallback(() => {
     const msg = { type: "new_project" };
     if (project.activeProject && project.saveStatus === "unsaved") {
@@ -480,7 +693,10 @@ export default function App() {
     setSceneJSON(null);
     setUiConfig({ controls: [], inspectable_buffers: [] });
     panels.restorePanels({});
+    assetNodes.restore({});
     project.setActiveProject(null);
+    setProjectManifest(null);
+    setBackendTarget("auto");
     kf.resetKeyframes();
     setDuration(settings.defaultDuration);
     setLoop(settings.defaultLoop);
@@ -488,6 +704,53 @@ export default function App() {
     project.markSaved();
     send(msg);
   }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, getNodeLayouts, chat.clearAll, chat.messages, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, project.markSaved, settings.defaultDuration, settings.defaultLoop]);
+
+  // Trust a safe-mode project
+  const handleTrustProject = useCallback(() => {
+    send({ type: "trust_project", name: storageApi.getActiveProjectName() });
+    setProjectManifest((prev) => prev ? { ...prev, trust: { safe_mode: false, trusted_by: "user", trusted_at: new Date().toISOString() } } : prev);
+  }, [send]);
+
+  // Fork & Remix a GitHub project
+  const handleForkRemix = useCallback(async () => {
+    if (!github.isAuthenticated || !projectManifest?.provenance?.github_repo) return;
+    const [owner, repo] = projectManifest.provenance.github_repo.split("/");
+    if (!owner || !repo) return;
+    try {
+      chat.addLog({ agent: "GitHub", message: `Forking ${owner}/${repo}...`, level: "info" });
+      const { forkRepo, checkForkStatus, loadProjectFromRepo } = await import("./engine/github.js");
+      const fork = await forkRepo(github.token, owner, repo);
+      // Wait for fork to be ready
+      await checkForkStatus(github.token, github.user.login, repo);
+      chat.addLog({ agent: "GitHub", message: `Fork created: ${github.user.login}/${repo}`, level: "info" });
+
+      // Load from fork
+      const path = projectManifest.provenance.github_path || "";
+      const result = await loadProjectFromRepo(github.token, github.user.login, repo, path);
+
+      // Import with forked_from set
+      const { migrateV1toV2, validateManifest, buildProvenanceGitHub } = await import("./engine/portableSchema.js");
+      let manifest = result.manifest || migrateV1toV2({ name: repo });
+      manifest = validateManifest(manifest);
+      manifest.provenance = buildProvenanceGitHub(repo, github.user.login, result.commitSha, path);
+      manifest.provenance.forked_from = `${owner}/${repo}`;
+      manifest.provenance.original_author = owner;
+      manifest.trust = { safe_mode: false, trusted_by: "user", trusted_at: new Date().toISOString() };
+
+      const bundle = JSON.stringify({
+        schema_version: 2,
+        manifest,
+        meta: manifest,
+        files: result.files,
+        blobs: result.blobs,
+        nodes: [],
+      });
+      const meta = await storageApi.importProjectZip(bundle, { isExternal: false });
+      sendRef.current?.({ type: "project_load", name: meta.name });
+    } catch (err) {
+      chat.addLog({ agent: "GitHub", message: `Fork failed: ${err.message}`, level: "error" });
+    }
+  }, [github.isAuthenticated, github.token, github.user, projectManifest, chat.addLog]);
 
   const handleDeleteWorkspaceFile = useCallback(
     async (filepath) => {
@@ -516,7 +779,13 @@ export default function App() {
   const handleShaderError = useCallback((err) => {
     const message = err.message || String(err);
     chat.addLog({ agent: "WebGL", message, level: "error" });
-  }, [chat.addLog]);
+    // Feed shader compile errors to AI debugger
+    if (message.includes("compile") || message.includes("shader") || message.includes("GLSL") || message.includes("ERROR:")) {
+      aiDebugger.addCompileLog("fragment", "", message);
+    } else {
+      aiDebugger.addRuntimeError(err, "render");
+    }
+  }, [chat.addLog, aiDebugger.addCompileLog, aiDebugger.addRuntimeError]);
 
   // --- Node selection (fully decoupled from ReactFlow's node state) ---
   // Uses a separate selectedIds state + DOM data-attribute for visual feedback.
@@ -600,6 +869,12 @@ export default function App() {
     });
   }, [sceneJSON]);
 
+  // Compute active tree node title for ChatNode branch indicator
+  const activeNodeTitle = tree.treeNodes.find((n) => n.id === tree.activeNodeId)?.title || null;
+
+  // Overwrite mode toggle
+  const handleToggleOverwrite = useCallback(() => setOverwriteMode((v) => !v), []);
+
   // Sync data into nodes (extracted hook)
   useNodeDataSync({
     setNodes, chat, sceneJSON, paused, uiConfig,
@@ -608,6 +883,19 @@ export default function App() {
     panels, handlePanelClose, mergeControlDefaults,
     kf, duration, loop, engineRef, pendingLayoutsRef,
     setDuration, setLoop,
+    activeNodeTitle,
+    debugger: aiDebugger,
+    assetNodes,
+    onPromptSuggestion: (text) => chat.handleSend(text),
+    safeModeActive,
+    promptMode: promptModeHook.promptMode,
+    treeNodes: tree.treeNodes,
+    activeTreeNodeId: tree.activeNodeId,
+    onBranchFromNode: handleBranchFromChat,
+    onSwitchToNode: handleSwitchToNodeFromChat,
+    overwriteMode,
+    onToggleOverwrite: handleToggleOverwrite,
+    backendTarget,
   });
 
   return (
@@ -621,8 +909,63 @@ export default function App() {
           provider={apiKey.savedConfig?.provider}
           saveStatus={project.saveStatus}
           onChangeApiKey={() => apiKey.setRequired()}
+          onToggleTree={tree.toggleSidebar}
+          treeOpen={tree.sidebarOpen}
+          promptMode={promptModeHook.promptMode}
+          onPromptModeChange={promptModeHook.setPromptMode}
+          projectManifest={projectManifest}
+          backendTarget={backendTarget}
+          onBackendTargetChange={handleBackendTargetChange}
         />
 
+        {safeModeActive && (
+          <SafeModeBanner
+            manifest={projectManifest}
+            onTrust={handleTrustProject}
+            onForkRemix={github.isAuthenticated && projectManifest?.provenance?.source_type === "github" ? handleForkRemix : undefined}
+          />
+        )}
+
+        {!isMobile && (
+          <ProjectTreeSidebar
+            isOpen={tree.sidebarOpen}
+            treeNodes={tree.treeNodes}
+            activeNodeId={tree.activeNodeId}
+            projectName={storageApi.getActiveProjectName()}
+            onSelectNode={(id) => tree.setActiveNodeId(id)}
+            onDoubleClickNode={handleTreeNodeRestore}
+            onBranch={handleTreeBranch}
+            onDuplicate={handleTreeDuplicate}
+            onRename={handleTreeRename}
+            onToggleFavorite={handleTreeToggleFavorite}
+            onPinCheckpoint={handleTreePinCheckpoint}
+            onDeleteNode={handleTreeDeleteNode}
+            onContinueFrom={handleContinueFromNode}
+            compareSourceId={compare.compareSourceId}
+            onStartCompare={handleStartCompare}
+            onSelectCompareTarget={handleSelectCompareTarget}
+            onCancelCompare={compare.cancelCompare}
+            projectList={project.projectList}
+            activeProject={project.activeProject}
+            onProjectSave={project.handleProjectSave}
+            onProjectLoad={project.handleProjectLoad}
+            onProjectDelete={project.handleProjectDelete}
+            onProjectRename={project.handleProjectRename}
+            onProjectImport={project.handleProjectImport}
+            saveStatus={project.saveStatus}
+            github={github}
+            onGitHubSave={() => setShowGitHubSave(true)}
+            onGitHubLoad={() => setShowGitHubLoad(true)}
+          />
+        )}
+
+        <div style={{
+          marginLeft: !isMobile && tree.sidebarOpen ? 256 : 0,
+          transition: "margin-left 0.2s ease",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+        }}>
         <Timeline
           paused={paused}
           onTogglePause={handleTogglePause}
@@ -650,6 +993,32 @@ export default function App() {
           />
         )}
 
+        {showGitHubSave && github.isAuthenticated && (
+          <GitHubSaveDialog
+            token={github.token}
+            user={github.user}
+            projectName={project.activeProject || "untitled"}
+            captureThumbnail={captureThumbnail}
+            onClose={() => setShowGitHubSave(false)}
+            onSaved={({ owner, repo, path }) => {
+              setShowGitHubSave(false);
+              chat.addLog({ agent: "GitHub", message: `Pushed to ${owner}/${repo}${path ? `/${path}` : ""}`, level: "info" });
+            }}
+          />
+        )}
+
+        {showGitHubLoad && (
+          <GitHubLoadDialog
+            token={github.token}
+            isAuthenticated={github.isAuthenticated}
+            onClose={() => setShowGitHubLoad(false)}
+            onImported={(meta) => {
+              setShowGitHubLoad(false);
+              sendRef.current?.({ type: "project_load", name: meta.name });
+            }}
+          />
+        )}
+
         {kf.keyframeEditorTarget && (
           <KeyframeEditor
             uniformName={kf.keyframeEditorTarget.uniform}
@@ -661,6 +1030,14 @@ export default function App() {
             engineRef={engineRef}
             onKeyframesChange={kf.handleKeyframesChange}
             onClose={kf.closeEditor}
+          />
+        )}
+
+        {(compare.isComparing || compare.compareLoading) && (
+          <VersionComparePanel
+            result={compare.compareResult}
+            loading={compare.compareLoading}
+            onClose={compare.cancelCompare}
           />
         )}
 
@@ -727,6 +1104,7 @@ export default function App() {
             <Controls />
           </ReactFlow>
         )}
+        </div>
 
       </div>
     </EngineContext.Provider>

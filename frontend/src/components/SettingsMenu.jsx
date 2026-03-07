@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect, useContext, useCallback } from "react";
+import { useState, useRef, useEffect, useContext, useCallback, Fragment } from "react";
 import SettingsContext from "../contexts/SettingsContext.js";
 import useClickOutside from "../hooks/useClickOutside.js";
+
+const BROWSER_ONLY = import.meta.env.VITE_MODE === "browser";
 
 /* ── Helper components ──────────────────────────────────────────── */
 
@@ -82,6 +84,178 @@ function NumberInput({ value, onChange, min, max, step = 1, width = "w-14" }) {
         color: "var(--input-text)",
       }}
     />
+  );
+}
+
+/* ── Update section ─────────────────────────────────────────────── */
+
+function UpdateSection() {
+  const [status, setStatus] = useState("idle"); // idle | checking | checked | updating | done | error
+  const [info, setInfo] = useState(null);
+  const [error, setError] = useState(null);
+
+  const checkForUpdates = useCallback(async () => {
+    setStatus("checking");
+    setError(null);
+    try {
+      const res = await fetch("/api/updates/check");
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+        setStatus("error");
+      } else {
+        setInfo(data);
+        setStatus("checked");
+      }
+    } catch (e) {
+      setError(e.message);
+      setStatus("error");
+    }
+  }, []);
+
+  const applyUpdate = useCallback(async () => {
+    setStatus("updating");
+    setError(null);
+    try {
+      const res = await fetch("/api/updates/apply", { method: "POST" });
+      const data = await res.json();
+      if (!data.success) {
+        setError(data.error);
+        setInfo((prev) => ({ ...prev, dirty_files: data.dirty_files }));
+        setStatus("error");
+      } else {
+        setInfo((prev) => ({ ...prev, ...data, update_available: false }));
+        setStatus("done");
+      }
+    } catch (e) {
+      setError(e.message);
+      setStatus("error");
+    }
+  }, []);
+
+  return (
+    <div className="space-y-2">
+      {/* Check button */}
+      {(status === "idle" || status === "error") && (
+        <button
+          onClick={checkForUpdates}
+          className="w-full text-left px-2 py-1.5 rounded text-xs transition-colors hover:bg-white/5"
+          style={{ color: "var(--chrome-text-secondary)", background: "var(--input-bg)" }}
+        >
+          Check for updates
+        </button>
+      )}
+
+      {/* Checking spinner */}
+      {status === "checking" && (
+        <div className="flex items-center gap-2 px-2 py-1.5">
+          <div className="w-3 h-3 border border-zinc-500 border-t-zinc-300 rounded-full animate-spin" />
+          <span className="text-xs" style={{ color: "var(--chrome-text-muted)" }}>Checking...</span>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="text-[11px] px-2 py-1.5 rounded leading-relaxed" style={{ background: "rgba(239,68,68,0.1)", color: "#f87171" }}>
+          {error}
+          {info?.dirty_files && (
+            <div className="mt-1 font-mono text-[10px] opacity-70">
+              {info.dirty_files.slice(0, 5).map((f, i) => <div key={i}>{f}</div>)}
+              {info.dirty_files.length > 5 && <div>...and {info.dirty_files.length - 5} more</div>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Result: up to date */}
+      {status === "checked" && info && !info.update_available && (
+        <div className="text-[11px] px-2 py-1.5 rounded" style={{ background: "rgba(34,197,94,0.1)", color: "#4ade80" }}>
+          Up to date ({info.local.sha} on {info.branch})
+        </div>
+      )}
+
+      {/* Result: update available */}
+      {status === "checked" && info?.update_available && (
+        <div className="space-y-2">
+          <div className="text-[11px] px-2 py-2 rounded space-y-1" style={{ background: "var(--input-bg)" }}>
+            <div className="flex items-center justify-between">
+              <span style={{ color: "var(--chrome-text-muted)" }}>Local</span>
+              <span className="font-mono" style={{ color: "var(--chrome-text)" }}>{info.local.sha}</span>
+            </div>
+            <div className="text-[10px] truncate" style={{ color: "var(--chrome-text-muted)" }}>{info.local.message}</div>
+            <div className="flex items-center justify-between mt-1">
+              <span style={{ color: "var(--chrome-text-muted)" }}>Remote</span>
+              <span className="font-mono" style={{ color: "var(--chrome-text)" }}>{info.remote.sha}</span>
+            </div>
+            <div className="text-[10px] truncate" style={{ color: "var(--chrome-text-muted)" }}>{info.remote.message}</div>
+            <div className="text-[10px] mt-1" style={{ color: "#fbbf24" }}>
+              {info.commits_behind} commit{info.commits_behind > 1 ? "s" : ""} behind
+              {info.commits_ahead > 0 && `, ${info.commits_ahead} ahead`}
+            </div>
+          </div>
+
+          {info.has_local_changes && (
+            <div className="text-[10px] px-2 py-1.5 rounded" style={{ background: "rgba(251,191,36,0.1)", color: "#fbbf24" }}>
+              Local changes detected. Commit or stash before updating.
+            </div>
+          )}
+
+          {!info.can_fast_forward && !info.has_local_changes && info.commits_ahead > 0 && (
+            <div className="text-[10px] px-2 py-1.5 rounded" style={{ background: "rgba(251,191,36,0.1)", color: "#fbbf24" }}>
+              Local branch has diverged. Manual merge required.
+            </div>
+          )}
+
+          {info.can_fast_forward && !info.has_local_changes && (
+            <button
+              onClick={applyUpdate}
+              className="w-full px-2 py-1.5 rounded text-xs font-medium transition-colors"
+              style={{ background: "#238636", color: "#fff" }}
+            >
+              Update local app
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Updating spinner */}
+      {status === "updating" && (
+        <div className="flex items-center gap-2 px-2 py-1.5">
+          <div className="w-3 h-3 border border-zinc-500 border-t-zinc-300 rounded-full animate-spin" />
+          <span className="text-xs" style={{ color: "var(--chrome-text-muted)" }}>Updating...</span>
+        </div>
+      )}
+
+      {/* Done */}
+      {status === "done" && info && (
+        <div className="space-y-2">
+          <div className="text-[11px] px-2 py-1.5 rounded" style={{ background: "rgba(34,197,94,0.1)", color: "#4ade80" }}>
+            Updated to {info.new_sha}
+          </div>
+          {info.needs_dependency_sync && (
+            <div className="text-[10px] px-2 py-1.5 rounded" style={{ background: "rgba(251,191,36,0.1)", color: "#fbbf24" }}>
+              Dependencies changed — run <span className="font-mono">npm install</span> in frontend/ and restart.
+            </div>
+          )}
+          {info.needs_restart && !info.needs_dependency_sync && (
+            <div className="text-[10px] px-2 py-1.5 rounded" style={{ background: "rgba(251,191,36,0.1)", color: "#fbbf24" }}>
+              Restart the app to apply changes.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Re-check after done/error */}
+      {(status === "done" || (status === "error" && info)) && (
+        <button
+          onClick={checkForUpdates}
+          className="text-[10px] px-2 py-1 transition-colors hover:underline"
+          style={{ color: "var(--chrome-text-muted)" }}
+        >
+          Check again
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -202,6 +376,15 @@ export default function SettingsMenu({ onChangeApiKey }) {
               Change
             </button>
           </SettingRow>
+
+          {/* ── App Update ──────────────────────────────────── */}
+          {!BROWSER_ONLY && (
+            <>
+              <hr className="my-2.5" style={{ borderColor: "var(--chrome-border)" }} />
+              <SectionLabel>App Update</SectionLabel>
+              <UpdateSection />
+            </>
+          )}
         </div>
       )}
     </div>

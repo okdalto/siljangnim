@@ -4,8 +4,22 @@
       "VITE_MODE": "browser"
     }
   },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
+        { "key": "Permissions-Policy", "value": "camera=(self), microphone=(self), geolocation=()" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/api/proxy", "destination": "/api/proxy" },
+    { "source": "/github-login/:path*", "destination": "/api/github-login/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

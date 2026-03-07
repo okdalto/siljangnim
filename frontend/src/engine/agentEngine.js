@@ -8,7 +8,7 @@
 import * as storage from "./storage.js";
 import { DEFAULT_SCENE_JSON, DEFAULT_UI_CONFIG } from "./storage.js";
 import { validateApiKey } from "./anthropicClient.js";
-import { runAgent } from "./agentExecutor.js";
+import { runAgent, runWithPlan } from "./agentExecutor.js";
 
 // ---------------------------------------------------------------------------
 // Error classification
@@ -38,7 +38,7 @@ export default class AgentEngine {
     this.bus = messageBus;
 
     // State (replaces WsContext)
-    this.apiKey = localStorage.getItem("siljangnim:apiKey") || null;
+    this.apiKey = sessionStorage.getItem("siljangnim:apiKey") || null;
     this.chatHistory = [];
     this.agentBusy = false;
     this.abortController = null;
@@ -46,6 +46,15 @@ export default class AgentEngine {
     this.autoFixCount = 0;
     this.MAX_AUTO_FIX = 3;
     this.injectedMessages = [];
+
+    // Prompt mode enhancement
+    this._promptModeAddition = "";
+
+    // Backend target (auto / webgl / webgpu)
+    this._backendTarget = "auto";
+
+    // Asset context getter (set by App)
+    this._getAssetContext = null;
 
     // Conversation history for the agent
     this.conversation = [];
@@ -88,6 +97,18 @@ export default class AgentEngine {
     return new Promise((resolve) => {
       this._userAnswerResolve = resolve;
     });
+  }
+
+  /** Gather current workspace state for the planner. */
+  async _getCurrentState() {
+    let scene_json = null;
+    let ui_config = null;
+    let panels = {};
+    try { scene_json = await storage.readJson("scene.json"); } catch { /* empty */ }
+    try { ui_config = await storage.readJson("ui_config.json"); } catch { /* empty */ }
+    try { panels = await storage.readJson("panels.json"); } catch { /* empty */ }
+    const assets = this._getAssetContext?.() || [];
+    return { scene_json, ui_config, panels, assets };
   }
 
   /** Handle a message from React UI. */
@@ -169,6 +190,7 @@ async function triggerAutoFix(errorMessage, engine) {
       errorCollector: engine.errorCollector,
       userAnswerPromise: () => engine.userAnswerPromise(),
       signal: abortController.signal,
+      backendTarget: engine._backendTarget,
     });
     engine.broadcast({ type: "chat_done" });
   } catch (err) {
@@ -219,7 +241,7 @@ const HANDLERS = {
     const { valid, error } = await validateApiKey(key);
     if (valid) {
       this.apiKey = key;
-      localStorage.setItem("siljangnim:apiKey", key);
+      sessionStorage.setItem("siljangnim:apiKey", key);
       this.broadcast({
         type: "api_key_valid",
         provider: "anthropic",
@@ -272,6 +294,11 @@ const HANDLERS = {
       }
     }
 
+    // Notify asset system about uploaded files
+    if (savedFiles.length) {
+      this.broadcast({ type: "files_uploaded", files: savedFiles });
+    }
+
     const historyEntry = { role: "user", text: userPrompt };
     if (savedFiles.length) {
       historyEntry.files = savedFiles.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
@@ -283,10 +310,13 @@ const HANDLERS = {
     const abortController = new AbortController();
     this.abortController = abortController;
 
-    // Run agent asynchronously
+    // Gather current workspace state for plan-based execution
+    const currentState = await this._getCurrentState();
+
+    // Run agent asynchronously (with planning when conversation is long)
     (async () => {
       try {
-        await runAgent({
+        await runWithPlan({
           apiKey: this.apiKey,
           userPrompt,
           log,
@@ -295,10 +325,14 @@ const HANDLERS = {
           onStatus,
           files: savedFiles.length ? savedFiles : undefined,
           messages: this.conversation,
+          currentState,
           errorCollector: this.errorCollector,
           userAnswerPromise: () => this.userAnswerPromise(),
           signal: abortController.signal,
           injectedMessages: this.injectedMessages,
+          systemPromptAddition: this._promptModeAddition,
+          assetContext: this._getAssetContext?.() || [],
+          backendTarget: this._backendTarget,
         });
         this.broadcast({ type: "chat_done" });
       } catch (err) {
@@ -521,13 +555,43 @@ const HANDLERS = {
     await storage.writeJson("panels.json", panels);
   },
 
+  async set_prompt_mode_addition(msg) {
+    this._promptModeAddition = msg.addition || "";
+  },
+
+  async set_backend_target(msg) {
+    this._backendTarget = msg.backendTarget || "auto";
+  },
+
+  async trust_project(msg) {
+    try {
+      const meta = await storage.trustProject(msg.name);
+      if (meta) {
+        this.broadcast({ type: "project_trusted", meta });
+        // Reload scene to apply trust
+        try {
+          const scene = await storage.readJson("scene.json");
+          const uiConfig = await storage.readJson("ui_config.json");
+          this.broadcast({ type: "scene_updated", scene_json: scene, ui_config: uiConfig });
+        } catch { /* ignore */ }
+      }
+    } catch (e) {
+      this.broadcast({
+        type: "agent_log", agent: "System",
+        message: `Trust failed: ${e.message}`, level: "error",
+      });
+    }
+  },
+
   async cancel_agent(msg) {
     if (this.abortController) {
       if (this._userAnswerResolve) {
         this._userAnswerResolve("(cancelled)");
         this._userAnswerResolve = null;
       }
+      // Abort first — the finally block in the prompt handler will clear the controller
       this.abortController.abort();
+      // Do NOT clear abortController here; the async handler's finally block handles cleanup
     }
   },
 
@@ -548,7 +612,7 @@ const HANDLERS = {
     const projects = await storage.listProjects();
 
     // Check for saved API key
-    const savedKey = localStorage.getItem("siljangnim:apiKey");
+    const savedKey = sessionStorage.getItem("siljangnim:apiKey");
     if (savedKey) this.apiKey = savedKey;
 
     this.broadcast({

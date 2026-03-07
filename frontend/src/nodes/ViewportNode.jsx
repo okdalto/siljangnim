@@ -5,7 +5,7 @@ import ResolutionSelector from "../components/viewport/ResolutionSelector.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 
 export default function ViewportNode({ data, standalone = false, hideHeader = false }) {
-  const { sceneJSON, engineRef, onError, paused } = data;
+  const { sceneJSON, engineRef, onError, paused, safeModeActive } = data;
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const engineInternalRef = useRef(null);
@@ -17,6 +17,7 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [backendName, setBackendName] = useState("WebGL2");
 
   useStopWheelPropagation(containerRef);
 
@@ -33,7 +34,15 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
         onErrorRef.current?.(err);
       };
       engine.onFPS = setFps;
+      engine.onBackendReady = (type) => {
+        setBackendName(type === "webgpu" ? "WebGPU" : "WebGL2");
+      };
       engineInternalRef.current = engine;
+
+      // Initialize backend abstraction (async, non-blocking)
+      engine.initBackend().catch((err) => {
+        console.warn("[ViewportNode] Backend init warning:", err.message);
+      });
 
       engine.start();
       console.log("[ViewportNode] Engine started");
@@ -231,7 +240,18 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
           </div>
         </div>
       )}
-      {!sceneJSON && !error && (
+      {safeModeActive && (
+        <div className="absolute inset-0 flex items-center justify-center text-sm" style={{ color: "#fbbf24", background: "rgba(0,0,0,0.6)" }}>
+          <div className="text-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mx-auto mb-2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <div className="font-medium">Safe Mode</div>
+            <div className="text-xs opacity-70 mt-1">Scripts blocked — trust project to run</div>
+          </div>
+        </div>
+      )}
+      {!sceneJSON && !safeModeActive && !error && (
         <div className="absolute inset-0 flex items-center justify-center text-sm" style={{ color: "var(--chrome-text-muted)" }}>
           No scene loaded
         </div>
@@ -248,7 +268,7 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
           <span className="font-semibold text-xs">Viewport</span>
           <div className="flex items-center gap-2">
             <span style={{ color: "var(--chrome-text-muted)" }}>{fps} FPS</span>
-            <span className="px-1.5 py-px rounded-full bg-indigo-900 text-indigo-400">WebGL2</span>
+            <span className={`px-1.5 py-px rounded-full ${backendName === "WebGPU" ? "bg-emerald-900 text-emerald-400" : "bg-indigo-900 text-indigo-400"}`}>{backendName}</span>
             <button onClick={toggleFullscreen} className="p-2 -m-1 transition-colors" style={{ color: "var(--chrome-text-secondary)" }} title="Fullscreen">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" />
@@ -286,8 +306,8 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
             <span style={{ color: "var(--chrome-text-muted)" }}>
               {fps} FPS
             </span>
-            <span className="px-1.5 py-px rounded-full bg-indigo-900 text-indigo-400">
-              WebGL2
+            <span className={`px-1.5 py-px rounded-full ${backendName === "WebGPU" ? "bg-emerald-900 text-emerald-400" : "bg-indigo-900 text-indigo-400"}`}>
+              {backendName}
             </span>
             <button
               onClick={toggleFullscreen}

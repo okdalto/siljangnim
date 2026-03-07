@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { NodeResizer } from "@xyflow/react";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
+import DebugAIDiagnosis from "../components/DebugAIDiagnosis.jsx";
 
 const AGENT_COLORS = {
   "Art Director": "text-purple-400",
@@ -8,6 +9,7 @@ const AGENT_COLORS = {
   "TA Agent": "text-amber-400",
   WebGL: "text-rose-400",
   System: "text-zinc-400",
+  Debugger: "text-orange-400",
 };
 
 const LEVEL_STYLES = {
@@ -15,7 +17,17 @@ const LEVEL_STYLES = {
   info: "text-zinc-300",
   result: "text-emerald-400",
   error: "text-red-400",
+  warning: "text-amber-400",
+  compile: "text-rose-400",
+  validation: "text-orange-400",
 };
+
+const TABS = [
+  { id: "logs", label: "Runtime Logs" },
+  { id: "compile", label: "Shader" },
+  { id: "validation", label: "Validation" },
+  { id: "diagnosis", label: "AI Diagnosis" },
+];
 
 const THINKING_PREVIEW_LEN = 120;
 
@@ -73,18 +85,73 @@ function ThinkingEntry({ agent, message }) {
   );
 }
 
+function LogEntries({ logs, scrollRef }) {
+  return (
+    <div
+      ref={scrollRef}
+      className="flex-1 overflow-y-auto p-3 space-y-1 font-mono text-xs nodrag nowheel nopan select-text cursor-text"
+    >
+      {logs.length === 0 && (
+        <p className="text-zinc-500 italic">
+          Agent logs will appear here...
+        </p>
+      )}
+      {logs.map((entry, i) =>
+        entry.level === "thinking" ? (
+          <ThinkingEntry key={i} agent={entry.agent} message={entry.message} />
+        ) : (
+          <div key={i} className="flex gap-2 leading-relaxed">
+            <span
+              className={`shrink-0 font-semibold ${AGENT_COLORS[entry.agent] || "text-zinc-400"}`}
+            >
+              [{entry.agent}]
+            </span>
+            <span className={`whitespace-pre-wrap break-all ${LEVEL_STYLES[entry.level] || "text-zinc-300"}`}>
+              {entry.message}
+            </span>
+          </div>
+        )
+      )}
+    </div>
+  );
+}
+
 export default function DebugLogNode({ data, standalone = false, hideHeader = false }) {
   const [collapsed, setCollapsed] = useState(false);
-  const { logs = [] } = data;
+  const [activeTab, setActiveTab] = useState("logs");
+  const {
+    logs = [],
+    compileLogs = [],
+    validationLogs = [],
+    diagnosis = null,
+    patches = [],
+    simpleExplanation = null,
+    backendName = "WebGL2",
+    onApplyPatch,
+    onRunDiagnosis,
+  } = data;
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && activeTab !== "diagnosis") {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [logs, compileLogs, validationLogs, activeTab]);
 
   useStopWheelPropagation(scrollRef);
+
+  // Count errors per tab for badges
+  const compileErrorCount = compileLogs.filter((l) => l.level === "error" || l.level === "compile").length;
+  const validationErrorCount = validationLogs.filter((l) => l.level === "error" || l.level === "validation").length;
+  const diagnosisErrorCount = diagnosis?.errors?.filter((e) => e.severity === "error").length || 0;
+
+  const filteredLogs = activeTab === "logs"
+    ? logs.filter((l) => l.level !== "compile" && l.level !== "validation")
+    : activeTab === "compile"
+      ? compileLogs
+      : activeTab === "validation"
+        ? validationLogs
+        : [];
 
   return (
     <div
@@ -95,42 +162,80 @@ export default function DebugLogNode({ data, standalone = false, hideHeader = fa
       {/* Header */}
       {!(standalone && hideHeader) && (
       <div
-        className={`px-4 py-2 text-sm font-semibold ${standalone ? "" : "cursor-grab"}`}
+        className={`px-4 py-2 text-sm font-semibold flex items-center justify-between ${standalone ? "" : "cursor-grab"}`}
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
         onDoubleClick={() => setCollapsed((v) => !v)}
       >
-        Debug Log
+        <span>Debug Panel</span>
+        {onRunDiagnosis && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onRunDiagnosis(); }}
+            className="text-[10px] px-2 py-0.5 rounded bg-orange-600/20 text-orange-300 hover:bg-orange-600/40 transition-colors nodrag"
+            title="Run AI diagnosis on current scene"
+          >
+            Diagnose
+          </button>
+        )}
       </div>
       )}
 
-      {/* Log entries */}
+      {/* Tabs */}
       {!collapsed && (
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto p-3 space-y-1 font-mono text-xs nodrag nowheel nopan select-text cursor-text"
-      >
-        {logs.length === 0 && (
-          <p className="text-zinc-500 italic">
-            Agent logs will appear here...
-          </p>
-        )}
-        {logs.map((entry, i) =>
-          entry.level === "thinking" ? (
-            <ThinkingEntry key={i} agent={entry.agent} message={entry.message} />
-          ) : (
-            <div key={i} className="flex gap-2 leading-relaxed">
-              <span
-                className={`shrink-0 font-semibold ${AGENT_COLORS[entry.agent] || "text-zinc-400"}`}
+        <div
+          className="flex border-b nodrag"
+          style={{ borderColor: "var(--node-border)" }}
+        >
+          {TABS.map((tab) => {
+            const badge =
+              tab.id === "compile" ? compileErrorCount :
+              tab.id === "validation" ? validationErrorCount :
+              tab.id === "diagnosis" ? diagnosisErrorCount : 0;
+
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 text-[10px] py-1.5 transition-colors relative ${
+                  activeTab === tab.id
+                    ? "text-zinc-200 border-b-2 border-indigo-400"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
               >
-                [{entry.agent}]
-              </span>
-              <span className={`whitespace-pre-wrap break-all ${LEVEL_STYLES[entry.level] || "text-zinc-300"}`}>
-                {entry.message}
-              </span>
-            </div>
-          )
-        )}
-      </div>
+                {tab.label}
+                {badge > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-red-500/80 text-white text-[8px] font-bold">
+                    {badge > 9 ? "9+" : badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Shader target badge */}
+      {!collapsed && activeTab === "compile" && (
+        <div className="flex items-center justify-between px-3 py-1.5" style={{ borderBottom: "1px solid var(--chrome-border)" }}>
+          <span className="text-[10px]" style={{ color: "var(--chrome-text-muted)" }}>Shader Target</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${backendName === "WebGPU" ? "bg-emerald-900 text-emerald-400" : "bg-indigo-900 text-indigo-400"}`}>
+            {backendName === "WebGPU" ? "WGSL / WebGPU" : "GLSL / WebGL2"}
+          </span>
+        </div>
+      )}
+
+      {/* Content */}
+      {!collapsed && activeTab !== "diagnosis" && (
+        <LogEntries logs={filteredLogs} scrollRef={scrollRef} />
+      )}
+      {!collapsed && activeTab === "diagnosis" && (
+        <div ref={scrollRef} className="flex-1 overflow-y-auto nodrag nowheel nopan">
+          <DebugAIDiagnosis
+            diagnosis={diagnosis}
+            patches={patches}
+            onApplyPatch={onApplyPatch}
+            simpleExplanation={simpleExplanation}
+          />
+        </div>
       )}
     </div>
   );
