@@ -15,13 +15,13 @@ if not exist "%ROOT%\backend\.venv" (
     python -m venv "%ROOT%\backend\.venv"
 ) else echo [1/4] Python virtual environment already exists.
 call "%ROOT%\backend\.venv\Scripts\activate.bat"
-echo [2/4] Installing Python dependencies (pip)...
+echo [2/4] Installing Python dependencies ^(pip^)...
 pip install -q -r "%ROOT%\backend\requirements.txt"
 echo      Done.
 
 :: ── Frontend setup ─────────────────────────────────────────────
 if not exist "%ROOT%\frontend\node_modules" (
-    echo [3/4] Installing frontend dependencies (npm install)...
+    echo [3/4] Installing frontend dependencies ^(npm install^)...
     pushd "%ROOT%\frontend"
     call npm install
     popd
@@ -31,16 +31,18 @@ if not exist "%ROOT%\frontend\node_modules" (
 :: ── Start servers ──────────────────────────────────────────────
 echo [4/4] Starting servers...
 echo.
-echo    Backend   → http://localhost:8000
-echo    Frontend  → http://localhost:5173
-echo    Rendering → WebGL2 in browser
+echo    Backend  : http://localhost:8000
+echo    Frontend : http://localhost:5173
+echo    Rendering: WebGL2 in browser
 echo.
 echo Press Ctrl+C to stop.
 echo.
 
-:: Start backend (in a new window so both are visible)
+:: Start backend in a new window
 set "CLAUDECODE="
-start "siljangnim-backend" cmd /c "cd /d "%ROOT%\backend" && "%ROOT%\backend\.venv\Scripts\python.exe" -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+set "BACKEND_DIR=%ROOT%\backend"
+set "PYTHON_EXE=%ROOT%\backend\.venv\Scripts\python.exe"
+start "siljangnim-backend" cmd /c "cd /d %BACKEND_DIR% && %PYTHON_EXE% -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
 
 :: Start frontend in current window (keeps the script alive)
 pushd "%ROOT%\frontend"
@@ -54,7 +56,7 @@ goto :eof
 set "PORT=%~1"
 for /f "tokens=5" %%p in ('netstat -aon ^| findstr ":%PORT% " ^| findstr "LISTENING" 2^>nul') do (
     if not "%%p"=="0" (
-        echo Port %PORT% in use — killing PID: %%p
+        echo Port %PORT% in use - killing PID: %%p
         taskkill /F /PID %%p >nul 2>&1
     )
 )
