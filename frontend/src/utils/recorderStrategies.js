@@ -236,6 +236,7 @@ export function startOfflineWebCodecs(ctx) {
   });
 
   let currentTime = 0;
+  let frameCount = 0;
 
   setElapsedTime(0);
   setRecording(true);
@@ -324,9 +325,11 @@ export function startOfflineWebCodecs(ctx) {
       const frame = new VideoFrame(canvas, {
         timestamp: Math.round(currentTime * 1_000_000),
       });
-      encoder.encode(frame);
+      const keyFrame = frameCount % (fps * 2) === 0;
+      encoder.encode(frame, { keyFrame });
       frame.close();
 
+      frameCount++;
       currentTime += dt;
     }
 
@@ -488,6 +491,7 @@ export function startRealtimeMp4(ctx) {
   setRecording(true);
 
   let finalized = false;
+  let frameCount = 0;
   const frameInterval = 1000 / fps;
   let lastFrameTime = 0;
 
@@ -503,9 +507,13 @@ export function startRealtimeMp4(ctx) {
       if (audioReader) await audioReader.cancel();
       if (audioEncoder?.state === "configured") await audioEncoder.flush();
       if (encoder.state === "configured") await encoder.flush();
-      muxer.finalize();
-      const blob = new Blob([target.buffer], { type: "video/mp4" });
-      downloadBlob(blob, `recording_${Date.now()}.mp4`);
+      if (frameCount === 0) {
+        console.warn("No frames were recorded");
+      } else {
+        muxer.finalize();
+        const blob = new Blob([target.buffer], { type: "video/mp4" });
+        downloadBlob(blob, `recording_${Date.now()}.mp4`);
+      }
     } catch (e) {
       console.error("Realtime MP4 finalize error:", e);
     }
@@ -539,8 +547,10 @@ export function startRealtimeMp4(ctx) {
       lastFrameTime = now;
       const timestamp = Math.round((now - startTimeRef.current) * 1000);
       const frame = new VideoFrame(canvas, { timestamp });
-      encoder.encode(frame);
+      const keyFrame = frameCount % (fps * 2) === 0;
+      encoder.encode(frame, { keyFrame });
       frame.close();
+      frameCount++;
     }
 
     rafRef.current = requestAnimationFrame(captureLoop);
