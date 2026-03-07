@@ -1,6 +1,8 @@
-import { useCallback } from "react";
+import { useState, useCallback } from "react";
 
-export default function MobileChatInput({ fixed = false, input, onInputChange, onSend, isProcessing, pendingQuestion, onAnswer, onCancel }) {
+export default function MobileChatInput({ onSend, isProcessing, pendingQuestion, onAnswer, onCancel }) {
+  const [input, setInput] = useState("");
+
   const handleSubmit = useCallback(() => {
     const text = input.trim();
     if (!text) return;
@@ -10,8 +12,8 @@ export default function MobileChatInput({ fixed = false, input, onInputChange, o
     } else {
       onSend?.(text);
     }
-    onInputChange("");
-  }, [input, pendingQuestion, onAnswer, onSend, onInputChange]);
+    setInput("");
+  }, [input, pendingQuestion, onAnswer, onSend]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -22,12 +24,12 @@ export default function MobileChatInput({ fixed = false, input, onInputChange, o
 
   return (
     <div
-      className={`${fixed ? "fixed bottom-10 left-0 right-0 z-40" : "z-30"} flex items-end gap-2 px-3 py-1.5`}
+      className="fixed bottom-10 left-0 right-0 z-40 flex items-end gap-2 px-3 py-1.5"
       style={{ background: "var(--chrome-bg)", borderTop: "1px solid var(--chrome-border)" }}
     >
       <textarea
         value={input}
-        onChange={(e) => onInputChange(e.target.value)}
+        onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={pendingQuestion ? "Type your answer..." : isProcessing ? "Send while agent works..." : "Type a prompt..."}
         rows={1}
