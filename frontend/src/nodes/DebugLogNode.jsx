@@ -74,6 +74,7 @@ function ThinkingEntry({ agent, message }) {
 }
 
 export default function DebugLogNode({ data, standalone = false, hideHeader = false }) {
+  const [collapsed, setCollapsed] = useState(false);
   const { logs = [] } = data;
   const scrollRef = useRef(null);
 
@@ -96,12 +97,14 @@ export default function DebugLogNode({ data, standalone = false, hideHeader = fa
       <div
         className={`px-4 py-2 text-sm font-semibold ${standalone ? "" : "cursor-grab"}`}
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
+        onDoubleClick={() => setCollapsed((v) => !v)}
       >
         Debug Log
       </div>
       )}
 
       {/* Log entries */}
+      {!collapsed && (
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-3 space-y-1 font-mono text-xs nodrag nowheel nopan select-text cursor-text"
@@ -128,6 +131,7 @@ export default function DebugLogNode({ data, standalone = false, hideHeader = fa
           )
         )}
       </div>
+      )}
     </div>
   );
 }

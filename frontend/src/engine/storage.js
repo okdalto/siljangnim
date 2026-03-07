@@ -424,26 +424,40 @@ export async function listProjects() {
 export async function deleteProject(name) {
   const sanitized = sanitizeName(name);
   const currentName = getActiveProjectName();
+  const prefix = `${sanitized}/`;
 
   // Delete project meta
   const metaStore = await tx(STORE_PROJECTS, "readwrite");
   await idbReq(metaStore.delete(sanitized));
 
-  // Delete all files
+  // Delete all files in a single transaction
   const filesStore = await tx(STORE_FILES);
   const allKeys = await idbReq(filesStore.getAllKeys());
-  const prefix = `${sanitized}/`;
-  for (const key of allKeys.filter((k) => k.startsWith(prefix))) {
-    const ws = await tx(STORE_FILES, "readwrite");
-    await idbReq(ws.delete(key));
+  const fileKeys = allKeys.filter((k) => k.startsWith(prefix));
+  if (fileKeys.length) {
+    const db = await openDB();
+    const fileTx = db.transaction(STORE_FILES, "readwrite");
+    const ws = fileTx.objectStore(STORE_FILES);
+    for (const key of fileKeys) ws.delete(key);
+    await new Promise((resolve, reject) => {
+      fileTx.oncomplete = resolve;
+      fileTx.onerror = () => reject(fileTx.error);
+    });
   }
 
-  // Delete all blobs
+  // Delete all blobs in a single transaction
   const blobStore = await tx(STORE_BLOBS);
   const allBlobKeys = await idbReq(blobStore.getAllKeys());
-  for (const key of allBlobKeys.filter((k) => k.startsWith(prefix))) {
-    const ws = await tx(STORE_BLOBS, "readwrite");
-    await idbReq(ws.delete(key));
+  const blobKeys = allBlobKeys.filter((k) => k.startsWith(prefix));
+  if (blobKeys.length) {
+    const db = await openDB();
+    const blobTx = db.transaction(STORE_BLOBS, "readwrite");
+    const bs = blobTx.objectStore(STORE_BLOBS);
+    for (const key of blobKeys) bs.delete(key);
+    await new Promise((resolve, reject) => {
+      blobTx.oncomplete = resolve;
+      blobTx.onerror = () => reject(blobTx.error);
+    });
   }
 
   // If deleted project was active, switch to _untitled
@@ -468,21 +482,34 @@ export async function renameProject(oldName, newDisplayName) {
 
 export async function newUntitledWorkspace() {
   const prefix = `${DEFAULT_PROJECT}/`;
+  const db = await openDB();
 
-  // Clear all _untitled files
+  // Clear all _untitled files in a single transaction
   const filesStore = await tx(STORE_FILES);
   const allKeys = await idbReq(filesStore.getAllKeys());
-  for (const key of allKeys.filter((k) => k.startsWith(prefix))) {
-    const ws = await tx(STORE_FILES, "readwrite");
-    await idbReq(ws.delete(key));
+  const fileKeys = allKeys.filter((k) => k.startsWith(prefix));
+  if (fileKeys.length) {
+    const fileTx = db.transaction(STORE_FILES, "readwrite");
+    const ws = fileTx.objectStore(STORE_FILES);
+    for (const key of fileKeys) ws.delete(key);
+    await new Promise((resolve, reject) => {
+      fileTx.oncomplete = resolve;
+      fileTx.onerror = () => reject(fileTx.error);
+    });
   }
 
-  // Clear all _untitled blobs
+  // Clear all _untitled blobs in a single transaction
   const blobStore = await tx(STORE_BLOBS);
   const allBlobKeys = await idbReq(blobStore.getAllKeys());
-  for (const key of allBlobKeys.filter((k) => k.startsWith(prefix))) {
-    const ws = await tx(STORE_BLOBS, "readwrite");
-    await idbReq(ws.delete(key));
+  const blobKeys = allBlobKeys.filter((k) => k.startsWith(prefix));
+  if (blobKeys.length) {
+    const blobTx = db.transaction(STORE_BLOBS, "readwrite");
+    const bs = blobTx.objectStore(STORE_BLOBS);
+    for (const key of blobKeys) bs.delete(key);
+    await new Promise((resolve, reject) => {
+      blobTx.oncomplete = resolve;
+      blobTx.onerror = () => reject(blobTx.error);
+    });
   }
 
   setActiveProjectName(DEFAULT_PROJECT);
@@ -560,14 +587,16 @@ function guessMimeType(filename) {
 async function _listFilesDetailed(projectName) {
   const prefix = `${projectName}/`;
   const results = [];
+  const db = await openDB();
 
-  // Files store (JSON objects / strings)
-  const filesStore = await tx(STORE_FILES);
+  // Files store — batch read in a single transaction
+  const fileTx = db.transaction(STORE_FILES, "readonly");
+  const filesStore = fileTx.objectStore(STORE_FILES);
   const fileKeys = await idbReq(filesStore.getAllKeys());
-  for (const key of fileKeys.filter((k) => k.startsWith(prefix))) {
+  const matchingFileKeys = fileKeys.filter((k) => k.startsWith(prefix));
+  for (const key of matchingFileKeys) {
     const path = key.slice(prefix.length);
-    const fs = await tx(STORE_FILES);
-    const data = await idbReq(fs.get(key));
+    const data = await idbReq(filesStore.get(key));
     const text = typeof data === "string" ? data : JSON.stringify(data, null, 2);
     results.push({
       path,
@@ -577,14 +606,14 @@ async function _listFilesDetailed(projectName) {
     });
   }
 
-  // Blobs store (uploads)
-  const blobStore = await tx(STORE_BLOBS);
+  // Blobs store — batch read in a single transaction
+  const blobTx = db.transaction(STORE_BLOBS, "readonly");
+  const blobStore = blobTx.objectStore(STORE_BLOBS);
   const blobKeys = await idbReq(blobStore.getAllKeys());
   for (const key of blobKeys.filter((k) => k.startsWith(prefix))) {
     const path = key.slice(prefix.length);
     if (path === "thumbnail.jpg") continue;
-    const bs = await tx(STORE_BLOBS);
-    const entry = await idbReq(bs.get(key));
+    const entry = await idbReq(blobStore.get(key));
     if (entry) {
       results.push({
         path,
