@@ -474,8 +474,12 @@ export function startRealtimeMp4(ctx) {
     }
   }
 
+  let hasCodecMeta = false;
   const encoder = new VideoEncoder({
-    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+    output: (chunk, meta) => {
+      if (meta?.decoderConfig) hasCodecMeta = true;
+      muxer.addVideoChunk(chunk, meta);
+    },
     error: (e) => console.error("VideoEncoder error:", e),
   });
   encoder.configure({
@@ -507,8 +511,8 @@ export function startRealtimeMp4(ctx) {
       if (audioReader) await audioReader.cancel();
       if (audioEncoder?.state === "configured") await audioEncoder.flush();
       if (encoder.state === "configured") await encoder.flush();
-      if (frameCount === 0) {
-        console.warn("No frames were recorded");
+      if (!hasCodecMeta) {
+        console.warn("No video frames with codec metadata were produced");
       } else {
         muxer.finalize();
         const blob = new Blob([target.buffer], { type: "video/mp4" });
@@ -527,6 +531,7 @@ export function startRealtimeMp4(ctx) {
 
   encoder.addEventListener("error", () => {
     console.error("VideoEncoder fatal error – aborting recording");
+    finalized = true;
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -539,6 +544,7 @@ export function startRealtimeMp4(ctx) {
 
   const captureLoop = () => {
     if (finalized) return;
+    if (encoder.state === "closed") return;
 
     const now = performance.now();
     setElapsedTime((now - startTimeRef.current) / 1000);
