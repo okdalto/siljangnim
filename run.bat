@@ -13,9 +13,7 @@ call :free_port 5173
 if not exist "%ROOT%\backend\.venv" (
     echo [1/4] Creating Python virtual environment...
     python -m venv "%ROOT%\backend\.venv"
-) else (
-    echo [1/4] Python virtual environment already exists.
-)
+) else echo [1/4] Python virtual environment already exists.
 call "%ROOT%\backend\.venv\Scripts\activate.bat"
 echo [2/4] Installing Python dependencies (pip)...
 pip install -q -r "%ROOT%\backend\requirements.txt"
@@ -28,9 +26,7 @@ if not exist "%ROOT%\frontend\node_modules" (
     call npm install
     popd
     echo      Done.
-) else (
-    echo [3/4] Frontend dependencies already installed.
-)
+) else echo [3/4] Frontend dependencies already installed.
 
 :: ── Start servers ──────────────────────────────────────────────
 echo [4/4] Starting servers...
