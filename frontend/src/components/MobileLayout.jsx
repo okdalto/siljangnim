@@ -5,6 +5,7 @@ import DebugLogNode from "../nodes/DebugLogNode.jsx";
 import ProjectBrowserNode from "../nodes/ProjectBrowserNode.jsx";
 import CustomPanelNode from "../nodes/CustomPanelNode.jsx";
 import MobilePiP from "./MobilePiP.jsx";
+import MobileChatInput from "./MobileChatInput.jsx";
 
 export default function MobileLayout({
   // Viewport
@@ -108,6 +109,13 @@ export default function MobileLayout({
           onClose={() => setDismissed(true)}
         />
       )}
+      <MobileChatInput
+        onSend={onSend}
+        isProcessing={isProcessing}
+        pendingQuestion={pendingQuestion}
+        onAnswer={onAnswer}
+        onCancel={onCancel}
+      />
     </div>
   );
 }
