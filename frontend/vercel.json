@@ -1,7 +1,8 @@
 {
   "build": {
     "env": {
-      "VITE_MODE": "browser"
+      "VITE_MODE": "browser",
+      "VITE_GITHUB_CLIENT_ID": "Ov23liHbsRzUmtNGIA2w"
     }
   },
   "headers": [
