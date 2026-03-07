@@ -35,6 +35,7 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
   } = data;
 
   const [collapsed, setCollapsed] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedFeedback, setSavedFeedback] = useState(false);
   const savedTimerRef = useRef(null);
@@ -88,10 +89,35 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
     }
   }, [onDeleteWorkspaceFile, fetchWsFiles]);
 
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file && (file.name.endsWith(".zip") || file.name.endsWith(".json"))) {
+      onImport?.(file);
+    }
+  }, [onImport]);
+
   return (
     <div
-      className={`w-full h-full flex flex-col overflow-hidden ${standalone ? "" : "rounded-xl shadow-2xl"}`}
+      className={`w-full ${collapsed ? "h-auto" : "h-full"} flex flex-col overflow-hidden relative ${standalone ? "" : "rounded-xl shadow-2xl"}`}
       style={standalone ? { background: "var(--node-bg)" } : { background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       {!standalone && <NodeResizer minWidth={260} minHeight={200} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />}
 
@@ -107,6 +133,18 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
           e.target.value = "";
         }}
       />
+
+      {/* Drag overlay */}
+      {isDragOver && (
+        <div className="absolute inset-0 z-50 bg-indigo-600/20 border-2 border-dashed border-indigo-400 rounded-xl flex items-center justify-center pointer-events-none">
+          <div className="text-indigo-300 text-sm font-medium flex items-center gap-2">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            Drop ZIP to import
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       {!(standalone && hideHeader) && (
