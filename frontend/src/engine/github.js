@@ -38,9 +38,9 @@ export async function startDeviceFlow(clientId) {
     method: "POST",
     headers: {
       Accept: "application/json",
-      "Content-Type": "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: JSON.stringify({
+    body: new URLSearchParams({
       client_id: clientId,
       scope: "repo",
     }),
@@ -75,9 +75,9 @@ export async function pollDeviceFlow(clientId, deviceCode, interval = 5, signal,
       method: "POST",
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         client_id: clientId,
         device_code: deviceCode,
         grant_type: "urn:ietf:params:oauth:grant-type:device_code",

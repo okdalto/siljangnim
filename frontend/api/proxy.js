@@ -14,6 +14,8 @@ const ALLOWED_ORIGINS = new Set([
 function getCorsOrigin(req) {
   const origin = req.headers.get("origin") || "";
   if (ALLOWED_ORIGINS.has(origin)) return origin;
+  // Allow Vercel preview/production deployments
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return origin;
   // Allow same-origin requests (no Origin header)
   if (!origin) return null;
   return null;
