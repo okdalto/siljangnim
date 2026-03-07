@@ -17,6 +17,16 @@ import { zipSync } from "fflate";
  *   hasAudio, audioStream, audioBuffer,
  */
 
+// ---- AVC level helper ----
+
+function avcCodecForResolution(w, h) {
+  const pixels = w * h;
+  // Baseline profile, pick level by coded area
+  if (pixels <= 921600)  return "avc1.42001f"; // L3.1 — up to ~1280x720
+  if (pixels <= 2088960) return "avc1.420028"; // L4.0 — up to ~1920x1088
+  return "avc1.42003d";                        // L6.1 — 4K+
+}
+
 // ---- Audio helpers ----
 
 async function renderOfflineAudio(audioBuffer, endTime) {
@@ -159,7 +169,7 @@ export function startOfflineWebCodecs(ctx) {
   const configs = format === "mp4"
     ? {
         MuxerClass: Mp4Muxer, TargetClass: Mp4Target,
-        muxerVideoCodec: "avc", encoderCodec: "avc1.42001f",
+        muxerVideoCodec: "avc", encoderCodec: avcCodecForResolution(canvas.width, canvas.height),
         blobType: "video/mp4", fileExt: "mp4",
         muxerExtraOpts: { fastStart: "in-memory" },
         audioCodecMuxer: "aac", audioCodecEncoder: "aac",
@@ -430,8 +440,8 @@ export function startRealtimeMp4(ctx) {
     const audioTrack = audioStream.getAudioTracks()[0];
     const audioSettings = audioTrack.getSettings();
     const sampleRate = audioSettings.sampleRate || 48000;
-    const numberOfChannels = audioSettings.channelCount || 2;
-    if (numberOfChannels >= 1) {
+    const numberOfChannels = audioSettings.channelCount || 0;
+    if (numberOfChannels > 0) {
       muxerOpts.audio = { codec: "aac", sampleRate, numberOfChannels };
     }
   }
@@ -442,35 +452,37 @@ export function startRealtimeMp4(ctx) {
     const audioTrack = audioStream.getAudioTracks()[0];
     const audioSettings = audioTrack.getSettings();
     const sampleRate = audioSettings.sampleRate || 48000;
-    const numberOfChannels = audioSettings.channelCount || 2;
+    const numberOfChannels = audioSettings.channelCount || 0;
 
-    audioEncoder = new AudioEncoder({
-      output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
-      error: (e) => console.error("AudioEncoder error:", e),
-    });
-    audioEncoder.configure({
-      codec: "aac",
-      sampleRate,
-      numberOfChannels,
-      bitrate: 128000,
-    });
+    if (numberOfChannels > 0) {
+      audioEncoder = new AudioEncoder({
+        output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
+        error: (e) => console.error("AudioEncoder error:", e),
+      });
+      audioEncoder.configure({
+        codec: "aac",
+        sampleRate,
+        numberOfChannels,
+        bitrate: 128000,
+      });
 
-    // Read audio frames via MediaStreamTrackProcessor
-    if (typeof MediaStreamTrackProcessor !== "undefined") {
-      const processor = new MediaStreamTrackProcessor({ track: audioTrack });
-      audioReader = processor.readable.getReader();
-      (async () => {
-        try {
-          while (true) {
-            const { value, done } = await audioReader.read();
-            if (done) break;
-            audioEncoder.encode(value);
-            value.close();
+      // Read audio frames via MediaStreamTrackProcessor
+      if (typeof MediaStreamTrackProcessor !== "undefined") {
+        const processor = new MediaStreamTrackProcessor({ track: audioTrack });
+        audioReader = processor.readable.getReader();
+        (async () => {
+          try {
+            while (true) {
+              const { value, done } = await audioReader.read();
+              if (done) break;
+              audioEncoder.encode(value);
+              value.close();
+            }
+          } catch (_) {
+            // reader cancelled on finalize
           }
-        } catch (_) {
-          // reader cancelled on finalize
-        }
-      })();
+        })();
+      }
     }
   }
 
@@ -483,7 +495,7 @@ export function startRealtimeMp4(ctx) {
     error: (e) => console.error("VideoEncoder error:", e),
   });
   encoder.configure({
-    codec: "avc1.42001f",
+    codec: avcCodecForResolution(canvas.width, canvas.height),
     width: canvas.width,
     height: canvas.height,
     bitrate: videoBitsPerSecond,
