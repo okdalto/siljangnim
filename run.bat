@@ -10,24 +10,31 @@ call :free_port 8000
 call :free_port 5173
 
 :: ── Backend setup ──────────────────────────────────────────────
-echo Setting up backend...
 if not exist "%ROOT%\backend\.venv" (
+    echo [1/4] Creating Python virtual environment...
     python -m venv "%ROOT%\backend\.venv"
+) else (
+    echo [1/4] Python virtual environment already exists.
 )
 call "%ROOT%\backend\.venv\Scripts\activate.bat"
+echo [2/4] Installing Python dependencies (pip)...
 pip install -q -r "%ROOT%\backend\requirements.txt"
+echo      Done.
 
 :: ── Frontend setup ─────────────────────────────────────────────
-echo Setting up frontend...
 if not exist "%ROOT%\frontend\node_modules" (
+    echo [3/4] Installing frontend dependencies (npm install)...
     pushd "%ROOT%\frontend"
     call npm install
     popd
+    echo      Done.
+) else (
+    echo [3/4] Frontend dependencies already installed.
 )
 
 :: ── Start servers ──────────────────────────────────────────────
+echo [4/4] Starting servers...
 echo.
-echo Starting siljangnim...
 echo    Backend   → http://localhost:8000
 echo    Frontend  → http://localhost:5173
 echo    Rendering → WebGL2 in browser
