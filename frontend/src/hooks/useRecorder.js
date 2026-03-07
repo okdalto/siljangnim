@@ -106,14 +106,15 @@ export default function useRecorder(engineRef) {
         engine.resize(resolution.width, resolution.height);
       }
 
-      // Audio
+      // Audio — only include if an actual audio file is loaded
       const audioManager = engine._audioManager;
+      const audioLoaded = audioManager?.isLoaded ?? false;
       const audioStream =
-        !offline && audioManager
+        !offline && audioLoaded && audioManager
           ? audioManager.getAudioStream()
           : null;
       const audioBuffer =
-        offline && audioManager
+        offline && audioLoaded && audioManager
           ? (audioManager._buffer ?? null)
           : null;
       let hasAudio = false;
