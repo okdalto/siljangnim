@@ -25,7 +25,7 @@ export default function MobileChatInput({ onSend, isProcessing, pendingQuestion,
 
   return (
     <div
-      className="fixed bottom-10 left-0 right-0 z-40 flex items-end gap-2 px-3 py-1.5"
+      className="sticky bottom-0 z-30 flex items-end gap-2 px-3 py-1.5"
       style={{ background: "var(--chrome-bg)", borderTop: "1px solid var(--chrome-border)" }}
     >
       <textarea
