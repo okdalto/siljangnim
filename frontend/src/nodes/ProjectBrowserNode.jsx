@@ -113,7 +113,7 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
 
   return (
     <div
-      className={`w-full ${collapsed ? "h-auto" : "h-full"} flex flex-col overflow-hidden relative ${standalone ? "" : "rounded-xl shadow-2xl"}`}
+      className={`node-container w-full ${collapsed ? "h-auto" : "h-full"} flex flex-col overflow-hidden relative ${standalone ? "" : "rounded-xl shadow-2xl"}`}
       style={standalone ? { background: "var(--node-bg)" } : { background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}

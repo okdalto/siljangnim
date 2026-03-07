@@ -267,7 +267,7 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
     <>
       <NodeResizer minWidth={320} minHeight={240} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />
       <div
-        className={`w-full ${collapsed ? "h-auto" : "h-full"} rounded-xl overflow-hidden shadow-2xl flex flex-col`}
+        className={`node-container w-full ${collapsed ? "h-auto" : "h-full"} rounded-xl overflow-hidden shadow-2xl flex flex-col`}
         style={{ background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
       >
         {/* Header */}
