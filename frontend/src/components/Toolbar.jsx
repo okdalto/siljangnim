@@ -14,7 +14,7 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
     >
       {/* Left: actions */}
       <div className="flex items-center gap-2">
-        {!isMobile && onToggleTree && (
+        {onToggleTree && (
           <button
             onClick={onToggleTree}
             className="w-7 h-7 flex items-center justify-center rounded transition-colors"
