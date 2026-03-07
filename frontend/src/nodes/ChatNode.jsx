@@ -165,6 +165,7 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
       </div>
       )}
 
+      {!collapsed && <>
       {/* Drag overlay */}
       {isDragOver && (
         <div className="absolute inset-0 z-50 bg-indigo-600/20 border-2 border-dashed border-indigo-400 rounded-xl flex items-center justify-center pointer-events-none">
@@ -329,6 +330,7 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
         )}
       </form>
       )}
+      </>}
     </div>
   );
 }

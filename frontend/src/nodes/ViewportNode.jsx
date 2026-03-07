@@ -16,6 +16,7 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
   const [fixedResolution, setFixedResolution] = useState(null); // null = auto
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   useStopWheelPropagation(containerRef);
 
@@ -273,6 +274,7 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
         <div
           className="px-4 py-2 text-sm font-semibold cursor-grab shrink-0 flex items-center justify-between leading-5"
           style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
+          onDoubleClick={() => setCollapsed((v) => !v)}
         >
           <span>Viewport</span>
           <div className="flex items-center gap-2 text-[10px] tabular-nums leading-5 -mt-px">
@@ -302,7 +304,7 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
             </button>
           </div>
         </div>
-        {canvasContent}
+        {!collapsed && canvasContent}
       </div>
     </>
   );

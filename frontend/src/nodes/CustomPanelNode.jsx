@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, memo } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { NodeResizer } from "@xyflow/react";
 
 import SliderControl from "../components/controls/SliderControl.jsx";
@@ -55,6 +55,7 @@ function CustomPanelNode({ data, standalone = false, hideHeader = false }) {
     onOpenKeyframeEditor,
     duration, loop,
   } = data;
+  const [collapsed, setCollapsed] = useState(false);
   const iframeRef = useRef(null);
   const rafRef = useRef(null);
   const isNativeControls = !!controls;
@@ -131,6 +132,7 @@ function CustomPanelNode({ data, standalone = false, hideHeader = false }) {
       <div
         className={`px-4 py-2 text-sm font-semibold flex items-center justify-between ${standalone ? "" : "cursor-grab"}`}
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
+        onDoubleClick={() => setCollapsed((v) => !v)}
       >
         <span>{title || "Custom Panel"}</span>
         <button
@@ -143,7 +145,7 @@ function CustomPanelNode({ data, standalone = false, hideHeader = false }) {
         </button>
       </div>
       )}
-      <div className="flex-1 nodrag nowheel overflow-auto">
+      {!collapsed && <div className="flex-1 nodrag nowheel overflow-auto">
         {isNativeControls ? (
           <div className="p-3 space-y-1">
             {controls.map((ctrl, i) => {
@@ -170,7 +172,7 @@ function CustomPanelNode({ data, standalone = false, hideHeader = false }) {
             style={{ background: "var(--node-bg)" }}
           />
         )}
-      </div>
+      </div>}
     </div>
   );
 }

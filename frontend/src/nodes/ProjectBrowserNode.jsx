@@ -34,6 +34,7 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
     workspaceFilesVersion,
   } = data;
 
+  const [collapsed, setCollapsed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedFeedback, setSavedFeedback] = useState(false);
   const savedTimerRef = useRef(null);
@@ -112,6 +113,7 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
       <div
         className={`px-4 py-2 text-sm font-semibold flex items-center justify-between ${standalone ? "" : "cursor-grab"}`}
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
+        onDoubleClick={() => setCollapsed((v) => !v)}
       >
         Projects
         <div className="flex items-center gap-1.5 nodrag">
@@ -159,6 +161,7 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
       </div>
       )}
 
+      {!collapsed && <>
       {/* Save form */}
       {saving && (
         <SaveProjectForm
@@ -220,6 +223,7 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
           />
         ))}
       </div>
+      </>}
     </div>
   );
 }

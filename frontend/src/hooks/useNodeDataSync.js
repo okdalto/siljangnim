@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Find a non-overlapping position for a new panel among existing nodes.
@@ -45,80 +45,124 @@ export default function useNodeDataSync({
   kf, duration, loop, engineRef, pendingLayoutsRef,
   setDuration, setLoop,
 }) {
+  // Use refs for stable callback values to avoid triggering unrelated effects
+  const handleUniformChangeRef = useRef(handleUniformChange);
+  handleUniformChangeRef.current = handleUniformChange;
+  const handleShaderErrorRef = useRef(handleShaderError);
+  handleShaderErrorRef.current = handleShaderError;
+  const handlePanelCloseRef = useRef(handlePanelClose);
+  handlePanelCloseRef.current = handlePanelClose;
+  const mergeControlDefaultsRef = useRef(mergeControlDefaults);
+  mergeControlDefaultsRef.current = mergeControlDefaults;
+  const handleDeleteWorkspaceFileRef = useRef(handleDeleteWorkspaceFile);
+  handleDeleteWorkspaceFileRef.current = handleDeleteWorkspaceFile;
+
+  // --- Chat node sync ---
   useEffect(() => {
-    setNodes((nds) => {
-      let updated = nds.map((node) => {
-        if (node.id === "chat") {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              messages: chat.messages,
-              onSend: chat.handleSend,
-              isProcessing: chat.isProcessing,
-              agentStatus: chat.agentStatus,
-              onNewChat: chat.handleNewChat,
-              onCancel: chat.handleCancel,
-              pendingQuestion: chat.pendingQuestion,
-              onAnswer: chat.handleAnswer,
-            },
-          };
-        }
-        if (node.id === "viewport") {
-          return {
-            ...node,
-            data: { ...node.data, sceneJSON, engineRef, paused, onError: handleShaderError },
-          };
-        }
-        if (node.id === "debugLog") {
-          return {
-            ...node,
-            data: { ...node.data, logs: chat.debugLogs },
-          };
-        }
-        if (node.id === "projectBrowser") {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              projects: project.projectList,
-              activeProject: project.activeProject,
-              onSave: project.handleProjectSave,
-              onLoad: project.handleProjectLoad,
-              onDelete: project.handleProjectDelete,
-              onRename: project.handleProjectRename,
-              onImport: project.handleProjectImport,
-              onDeleteWorkspaceFile: handleDeleteWorkspaceFile,
-              workspaceFilesVersion,
-            },
-          };
-        }
-        if (node.type === "customPanel") {
-          const panelId = node.id.replace("panel_", "");
-          const panel = panels.customPanels.get(panelId);
-          if (panel) {
-            return {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === "chat"
+          ? {
               ...node,
               data: {
                 ...node.data,
-                title: panel.title,
-                html: panel.html,
-                controls: panel.controls ? mergeControlDefaults(panel.controls) : undefined,
-                onUniformChange: handleUniformChange,
-                engineRef,
-                onClose: () => handlePanelClose(panelId),
-                keyframeManagerRef: kf.keyframeManagerRef,
-                onKeyframesChange: kf.handlePanelKeyframesChange,
-                onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
-                onDurationChange: setDuration,
-                onLoopChange: setLoop,
-                duration,
-                loop,
+                messages: chat.messages,
+                onSend: chat.handleSend,
+                isProcessing: chat.isProcessing,
+                agentStatus: chat.agentStatus,
+                onNewChat: chat.handleNewChat,
+                onCancel: chat.handleCancel,
+                pendingQuestion: chat.pendingQuestion,
+                onAnswer: chat.handleAnswer,
               },
-            };
-          }
-        }
-        return node;
+            }
+          : node
+      )
+    );
+  }, [
+    setNodes, chat.messages, chat.handleSend, chat.isProcessing, chat.agentStatus,
+    chat.handleNewChat, chat.handleCancel, chat.pendingQuestion, chat.handleAnswer,
+  ]);
+
+  // --- Viewport node sync ---
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === "viewport"
+          ? { ...node, data: { ...node.data, sceneJSON, engineRef, paused, onError: handleShaderErrorRef.current } }
+          : node
+      )
+    );
+  }, [setNodes, sceneJSON, paused]);
+
+  // --- Debug log node sync ---
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === "debugLog"
+          ? { ...node, data: { ...node.data, logs: chat.debugLogs } }
+          : node
+      )
+    );
+  }, [setNodes, chat.debugLogs]);
+
+  // --- Project browser node sync ---
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === "projectBrowser"
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                projects: project.projectList,
+                activeProject: project.activeProject,
+                onSave: project.handleProjectSave,
+                onLoad: project.handleProjectLoad,
+                onDelete: project.handleProjectDelete,
+                onRename: project.handleProjectRename,
+                onImport: project.handleProjectImport,
+                onDeleteWorkspaceFile: handleDeleteWorkspaceFileRef.current,
+                workspaceFilesVersion,
+              },
+            }
+          : node
+      )
+    );
+  }, [
+    setNodes, project.projectList, project.activeProject,
+    project.handleProjectSave, project.handleProjectLoad,
+    project.handleProjectDelete, project.handleProjectRename,
+    workspaceFilesVersion,
+  ]);
+
+  // --- Custom panel nodes sync (data + add/remove) ---
+  useEffect(() => {
+    setNodes((nds) => {
+      let updated = nds.map((node) => {
+        if (node.type !== "customPanel") return node;
+        const panelId = node.id.replace("panel_", "");
+        const panel = panels.customPanels.get(panelId);
+        if (!panel) return node;
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            title: panel.title,
+            html: panel.html,
+            controls: panel.controls ? mergeControlDefaultsRef.current(panel.controls) : undefined,
+            onUniformChange: handleUniformChangeRef.current,
+            engineRef,
+            onClose: () => handlePanelCloseRef.current(panelId),
+            keyframeManagerRef: kf.keyframeManagerRef,
+            onKeyframesChange: kf.handlePanelKeyframesChange,
+            onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
+            onDurationChange: setDuration,
+            onLoopChange: setLoop,
+            duration,
+            loop,
+          },
+        };
       });
 
       // Add/remove custom panel nodes
@@ -139,10 +183,10 @@ export default function useNodeDataSync({
               data: {
                 title: panel.title,
                 html: panel.html,
-                controls: panel.controls ? mergeControlDefaults(panel.controls) : undefined,
-                onUniformChange: handleUniformChange,
+                controls: panel.controls ? mergeControlDefaultsRef.current(panel.controls) : undefined,
+                onUniformChange: handleUniformChangeRef.current,
                 engineRef,
-                onClose: () => handlePanelClose(panelId),
+                onClose: () => handlePanelCloseRef.current(panelId),
                 keyframeManagerRef: kf.keyframeManagerRef,
                 onKeyframesChange: kf.handlePanelKeyframesChange,
                 onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
@@ -185,13 +229,8 @@ export default function useNodeDataSync({
       return updated;
     });
   }, [
-    chat.messages, chat.handleSend, chat.isProcessing, chat.agentStatus, chat.handleNewChat, chat.handleCancel,
-    chat.pendingQuestion, chat.handleAnswer, chat.debugLogs,
-    sceneJSON, paused, uiConfig, handleUniformChange,
-    project.projectList, project.activeProject, project.handleProjectSave, project.handleProjectLoad, project.handleProjectDelete, project.handleProjectRename,
-    handleDeleteWorkspaceFile, workspaceFilesVersion, handleShaderError,
-    panels.customPanels, handlePanelClose, mergeControlDefaults,
-    setNodes, kf.handleOpenKeyframeEditor, kf.keyframeVersion, kf.handlePanelKeyframesChange, kf.keyframeManagerRef,
+    setNodes, panels.customPanels,
+    kf.handleOpenKeyframeEditor, kf.keyframeVersion, kf.handlePanelKeyframesChange, kf.keyframeManagerRef,
     duration, loop,
   ]);
 }
