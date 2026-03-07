@@ -121,6 +121,7 @@ body,
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   gap: 2px;
+  padding-bottom: 48px; /* space for fixed Timeline bar */
   background: var(--app-bg);
 }
 
