@@ -88,7 +88,7 @@ export default function DebugLogNode({ data, standalone = false, hideHeader = fa
 
   return (
     <div
-      className={`w-full ${collapsed ? "h-auto" : "h-full"} flex flex-col overflow-hidden ${standalone ? "" : "rounded-xl shadow-2xl"}`}
+      className={`node-container w-full ${collapsed ? "h-auto" : "h-full"} flex flex-col overflow-hidden ${standalone ? "" : "rounded-xl shadow-2xl"}`}
       style={standalone ? { background: "var(--node-bg)" } : { background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
     >
       {!standalone && <NodeResizer minWidth={300} minHeight={150} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />}

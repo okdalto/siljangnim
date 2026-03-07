@@ -84,7 +84,7 @@ body,
 }
 
 /* Selected node highlight (via custom data-attribute, decoupled from ReactFlow) */
-.react-flow__node[data-custom-selected] {
+.react-flow__node[data-custom-selected] .node-container {
   outline: 2px solid var(--accent-hover) !important;
   outline-offset: 0px !important;
   border-radius: 12px;
