@@ -116,9 +116,13 @@ export default function useRecorder(engineRef) {
         offline && audioManager
           ? (audioManager._buffer ?? null)
           : null;
-      const hasAudio = offline
-        ? audioBuffer !== null
-        : audioStream && audioStream.getAudioTracks().length > 0;
+      let hasAudio = false;
+      if (offline) {
+        hasAudio = audioBuffer !== null && audioBuffer.numberOfChannels > 0;
+      } else if (audioStream && audioStream.getAudioTracks().length > 0) {
+        const channels = audioStream.getAudioTracks()[0].getSettings().channelCount || 0;
+        hasAudio = channels > 0;
+      }
 
 
       // Codec selection (for MediaRecorder paths)
