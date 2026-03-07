@@ -1,6 +1,10 @@
 /**
- * Vercel Edge Function — streams Anthropic API responses.
- * Deployed at /api/proxy when frontend is on Vercel.
+ * Vercel Edge Function — multi-purpose API proxy.
+ *
+ * Routes (via ?target= query param):
+ *   (default)              → Anthropic Messages API
+ *   ?target=github&endpoint=device/code       → GitHub Device Flow
+ *   ?target=github&endpoint=oauth/access_token → GitHub OAuth token
  */
 export const config = { runtime: "edge", maxDuration: 300 };
 
@@ -11,12 +15,15 @@ const ALLOWED_ORIGINS = new Set([
   "http://localhost:3000",
 ]);
 
+const GITHUB_ENDPOINTS = {
+  "device/code": "https://github.com/login/device/code",
+  "oauth/access_token": "https://github.com/login/oauth/access_token",
+};
+
 function getCorsOrigin(req) {
   const origin = req.headers.get("origin") || "";
   if (ALLOWED_ORIGINS.has(origin)) return origin;
-  // Allow Vercel preview/production deployments
   if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return origin;
-  // Allow same-origin requests (no Origin header)
   if (!origin) return null;
   return null;
 }
@@ -24,7 +31,6 @@ function getCorsOrigin(req) {
 export default async function handler(req) {
   const corsOrigin = getCorsOrigin(req);
 
-  // CORS
   if (req.method === "OPTIONS") {
     return new Response(null, {
       headers: {
@@ -43,9 +49,37 @@ export default async function handler(req) {
     return new Response("Forbidden", { status: 403 });
   }
 
-  const apiUrl = "https://api.anthropic.com/v1/messages";
+  const url = new URL(req.url);
+  const target = url.searchParams.get("target");
 
-  const response = await fetch(apiUrl, {
+  // --- GitHub OAuth proxy ---
+  if (target === "github") {
+    const endpoint = url.searchParams.get("endpoint");
+    const githubUrl = GITHUB_ENDPOINTS[endpoint];
+    if (!githubUrl) {
+      return new Response(JSON.stringify({ error: "Unknown endpoint" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": corsOrigin },
+      });
+    }
+    const reqBody = await req.text();
+    const res = await fetch(githubUrl, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": req.headers.get("content-type") || "application/x-www-form-urlencoded",
+      },
+      body: reqBody,
+    });
+    const resBody = await res.text();
+    return new Response(resBody, {
+      status: res.status,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": corsOrigin },
+    });
+  }
+
+  // --- Anthropic API proxy (default) ---
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
