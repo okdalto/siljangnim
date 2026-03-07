@@ -21,13 +21,16 @@ export default function ChatNode({ data, standalone = false }) {
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer } = data;
-  const messagesEndRef = useRef(null);
   const messagesRef = useRef(null);
   const fileInputRef = useRef(null);
   const thinkingRef = useRef(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Scroll within the messages container only (not the page)
+    const container = messagesRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages]);
 
   // Auto-scroll thinking detail to bottom as new content arrives
@@ -245,7 +248,7 @@ export default function ChatNode({ data, standalone = false }) {
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
+        <div />
       </div>
 
       {/* Attached files preview */}
