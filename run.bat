@@ -5,6 +5,65 @@ set "ROOT=%~dp0"
 :: Remove trailing backslash
 if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 
+:: ── Check prerequisites ─────────────────────────────────────────
+echo Checking prerequisites...
+
+:: Check Python
+python --version >nul 2>&1
+if errorlevel 1 (
+    echo.
+    echo  Python is not installed.
+    echo  Attempting to install via winget...
+    winget install -e --id Python.Python.3.12 --accept-package-agreements --accept-source-agreements
+    if errorlevel 1 (
+        echo.
+        echo  [ERROR] Failed to install Python automatically.
+        echo  Please install Python manually from https://www.python.org/downloads/
+        echo  Make sure to check "Add python.exe to PATH" during installation.
+        echo.
+        pause
+        exit /b 1
+    )
+    echo  Python installed. Please close this window and run again.
+    pause
+    exit /b 0
+)
+for /f "delims=" %%v in ('python --version 2^>^&1') do echo   %%v ... OK
+
+:: Check Node.js
+node --version >nul 2>&1
+if errorlevel 1 (
+    echo.
+    echo  Node.js is not installed.
+    echo  Attempting to install via winget...
+    winget install -e --id OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements
+    if errorlevel 1 (
+        echo.
+        echo  [ERROR] Failed to install Node.js automatically.
+        echo  Please install Node.js manually from https://nodejs.org/
+        echo.
+        pause
+        exit /b 1
+    )
+    echo  Node.js installed. Please close this window and run again.
+    pause
+    exit /b 0
+)
+for /f "delims=" %%v in ('node --version 2^>^&1') do echo   Node.js %%v ... OK
+
+:: Check npm
+npm --version >nul 2>&1
+if errorlevel 1 (
+    echo.
+    echo  [ERROR] npm is not available. It should come with Node.js.
+    echo  Please reinstall Node.js from https://nodejs.org/
+    echo.
+    pause
+    exit /b 1
+)
+for /f "delims=" %%v in ('npm --version 2^>^&1') do echo   npm %%v ... OK
+echo.
+
 :: ── Kill stale processes on our ports ──────────────────────────
 call :free_port 8000
 call :free_port 5173
