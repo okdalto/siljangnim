@@ -608,7 +608,7 @@ export default function App() {
   return (
     <SettingsContext.Provider value={settingsCtx}>
     <EngineContext.Provider value={engineRef}>
-      <div className={`w-screen h-screen ${isMobile ? "pt-10 pb-0" : "pt-10 pb-10"}`}>
+      <div className={`w-screen h-screen ${isMobile ? "pt-10 pb-20" : "pt-10 pb-10"}`}>
         <Toolbar
           onNewProject={handleNewProject}
           activeProject={project.activeProject}
@@ -618,24 +618,22 @@ export default function App() {
           onChangeApiKey={() => apiKey.setRequired()}
         />
 
-        {!isMobile && (
-          <Timeline
-            paused={paused}
-            onTogglePause={handleTogglePause}
-            onPause={() => { setPaused(true); if (recording) stopRecording(); }}
-            engineRef={engineRef}
-            duration={duration}
-            onDurationChange={setDuration}
-            loop={loop}
-            onLoopChange={setLoop}
-            recording={recording}
-            recordingTime={recordingTime}
-            onStartRecord={handleStartRecord}
-            onStopRecord={stopRecording}
-            canvasWidth={canvasSize.width}
-            canvasHeight={canvasSize.height}
-          />
-        )}
+        <Timeline
+          paused={paused}
+          onTogglePause={handleTogglePause}
+          onPause={() => { setPaused(true); if (recording) stopRecording(); }}
+          engineRef={engineRef}
+          duration={duration}
+          onDurationChange={setDuration}
+          loop={loop}
+          onLoopChange={setLoop}
+          recording={recording}
+          recordingTime={recordingTime}
+          onStartRecord={handleStartRecord}
+          onStopRecord={stopRecording}
+          canvasWidth={canvasSize.width}
+          canvasHeight={canvasSize.height}
+        />
 
         {apiKey.apiKeyRequired && (
           <ApiKeyModal
