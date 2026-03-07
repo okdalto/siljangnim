@@ -34,7 +34,7 @@ export function clearToken() {
  * The user must visit verification_uri and enter user_code.
  */
 export async function startDeviceFlow(clientId) {
-  const res = await fetch("/github-login/device/code", {
+  const res = await fetch("/api/github-login/device/code", {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -71,7 +71,7 @@ export async function pollDeviceFlow(clientId, deviceCode, interval = 5, signal,
 
     if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
-    const res = await fetch("/github-login/oauth/access_token", {
+    const res = await fetch("/api/github-login/oauth/access_token", {
       method: "POST",
       headers: {
         Accept: "application/json",
