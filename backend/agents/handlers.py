@@ -25,6 +25,15 @@ _IGNORED_DIRS = {
 
 _ALLOWED_COMMANDS = {"pip", "ffmpeg", "ffprobe", "convert", "magick"}
 
+# Dangerous argument patterns that could be used for injection/escape
+_BLOCKED_ARG_PATTERNS = [
+    "$(", "`",           # command substitution
+    "&&", "||", ";",     # command chaining
+    "|",                 # piping
+    ">", ">>", "<",     # redirection
+    "\n", "\r",          # newline injection
+]
+
 _WORKSPACE_FILES = {
     "scene.json", "workspace_state.json", "panels.json",
     "ui_config.json", "debug_logs.json",
@@ -688,10 +697,22 @@ async def _tool_stop_recording(input_data: dict, broadcast: BroadcastCallback) -
     return "ok — recording stopped. The WebM file will auto-download in the user's browser."
 
 
+_BLOCKED_PYTHON_PATTERNS = [
+    "os.system", "subprocess.call", "subprocess.run", "subprocess.Popen",
+    "shutil.rmtree", "os.remove", "os.unlink", "os.rmdir",
+    "__import__('os')", "__import__('subprocess')",
+    "exec(", "compile(",
+]
+
 async def _tool_run_python(input_data: dict, broadcast: BroadcastCallback) -> str:
     code = input_data.get("code", "")
     if not code.strip():
         return "Error: empty code."
+    # Block dangerous patterns
+    code_lower = code.lower()
+    for pattern in _BLOCKED_PYTHON_PATTERNS:
+        if pattern.lower() in code_lower:
+            return f"Error: blocked pattern '{pattern}' detected. This operation is not allowed."
     gen_dir = workspace.get_workspace_dir()
     gen_dir.mkdir(parents=True, exist_ok=True)
     tmp_file = gen_dir / "_run_tmp.py"
@@ -735,6 +756,11 @@ async def _tool_run_command(input_data: dict, broadcast: BroadcastCallback) -> s
             f"Error: '{cmd_name}' is not allowed. "
             f"Allowed commands: {', '.join(sorted(_ALLOWED_COMMANDS))}"
         )
+    # Validate individual arguments for injection patterns
+    for i, arg in enumerate(args[1:], 1):
+        for pattern in _BLOCKED_ARG_PATTERNS:
+            if pattern in arg:
+                return f"Error: argument {i} contains blocked pattern '{pattern}'."
     # Rewrite pip to use the current Python interpreter
     if cmd_name == "pip":
         args = [sys.executable, "-m", "pip"] + args[1:]

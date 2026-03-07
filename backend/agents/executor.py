@@ -21,6 +21,9 @@ import workspace
 from agents.prompts import SYSTEM_PROMPT, build_system_prompt
 from agents.tools import TOOLS, get_tools
 from agents.handlers import _handle_tool, BroadcastCallback
+from agents.execution_context import (
+    should_plan, run_planner, build_execution_context, get_current_state,
+)
 
 # ---------------------------------------------------------------------------
 # Callback types
@@ -1095,7 +1098,30 @@ async def run_agent(
         content = user_prompt
 
     messages = _conversations.setdefault(ws_id, [])
-    messages.append({"role": "user", "content": content})
+
+    # --- Execution Context Rebuild (plan-based) ---
+    # For Anthropic provider with long conversations, run planner first
+    _used_plan = False
+    if provider not in ("gemini", "custom") and should_plan(len(messages), user_prompt):
+        try:
+            current_state = get_current_state()
+            plan = await run_planner(user_prompt, messages, current_state, log)
+            if plan:
+                # Append user message to original history for record-keeping
+                messages.append({"role": "user", "content": content})
+                # Build fresh execution context
+                system_prompt, exec_messages = build_execution_context(
+                    plan, current_state, system_prompt
+                )
+                # Use fresh messages for the generator loop
+                messages = exec_messages
+                _used_plan = True
+                await log("System", "Execution context rebuilt — running generator", "info")
+        except Exception as e:
+            await log("System", f"Planning failed: {e} — using direct execution", "info")
+
+    if not _used_plan:
+        messages.append({"role": "user", "content": content})
 
     last_text = ""
     turns = 0
@@ -1538,25 +1564,28 @@ async def run_agent(
             if len(recent_tool_sigs) >= _warn_thresh:
                 _window = recent_tool_sigs[-10:]
                 _counts = Counter(_window)
-                _top_sig, _top_count = _counts.most_common(1)[0]
-                _loop_tool_name = _top_sig.split("|")[0]
+                if not _counts:
+                    pass
+                else:
+                    _top_sig, _top_count = _counts.most_common(1)[0]
+                    _loop_tool_name = _top_sig.split("|")[0]
 
-                if _top_count >= _break_thresh:
-                    await log("System", f"Loop detected: {_loop_tool_name} called {_top_count} times with same args — forcing stop", "warning")
-                    if on_status:
-                        await on_status("thinking", f"Loop detected: {_loop_tool_name} repeated {_top_count}x — stopping agent")
-                    # Add tool results so conversation stays valid, then break
-                    _loop_msg = {"role": "user", "content": list(tool_results) + [{
-                        "type": "text",
-                        "text": f"SYSTEM: Loop detected — you have called {_loop_tool_name} {_top_count} times with identical arguments. This is an infinite loop. Stop and tell the user what happened.",
-                    }]}
-                    messages.append(_loop_msg)
-                    _msg_size_acc += len(json.dumps(_loop_msg, ensure_ascii=False))
-                    _loop_detected = True
-                elif _top_count >= _warn_thresh:
-                    await log("System", f"Repeated tool call: {_loop_tool_name} ({_top_count}x) — warning agent", "warning")
-                    if on_status:
-                        await on_status("thinking", f"Warning: {_loop_tool_name} called {_top_count}x with same args")
+                    if _top_count >= _break_thresh:
+                        await log("System", f"Loop detected: {_loop_tool_name} called {_top_count} times with same args — forcing stop", "warning")
+                        if on_status:
+                            await on_status("thinking", f"Loop detected: {_loop_tool_name} repeated {_top_count}x — stopping agent")
+                        # Add tool results so conversation stays valid, then break
+                        _loop_msg = {"role": "user", "content": list(tool_results) + [{
+                            "type": "text",
+                            "text": f"SYSTEM: Loop detected — you have called {_loop_tool_name} {_top_count} times with identical arguments. This is an infinite loop. Stop and tell the user what happened.",
+                        }]}
+                        messages.append(_loop_msg)
+                        _msg_size_acc += len(json.dumps(_loop_msg, ensure_ascii=False))
+                        _loop_detected = True
+                    elif _top_count >= _warn_thresh:
+                        await log("System", f"Repeated tool call: {_loop_tool_name} ({_top_count}x) — warning agent", "warning")
+                        if on_status:
+                            await on_status("thinking", f"Warning: {_loop_tool_name} called {_top_count}x with same args")
 
             if _loop_detected:
                 break
@@ -1576,7 +1605,7 @@ async def run_agent(
             if len(recent_tool_sigs) >= _warn_thresh:
                 _window = recent_tool_sigs[-10:]
                 _counts = Counter(_window)
-                _top_sig, _top_count = _counts.most_common(1)[0]
+                _top_sig, _top_count = _counts.most_common(1)[0] if _counts else (None, 0)
                 if _top_count >= _warn_thresh:
                     _loop_tool_name = _top_sig.split("|")[0]
                     user_content.append({
@@ -1605,6 +1634,19 @@ async def run_agent(
         )
 
         chat_text = last_text or "Done."
+
+        # If we used a plan, sync the final assistant response back to the
+        # original conversation so future planners can see what was done.
+        if _used_plan:
+            original_messages = _conversations.get(ws_id, [])
+            last_assistant = None
+            for m in reversed(messages):
+                if m.get("role") == "assistant":
+                    last_assistant = m
+                    break
+            if last_assistant:
+                original_messages.append(last_assistant)
+
         _save_conversations()
         return {"chat_text": chat_text}
 

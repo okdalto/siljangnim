@@ -11,10 +11,14 @@ import workspace
 
 logger = logging.getLogger(__name__)
 
+MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB per file
+
 def _sanitize_filename(name: str) -> str:
-    """Sanitize a filename — keep alphanumeric, dots, hyphens, underscores."""
+    """Sanitize a filename — keep ASCII alphanumeric, dots, hyphens, underscores."""
     name = name.strip().replace(" ", "_")
-    name = re.sub(r"[^\w.\-]", "", name)
+    name = re.sub(r"[^a-zA-Z0-9._\-]", "", name)
+    # Block directory traversal sequences
+    name = name.replace("..", "")
     return name or "unnamed"
 
 
@@ -27,7 +31,13 @@ def _process_uploads(raw_files: list[dict]) -> list[dict]:
         data_b64 = f.get("data_b64", "")
         size = f.get("size", 0)
 
+        # Check base64 string length before decoding to prevent memory exhaustion
+        # base64 encodes 3 bytes into 4 chars, so decoded size ≈ len * 3/4
+        if len(data_b64) > MAX_UPLOAD_SIZE * 4 // 3 + 4:
+            raise ValueError(f"File '{name}' exceeds maximum upload size of {MAX_UPLOAD_SIZE // (1024*1024)}MB")
         raw_bytes = base64.b64decode(data_b64)
+        if len(raw_bytes) > MAX_UPLOAD_SIZE:
+            raise ValueError(f"File '{name}' exceeds maximum upload size of {MAX_UPLOAD_SIZE // (1024*1024)}MB")
         workspace.save_upload(name, raw_bytes)
         saved.append({
             "name": name,
@@ -63,9 +73,7 @@ async def _process_uploaded_files(saved_files: list[dict], broadcast):
             else:
                 logger.info("[AssetPipeline] %s → no matching processor", f["name"])
         except Exception as e:
-            import traceback
-            logger.error("[AssetPipeline] %s failed: %s", f["name"], e)
-            traceback.print_exc()
+            logger.exception("[AssetPipeline] %s failed: %s", f["name"], e)
             continue
 
         if result and result.status in ("success", "partial"):

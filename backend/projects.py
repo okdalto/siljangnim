@@ -24,6 +24,82 @@ import workspace
 logger = logging.getLogger(__name__)
 
 PROJECTS_DIR = workspace._PROJECTS_DIR
+MANIFEST_FILENAME = "siljangnim-project.json"
+CURRENT_SCHEMA_VERSION = 2
+
+
+def _migrate_v1_to_v2(old_meta: dict) -> dict:
+    """Migrate a v1 meta.json to v2 manifest format."""
+    now = datetime.now(timezone.utc).isoformat()
+    return {
+        "schema_version": CURRENT_SCHEMA_VERSION,
+        "name": old_meta.get("name", "untitled"),
+        "display_name": old_meta.get("display_name", old_meta.get("name", "Untitled")),
+        "description": old_meta.get("description", ""),
+        "created_at": old_meta.get("created_at", now),
+        "updated_at": old_meta.get("updated_at", now),
+        "has_thumbnail": old_meta.get("has_thumbnail", False),
+        "provenance": old_meta.get("provenance", {
+            "source_type": "local",
+            "github_repo": None,
+            "github_path": None,
+            "imported_commit_sha": None,
+            "forked_from": None,
+            "original_author": None,
+        }),
+        "trust": old_meta.get("trust", {
+            "safe_mode": False,
+            "trusted_by": None,
+            "trusted_at": None,
+        }),
+        "assets": old_meta.get("assets", []),
+    }
+
+
+def _read_project_manifest(project_dir: Path) -> dict:
+    """Read siljangnim-project.json, falling back to meta.json with auto-migration."""
+    manifest_path = project_dir / MANIFEST_FILENAME
+    meta_path = project_dir / "meta.json"
+
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            sv = manifest.get("schema_version", 0)
+            if sv > CURRENT_SCHEMA_VERSION:
+                logger.warning("Project %s has schema_version %d (newer than supported %d), loading as-is",
+                               project_dir.name, sv, CURRENT_SCHEMA_VERSION)
+                return manifest
+            if sv >= CURRENT_SCHEMA_VERSION:
+                return manifest
+            return _migrate_v1_to_v2(manifest)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    if meta_path.exists():
+        try:
+            old_meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            manifest = _migrate_v1_to_v2(old_meta)
+            # Lazy migration: write the new manifest
+            try:
+                manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+            except OSError:
+                pass
+            return manifest
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    return _migrate_v1_to_v2({"name": project_dir.name})
+
+
+def _write_project_manifest(project_dir: Path, manifest: dict) -> None:
+    """Write siljangnim-project.json and also meta.json for backwards compat."""
+    manifest_path = project_dir / MANIFEST_FILENAME
+    meta_path = project_dir / "meta.json"
+    manifest["schema_version"] = CURRENT_SCHEMA_VERSION
+    manifest_json = json.dumps(manifest, indent=2)
+    manifest_path.write_text(manifest_json, encoding="utf-8")
+    # Also write meta.json for backwards compat
+    meta_path.write_text(manifest_json, encoding="utf-8")
 
 
 def _sanitize_name(name: str) -> str:
@@ -114,46 +190,54 @@ def save_project(
         except Exception:
             pass
 
-    # Write meta.json
+    # Build manifest (v2)
     now = datetime.now(timezone.utc).isoformat()
 
-    # Preserve created_at if project already exists
-    meta_path = project_dir / "meta.json"
-    created_at = now
-    if meta_path.exists():
-        try:
-            old = json.loads(meta_path.read_text(encoding="utf-8"))
-            created_at = old.get("created_at", now)
-        except (json.JSONDecodeError, OSError):
-            pass
+    # Preserve existing manifest data if project already exists
+    existing_manifest = _read_project_manifest(project_dir) if project_dir.exists() else {}
+    created_at = existing_manifest.get("created_at", now)
 
     # Build display_name: use base project's display_name + new version suffix
     display_name = name.strip()
     if target_name != base:
-        # Try to get original display_name from base project
-        base_meta_path = PROJECTS_DIR / base / "meta.json"
-        if base_meta_path.exists():
+        base_dir = PROJECTS_DIR / base
+        if base_dir.exists():
             try:
-                base_meta = json.loads(base_meta_path.read_text(encoding="utf-8"))
-                base_display = base_meta.get("display_name", name.strip())
-                # Strip any existing version suffix from display name
+                base_manifest = _read_project_manifest(base_dir)
+                base_display = base_manifest.get("display_name", name.strip())
                 base_display = re.sub(r"_\d+$", "", base_display)
-                suffix = target_name[len(base):]  # e.g. "_2"
+                suffix = target_name[len(base):]
                 display_name = f"{base_display}{suffix}"
-            except (json.JSONDecodeError, OSError):
+            except Exception:
                 pass
 
-    meta = {
+    manifest = {
+        "schema_version": CURRENT_SCHEMA_VERSION,
         "name": target_name,
         "display_name": display_name,
         "description": description,
         "created_at": created_at,
         "updated_at": now,
         "has_thumbnail": has_thumbnail,
+        "provenance": existing_manifest.get("provenance", {
+            "source_type": "local",
+            "github_repo": None,
+            "github_path": None,
+            "imported_commit_sha": None,
+            "forked_from": None,
+            "original_author": None,
+        }),
+        "trust": existing_manifest.get("trust", {
+            "safe_mode": False,
+            "trusted_by": None,
+            "trusted_at": None,
+        }),
+        "assets": existing_manifest.get("assets", []),
     }
-    meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
-    return meta
+    _write_project_manifest(project_dir, manifest)
+
+    return manifest
 
 
 def load_project(name: str) -> dict:
@@ -167,9 +251,7 @@ def load_project(name: str) -> dict:
     # Switch workspace pointer — this is the key change (no file copying)
     workspace.set_workspace_dir(sanitized)
 
-    meta = json.loads(
-        (project_dir / "meta.json").read_text(encoding="utf-8")
-    )
+    meta = _read_project_manifest(project_dir)
 
     chat_history = []
     ch_path = project_dir / "chat_history.json"
@@ -240,12 +322,13 @@ def list_projects() -> list[dict]:
         return []
     projects = []
     for d in PROJECTS_DIR.iterdir():
+        manifest_path = d / MANIFEST_FILENAME
         meta_path = d / "meta.json"
-        if d.is_dir() and meta_path.exists():
+        if d.is_dir() and (manifest_path.exists() or meta_path.exists()):
             try:
-                meta = json.loads(meta_path.read_text(encoding="utf-8"))
+                meta = _read_project_manifest(d)
                 projects.append(meta)
-            except (json.JSONDecodeError, OSError):
+            except Exception:
                 continue
     projects.sort(key=lambda m: m.get("updated_at", ""), reverse=True)
     return projects
@@ -357,11 +440,21 @@ def import_project_zip(zip_bytes: bytes) -> dict:
             project_dir = PROJECTS_DIR / candidate
             project_dir.mkdir(parents=True, exist_ok=True)
 
-            for member in zf.namelist():
-                member_path = (project_dir / member).resolve()
-                if not str(member_path).startswith(str(project_dir.resolve())):
-                    raise ValueError(f"ZIP contains path traversal entry: {member}")
-            zf.extractall(project_dir)
+            # Extract member-by-member with path validation (no extractall)
+            project_dir_str = str(project_dir.resolve())
+            for member in zf.infolist():
+                member_path = (project_dir / member.filename).resolve()
+                if not str(member_path).startswith(project_dir_str):
+                    raise ValueError("ZIP contains path traversal entry")
+                # Skip symlinks
+                if ((member.external_attr >> 16) & 0o170000) == 0o120000:
+                    raise ValueError("ZIP contains symbolic links")
+                if member.is_dir():
+                    member_path.mkdir(parents=True, exist_ok=True)
+                else:
+                    member_path.parent.mkdir(parents=True, exist_ok=True)
+                    with zf.open(member) as src, open(member_path, "wb") as dst:
+                        shutil.copyfileobj(src, dst)
     else:
         # Try legacy JSON bundle format
         try:
@@ -369,28 +462,37 @@ def import_project_zip(zip_bytes: bytes) -> dict:
         except (json.JSONDecodeError, KeyError, TypeError):
             raise ValueError("Invalid file: not a ZIP archive or JSON bundle")
 
-    # Update meta.json with the (possibly renamed) project name
+    # Read and migrate manifest
     now = datetime.now(timezone.utc).isoformat()
-    meta_path = project_dir / "meta.json"
-    if meta_path.exists():
-        try:
-            meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            meta = {}
-    else:
-        meta = {}
+    manifest = _read_project_manifest(project_dir)
 
-    meta["name"] = candidate
-    if "display_name" not in meta:
-        meta["display_name"] = candidate
-    meta["updated_at"] = now
-    if "created_at" not in meta:
-        meta["created_at"] = now
-    meta["has_thumbnail"] = (project_dir / "thumbnail.jpg").exists()
+    manifest["name"] = candidate
+    if not manifest.get("display_name"):
+        manifest["display_name"] = candidate
+    manifest["updated_at"] = now
+    if not manifest.get("created_at"):
+        manifest["created_at"] = now
+    manifest["has_thumbnail"] = (project_dir / "thumbnail.jpg").exists()
 
-    meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    # External imports get safe_mode enabled
+    manifest["trust"] = {
+        "safe_mode": True,
+        "trusted_by": None,
+        "trusted_at": None,
+    }
+    if not manifest.get("provenance") or manifest["provenance"].get("source_type") == "local":
+        manifest["provenance"] = {
+            "source_type": "zip",
+            "github_repo": None,
+            "github_path": None,
+            "imported_commit_sha": None,
+            "forked_from": None,
+            "original_author": None,
+        }
 
-    return meta
+    _write_project_manifest(project_dir, manifest)
+
+    return manifest
 
 
 def list_project_files(name: str) -> list[dict]:
