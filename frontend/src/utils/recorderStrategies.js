@@ -253,8 +253,8 @@ export function startOfflineWebCodecs(ctx) {
       rafRef.current = null;
     }
     try {
-      if (audioEncoder) await audioEncoder.flush();
-      await encoder.flush();
+      if (audioEncoder?.state === "configured") await audioEncoder.flush();
+      if (encoder.state === "configured") await encoder.flush();
       muxer.finalize();
       const blob = new Blob([target.buffer], { type: blobType });
       downloadBlob(blob, `recording_${Date.now()}.${fileExt}`);
@@ -428,12 +428,14 @@ export function startRealtimeMp4(ctx) {
     const audioSettings = audioTrack.getSettings();
     const sampleRate = audioSettings.sampleRate || 48000;
     const numberOfChannels = audioSettings.channelCount || 2;
-    muxerOpts.audio = { codec: "aac", sampleRate, numberOfChannels };
+    if (numberOfChannels >= 1) {
+      muxerOpts.audio = { codec: "aac", sampleRate, numberOfChannels };
+    }
   }
 
   const muxer = new Mp4Muxer(muxerOpts);
 
-  if (hasAudio && audioStream) {
+  if (hasAudio && audioStream && muxerOpts.audio) {
     const audioTrack = audioStream.getAudioTracks()[0];
     const audioSettings = audioTrack.getSettings();
     const sampleRate = audioSettings.sampleRate || 48000;
@@ -499,8 +501,8 @@ export function startRealtimeMp4(ctx) {
     }
     try {
       if (audioReader) await audioReader.cancel();
-      if (audioEncoder) await audioEncoder.flush();
-      await encoder.flush();
+      if (audioEncoder?.state === "configured") await audioEncoder.flush();
+      if (encoder.state === "configured") await encoder.flush();
       muxer.finalize();
       const blob = new Blob([target.buffer], { type: "video/mp4" });
       downloadBlob(blob, `recording_${Date.now()}.mp4`);

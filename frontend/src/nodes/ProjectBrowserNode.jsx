@@ -28,6 +28,7 @@ export default function ProjectBrowserNode({ data, standalone = false }) {
     onSave,
     onLoad,
     onDelete,
+    onRename,
     onImport,
     onDeleteWorkspaceFile,
     workspaceFilesVersion,
@@ -213,6 +214,7 @@ export default function ProjectBrowserNode({ data, standalone = false }) {
             isActive={activeProject === p.name}
             onLoad={onLoad}
             onDelete={onDelete}
+            onRename={onRename}
           />
         ))}
       </div>

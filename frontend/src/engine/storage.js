@@ -457,6 +457,20 @@ export async function deleteProject(name) {
   }
 }
 
+export async function renameProject(oldName, newDisplayName) {
+  const sanitized = sanitizeName(oldName);
+  const store = await tx(STORE_PROJECTS);
+  const meta = await idbReq(store.get(sanitized));
+  if (!meta) throw new Error(`Project not found: ${oldName}`);
+
+  meta.display_name = newDisplayName.trim() || meta.display_name;
+  meta.updated_at = new Date().toISOString();
+
+  const ws = await tx(STORE_PROJECTS, "readwrite");
+  await idbReq(ws.put(meta, sanitized));
+  return meta;
+}
+
 export async function newUntitledWorkspace() {
   const prefix = `${DEFAULT_PROJECT}/`;
 

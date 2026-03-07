@@ -11,7 +11,7 @@ export default function MobileLayout({
   // Debug
   debugLogs,
   // Projects
-  projectList, activeProject, onProjectSave, onProjectLoad, onProjectDelete,
+  projectList, activeProject, onProjectSave, onProjectLoad, onProjectDelete, onProjectRename,
   onProjectImport, onDeleteWorkspaceFile, workspaceFilesVersion,
 }) {
   const viewportData = { sceneJSON, engineRef, paused, onError: onShaderError };
@@ -26,6 +26,7 @@ export default function MobileLayout({
     onSave: onProjectSave,
     onLoad: onProjectLoad,
     onDelete: onProjectDelete,
+    onRename: onProjectRename,
     onImport: onProjectImport,
     onDeleteWorkspaceFile,
     workspaceFilesVersion,

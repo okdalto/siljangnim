@@ -54,6 +54,13 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
     [sendRef]
   );
 
+  const handleProjectRename = useCallback(
+    (name, newDisplayName) => {
+      sendRef.current?.({ type: "project_rename", name, newDisplayName });
+    },
+    [sendRef]
+  );
+
   const handleProjectImport = useCallback(async (file) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -81,6 +88,7 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
     handleProjectSave,
     handleProjectLoad,
     handleProjectDelete,
+    handleProjectRename,
     handleProjectImport,
     setProjectList,
     setActiveProject,
