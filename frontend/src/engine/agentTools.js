@@ -88,7 +88,8 @@ const TOOLS = [
     description:
       "Open a panel as a draggable node in the UI. " +
       "Use template='controls' with config.controls array to render native " +
-      "React controls (sliders, color pickers, toggles, etc.).",
+      "React controls (sliders, color pickers, toggles, etc.). " +
+      "Use 'html' for custom HTML panels or 'url' for external URL panels.",
     input_schema: {
       type: "object",
       properties: {
@@ -103,6 +104,10 @@ const TOOLS = [
         html: {
           type: "string",
           description: "Complete HTML document to render in the panel iframe.",
+        },
+        url: {
+          type: "string",
+          description: "External URL to load in the panel iframe (alternative to html).",
         },
         template: {
           type: "string",

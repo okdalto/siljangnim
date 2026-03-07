@@ -12,8 +12,15 @@ import TextControl from "../components/controls/TextControl.jsx";
 import GraphControl from "../components/controls/GraphControl.jsx";
 import HtmlControl from "../components/controls/HtmlControl.jsx";
 import BufferPreviewControl from "../components/controls/BufferPreviewControl.jsx";
+import Vec3Control from "../components/controls/Vec3Control.jsx";
+import MonitorControl from "../components/controls/MonitorControl.jsx";
+import ImagePickerControl from "../components/controls/ImagePickerControl.jsx";
+import CodeControl from "../components/controls/CodeControl.jsx";
+import PresetControl from "../components/controls/PresetControl.jsx";
+import CollapsibleGroupControl from "../components/controls/CollapsibleGroupControl.jsx";
 import BRIDGE_SCRIPT from "../constants/panelBridge.js";
 import PANEL_THEME_CSS from "../constants/panelTheme.js";
+import { registerPanelIframe, unregisterPanelIframe, relayBroadcast } from "../engine/panelBroadcast.js";
 
 /* ── Control type → component mapping ───────────────────────────── */
 
@@ -29,6 +36,12 @@ const CONTROL_MAP = {
   graph: GraphControl,
   html: HtmlControl,
   buffer_preview: BufferPreviewControl,
+  vec3: Vec3Control,
+  monitor: MonitorControl,
+  image_picker: ImagePickerControl,
+  code: CodeControl,
+  preset: PresetControl,
+  group: CollapsibleGroupControl,
 };
 
 /* ── Inject bridge + theme CSS into HTML panel iframe ─────────── */
@@ -45,50 +58,142 @@ function injectBridge(html) {
   return INJECT_PAYLOAD + html;
 }
 
+/* ── Download helper ──────────────────────────────────────────── */
+
+function triggerDownload(filename, data, mimeType) {
+  // Sanitize filename: strip path separators and dangerous chars
+  const safeName = (filename || "export.txt").replace(/[/\\:*?"<>|]/g, "_").replace(/^\.+/, "_");
+  const blob = new Blob([data], { type: mimeType || "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = safeName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ── Panel-to-panel broadcast relay ───────────────────────────── */
+
+
 /* ── CustomPanelNode ────────────────────────────────────────────── */
 
 function CustomPanelNode({ data, standalone = false, hideHeader = false }) {
   const {
-    title, html, controls,
+    title, html, url, controls,
     onUniformChange, engineRef, onClose,
     keyframeManagerRef, onKeyframesChange, onDurationChange, onLoopChange,
     onOpenKeyframeEditor,
     duration, loop,
+    onCustomMessage,
   } = data;
   const [collapsed, setCollapsed] = useState(false);
   const iframeRef = useRef(null);
   const rafRef = useRef(null);
   const isNativeControls = !!controls;
+  const isUrl = !!url && !html;
 
-  // Listen for postMessage from iframe (only for HTML panels)
+  // Register/unregister iframe for panel-to-panel broadcast
+  useEffect(() => {
+    if (isNativeControls) return;
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    registerPanelIframe(iframe);
+    return () => unregisterPanelIframe(iframe);
+  }, [isNativeControls]);
+
+  // Listen for postMessage from iframe (HTML + URL panels)
   useEffect(() => {
     if (isNativeControls) return;
     const handler = (e) => {
       const iframe = iframeRef.current;
       if (!iframe || e.source !== iframe.contentWindow) return;
-      if (e.data?.type === "panel:setUniform") {
-        onUniformChange?.(e.data.uniform, e.data.value);
-      } else if (e.data?.type === "panel:setKeyframes") {
-        onKeyframesChange?.(e.data.uniform, e.data.keyframes || []);
-      } else if (e.data?.type === "panel:setDuration") {
-        if (typeof e.data.duration === "number") onDurationChange?.(e.data.duration);
-      } else if (e.data?.type === "panel:setLoop") {
-        if (typeof e.data.loop === "boolean") onLoopChange?.(e.data.loop);
+      const d = e.data;
+      if (!d?.type) return;
+
+      switch (d.type) {
+        case "panel:setUniform":
+          onUniformChange?.(d.uniform, d.value);
+          break;
+        case "panel:setKeyframes":
+          onKeyframesChange?.(d.uniform, d.keyframes || []);
+          break;
+        case "panel:setDuration":
+          if (typeof d.duration === "number") onDurationChange?.(d.duration);
+          break;
+        case "panel:setLoop":
+          if (typeof d.loop === "boolean") onLoopChange?.(d.loop);
+          break;
+        case "panel:setState": {
+          const engine = engineRef?.current;
+          const key = d.key;
+          if (engine?.ctx?.state && key
+              && typeof key === "string"
+              && key !== "__proto__" && key !== "constructor" && key !== "prototype") {
+            engine.ctx.state[key] = d.value;
+          }
+          break;
+        }
+        case "panel:customMessage":
+          onCustomMessage?.(d.msgType, d.data);
+          break;
+        case "panel:download":
+          triggerDownload(d.filename, d.data, d.mimeType);
+          break;
+        case "panel:captureCanvas": {
+          const engine = engineRef?.current;
+          if (engine?.canvas) {
+            try {
+              const dataUrl = engine.canvas.toDataURL("image/png");
+              iframe.contentWindow.postMessage(
+                { type: "panel:captureResult", dataUrl },
+                window.location.origin
+              );
+            } catch { /* tainted canvas */ }
+          }
+          break;
+        }
+        case "panel:broadcast":
+          relayBroadcast(d.channel, d.data, iframe);
+          break;
       }
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  }, [isNativeControls, onUniformChange, onKeyframesChange, onDurationChange, onLoopChange]);
+  }, [isNativeControls, onUniformChange, onKeyframesChange, onDurationChange, onLoopChange, onCustomMessage, engineRef]);
 
-  // Send engine state to iframe every frame (only for HTML panels)
+  // Send engine state to iframe every frame (HTML + URL panels)
   useEffect(() => {
     if (isNativeControls) return;
+    let stateCache = {};
+    let stateFrame = 0;
+    const STATE_INTERVAL = 10; // serialize ctx.state every N frames to limit perf cost
+    const STATE_MAX_SIZE = 100_000; // skip if serialized state > 100KB
+
     const tick = () => {
       const iframe = iframeRef.current;
       const engine = engineRef?.current;
       if (iframe?.contentWindow && engine) {
         const ctx = engine.ctx || {};
         const km = keyframeManagerRef?.current;
+
+        // Throttled state serialization
+        stateFrame++;
+        if (stateFrame % STATE_INTERVAL === 0 && ctx.state) {
+          try {
+            const raw = JSON.stringify(ctx.state, (_k, v) => {
+              if (v instanceof WebGLBuffer || v instanceof WebGLTexture ||
+                  v instanceof WebGLProgram || v instanceof WebGLFramebuffer) return undefined;
+              if (typeof v === "function") return undefined;
+              return v;
+            });
+            if (raw.length <= STATE_MAX_SIZE) {
+              stateCache = JSON.parse(raw);
+            }
+          } catch { /* keep previous cache */ }
+        }
+
         iframe.contentWindow.postMessage(
           {
             type: "panel:state",
@@ -99,8 +204,9 @@ function CustomPanelNode({ data, standalone = false, hideHeader = false }) {
             keyframes: km ? km.tracks : {},
             duration: duration ?? 30,
             loop: loop ?? true,
+            state: stateCache,
           },
-          "*"
+          window.location.origin
         );
       }
       rafRef.current = requestAnimationFrame(tick);
@@ -114,6 +220,31 @@ function CustomPanelNode({ data, standalone = false, hideHeader = false }) {
   const handleClose = useCallback(() => {
     onClose?.();
   }, [onClose]);
+
+  // Render a single control (used for both top-level and nested group children)
+  const renderControl = useCallback((ctrl, i) => {
+    if (ctrl.type === "group") {
+      return (
+        <CollapsibleGroupControl
+          key={ctrl.label || `group_${i}`}
+          ctrl={ctrl}
+          renderChild={renderControl}
+        />
+      );
+    }
+    const Comp = CONTROL_MAP[ctrl.type];
+    if (!Comp) return null;
+    return (
+      <Comp
+        key={ctrl.uniform || `ctrl_${i}`}
+        ctrl={ctrl}
+        onUniformChange={onUniformChange}
+        keyframeManagerRef={keyframeManagerRef}
+        engineRef={engineRef}
+        onOpenKeyframeEditor={onOpenKeyframeEditor}
+      />
+    );
+  }, [onUniformChange, keyframeManagerRef, engineRef, onOpenKeyframeEditor]);
 
   return (
     <div
@@ -148,21 +279,16 @@ function CustomPanelNode({ data, standalone = false, hideHeader = false }) {
       {!collapsed && <div className="flex-1 nodrag nowheel overflow-auto">
         {isNativeControls ? (
           <div className="p-3 space-y-1">
-            {controls.map((ctrl, i) => {
-              const Comp = CONTROL_MAP[ctrl.type];
-              if (!Comp) return null;
-              return (
-                <Comp
-                  key={ctrl.uniform || `sep_${i}`}
-                  ctrl={ctrl}
-                  onUniformChange={onUniformChange}
-                  keyframeManagerRef={keyframeManagerRef}
-                  engineRef={engineRef}
-                  onOpenKeyframeEditor={onOpenKeyframeEditor}
-                />
-              );
-            })}
+            {controls.map((ctrl, i) => renderControl(ctrl, i))}
           </div>
+        ) : isUrl ? (
+          <iframe
+            ref={iframeRef}
+            src={url}
+            sandbox="allow-scripts"
+            className="w-full h-full border-0"
+            style={{ background: "var(--node-bg)" }}
+          />
         ) : (
           <iframe
             ref={iframeRef}
