@@ -106,7 +106,7 @@ async def get_workspace_file(filename: str):
         except json.JSONDecodeError:
             return {"filename": filename, "content": content}
     except FileNotFoundError:
-        return {"error": "not found"}, 404
+        return Response(status_code=404, content="not found")
 
 
 @app.get("/api/projects/{name}/files")
@@ -160,10 +160,10 @@ async def project_thumbnail(name: str):
 
 
 @app.get("/api/projects/{name}/export")
-async def export_project(name: str):
+async def export_project(name: str, no_chat: int = 0):
     """Export a project as a ZIP file download."""
     try:
-        zip_bytes = projects.export_project_zip(name)
+        zip_bytes = projects.export_project_zip(name, exclude_chat=bool(no_chat))
         return Response(
             content=zip_bytes,
             media_type="application/zip",

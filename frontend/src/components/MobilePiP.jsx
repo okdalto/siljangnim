@@ -10,7 +10,13 @@ export default function MobilePiP({ engineRef, onTap, onClose }) {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    let rafId;
+    let lastCapture = 0;
+    const FPS_INTERVAL = 66; // ~15 FPS
+    const tick = (now) => {
+      rafId = requestAnimationFrame(tick);
+      if (now - lastCapture < FPS_INTERVAL) return;
+      lastCapture = now;
       const canvas = engineRef.current?.canvas;
       if (!canvas || !imgRef.current) return;
       try {
@@ -18,8 +24,9 @@ export default function MobilePiP({ engineRef, onTap, onClose }) {
       } catch (_) {
         /* ignore security errors */
       }
-    }, 66); // ~15 FPS
-    return () => clearInterval(interval);
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
   }, [engineRef]);
 
   return (

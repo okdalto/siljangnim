@@ -573,18 +573,19 @@ export default class GLEngine {
     const gl = this.gl;
     if (!gl || !this._scene) return;
 
-    // Snapshot previous mouse state at start of frame
-    this._mousePrev = [...this._mouseSnapshot];
+    // Snapshot previous mouse state at start of frame (reuse arrays to avoid GC)
+    const mp = this._mousePrev, ms = this._mouseSnapshot, m = this._mouse;
+    mp[0] = ms[0]; mp[1] = ms[1]; mp[2] = ms[2]; mp[3] = ms[3];
     this._mouseDownPrev = this._mouseDownSnapshot;
-    this._mouseSnapshot = [...this._mouse];
+    ms[0] = m[0]; ms[1] = m[1]; ms[2] = m[2]; ms[3] = m[3];
     this._mouseDownSnapshot = this._mouseDown;
 
     if (this._scriptRenderFn && this._scriptCtx && this._setupReady) {
       const ctx = this._scriptCtx;
       ctx.time = time;
       ctx.dt = dt;
-      ctx.mouse = [...this._mouseSnapshot];
-      ctx.mousePrev = [...this._mousePrev];
+      ctx.mouse = [this._mouseSnapshot[0], this._mouseSnapshot[1], this._mouseSnapshot[2], this._mouseSnapshot[3]];
+      ctx.mousePrev = [this._mousePrev[0], this._mousePrev[1], this._mousePrev[2], this._mousePrev[3]];
       ctx.mouseDown = this._mouseDownSnapshot;
       ctx.resolution = [this.canvas.width, this.canvas.height];
       ctx.frame = this._frameCount;
@@ -795,6 +796,13 @@ export default class GLEngine {
         console.error("[GLEngine] Script cleanup error:", err);
       }
     }
+    // Revoke upload blob URLs to free memory
+    if (this._scriptCtx?.uploads) {
+      for (const url of Object.values(this._scriptCtx.uploads)) {
+        try { URL.revokeObjectURL(url); } catch { /* ignore */ }
+      }
+    }
+
     this._scriptCtx = null;
     this._scriptSetupFn = null;
     this._scriptRenderFn = null;

@@ -114,7 +114,7 @@ async function toolReadFile(input, broadcast) {
         const value = getNested(data, section);
         return typeof value === "string" ? value : JSON.stringify(value, null, 2);
       } catch (e) {
-        return `Section '${section}' not found: ${e.message}`;
+        return `Error: section '${section}' not found: ${e.message}`;
       }
     }
     return JSON.stringify(data, null, 2);
@@ -206,7 +206,7 @@ async function toolWriteFile(input, broadcast) {
       try {
         data = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
       } catch (e) {
-        return `Invalid JSON: ${e.message}`;
+        return `Error: invalid JSON: ${e.message}`;
       }
 
       if (relPath === "scene.json") {
@@ -241,7 +241,7 @@ async function toolWriteFile(input, broadcast) {
   try {
     edits = typeof rawEdits === "string" ? JSON.parse(rawEdits) : rawEdits;
   } catch (e) {
-    return `Invalid edits JSON: ${e.message}`;
+    return `Error: invalid edits JSON: ${e.message}`;
   }
   if (!Array.isArray(edits)) return "Error: 'edits' must be a JSON array.";
 

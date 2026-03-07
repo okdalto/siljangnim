@@ -16,7 +16,8 @@ function readFileAsBase64(file) {
   });
 }
 
-export default function ChatNode({ data, standalone = false }) {
+export default function ChatNode({ data, standalone = false, hideHeader = false }) {
+  const [collapsed, setCollapsed] = useState(false);
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -143,9 +144,11 @@ export default function ChatNode({ data, standalone = false }) {
     >
       {!standalone && <NodeResizer minWidth={280} minHeight={200} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />}
       {/* Header */}
+      {!(standalone && hideHeader) && (
       <div
         className={`px-4 py-2 text-sm font-semibold flex items-center justify-between ${standalone ? "" : "cursor-grab"}`}
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
+        onDoubleClick={() => setCollapsed((v) => !v)}
       >
         Chat
         <button
@@ -160,6 +163,7 @@ export default function ChatNode({ data, standalone = false }) {
           </svg>
         </button>
       </div>
+      )}
 
       {/* Drag overlay */}
       {isDragOver && (
@@ -278,6 +282,7 @@ export default function ChatNode({ data, standalone = false }) {
           disabled={isProcessing && !pendingQuestion}
           className="text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-1"
           title="Attach files"
+
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />

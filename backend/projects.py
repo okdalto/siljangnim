@@ -28,7 +28,7 @@ PROJECTS_DIR = workspace._PROJECTS_DIR
 
 def _sanitize_name(name: str) -> str:
     """Convert a display name into a safe directory name."""
-    s = name.strip().lower()
+    s = name.strip().lower()[:128]
     s = re.sub(r"[^a-z0-9_]+", "-", s)
     s = s.strip("-")
     return s or "untitled"
@@ -73,16 +73,22 @@ def save_project(
     current_dir = workspace.get_workspace_dir()
     current_name = workspace.get_active_project_name()
 
-    # Determine target directory name (always create a new version if base already exists)
-    if (PROJECTS_DIR / base).exists():
+    # Determine target directory name
+    # If re-saving the currently active project, overwrite in place
+    if current_name == sanitized or current_name == base:
+        target_name = current_name
+    elif (PROJECTS_DIR / base).exists():
         target_name = _next_version_name(base)
     else:
         target_name = base
 
     project_dir = PROJECTS_DIR / target_name
 
-    # First save: _untitled → named project (move)
-    if current_name == workspace._DEFAULT_PROJECT and target_name != workspace._DEFAULT_PROJECT:
+    if target_name == current_name:
+        # Re-saving in place — no file copy needed
+        pass
+    elif current_name == workspace._DEFAULT_PROJECT and target_name != workspace._DEFAULT_PROJECT:
+        # First save: _untitled → named project (move)
         project_dir.parent.mkdir(parents=True, exist_ok=True)
         current_dir.rename(project_dir)
         workspace.set_workspace_dir(target_name)
@@ -272,7 +278,7 @@ def _safe_project_file_path(project_name: str, filepath: str) -> Path:
     return resolved
 
 
-def export_project_zip(name: str) -> bytes:
+def export_project_zip(name: str, *, exclude_chat: bool = False) -> bytes:
     """Export a project folder as a ZIP archive (in-memory)."""
     project_dir = _safe_project_path(name)
     if not project_dir.exists():
@@ -282,6 +288,8 @@ def export_project_zip(name: str) -> bytes:
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         for p in project_dir.rglob("*"):
             if p.is_file():
+                if exclude_chat and p.name == "chat_history.json":
+                    continue
                 zf.write(p, p.relative_to(project_dir))
     return buf.getvalue()
 
@@ -319,7 +327,11 @@ def import_project_zip(zip_bytes: bytes) -> dict:
         project_dir = PROJECTS_DIR / candidate
         project_dir.mkdir(parents=True, exist_ok=True)
 
-        # Extract all files
+        # Extract files safely (reject path traversal entries)
+        for member in zf.namelist():
+            member_path = (project_dir / member).resolve()
+            if not str(member_path).startswith(str(project_dir.resolve())):
+                raise ValueError(f"ZIP contains path traversal entry: {member}")
         zf.extractall(project_dir)
 
     # Update meta.json with the (possibly renamed) project name
