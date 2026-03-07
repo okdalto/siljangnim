@@ -17,6 +17,8 @@ export default function useCustomPanels(sendRef) {
       };
       if (data.controls) {
         entry.controls = data.controls;
+      } else if (data.url) {
+        entry.url = data.url;
       } else {
         entry.html = data.html || "";
       }
@@ -48,6 +50,8 @@ export default function useCustomPanels(sendRef) {
         };
         if (data.controls) {
           entry.controls = data.controls;
+        } else if (data.url) {
+          entry.url = data.url;
         } else {
           entry.html = data.html || "";
         }
@@ -103,8 +107,8 @@ export default function useCustomPanels(sendRef) {
     // Set pending restore so App.jsx can place the node back at its old position
     pendingRestoreRef.current = {
       id: `panel_${entry.id}`,
-      position: entry.nodePosition,
-      style: entry.nodeStyle,
+      position: entry.nodePosition || undefined,
+      style: entry.nodeStyle || undefined,
     };
 
     // Notify backend to restore the panel in panels.json

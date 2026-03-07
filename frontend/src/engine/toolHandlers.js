@@ -397,8 +397,39 @@ async function toolOpenPanel(input, broadcast) {
     return `ok — native controls panel '${panelId}' opened.`;
   }
 
-  if (!html && !template) return "Error: either 'html' or 'template' is required.";
+  const url = input.url || "";
 
+  if (!html && !url && !template) return "Error: 'html', 'url', or 'template' is required.";
+
+  // URL panel mode
+  if (url) {
+    // Validate URL scheme — only allow http(s)
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+        return `Error: only http/https URLs are allowed (got '${parsed.protocol}').`;
+      }
+    } catch {
+      return `Error: invalid URL '${url}'.`;
+    }
+    const panelMsg = {
+      type: "open_panel",
+      id: panelId,
+      title,
+      url,
+      width,
+      height,
+    };
+    broadcast(panelMsg);
+
+    let panels = {};
+    try { panels = await storage.readJson("panels.json"); } catch { /* empty */ }
+    panels[panelId] = { title, url, width, height };
+    await storage.writeJson("panels.json", panels);
+    return `ok — URL panel '${panelId}' opened.`;
+  }
+
+  // HTML panel mode
   const panelMsg = {
     type: "open_panel",
     id: panelId,
@@ -409,7 +440,6 @@ async function toolOpenPanel(input, broadcast) {
   };
   broadcast(panelMsg);
 
-  // Persist
   let panels = {};
   try { panels = await storage.readJson("panels.json"); } catch { /* empty */ }
   panels[panelId] = { title, html: html || "", width, height };
