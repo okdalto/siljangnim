@@ -386,6 +386,12 @@ const HANDLERS = {
   },
 
   async new_chat(msg) {
+    // Abort any in-progress agent call
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+      this.agentBusy = false;
+    }
     this.chatHistory.length = 0;
     this.conversation.length = 0;
     this.broadcast({
