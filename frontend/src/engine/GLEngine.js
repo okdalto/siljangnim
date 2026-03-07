@@ -1,8 +1,12 @@
 /**
- * GLEngine — WebGL2 rendering engine (script-only mode).
+ * GLEngine — Rendering engine with WebGL2/WebGPU backend abstraction.
  *
  * The agent writes raw WebGL2 JS code in script.setup / script.render / script.cleanup.
  * Shader compilation helpers and geometry creators are exposed via ctx.utils.
+ *
+ * The engine now supports a backend abstraction layer (engine/gpu/) that allows
+ * backend-agnostic rendering through ctx.renderer. Direct ctx.gl access is preserved
+ * for backward compatibility with existing scenes.
  */
 
 import { createProgram, compileShader, DEFAULT_QUAD_VERTEX_SHADER, DEFAULT_3D_VERTEX_SHADER } from "./shaderUtils.js";
@@ -16,6 +20,10 @@ import { createPingPong } from "./pingPong.js";
 import { createOrbitCamera } from "./orbitCamera.js";
 import * as noise from "./noise.js";
 import { createVerletSystem } from "./verletPhysics.js";
+import { selectBackend, getBackendDisplayName, BackendType } from "./gpu/index.js";
+import * as shaderTarget from "./gpu/shaderTarget.js";
+import { RenderGraph } from "./gpu/renderGraph.js";
+import { transpileGLSL, transpileFragmentGLSL, transpileVertexGLSL } from "./gpu/glslToWgsl.js";
 
 const GEOMETRY_CREATORS = {
   quad: createQuadGeometry,
@@ -25,8 +33,21 @@ const GEOMETRY_CREATORS = {
 };
 
 export default class GLEngine {
-  constructor(canvas) {
+  /**
+   * @param {HTMLCanvasElement} canvas
+   * @param {{ preferBackend?: "webgpu"|"webgl2", forceBackend?: "webgpu"|"webgl2" }} [options]
+   */
+  constructor(canvas, options = {}) {
     this.canvas = canvas;
+    this._backendOptions = options;
+
+    // --- Backend abstraction (initialized async via initBackend()) ---
+    /** @type {import('./gpu/RendererInterface.js').RendererInterface|null} */
+    this._backend = null;
+    this._backendReady = false;
+    this.onBackendReady = null; // callback(backendType)
+
+    // --- Legacy WebGL2 direct access (always available as fallback) ---
     this.gl = canvas.getContext("webgl2", {
       alpha: false,
       antialias: true,
@@ -110,6 +131,69 @@ export default class GLEngine {
         this.start();
       }
     });
+  }
+
+  /**
+   * Initialize the backend abstraction layer (async).
+   * Call after construction. Falls back to WebGL2 if WebGPU unavailable.
+   * Existing scenes continue to work via ctx.gl regardless.
+   */
+  async initBackend() {
+    try {
+      // For backend abstraction, we need a separate canvas or to
+      // coordinate with the existing GL context. Since we can't use
+      // the same canvas for both WebGL2 and WebGPU simultaneously,
+      // the backend is initialized on a NEW offscreen canvas when WebGPU,
+      // or wraps the existing GL context for WebGL2.
+      const prefer = this._backendOptions.preferBackend || "webgl2";
+      const force = this._backendOptions.forceBackend || null;
+
+      if (prefer === "webgpu" || force === "webgpu") {
+        // WebGPU needs its own canvas context — create offscreen
+        // For now, the abstraction backend is a secondary renderer
+        // that can be used for compute and offscreen rendering.
+        // The primary display path remains the direct GL context.
+        try {
+          const { WebGPUBackend } = await import("./gpu/WebGPUBackend.js");
+          const offscreen = new OffscreenCanvas(this.canvas.width, this.canvas.height);
+          const gpuBackend = new WebGPUBackend();
+          await gpuBackend.init(offscreen, { alpha: false });
+          this._backend = gpuBackend;
+        } catch (err) {
+          console.warn("[GLEngine] WebGPU backend init failed, using WebGL2:", err.message);
+          await this._initWebGLBackend();
+        }
+      } else {
+        await this._initWebGLBackend();
+      }
+
+      this._backendReady = true;
+      this.onBackendReady?.(this._backend.backendType);
+    } catch (err) {
+      console.warn("[GLEngine] Backend init failed:", err.message);
+    }
+  }
+
+  async _initWebGLBackend() {
+    const { WebGLBackend } = await import("./gpu/WebGLBackend.js");
+    const backend = new WebGLBackend();
+    // Initialize wrapping the existing GL context
+    backend.canvas = this.canvas;
+    backend.gl = this.gl;
+    backend._extensions = {
+      colorBufferFloat: this._extColorBufferFloat,
+      floatLinear: this._extFloatLinear,
+    };
+    backend.ready = true;
+    this._backend = backend;
+  }
+
+  /** Get the active backend (or null if not initialized). */
+  get backend() { return this._backend; }
+
+  /** Get the backend display name (e.g. "WebGL2" or "WebGPU"). */
+  get backendName() {
+    return this._backend ? getBackendDisplayName(this._backend) : "WebGL2";
   }
 
   /**
@@ -362,6 +446,15 @@ export default class GLEngine {
           return { framebuffer, texture, width, height, depthRenderbuffer, _isRenderTarget: true };
         },
       },
+
+      // --- Renderer Abstraction Layer ---
+      // backend-agnostic API (available after initBackend())
+      renderer: this._backend || null,
+      backendType: this._backend?.backendType || BackendType.WEBGL2,
+
+      // Shader target helpers (dual GLSL/WGSL)
+      shaderTarget,
+      RenderGraph,
     };
     // Audio API (methods delegate to AudioManager, properties updated per frame)
     this._audioManager.reset();
@@ -405,6 +498,35 @@ export default class GLEngine {
     };
 
     this._scriptCtx = ctx;
+
+    // --- GLSL→WGSL auto-transpilation for WebGPU backend ---
+    // When the active backend is WebGPU, wrap shader-related utilities
+    // so that AI-generated GLSL code is automatically transpiled to WGSL.
+    const isWebGPU = this._backend?.backendType === BackendType.WEBGPU ||
+      this._backendOptions?.forceBackend === "webgpu" ||
+      this._backendOptions?.preferBackend === "webgpu";
+
+    if (isWebGPU) {
+      // Expose transpiler utilities for direct use by AI-generated code
+      ctx.utils.transpileGLSL = transpileGLSL;
+      ctx.utils.transpileFragmentGLSL = transpileFragmentGLSL;
+      ctx.utils.transpileVertexGLSL = transpileVertexGLSL;
+
+      // Note: We do NOT wrap ctx.utils.createProgram here because it targets
+      // WebGL2's shader compiler. Passing transpiled WGSL to it would always fail.
+      // Instead, AI-generated code on WebGPU should use the transpiler utilities
+      // above (transpileGLSL, transpileFragmentGLSL, transpileVertexGLSL) directly,
+      // or use ctx.renderer.createShaderModule which is wrapped below.
+
+      // If renderer abstraction is available, wrap createShaderModule too
+      if (ctx.renderer && typeof ctx.renderer.createShaderModule === "function") {
+        const origCreateShaderModule = ctx.renderer.createShaderModule.bind(ctx.renderer);
+        ctx.renderer.createShaderModule = (desc) => {
+          const transpiledCode = this._transpileShaderSource(desc.code);
+          return origCreateShaderModule({ ...desc, code: transpiledCode });
+        };
+      }
+    }
 
     try {
       if (setupBody) {
@@ -595,6 +717,12 @@ export default class GLEngine {
       }
       ctx.keys = this._pressedKeys;
 
+      // Sync renderer abstraction reference (may have been initialized after scene load)
+      if (this._backend && !ctx.renderer) {
+        ctx.renderer = this._backend;
+        ctx.backendType = this._backend.backendType;
+      }
+
       // Update audio data before script render
       if (this._audioManager) {
         this._audioManager.updateFrame(gl, time);
@@ -773,6 +901,49 @@ export default class GLEngine {
     this.canvas.height = height;
   }
 
+  /**
+   * Detect whether a shader source string looks like GLSL (not WGSL).
+   * @param {string} code
+   * @returns {boolean}
+   */
+  static _looksLikeGLSL(code) {
+    if (!code || typeof code !== "string") return false;
+    const looksGLSL = code.includes("#version") || code.includes("gl_Frag") ||
+      code.includes("gl_Position") ||
+      (code.includes("uniform ") && !code.includes("@group"));
+    const looksWGSL = code.includes("@vertex") || code.includes("@fragment") ||
+      code.includes("@compute") || code.includes("@group");
+    return looksGLSL && !looksWGSL;
+  }
+
+  /**
+   * Auto-transpile a GLSL shader source to WGSL.
+   * Detects vertex vs fragment automatically.
+   * Returns the original source unchanged if it doesn't look like GLSL.
+   * @param {string} source — shader source code
+   * @returns {string} — WGSL code (or original if not GLSL / transpilation fails)
+   */
+  _transpileShaderSource(source) {
+    if (!GLEngine._looksLikeGLSL(source)) return source;
+    try {
+      const result = transpileGLSL(source);
+      if (result.wgsl && result.errors.length === 0) {
+        console.log("[GLEngine] GLSL→WGSL auto-transpiled successfully");
+        return result.wgsl;
+      }
+      if (result.wgsl) {
+        // Transpilation produced output but with warnings
+        console.warn("[GLEngine] GLSL→WGSL transpiled with warnings:", result.errors);
+        return result.wgsl;
+      }
+      console.warn("[GLEngine] GLSL→WGSL transpilation produced no output:", result.errors);
+      return source;
+    } catch (err) {
+      console.warn("[GLEngine] GLSL→WGSL auto-transpile failed:", err.message);
+      return source;
+    }
+  }
+
   _disposeReadbackCache() {
     if (this._readbackCache) {
       for (const rb of Object.values(this._readbackCache)) {
@@ -908,6 +1079,11 @@ export default class GLEngine {
     this._audioManager?.dispose();
     this._mediapipeManager?.dispose();
     this._disposeReadbackCache();
+    if (this._backend) {
+      this._backend.dispose();
+      this._backend = null;
+      this._backendReady = false;
+    }
     this._scene = null;
   }
 }

@@ -77,10 +77,17 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
       }
     } catch { /* backend unavailable */ }
 
-    // Fallback: browser-only import (JSON format from exportProjectZip)
+    // Fallback: browser-only import
     try {
-      const text = await file.text();
-      await importProjectZip(text);
+      if (file.name?.endsWith(".zip") || file.type === "application/zip") {
+        // Real ZIP file — use zipIO
+        const { importProjectFromZip } = await import("../engine/zipIO.js");
+        await importProjectFromZip(file, { isExternal: true });
+      } else {
+        // JSON format (legacy exportProjectZip)
+        const text = await file.text();
+        await importProjectZip(text);
+      }
       sendRef.current?.({ type: "project_list" });
     } catch { /* ignore */ }
   }, [sendRef]);

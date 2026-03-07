@@ -1,9 +1,10 @@
 import SettingsMenu from "./SettingsMenu.jsx";
+import PromptModeSelector from "./PromptModeSelector.jsx";
 import useMobile from "../hooks/useMobile.js";
 
 const PROVIDER_LABELS = { anthropic: "Claude", openai: "OpenAI", gemini: "Gemini", glm: "GLM", custom: "Custom" };
 
-export default function Toolbar({ onNewProject, activeProject, connected, provider, saveStatus, onChangeApiKey }) {
+export default function Toolbar({ onNewProject, activeProject, connected, provider, saveStatus, onChangeApiKey, onToggleTree, treeOpen, promptMode, onPromptModeChange, projectManifest, backendTarget, onBackendTargetChange }) {
   const { isMobile } = useMobile();
 
   return (
@@ -13,6 +14,24 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
     >
       {/* Left: actions */}
       <div className="flex items-center gap-2">
+        {!isMobile && onToggleTree && (
+          <button
+            onClick={onToggleTree}
+            className="w-7 h-7 flex items-center justify-center rounded transition-colors"
+            style={{
+              color: treeOpen ? "var(--chrome-text)" : "var(--chrome-text-secondary)",
+              background: treeOpen ? "var(--accent-bg, rgba(99,102,241,0.15))" : "var(--input-bg)",
+            }}
+            title="Toggle Version Tree"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 3v12" />
+              <circle cx="18" cy="6" r="3" />
+              <circle cx="6" cy="18" r="3" />
+              <path d="M18 9a9 9 0 01-9 9" />
+            </svg>
+          </button>
+        )}
         {isMobile ? (
           <button
             onClick={onNewProject}
@@ -42,6 +61,14 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
         style={{ color: "var(--chrome-text-secondary)" }}
       >
         {activeProject || "Untitled"}
+        {projectManifest?.provenance?.source_type === "github" && projectManifest.provenance.github_repo && (
+          <span className="flex items-center gap-1 flex-shrink-0" style={{ color: "var(--chrome-text-muted)" }} title={`From GitHub: ${projectManifest.provenance.github_repo}`}>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+            </svg>
+            <span className="text-[10px]">from {projectManifest.provenance.github_repo}</span>
+          </span>
+        )}
         {saveStatus === "unsaved" && (
           <div className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" title="Unsaved changes" />
         )}
@@ -50,8 +77,28 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
         )}
       </div>
 
-      {/* Right: connection status + settings */}
+      {/* Right: prompt mode + connection status + settings */}
       <div className="flex items-center gap-3 text-xs">
+        {!isMobile && onBackendTargetChange && (
+          <div className="flex items-center gap-0.5 rounded overflow-hidden text-[10px]" style={{ border: "1px solid var(--chrome-border)" }}>
+            {["auto", "webgl", "webgpu"].map((target) => (
+              <button
+                key={target}
+                onClick={() => onBackendTargetChange(target)}
+                className="px-2 py-0.5 transition-colors"
+                style={{
+                  background: backendTarget === target ? "var(--accent-color, #6366f1)" : "transparent",
+                  color: backendTarget === target ? "#fff" : "var(--chrome-text-muted)",
+                }}
+              >
+                {target === "auto" ? "Auto" : target === "webgl" ? "WebGL2" : "WebGPU"}
+              </button>
+            ))}
+          </div>
+        )}
+        {!isMobile && onPromptModeChange && (
+          <PromptModeSelector mode={promptMode || "hybrid"} onModeChange={onPromptModeChange} compact />
+        )}
         <button
           onClick={onChangeApiKey}
           className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"

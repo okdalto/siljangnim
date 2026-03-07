@@ -4,12 +4,29 @@
  */
 export const config = { runtime: "edge", maxDuration: 300 };
 
+const ALLOWED_ORIGINS = new Set([
+  "https://okdalto.github.io",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+]);
+
+function getCorsOrigin(req) {
+  const origin = req.headers.get("origin") || "";
+  if (ALLOWED_ORIGINS.has(origin)) return origin;
+  // Allow same-origin requests (no Origin header)
+  if (!origin) return null;
+  return null;
+}
+
 export default async function handler(req) {
+  const corsOrigin = getCorsOrigin(req);
+
   // CORS
   if (req.method === "OPTIONS") {
     return new Response(null, {
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        ...(corsOrigin && { "Access-Control-Allow-Origin": corsOrigin }),
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, x-api-key, anthropic-version",
       },
@@ -18,6 +35,10 @@ export default async function handler(req) {
 
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
+  }
+
+  if (!corsOrigin) {
+    return new Response("Forbidden", { status: 403 });
   }
 
   const apiUrl = "https://api.anthropic.com/v1/messages";
@@ -36,7 +57,7 @@ export default async function handler(req) {
     status: response.status,
     headers: {
       "Content-Type": response.headers.get("Content-Type") || "application/json",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": corsOrigin,
     },
   });
 }

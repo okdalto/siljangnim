@@ -10,6 +10,15 @@ import { callAnthropic } from "./anthropicClient.js";
 import { buildSystemPrompt } from "./agentPrompts.js";
 import TOOLS from "./agentTools.js";
 import { handleTool } from "./toolHandlers.js";
+import {
+  shouldPlan,
+  buildPlannerMessages,
+  parsePlan,
+  buildExecutionContext,
+  PLANNER_SYSTEM,
+  PLANNER_MODEL,
+  PLANNER_MAX_TOKENS,
+} from "./executionContext.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -137,19 +146,48 @@ export async function runAgent({
   userAnswerPromise,
   signal,
   injectedMessages = [],
+  systemPromptAddition = "",
+  assetContext = [],
+  backendTarget = "auto",
 }) {
   log("System", `Starting agent for: "${userPrompt}"`, "info");
   if (files?.length) {
     log("System", `Files attached: ${files.map((f) => f.name).join(", ")}`, "info");
   }
 
-  const modelName = MODEL_COMPLEX;
-  const useThinking = modelName.includes("opus") || modelName.includes("sonnet");
-  const maxTokens = useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX;
+  let systemPrompt = buildSystemPrompt(userPrompt, !!files?.length);
+  if (systemPromptAddition) {
+    systemPrompt += "\n\n" + systemPromptAddition;
+  }
 
-  log("System", `Model: ${modelName}`, "info");
+  // Inject backend target if available
+  if (backendTarget && backendTarget !== "auto") {
+    systemPrompt += `\n\n## ACTIVE BACKEND TARGET\nThe current project uses **${backendTarget}** backend. Generate ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} shaders accordingly. Follow the ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} rules strictly.`;
+  }
 
-  const systemPrompt = buildSystemPrompt(userPrompt, !!files?.length);
+  // Inject matching technique hints
+  if (userPrompt) {
+    try {
+      const { findTechniques } = await import("./techniqueKnowledgeBase.js");
+      const matches = findTechniques(userPrompt);
+      if (matches.length > 0) {
+        const top3 = matches.slice(0, 3);
+        const hints = top3.map(t => `- **${t.name}** (${t.category}): ${t.description?.slice(0, 100) || t.summary?.slice(0, 100) || ""}`).join("\n");
+        systemPrompt += `\n\n## SUGGESTED TECHNIQUES\nBased on the user prompt, these techniques from the knowledge base may be relevant:\n${hints}\nConsider using their patterns as a starting point if applicable.`;
+      }
+    } catch { /* technique matching is non-critical */ }
+  }
+
+  // Inject asset context if available
+  if (assetContext.length > 0) {
+    const assetLines = assetContext.map((a) => {
+      let line = `- "${a.semanticName}" (${a.filename}, ${a.category})`;
+      if (a.aiSummary) line += `: ${a.aiSummary}`;
+      if (a.processingStatus !== "ready") line += ` [${a.processingStatus}]`;
+      return line;
+    });
+    systemPrompt += `\n\n## WORKSPACE ASSETS\nThe following assets are loaded in the workspace:\n${assetLines.join("\n")}\nUse \`ctx.uploads["filename"]\` to reference them in scripts.`;
+  }
 
   // Build user message content
   const content = files?.length
@@ -157,6 +195,43 @@ export async function runAgent({
     : userPrompt;
 
   messages.push({ role: "user", content });
+
+  return _runAgentLoop({
+    apiKey,
+    systemPrompt,
+    messages,
+    log,
+    broadcast,
+    onText,
+    onStatus,
+    errorCollector,
+    userAnswerPromise,
+    signal,
+    injectedMessages,
+  });
+}
+
+/**
+ * Core agent loop — shared by both direct runAgent and plan-based runWithPlan.
+ */
+async function _runAgentLoop({
+  apiKey,
+  systemPrompt,
+  messages,
+  log,
+  broadcast,
+  onText,
+  onStatus,
+  errorCollector,
+  userAnswerPromise,
+  signal,
+  injectedMessages = [],
+}) {
+  const modelName = MODEL_COMPLEX;
+  const useThinking = modelName.includes("opus") || modelName.includes("sonnet");
+  const maxTokens = useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX;
+
+  log("System", `Model: ${modelName}`, "info");
 
   let lastText = "";
   let turns = 0;
@@ -451,6 +526,176 @@ export async function runAgent({
 }
 
 // ---------------------------------------------------------------------------
+// Planner → Execution Context Rebuild → Generator
+// ---------------------------------------------------------------------------
+
+/**
+ * Run the planner: a single lightweight LLM call that produces a structured
+ * execution plan from the conversation context + current workspace state.
+ *
+ * @returns {Object|null} Parsed plan, or null if planning fails
+ */
+async function runPlanner({ apiKey, userPrompt, conversation, currentState, log, onStatus, signal }) {
+  onStatus?.("thinking", "Planning execution...");
+  log("System", "Running planner for execution context rebuild", "info");
+
+  const plannerMessages = buildPlannerMessages(userPrompt, conversation, currentState);
+
+  try {
+    const result = await callAnthropic({
+      apiKey,
+      model: PLANNER_MODEL,
+      maxTokens: PLANNER_MAX_TOKENS,
+      system: PLANNER_SYSTEM,
+      messages: plannerMessages,
+      tools: [], // no tools for planner
+      signal,
+    });
+
+    const textBlock = result.contentBlocks?.find((b) => b.type === "text");
+    if (!textBlock?.text) {
+      log("System", "Planner returned empty response — falling back to direct execution", "info");
+      return null;
+    }
+
+    const plan = parsePlan(textBlock.text);
+    if (!plan) {
+      log("System", "Failed to parse planner output — falling back to direct execution", "info");
+      return null;
+    }
+
+    log("System", `Plan: [${plan.intent}] ${plan.summary} (${plan.steps.length} steps)`, "info");
+    return plan;
+  } catch (err) {
+    // Planner failure is non-fatal — fall back to direct execution
+    log("System", `Planner error: ${err.message} — falling back to direct execution`, "info");
+    return null;
+  }
+}
+
+/**
+ * Plan-then-execute: run the planner to produce a plan, rebuild the execution
+ * context, then run the generator with a fresh conversation.
+ *
+ * Falls back to normal runAgent if planning fails or isn't needed.
+ */
+export async function runWithPlan({
+  apiKey,
+  userPrompt,
+  log,
+  broadcast,
+  onText,
+  onStatus,
+  files,
+  messages, // original conversation (mutated)
+  currentState, // { scene_json, ui_config, panels, assets }
+  errorCollector,
+  userAnswerPromise,
+  signal,
+  injectedMessages = [],
+  systemPromptAddition = "",
+  assetContext = [],
+  backendTarget = "auto",
+}) {
+  // Check if planning is warranted
+  if (!shouldPlan(messages.length, userPrompt)) {
+    return runAgent({
+      apiKey, userPrompt, log, broadcast, onText, onStatus,
+      files, messages, errorCollector, userAnswerPromise,
+      signal, injectedMessages, systemPromptAddition, assetContext, backendTarget,
+    });
+  }
+
+  // --- Phase 1: Plan ---
+  const plan = await runPlanner({
+    apiKey, userPrompt, conversation: messages, currentState,
+    log, onStatus, signal,
+  });
+
+  if (!plan) {
+    // Fallback: direct execution
+    return runAgent({
+      apiKey, userPrompt, log, broadcast, onText, onStatus,
+      files, messages, errorCollector, userAnswerPromise,
+      signal, injectedMessages, systemPromptAddition, assetContext, backendTarget,
+    });
+  }
+
+  // --- Phase 2: Rebuild execution context ---
+  onStatus?.("thinking", "Rebuilding execution context...");
+
+  let baseSystemPrompt = buildSystemPrompt(userPrompt, !!files?.length);
+  if (systemPromptAddition) {
+    baseSystemPrompt += "\n\n" + systemPromptAddition;
+  }
+
+  // Inject backend target if available
+  if (backendTarget && backendTarget !== "auto") {
+    baseSystemPrompt += `\n\n## ACTIVE BACKEND TARGET\nThe current project uses **${backendTarget}** backend. Generate ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} shaders accordingly. Follow the ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} rules strictly.`;
+  }
+
+  // Inject matching technique hints
+  if (userPrompt) {
+    try {
+      const { findTechniques } = await import("./techniqueKnowledgeBase.js");
+      const matches = findTechniques(userPrompt);
+      if (matches.length > 0) {
+        const top3 = matches.slice(0, 3);
+        const hints = top3.map(t => `- **${t.name}** (${t.category}): ${t.description?.slice(0, 100) || t.summary?.slice(0, 100) || ""}`).join("\n");
+        baseSystemPrompt += `\n\n## SUGGESTED TECHNIQUES\nBased on the user prompt, these techniques from the knowledge base may be relevant:\n${hints}\nConsider using their patterns as a starting point if applicable.`;
+      }
+    } catch { /* technique matching is non-critical */ }
+  }
+
+  if (assetContext.length > 0) {
+    const assetLines = assetContext.map((a) => {
+      let line = `- "${a.semanticName}" (${a.filename}, ${a.category})`;
+      if (a.aiSummary) line += `: ${a.aiSummary}`;
+      if (a.processingStatus !== "ready") line += ` [${a.processingStatus}]`;
+      return line;
+    });
+    baseSystemPrompt += `\n\n## WORKSPACE ASSETS\n${assetLines.join("\n")}`;
+  }
+
+  const { systemPrompt: execSystemPrompt, messages: execMessages } =
+    buildExecutionContext(plan, currentState, baseSystemPrompt);
+
+  // --- Phase 3: Run generator with rebuilt context ---
+  // We still append user message to the ORIGINAL conversation for history,
+  // but the generator runs on a FRESH message array.
+  const content = files?.length
+    ? buildMultimodalContent(userPrompt, files)
+    : userPrompt;
+  messages.push({ role: "user", content });
+
+  log("System", "Execution context rebuilt — running generator", "info");
+
+  // Run the generator loop using the fresh execution context
+  const result = await _runAgentLoop({
+    apiKey,
+    systemPrompt: execSystemPrompt,
+    messages: execMessages,
+    log,
+    broadcast,
+    onText,
+    onStatus,
+    errorCollector,
+    userAnswerPromise,
+    signal,
+    injectedMessages,
+  });
+
+  // Sync final assistant response back to the original conversation
+  // so future planners can see what was done
+  const lastAssistant = execMessages.filter((m) => m.role === "assistant").pop();
+  if (lastAssistant) {
+    messages.push(lastAssistant);
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -469,18 +714,26 @@ function sleep(ms, signal) {
 function waitForVisible(signal) {
   if (!document.hidden) return Promise.resolve();
   return new Promise((resolve, reject) => {
+    const cleanup = () => document.removeEventListener("visibilitychange", handler);
     const handler = () => {
       if (!document.hidden) {
-        document.removeEventListener("visibilitychange", handler);
+        cleanup();
+        if (signal) signal.removeEventListener("abort", onAbort);
         resolve();
       }
     };
+    const onAbort = () => {
+      cleanup();
+      reject(new DOMException("Aborted", "AbortError"));
+    };
     document.addEventListener("visibilitychange", handler);
     if (signal) {
-      signal.addEventListener("abort", () => {
-        document.removeEventListener("visibilitychange", handler);
+      if (signal.aborted) {
+        cleanup();
         reject(new DOMException("Aborted", "AbortError"));
-      }, { once: true });
+        return;
+      }
+      signal.addEventListener("abort", onAbort, { once: true });
     }
   });
 }

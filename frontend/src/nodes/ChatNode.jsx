@@ -3,6 +3,7 @@ import { NodeResizer } from "@xyflow/react";
 import FileChip from "../components/chat/FileChip.jsx";
 import MarkdownMessage from "../components/chat/MarkdownMessage.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
+import BranchSelector from "../components/BranchSelector.jsx";
 
 function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
@@ -21,7 +22,7 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer, hideInput = false } = data;
+  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer, hideInput = false, activeNodeTitle = null, promptMode = "hybrid", treeNodes = [], activeTreeNodeId = null, onBranchFromNode, onSwitchToNode, overwriteMode = false, onToggleOverwrite } = data;
   const messagesRef = useRef(null);
   const fileInputRef = useRef(null);
   const thinkingRef = useRef(null);
@@ -253,6 +254,21 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
             </div>
           </div>
         )}
+        {/* Art/Hybrid iterative action chips */}
+        {!isProcessing && !pendingQuestion && messages.length > 0 && messages[messages.length - 1].role === "assistant" && (promptMode === "art" || promptMode === "hybrid") && (
+          <div className="flex flex-wrap gap-1 px-1 mt-1">
+            {["Push further", "Make calmer", "More surreal", "Simplify", "Add motion"].map((label) => (
+              <button
+                key={label}
+                onClick={() => onSend?.(label)}
+                className="text-[10px] px-2 py-1 rounded-md border transition-colors hover:bg-white/10"
+                style={{ color: "var(--chrome-text-secondary)", borderColor: "var(--chrome-border)", background: "transparent" }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
         <div />
       </div>
 
@@ -262,6 +278,35 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
           {attachedFiles.map((file, i) => (
             <FileChip key={i} file={file} onRemove={() => removeFile(i)} />
           ))}
+        </div>
+      )}
+
+      {/* Branch indicator */}
+      {!hideInput && activeNodeTitle && (
+        <div className="px-3 py-1 flex items-center gap-1.5 text-[10px] nodrag" style={{ borderTop: "1px solid var(--node-border)", color: "var(--chrome-text-muted)", background: "var(--chrome-bg-elevated)" }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 3v12M18 9a3 3 0 100-6 3 3 0 000 6zM6 21a3 3 0 100-6 3 3 0 000 6zM18 9a9 9 0 01-9 9" />
+          </svg>
+          <span className="truncate">Branching from: <span style={{ color: "var(--chrome-text-secondary)" }}>{activeNodeTitle}</span></span>
+        </div>
+      )}
+
+      {/* Overwrite mode toggle */}
+      {!hideInput && activeNodeTitle && (
+        <div className="px-3 py-1 flex items-center gap-1.5 nodrag" style={{ borderTop: "1px solid var(--node-border)", background: "var(--chrome-bg-elevated)" }}>
+          <button
+            type="button"
+            onClick={() => onToggleOverwrite?.()}
+            className="text-[10px] px-2 py-0.5 rounded transition-colors shrink-0"
+            style={{
+              background: overwriteMode ? "rgba(251,191,36,0.2)" : "transparent",
+              color: overwriteMode ? "#fbbf24" : "var(--chrome-text-muted)",
+              border: `1px solid ${overwriteMode ? "rgba(251,191,36,0.3)" : "var(--chrome-border)"}`,
+            }}
+            title={overwriteMode ? "Will overwrite current node" : "Will create new version"}
+          >
+            {overwriteMode ? "Overwrite" : "New version"}
+          </button>
         </div>
       )}
 
@@ -276,6 +321,16 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
           className="hidden"
           onChange={handleFileInputChange}
         />
+        {/* Branch selector */}
+        {treeNodes.length > 0 && (
+          <BranchSelector
+            treeNodes={treeNodes}
+            activeNodeId={activeTreeNodeId}
+            onBranchFromNode={onBranchFromNode}
+            onSwitchToNode={onSwitchToNode}
+            compact
+          />
+        )}
         {/* Attach button */}
         <button
           type="button"
@@ -283,7 +338,6 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
           disabled={isProcessing && !pendingQuestion}
           className="text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-1"
           title="Attach files"
-
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />

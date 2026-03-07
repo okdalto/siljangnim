@@ -13,6 +13,11 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8000',
       },
+      '/github-login': {
+        target: 'https://github.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/github-login/, '/login'),
+      },
     },
   },
 })

@@ -44,6 +44,26 @@ export default function useNodeDataSync({
   panels, handlePanelClose, mergeControlDefaults,
   kf, duration, loop, engineRef, pendingLayoutsRef,
   setDuration, setLoop,
+  activeNodeTitle,
+  // Asset nodes
+  assetNodes,
+  onPromptSuggestion,
+  // AI Debugger props
+  debugger: dbg,
+  // Safe mode
+  safeModeActive,
+  // Prompt mode
+  promptMode,
+  // Project tree (branch UX)
+  treeNodes,
+  activeTreeNodeId,
+  onBranchFromNode,
+  onSwitchToNode,
+  // Overwrite mode
+  overwriteMode,
+  onToggleOverwrite,
+  // Backend target
+  backendTarget,
 }) {
   // Use refs for stable callback values to avoid triggering unrelated effects
   const handleUniformChangeRef = useRef(handleUniformChange);
@@ -56,6 +76,10 @@ export default function useNodeDataSync({
   mergeControlDefaultsRef.current = mergeControlDefaults;
   const handleDeleteWorkspaceFileRef = useRef(handleDeleteWorkspaceFile);
   handleDeleteWorkspaceFileRef.current = handleDeleteWorkspaceFile;
+  const onBranchFromNodeRef = useRef(onBranchFromNode);
+  onBranchFromNodeRef.current = onBranchFromNode;
+  const onSwitchToNodeRef = useRef(onSwitchToNode);
+  onSwitchToNodeRef.current = onSwitchToNode;
 
   // --- Chat node sync ---
   useEffect(() => {
@@ -74,6 +98,14 @@ export default function useNodeDataSync({
                 onCancel: chat.handleCancel,
                 pendingQuestion: chat.pendingQuestion,
                 onAnswer: chat.handleAnswer,
+                activeNodeTitle: activeNodeTitle || null,
+                promptMode: promptMode || "hybrid",
+                treeNodes: treeNodes || [],
+                activeTreeNodeId: activeTreeNodeId || null,
+                onBranchFromNode: (...args) => onBranchFromNodeRef.current?.(...args),
+                onSwitchToNode: (...args) => onSwitchToNodeRef.current?.(...args),
+                overwriteMode: overwriteMode || false,
+                onToggleOverwrite,
               },
             }
           : node
@@ -81,60 +113,52 @@ export default function useNodeDataSync({
     );
   }, [
     setNodes, chat.messages, chat.handleSend, chat.isProcessing, chat.agentStatus,
-    chat.handleNewChat, chat.handleCancel, chat.pendingQuestion, chat.handleAnswer,
+    chat.handleNewChat, chat.handleCancel, chat.pendingQuestion, chat.handleAnswer, activeNodeTitle, promptMode,
+    treeNodes, activeTreeNodeId, overwriteMode, onToggleOverwrite,
   ]);
 
   // --- Viewport node sync ---
+  // When safe_mode is active, pass null sceneJSON to block script execution
   useEffect(() => {
     setNodes((nds) =>
       nds.map((node) =>
         node.id === "viewport"
-          ? { ...node, data: { ...node.data, sceneJSON, engineRef, paused, onError: handleShaderErrorRef.current } }
+          ? { ...node, data: { ...node.data, sceneJSON: safeModeActive ? null : sceneJSON, engineRef, paused, onError: handleShaderErrorRef.current, safeModeActive } }
           : node
       )
     );
-  }, [setNodes, sceneJSON, paused]);
+  }, [setNodes, sceneJSON, paused, safeModeActive]);
+
+  // Refs for debugger callbacks
+  const runDiagnosisRef = useRef(dbg?.runDiagnosis);
+  runDiagnosisRef.current = dbg?.runDiagnosis;
+  const applyPatchRef = useRef(dbg?.applyPatch);
+  applyPatchRef.current = dbg?.applyPatch;
 
   // --- Debug log node sync ---
   useEffect(() => {
     setNodes((nds) =>
       nds.map((node) =>
         node.id === "debugLog"
-          ? { ...node, data: { ...node.data, logs: chat.debugLogs } }
-          : node
-      )
-    );
-  }, [setNodes, chat.debugLogs]);
-
-  // --- Project browser node sync ---
-  useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) =>
-        node.id === "projectBrowser"
           ? {
               ...node,
               data: {
                 ...node.data,
-                projects: project.projectList,
-                activeProject: project.activeProject,
-                onSave: project.handleProjectSave,
-                onLoad: project.handleProjectLoad,
-                onDelete: project.handleProjectDelete,
-                onRename: project.handleProjectRename,
-                onImport: project.handleProjectImport,
-                onDeleteWorkspaceFile: handleDeleteWorkspaceFileRef.current,
-                workspaceFilesVersion,
+                logs: chat.debugLogs,
+                compileLogs: dbg?.compileLogs || [],
+                validationLogs: dbg?.validationLogs || [],
+                diagnosis: dbg?.diagnosis || null,
+                patches: dbg?.patches || [],
+                simpleExplanation: dbg?.simpleExplanation || null,
+                backendName: backendTarget === "webgpu" ? "WebGPU" : (backendTarget === "webgl2" ? "WebGL2" : (engineRef?.current?.backendName || "WebGL2")),
+                onApplyPatch: (patch) => applyPatchRef.current?.(patch),
+                onRunDiagnosis: () => runDiagnosisRef.current?.(),
               },
             }
           : node
       )
     );
-  }, [
-    setNodes, project.projectList, project.activeProject,
-    project.handleProjectSave, project.handleProjectLoad,
-    project.handleProjectDelete, project.handleProjectRename,
-    workspaceFilesVersion,
-  ]);
+  }, [setNodes, chat.debugLogs, dbg?.compileLogs, dbg?.validationLogs, dbg?.diagnosis, dbg?.patches, dbg?.simpleExplanation, backendTarget]);
 
   // --- Custom panel nodes sync (data + add/remove) ---
   useEffect(() => {
@@ -233,4 +257,99 @@ export default function useNodeDataSync({
     kf.handleOpenKeyframeEditor, kf.keyframeVersion, kf.handlePanelKeyframesChange, kf.keyframeManagerRef,
     duration, loop,
   ]);
+
+  // --- Asset node sync (add/remove/update) ---
+  const assetSelectRef = useRef(assetNodes?.selectAsset);
+  assetSelectRef.current = assetNodes?.selectAsset;
+  const assetRenameRef = useRef(assetNodes?.renameAsset);
+  assetRenameRef.current = assetNodes?.renameAsset;
+  const assetExecuteActionRef = useRef(assetNodes?.executeAction);
+  assetExecuteActionRef.current = assetNodes?.executeAction;
+  const onPromptSuggestionRef = useRef(onPromptSuggestion);
+  onPromptSuggestionRef.current = onPromptSuggestion;
+
+  useEffect(() => {
+    if (!assetNodes) return;
+    const assets = assetNodes.assets;
+
+    setNodes((nds) => {
+      let updated = nds;
+
+      // Update existing asset nodes data
+      updated = updated.map((node) => {
+        if (node.type !== "assetNode") return node;
+        const assetId = node.id.replace("asset_node_", "");
+        const desc = assets.get(assetId);
+        if (!desc) return node;
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            descriptor: desc,
+            onSelect: (id) => assetSelectRef.current?.(id),
+            onRename: (id, name) => assetRenameRef.current?.(id, name),
+            onAction: (id, actionType) => {
+              const result = assetExecuteActionRef.current?.(id, actionType);
+              if (result?.type === "prompt_suggestion") {
+                onPromptSuggestionRef.current?.(result.text);
+              }
+            },
+          },
+        };
+      });
+
+      // Add new asset nodes
+      const assetNodeIds = new Set([...assets.keys()].map((id) => `asset_node_${id}`));
+      for (const [assetId, desc] of assets) {
+        const nodeId = `asset_node_${assetId}`;
+        if (!updated.some((n) => n.id === nodeId)) {
+          const pos = findEmptyPosition(updated, 180, 200);
+          updated = [
+            ...updated,
+            {
+              id: nodeId,
+              type: "assetNode",
+              position: pos,
+              style: { width: 180, height: 200 },
+              data: {
+                descriptor: desc,
+                onSelect: (id) => assetSelectRef.current?.(id),
+                onRename: (id, name) => assetRenameRef.current?.(id, name),
+                onAction: (id, actionType) => {
+                  const result = assetExecuteActionRef.current?.(id, actionType);
+                  if (result?.type === "prompt_suggestion") {
+                    onPromptSuggestionRef.current?.(result.text);
+                  }
+                },
+              },
+            },
+          ];
+        }
+      }
+
+      // Remove asset nodes whose descriptors no longer exist
+      updated = updated.filter((n) => n.type !== "assetNode" || assetNodeIds.has(n.id));
+
+      // Apply pending layouts for asset nodes
+      if (pendingLayoutsRef.current) {
+        const layoutMap = new Map(pendingLayoutsRef.current.map((l) => [l.id, l]));
+        const appliedIds = new Set();
+        updated = updated.map((n) => {
+          if (n.type !== "assetNode") return n;
+          const saved = layoutMap.get(n.id);
+          if (saved) {
+            appliedIds.add(n.id);
+            return { ...n, position: saved.position, style: saved.style || n.style };
+          }
+          return n;
+        });
+        if (appliedIds.size > 0) {
+          const remaining = pendingLayoutsRef.current.filter((l) => !appliedIds.has(l.id));
+          pendingLayoutsRef.current = remaining.length > 0 ? remaining : null;
+        }
+      }
+
+      return updated;
+    });
+  }, [setNodes, assetNodes?.assets]);
 }
