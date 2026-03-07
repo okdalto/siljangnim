@@ -2,13 +2,13 @@
  * Vercel Edge Function — proxies GitHub OAuth Device Flow endpoints.
  * GitHub's OAuth endpoints don't support browser CORS, so we relay through here.
  *
- * Routes:
- *   POST /api/github-login/device/code       → https://github.com/login/device/code
- *   POST /api/github-login/oauth/access_token → https://github.com/login/oauth/access_token
+ * Usage:
+ *   POST /api/github-proxy?endpoint=device/code
+ *   POST /api/github-proxy?endpoint=oauth/access_token
  */
 export const config = { runtime: "edge" };
 
-const ALLOWED_PATHS = {
+const ALLOWED_ENDPOINTS = {
   "device/code": "https://github.com/login/device/code",
   "oauth/access_token": "https://github.com/login/oauth/access_token",
 };
@@ -23,7 +23,6 @@ const ALLOWED_ORIGINS = new Set([
 function getCorsOrigin(req) {
   const origin = req.headers.get("origin") || "";
   if (ALLOWED_ORIGINS.has(origin)) return origin;
-  // Allow Vercel preview/production deployments
   if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return origin;
   if (!origin) return null;
   return null;
@@ -32,7 +31,6 @@ function getCorsOrigin(req) {
 export default async function handler(req) {
   const corsOrigin = getCorsOrigin(req);
 
-  // CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, {
       headers: {
@@ -51,19 +49,17 @@ export default async function handler(req) {
     return new Response("Forbidden", { status: 403 });
   }
 
-  // Extract the sub-path from the URL
   const url = new URL(req.url);
-  const subPath = url.pathname.replace(/^\/api\/github-login\//, "").replace(/\/$/, "");
-  const target = ALLOWED_PATHS[subPath];
+  const endpoint = url.searchParams.get("endpoint");
+  const target = ALLOWED_ENDPOINTS[endpoint];
 
   if (!target) {
-    return new Response(JSON.stringify({ error: "Unknown path" }), {
+    return new Response(JSON.stringify({ error: "Unknown endpoint" }), {
       status: 404,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  // Forward the body as-is — client sends application/x-www-form-urlencoded
   const reqBody = await req.text();
   const res = await fetch(target, {
     method: "POST",
@@ -80,7 +76,7 @@ export default async function handler(req) {
     status: res.status,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": corsOrigin,
+      ...(corsOrigin && { "Access-Control-Allow-Origin": corsOrigin }),
     },
   });
 }

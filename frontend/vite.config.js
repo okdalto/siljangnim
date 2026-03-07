@@ -10,10 +10,14 @@ export default defineConfig({
         target: 'ws://localhost:8000',
         ws: true,
       },
-      '/api/github-login': {
+      '/api/github-proxy': {
         target: 'https://github.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/github-login/, '/login'),
+        rewrite: (path) => {
+          const url = new URL(path, 'http://localhost');
+          const endpoint = url.searchParams.get('endpoint') || '';
+          return '/login/' + endpoint;
+        },
       },
       '/api': {
         target: 'http://localhost:8000',
