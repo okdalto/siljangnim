@@ -685,6 +685,16 @@ export default function App() {
             onProjectImport={project.handleProjectImport}
             onDeleteWorkspaceFile={handleDeleteWorkspaceFile}
             workspaceFilesVersion={workspaceFilesVersion}
+            customPanels={panels.customPanels}
+            onPanelClose={handlePanelClose}
+            onUniformChange={handleUniformChange}
+            keyframeManagerRef={kf.keyframeManagerRef}
+            onKeyframesChange={kf.handlePanelKeyframesChange}
+            onDurationChange={setDuration}
+            onLoopChange={setLoop}
+            onOpenKeyframeEditor={kf.handleOpenKeyframeEditor}
+            duration={duration}
+            loop={loop}
           />
         ) : (
           <ReactFlow
