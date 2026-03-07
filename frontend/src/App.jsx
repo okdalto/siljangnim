@@ -374,9 +374,15 @@ export default function App() {
 
   // Capture uncaught JS errors and send to agent
   useEffect(() => {
+    const IGNORE = [
+      "ResizeObserver", "AudioEncoder", "VideoEncoder", "MediaRecorder",
+      "captureStream", "codec", "NS_ERROR_",
+    ];
     const seen = new Set();
     const forward = (message) => {
       if (!message || seen.has(message)) return;
+      const lower = message.toLowerCase();
+      if (IGNORE.some((p) => lower.includes(p.toLowerCase()))) return;
       seen.add(message);
       setTimeout(() => seen.delete(message), 5000);
       sendRef.current?.({ type: "console_error", message });
