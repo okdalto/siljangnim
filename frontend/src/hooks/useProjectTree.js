@@ -1,0 +1,171 @@
+import { useCallback, useRef, useState } from "react";
+import * as storage from "../engine/storage.js";
+import * as projectTree from "../engine/projectTree.js";
+
+/**
+ * React hook for managing the project version tree.
+ *
+ * Provides: treeNodes, activeNodeId, sidebar visibility,
+ * node creation, restoration, branching, and deletion.
+ */
+export default function useProjectTree(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages) {
+  const [treeNodes, setTreeNodes] = useState([]);
+  const [activeNodeId, setActiveNodeId] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Ref to avoid stale closures
+  const activeNodeIdRef = useRef(activeNodeId);
+  activeNodeIdRef.current = activeNodeId;
+
+  /**
+   * Load all tree nodes for a project.
+   */
+  const loadTree = useCallback(async (projectName) => {
+    if (!projectName) {
+      setTreeNodes([]);
+      setActiveNodeId(null);
+      return;
+    }
+    try {
+      const nodes = await storage.listProjectNodes(projectName);
+      setTreeNodes(nodes);
+      // If we have nodes but no active node, set to the latest
+      if (nodes.length > 0) {
+        const sorted = [...nodes].sort((a, b) => b.createdAt - a.createdAt);
+        setActiveNodeId((prev) => {
+          // Keep current if it still exists
+          if (prev && nodes.some((n) => n.id === prev)) return prev;
+          return sorted[0].id;
+        });
+      }
+    } catch {
+      setTreeNodes([]);
+    }
+  }, []);
+
+  /**
+   * Ensure root node exists (lazy migration from flat project).
+   */
+  const ensureRoot = useCallback(async (projectName, currentState) => {
+    if (!projectName) return null;
+    const root = await projectTree.ensureRootNode(projectName, currentState);
+    await loadTree(projectName);
+    return root;
+  }, [loadTree]);
+
+  /**
+   * Create a node after a prompt completes.
+   */
+  const createNodeAfterPrompt = useCallback(async (projectName, currentState, opts = {}) => {
+    if (!projectName) return null;
+    const parentId = activeNodeIdRef.current;
+    const thumbnail = captureThumbnail?.() || null;
+    const node = await projectTree.createNodeAfterPrompt(
+      projectName, parentId, currentState,
+      { ...opts, thumbnailDataUrl: thumbnail }
+    );
+    setActiveNodeId(node.id);
+    await loadTree(projectName);
+    return node;
+  }, [captureThumbnail, loadTree]);
+
+  /**
+   * Overwrite the current active node in-place (instead of creating a child).
+   */
+  const overwriteCurrentNode = useCallback(async (projectName, currentState, opts = {}) => {
+    const nodeId = activeNodeIdRef.current;
+    if (!projectName || !nodeId) return null;
+    const thumbnail = captureThumbnail?.() || null;
+    const node = await projectTree.overwriteNode(nodeId, projectName, currentState, {
+      ...opts,
+      thumbnailDataUrl: thumbnail,
+    });
+    await loadTree(projectName);
+    return node;
+  }, [captureThumbnail, loadTree]);
+
+  /**
+   * Restore scene from a node (double-click).
+   * Returns the reconstructed state for the caller to apply.
+   */
+  const restoreNode = useCallback(async (nodeId, projectName) => {
+    const state = await projectTree.reconstructScene(nodeId, projectName);
+    setActiveNodeId(nodeId);
+    return state;
+  }, []);
+
+  /**
+   * Create a branch from a node.
+   */
+  const branchFromNode = useCallback(async (nodeId, projectName, title) => {
+    const node = await projectTree.createBranch(projectName, nodeId, title);
+    setActiveNodeId(node.id);
+    await loadTree(projectName);
+    return node;
+  }, [loadTree]);
+
+  /**
+   * Rename a node.
+   */
+  const renameNode = useCallback(async (nodeId, newTitle, projectName) => {
+    await projectTree.renameNode(nodeId, newTitle);
+    await loadTree(projectName);
+  }, [loadTree]);
+
+  /**
+   * Toggle favorite tag on a node.
+   */
+  const toggleFavorite = useCallback(async (nodeId, projectName) => {
+    await projectTree.toggleNodeTag(nodeId, "favorite");
+    await loadTree(projectName);
+  }, [loadTree]);
+
+  /**
+   * Pin a node as checkpoint (duplicate as checkpoint).
+   */
+  const pinCheckpoint = useCallback(async (nodeId, projectName) => {
+    await projectTree.duplicateAsCheckpoint(projectName, nodeId);
+    await loadTree(projectName);
+  }, [loadTree]);
+
+  /**
+   * Delete a node and its descendants.
+   */
+  const deleteNodeTree = useCallback(async (nodeId, projectName) => {
+    await projectTree.deleteNodeTree(nodeId, projectName);
+    // If deleted node was active, switch to its parent or root
+    if (activeNodeIdRef.current === nodeId) {
+      const nodes = await storage.listProjectNodes(projectName);
+      if (nodes.length > 0) {
+        const sorted = [...nodes].sort((a, b) => b.createdAt - a.createdAt);
+        setActiveNodeId(sorted[0].id);
+      } else {
+        setActiveNodeId(null);
+      }
+    }
+    await loadTree(projectName);
+  }, [loadTree]);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen((prev) => !prev);
+  }, []);
+
+  return {
+    treeNodes,
+    activeNodeId,
+    setActiveNodeId,
+    sidebarOpen,
+    setSidebarOpen,
+    toggleSidebar,
+    loadTree,
+    ensureRoot,
+    createNodeAfterPrompt,
+    overwriteCurrentNode,
+    restoreNode,
+    branchFromNode,
+    renameNode,
+    toggleFavorite,
+    pinCheckpoint,
+    deleteNodeTree,
+  };
+}

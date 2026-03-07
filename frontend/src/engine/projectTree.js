@@ -1,0 +1,552 @@
+/**
+ * Project Tree — core logic for tree-based version history.
+ *
+ * Manages ProjectNode CRUD, snapshot/patch storage, tree traversal,
+ * and scene reconstruction from checkpoint + patch chain.
+ */
+
+import { diff, apply } from "./jsonPatch.js";
+import * as storage from "./storage.js";
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const CHECKPOINT_INTERVAL = 10; // full snapshot every N nodes
+const MAX_PATCH_CHAIN = 15;     // force checkpoint if chain exceeds this
+
+// ---------------------------------------------------------------------------
+// Snapshot helpers
+// ---------------------------------------------------------------------------
+
+function buildSnapshot(sceneJson, uiConfig, workspaceState, panels, chatHistory, debugLogs) {
+  return {
+    version: 1,
+    scene_json: sceneJson || {},
+    ui_config: uiConfig || {},
+    workspace_state: workspaceState || {},
+    panels: panels || {},
+    chat_history: chatHistory || [],
+    debug_logs: debugLogs || [],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Tree traversal
+// ---------------------------------------------------------------------------
+
+/**
+ * Walk from `nodeId` toward the root, collecting the chain.
+ * Returns [checkpoint, ...patches, target] in root-to-leaf order.
+ */
+async function walkToCheckpoint(nodeId) {
+  const chain = [];
+  let currentId = nodeId;
+
+  while (currentId) {
+    const node = await storage.readNode(currentId);
+    chain.unshift(node);
+    if (node.isCheckpoint) break;
+    currentId = node.parentId;
+  }
+
+  return chain;
+}
+
+/**
+ * Count the number of patch nodes between a node and its nearest ancestor checkpoint.
+ */
+async function patchChainLength(parentId) {
+  let count = 0;
+  let currentId = parentId;
+  while (currentId) {
+    const node = await storage.readNode(currentId);
+    if (node.isCheckpoint) break;
+    count++;
+    currentId = node.parentId;
+  }
+  return count;
+}
+
+/**
+ * Count total nodes in project.
+ */
+async function nodeCount(projectName) {
+  const nodes = await storage.listProjectNodes(projectName);
+  return nodes.length;
+}
+
+// ---------------------------------------------------------------------------
+// Core API
+// ---------------------------------------------------------------------------
+
+/**
+ * Ensure a root node exists for the given project (lazy migration).
+ * If no nodes exist, creates a root checkpoint from the current project state.
+ */
+export async function ensureRootNode(projectName, currentState) {
+  const nodes = await storage.listProjectNodes(projectName);
+  if (nodes.length > 0) {
+    return nodes.find((n) => n.parentId === null) || nodes[0];
+  }
+
+  // Create root checkpoint
+  const nodeId = crypto.randomUUID();
+  const snapshot = buildSnapshot(
+    currentState.scene_json,
+    currentState.ui_config,
+    currentState.workspace_state,
+    currentState.panels,
+    currentState.chat_history,
+    currentState.debug_logs
+  );
+
+  const snapshotKey = `${projectName}/_snapshots/${nodeId}.json`;
+  await storage.writeFile(snapshotKey, snapshot);
+
+  const node = {
+    id: nodeId,
+    projectName,
+    parentId: null,
+    type: "prompt_node",
+    title: "Initial State",
+    prompt: null,
+    summary: null,
+    createdAt: Date.now(),
+    isCheckpoint: true,
+    snapshotRef: snapshotKey,
+    patchRef: null,
+    thumbnailRef: null,
+    tags: [],
+    metadata: {},
+  };
+
+  await storage.writeNode(node);
+  return node;
+}
+
+/**
+ * Create a new node after a prompt is completed.
+ *
+ * @param {string} projectName
+ * @param {string} parentNodeId - current active node
+ * @param {object} currentState - { scene_json, ui_config, workspace_state, panels, chat_history, debug_logs }
+ * @param {object} opts - { title, prompt, type, thumbnailDataUrl }
+ * @returns {object} the created ProjectNode
+ */
+export async function createNodeAfterPrompt(projectName, parentNodeId, currentState, opts = {}) {
+  const nodeId = crypto.randomUUID();
+  const {
+    title = "Untitled",
+    prompt = null,
+    type = "prompt_node",
+    thumbnailDataUrl = null,
+  } = opts;
+
+  const currentSnapshot = buildSnapshot(
+    currentState.scene_json,
+    currentState.ui_config,
+    currentState.workspace_state,
+    currentState.panels,
+    currentState.chat_history,
+    currentState.debug_logs
+  );
+
+  // Determine if this should be a checkpoint
+  const count = await nodeCount(projectName);
+  const chainLen = parentNodeId ? await patchChainLength(parentNodeId) : 0;
+  const shouldCheckpoint =
+    !parentNodeId ||
+    count % CHECKPOINT_INTERVAL === 0 ||
+    chainLen >= MAX_PATCH_CHAIN;
+
+  let snapshotRef = null;
+  let patchRef = null;
+
+  if (shouldCheckpoint) {
+    // Store full snapshot
+    snapshotRef = `${projectName}/_snapshots/${nodeId}.json`;
+    await storage.writeFile(snapshotRef, currentSnapshot);
+  } else {
+    // Store patch relative to parent
+    const parentChain = await walkToCheckpoint(parentNodeId);
+    const parentSnapshot = await reconstructFromChain(parentChain);
+    const ops = diff(parentSnapshot, currentSnapshot);
+
+    if (ops.length === 0) {
+      // No changes — still create node but as checkpoint for simplicity
+      snapshotRef = `${projectName}/_snapshots/${nodeId}.json`;
+      await storage.writeFile(snapshotRef, currentSnapshot);
+    } else {
+      patchRef = `${projectName}/_patches/${nodeId}.json`;
+      await storage.writeFile(patchRef, {
+        version: 1,
+        parentNodeId,
+        ops,
+      });
+    }
+  }
+
+  // Save thumbnail
+  if (thumbnailDataUrl) {
+    await storage.writeNodeThumbnail(projectName, nodeId, thumbnailDataUrl);
+  }
+
+  const node = {
+    id: nodeId,
+    projectName,
+    parentId: parentNodeId,
+    type,
+    title,
+    prompt,
+    summary: null,
+    createdAt: Date.now(),
+    isCheckpoint: shouldCheckpoint || !patchRef,
+    snapshotRef: snapshotRef,
+    patchRef: patchRef,
+    thumbnailRef: thumbnailDataUrl ? `${projectName}/_thumbs/${nodeId}.jpg` : null,
+    tags: [],
+    metadata: {},
+  };
+
+  await storage.writeNode(node);
+  return node;
+}
+
+/**
+ * Overwrite an existing node's state (update in-place instead of creating child).
+ */
+export async function overwriteNode(nodeId, projectName, currentState, opts = {}) {
+  const node = await storage.readNode(nodeId);
+  if (!node) throw new Error(`Node not found: ${nodeId}`);
+
+  const snapshot = buildSnapshot(
+    currentState.scene_json,
+    currentState.ui_config,
+    currentState.workspace_state,
+    currentState.panels,
+    currentState.chat_history,
+    currentState.debug_logs
+  );
+
+  // Always store as checkpoint when overwriting
+  const snapshotRef = `${projectName}/_snapshots/${nodeId}.json`;
+  await storage.writeFile(snapshotRef, snapshot);
+
+  // Update thumbnail if provided
+  if (opts.thumbnailDataUrl) {
+    await storage.writeNodeThumbnail(projectName, nodeId, opts.thumbnailDataUrl);
+    node.thumbnailRef = `${projectName}/_thumbs/${nodeId}.jpg`;
+  }
+
+  node.isCheckpoint = true;
+  node.snapshotRef = snapshotRef;
+  node.patchRef = null;
+  if (opts.prompt) node.prompt = opts.prompt;
+  if (opts.title) node.title = opts.title;
+
+  await storage.writeNode(node);
+  return node;
+}
+
+/**
+ * Create a branch from an existing node (fork point).
+ * Returns the branch node (same state as source but new ID).
+ */
+export async function createBranch(projectName, sourceNodeId, title = "Branch") {
+  const sourceState = await reconstructScene(sourceNodeId, projectName);
+  const node = await createNodeAfterPrompt(projectName, sourceNodeId, sourceState, {
+    title,
+    type: "prompt_node",
+  });
+  return node;
+}
+
+/**
+ * Duplicate a node as a new checkpoint (for pinning).
+ */
+export async function duplicateAsCheckpoint(projectName, sourceNodeId) {
+  const state = await reconstructScene(sourceNodeId, projectName);
+  const nodeId = crypto.randomUUID();
+  const snapshotRef = `${projectName}/_snapshots/${nodeId}.json`;
+  await storage.writeFile(snapshotRef, state);
+
+  const sourceNode = await storage.readNode(sourceNodeId);
+  const node = {
+    ...sourceNode,
+    id: nodeId,
+    parentId: sourceNode.parentId,
+    isCheckpoint: true,
+    snapshotRef,
+    patchRef: null,
+    createdAt: Date.now(),
+    tags: [...(sourceNode.tags || [])],
+  };
+  await storage.writeNode(node);
+  return node;
+}
+
+/**
+ * Rename a node.
+ */
+export async function renameNode(nodeId, newTitle) {
+  const node = await storage.readNode(nodeId);
+  node.title = newTitle;
+  await storage.writeNode(node);
+  return node;
+}
+
+/**
+ * Toggle a tag on a node.
+ */
+export async function toggleNodeTag(nodeId, tag) {
+  const node = await storage.readNode(nodeId);
+  const idx = node.tags.indexOf(tag);
+  if (idx >= 0) {
+    node.tags.splice(idx, 1);
+  } else {
+    node.tags.push(tag);
+  }
+  await storage.writeNode(node);
+  return node;
+}
+
+// ---------------------------------------------------------------------------
+// Scene reconstruction
+// ---------------------------------------------------------------------------
+
+/**
+ * Reconstruct the full scene state at a given chain of nodes
+ * (first node must be a checkpoint).
+ */
+async function reconstructFromChain(chain) {
+  if (chain.length === 0) {
+    return buildSnapshot({}, {}, {}, {}, [], []);
+  }
+
+  const checkpoint = chain[0];
+  if (!checkpoint.isCheckpoint || !checkpoint.snapshotRef) {
+    throw new Error(`Chain root is not a checkpoint: ${checkpoint.id}`);
+  }
+
+  let state = await storage.readFile(checkpoint.snapshotRef);
+
+  // Apply patches in order
+  for (let i = 1; i < chain.length; i++) {
+    const node = chain[i];
+    if (node.isCheckpoint && node.snapshotRef) {
+      // This node has its own snapshot — use it directly
+      state = await storage.readFile(node.snapshotRef);
+    } else if (node.patchRef) {
+      const patch = await storage.readFile(node.patchRef);
+      state = apply(structuredClone(state), patch.ops);
+    }
+  }
+
+  return state;
+}
+
+/**
+ * Reconstruct the full scene state at a given node.
+ *
+ * Algorithm:
+ * 1. Walk from target to nearest ancestor checkpoint
+ * 2. Load checkpoint snapshot
+ * 3. Apply each patch in order
+ * 4. Return final state
+ */
+export async function reconstructScene(nodeId, projectName) {
+  const chain = await walkToCheckpoint(nodeId);
+  return reconstructFromChain(chain);
+}
+
+// ---------------------------------------------------------------------------
+// Auto-summary and metadata extraction
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract metadata from a scene state snapshot.
+ */
+export function extractMetadata(state) {
+  const scene = state.scene_json || {};
+  const ws = state.workspace_state || {};
+  const ui = state.ui_config || {};
+
+  const uniforms = scene.uniforms || {};
+  const uniformKeys = Object.keys(uniforms);
+
+  // Count shaders (script sections)
+  let shaderCount = 0;
+  if (scene.script) {
+    if (scene.script.setup) shaderCount++;
+    if (scene.script.render) shaderCount++;
+    if (scene.script.cleanup) shaderCount++;
+  }
+
+  // Check for assets (uploads referenced in code)
+  const code = [scene.script?.setup, scene.script?.render, scene.script?.cleanup].filter(Boolean).join("\n");
+  const assetCount = (code.match(/uploads\//g) || []).length;
+
+  // Check features
+  const hasTimeline = !!(ws.keyframes && Object.keys(ws.keyframes).length > 0);
+  const hasAudioReactive = uniformKeys.some((k) => k.includes("audio") || k.includes("fft") || k.includes("beat"));
+  const hasTracking = uniformKeys.some((k) => k.includes("face") || k.includes("hand") || k.includes("pose") || k.includes("track"));
+  const has3D = code.includes("mat4") || code.includes("perspective") || code.includes("gl_Position") || code.includes("DEPTH_BUFFER_BIT");
+
+  return {
+    shaderCount,
+    assetCount,
+    hasTimeline,
+    hasAudioReactive,
+    hasTracking,
+    has3D,
+    uniformCount: uniformKeys.length,
+    controlCount: (ui.controls || []).length,
+    backendTarget: scene.backendTarget || "auto",
+  };
+}
+
+/**
+ * Generate a summary from the last assistant message in chat history.
+ */
+export function extractSummary(chatHistory) {
+  if (!chatHistory || chatHistory.length === 0) return null;
+
+  // Find the last assistant message
+  for (let i = chatHistory.length - 1; i >= 0; i--) {
+    const msg = chatHistory[i];
+    if (msg.role === "assistant") {
+      const text = msg.text || msg.content || "";
+      // Take first 200 chars as summary
+      return text.slice(0, 200).replace(/\n/g, " ").trim() || null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Auto-generate tags from metadata.
+ */
+export function autoTags(metadata) {
+  const tags = [];
+  if (metadata.has3D) tags.push("3D");
+  if (metadata.hasAudioReactive) tags.push("audio-reactive");
+  if (metadata.hasTimeline) tags.push("animated");
+  if (metadata.hasTracking) tags.push("tracking");
+  if (metadata.shaderCount > 3) tags.push("multi-shader");
+  if (metadata.assetCount > 0) tags.push("assets");
+  return tags;
+}
+
+/**
+ * Update a node's summary, metadata, and auto-tags.
+ */
+export async function updateNodeMetadata(nodeId, state) {
+  try {
+    const node = await storage.readNode(nodeId);
+    const metadata = extractMetadata(state);
+    const summary = extractSummary(state.chat_history);
+    const tags = autoTags(metadata);
+
+    node.metadata = metadata;
+    if (summary) node.summary = summary;
+    // Merge auto-tags with existing user tags (like "favorite")
+    const AUTO_TAG_SET = new Set(["3D", "audio-reactive", "animated", "tracking", "multi-shader", "assets"]);
+    const existingUserTags = (node.tags || []).filter((t) => !AUTO_TAG_SET.has(t));
+    node.tags = [...new Set([...existingUserTags, ...tags])];
+
+    await storage.writeNode(node);
+    return node;
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Tree utilities
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a tree structure from flat node list.
+ * Returns { roots: [...], childrenMap: Map<parentId, children[]> }
+ */
+export function buildTree(nodes) {
+  const childrenMap = new Map();
+  const roots = [];
+
+  // Sort by createdAt for consistent ordering
+  const sorted = [...nodes].sort((a, b) => a.createdAt - b.createdAt);
+
+  for (const node of sorted) {
+    if (!childrenMap.has(node.id)) {
+      childrenMap.set(node.id, []);
+    }
+    if (node.parentId === null) {
+      roots.push(node);
+    } else {
+      if (!childrenMap.has(node.parentId)) {
+        childrenMap.set(node.parentId, []);
+      }
+      childrenMap.get(node.parentId).push(node);
+    }
+  }
+
+  return { roots, childrenMap };
+}
+
+/**
+ * Get all ancestor IDs from a node to root.
+ */
+export function getAncestorIds(nodeId, nodesMap) {
+  const ancestors = [];
+  let currentId = nodeId;
+  while (currentId) {
+    const node = nodesMap.get(currentId);
+    if (!node) break;
+    ancestors.push(currentId);
+    currentId = node.parentId;
+  }
+  return ancestors;
+}
+
+/**
+ * Get all descendant IDs of a node (for deletion).
+ */
+export function getDescendantIds(nodeId, childrenMap) {
+  const descendants = [];
+  const stack = [nodeId];
+  while (stack.length > 0) {
+    const id = stack.pop();
+    const children = childrenMap.get(id) || [];
+    for (const child of children) {
+      descendants.push(child.id);
+      stack.push(child.id);
+    }
+  }
+  return descendants;
+}
+
+/**
+ * Delete a node and all its descendants.
+ */
+export async function deleteNodeTree(nodeId, projectName) {
+  const allNodes = await storage.listProjectNodes(projectName);
+  const { childrenMap } = buildTree(allNodes);
+  const idsToDelete = [nodeId, ...getDescendantIds(nodeId, childrenMap)];
+
+  for (const id of idsToDelete) {
+    try {
+      const node = await storage.readNode(id);
+      // Clean up snapshot/patch files
+      if (node.snapshotRef) {
+        try { await storage.deleteFile(node.snapshotRef); } catch { /* ok */ }
+      }
+      if (node.patchRef) {
+        try { await storage.deleteFile(node.patchRef); } catch { /* ok */ }
+      }
+      await storage.deleteNode(id);
+    } catch { /* node might already be deleted */ }
+  }
+
+  return idsToDelete;
+}
