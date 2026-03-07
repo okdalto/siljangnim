@@ -64,19 +64,19 @@ export default async function handler(req) {
   }
 
   // Forward the body as-is — client sends application/x-www-form-urlencoded
-  const body = await req.text();
+  const reqBody = await req.text();
   const res = await fetch(target, {
     method: "POST",
     headers: {
       Accept: "application/json",
       "Content-Type": req.headers.get("content-type") || "application/x-www-form-urlencoded",
     },
-    body,
+    body: reqBody,
   });
 
-  const body = await res.text();
+  const resBody = await res.text();
 
-  return new Response(body, {
+  return new Response(resBody, {
     status: res.status,
     headers: {
       "Content-Type": "application/json",

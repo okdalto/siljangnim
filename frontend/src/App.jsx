@@ -493,31 +493,6 @@ export default function App() {
     if (BROWSER_ONLY) send({ type: "request_state" });
   }, [send]);
 
-  // Capture uncaught JS errors and send to agent
-  useEffect(() => {
-    const IGNORE = [
-      "ResizeObserver", "AudioEncoder", "VideoEncoder", "MediaRecorder",
-      "captureStream", "codec", "NS_ERROR_",
-    ];
-    const seen = new Set();
-    const forward = (message) => {
-      if (!message || seen.has(message)) return;
-      const lower = message.toLowerCase();
-      if (IGNORE.some((p) => lower.includes(p.toLowerCase()))) return;
-      seen.add(message);
-      setTimeout(() => seen.delete(message), 5000);
-      sendRef.current?.({ type: "console_error", message });
-    };
-    const onError = (e) => forward(e.message || String(e.error || e));
-    const onRejection = (e) => forward(e.reason?.message || String(e.reason || "Unhandled promise rejection"));
-    window.addEventListener("error", onError);
-    window.addEventListener("unhandledrejection", onRejection);
-    return () => {
-      window.removeEventListener("error", onError);
-      window.removeEventListener("unhandledrejection", onRejection);
-    };
-  }, []);
-
   // Warn before closing tab with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -927,9 +902,10 @@ export default function App() {
           />
         )}
 
-        {!isMobile && (
+        {(!isMobile || tree.sidebarOpen) && (
           <ProjectTreeSidebar
             isOpen={tree.sidebarOpen}
+            isMobile={isMobile}
             treeNodes={tree.treeNodes}
             activeNodeId={tree.activeNodeId}
             projectName={storageApi.getActiveProjectName()}

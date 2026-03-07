@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import ProjectTreeNode from "./ProjectTreeNode.jsx";
 import ProjectTreeContextMenu from "./ProjectTreeContextMenu.jsx";
 import SaveProjectForm from "./SaveProjectForm.jsx";
 import ProjectListItem from "./ProjectListItem.jsx";
 import GitHubAuthButton from "./GitHubAuthButton.jsx";
-import { buildTree, getAncestorIds } from "../engine/projectTree.js";
+import VersionTreeCanvas from "./VersionTreeCanvas.jsx";
 
 export default function ProjectTreeSidebar({
   isOpen,
+  isMobile,
   treeNodes,
   activeNodeId,
   projectName,
@@ -40,7 +40,6 @@ export default function ProjectTreeSidebar({
   onGitHubLoad,
   onExportZip,
 }) {
-  const [expandedIds, setExpandedIds] = useState(new Set());
   const [contextMenu, setContextMenu] = useState(null);
   const [saving, setSaving] = useState(false);
   const [savedFeedback, setSavedFeedback] = useState(false);
@@ -48,24 +47,11 @@ export default function ProjectTreeSidebar({
   const savedTimerRef = useRef(null);
   const importInputRef = useRef(null);
 
-  const { roots, childrenMap } = buildTree(treeNodes);
-  const nodesMap = new Map(treeNodes.map((n) => [n.id, n]));
-  const ancestorIds = activeNodeId ? new Set(getAncestorIds(activeNodeId, nodesMap)) : new Set();
-
   // Listen for global Cmd+S when no active project
   useEffect(() => {
     const handleOpenSave = () => setSaving(true);
     window.addEventListener("open-save-dialog", handleOpenSave);
     return () => window.removeEventListener("open-save-dialog", handleOpenSave);
-  }, []);
-
-  const toggleExpand = useCallback((nodeId) => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(nodeId)) next.delete(nodeId);
-      else next.add(nodeId);
-      return next;
-    });
   }, []);
 
   const handleContextMenu = useCallback((e, node) => {
@@ -139,45 +125,14 @@ export default function ProjectTreeSidebar({
     }
   }, [activeProject]);
 
-  const renderNode = (node, depth = 0) => {
-    const children = childrenMap.get(node.id) || [];
-    const hasChildren = children.length > 0;
-    const isExpanded = expandedIds.has(node.id) || ancestorIds.has(node.id);
-    const isCompareSource = compareSourceId === node.id;
-
-    return (
-      <div key={node.id}>
-        <ProjectTreeNode
-          node={node}
-          depth={depth}
-          isActive={node.id === activeNodeId}
-          isExpanded={isExpanded}
-          hasChildren={hasChildren}
-          onSelect={handleNodeSelect}
-          onDoubleClick={onDoubleClickNode}
-          onContextMenu={handleContextMenu}
-          onToggleExpand={toggleExpand}
-          projectName={projectName}
-          isCompareSource={isCompareSource}
-          isCompareMode={!!compareSourceId}
-        />
-        {isExpanded && hasChildren && (
-          <div>
-            {children.map((child) => renderNode(child, depth + 1))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <>
       <div
-        className="fixed top-10 left-0 bottom-10 z-30 flex flex-col overflow-hidden"
+        className={`fixed left-0 z-30 flex flex-col overflow-hidden ${isMobile ? "top-10 bottom-20" : "top-10 bottom-10"}`}
         style={{
-          width: isOpen ? 256 : 0,
+          width: isOpen ? (isMobile ? "100%" : 256) : 0,
           background: "var(--chrome-bg)",
-          borderRight: isOpen ? "1px solid var(--chrome-border)" : "none",
+          borderRight: isOpen && !isMobile ? "1px solid var(--chrome-border)" : "none",
           transition: "width 0.2s ease",
         }}
       >
@@ -362,21 +317,17 @@ export default function ProjectTreeSidebar({
               </span>
             </div>
 
-            {/* ── Tree content ── */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden py-1">
-              {roots.length === 0 ? (
-                <div
-                  className="px-3 py-4 text-xs text-center"
-                  style={{ color: "var(--chrome-text-muted)" }}
-                >
-                  No version history yet.
-                  <br />
-                  Send a prompt to start.
-                </div>
-              ) : (
-                roots.map((root) => renderNode(root, 0))
-              )}
-            </div>
+            {/* ── Tree content (canvas) ── */}
+            <VersionTreeCanvas
+              treeNodes={treeNodes}
+              activeNodeId={activeNodeId}
+              projectName={projectName}
+              onSelectNode={handleNodeSelect}
+              onDoubleClickNode={onDoubleClickNode}
+              onContextMenu={handleContextMenu}
+              compareSourceId={compareSourceId}
+              isCompareMode={!!compareSourceId}
+            />
           </>
         )}
       </div>
