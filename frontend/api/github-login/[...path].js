@@ -23,6 +23,8 @@ const ALLOWED_ORIGINS = new Set([
 function getCorsOrigin(req) {
   const origin = req.headers.get("origin") || "";
   if (ALLOWED_ORIGINS.has(origin)) return origin;
+  // Allow Vercel preview/production deployments
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return origin;
   if (!origin) return null;
   return null;
 }
@@ -61,13 +63,15 @@ export default async function handler(req) {
     });
   }
 
+  // Forward the body as-is — client sends application/x-www-form-urlencoded
+  const body = await req.text();
   const res = await fetch(target, {
     method: "POST",
     headers: {
       Accept: "application/json",
-      "Content-Type": "application/json",
+      "Content-Type": req.headers.get("content-type") || "application/x-www-form-urlencoded",
     },
-    body: req.body,
+    body,
   });
 
   const body = await res.text();
