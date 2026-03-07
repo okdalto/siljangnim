@@ -117,7 +117,7 @@ function CustomPanelNode({ data, standalone = false, hideHeader = false }) {
 
   return (
     <div
-      className={`w-full h-full flex flex-col overflow-hidden ${standalone ? "" : "rounded-xl shadow-2xl"}`}
+      className={`w-full ${collapsed ? "h-auto" : "h-full"} flex flex-col overflow-hidden ${standalone ? "" : "rounded-xl shadow-2xl"}`}
       style={standalone ? { background: "var(--node-bg)" } : { background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
     >
       {!standalone && (
