@@ -497,7 +497,7 @@ export async function newUntitledWorkspace() {
 // Project export/import (ZIP)
 // ---------------------------------------------------------------------------
 
-export async function exportProjectZip(name) {
+export async function exportProjectZip(name, { includeChat = true } = {}) {
   // Simple implementation: serialize all project data as JSON
   const sanitized = sanitizeName(name);
   const store = await tx(STORE_PROJECTS);
@@ -509,8 +509,10 @@ export async function exportProjectZip(name) {
   const prefix = `${sanitized}/`;
   const files = {};
   for (const key of allKeys.filter((k) => k.startsWith(prefix))) {
+    const relPath = key.slice(prefix.length);
+    if (!includeChat && relPath === "chat_history.json") continue;
     const fs = await tx(STORE_FILES);
-    files[key.slice(prefix.length)] = await idbReq(fs.get(key));
+    files[relPath] = await idbReq(fs.get(key));
   }
 
   return JSON.stringify({ meta, files }, null, 2);

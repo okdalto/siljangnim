@@ -3,6 +3,7 @@ import FileTree from "./fileBrowser/FileTree.jsx";
 import FilePreview from "./fileBrowser/FilePreview.jsx";
 import CodePreviewPanel from "./CodePreviewPanel.jsx";
 import { timeAgo } from "../utils/timeFormat.js";
+import { exportProjectZip } from "../engine/storage.js";
 
 const API_BASE = import.meta.env.DEV
   ? `http://${window.location.hostname}:8000`
@@ -78,6 +79,10 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [filePreview, setFilePreview] = useState(null);
 
+  // Export menu
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef(null);
+
   useEffect(() => {
     if (confirmDelete) {
       deleteTimerRef.current = setTimeout(() => setConfirmDelete(false), 3000);
@@ -125,12 +130,16 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
     setConfirmDelete(false);
   };
 
-  const handleExport = useCallback(async (e) => {
+  const handleExportClick = useCallback((e) => {
     e.stopPropagation();
+    setExportMenuOpen((v) => !v);
+  }, []);
+
+  const doExport = useCallback(async (includeChat) => {
+    setExportMenuOpen(false);
     try {
-      const res = await fetch(`${API_BASE}/api/projects/${encodeURIComponent(p.name)}/export`);
-      if (!res.ok) return;
-      const blob = await res.blob();
+      const jsonStr = await exportProjectZip(p.name, { includeChat });
+      const blob = new Blob([jsonStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -139,6 +148,18 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
       URL.revokeObjectURL(url);
     } catch { /* ignore */ }
   }, [p.name, p.display_name]);
+
+  // Close export menu on outside click
+  useEffect(() => {
+    if (!exportMenuOpen) return;
+    const handler = (e) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) {
+        setExportMenuOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", handler);
+    return () => document.removeEventListener("pointerdown", handler);
+  }, [exportMenuOpen]);
 
   const handleBrowseFiles = useCallback(async (e) => {
     e.stopPropagation();
@@ -232,13 +253,36 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
                   >
                     <FolderBrowseIcon />
                   </button>
-                  <button
-                    onClick={handleExport}
-                    className="text-zinc-500 hover:text-zinc-300 transition-colors"
-                    title="Export as ZIP"
-                  >
-                    <DownloadIcon />
-                  </button>
+                  <div className="relative" ref={exportMenuRef}>
+                    <button
+                      onClick={handleExportClick}
+                      className={`transition-colors ${exportMenuOpen ? "text-indigo-400" : "text-zinc-500 hover:text-zinc-300"}`}
+                      title="Export as ZIP"
+                    >
+                      <DownloadIcon />
+                    </button>
+                    {exportMenuOpen && (
+                      <div
+                        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 rounded-lg shadow-xl py-1 text-xs z-50 whitespace-nowrap"
+                        style={{ background: "var(--chrome-bg-elevated)", border: "1px solid var(--chrome-border)" }}
+                      >
+                        <button
+                          onClick={(e) => { e.stopPropagation(); doExport(true); }}
+                          className="w-full text-left px-3 py-1.5 hover:bg-zinc-700 transition-colors"
+                          style={{ color: "var(--chrome-text)" }}
+                        >
+                          Export (with chat)
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); doExport(false); }}
+                          className="w-full text-left px-3 py-1.5 hover:bg-zinc-700 transition-colors"
+                          style={{ color: "var(--chrome-text)" }}
+                        >
+                          Export (no chat)
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <button
                     onClick={handleDeleteClick}
                     className="text-zinc-500 hover:text-red-400 transition-colors"
