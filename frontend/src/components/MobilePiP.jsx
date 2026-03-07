@@ -24,7 +24,7 @@ export default function MobilePiP({ engineRef, onTap, onClose }) {
 
   return (
     <div
-      className={`fixed bottom-14 right-3 z-40 transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
+      className={`fixed bottom-24 right-3 z-40 transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
       style={{ width: 144, height: 81 }}
     >
       <img
