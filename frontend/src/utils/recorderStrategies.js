@@ -159,7 +159,7 @@ export function startOfflineWebCodecs(ctx) {
   const configs = format === "mp4"
     ? {
         MuxerClass: Mp4Muxer, TargetClass: Mp4Target,
-        muxerVideoCodec: "avc", encoderCodec: "avc1.4d0032",
+        muxerVideoCodec: "avc", encoderCodec: "avc1.42001f",
         blobType: "video/mp4", fileExt: "mp4",
         muxerExtraOpts: { fastStart: "in-memory" },
         audioCodecMuxer: "aac", audioCodecEncoder: "aac",
@@ -476,7 +476,7 @@ export function startRealtimeMp4(ctx) {
     error: (e) => console.error("VideoEncoder error:", e),
   });
   encoder.configure({
-    codec: "avc1.4d0032",
+    codec: "avc1.42001f",
     width: canvas.width,
     height: canvas.height,
     bitrate: videoBitsPerSecond,
