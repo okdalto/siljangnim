@@ -81,6 +81,7 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename }) {
 
   // Export menu
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [exportMenuPos, setExportMenuPos] = useState({ top: 0, right: 0 });
   const exportMenuRef = useRef(null);
 
   useEffect(() => {
@@ -132,6 +133,8 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename }) {
 
   const handleExportClick = useCallback((e) => {
     e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setExportMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
     setExportMenuOpen((v) => !v);
   }, []);
 
@@ -269,8 +272,8 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename }) {
                         style={{
                           background: "var(--chrome-bg-elevated)",
                           border: "1px solid var(--chrome-border)",
-                          top: exportMenuRef.current?.getBoundingClientRect().bottom + 4,
-                          right: window.innerWidth - (exportMenuRef.current?.getBoundingClientRect().right || 0),
+                          top: exportMenuPos.top,
+                          right: exportMenuPos.right,
                         }}
                       >
                         <button
