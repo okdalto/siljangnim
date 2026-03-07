@@ -12,14 +12,26 @@ export default function useUniformHistory(engineRef, sendRef, sceneJSON, uiConfi
   const uniformCoalesceRef = useRef({ uniform: null, timer: null });
   const uniformValuesRef = useRef({});
 
-  // Initialize uniform tracking from sceneJSON (live engine values = ground truth).
+  // Sync uniform tracking from sceneJSON.
+  // When the agent modifies uniforms via write_scene / write_file,
+  // detect changed values and dispatch external-change events so
+  // control components update their local state.
   useEffect(() => {
-    if (sceneJSON?.uniforms) {
-      const vals = uniformValuesRef.current;
-      for (const [name, def] of Object.entries(sceneJSON.uniforms)) {
-        if (def.value !== undefined && !(name in vals)) {
-          vals[name] = def.value;
-        }
+    if (!sceneJSON?.uniforms) return;
+    const vals = uniformValuesRef.current;
+    for (const [name, def] of Object.entries(sceneJSON.uniforms)) {
+      if (def.value === undefined) continue;
+      const prev = vals[name];
+      const next = def.value;
+      // Check if the value actually changed (deep compare for arrays)
+      const changed = prev === undefined
+        ? false // first init — no event needed, just track
+        : Array.isArray(next) && Array.isArray(prev)
+          ? next.length !== prev.length || next.some((v, i) => v !== prev[i])
+          : prev !== next;
+      vals[name] = next;
+      if (changed) {
+        window.dispatchEvent(new CustomEvent("uniform-external-change", { detail: { uniform: name, value: next } }));
       }
     }
   }, [sceneJSON]);
