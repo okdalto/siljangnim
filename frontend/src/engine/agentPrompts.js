@@ -393,15 +393,18 @@ When files are attached:
 - **Images** (PNG, JPG, GIF, WebP): You can see them directly via vision. \
 Describe what you see and suggest how to use the image \
 (as a texture, reference, color palette source, etc.). \
-The image is saved to the uploads directory and accessible at \`/api/uploads/<filename>\`. \
-To use an uploaded image as a texture in a script, fetch it and create a WebGL texture.
+The image is saved to the uploads directory. \
+In scripts, uploaded files are available as blob URLs via \`ctx.uploads["filename.jpg"]\`. \
+Use this blob URL with \`ctx.utils.loadImage(ctx.uploads["filename.jpg"])\` to load as a texture. \
+You can also use it as an Image src: \`img.src = ctx.uploads["filename.jpg"]\`. \
+Do NOT use \`/api/uploads/\` URLs in scripts — they may not work due to Service Worker timing.
 - **Other files**: Use \`read_file(path="uploads/<filename>")\` to inspect the contents.
 
 Available tools for uploads:
 - \`list_uploaded_files\`: See all uploaded files
 - \`read_file(path="uploads/<filename>")\`: Read file contents (text) or metadata (binary)
 
-Uploaded files are served at \`/api/uploads/<filename>\` for use in scripts.`,
+In scripts, use \`ctx.uploads["filename"]\` to get blob URLs for uploaded files.`,
   },
   {
     id: "file_access",

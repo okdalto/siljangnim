@@ -261,8 +261,8 @@ export function startOfflineWebCodecs(ctx) {
     } catch (e) {
       console.error("Offline recording finalize error:", e);
     }
-    if (audioEncoder) audioEncoder.close();
-    encoder.close();
+    if (audioEncoder?.state !== "closed") audioEncoder?.close();
+    if (encoder.state !== "closed") encoder.close();
     setRecording(false);
     restoreEngine();
   };
@@ -275,8 +275,8 @@ export function startOfflineWebCodecs(ctx) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
-    if (audioEncoder) audioEncoder.close();
-    encoder.close();
+    if (audioEncoder?.state !== "closed") audioEncoder?.close();
+    if (encoder.state !== "closed") encoder.close();
     setRecording(false);
     restoreEngine();
   });
@@ -507,8 +507,8 @@ export function startRealtimeMp4(ctx) {
     } catch (e) {
       console.error("Realtime MP4 finalize error:", e);
     }
-    if (audioEncoder) audioEncoder.close();
-    encoder.close();
+    if (audioEncoder?.state !== "closed") audioEncoder?.close();
+    if (encoder.state !== "closed") encoder.close();
     setRecording(false);
     restoreOnRealtimeStop();
   };
@@ -521,8 +521,8 @@ export function startRealtimeMp4(ctx) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
-    if (audioEncoder) audioEncoder.close();
-    encoder.close();
+    if (audioEncoder?.state !== "closed") audioEncoder?.close();
+    if (encoder.state !== "closed") encoder.close();
     setRecording(false);
     restoreOnRealtimeStop();
   });
