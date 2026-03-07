@@ -608,7 +608,7 @@ export default function App() {
   return (
     <SettingsContext.Provider value={settingsCtx}>
     <EngineContext.Provider value={engineRef}>
-      <div className={`w-screen h-screen ${isMobile ? "pt-10 pb-10" : "pt-10 pb-10"}`}>
+      <div className={`w-screen h-screen ${isMobile ? "pt-10 pb-20" : "pt-10 pb-10"}`}>
         <Toolbar
           onNewProject={handleNewProject}
           activeProject={project.activeProject}
