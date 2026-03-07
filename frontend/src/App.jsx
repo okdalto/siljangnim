@@ -510,7 +510,6 @@ export default function App() {
   const handleShaderError = useCallback((err) => {
     const message = err.message || String(err);
     chat.addLog({ agent: "WebGL", message, level: "error" });
-    sendRef.current?.({ type: "console_error", message });
   }, [chat.addLog]);
 
   // --- Node selection (fully decoupled from ReactFlow's node state) ---
