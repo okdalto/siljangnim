@@ -20,7 +20,7 @@ export default function ChatNode({ data, standalone = false }) {
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer } = data;
+  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer, hideInput = false } = data;
   const messagesRef = useRef(null);
   const fileInputRef = useRef(null);
   const thinkingRef = useRef(null);
@@ -252,7 +252,7 @@ export default function ChatNode({ data, standalone = false }) {
       </div>
 
       {/* Attached files preview */}
-      {attachedFiles.length > 0 && (
+      {!hideInput && attachedFiles.length > 0 && (
         <div className="px-2 pt-2 flex flex-wrap gap-1" style={{ borderTop: "1px solid var(--node-border)" }}>
           {attachedFiles.map((file, i) => (
             <FileChip key={i} file={file} onRemove={() => removeFile(i)} />
@@ -261,6 +261,7 @@ export default function ChatNode({ data, standalone = false }) {
       )}
 
       {/* Input */}
+      {!hideInput && (
       <form onSubmit={handleSubmit} className="p-2 flex gap-2 nodrag" style={{ borderTop: "1px solid var(--node-border)" }}>
         {/* Hidden file input */}
         <input
@@ -322,6 +323,7 @@ export default function ChatNode({ data, standalone = false }) {
           </button>
         )}
       </form>
+      )}
     </div>
   );
 }

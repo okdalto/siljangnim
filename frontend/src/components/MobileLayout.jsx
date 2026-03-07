@@ -26,6 +26,7 @@ export default function MobileLayout({
   const chatData = {
     messages, onSend, isProcessing, agentStatus,
     onNewChat, onCancel, pendingQuestion, onAnswer,
+    hideInput: true,
   };
   const debugData = { logs: debugLogs };
   const projectData = {
@@ -96,6 +97,13 @@ export default function MobileLayout({
       <div className="mobile-scroll-section" style={{ height: "55vh", minHeight: 300 }}>
         <ChatNode data={chatData} standalone />
       </div>
+      <MobileChatInput
+        onSend={onSend}
+        isProcessing={isProcessing}
+        pendingQuestion={pendingQuestion}
+        onAnswer={onAnswer}
+        onCancel={onCancel}
+      />
       <div className="mobile-scroll-section" style={{ height: "40vh", minHeight: 220 }}>
         <DebugLogNode data={debugData} standalone />
       </div>
@@ -109,13 +117,6 @@ export default function MobileLayout({
           onClose={() => setDismissed(true)}
         />
       )}
-      <MobileChatInput
-        onSend={onSend}
-        isProcessing={isProcessing}
-        pendingQuestion={pendingQuestion}
-        onAnswer={onAnswer}
-        onCancel={onCancel}
-      />
     </div>
   );
 }
