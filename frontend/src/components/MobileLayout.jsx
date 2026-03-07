@@ -6,6 +6,7 @@ import ProjectBrowserNode from "../nodes/ProjectBrowserNode.jsx";
 import CustomPanelNode from "../nodes/CustomPanelNode.jsx";
 import MobilePiP from "./MobilePiP.jsx";
 import MobileChatInput from "./MobileChatInput.jsx";
+import MobileSection from "./MobileSection.jsx";
 
 export default function MobileLayout({
   // Viewport
@@ -69,40 +70,53 @@ export default function MobileLayout({
 
   return (
     <div className="mobile-scroll-layout">
-      <div ref={viewportSectionRef} className="mobile-scroll-section" style={{ height: "55vh", minHeight: 260 }}>
-        <ViewportNode data={viewportData} standalone />
+      <div ref={viewportSectionRef}>
+        <MobileSection title="Viewport" defaultOpen>
+          <div style={{ height: "55vh", minHeight: 260, display: "flex", flexDirection: "column" }}>
+            <ViewportNode data={viewportData} standalone hideHeader />
+          </div>
+        </MobileSection>
       </div>
       {panelEntries.map(([id, panel]) => (
-        <div key={id} className="mobile-scroll-section" style={{ height: "40vh", minHeight: 200 }}>
-          <CustomPanelNode
-            standalone
-            data={{
-              title: panel.title,
-              html: panel.html,
-              controls: panel.controls,
-              onUniformChange,
-              engineRef,
-              onClose: () => onPanelClose?.(id),
-              keyframeManagerRef,
-              onKeyframesChange,
-              onDurationChange,
-              onLoopChange,
-              onOpenKeyframeEditor,
-              duration,
-              loop,
-            }}
-          />
-        </div>
+        <MobileSection key={id} title={panel.title || "Custom Panel"} defaultOpen>
+          <div style={{ height: "40vh", minHeight: 200, display: "flex", flexDirection: "column" }}>
+            <CustomPanelNode
+              standalone
+              hideHeader
+              data={{
+                title: panel.title,
+                html: panel.html,
+                controls: panel.controls,
+                onUniformChange,
+                engineRef,
+                onClose: () => onPanelClose?.(id),
+                keyframeManagerRef,
+                onKeyframesChange,
+                onDurationChange,
+                onLoopChange,
+                onOpenKeyframeEditor,
+                duration,
+                loop,
+              }}
+            />
+          </div>
+        </MobileSection>
       ))}
-      <div className="mobile-scroll-section" style={{ height: "55vh", minHeight: 300 }}>
-        <ChatNode data={chatData} standalone />
-      </div>
-      <div className="mobile-scroll-section" style={{ height: "40vh", minHeight: 220 }}>
-        <DebugLogNode data={debugData} standalone />
-      </div>
-      <div className="mobile-scroll-section" style={{ height: "40vh", minHeight: 220 }}>
-        <ProjectBrowserNode data={projectData} standalone />
-      </div>
+      <MobileSection title="Chat" defaultOpen>
+        <div style={{ height: "55vh", minHeight: 300, display: "flex", flexDirection: "column" }}>
+          <ChatNode data={chatData} standalone hideHeader />
+        </div>
+      </MobileSection>
+      <MobileSection title="Debug Log" defaultOpen={false}>
+        <div style={{ height: "40vh", minHeight: 220, display: "flex", flexDirection: "column" }}>
+          <DebugLogNode data={debugData} standalone hideHeader />
+        </div>
+      </MobileSection>
+      <MobileSection title="Projects" defaultOpen={false}>
+        <div style={{ height: "40vh", minHeight: 220, display: "flex", flexDirection: "column" }}>
+          <ProjectBrowserNode data={projectData} standalone hideHeader />
+        </div>
+      </MobileSection>
       {showPiP && (
         <MobilePiP
           engineRef={engineRef}

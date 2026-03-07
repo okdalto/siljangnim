@@ -4,7 +4,7 @@ import GLEngine from "../engine/GLEngine.js";
 import ResolutionSelector from "../components/viewport/ResolutionSelector.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 
-export default function ViewportNode({ data, standalone = false }) {
+export default function ViewportNode({ data, standalone = false, hideHeader = false }) {
   const { sceneJSON, engineRef, onError, paused } = data;
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -242,6 +242,7 @@ export default function ViewportNode({ data, standalone = false }) {
     return (
       <div className="w-full h-full flex flex-col" style={{ background: "var(--node-bg)" }}>
         {/* Mini info bar */}
+        {!hideHeader && (
         <div className="flex items-center justify-between px-3 py-1 text-[10px] tabular-nums shrink-0" style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}>
           <span className="font-semibold text-xs">Viewport</span>
           <div className="flex items-center gap-2">
@@ -255,6 +256,7 @@ export default function ViewportNode({ data, standalone = false }) {
             </button>
           </div>
         </div>
+        )}
         {canvasContent}
       </div>
     );

@@ -73,7 +73,7 @@ function ThinkingEntry({ agent, message }) {
   );
 }
 
-export default function DebugLogNode({ data, standalone = false }) {
+export default function DebugLogNode({ data, standalone = false, hideHeader = false }) {
   const { logs = [] } = data;
   const scrollRef = useRef(null);
 
@@ -92,12 +92,14 @@ export default function DebugLogNode({ data, standalone = false }) {
     >
       {!standalone && <NodeResizer minWidth={300} minHeight={150} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />}
       {/* Header */}
+      {!(standalone && hideHeader) && (
       <div
         className={`px-4 py-2 text-sm font-semibold ${standalone ? "" : "cursor-grab"}`}
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
       >
         Debug Log
       </div>
+      )}
 
       {/* Log entries */}
       <div

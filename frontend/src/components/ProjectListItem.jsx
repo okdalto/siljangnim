@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, memo } from "react";
 import FileTree from "./fileBrowser/FileTree.jsx";
 import FilePreview from "./fileBrowser/FilePreview.jsx";
 import CodePreviewPanel from "./CodePreviewPanel.jsx";
 import { timeAgo } from "../utils/timeFormat.js";
-import { exportProjectZip } from "../engine/storage.js";
+
 
 const API_BASE = import.meta.env.DEV
   ? `http://${window.location.hostname}:8000`
@@ -59,7 +59,7 @@ function FolderBrowseIcon() {
   );
 }
 
-export default function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename }) {
+function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const deleteTimerRef = useRef(null);
 
@@ -138,14 +138,16 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
   const doExport = useCallback(async (includeChat) => {
     setExportMenuOpen(false);
     try {
-      const jsonStr = await exportProjectZip(p.name, { includeChat });
-      const blob = new Blob([jsonStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
+      const url = `${API_BASE}/api/projects/${encodeURIComponent(p.name)}/export${includeChat ? "" : "?no_chat=1"}`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
+      a.href = blobUrl;
       a.download = `${p.display_name || p.name}.zip`;
       a.click();
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(blobUrl);
     } catch { /* ignore */ }
   }, [p.name, p.display_name]);
 
@@ -263,19 +265,24 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
                     </button>
                     {exportMenuOpen && (
                       <div
-                        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 rounded-lg shadow-xl py-1 text-xs z-50 whitespace-nowrap"
-                        style={{ background: "var(--chrome-bg-elevated)", border: "1px solid var(--chrome-border)" }}
+                        className="fixed flex flex-col rounded-lg shadow-xl py-1 text-xs z-50 whitespace-nowrap"
+                        style={{
+                          background: "var(--chrome-bg-elevated)",
+                          border: "1px solid var(--chrome-border)",
+                          top: exportMenuRef.current?.getBoundingClientRect().bottom + 4,
+                          right: window.innerWidth - (exportMenuRef.current?.getBoundingClientRect().right || 0),
+                        }}
                       >
                         <button
                           onClick={(e) => { e.stopPropagation(); doExport(true); }}
-                          className="w-full text-left px-3 py-1.5 hover:bg-zinc-700 transition-colors"
+                          className="text-left px-3 py-1.5 hover:bg-zinc-700 transition-colors"
                           style={{ color: "var(--chrome-text)" }}
                         >
                           Export (with chat)
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); doExport(false); }}
-                          className="w-full text-left px-3 py-1.5 hover:bg-zinc-700 transition-colors"
+                          className="text-left px-3 py-1.5 hover:bg-zinc-700 transition-colors"
                           style={{ color: "var(--chrome-text)" }}
                         >
                           Export (no chat)
@@ -345,3 +352,5 @@ export default function ProjectListItem({ project: p, isActive, onLoad, onDelete
     </div>
   );
 }
+
+export default memo(ProjectListItem);

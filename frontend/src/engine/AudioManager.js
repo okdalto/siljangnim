@@ -223,13 +223,15 @@ export default class AudioManager {
   updateFrame(gl, engineTime) {
     if (!this._analyser || !this._buffer) return;
 
-    // Drift correction: re-sync if audio drifts too far from engine time
+    // Drift correction with hysteresis to avoid oscillation around threshold
     if (this._playing && this.duration > 0) {
       const drift = Math.abs(this.currentTime - (engineTime % this.duration));
-      if (drift > 0.05) {
+      if (drift > 0.15) {
+        // Large drift — re-sync immediately
         const newOffset = engineTime % this.duration;
         this.play(newOffset);
       }
+      // Small drift (< 0.15s) is tolerable — no action to avoid audio glitches
     }
 
     // Read FFT data

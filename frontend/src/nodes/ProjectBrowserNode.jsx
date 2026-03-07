@@ -21,7 +21,7 @@ function ChevronIcon({ open }) {
   );
 }
 
-export default function ProjectBrowserNode({ data, standalone = false }) {
+export default function ProjectBrowserNode({ data, standalone = false, hideHeader = false }) {
   const {
     projects = [],
     activeProject,
@@ -108,6 +108,7 @@ export default function ProjectBrowserNode({ data, standalone = false }) {
       />
 
       {/* Header */}
+      {!(standalone && hideHeader) && (
       <div
         className={`px-4 py-2 text-sm font-semibold flex items-center justify-between ${standalone ? "" : "cursor-grab"}`}
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
@@ -156,6 +157,7 @@ export default function ProjectBrowserNode({ data, standalone = false }) {
           )}
         </div>
       </div>
+      )}
 
       {/* Save form */}
       {saving && (

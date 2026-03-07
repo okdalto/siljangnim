@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, memo } from "react";
 import { NodeResizer } from "@xyflow/react";
 
 import SliderControl from "../components/controls/SliderControl.jsx";
@@ -47,7 +47,7 @@ function injectBridge(html) {
 
 /* ── CustomPanelNode ────────────────────────────────────────────── */
 
-export default function CustomPanelNode({ data, standalone = false }) {
+function CustomPanelNode({ data, standalone = false, hideHeader = false }) {
   const {
     title, html, controls,
     onUniformChange, engineRef, onClose,
@@ -127,6 +127,7 @@ export default function CustomPanelNode({ data, standalone = false }) {
           handleStyle={{ opacity: 0 }}
         />
       )}
+      {!(standalone && hideHeader) && (
       <div
         className={`px-4 py-2 text-sm font-semibold flex items-center justify-between ${standalone ? "" : "cursor-grab"}`}
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
@@ -141,6 +142,7 @@ export default function CustomPanelNode({ data, standalone = false }) {
           ×
         </button>
       </div>
+      )}
       <div className="flex-1 nodrag nowheel overflow-auto">
         {isNativeControls ? (
           <div className="p-3 space-y-1">
@@ -172,3 +174,5 @@ export default function CustomPanelNode({ data, standalone = false }) {
     </div>
   );
 }
+
+export default memo(CustomPanelNode);

@@ -171,8 +171,8 @@ export async function runAgent({
       // Check cancellation
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
-      // Pre-flight compaction
-      const estTokens = JSON.stringify(messages).length / 4;
+      // Pre-flight compaction (estimate ~3 bytes/token for mixed content including multibyte)
+      const estTokens = new Blob([JSON.stringify(messages)]).size / 3;
       const compactThreshold = 150000;
       if (estTokens > compactThreshold) {
         log("System", `Estimated ~${Math.round(estTokens)} tokens — compacting...`, "info");
@@ -486,11 +486,11 @@ function waitForVisible(signal) {
 }
 
 function hashCode(str) {
-  let hash = 0;
+  // FNV-1a 32-bit hash — better distribution than djb2 for collision resistance
+  let hash = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
+    hash ^= str.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
   }
-  return hash;
+  return hash >>> 0;
 }

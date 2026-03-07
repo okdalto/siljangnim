@@ -244,7 +244,7 @@ export async function getUploadInfo(filename) {
 // ---------------------------------------------------------------------------
 
 function sanitizeName(name) {
-  let s = name.trim().toLowerCase();
+  let s = name.trim().toLowerCase().slice(0, 128);
   s = s.replace(/[^a-z0-9_]+/g, "-").replace(/^-+|-+$/g, "");
   return s || "untitled";
 }
@@ -255,15 +255,20 @@ export async function saveProject(name, chatHistory, description = "", thumbnail
   const now = new Date().toISOString();
 
   // Determine target name (versioning)
+  // If re-saving the currently active project, overwrite in place
   const store = await tx(STORE_PROJECTS);
   const existing = await idbReq(store.get(sanitized));
   let targetName = sanitized;
-  if (existing) {
+  if (currentName === sanitized) {
+    // Re-saving same project — overwrite
+    targetName = sanitized;
+  } else if (existing) {
+    // Name conflict — find next available version
+    const allKeys = await idbReq((await tx(STORE_PROJECTS)).getAllKeys());
+    const keySet = new Set(allKeys);
     let counter = 1;
-    const ps = await tx(STORE_PROJECTS);
-    while (await idbReq(ps.get(`${sanitized}_${counter}`))) {
+    while (keySet.has(`${sanitized}_${counter}`)) {
       counter++;
-      // Re-open store since transaction may have completed
     }
     targetName = `${sanitized}_${counter}`;
   }
@@ -276,12 +281,10 @@ export async function saveProject(name, chatHistory, description = "", thumbnail
     const dstPrefix = `${targetName}/`;
     const keysToMove = allKeys.filter((k) => k.startsWith(srcPrefix));
 
-    const writeStore = await tx(STORE_FILES, "readwrite");
     for (const key of keysToMove) {
       const data = await idbReq((await tx(STORE_FILES)).get(key));
       const newKey = dstPrefix + key.slice(srcPrefix.length);
-      const ws = await tx(STORE_FILES, "readwrite");
-      await idbReq(ws.put(data, newKey));
+      await idbReq((await tx(STORE_FILES, "readwrite")).put(data, newKey));
     }
 
     // Copy blobs
@@ -293,19 +296,16 @@ export async function saveProject(name, chatHistory, description = "", thumbnail
     for (const key of blobKeysToMove) {
       const data = await idbReq((await tx(STORE_BLOBS)).get(key));
       const newKey = blobDstPrefix + key.slice(blobSrcPrefix.length);
-      const ws = await tx(STORE_BLOBS, "readwrite");
-      await idbReq(ws.put(data, newKey));
+      await idbReq((await tx(STORE_BLOBS, "readwrite")).put(data, newKey));
     }
 
     // For first save from _untitled, remove old _untitled files
     if (currentName === DEFAULT_PROJECT) {
       for (const key of keysToMove) {
-        const ws = await tx(STORE_FILES, "readwrite");
-        await idbReq(ws.delete(key));
+        await idbReq((await tx(STORE_FILES, "readwrite")).delete(key));
       }
       for (const key of blobKeysToMove) {
-        const ws = await tx(STORE_BLOBS, "readwrite");
-        await idbReq(ws.delete(key));
+        await idbReq((await tx(STORE_BLOBS, "readwrite")).delete(key));
       }
     }
   }
@@ -415,13 +415,8 @@ export async function loadProject(name) {
 
 export async function listProjects() {
   const store = await tx(STORE_PROJECTS);
-  const allKeys = await idbReq(store.getAllKeys());
-  const projects = [];
-  for (const key of allKeys) {
-    const ps = await tx(STORE_PROJECTS);
-    const meta = await idbReq(ps.get(key));
-    if (meta) projects.push(meta);
-  }
+  const allValues = await idbReq(store.getAll());
+  const projects = allValues.filter(Boolean);
   projects.sort((a, b) => (b.updated_at || "").localeCompare(a.updated_at || ""));
   return projects;
 }
