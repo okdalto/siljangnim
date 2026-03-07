@@ -2,10 +2,12 @@ import { useEffect, useRef } from "react";
 
 /**
  * Find a non-overlapping position for a new panel among existing nodes.
+ * Tries to place within the current viewport and snaps to adjacent edges
+ * (block-stacking style) for a tidy layout.
  */
-const _PLACEMENT_GAP = 20;
+const _PLACEMENT_GAP = 16;
 
-function findEmptyPosition(existingNodes, width, height) {
+function findEmptyPosition(existingNodes, width, height, rfInstance) {
   const boxes = existingNodes.map((n) => ({
     x: n.position.x,
     y: n.position.y,
@@ -13,28 +15,96 @@ function findEmptyPosition(existingNodes, width, height) {
     h: n.measured?.height ?? n.height ?? parseFloat(n.style?.height) ?? 300,
   }));
 
-  const overlaps = (cx, cy) =>
+  const overlaps = (cx, cy, w, h) =>
     boxes.some(
       (b) =>
         cx < b.x + b.w + _PLACEMENT_GAP &&
-        cx + width + _PLACEMENT_GAP > b.x &&
+        cx + w + _PLACEMENT_GAP > b.x &&
         cy < b.y + b.h + _PLACEMENT_GAP &&
-        cy + height + _PLACEMENT_GAP > b.y
+        cy + h + _PLACEMENT_GAP > b.y
     );
 
+  // Get visible viewport area in flow coordinates
+  let vpLeft = 0, vpTop = 0, vpRight = 1200, vpBottom = 800;
+  if (rfInstance) {
+    try {
+      const vp = rfInstance.getViewport();
+      const el = document.querySelector(".react-flow");
+      if (el && vp) {
+        const rect = el.getBoundingClientRect();
+        const z = vp.zoom || 1;
+        vpLeft = -vp.x / z;
+        vpTop = -vp.y / z;
+        vpRight = vpLeft + rect.width / z;
+        vpBottom = vpTop + rect.height / z;
+      }
+    } catch { /* use defaults */ }
+  }
+
+  // Inset viewport edges to keep panels away from screen edges
+  const INSET = 40;
+  vpLeft += INSET;
+  vpTop += INSET;
+  vpRight -= INSET;
+  vpBottom -= INSET;
+
+  // Clamp check: does a position fit inside viewport?
+  const fitsViewport = (x, y) =>
+    x >= vpLeft && y >= vpTop &&
+    x + width <= vpRight && y + height <= vpBottom;
+
+  // --- Strategy 1: snap to edges of existing nodes (block stacking) ---
+  // Generate candidate positions by snapping to right/bottom edges of existing boxes
   const candidates = [];
   for (const b of boxes) {
+    // Right of box, top-aligned
     candidates.push({ x: b.x + b.w + _PLACEMENT_GAP, y: b.y });
+    // Below box, left-aligned
     candidates.push({ x: b.x, y: b.y + b.h + _PLACEMENT_GAP });
+    // Right of box, bottom-aligned (so bottoms line up)
+    if (height <= b.h) {
+      candidates.push({ x: b.x + b.w + _PLACEMENT_GAP, y: b.y + b.h - height });
+    }
+    // Below box, right-aligned (so right edges line up)
+    if (width <= b.w) {
+      candidates.push({ x: b.x + b.w - width, y: b.y + b.h + _PLACEMENT_GAP });
+    }
   }
-  candidates.sort((a, b) => a.x + a.y - (b.x + b.y));
 
-  for (const c of candidates) {
-    if (!overlaps(c.x, c.y)) return c;
+  // Score candidates: prefer in-viewport, closer to viewport top-left
+  const scored = candidates
+    .filter((c) => !overlaps(c.x, c.y, width, height))
+    .map((c) => ({
+      ...c,
+      inView: fitsViewport(c.x, c.y),
+      dist: Math.hypot(c.x - vpLeft, c.y - vpTop),
+    }))
+    .sort((a, b) => {
+      // In-viewport first
+      if (a.inView !== b.inView) return a.inView ? -1 : 1;
+      // Then by distance to viewport top-left
+      return a.dist - b.dist;
+    });
+
+  if (scored.length > 0) return { x: scored[0].x, y: scored[0].y };
+
+  // --- Strategy 2: scan viewport grid for free slot ---
+  const stepX = width + _PLACEMENT_GAP;
+  const stepY = height + _PLACEMENT_GAP;
+  for (let y = vpTop; y + height <= vpBottom; y += stepY) {
+    for (let x = vpLeft; x + width <= vpRight; x += stepX) {
+      if (!overlaps(x, y, width, height)) return { x, y };
+    }
   }
 
-  const n = existingNodes.filter((nd) => nd.type === "customPanel").length;
-  return { x: 750 + n * 30, y: 400 + n * 30 };
+  // --- Strategy 3: place just to the right of visible area ---
+  const rightX = vpRight + _PLACEMENT_GAP;
+  for (let y = vpTop; y + height <= vpBottom; y += stepY) {
+    if (!overlaps(rightX, y, width, height)) return { x: rightX, y };
+  }
+
+  // Final fallback
+  return { x: vpRight + _PLACEMENT_GAP, y: vpTop };
 }
 
 export default function useNodeDataSync({
@@ -45,6 +115,8 @@ export default function useNodeDataSync({
   kf, duration, loop, engineRef, pendingLayoutsRef,
   setDuration, setLoop,
   activeNodeTitle,
+  // ReactFlow instance for viewport-aware placement
+  rfInstanceRef,
   // Asset nodes
   assetNodes,
   onPromptSuggestion,
@@ -196,7 +268,7 @@ export default function useNodeDataSync({
         if (!updated.some((n) => n.id === nodeId)) {
           const pw = panel.width || 320;
           const ph = panel.height || 300;
-          const pos = findEmptyPosition(updated, pw, ph);
+          const pos = findEmptyPosition(updated, pw, ph, rfInstanceRef?.current);
           updated = [
             ...updated,
             {
@@ -303,7 +375,7 @@ export default function useNodeDataSync({
       for (const [assetId, desc] of assets) {
         const nodeId = `asset_node_${assetId}`;
         if (!updated.some((n) => n.id === nodeId)) {
-          const pos = findEmptyPosition(updated, 180, 200);
+          const pos = findEmptyPosition(updated, 180, 200, rfInstanceRef?.current);
           updated = [
             ...updated,
             {

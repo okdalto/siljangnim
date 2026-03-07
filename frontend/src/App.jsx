@@ -884,6 +884,7 @@ export default function App() {
     kf, duration, loop, engineRef, pendingLayoutsRef,
     setDuration, setLoop,
     activeNodeTitle,
+    rfInstanceRef,
     debugger: aiDebugger,
     assetNodes,
     onPromptSuggestion: (text) => chat.handleSend(text),
