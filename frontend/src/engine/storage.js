@@ -520,12 +520,12 @@ export async function newUntitledWorkspace() {
 // ---------------------------------------------------------------------------
 
 export async function exportProjectZip(name, { includeChat = true } = {}) {
-  // Simple implementation: serialize all project data as JSON
   const sanitized = sanitizeName(name);
   const store = await tx(STORE_PROJECTS);
   const meta = await idbReq(store.get(sanitized));
   if (!meta) throw new Error(`Project not found: ${name}`);
 
+  // Collect text files from STORE_FILES
   const filesStore = await tx(STORE_FILES);
   const allKeys = await idbReq(filesStore.getAllKeys());
   const prefix = `${sanitized}/`;
@@ -537,11 +537,28 @@ export async function exportProjectZip(name, { includeChat = true } = {}) {
     files[relPath] = await idbReq(fs.get(key));
   }
 
-  return JSON.stringify({ meta, files }, null, 2);
+  // Collect binary blobs from STORE_BLOBS (uploads, thumbnail)
+  const blobStore = await tx(STORE_BLOBS);
+  const allBlobKeys = await idbReq(blobStore.getAllKeys());
+  const blobPrefix = `${sanitized}/`;
+  const blobs = {};
+  for (const key of allBlobKeys.filter((k) => k.startsWith(blobPrefix))) {
+    const relPath = key.slice(blobPrefix.length);
+    const bs = await tx(STORE_BLOBS);
+    const entry = await idbReq(bs.get(key));
+    if (entry && entry.data) {
+      const bytes = new Uint8Array(entry.data);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      blobs[relPath] = { data_b64: btoa(binary), mimeType: entry.mimeType, size: entry.size };
+    }
+  }
+
+  return JSON.stringify({ meta, files, blobs }, null, 2);
 }
 
 export async function importProjectZip(jsonStr) {
-  const { meta, files } = JSON.parse(jsonStr);
+  const { meta, files, blobs } = JSON.parse(jsonStr);
   const sanitized = sanitizeName(meta.name || "imported");
 
   // Resolve name conflicts
@@ -562,6 +579,17 @@ export async function importProjectZip(jsonStr) {
   for (const [filename, data] of Object.entries(files)) {
     const ws = await tx(STORE_FILES, "readwrite");
     await idbReq(ws.put(data, `${candidate}/${filename}`));
+  }
+
+  // Restore binary blobs (uploads, thumbnail)
+  if (blobs) {
+    for (const [relPath, entry] of Object.entries(blobs)) {
+      const binary = atob(entry.data_b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const bs = await tx(STORE_BLOBS, "readwrite");
+      await idbReq(bs.put({ data: bytes.buffer, mimeType: entry.mimeType, size: entry.size }, `${candidate}/${relPath}`));
+    }
   }
 
   return meta;
