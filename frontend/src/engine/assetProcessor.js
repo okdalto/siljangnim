@@ -1055,7 +1055,60 @@ export async function processFont(data, mimeType, filename = "") {
 }
 
 // ---------------------------------------------------------------------------
-// 7. Main entry point
+// 7. Data file analysis
+// ---------------------------------------------------------------------------
+
+/**
+ * Analyse a data file (JSON, CSV, TXT, XML, YAML, etc.).
+ *
+ * Extracts line count, format, key count (for JSON), and a truncated preview.
+ *
+ * @param {ArrayBuffer} data     - Raw file bytes
+ * @param {string}      filename - Original filename
+ * @returns {object}             - Data metadata (never throws)
+ */
+export function processData(data, filename) {
+  const result = {
+    lineCount: 0,
+    keyCount: 0,
+    format: null,
+    preview: null,
+  };
+
+  try {
+    const text = new TextDecoder("utf-8").decode(data);
+    const lines = text.split("\n");
+    result.lineCount = lines.length;
+
+    const ext = (filename.split(".").pop() || "").toLowerCase();
+    result.format = ext;
+
+    // For JSON: count top-level keys and generate pretty preview
+    if (ext === "json") {
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed && typeof parsed === "object") {
+          result.keyCount = Array.isArray(parsed) ? parsed.length : Object.keys(parsed).length;
+        }
+        const pretty = JSON.stringify(parsed, null, 2);
+        result.preview = pretty.length > 2000 ? pretty.slice(0, 2000) + "\n..." : pretty;
+      } catch {
+        // Invalid JSON — just show raw text
+        result.preview = text.length > 2000 ? text.slice(0, 2000) + "\n..." : text;
+      }
+    } else {
+      // For other text formats, show raw content truncated
+      result.preview = text.length > 2000 ? text.slice(0, 2000) + "\n..." : text;
+    }
+  } catch (err) {
+    result._error = err.message;
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// 8. Main entry point
 // ---------------------------------------------------------------------------
 
 /**
@@ -1121,6 +1174,13 @@ export async function processAsset(filename, data, mimeType) {
       case ASSET_CATEGORY.FONT: {
         processor = "font";
         metadata = await processFont(data, mimeType, filename);
+        outputs = [{ type: "technicalInfo", data: metadata }];
+        break;
+      }
+
+      case ASSET_CATEGORY.DATA: {
+        processor = "data";
+        metadata = processData(data, filename);
         outputs = [{ type: "technicalInfo", data: metadata }];
         break;
       }

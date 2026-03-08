@@ -111,6 +111,27 @@ function SvgInfo({ info }) {
   );
 }
 
+function DataInfo({ info }) {
+  return (
+    <>
+      <InfoRow label="Format" value={info.format ? info.format.toUpperCase() : null} />
+      <InfoRow label="Lines" value={info.lineCount || null} />
+      <InfoRow label="Keys/Items" value={info.keyCount || null} />
+      {info.preview && (
+        <div className="mt-1 rounded overflow-hidden" style={{ background: "var(--input-bg)" }}>
+          <pre
+            className="text-[9px] leading-[1.4] p-2 whitespace-pre-wrap break-all overflow-auto"
+            style={{ color: "var(--chrome-text-secondary)", fontFamily: "monospace", maxHeight: "200px" }}
+          >
+            {info.preview.slice(0, 1000)}
+            {info.preview.length > 1000 ? "\n..." : ""}
+          </pre>
+        </div>
+      )}
+    </>
+  );
+}
+
 const TECH_INFO_COMPONENTS = {
   [ASSET_CATEGORY.IMAGE]: ImageInfo,
   [ASSET_CATEGORY.AUDIO]: AudioInfo,
@@ -118,6 +139,7 @@ const TECH_INFO_COMPONENTS = {
   [ASSET_CATEGORY.MODEL_3D]: Model3dInfo,
   [ASSET_CATEGORY.FONT]: FontInfo,
   [ASSET_CATEGORY.SVG]: SvgInfo,
+  [ASSET_CATEGORY.DATA]: DataInfo,
 };
 
 // ---- Main Inspector ----
