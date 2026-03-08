@@ -499,6 +499,71 @@ export default class GLEngine {
 
     this._scriptCtx = ctx;
 
+    // --- Draw call validation wrapper ---
+    // Intercept drawArrays/drawArraysInstanced to produce actionable error messages
+    // when vertex buffers are too small. Without this, the browser only logs a generic
+    // GL_INVALID_OPERATION warning that the AI agent cannot diagnose or fix.
+    {
+      const gl = this.gl;
+      // Save originals from prototype (avoid re-wrapping on successive loadScene calls)
+      const proto = Object.getPrototypeOf(gl);
+      const origDrawArrays = proto.drawArrays.bind(gl);
+      const origDrawArraysInstanced = proto.drawArraysInstanced.bind(gl);
+
+      const TYPE_BYTES = {
+        [gl.FLOAT]: 4, [gl.INT]: 4, [gl.UNSIGNED_INT]: 4,
+        [gl.SHORT]: 2, [gl.UNSIGNED_SHORT]: 2,
+        [gl.BYTE]: 1, [gl.UNSIGNED_BYTE]: 1,
+      };
+
+      function validateVertexBuffers(first, count) {
+        const maxAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+        const savedBuf = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+        try {
+          for (let i = 0; i < maxAttribs; i++) {
+            if (!gl.getVertexAttrib(i, gl.VERTEX_ATTRIB_ARRAY_ENABLED)) continue;
+            const buffer = gl.getVertexAttrib(i, gl.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING);
+            if (!buffer) continue;
+
+            const components = gl.getVertexAttrib(i, gl.VERTEX_ATTRIB_ARRAY_SIZE);
+            const type = gl.getVertexAttrib(i, gl.VERTEX_ATTRIB_ARRAY_TYPE);
+            const stride = gl.getVertexAttrib(i, gl.VERTEX_ATTRIB_ARRAY_STRIDE);
+            const offset = gl.getVertexAttribOffset(i, gl.VERTEX_ATTRIB_ARRAY_POINTER);
+            const bytesPerElem = TYPE_BYTES[type] || 4;
+            const effectiveStride = stride || (components * bytesPerElem);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            const bufSize = gl.getBufferParameter(gl.ARRAY_BUFFER, gl.BUFFER_SIZE);
+
+            const lastVertex = first + count - 1;
+            const required = offset + lastVertex * effectiveStride + components * bytesPerElem;
+
+            if (required > bufSize) {
+              const fits = Math.max(0, Math.floor((bufSize - offset) / effectiveStride));
+              throw new Error(
+                `drawArrays vertex buffer error on attribute ${i}: ` +
+                `requested ${count} vertices (first=${first}) but buffer only has room for ${fits}. ` +
+                `Buffer: ${bufSize} bytes, stride: ${effectiveStride}, components: ${components}, offset: ${offset}. ` +
+                `Fix: change drawArrays count from ${count} to ${fits}, ` +
+                `or upload more data with bufferData (need at least ${required} bytes).`
+              );
+            }
+          }
+        } finally {
+          gl.bindBuffer(gl.ARRAY_BUFFER, savedBuf);
+        }
+      }
+
+      ctx.gl.drawArrays = function (mode, first, count) {
+        validateVertexBuffers(first, count);
+        return origDrawArrays(mode, first, count);
+      };
+      ctx.gl.drawArraysInstanced = function (mode, first, count, instanceCount) {
+        validateVertexBuffers(first, count);
+        return origDrawArraysInstanced(mode, first, count, instanceCount);
+      };
+    }
+
     // --- GLSL→WGSL auto-transpilation for WebGPU backend ---
     // When the active backend is WebGPU, wrap shader-related utilities
     // so that AI-generated GLSL code is automatically transpiled to WGSL.
@@ -972,6 +1037,12 @@ export default class GLEngine {
       for (const url of Object.values(this._scriptCtx.uploads)) {
         try { URL.revokeObjectURL(url); } catch { /* ignore */ }
       }
+    }
+
+    // Restore original drawArrays (remove validation wrapper)
+    if (this.gl) {
+      delete this.gl.drawArrays;
+      delete this.gl.drawArraysInstanced;
     }
 
     this._scriptCtx = null;
