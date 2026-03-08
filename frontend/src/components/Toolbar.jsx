@@ -72,7 +72,7 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-40 h-10 flex items-center justify-between px-4 text-sm ${isMobile ? "mobile-toolbar" : ""}`}
+      className={`fixed top-0 left-0 right-0 z-50 h-10 flex items-center justify-between px-4 text-sm ${isMobile ? "mobile-toolbar" : ""}`}
       style={{ background: "var(--chrome-bg)", borderBottom: "1px solid var(--chrome-border)", color: "var(--chrome-text)" }}
     >
       {/* Left: actions */}
