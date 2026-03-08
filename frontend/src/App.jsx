@@ -347,6 +347,19 @@ export default function App() {
     }
   }, [project.activeProject, tree.ensureRoot, tree.loadTree, getWorkspaceState, chat.debugLogs]);
 
+  // T key → toggle version tree sidebar
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code !== "KeyT") return;
+      const tag = e.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable) return;
+      e.preventDefault();
+      tree.toggleSidebar();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [tree.toggleSidebar]);
+
   // Spacebar toggle pause
   useEffect(() => {
     const handleKeyDown = (e) => {
