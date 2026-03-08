@@ -67,7 +67,7 @@ function ModelSelector({ provider, selectedModel, onModelChange }) {
   );
 }
 
-export default function Toolbar({ onNewProject, activeProject, connected, provider, saveStatus, onChangeApiKey, onToggleTree, treeOpen, promptMode, onPromptModeChange, projectManifest, backendTarget, onBackendTargetChange, selectedModel, onModelChange }) {
+export default function Toolbar({ onNewProject, activeProject, connected, provider, saveStatus, onChangeApiKey, onToggleTree, treeOpen, onToggleAssets, assetsOpen, promptMode, onPromptModeChange, projectManifest, backendTarget, onBackendTargetChange, selectedModel, onModelChange }) {
   const { isMobile } = useMobile();
 
   return (
@@ -92,6 +92,24 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
               <circle cx="18" cy="6" r="3" />
               <circle cx="6" cy="18" r="3" />
               <path d="M18 9a9 9 0 01-9 9" />
+            </svg>
+          </button>
+        )}
+        {onToggleAssets && (
+          <button
+            onClick={onToggleAssets}
+            className="w-7 h-7 flex items-center justify-center rounded transition-colors"
+            style={{
+              color: assetsOpen ? "var(--chrome-text)" : "var(--chrome-text-secondary)",
+              background: assetsOpen ? "var(--accent-bg, rgba(99,102,241,0.15))" : "var(--input-bg)",
+            }}
+            title="Toggle Assets"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
           </button>
         )}

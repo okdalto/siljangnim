@@ -47,6 +47,7 @@ import KeyframeEditor from "./components/KeyframeEditor.jsx";
 import ProjectTreeSidebar from "./components/ProjectTreeSidebar.jsx";
 import VersionComparePanel from "./components/VersionComparePanel.jsx";
 import SafeModeBanner from "./components/SafeModeBanner.jsx";
+import AssetManagerPanel from "./components/AssetManagerPanel.jsx";
 import GitHubSaveDialog from "./components/GitHubSaveDialog.jsx";
 import GitHubLoadDialog from "./components/GitHubLoadDialog.jsx";
 import useVersionCompare from "./hooks/useVersionCompare.js";
@@ -144,6 +145,9 @@ export default function App() {
     if (engineRef.current) engineRef.current._selectedModel = modelId;
   }, []);
 
+  // Asset manager panel
+  const [assetsPanelOpen, setAssetsPanelOpen] = useState(false);
+  const toggleAssetsPanel = useCallback(() => setAssetsPanelOpen((v) => !v), []);
   // Workspace files version counter
   const [workspaceFilesVersion, setWorkspaceFilesVersion] = useState(0);
 
@@ -185,6 +189,15 @@ export default function App() {
   const chat = useChat(sendRef);
   const panels = useCustomPanels(sendRef);
   const assetNodes = useAssetNodes();
+  const handleAssetUpload = useCallback(async (files) => {
+    const saved = [];
+    for (const file of files) {
+      const buf = await file.arrayBuffer();
+      await storageApi.saveUpload(file.name, buf, file.type);
+      saved.push({ name: file.name, mimeType: file.type, size: file.size });
+    }
+    if (saved.length > 0) assetNodes.createAssetsFromUpload(saved);
+  }, [assetNodes.createAssetsFromUpload]);
   // Wire asset context getter to browser-mode agent engine
   if (BROWSER_ONLY && _agentEngine) {
     _agentEngine._getAssetContext = assetNodes.getPromptContext;
@@ -879,6 +892,8 @@ export default function App() {
           onChangeApiKey={() => apiKey.setRequired()}
           onToggleTree={tree.toggleSidebar}
           treeOpen={tree.sidebarOpen}
+          onToggleAssets={toggleAssetsPanel}
+          assetsOpen={assetsPanelOpen}
           promptMode={promptModeHook.promptMode}
           onPromptModeChange={promptModeHook.setPromptMode}
           projectManifest={projectManifest}
@@ -928,9 +943,19 @@ export default function App() {
           />
         )}
 
+        <AssetManagerPanel
+          isOpen={assetsPanelOpen}
+          isMobile={isMobile}
+          assets={assetNodes.assets}
+          onDelete={assetNodes.deleteAsset}
+          onSelect={assetNodes.selectAsset}
+          onUpload={handleAssetUpload}
+        />
+
         <div style={{
           marginLeft: !isMobile && tree.sidebarOpen ? 256 : 0,
-          transition: "margin-left 0.2s ease",
+          marginRight: !isMobile && assetsPanelOpen ? 240 : 0,
+          transition: "margin-left 0.2s ease, margin-right 0.2s ease",
           height: "100%",
           display: "flex",
           flexDirection: "column",
