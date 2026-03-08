@@ -118,7 +118,12 @@ export default function App() {
 
   const [nodes, setNodes, rawOnNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState([]);
-  const { onNodesChange: onNodesChangeSnapped, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes, settings);
+  // Custom selection state — completely decoupled from ReactFlow's node state.
+  // Declared early so useNodeSnapping can access it for multi-select drag.
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const selectedIdsRef = useRef(selectedIds);
+  selectedIdsRef.current = selectedIds;
+  const { onNodesChange: onNodesChangeSnapped, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes, settings, selectedIdsRef);
   const getSeq = useCallback(() => nextUndoSeq(), []);
   const onLayoutCommitRef = useRef(null);
   const { onNodesChange, undo, redo, historyRef: layoutHistoryRef } =
@@ -161,12 +166,6 @@ export default function App() {
   // Safe mode state (v2 manifest trust)
   const [projectManifest, setProjectManifest] = useState(null);
   const safeModeActive = isSafeMode(projectManifest);
-
-  // Custom selection state — completely decoupled from ReactFlow's node state.
-  // This avoids race conditions caused by frequent setNodes calls from useNodeDataSync.
-  const [selectedIds, setSelectedIds] = useState(new Set());
-  const selectedIdsRef = useRef(selectedIds);
-  selectedIdsRef.current = selectedIds;
 
   // Engine ref (shared via EngineContext and node data)
   const engineRef = useRef(null);
