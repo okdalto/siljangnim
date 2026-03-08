@@ -168,6 +168,39 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
     engine.updateMouse(x, y, false);
   }, []);
 
+  // Touch tracking (maps to mouse input)
+  const handleTouchStart = useCallback((e) => {
+    const engine = engineInternalRef.current;
+    if (!engine) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect || !e.touches.length) return;
+    const touch = e.touches[0];
+    const x = (touch.clientX - rect.left) / rect.width;
+    const y = (touch.clientY - rect.top) / rect.height;
+    engine.updateMouse(x, y, true);
+    e.preventDefault();
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    const engine = engineInternalRef.current;
+    if (!engine) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect || !e.touches.length) return;
+    const touch = e.touches[0];
+    const x = (touch.clientX - rect.left) / rect.width;
+    const y = (touch.clientY - rect.top) / rect.height;
+    engine.updateMouse(x, y, true);
+    e.preventDefault();
+  }, []);
+
+  const handleTouchEnd = useCallback((e) => {
+    const engine = engineInternalRef.current;
+    if (!engine) return;
+    // Use last known position, set pressed to false
+    engine.updateMouse(engine._mouse[0], engine._mouse[1], false);
+    e.preventDefault();
+  }, []);
+
   const handleKeyDown = useCallback((e) => {
     const engine = engineInternalRef.current;
     if (!engine) return;
@@ -210,6 +243,9 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
       onMouseMove={handleMouseMove}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
       onBlur={handleBlur}
