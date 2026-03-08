@@ -190,15 +190,15 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes, 
         // Raw values from ReactFlow
         const rawWidth =
           resizing.dimensions?.width ??
+          resizingNode.style?.width ??
           resizingNode.measured?.width ??
           resizingNode.width ??
-          resizingNode.style?.width ??
           0;
         const rawHeight =
           resizing.dimensions?.height ??
+          resizingNode.style?.height ??
           resizingNode.measured?.height ??
           resizingNode.height ??
-          resizingNode.style?.height ??
           0;
         const rawPosX = posChange?.position?.x ?? resizingNode.position.x;
         const rawPosY = posChange?.position?.y ?? resizingNode.position.y;

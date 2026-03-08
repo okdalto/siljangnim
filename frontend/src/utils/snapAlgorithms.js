@@ -1,6 +1,8 @@
 export function getNodeEdges(node) {
-  const w = node.measured?.width ?? node.width ?? node.style?.width ?? 0;
-  const h = node.measured?.height ?? node.height ?? node.style?.height ?? 0;
+  // Prefer explicit style dimensions (set by NodeResizer) over measured,
+  // because measured can include invisible resize handles or other DOM artifacts.
+  const w = node.style?.width ?? node.measured?.width ?? node.width ?? 0;
+  const h = node.style?.height ?? node.measured?.height ?? node.height ?? 0;
   const x = node.position.x;
   const y = node.position.y;
   return {
