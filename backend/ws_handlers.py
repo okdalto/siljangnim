@@ -372,8 +372,8 @@ async def handle_user_answer(ws, msg, ctx: WsContext):
 async def handle_console_error(ws, msg, ctx: WsContext):
     error_msg = msg.get("message", "")
     if not error_msg:
-        pass
-    elif ctx.agent_busy:
+        return
+    if ctx.agent_busy:
         # Classify and tag the error for the agent
         error_type = _classify_error(error_msg)
         tagged = f"[{error_type}] {error_msg}" if error_type == "engine" else error_msg
@@ -416,7 +416,7 @@ async def handle_set_uniform(ws, msg, ctx: WsContext):
                     utype = "float"
                 scene["uniforms"][uniform] = {"type": utype, "value": value}
             workspace.write_json("scene.json", scene)
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
             pass
 
 
@@ -541,13 +541,10 @@ async def handle_close_panel(ws, msg, ctx: WsContext):
     panel_id = msg.get("id", "")
     if not panel_id:
         return
-    try:
-        panels = workspace.read_json("panels.json")
-        if panel_id in panels:
-            del panels[panel_id]
-            workspace.write_json("panels.json", panels)
-    except (FileNotFoundError, json.JSONDecodeError):
-        pass
+    panels = workspace.read_json_safe("panels.json", {})
+    if panel_id in panels:
+        del panels[panel_id]
+        workspace.write_json("panels.json", panels)
     await ctx.manager.broadcast({"type": "close_panel", "id": panel_id})
 
 
@@ -557,10 +554,7 @@ async def handle_restore_panel(ws, msg, ctx: WsContext):
     panel_data = msg.get("data", {})
     if not panel_id:
         return
-    try:
-        panels = workspace.read_json("panels.json")
-    except (FileNotFoundError, json.JSONDecodeError):
-        panels = {}
+    panels = workspace.read_json_safe("panels.json", {})
     panels[panel_id] = panel_data
     workspace.write_json("panels.json", panels)
 
@@ -578,15 +572,9 @@ async def handle_cancel_agent(ws, msg, ctx: WsContext):
 
 async def handle_request_state(ws, msg, ctx: WsContext):
     import config
-    try:
-        s = workspace.read_json("scene.json")
-        u = workspace.read_json("ui_config.json")
-    except FileNotFoundError:
-        s, u = DEFAULT_SCENE_JSON, DEFAULT_UI_CONFIG
-    try:
-        ws_state = workspace.read_json("workspace_state.json")
-    except FileNotFoundError:
-        ws_state = {}
+    s = workspace.read_json_safe("scene.json", DEFAULT_SCENE_JSON)
+    u = workspace.read_json_safe("ui_config.json", DEFAULT_UI_CONFIG)
+    ws_state = workspace.read_json_safe("workspace_state.json", {})
     panels_data = workspace.ensure_default_panels(u)
 
     await ws.send_text(json.dumps({

@@ -167,11 +167,6 @@ def _safe_path(filename: str) -> Path:
     return resolved
 
 
-def safe_path(filename: str) -> Path:
-    """Public alias for _safe_path."""
-    return _safe_path(filename)
-
-
 # ---------------------------------------------------------------------------
 # File I/O
 # ---------------------------------------------------------------------------
@@ -241,6 +236,14 @@ def write_json(filename: str, data: dict) -> Path:
 def read_json(filename: str) -> dict:
     """Read a JSON file from the workspace."""
     return json.loads(read_file(filename))
+
+
+def read_json_safe(filename: str, default=None):
+    """Read a JSON file, returning *default* on missing or corrupt files."""
+    try:
+        return read_json(filename)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return default if default is not None else {}
 
 
 # ---------------------------------------------------------------------------

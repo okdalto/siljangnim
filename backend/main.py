@@ -505,20 +505,9 @@ async def websocket_endpoint(ws: WebSocket):
     _rate_ts: list[float] = []
 
     # Send initial state
-    try:
-        scene_json = workspace.read_json("scene.json")
-    except (FileNotFoundError, json.JSONDecodeError):
-        scene_json = DEFAULT_SCENE_JSON
-
-    try:
-        ui_config = workspace.read_json("ui_config.json")
-    except (FileNotFoundError, json.JSONDecodeError):
-        ui_config = DEFAULT_UI_CONFIG
-
-    try:
-        workspace_state = workspace.read_json("workspace_state.json")
-    except (FileNotFoundError, json.JSONDecodeError):
-        workspace_state = {}
+    scene_json = workspace.read_json_safe("scene.json", DEFAULT_SCENE_JSON)
+    ui_config = workspace.read_json_safe("ui_config.json", DEFAULT_UI_CONFIG)
+    workspace_state = workspace.read_json_safe("workspace_state.json", {})
 
     panels = workspace.ensure_default_panels(ui_config)
 

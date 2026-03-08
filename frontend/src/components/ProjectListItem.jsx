@@ -3,11 +3,12 @@ import FileTree from "./fileBrowser/FileTree.jsx";
 import FilePreview from "./fileBrowser/FilePreview.jsx";
 import CodePreviewPanel from "./CodePreviewPanel.jsx";
 import { timeAgo } from "../utils/timeFormat.js";
-import { exportProjectZip } from "../engine/storage.js";
+import { exportProjectZip, readThumbnailUrl } from "../engine/storage.js";
 
 const API_BASE = import.meta.env.DEV
   ? `http://${window.location.hostname}:8000`
   : "";
+const BROWSER_ONLY = import.meta.env.VITE_MODE === "browser";
 
 function ThumbnailImg({ src, alt }) {
   const [err, setErr] = useState(false);
@@ -210,11 +211,26 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename }) {
     setLoadingFiles(false);
   }, [filesExpanded, codeExpanded, p.name]);
 
-  const thumbUrl = () => {
+  // Thumbnail: use IndexedDB in browser-only mode, backend API otherwise
+  const [thumbSrc, setThumbSrc] = useState(() => {
     if (!p.has_thumbnail) return null;
+    if (BROWSER_ONLY) return null; // will load async
     const ts = p.updated_at ? new Date(p.updated_at).getTime() : "";
     return `${API_BASE}/api/projects/${encodeURIComponent(p.name)}/thumbnail?t=${ts}`;
-  };
+  });
+
+  useEffect(() => {
+    if (!BROWSER_ONLY || !p.has_thumbnail) return;
+    let cancelled = false;
+    readThumbnailUrl(p.name).then((url) => {
+      if (!cancelled && url) setThumbSrc(url);
+    });
+    return () => { cancelled = true; };
+  }, [p.name, p.has_thumbnail, p.updated_at]);
+
+  useEffect(() => {
+    return () => { if (BROWSER_ONLY && thumbSrc) URL.revokeObjectURL(thumbSrc); };
+  }, [thumbSrc]);
 
   return (
     <div>
@@ -225,7 +241,7 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename }) {
         }`}
       >
         <div className="flex items-start gap-2">
-          <ThumbnailImg src={thumbUrl()} alt={p.display_name || p.name} />
+          <ThumbnailImg src={thumbSrc} alt={p.display_name || p.name} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               {editing ? (
