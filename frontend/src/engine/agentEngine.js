@@ -613,6 +613,14 @@ const HANDLERS = {
     this._promptModeAddition = msg.addition || "";
   },
 
+  async asset_notification(msg) {
+    // Record asset changes in chat history so the agent knows about them
+    const text = msg.text || "";
+    if (text) {
+      this.chatHistory.push({ role: "user", text });
+    }
+  },
+
   async set_backend_target(msg) {
     this._backendTarget = msg.backendTarget || "auto";
   },

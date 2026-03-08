@@ -356,6 +356,20 @@ async function toolListUploadedFiles(input, broadcast) {
   return "Uploaded files:\n" + lines.join("\n");
 }
 
+async function toolDeleteAsset(input, broadcast) {
+  const filename = input.filename || "";
+  if (!filename) return "Error: filename is required.";
+  try {
+    // Delete from storage
+    await storage.deleteUpload(filename);
+    // Notify the UI to remove the asset from the asset list
+    broadcast({ type: "asset_deleted_by_agent", filename });
+    return `Asset "${filename}" has been deleted.`;
+  } catch (e) {
+    return `Error deleting asset: ${e.message}`;
+  }
+}
+
 async function toolListFiles(input, broadcast) {
   const prefix = input.path || "";
   const files = await storage.listFiles(prefix);
@@ -532,6 +546,7 @@ const TOOL_HANDLERS = {
   stop_recording: toolStopRecording,
   check_browser_errors: toolCheckBrowserErrors,
   ask_user: toolAskUser,
+  delete_asset: toolDeleteAsset,
 };
 
 /**

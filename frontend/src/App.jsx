@@ -47,7 +47,6 @@ import KeyframeEditor from "./components/KeyframeEditor.jsx";
 import ProjectTreeSidebar from "./components/ProjectTreeSidebar.jsx";
 import VersionComparePanel from "./components/VersionComparePanel.jsx";
 import SafeModeBanner from "./components/SafeModeBanner.jsx";
-import AssetManagerPanel from "./components/AssetManagerPanel.jsx";
 import GitHubSaveDialog from "./components/GitHubSaveDialog.jsx";
 import GitHubLoadDialog from "./components/GitHubLoadDialog.jsx";
 import useVersionCompare from "./hooks/useVersionCompare.js";
@@ -164,9 +163,6 @@ export default function App() {
     viewportFixedResolution: null, // null = auto, [w, h] = fixed
   });
 
-  // Asset manager panel
-  const [assetsPanelOpen, setAssetsPanelOpen] = useState(false);
-  const toggleAssetsPanel = useCallback(() => setAssetsPanelOpen((v) => !v), []);
   // Workspace files version counter
   const [workspaceFilesVersion, setWorkspaceFilesVersion] = useState(0);
 
@@ -209,8 +205,41 @@ export default function App() {
       await storageApi.saveUpload(file.name, buf, file.type);
       saved.push({ name: file.name, mimeType: file.type, size: file.size });
     }
-    if (saved.length > 0) assetNodes.createAssetsFromUpload(saved);
-  }, [assetNodes.createAssetsFromUpload]);
+    if (saved.length > 0) {
+      assetNodes.createAssetsFromUpload(saved);
+      const names = saved.map((f) => f.name).join(", ");
+      const notification = `[Asset uploaded: ${names}]`;
+      chat.addSystemMessage(notification);
+      // Record in agent engine chatHistory so the model knows about the asset
+      if (BROWSER_ONLY && _agentEngine) {
+        _agentEngine.chatHistory.push({ role: "user", text: notification });
+      } else {
+        sendRef.current?.({ type: "asset_notification", text: notification });
+      }
+    }
+  }, [assetNodes.createAssetsFromUpload, chat.addSystemMessage]);
+
+  const handleAssetDelete = useCallback((assetId) => {
+    const desc = assetNodes.assets.get(assetId);
+    const name = desc?.filename || desc?.semanticName || assetId;
+    // Warn if the asset might be referenced in the current scene
+    const sceneStr = JSON.stringify(sceneJSON || {});
+    const isReferenced = sceneStr.includes(name);
+    if (isReferenced) {
+      if (!window.confirm(`"${name}" is referenced in the current scene. Deleting it may cause errors. Continue?`)) {
+        return;
+      }
+    }
+    assetNodes.deleteAsset(assetId);
+    const notification = `[Asset deleted: ${name}]`;
+    chat.addSystemMessage(notification);
+    if (BROWSER_ONLY && _agentEngine) {
+      _agentEngine.chatHistory.push({ role: "user", text: notification });
+    } else {
+      sendRef.current?.({ type: "asset_notification", text: notification });
+    }
+  }, [assetNodes.assets, assetNodes.deleteAsset, chat.addSystemMessage, sceneJSON]);
+
   // Wire asset context getter to browser-mode agent engine
   if (BROWSER_ONLY && _agentEngine) {
     _agentEngine._getAssetContext = assetNodes.getPromptContext;
@@ -928,6 +957,7 @@ export default function App() {
     debugger: aiDebugger,
     assetNodes,
     onAssetUpload: handleAssetUpload,
+    onAssetDelete: handleAssetDelete,
     onPromptSuggestion: (text) => chat.handleSend(text),
     safeModeActive,
     promptMode: promptModeHook.promptMode,
@@ -954,8 +984,6 @@ export default function App() {
           onChangeApiKey={() => apiKey.setRequired()}
           onToggleTree={tree.toggleSidebar}
           treeOpen={tree.sidebarOpen}
-          onToggleAssets={toggleAssetsPanel}
-          assetsOpen={assetsPanelOpen}
           promptMode={promptModeHook.promptMode}
           onPromptModeChange={promptModeHook.setPromptMode}
           projectManifest={projectManifest}
@@ -1005,19 +1033,9 @@ export default function App() {
           />
         )}
 
-        <AssetManagerPanel
-          isOpen={assetsPanelOpen}
-          isMobile={isMobile}
-          assets={assetNodes.assets}
-          onDelete={assetNodes.deleteAsset}
-          onSelect={assetNodes.selectAsset}
-          onUpload={handleAssetUpload}
-        />
-
         <div style={{
           marginLeft: !isMobile && tree.sidebarOpen ? 256 : 0,
-          marginRight: !isMobile && assetsPanelOpen ? 240 : 0,
-          transition: "margin-left 0.2s ease, margin-right 0.2s ease",
+          transition: "margin-left 0.2s ease",
           height: "100%",
           display: "flex",
           flexDirection: "column",
