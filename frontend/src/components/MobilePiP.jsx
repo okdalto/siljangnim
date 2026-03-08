@@ -1,11 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+
+const CORNERS = [
+  { bottom: 96, right: 12 },  // bottom-right (default)
+  { bottom: 96, left: 12 },   // bottom-left
+  { top: 52, left: 12 },      // top-left
+  { top: 52, right: 12 },     // top-right
+];
 
 export default function MobilePiP({ engineRef, onTap, onClose }) {
   const imgRef = useRef(null);
   const [visible, setVisible] = useState(false);
+  const [cornerIdx, setCornerIdx] = useState(0);
 
   useEffect(() => {
-    // Fade in after mount
     requestAnimationFrame(() => setVisible(true));
   }, []);
 
@@ -29,14 +36,44 @@ export default function MobilePiP({ engineRef, onTap, onClose }) {
     return () => cancelAnimationFrame(rafId);
   }, [engineRef]);
 
+  // Single tap: cycle corner, double tap: scroll to viewport
+  const lastTapRef = useRef(0);
+  const tapTimerRef = useRef(null);
+
+  const handleTap = useCallback(() => {
+    const now = Date.now();
+    const elapsed = now - lastTapRef.current;
+    lastTapRef.current = now;
+
+    if (elapsed < 300) {
+      // Double tap — scroll to viewport
+      clearTimeout(tapTimerRef.current);
+      onTap?.();
+    } else {
+      // Single tap — cycle corner (with delay to detect double tap)
+      tapTimerRef.current = setTimeout(() => {
+        setCornerIdx((prev) => (prev + 1) % CORNERS.length);
+      }, 300);
+    }
+  }, [onTap]);
+
+  const pos = CORNERS[cornerIdx];
+
   return (
     <div
-      className={`fixed bottom-24 right-3 z-40 transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
-      style={{ width: 144, height: 81 }}
+      className={`fixed z-40 transition-all duration-300 ease-out ${visible ? "opacity-100" : "opacity-0"}`}
+      style={{
+        width: 144,
+        height: 81,
+        top: pos.top ?? "auto",
+        bottom: pos.bottom ?? "auto",
+        left: pos.left ?? "auto",
+        right: pos.right ?? "auto",
+      }}
     >
       <img
         ref={imgRef}
-        onClick={onTap}
+        onClick={handleTap}
         className="w-full h-full rounded-lg shadow-lg border border-white/20 object-cover cursor-pointer bg-black"
         alt="PiP viewport"
       />
