@@ -326,6 +326,26 @@ const HANDLERS = {
       this.chatHistory.push(historyEntry);
     }
 
+    // If conversation context is empty but we have chat history (e.g. after page refresh),
+    // inject a summary of previous exchanges so the model knows the context.
+    if (this.conversation.length === 0 && this.chatHistory.length > 1) {
+      const prior = this.chatHistory.slice(0, -1); // exclude current message (just pushed)
+      const summaryLines = prior.map((m) => {
+        const role = m.role === "user" ? "User" : "Assistant";
+        // Truncate long messages to keep token usage reasonable
+        const text = (m.text || "").slice(0, 500);
+        return `[${role}]: ${text}`;
+      });
+      this.conversation.push({
+        role: "user",
+        content: `[CONTEXT] The following is a summary of our previous conversation in this project. Use it as context for the current request:\n\n${summaryLines.join("\n\n")}`,
+      });
+      this.conversation.push({
+        role: "assistant",
+        content: "Understood. I have the context from our previous conversation. I'll continue from where we left off.",
+      });
+    }
+
     const { log, onText, onStatus } = makeCallbacks(this);
     this.agentBusy = true;
     const abortController = new AbortController();
