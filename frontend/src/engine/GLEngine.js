@@ -993,9 +993,16 @@ export default class GLEngine {
     try {
       // Load all upload blob URLs from IndexedDB
       const DB_NAME = "siljangnim";
-      const DB_VERSION = 1;
+      const DB_VERSION = 2;
       const db = await new Promise((resolve, reject) => {
         const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = () => {
+          const d = req.result;
+          if (!d.objectStoreNames.contains("files")) d.createObjectStore("files");
+          if (!d.objectStoreNames.contains("projects")) d.createObjectStore("projects");
+          if (!d.objectStoreNames.contains("blobs")) d.createObjectStore("blobs");
+          if (!d.objectStoreNames.contains("project_nodes")) d.createObjectStore("project_nodes");
+        };
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
       });
@@ -1044,9 +1051,16 @@ export default class GLEngine {
   /** Load an uploaded file from IndexedDB and return a blob URL. */
   async _getUploadBlobUrl(filename) {
     const DB_NAME = "siljangnim";
-    const DB_VERSION = 1;
+    const DB_VERSION = 2;
     const db = await new Promise((resolve, reject) => {
       const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = () => {
+        const d = req.result;
+        if (!d.objectStoreNames.contains("files")) d.createObjectStore("files");
+        if (!d.objectStoreNames.contains("projects")) d.createObjectStore("projects");
+        if (!d.objectStoreNames.contains("blobs")) d.createObjectStore("blobs");
+        if (!d.objectStoreNames.contains("project_nodes")) d.createObjectStore("project_nodes");
+      };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
     });
