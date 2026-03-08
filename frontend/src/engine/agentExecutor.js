@@ -149,6 +149,7 @@ export async function runAgent({
   systemPromptAddition = "",
   assetContext = [],
   backendTarget = "auto",
+  modelOverride,
 }) {
   log("System", `Starting agent for: "${userPrompt}"`, "info");
   if (files?.length) {
@@ -208,6 +209,7 @@ export async function runAgent({
     userAnswerPromise,
     signal,
     injectedMessages,
+    modelOverride,
   });
 }
 
@@ -226,8 +228,9 @@ async function _runAgentLoop({
   userAnswerPromise,
   signal,
   injectedMessages = [],
+  modelOverride,
 }) {
-  const modelName = MODEL_COMPLEX;
+  const modelName = modelOverride || MODEL_COMPLEX;
   const useThinking = modelName.includes("opus") || modelName.includes("sonnet");
   const maxTokens = useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX;
 
@@ -596,13 +599,14 @@ export async function runWithPlan({
   systemPromptAddition = "",
   assetContext = [],
   backendTarget = "auto",
+  modelOverride,
 }) {
   // Check if planning is warranted
   if (!shouldPlan(messages.length, userPrompt)) {
     return runAgent({
       apiKey, userPrompt, log, broadcast, onText, onStatus,
       files, messages, errorCollector, userAnswerPromise,
-      signal, injectedMessages, systemPromptAddition, assetContext, backendTarget,
+      signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
     });
   }
 
@@ -617,7 +621,7 @@ export async function runWithPlan({
     return runAgent({
       apiKey, userPrompt, log, broadcast, onText, onStatus,
       files, messages, errorCollector, userAnswerPromise,
-      signal, injectedMessages, systemPromptAddition, assetContext, backendTarget,
+      signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
     });
   }
 
@@ -683,6 +687,7 @@ export async function runWithPlan({
     userAnswerPromise,
     signal,
     injectedMessages,
+    modelOverride,
   });
 
   // Sync final assistant response back to the original conversation

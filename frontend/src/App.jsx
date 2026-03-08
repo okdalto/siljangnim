@@ -132,6 +132,17 @@ export default function App() {
   // Backend target (per-project override: auto / webgl / webgpu)
   const [backendTarget, setBackendTarget] = useState("auto");
 
+  // Model selection (persisted in localStorage)
+  const [selectedModel, setSelectedModel] = useState(
+    () => localStorage.getItem("siljangnim:selectedModel") || "claude-sonnet-4-6"
+  );
+  const handleModelChange = useCallback((modelId) => {
+    setSelectedModel(modelId);
+    localStorage.setItem("siljangnim:selectedModel", modelId);
+    // Notify engine of model change
+    if (engineRef.current) engineRef.current._selectedModel = modelId;
+  }, []);
+
   // Workspace files version counter
   const [workspaceFilesVersion, setWorkspaceFilesVersion] = useState(0);
 
@@ -176,6 +187,7 @@ export default function App() {
   // Wire asset context getter to browser-mode agent engine
   if (BROWSER_ONLY && _agentEngine) {
     _agentEngine._getAssetContext = assetNodes.getPromptContext;
+    _agentEngine._selectedModel = selectedModel;
   }
   const kf = useKeyframes(engineRef);
 
@@ -892,6 +904,8 @@ export default function App() {
           projectManifest={projectManifest}
           backendTarget={backendTarget}
           onBackendTargetChange={handleBackendTargetChange}
+          selectedModel={selectedModel}
+          onModelChange={handleModelChange}
         />
 
         {safeModeActive && (
