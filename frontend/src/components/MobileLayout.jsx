@@ -124,16 +124,14 @@ export default function MobileLayout({
           onClose={() => setDismissed(true)}
         />
       )}
-      {!viewportVisible && (
-        <MobileChatInput
-          fixed
-          onSend={onSend}
-          isProcessing={isProcessing}
-          pendingQuestion={pendingQuestion}
-          onAnswer={onAnswer}
-          onCancel={onCancel}
-        />
-      )}
+      <MobileChatInput
+        fixed
+        onSend={onSend}
+        isProcessing={isProcessing}
+        pendingQuestion={pendingQuestion}
+        onAnswer={onAnswer}
+        onCancel={onCancel}
+      />
     </div>
   );
 }
