@@ -37,6 +37,7 @@ import CustomPanelNode from "./nodes/CustomPanelNode.jsx";
 import ViewportNode from "./nodes/ViewportNode.jsx";
 import DebugLogNode from "./nodes/DebugLogNode.jsx";
 import AssetNode from "./nodes/AssetNode.jsx";
+import AssetBrowserNode from "./nodes/AssetBrowserNode.jsx";
 import useAssetNodes from "./hooks/useAssetNodes.js";
 import ApiKeyModal from "./components/ApiKeyModal.jsx";
 import MobileLayout from "./components/MobileLayout.jsx";
@@ -64,6 +65,7 @@ const nodeTypes = {
   debugLog: DebugLogNode,
   customPanel: CustomPanelNode,
   assetNode: AssetNode,
+  assetBrowser: AssetBrowserNode,
 };
 
 const BROWSER_ONLY = import.meta.env.VITE_MODE === "browser";
@@ -101,6 +103,13 @@ const initialNodes = [
     position: { x: 750, y: 50 },
     style: { width: 320, height: 480 },
     data: { logs: [] },
+  },
+  {
+    id: "assetBrowser",
+    type: "assetBrowser",
+    position: { x: 750, y: 550 },
+    style: { width: 320, height: 380 },
+    data: { assets: new Map(), onDelete: () => {}, onSelect: () => {}, onUpload: () => {} },
   },
 ];
 
@@ -880,6 +889,7 @@ export default function App() {
     rfInstanceRef,
     debugger: aiDebugger,
     assetNodes,
+    onAssetUpload: handleAssetUpload,
     onPromptSuggestion: (text) => chat.handleSend(text),
     safeModeActive,
     promptMode: promptModeHook.promptMode,
