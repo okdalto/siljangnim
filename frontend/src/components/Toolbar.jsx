@@ -1,10 +1,73 @@
+import { useState, useRef, useEffect, useCallback } from "react";
 import SettingsMenu from "./SettingsMenu.jsx";
 import PromptModeSelector from "./PromptModeSelector.jsx";
 import useMobile from "../hooks/useMobile.js";
 
 const PROVIDER_LABELS = { anthropic: "Claude", openai: "OpenAI", gemini: "Gemini", glm: "GLM", custom: "Custom" };
 
-export default function Toolbar({ onNewProject, activeProject, connected, provider, saveStatus, onChangeApiKey, onToggleTree, treeOpen, promptMode, onPromptModeChange, projectManifest, backendTarget, onBackendTargetChange }) {
+const PROVIDER_MODELS = {
+  anthropic: [
+    { id: "claude-sonnet-4-6", label: "Sonnet 4.6" },
+    { id: "claude-opus-4-6", label: "Opus 4.6" },
+    { id: "claude-haiku-4-5-20251001", label: "Haiku 4.5" },
+  ],
+};
+
+function ModelSelector({ provider, selectedModel, onModelChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  const models = PROVIDER_MODELS[provider];
+  if (!models || models.length <= 1) return null;
+
+  const current = models.find((m) => m.id === selectedModel) || models[0];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded transition-colors"
+        style={{ color: "var(--chrome-text-secondary)", background: "var(--input-bg)" }}
+      >
+        {current.label}
+        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-1 rounded-lg shadow-xl py-1 z-50 min-w-[140px]"
+          style={{ background: "var(--chrome-bg-elevated)", border: "1px solid var(--chrome-border)" }}
+        >
+          {models.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => { onModelChange(m.id); setOpen(false); }}
+              className="w-full text-left px-3 py-1.5 text-xs transition-colors hover:bg-white/10 flex items-center justify-between"
+              style={{ color: m.id === selectedModel ? "var(--chrome-text)" : "var(--chrome-text-secondary)" }}
+            >
+              {m.label}
+              {m.id === selectedModel && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Toolbar({ onNewProject, activeProject, connected, provider, saveStatus, onChangeApiKey, onToggleTree, treeOpen, promptMode, onPromptModeChange, projectManifest, backendTarget, onBackendTargetChange, selectedModel, onModelChange }) {
   const { isMobile } = useMobile();
 
   return (
@@ -112,6 +175,9 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
           />
           {!isMobile && (connected ? (provider ? PROVIDER_LABELS[provider] || provider : "Connected") : "Disconnected")}
         </button>
+        {!isMobile && connected && provider && (
+          <ModelSelector provider={provider} selectedModel={selectedModel} onModelChange={onModelChange} />
+        )}
         <SettingsMenu onChangeApiKey={onChangeApiKey} />
       </div>
     </div>

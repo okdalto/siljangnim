@@ -53,6 +53,9 @@ export default class AgentEngine {
     // Backend target (auto / webgl / webgpu)
     this._backendTarget = "auto";
 
+    // Selected model (set by App)
+    this._selectedModel = localStorage.getItem("siljangnim:selectedModel") || "claude-sonnet-4-6";
+
     // Asset context getter (set by App)
     this._getAssetContext = null;
 
@@ -333,6 +336,7 @@ const HANDLERS = {
           systemPromptAddition: this._promptModeAddition,
           assetContext: this._getAssetContext?.() || [],
           backendTarget: this._backendTarget,
+          modelOverride: this._selectedModel,
         });
         this.broadcast({ type: "chat_done" });
       } catch (err) {
