@@ -231,6 +231,23 @@ async def validate_api_key(
     return False, f"Unknown provider: {provider}"
 
 
+def _classify_validation_error(e: Exception) -> str:
+    """Classify a provider validation error into a user-friendly message."""
+    err_str = str(e).lower()
+    if isinstance(e, (openai.AuthenticationError,)):
+        return "Invalid API key"
+    if isinstance(e, (openai.APIConnectionError,)):
+        return "Could not connect to API server"
+    if "auth" in err_str or "api key" in err_str or "401" in err_str or "403" in err_str or "permission" in err_str:
+        return "Invalid API key"
+    if "connect" in err_str or "refused" in err_str:
+        return "Could not connect to API server"
+    if "model" in err_str and ("not found" in err_str or "does not exist" in err_str):
+        return "Model not found on server"
+    logger.error("API key validation error: %s", e)
+    return "Validation failed"
+
+
 async def _validate_anthropic_key(key: str) -> tuple[bool, str]:
     """Make a minimal Claude API call to verify the key."""
     try:
@@ -246,8 +263,7 @@ async def _validate_anthropic_key(key: str) -> tuple[bool, str]:
     except anthropic.APIConnectionError:
         return False, "Could not connect to API server"
     except Exception as e:
-        logger.error("API key validation error: %s", e)
-        return False, "Validation failed"
+        return False, _classify_validation_error(e)
 
 
 async def _validate_openai_key(key: str) -> tuple[bool, str]:
@@ -260,13 +276,10 @@ async def _validate_openai_key(key: str) -> tuple[bool, str]:
             messages=[{"role": "user", "content": "hi"}],
         )
         return True, ""
-    except openai.AuthenticationError:
-        return False, "Invalid API key"
-    except openai.APIConnectionError:
-        return False, "Could not connect to API server"
+    except (openai.AuthenticationError, openai.APIConnectionError) as e:
+        return False, _classify_validation_error(e)
     except Exception as e:
-        logger.error("API key validation error: %s", e)
-        return False, "Validation failed"
+        return False, _classify_validation_error(e)
 
 
 async def _validate_gemini_key(key: str) -> tuple[bool, str]:
@@ -283,13 +296,7 @@ async def _validate_gemini_key(key: str) -> tuple[bool, str]:
         )
         return True, ""
     except Exception as e:
-        err_str = str(e).lower()
-        if "api key" in err_str or "401" in err_str or "403" in err_str or "permission" in err_str:
-            return False, "Invalid API key"
-        if "connect" in err_str:
-            return False, "Could not connect to API server"
-        logger.error("API key validation error: %s", e)
-        return False, "Validation failed"
+        return False, _classify_validation_error(e)
 
 
 async def _validate_glm_key(key: str, endpoint: str | None = None) -> tuple[bool, str]:
@@ -304,13 +311,7 @@ async def _validate_glm_key(key: str, endpoint: str | None = None) -> tuple[bool
         )
         return True, ""
     except Exception as e:
-        err_str = str(e).lower()
-        if "auth" in err_str or "api key" in err_str or "401" in err_str:
-            return False, "Invalid API key"
-        if "connect" in err_str:
-            return False, "Could not connect to API server"
-        logger.error("API key validation error: %s", e)
-        return False, "Validation failed"
+        return False, _classify_validation_error(e)
 
 
 def _is_valid_base_url(url: str) -> bool:
@@ -340,13 +341,5 @@ async def _validate_custom(key: str, base_url: str | None, model: str | None) ->
             messages=[{"role": "user", "content": "hi"}],
         )
         return True, ""
-    except openai.APIConnectionError:
-        return False, "Could not connect to the custom endpoint"
     except Exception as e:
-        err_str = str(e).lower()
-        if "model" in err_str and ("not found" in err_str or "does not exist" in err_str):
-            return False, "Model not found on server"
-        if "connect" in err_str or "refused" in err_str:
-            return False, "Could not connect to the custom endpoint"
-        logger.error("API key validation error: %s", e)
-        return False, "Validation failed"
+        return False, _classify_validation_error(e)
