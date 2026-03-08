@@ -33,6 +33,7 @@ export default function GitHubSaveDialog({ token, user, projectName, captureThum
   const [step, setStep] = useState(1); // 1: choose repo, 2: configure, 3: saving
   const [thumbnailUrl, setThumbnailUrl] = useState(null);
   const [includeThumbnail, setIncludeThumbnail] = useState(true);
+  const [includeChatHistory, setIncludeChatHistory] = useState(true);
 
   // Capture thumbnail on mount
   useEffect(() => {
@@ -74,7 +75,7 @@ export default function GitHubSaveDialog({ token, user, projectName, captureThum
     setStep(3);
     try {
       // Collect project files
-      const files = await collectProjectFiles(projectName);
+      const files = await collectProjectFiles(projectName, { includeChatHistory });
 
       // Always re-capture thumbnail and rebuild README so the image is fresh on every push
       let thumbData = null;
@@ -138,7 +139,7 @@ export default function GitHubSaveDialog({ token, user, projectName, captureThum
     } finally {
       setSaving(false);
     }
-  }, [token, user, mode, newRepoName, newRepoDesc, isPrivate, selectedRepo, projectPath, commitMessage, projectName, branch, onSaved, includeThumbnail, captureThumbnail, thumbnailUrl]);
+  }, [token, user, mode, newRepoName, newRepoDesc, isPrivate, selectedRepo, projectPath, commitMessage, projectName, branch, onSaved, includeThumbnail, captureThumbnail, thumbnailUrl, includeChatHistory]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }}>
@@ -324,6 +325,12 @@ export default function GitHubSaveDialog({ token, user, projectName, captureThum
                 </div>
               )}
 
+              {/* Chat history option */}
+              <label className="flex items-center gap-2 text-[11px] font-medium" style={{ color: "var(--chrome-text-secondary)" }}>
+                <input type="checkbox" checked={includeChatHistory} onChange={(e) => setIncludeChatHistory(e.target.checked)} />
+                Include chat history
+              </label>
+
               <div>
                 <label className="text-[11px] font-medium block mb-1" style={{ color: "var(--chrome-text-secondary)" }}>
                   Commit message
@@ -400,7 +407,7 @@ function buildReadme(name, description, hasThumbnail = true) {
 /**
  * Collect all project files from IndexedDB for GitHub push.
  */
-async function collectProjectFiles(projectName) {
+async function collectProjectFiles(projectName, { includeChatHistory = true } = {}) {
   const sanitized = projectName; // Already sanitized in storage layer
   const activeName = storageApi.getActiveProjectName();
   const files = [];
@@ -444,11 +451,13 @@ async function collectProjectFiles(projectName) {
     files.push({ path: "workspace_state.json", content: JSON.stringify(ws, null, 2) });
   } catch { /* ignore */ }
 
-  // Get chat_history.json
-  try {
-    const chat = await storageApi.readJson("chat_history.json");
-    files.push({ path: "chat_history.json", content: JSON.stringify(chat, null, 2) });
-  } catch { /* ignore */ }
+  // Get chat_history.json (optional)
+  if (includeChatHistory) {
+    try {
+      const chat = await storageApi.readJson("chat_history.json");
+      files.push({ path: "chat_history.json", content: JSON.stringify(chat, null, 2) });
+    } catch { /* ignore */ }
+  }
 
   // Get uploads (as base64)
   try {
