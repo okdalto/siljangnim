@@ -303,7 +303,7 @@ export default function useAssetNodes() {
     setAssets(map);
     setSelectedAssetId(null);
 
-    // Regenerate preview blob URLs from IndexedDB
+    // Regenerate preview blob URLs and DATA previews from IndexedDB
     if (map.size > 0) {
       try {
         const storageModule = await import("../engine/storage.js");
@@ -319,6 +319,20 @@ export default function useAssetNodes() {
               const entry = await storageModule.readUpload(desc.filename);
               const url = URL.createObjectURL(new Blob([entry.data], { type: desc.mimeType }));
               updates.set(id, { previewUrl: url });
+            } catch { /* file not in store */ }
+          } else if (cat === ASSET_CATEGORY.DATA && !desc.technicalInfo?.preview) {
+            // Regenerate text preview for DATA files missing it
+            try {
+              const entry = await storageModule.readUpload(desc.filename);
+              const text = new TextDecoder("utf-8").decode(entry.data);
+              const ext = (desc.filename.split(".").pop() || "").toLowerCase();
+              let preview = text;
+              if (ext === "json") {
+                try { preview = JSON.stringify(JSON.parse(text), null, 2); } catch { /* raw text */ }
+              }
+              if (preview.length > 2000) preview = preview.slice(0, 2000) + "\n...";
+              const techInfo = { ...(desc.technicalInfo || {}), preview };
+              updates.set(id, { technicalInfo: techInfo });
             } catch { /* file not in store */ }
           }
         }

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { NodeResizer } from "@xyflow/react";
 import { ASSET_CATEGORY } from "../engine/assetDescriptor.js";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
@@ -78,6 +78,32 @@ function AssetViewer({ descriptor, onBack, onDownload }) {
 
   const url = previewUrl || thumbnailUrl;
 
+  // Lazy-load preview text for DATA files when technicalInfo.preview is missing
+  const [lazyPreview, setLazyPreview] = useState(null);
+  useEffect(() => {
+    if (category !== ASSET_CATEGORY.DATA) return;
+    if (technicalInfo?.preview) return; // already have it
+    let cancelled = false;
+    (async () => {
+      try {
+        const entry = await readUpload(filename);
+        const text = new TextDecoder("utf-8").decode(entry.data);
+        if (cancelled) return;
+        const ext = (filename.split(".").pop() || "").toLowerCase();
+        let preview = text;
+        if (ext === "json") {
+          try {
+            preview = JSON.stringify(JSON.parse(text), null, 2);
+          } catch { /* use raw text */ }
+        }
+        setLazyPreview(preview);
+      } catch { /* file not available */ }
+    })();
+    return () => { cancelled = true; };
+  }, [category, filename, technicalInfo?.preview]);
+
+  const previewText = technicalInfo?.preview || lazyPreview;
+
   const formatSize = (bytes) => {
     if (!bytes) return "";
     if (bytes < 1024) return `${bytes} B`;
@@ -134,13 +160,13 @@ function AssetViewer({ descriptor, onBack, onDownload }) {
           <div className="w-full px-2">
             <audio src={url} controls className="w-full" />
           </div>
-        ) : category === ASSET_CATEGORY.DATA && technicalInfo?.preview ? (
+        ) : category === ASSET_CATEGORY.DATA && previewText ? (
           <pre
             className="text-[10px] leading-relaxed whitespace-pre-wrap break-all w-full h-full overflow-auto p-2 rounded"
             style={{ color: "var(--chrome-text-muted)", background: "var(--input-bg)", fontFamily: "monospace" }}
           >
-            {technicalInfo.preview.slice(0, MAX_TEXT_PREVIEW)}
-            {technicalInfo.preview.length > MAX_TEXT_PREVIEW && "\n\n... (truncated)"}
+            {previewText.slice(0, MAX_TEXT_PREVIEW)}
+            {previewText.length > MAX_TEXT_PREVIEW && "\n\n... (truncated)"}
           </pre>
         ) : (
           <div className="text-center" style={{ color: "var(--chrome-text-muted)" }}>
