@@ -335,6 +335,8 @@ export default function useNodeDataSync({
   assetSelectRef.current = assetNodes?.selectAsset;
   const assetRenameRef = useRef(assetNodes?.renameAsset);
   assetRenameRef.current = assetNodes?.renameAsset;
+  const assetDeleteRef = useRef(assetNodes?.deleteAsset);
+  assetDeleteRef.current = assetNodes?.deleteAsset;
   const assetExecuteActionRef = useRef(assetNodes?.executeAction);
   assetExecuteActionRef.current = assetNodes?.executeAction;
   const onPromptSuggestionRef = useRef(onPromptSuggestion);
@@ -360,6 +362,7 @@ export default function useNodeDataSync({
             descriptor: desc,
             onSelect: (id) => assetSelectRef.current?.(id),
             onRename: (id, name) => assetRenameRef.current?.(id, name),
+            onDelete: (id) => assetDeleteRef.current?.(id),
             onAction: (id, actionType) => {
               const result = assetExecuteActionRef.current?.(id, actionType);
               if (result?.type === "prompt_suggestion") {
