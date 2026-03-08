@@ -298,11 +298,12 @@ export default function SettingsMenu({ onChangeApiKey, backendTarget, onBackendT
 
       {open && (
         <div
-          className="absolute top-full mt-1 right-0 w-64 rounded-lg shadow-xl p-3 text-xs z-50"
+          className="absolute top-full mt-1 right-0 w-64 rounded-lg shadow-xl p-3 text-xs z-50 overflow-y-auto"
           style={{
             backgroundColor: "var(--chrome-bg-elevated)",
             border: "1px solid var(--chrome-border)",
             color: "var(--chrome-text)",
+            maxHeight: "calc(100vh - 60px)",
           }}
         >
           {/* ── Appearance ────────────────────────────────── */}
