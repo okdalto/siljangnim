@@ -16,7 +16,7 @@ export default function MobileLayout({
   // Debug
   debugLogs,
   // Projects
-  projectList, activeProject, onProjectSave, onProjectLoad, onProjectDelete, onProjectRename,
+  projectList, activeProject, onProjectLoad, onProjectDelete, onProjectRename,
   onProjectImport, onDeleteWorkspaceFile, workspaceFilesVersion,
   // Custom panels
   customPanels, onPanelClose, onUniformChange,
@@ -33,7 +33,6 @@ export default function MobileLayout({
   const projectData = {
     projects: projectList,
     activeProject,
-    onSave: onProjectSave,
     onLoad: onProjectLoad,
     onDelete: onProjectDelete,
     onRename: onProjectRename,

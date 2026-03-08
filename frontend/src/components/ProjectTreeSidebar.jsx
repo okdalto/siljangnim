@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import ProjectTreeContextMenu from "./ProjectTreeContextMenu.jsx";
-import SaveProjectForm from "./SaveProjectForm.jsx";
 import ProjectListItem from "./ProjectListItem.jsx";
 import GitHubAuthButton from "./GitHubAuthButton.jsx";
 import VersionTreeCanvas from "./VersionTreeCanvas.jsx";
@@ -28,12 +27,10 @@ export default function ProjectTreeSidebar({
   // Project management
   projectList,
   activeProject,
-  onProjectSave,
   onProjectLoad,
   onProjectDelete,
   onProjectRename,
   onProjectImport,
-  saveStatus,
   // GitHub
   github,
   onGitHubSave,
@@ -41,18 +38,8 @@ export default function ProjectTreeSidebar({
   onExportZip,
 }) {
   const [contextMenu, setContextMenu] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [savedFeedback, setSavedFeedback] = useState(false);
   const [projectsExpanded, setProjectsExpanded] = useState(false);
-  const savedTimerRef = useRef(null);
   const importInputRef = useRef(null);
-
-  // Listen for global Cmd+S when no active project
-  useEffect(() => {
-    const handleOpenSave = () => setSaving(true);
-    window.addEventListener("open-save-dialog", handleOpenSave);
-    return () => window.removeEventListener("open-save-dialog", handleOpenSave);
-  }, []);
 
   const handleContextMenu = useCallback((e, node) => {
     setContextMenu({ x: e.clientX, y: e.clientY, node });
@@ -101,14 +88,6 @@ export default function ProjectTreeSidebar({
     }
   }, [onContinueFrom, onBranch, onDuplicate, onRename, onToggleFavorite, onPinCheckpoint, onDeleteNode, onStartCompare]);
 
-  const handleQuickSave = useCallback(() => {
-    if (!activeProject) return;
-    onProjectSave?.(activeProject);
-    clearTimeout(savedTimerRef.current);
-    setSavedFeedback(true);
-    savedTimerRef.current = setTimeout(() => setSavedFeedback(false), 1500);
-  }, [activeProject, onProjectSave]);
-
   const handleImportFile = useCallback((e) => {
     const file = e.target.files?.[0];
     if (file) onProjectImport?.(file);
@@ -138,65 +117,34 @@ export default function ProjectTreeSidebar({
       >
         {isOpen && (
           <>
-            {/* ── Project actions bar ── */}
+            {/* ── Project actions bar (Import / Export only) ── */}
             <div
               className="flex items-center gap-1.5 px-2 py-1.5 flex-shrink-0"
               style={{ borderBottom: "1px solid var(--chrome-border)" }}
             >
-              {saving ? (
+              <button
+                onClick={() => importInputRef.current?.click()}
+                className="text-[10px] px-2 py-1 rounded transition-colors"
+                style={{ color: "var(--chrome-text-secondary)", background: "var(--input-bg)" }}
+              >
+                Import
+              </button>
+              {activeProject && (
                 <button
-                  onClick={() => setSaving(false)}
+                  onClick={handleExportZip}
                   className="text-[10px] px-2 py-1 rounded transition-colors"
-                  style={{ color: "var(--chrome-text-muted)", background: "var(--input-bg)" }}
+                  style={{ color: "var(--chrome-text-secondary)", background: "var(--input-bg)" }}
                 >
-                  Cancel
+                  Export
                 </button>
-              ) : (
-                <>
-                  {activeProject ? (
-                    <button
-                      onClick={handleQuickSave}
-                      className="text-[10px] px-2 py-1 rounded transition-colors"
-                      style={{
-                        color: savedFeedback ? "#fff" : "var(--chrome-text-secondary)",
-                        background: savedFeedback ? "#059669" : "var(--input-bg)",
-                      }}
-                    >
-                      {savedFeedback ? "Saved!" : "Save"}
-                    </button>
-                  ) : null}
-                  <button
-                    onClick={() => setSaving(true)}
-                    className="text-[10px] px-2 py-1 rounded transition-colors"
-                    style={{ color: "var(--chrome-text-secondary)", background: "var(--input-bg)" }}
-                  >
-                    Save As
-                  </button>
-                  <button
-                    onClick={() => importInputRef.current?.click()}
-                    className="text-[10px] px-2 py-1 rounded transition-colors"
-                    style={{ color: "var(--chrome-text-secondary)", background: "var(--input-bg)" }}
-                  >
-                    Import
-                  </button>
-                  {activeProject && (
-                    <button
-                      onClick={handleExportZip}
-                      className="text-[10px] px-2 py-1 rounded transition-colors"
-                      style={{ color: "var(--chrome-text-secondary)", background: "var(--input-bg)" }}
-                    >
-                      Export
-                    </button>
-                  )}
-                  <input
-                    ref={importInputRef}
-                    type="file"
-                    accept=".zip,.json"
-                    className="hidden"
-                    onChange={handleImportFile}
-                  />
-                </>
               )}
+              <input
+                ref={importInputRef}
+                type="file"
+                accept=".zip,.json"
+                className="hidden"
+                onChange={handleImportFile}
+              />
             </div>
 
             {/* ── GitHub section ── */}
@@ -231,17 +179,6 @@ export default function ProjectTreeSidebar({
                   <GitHubAuthButton {...github} onLogin={github.login} onLogout={github.logout} onCancelLogin={github.cancelLogin} />
                 )}
               </div>
-            )}
-
-            {/* ── Save form ── */}
-            {saving && (
-              <SaveProjectForm
-                onSave={(name, desc) => {
-                  onProjectSave?.(name, desc);
-                  setSaving(false);
-                }}
-                onCancel={() => setSaving(false)}
-              />
             )}
 
             {/* ── Saved Projects section (collapsible) ── */}

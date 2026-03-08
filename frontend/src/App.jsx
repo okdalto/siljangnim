@@ -22,6 +22,7 @@ import useChat from "./hooks/useChat.js";
 import useCustomPanels from "./hooks/useCustomPanels.js";
 import useKeyframes from "./hooks/useKeyframes.js";
 import useProjectManager from "./hooks/useProjectManager.js";
+import useAutoSave from "./hooks/useAutoSave.js";
 import useProjectTree from "./hooks/useProjectTree.js";
 import useSettings from "./hooks/useSettings.js";
 import useUniformHistory from "./hooks/useUniformHistory.js";
@@ -247,16 +248,27 @@ export default function App() {
 
   const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages);
 
+  // Auto-save (Figma-style)
+  const captureThumbnailRef = useRef(captureThumbnail);
+  captureThumbnailRef.current = captureThumbnail;
+  const getMessagesAutoSaveRef = useRef(getMessages);
+  getMessagesAutoSaveRef.current = getMessages;
+  const autoSave = useAutoSave({
+    captureThumbnailRef,
+    getMessagesRef: { current: getMessages },
+    setProjectList: project.setProjectList,
+  });
+
   // Handler: user changes backend target via toolbar
   const handleBackendTargetChange = useCallback((target) => {
     setBackendTarget(target);
     // Persist into sceneJSON so it's saved with the project
     setSceneJSON((prev) => prev ? { ...prev, backendTarget: target } : prev);
     dirtyRef.current = true;
-    project.markUnsaved();
+    autoSave.triggerAutoSave();
     // Notify backend/agent engine of the change
     sendRef.current?.({ type: "set_backend_target", backendTarget: target });
-  }, [project.markUnsaved]);
+  }, [autoSave.triggerAutoSave]);
 
   // Project tree (version history)
   const tree = useProjectTree(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages);
@@ -436,9 +448,9 @@ export default function App() {
     }
     if (kf.keyframeVersion > 0) {
       sendWsRef.current();
-      project.markUnsaved();
+      autoSave.triggerAutoSave();
     }
-  }, [kf.keyframeVersion, project.markUnsaved]);
+  }, [kf.keyframeVersion, autoSave.triggerAutoSave]);
 
   const durationLoopMountedRef = useRef(false);
   useEffect(() => {
@@ -447,14 +459,14 @@ export default function App() {
       return;
     }
     sendWsRef.current();
-    project.markUnsaved();
-  }, [duration, loop, project.markUnsaved]);
+    autoSave.triggerAutoSave();
+  }, [duration, loop, autoSave.triggerAutoSave]);
 
   // Save workspace state when node layout changes (drag/resize end)
   onLayoutCommitRef.current = () => {
     if (!initSettledRef.current) return; // suppress during init/project load
     sendWorkspaceStateNow();
-    project.markUnsaved();
+    autoSave.triggerAutoSave();
   };
 
   // Buffer for thinking content from agent_status (fallback if agent_log misses it)
@@ -481,6 +493,7 @@ export default function App() {
     getActiveProjectNameRef,
     setProjectManifest,
     overwriteModeRef,
+    autoSave,
   });
 
   const ws = useWebSocket(BROWSER_ONLY ? null : WS_URL, handleMessage);
@@ -505,36 +518,16 @@ export default function App() {
     if (BROWSER_ONLY) send({ type: "request_state" });
   }, [send]);
 
-  // Warn before closing tab with unsaved changes
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (project.saveStatusRef.current === "unsaved") {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [project.saveStatusRef]);
-
-  // Cmd+S / Ctrl+S to save current project
-  const handleProjectSaveRef = useRef(null);
+  // Cmd+S / Ctrl+S — prevent browser default (auto-save handles everything)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
-        const name = project.activeProject;
-        if (name) {
-          handleProjectSaveRef.current?.(name);
-        } else {
-          window.dispatchEvent(new CustomEvent("open-save-dialog"));
-        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [project.activeProject]);
-  handleProjectSaveRef.current = project.handleProjectSave;
+  }, []);
 
   const handleUniformChange = useCallback(
     (uniform, value) => {
@@ -564,9 +557,9 @@ export default function App() {
       if (engineRef.current) engineRef.current.updateUniform(uniform, value);
       send({ type: "set_uniform", uniform, value });
       dirtyRef.current = true;
-      project.markUnsaved();
+      autoSave.triggerAutoSave();
     },
-    [send, project.markUnsaved]
+    [send, autoSave.triggerAutoSave]
   );
 
   // Handle restoring scene from tree node (double-click)
@@ -662,19 +655,7 @@ export default function App() {
   }, [tree.deleteNodeTree]);
 
   const handleNewProject = useCallback(() => {
-    const msg = { type: "new_project" };
-    if (project.activeProject && project.saveStatus === "unsaved") {
-      const wantSave = window.confirm(
-        `"${project.activeProject}"에 저장되지 않은 변경사항이 있습니다. 저장할까요?`
-      );
-      if (wantSave) {
-        msg.active_project = project.activeProject;
-        msg.thumbnail = captureThumbnail();
-        msg.workspace_state = getWorkspaceState();
-        msg.debug_logs = chat.debugLogs;
-        msg.chat_history = chat.messages;
-      }
-    }
+    // No unsaved-changes dialog — auto-save ensures everything is persisted
     chat.clearAll();
     resetUniformHistory();
     setSceneJSON(null);
@@ -688,9 +669,8 @@ export default function App() {
     setDuration(settings.defaultDuration);
     setLoop(settings.defaultLoop);
     dirtyRef.current = false;
-    project.markSaved();
-    send(msg);
-  }, [send, project.activeProject, project.saveStatus, captureThumbnail, getWorkspaceState, getNodeLayouts, chat.clearAll, chat.messages, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, project.markSaved, settings.defaultDuration, settings.defaultLoop]);
+    send({ type: "new_project" });
+  }, [send, chat.clearAll, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, settings.defaultDuration, settings.defaultLoop]);
 
   // Trust a safe-mode project
   const handleTrustProject = useCallback(() => {
@@ -895,7 +875,7 @@ export default function App() {
           activeProject={project.activeProject}
           connected={connected}
           provider={apiKey.savedConfig?.provider}
-          saveStatus={project.saveStatus}
+          saveStatus={autoSave.saveStatus}
           onChangeApiKey={() => apiKey.setRequired()}
           onToggleTree={tree.toggleSidebar}
           treeOpen={tree.sidebarOpen}
@@ -938,12 +918,10 @@ export default function App() {
             onCancelCompare={compare.cancelCompare}
             projectList={project.projectList}
             activeProject={project.activeProject}
-            onProjectSave={project.handleProjectSave}
             onProjectLoad={project.handleProjectLoad}
             onProjectDelete={project.handleProjectDelete}
             onProjectRename={project.handleProjectRename}
             onProjectImport={project.handleProjectImport}
-            saveStatus={project.saveStatus}
             github={github}
             onGitHubSave={() => setShowGitHubSave(true)}
             onGitHubLoad={() => setShowGitHubLoad(true)}
@@ -1049,7 +1027,6 @@ export default function App() {
             debugLogs={chat.debugLogs}
             projectList={project.projectList}
             activeProject={project.activeProject}
-            onProjectSave={project.handleProjectSave}
             onProjectLoad={project.handleProjectLoad}
             onProjectDelete={project.handleProjectDelete}
             onProjectRename={project.handleProjectRename}
@@ -1078,7 +1055,7 @@ export default function App() {
               if (!initSettledRef.current) return;
               requestAnimationFrame(() => {
                 sendWorkspaceStateNow();
-                project.markUnsaved();
+                autoSave.triggerAutoSave();
               });
             }}
             nodeTypes={nodeTypes}

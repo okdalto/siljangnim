@@ -2,12 +2,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { NodeResizer } from "@xyflow/react";
 import FileTree from "../components/fileBrowser/FileTree.jsx";
 import FilePreview from "../components/fileBrowser/FilePreview.jsx";
-import SaveProjectForm from "../components/SaveProjectForm.jsx";
 import ProjectListItem from "../components/ProjectListItem.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 import { API_BASE } from "../constants/api.js";
-
-const SAVE_FEEDBACK_MS = 1500;
 
 function ChevronIcon({ open }) {
   return (
@@ -25,7 +22,6 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
   const {
     projects = [],
     activeProject,
-    onSave,
     onLoad,
     onDelete,
     onRename,
@@ -36,9 +32,6 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
 
   const [collapsed, setCollapsed] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [savedFeedback, setSavedFeedback] = useState(false);
-  const savedTimerRef = useRef(null);
   const scrollRef = useRef(null);
   const importInputRef = useRef(null);
 
@@ -62,25 +55,6 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
   }, [fetchWsFiles, workspaceFilesVersion]);
 
   useStopWheelPropagation(scrollRef);
-
-  const handleQuickSave = () => {
-    if (!activeProject) return;
-    onSave?.(activeProject);
-    clearTimeout(savedTimerRef.current);
-    setSavedFeedback(true);
-    savedTimerRef.current = setTimeout(() => setSavedFeedback(false), SAVE_FEEDBACK_MS);
-  };
-
-  const handleOpenSaveAs = () => {
-    setSaving(true);
-  };
-
-  // Listen for global Cmd+S when no active project
-  useEffect(() => {
-    const handleOpenSave = () => setSaving(true);
-    window.addEventListener("open-save-dialog", handleOpenSave);
-    return () => window.removeEventListener("open-save-dialog", handleOpenSave);
-  }, []);
 
   const handleWsFileDelete = useCallback(async (filepath) => {
     if (onDeleteWorkspaceFile) {
@@ -161,53 +135,11 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
           >
             Import
           </button>
-          {saving ? (
-            <button
-              onClick={() => setSaving(false)}
-              className="text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-700 hover:bg-zinc-600 px-2 py-0.5 rounded transition-colors"
-            >
-              Cancel
-            </button>
-          ) : activeProject ? (
-            <>
-              <button
-                onClick={handleQuickSave}
-                className={`text-xs px-2 py-0.5 rounded transition-colors ${
-                  savedFeedback
-                    ? "bg-emerald-600 text-white"
-                    : "text-zinc-500 hover:text-zinc-200 bg-zinc-700 hover:bg-zinc-600"
-                }`}
-              >
-                {savedFeedback ? "Saved!" : "Save"}
-              </button>
-              <button
-                onClick={handleOpenSaveAs}
-                className="text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-700 hover:bg-zinc-600 px-2 py-0.5 rounded transition-colors"
-              >
-                Save As
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setSaving(true)}
-              className="text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-700 hover:bg-zinc-600 px-2 py-0.5 rounded transition-colors"
-            >
-              Save
-            </button>
-          )}
         </div>
       </div>
       )}
 
       {!collapsed && <>
-      {/* Save form */}
-      {saving && (
-        <SaveProjectForm
-          onSave={onSave}
-          onCancel={() => setSaving(false)}
-        />
-      )}
-
       {/* Scrollable content */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto nodrag nowheel nopan">
         {/* Current Workspace section */}
@@ -247,7 +179,7 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
             </svg>
             <p className="text-xs italic">No saved projects yet.</p>
-            <p className="text-[10px] text-zinc-600">Click "Save" to create your first project.</p>
+            <p className="text-[10px] text-zinc-600">Projects are auto-saved after each prompt.</p>
           </div>
         )}
         {projects.map((p) => (

@@ -1,50 +1,17 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { API_BASE } from "../constants/api.js";
 import { importProjectZip } from "../engine/storage.js";
 
 export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages) {
   const [projectList, setProjectList] = useState([]);
   const [activeProject, setActiveProject] = useState(null);
-  const [saveStatus, setSaveStatus] = useState("saved");
-
-  // Expose a ref so beforeunload can read current value without re-registering
-  const saveStatusRef = useRef(saveStatus);
-  saveStatusRef.current = saveStatus;
-
-  const handleProjectSave = useCallback(
-    (name, description) => {
-      setSaveStatus("saving");
-      sendRef.current?.({
-        type: "project_save",
-        name,
-        description: description || "",
-        thumbnail: captureThumbnail(),
-        workspace_state: getWorkspaceState(),
-        debug_logs: getDebugLogs(),
-        chat_history: getMessages?.() || [],
-      });
-    },
-    [sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages]
-  );
 
   const handleProjectLoad = useCallback(
     (name) => {
-      const msg = { type: "project_load", name };
-      if (saveStatusRef.current === "unsaved" && activeProject && activeProject !== name) {
-        const wantSave = window.confirm(
-          `"${activeProject}"에 저장되지 않은 변경사항이 있습니다. 저장할까요?`
-        );
-        if (wantSave) {
-          msg.active_project = activeProject;
-          msg.thumbnail = captureThumbnail();
-          msg.workspace_state = getWorkspaceState();
-          msg.debug_logs = getDebugLogs();
-          msg.chat_history = getMessages?.() || [];
-        }
-      }
-      sendRef.current?.(msg);
+      // No unsaved-changes confirmation needed — auto-save handles everything
+      sendRef.current?.({ type: "project_load", name });
     },
-    [sendRef, activeProject, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages]
+    [sendRef]
   );
 
   const handleProjectDelete = useCallback(
@@ -80,11 +47,9 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
     // Fallback: browser-only import
     try {
       if (file.name?.endsWith(".zip") || file.type === "application/zip") {
-        // Real ZIP file — use zipIO
         const { importProjectFromZip } = await import("../engine/zipIO.js");
         await importProjectFromZip(file, { isExternal: true });
       } else {
-        // JSON format (legacy exportProjectZip)
         const text = await file.text();
         await importProjectZip(text);
       }
@@ -92,24 +57,14 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
     } catch { /* ignore */ }
   }, [sendRef]);
 
-  const markSaved = useCallback(() => setSaveStatus("saved"), []);
-  const markUnsaved = useCallback(() => setSaveStatus("unsaved"), []);
-  const markSaving = useCallback(() => setSaveStatus("saving"), []);
-
   return {
     projectList,
     activeProject,
-    saveStatus,
-    saveStatusRef,
-    handleProjectSave,
     handleProjectLoad,
     handleProjectDelete,
     handleProjectRename,
     handleProjectImport,
     setProjectList,
     setActiveProject,
-    markSaved,
-    markUnsaved,
-    markSaving,
   };
 }

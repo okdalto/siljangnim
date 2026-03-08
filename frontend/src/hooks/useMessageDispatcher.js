@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { updateNodeMetadata } from "../engine/projectTree.js";
+import * as storage from "../engine/storage.js";
 
 /**
  * @param {Object} params - All dependencies for message handling (chat, apiKey, project, panels, kf, state setters, refs)
@@ -25,6 +26,7 @@ export default function useMessageDispatcher(params) {
       getActiveProjectNameRef,
       setProjectManifest,
       overwriteModeRef,
+      autoSave,
     } = deps.current;
     if (!msg || !msg.type) return;
 
@@ -44,8 +46,10 @@ export default function useMessageDispatcher(params) {
         if (msg.projects) project.setProjectList(msg.projects);
         if (msg.active_project) {
           project.setActiveProject(msg.active_project.display_name || msg.active_project.name);
+          setProjectManifest?.(msg.active_project);
         } else {
           project.setActiveProject(null);
+          setProjectManifest?.(null);
         }
         if (msg.chat_history?.length) chat.restoreMessages(msg.chat_history);
         chat.setProcessing(!!msg.is_processing);
@@ -70,7 +74,6 @@ export default function useMessageDispatcher(params) {
         panels.restorePanels(msg.panels || {});
         if (msg.debug_logs) chat.setDebugLogs(msg.debug_logs);
         assetNodes.restore(msg.workspace_state?.assets || {});
-        project.markSaved();
         // Allow layout saves after React Flow has fully reconciled (double-rAF)
         requestAnimationFrame(() => requestAnimationFrame(() => { initSettledRef.current = true; }));
         break;
@@ -92,7 +95,40 @@ export default function useMessageDispatcher(params) {
         chat.setPendingQuestion(null);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = true;
-        project.markUnsaved();
+
+        // Auto-create project if currently untitled
+        const activeProj = project.activeProject;
+        const activeName = storage.getActiveProjectName();
+        if (!activeProj || activeName === "_untitled") {
+          // Extract project name from assistant response
+          const history = getMessagesRef?.current?.() || [];
+          let autoName = "Untitled Project";
+          for (let i = history.length - 1; i >= 0; i--) {
+            if (history[i]?.role === "user") {
+              const txt = (history[i].text || history[i].content || "").trim();
+              if (txt) {
+                autoName = txt.replace(/^#+\s*/gm, "").split("\n")[0].trim().slice(0, 60) || autoName;
+              }
+              break;
+            }
+          }
+          (async () => {
+            try {
+              const manifest = await storage.autoCreateProject(autoName, history);
+              project.setActiveProject(manifest.display_name);
+              setProjectManifest?.(manifest);
+              const projects = await storage.listProjects();
+              project.setProjectList(projects);
+              // Trigger auto-save after project creation
+              autoSave?.triggerAutoSave?.();
+            } catch (e) {
+              console.warn("[chat_done] auto-create project failed:", e);
+            }
+          })();
+        } else {
+          // Trigger auto-save for existing project
+          autoSave?.triggerAutoSave?.();
+        }
 
         // Create tree node after prompt completes
         const pt = projectTreeRef?.current;
@@ -106,18 +142,28 @@ export default function useMessageDispatcher(params) {
             chat_history: getMessagesRef?.current?.() || [],
             debug_logs: getDebugLogsRef?.current?.() || [],
           };
-          // Use the user's prompt as node title (not the AI response)
+          // Use the assistant's last response as node title (summarizes what was done)
           const history = currentState.chat_history;
+          let assistantText = null;
           let userPrompt = null;
           for (let i = history.length - 1; i >= 0; i--) {
-            if (history[i]?.role === "user") {
-              userPrompt = (history[i].text || history[i].content || "").trim();
-              break;
+            if (!assistantText && history[i]?.role === "assistant") {
+              assistantText = (history[i].text || history[i].content || "").trim();
             }
+            if (!userPrompt && history[i]?.role === "user") {
+              userPrompt = (history[i].text || history[i].content || "").trim();
+            }
+            if (assistantText && userPrompt) break;
           }
           const lastMsg = history[history.length - 1];
-          const title = userPrompt
-            ? userPrompt.slice(0, 60) + (userPrompt.length > 60 ? "…" : "")
+          // Prefer assistant summary; extract first meaningful line
+          let titleSource = assistantText || userPrompt || "Prompt result";
+          // Strip markdown headers, leading whitespace, etc.
+          titleSource = titleSource.replace(/^#+\s*/gm, "").replace(/^\s*[-*]\s*/gm, "").trim();
+          // Take first line only
+          const firstLine = titleSource.split("\n")[0].trim();
+          const title = firstLine
+            ? firstLine.slice(0, 80) + (firstLine.length > 80 ? "…" : "")
             : "Prompt result";
 
           if (overwriteModeRef?.current && pt.overwriteCurrentNode) {
@@ -155,7 +201,7 @@ export default function useMessageDispatcher(params) {
         if (msg.ui_config) setUiConfig(msg.ui_config);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = true;
-        project.markUnsaved();
+        autoSave?.triggerAutoSave?.();
         break;
 
       case "api_key_required":
@@ -195,7 +241,6 @@ export default function useMessageDispatcher(params) {
       case "project_saved":
         if (msg.meta) project.setActiveProject(msg.meta.display_name || msg.meta.name);
         dirtyRef.current = false;
-        project.markSaved();
         break;
 
       case "project_loaded":
@@ -237,7 +282,6 @@ export default function useMessageDispatcher(params) {
         assetNodes.restore(msg.workspace_state?.assets || {});
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = false;
-        project.markSaved();
         // Allow layout saves after React Flow has fully reconciled (double-rAF)
         requestAnimationFrame(() => requestAnimationFrame(() => { initSettledRef.current = true; }));
         break;

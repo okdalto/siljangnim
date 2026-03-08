@@ -210,25 +210,6 @@ async function triggerAutoFix(errorMessage, engine) {
   }
 }
 
-async function autoSaveProject(msg, engine) {
-  const name = msg.active_project;
-  if (!name) return null;
-  try {
-    if (msg.workspace_state) {
-      await storage.writeJson("workspace_state.json", msg.workspace_state);
-    }
-    if (msg.debug_logs != null) {
-      await storage.writeJson("debug_logs.json", msg.debug_logs);
-    }
-    const chatHistory = msg.chat_history || engine.chatHistory;
-    const meta = await storage.saveProject(name, chatHistory, "", msg.thumbnail);
-    return meta;
-  } catch (e) {
-    console.warn("Auto-save failed:", e);
-    return null;
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Message handlers
 // ---------------------------------------------------------------------------
@@ -439,7 +420,7 @@ const HANDLERS = {
   },
 
   async new_project(msg) {
-    await autoSaveProject(msg, this);
+    // Auto-save is handled by useAutoSave hook; no need to save here
     this.chatHistory.length = 0;
     this.conversation.length = 0;
 
@@ -461,26 +442,8 @@ const HANDLERS = {
   },
 
   async project_save(msg) {
-    try {
-      if (msg.workspace_state) {
-        await storage.writeJson("workspace_state.json", msg.workspace_state);
-      }
-      if (msg.debug_logs != null) {
-        await storage.writeJson("debug_logs.json", msg.debug_logs);
-      }
-      const chatHistory = msg.chat_history || this.chatHistory;
-      const meta = await storage.saveProject(
-        msg.name || "untitled",
-        chatHistory,
-        msg.description || "",
-        msg.thumbnail,
-      );
-      this.broadcast({ type: "project_saved", meta });
-      const projects = await storage.listProjects();
-      this.broadcast({ type: "project_list", projects });
-    } catch (e) {
-      this.broadcast({ type: "project_save_error", error: e.message });
-    }
+    // Manual save is no longer used — auto-save handles everything.
+    // Kept as a no-op for backward compatibility.
   },
 
   async project_load(msg) {
@@ -492,12 +455,7 @@ const HANDLERS = {
       return;
     }
 
-    const savedMeta = await autoSaveProject(msg, this);
-    if (savedMeta) {
-      const projects = await storage.listProjects();
-      this.broadcast({ type: "project_list", projects });
-    }
-
+    // Auto-save is handled by useAutoSave hook; just load the requested project
     try {
       const result = await storage.loadProject(msg.name || "");
       this.chatHistory.length = 0;
@@ -619,6 +577,33 @@ const HANDLERS = {
     const savedKey = sessionStorage.getItem("siljangnim:apiKey");
     if (savedKey) this.apiKey = savedKey;
 
+    // Restore active project metadata, chat history, and debug logs
+    let activeProject = null;
+    let chatHistory = [];
+    let debugLogs = [];
+    const activeName = storage.getActiveProjectName();
+    if (activeName && activeName !== "_untitled") {
+      try {
+        activeProject = await storage.getProjectManifest(activeName);
+      } catch { /* ignore — will start as untitled */ }
+
+      // Restore chat history from IndexedDB
+      try {
+        chatHistory = await storage.readJson("chat_history.json");
+      } catch { /* empty */ }
+
+      // Restore debug logs from IndexedDB
+      try {
+        debugLogs = await storage.readJson("debug_logs.json");
+      } catch { /* empty */ }
+
+      // Restore engine chat history so the agent has context for follow-up prompts
+      if (Array.isArray(chatHistory) && chatHistory.length > 0) {
+        this.chatHistory.length = 0;
+        this.chatHistory.push(...chatHistory);
+      }
+    }
+
     this.broadcast({
       type: "init",
       scene_json: scene,
@@ -627,6 +612,9 @@ const HANDLERS = {
       workspace_state: wsState,
       panels,
       api_config: savedKey ? { provider: "anthropic" } : null,
+      active_project: activeProject || undefined,
+      chat_history: chatHistory.length > 0 ? chatHistory : undefined,
+      debug_logs: debugLogs.length > 0 ? debugLogs : undefined,
     });
   },
 };
