@@ -13,10 +13,40 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
   onErrorRef.current = onError;
   const [fps, setFps] = useState(0);
   const [resolution, setResolution] = useState([0, 0]);
-  const [fixedResolution, setFixedResolution] = useState(null); // null = auto
+  const [fixedResolution, setFixedResolutionRaw] = useState(() => data.initialFixedResolution ?? null);
+  const setFixedResolution = useCallback((v) => {
+    setFixedResolutionRaw((prev) => {
+      const next = typeof v === "function" ? v(prev) : v;
+      data.onFixedResolutionChange?.(next);
+      return next;
+    });
+  }, [data.onFixedResolutionChange]);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsedRaw] = useState(() => data.initialCollapsed ?? false);
+  const setCollapsed = useCallback((v) => {
+    setCollapsedRaw((prev) => {
+      const next = typeof v === "function" ? v(prev) : v;
+      data.onCollapsedChange?.(next);
+      return next;
+    });
+  }, [data.onCollapsedChange]);
+  // Sync collapsed state when project is restored
+  const prevInitCollapsed = useRef(data.initialCollapsed);
+  useEffect(() => {
+    if (data.initialCollapsed !== prevInitCollapsed.current) {
+      prevInitCollapsed.current = data.initialCollapsed;
+      setCollapsedRaw(data.initialCollapsed ?? false);
+    }
+  }, [data.initialCollapsed]);
+  // Sync fixedResolution when project is restored
+  const prevInitFixedRes = useRef(data.initialFixedResolution);
+  useEffect(() => {
+    if (data.initialFixedResolution !== prevInitFixedRes.current) {
+      prevInitFixedRes.current = data.initialFixedResolution;
+      setFixedResolutionRaw(data.initialFixedResolution ?? null);
+    }
+  }, [data.initialFixedResolution]);
   const [backendName, setBackendName] = useState("WebGL2");
 
   useStopWheelPropagation(containerRef);

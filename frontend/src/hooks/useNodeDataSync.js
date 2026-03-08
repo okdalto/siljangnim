@@ -137,6 +137,8 @@ export default function useNodeDataSync({
   onToggleOverwrite,
   // Backend target
   backendTarget,
+  // Per-node UI state ref (collapsed, fixedResolution)
+  nodeUiStateRef,
 }) {
   // Use refs for stable callback values to avoid triggering unrelated effects
   const handleUniformChangeRef = useRef(handleUniformChange);
@@ -179,6 +181,8 @@ export default function useNodeDataSync({
                 onSwitchToNode: (...args) => onSwitchToNodeRef.current?.(...args),
                 overwriteMode: overwriteMode || false,
                 onToggleOverwrite,
+                initialCollapsed: nodeUiStateRef?.current?.collapsed?.chat,
+                onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.chat = v; },
               },
             }
           : node
@@ -206,6 +210,10 @@ export default function useNodeDataSync({
                 paused,
                 onError: handleShaderErrorRef.current,
                 safeModeActive,
+                initialCollapsed: nodeUiStateRef?.current?.collapsed?.viewport,
+                onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.viewport = v; },
+                initialFixedResolution: nodeUiStateRef?.current?.viewportFixedResolution,
+                onFixedResolutionChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.viewportFixedResolution = v; },
                 onResizeNode: (w, h) => {
                   // Resize viewport node to match the chosen resolution aspect ratio
                   // Keep current width, adjust height proportionally
@@ -249,6 +257,8 @@ export default function useNodeDataSync({
                 backendName: backendTarget === "webgpu" ? "WebGPU" : (backendTarget === "webgl2" ? "WebGL2" : (engineRef?.current?.backendName || "WebGL2")),
                 onApplyPatch: (patch) => applyPatchRef.current?.(patch),
                 onRunDiagnosis: () => runDiagnosisRef.current?.(),
+                initialCollapsed: nodeUiStateRef?.current?.collapsed?.debugLog,
+                onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.debugLog = v; },
               },
             }
           : node
