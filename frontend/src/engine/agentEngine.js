@@ -50,6 +50,20 @@ export default class AgentEngine {
     // Prompt mode enhancement
     this._promptModeAddition = "";
 
+    // Mobile background resume: save last prompt context for retry
+    this._lastPromptContext = null;
+    this._backgroundRetryPending = false;
+
+    // Listen for visibility change to auto-retry interrupted agent calls
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && this._backgroundRetryPending) {
+          this._backgroundRetryPending = false;
+          this._retryLastPrompt();
+        }
+      });
+    }
+
     // Backend target (auto / webgl / webgpu)
     this._backendTarget = "auto";
 
@@ -93,6 +107,25 @@ export default class AgentEngine {
   /** Dispatch a message from engine to React UI. */
   broadcast(msg) {
     this.bus.dispatch(msg);
+  }
+
+  /** Retry the last interrupted prompt (mobile background resume). */
+  _retryLastPrompt() {
+    const ctx = this._lastPromptContext;
+    if (!ctx || this.agentBusy) return;
+
+    this.broadcast({
+      type: "agent_log", agent: "System",
+      message: "Resuming interrupted request...", level: "info",
+    });
+
+    // Re-run the prompt handler with the saved context
+    this.handleMessage({
+      type: "prompt",
+      text: ctx.userPrompt,
+      files: ctx.files,
+      _isRetry: true,
+    });
   }
 
   /** Create a promise that resolves when the user answers a question. */
@@ -244,6 +277,7 @@ const HANDLERS = {
     }
 
     const userPrompt = msg.text || "";
+    const isRetry = !!msg._isRetry;
 
     if (this.agentBusy) {
       if (userPrompt.trim()) {
@@ -254,8 +288,8 @@ const HANDLERS = {
       return;
     }
 
-    // Process uploaded files
-    const rawFiles = msg.files || [];
+    // Process uploaded files (skip on retry — files already saved)
+    const rawFiles = isRetry ? [] : (msg.files || []);
     const savedFiles = [];
     if (rawFiles.length) {
       for (const f of rawFiles) {
@@ -283,11 +317,14 @@ const HANDLERS = {
       this.broadcast({ type: "files_uploaded", files: savedFiles });
     }
 
-    const historyEntry = { role: "user", text: userPrompt };
-    if (savedFiles.length) {
-      historyEntry.files = savedFiles.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
+    // On retry, don't re-push to chatHistory (already there from the first attempt)
+    if (!isRetry) {
+      const historyEntry = { role: "user", text: userPrompt };
+      if (savedFiles.length) {
+        historyEntry.files = savedFiles.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
+      }
+      this.chatHistory.push(historyEntry);
     }
-    this.chatHistory.push(historyEntry);
 
     const { log, onText, onStatus } = makeCallbacks(this);
     this.agentBusy = true;
@@ -296,6 +333,9 @@ const HANDLERS = {
 
     // Gather current workspace state for plan-based execution
     const currentState = await this._getCurrentState();
+
+    // Save context for mobile background retry
+    this._lastPromptContext = { userPrompt, files: savedFiles.length ? savedFiles : undefined };
 
     // Run agent asynchronously (with planning when conversation is long)
     (async () => {
@@ -319,15 +359,44 @@ const HANDLERS = {
           backendTarget: this._backendTarget,
           modelOverride: this._selectedModel,
         });
+        this._lastPromptContext = null;
         this.broadcast({ type: "chat_done" });
       } catch (err) {
+        // User-initiated cancel
         if (err.name === "AbortError") {
+          this._lastPromptContext = null;
           this.broadcast({ type: "chat_done" });
           return;
         }
+
+        // Detect network interruption from mobile backgrounding
+        const errStr = err.message?.toLowerCase() || "";
+        const isNetworkError =
+          errStr.includes("failed to fetch") ||
+          errStr.includes("network") ||
+          errStr.includes("load failed") ||       // Safari
+          errStr.includes("networkerror") ||
+          errStr.includes("the internet connection appears to be offline") ||
+          err.name === "TypeError" && errStr.includes("fetch");
+
+        if (isNetworkError && this._lastPromptContext) {
+          console.warn("[AgentEngine] Network interrupted — will retry on visibility restore");
+          this._backgroundRetryPending = true;
+          // Remove the last assistant placeholder if any incomplete response was pushed
+          if (this.chatHistory.length && this.chatHistory[this.chatHistory.length - 1].role === "assistant") {
+            this.chatHistory.pop();
+          }
+          this.broadcast({
+            type: "agent_log", agent: "System",
+            message: "연결이 끊어졌습니다. 앱으로 돌아오면 자동으로 재시도합니다.",
+            level: "warning",
+          });
+          this.broadcast({ type: "chat_done" });
+          return;
+        }
+
         console.error("Agent error:", err);
 
-        const errStr = err.message?.toLowerCase() || "";
         let userMsg = err.message;
         if (errStr.includes("timed out") || errStr.includes("timeout")) {
           userMsg = "모델 서버 응답 대기 시간이 초과되었습니다. 다시 시도해 주세요.";
@@ -335,6 +404,7 @@ const HANDLERS = {
           userMsg = "입력이 모델의 컨텍스트 한도를 초과했습니다. 대화를 새로 시작해 주세요.";
         }
 
+        this._lastPromptContext = null;
         this.broadcast({
           type: "agent_log", agent: "System",
           message: `Agent error: ${err.message}`, level: "error",
@@ -411,6 +481,8 @@ const HANDLERS = {
       this.abortController = null;
       this.agentBusy = false;
     }
+    this._lastPromptContext = null;
+    this._backgroundRetryPending = false;
     this.chatHistory.length = 0;
     this.conversation.length = 0;
     this.broadcast({
