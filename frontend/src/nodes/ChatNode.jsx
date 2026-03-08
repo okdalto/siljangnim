@@ -281,35 +281,6 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
         </div>
       )}
 
-      {/* Branch indicator */}
-      {!hideInput && activeNodeTitle && (
-        <div className="px-3 py-1 flex items-center gap-1.5 text-[10px] nodrag" style={{ borderTop: "1px solid var(--node-border)", color: "var(--chrome-text-muted)", background: "var(--chrome-bg-elevated)" }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 3v12M18 9a3 3 0 100-6 3 3 0 000 6zM6 21a3 3 0 100-6 3 3 0 000 6zM18 9a9 9 0 01-9 9" />
-          </svg>
-          <span className="truncate">Branching from: <span style={{ color: "var(--chrome-text-secondary)" }}>{activeNodeTitle}</span></span>
-        </div>
-      )}
-
-      {/* Overwrite mode toggle */}
-      {!hideInput && activeNodeTitle && (
-        <div className="px-3 py-1 flex items-center gap-1.5 nodrag" style={{ borderTop: "1px solid var(--node-border)", background: "var(--chrome-bg-elevated)" }}>
-          <button
-            type="button"
-            onClick={() => onToggleOverwrite?.()}
-            className="text-[10px] px-2 py-0.5 rounded transition-colors shrink-0"
-            style={{
-              background: overwriteMode ? "rgba(251,191,36,0.2)" : "transparent",
-              color: overwriteMode ? "#fbbf24" : "var(--chrome-text-muted)",
-              border: `1px solid ${overwriteMode ? "rgba(251,191,36,0.3)" : "var(--chrome-border)"}`,
-            }}
-            title={overwriteMode ? "Will overwrite current node" : "Will create new version"}
-          >
-            {overwriteMode ? "Overwrite" : "New version"}
-          </button>
-        </div>
-      )}
-
       {/* Input */}
       {!hideInput && (
       <form onSubmit={handleSubmit} className="p-2 flex gap-2 nodrag" style={{ borderTop: "1px solid var(--node-border)" }}>
