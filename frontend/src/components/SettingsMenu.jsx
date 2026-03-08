@@ -303,7 +303,7 @@ export default function SettingsMenu({ onChangeApiKey, backendTarget, onBackendT
             backgroundColor: "var(--chrome-bg-elevated)",
             border: "1px solid var(--chrome-border)",
             color: "var(--chrome-text)",
-            maxHeight: "calc(100vh - 60px)",
+            maxHeight: "calc(100vh - 140px)",
           }}
         >
           {/* ── Appearance ────────────────────────────────── */}
