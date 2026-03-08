@@ -264,6 +264,7 @@ export default function ProjectTreeSidebar({
               onContextMenu={handleContextMenu}
               compareSourceId={compareSourceId}
               isCompareMode={!!compareSourceId}
+              autoFocus
             />
           </>
         )}

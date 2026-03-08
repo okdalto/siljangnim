@@ -265,9 +265,18 @@ export default function VersionTreeCanvas({
   onContextMenu,
   compareSourceId,
   isCompareMode,
+  autoFocus = false,
 }) {
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ w: 256, h: 400 });
+
+  // Auto-focus when sidebar opens so arrow keys work immediately
+  useEffect(() => {
+    if (autoFocus) {
+      // Delay slightly to ensure DOM is ready after sidebar transition
+      requestAnimationFrame(() => containerRef.current?.focus());
+    }
+  }, [autoFocus]);
 
   // Observe container size
   useLayoutEffect(() => {
