@@ -14,6 +14,7 @@ export const ASSET_CATEGORY = {
   MODEL_3D: "model_3d",
   FONT: "font",
   SVG: "svg",
+  DATA: "data",
   UNKNOWN: "unknown",
 };
 
@@ -28,6 +29,9 @@ const EXT_TO_CATEGORY = {
   ttf: ASSET_CATEGORY.FONT, otf: ASSET_CATEGORY.FONT,
   woff: ASSET_CATEGORY.FONT, woff2: ASSET_CATEGORY.FONT,
   svg: ASSET_CATEGORY.SVG,
+  json: ASSET_CATEGORY.DATA, csv: ASSET_CATEGORY.DATA, txt: ASSET_CATEGORY.DATA,
+  xml: ASSET_CATEGORY.DATA, yaml: ASSET_CATEGORY.DATA, yml: ASSET_CATEGORY.DATA,
+  toml: ASSET_CATEGORY.DATA, md: ASSET_CATEGORY.DATA,
 };
 
 export function categoryFromFilename(filename) {
@@ -152,6 +156,15 @@ export function buildSvgTechInfo(meta) {
   };
 }
 
+export function buildDataTechInfo(meta) {
+  return {
+    lineCount: meta.lineCount || meta.line_count || 0,
+    keyCount: meta.keyCount || meta.key_count || 0,
+    format: meta.format || null,
+    preview: meta.preview || null,
+  };
+}
+
 /**
  * Given a category and raw processor metadata, build the typed technicalInfo.
  */
@@ -163,6 +176,7 @@ export function buildTechInfo(category, meta) {
     case ASSET_CATEGORY.MODEL_3D: return buildModel3dTechInfo(meta);
     case ASSET_CATEGORY.FONT: return buildFontTechInfo(meta);
     case ASSET_CATEGORY.SVG: return buildSvgTechInfo(meta);
+    case ASSET_CATEGORY.DATA: return buildDataTechInfo(meta);
     default: return { ...meta };
   }
 }

@@ -40,6 +40,14 @@ const CATEGORY_ICONS = {
       <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
     </svg>
   ),
+  [ASSET_CATEGORY.DATA]: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+    </svg>
+  ),
 };
 
 const STATUS_COLORS = {
@@ -79,6 +87,11 @@ function TechSummary({ descriptor }) {
     case ASSET_CATEGORY.SVG:
       if (t.elementCount) text = `${t.elementCount} elements`;
       break;
+    case ASSET_CATEGORY.DATA:
+      if (t.format) text = t.format.toUpperCase();
+      if (t.lineCount) text += ` ${t.lineCount} lines`;
+      if (t.keyCount) text += ` ${t.keyCount} keys`;
+      break;
   }
 
   return text ? (
@@ -102,6 +115,19 @@ function AssetPreview({ descriptor }) {
           className="max-w-full max-h-full object-contain rounded"
           style={{ imageRendering: "auto" }}
         />
+      </div>
+    );
+  }
+
+  if (category === ASSET_CATEGORY.DATA && descriptor.technicalInfo?.preview) {
+    return (
+      <div className="flex-1 min-h-0 overflow-hidden p-1.5">
+        <pre
+          className="text-[7px] leading-[1.3] whitespace-pre-wrap break-all h-full overflow-hidden"
+          style={{ color: "var(--chrome-text-muted)", fontFamily: "monospace" }}
+        >
+          {descriptor.technicalInfo.preview.slice(0, 500)}
+        </pre>
       </div>
     );
   }
