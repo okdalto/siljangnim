@@ -1,10 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import useExternalUniformChange from "../../hooks/useExternalUniformChange.js";
 
 export default function ToggleControl({ ctrl, onUniformChange }) {
   const [checked, setChecked] = useState(!!ctrl.default);
 
   useExternalUniformChange(ctrl.uniform, (v) => setChecked(v > 0.5));
+
+  // Sync from ctrl.default when the agent updates uniform values
+  const ctrlDefault = ctrl.default;
+  useEffect(() => { setChecked(!!ctrlDefault); }, [ctrlDefault]);
 
   const toggle = useCallback(() => {
     setChecked((prev) => {

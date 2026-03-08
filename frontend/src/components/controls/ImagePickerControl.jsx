@@ -18,6 +18,10 @@ export default function ImagePickerControl({ ctrl, onUniformChange }) {
     if (typeof v === "string") setSelected(v);
   });
 
+  // Sync from ctrl.default when the agent updates uniform values
+  const ctrlDefault = ctrl.default;
+  useEffect(() => { setSelected(ctrlDefault || ""); }, [ctrlDefault]);
+
   // Load uploaded file list
   useEffect(() => {
     let mounted = true;

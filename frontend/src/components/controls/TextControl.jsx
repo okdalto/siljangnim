@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import useExternalUniformChange from "../../hooks/useExternalUniformChange.js";
 
 export default function TextControl({ ctrl, onUniformChange }) {
@@ -10,6 +10,10 @@ export default function TextControl({ ctrl, onUniformChange }) {
     setValue(v);
     setEditText(String(v));
   });
+
+  // Sync from ctrl.default when the agent updates uniform values
+  const ctrlDefault = ctrl.default;
+  useEffect(() => { setValue(ctrlDefault ?? 0); setEditText(String(ctrlDefault ?? 0)); }, [ctrlDefault]);
 
   const commit = useCallback(() => {
     const v = parseFloat(editText);

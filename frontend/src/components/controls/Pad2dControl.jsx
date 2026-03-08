@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import useExternalUniformChange from "../../hooks/useExternalUniformChange.js";
 
 export default function Pad2dControl({ ctrl, onUniformChange }) {
@@ -13,6 +13,10 @@ export default function Pad2dControl({ ctrl, onUniformChange }) {
   useExternalUniformChange(ctrl.uniform, (v) => {
     if (Array.isArray(v) && v.length >= 2) setPos(v);
   });
+
+  // Sync from ctrl.default when the agent updates uniform values
+  const ctrlDefault = ctrl.default;
+  useEffect(() => { setPos(ctrlDefault || [0, 0]); }, [ctrlDefault]);
 
   const updateFromPointer = useCallback(
     (e) => {

@@ -77,6 +77,10 @@ export default function SliderControl({ ctrl, onUniformChange, keyframeManagerRe
 
   useExternalUniformChange(ctrl.uniform, setValue);
 
+  // Sync from ctrl.default when the agent updates uniform values in scene.json
+  const ctrlDefault = ctrl.default;
+  useEffect(() => { setValue(ctrlDefault ?? 0); }, [ctrlDefault]);
+
   useEffect(() => {
     if (!hasKf) return;
     let rafId;

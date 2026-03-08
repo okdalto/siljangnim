@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import useExternalUniformChange from "../../hooks/useExternalUniformChange.js";
 
 const LABELS = ["X", "Y", "Z"];
@@ -19,6 +19,13 @@ export default function Vec3Control({ ctrl, onUniformChange }) {
   useExternalUniformChange(ctrl.uniform, (v) => {
     if (Array.isArray(v) && v.length >= 3) setValues([v[0], v[1], v[2]]);
   });
+
+  // Sync from ctrl.default when the agent updates uniform values
+  const ctrlDefault = ctrl.default;
+  useEffect(() => {
+    const d = ctrlDefault || [0, 0, 0];
+    setValues([d[0] ?? 0, d[1] ?? 0, d[2] ?? 0]);
+  }, [ctrlDefault]);
 
   const emit = useCallback(
     (next) => {

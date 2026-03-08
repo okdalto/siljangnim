@@ -330,6 +330,24 @@ export default function useNodeDataSync({
     duration, loop,
   ]);
 
+  // --- Re-merge control defaults when sceneJSON uniforms change ---
+  // The main panel sync effect doesn't depend on sceneJSON, so this lightweight
+  // effect ensures controls get updated `ctrl.default` values when the agent
+  // modifies uniform values in scene.json.
+  useEffect(() => {
+    if (!sceneJSON?.uniforms) return;
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.type !== "customPanel" || !node.data?.controls) return node;
+        const panelId = node.id.replace("panel_", "");
+        const panel = panels.customPanels.get(panelId);
+        if (!panel?.controls) return node;
+        const merged = mergeControlDefaultsRef.current(panel.controls);
+        return { ...node, data: { ...node.data, controls: merged } };
+      })
+    );
+  }, [setNodes, sceneJSON, panels.customPanels]);
+
   // --- Asset node sync (add/remove/update) ---
   const assetSelectRef = useRef(assetNodes?.selectAsset);
   assetSelectRef.current = assetNodes?.selectAsset;

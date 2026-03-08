@@ -1,19 +1,23 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import useExternalUniformChange from "../../hooks/useExternalUniformChange.js";
 
+function parseColorDefault(d) {
+  const hex = (typeof d === "string" ? d : "#ffffff").slice(0, 7);
+  const a = (typeof d === "string" && d.length === 9) ? parseInt(d.slice(7, 9), 16) / 255 : 1;
+  return { hex: hex || "#ffffff", a };
+}
+
 export default function ColorControl({ ctrl, onUniformChange }) {
-  const [color, setColor] = useState(() => {
-    const d = ctrl.default || "#ffffff";
-    if (typeof d === "string") return d.slice(0, 7);
-    return "#ffffff";
-  });
-  const [alpha, setAlpha] = useState(() => {
-    const d = ctrl.default;
-    if (typeof d === "string" && d.length === 9) {
-      return parseInt(d.slice(7, 9), 16) / 255;
-    }
-    return 1;
-  });
+  const [color, setColor] = useState(() => parseColorDefault(ctrl.default).hex);
+  const [alpha, setAlpha] = useState(() => parseColorDefault(ctrl.default).a);
+
+  // Sync from ctrl.default when the agent updates uniform values in scene.json
+  const ctrlDefault = ctrl.default;
+  useEffect(() => {
+    const { hex, a } = parseColorDefault(ctrlDefault);
+    setColor(hex);
+    setAlpha(a);
+  }, [ctrlDefault]);
 
   useExternalUniformChange(ctrl.uniform, (v) => {
     if (Array.isArray(v) && v.length >= 3) {
