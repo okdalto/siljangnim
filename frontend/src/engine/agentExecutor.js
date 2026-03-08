@@ -370,11 +370,14 @@ async function _runAgentLoop({
           continue;
         }
 
-        // Network / stream errors (e.g. mobile browser backgrounded)
-        if (status === 0 && (
+        // Network / stream errors (e.g. mobile browser backgrounded, stream timeout)
+        const isNetworkError = status === 0 || errMsg.includes("timeout") || errMsg.includes("aborted");
+        if (isNetworkError && (
           errMsg.includes("fetch") || errMsg.includes("network") ||
           errMsg.includes("timeout") || errMsg.includes("failed") ||
-          errMsg.includes("terminated") || errMsg.includes("connection")
+          errMsg.includes("terminated") || errMsg.includes("connection") ||
+          errMsg.includes("aborted") || errMsg.includes("stream") ||
+          errMsg.includes("readable") || errMsg.includes("body")
         )) {
           overloadRetries++;
           if (overloadRetries > MAX_OVERLOAD_RETRIES) throw err;
@@ -387,6 +390,19 @@ async function _runAgentLoop({
           const delay = Math.min(2 ** overloadRetries, 10);
           log("System", `Connection lost — retrying in ${delay}s...`, "info");
           onStatus?.("thinking", `Reconnecting in ${delay}s...`);
+          await sleep(delay * 1000, signal);
+          continue;
+        }
+
+        // Catch-all: any non-HTTP error (status undefined/0) that wasn't caught above
+        // is likely a network issue — retry rather than crashing
+        if (!status || status === 0) {
+          overloadRetries++;
+          if (overloadRetries > MAX_OVERLOAD_RETRIES) throw err;
+          const delay = Math.min(2 ** overloadRetries, 10);
+          log("System", `Unexpected error: ${err.message} — retrying in ${delay}s...`, "info");
+          onStatus?.("thinking", `Error, retrying in ${delay}s...`);
+          if (document.hidden) await waitForVisible(signal);
           await sleep(delay * 1000, signal);
           continue;
         }
@@ -446,6 +462,37 @@ async function _runAgentLoop({
         role: "assistant",
         content: storedBlocks.length ? storedBlocks : [{ type: "text", text: "(continued)" }],
       });
+
+      // Handle stream_incomplete — stream dropped before message_delta
+      if (stopReason === "stream_incomplete") {
+        overloadRetries++;
+        if (overloadRetries > MAX_OVERLOAD_RETRIES) {
+          log("System", "Stream incomplete after max retries — using partial response", "warning");
+          break;
+        }
+        // If we got useful content (text), keep it and ask to continue
+        const hasText = storedBlocks.some(b => b.type === "text" && b.text?.trim());
+        const hasToolUse = storedBlocks.some(b => b.type === "tool_use");
+        if (hasText && !hasToolUse) {
+          // Got partial text, ask to continue
+          log("System", `Stream dropped mid-response — continuing (${overloadRetries}/${MAX_OVERLOAD_RETRIES})...`, "info");
+          onStatus?.("thinking", "Connection lost, continuing...");
+          if (document.hidden) await waitForVisible(signal);
+          await sleep(Math.min(2 ** overloadRetries, 10) * 1000, signal);
+          messages.push({
+            role: "user",
+            content: "Your response was interrupted by a network error. Continue exactly where you left off.",
+          });
+          continue;
+        }
+        // No useful content — remove the incomplete assistant message and retry
+        messages.pop(); // remove the incomplete assistant message
+        log("System", `Stream dropped — retrying (${overloadRetries}/${MAX_OVERLOAD_RETRIES})...`, "info");
+        onStatus?.("thinking", "Connection lost, retrying...");
+        if (document.hidden) await waitForVisible(signal);
+        await sleep(Math.min(2 ** overloadRetries, 10) * 1000, signal);
+        continue;
+      }
 
       // Handle max_tokens
       if (stopReason === "max_tokens") {

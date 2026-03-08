@@ -99,10 +99,21 @@ async function parseSSEStream(body, callbacks) {
     while (true) {
       // Add timeout to prevent infinite hang if stream stalls
       const readPromise = reader.read();
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Stream read timeout")), STREAM_READ_TIMEOUT)
-      );
-      const { done, value } = await Promise.race([readPromise, timeoutPromise]);
+      let timer;
+      const timeoutPromise = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          const err = new Error("Stream read timeout");
+          err.status = 0; // mark as network-class error for retry logic
+          reject(err);
+        }, STREAM_READ_TIMEOUT);
+      });
+      let result;
+      try {
+        result = await Promise.race([readPromise, timeoutPromise]);
+      } finally {
+        clearTimeout(timer);
+      }
+      const { done, value } = result;
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
@@ -223,6 +234,25 @@ async function parseSSEStream(body, callbacks) {
     }
   } finally {
     reader.releaseLock();
+  }
+
+  // Flush any in-progress content block that didn't get content_block_stop
+  // (happens when stream drops mid-response)
+  if (currentBlockType === "thinking") {
+    const fullThinking = thinkingChunks.join("");
+    if (fullThinking) {
+      contentBlocks.push({ type: "thinking", thinking: fullThinking, signature: signatureChunks.join("") });
+      callbacks.onContentBlockStop?.("thinking", fullThinking);
+    }
+  } else if (currentBlockType === "text") {
+    const fullText = textChunks.join("");
+    if (fullText) {
+      contentBlocks.push({ type: "text", text: fullText });
+      callbacks.onContentBlockStop?.("text", fullText);
+    }
+  } else if (currentBlockType === "tool_use") {
+    // Partial tool_use — input JSON is likely incomplete, skip it
+    // (agent loop will handle via stream_incomplete retry)
   }
 
   return { contentBlocks, stopReason };
