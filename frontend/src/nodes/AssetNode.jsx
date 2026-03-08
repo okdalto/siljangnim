@@ -156,7 +156,7 @@ function AssetPreview({ descriptor }) {
 // ---- Main component ----
 
 function AssetNode({ data }) {
-  const { descriptor, onSelect, onRename, onAction } = data;
+  const { descriptor, onSelect, onRename, onDelete, onAction } = data;
   if (!descriptor) return null;
 
   const { semanticName, filename, category, processingStatus } = descriptor;
@@ -174,9 +174,14 @@ function AssetNode({ data }) {
     onSelect?.(descriptor.id);
   }, [descriptor.id, onSelect]);
 
+  const handleDelete = useCallback((e) => {
+    e.stopPropagation();
+    onDelete?.(descriptor.id);
+  }, [descriptor.id, onDelete]);
+
   return (
     <div
-      className="w-full h-full flex flex-col overflow-hidden rounded-xl shadow-2xl"
+      className="group w-full h-full flex flex-col overflow-hidden rounded-xl shadow-2xl"
       style={{ background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
       onClick={handleClick}
     >
@@ -203,6 +208,16 @@ function AssetNode({ data }) {
         {processingStatus === "processing" && (
           <div className="w-2.5 h-2.5 border border-yellow-500 border-t-yellow-300 rounded-full animate-spin flex-shrink-0" />
         )}
+        <button
+          onClick={handleDelete}
+          className="flex-shrink-0 opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity"
+          style={{ color: "var(--chrome-text-muted)", lineHeight: 1 }}
+          title="Delete asset"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
 
       {/* Preview area */}
