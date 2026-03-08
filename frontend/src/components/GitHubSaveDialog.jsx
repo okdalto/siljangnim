@@ -76,15 +76,23 @@ export default function GitHubSaveDialog({ token, user, projectName, captureThum
       // Collect project files
       const files = await collectProjectFiles(projectName);
 
-      // Add thumbnail + README if available
-      if (includeThumbnail && thumbnailUrl) {
-        const thumbB64 = thumbnailUrl.includes(",") ? thumbnailUrl.split(",")[1] : thumbnailUrl;
-        files.push({ path: "thumbnail.jpg", content: thumbB64, encoding: "base64" });
-
-        const displayName = newRepoName || projectName || "Untitled";
-        const readme = buildReadme(displayName, newRepoDesc);
-        files.push({ path: "README.md", content: readme });
+      // Always re-capture thumbnail and rebuild README so the image is fresh on every push
+      let thumbData = null;
+      if (includeThumbnail) {
+        // Try live capture first, fall back to the one captured on dialog mount
+        let url = null;
+        try { url = captureThumbnail?.(); } catch { /* ignore */ }
+        if (!url) url = thumbnailUrl;
+        if (url) {
+          thumbData = url.includes(",") ? url.split(",")[1] : url;
+          files.push({ path: "thumbnail.jpg", content: thumbData, encoding: "base64" });
+        }
       }
+
+      // Always push README — include thumbnail reference only if we have one
+      const displayName = newRepoName || projectName || "Untitled";
+      const readme = buildReadme(displayName, newRepoDesc, !!thumbData);
+      files.push({ path: "README.md", content: readme });
 
       if (mode === "new") {
         // Create new repo
@@ -130,7 +138,7 @@ export default function GitHubSaveDialog({ token, user, projectName, captureThum
     } finally {
       setSaving(false);
     }
-  }, [token, user, mode, newRepoName, newRepoDesc, isPrivate, selectedRepo, projectPath, commitMessage, projectName, branch, onSaved]);
+  }, [token, user, mode, newRepoName, newRepoDesc, isPrivate, selectedRepo, projectPath, commitMessage, projectName, branch, onSaved, includeThumbnail, captureThumbnail, thumbnailUrl]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }}>
@@ -376,10 +384,12 @@ function GitHubIcon() {
 /**
  * Build a README.md with an embedded thumbnail image.
  */
-function buildReadme(name, description) {
+function buildReadme(name, description, hasThumbnail = true) {
   const cacheBust = Date.now();
   const lines = [`# ${name}`, ""];
-  lines.push(`![thumbnail](thumbnail.jpg?v=${cacheBust})`, "");
+  if (hasThumbnail) {
+    lines.push(`![thumbnail](thumbnail.jpg?v=${cacheBust})`, "");
+  }
   if (description) {
     lines.push(description, "");
   }
