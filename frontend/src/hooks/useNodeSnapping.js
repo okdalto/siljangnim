@@ -10,13 +10,15 @@ const DEFAULT_SNAP_THRESHOLD = 8;
  * @param {{ snapEnabled?: boolean, snapThreshold?: number }} snapSettings
  * @returns {{ onNodesChange: Function, guides: Array<{axis: string, position: number, from: number, to: number}> }}
  */
-export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes, snapSettings) {
+export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes, snapSettings, selectedIdsRef) {
   const [guides, setGuides] = useState([]);
   const lastSnappedPosition = useRef({});
   // Drag snap hysteresis: { [nodeId]: { x: snappedPosX | null, y: snappedPosY | null } }
   const dragSnapLock = useRef({});
   // Drag start info for overlap escape: { [nodeId]: { x, y, escapedX, escapedY } }
   const dragStartInfo = useRef({});
+  // Multi-select drag: initial positions of all selected nodes at drag start
+  const multiDragStart = useRef(null);
   // Resize snap lock: { lockedWidth, lockedHeight, lockedPosX, lockedPosY, widthTarget, heightTarget }
   const resizeLock = useRef({});
   // Resize direction detected on first frame: { xEdge: 'left'|'right', yEdge: 'top'|'bottom' }
@@ -52,12 +54,41 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes, 
       if (dragEnd || resizeEnd) {
         setGuides([]);
         if (dragEnd) {
-          delete dragSnapLock.current[dragEnd.id];
-          delete dragStartInfo.current[dragEnd.id];
+          // Apply final snapped position for the primary dragged node
           if (lastSnappedPosition.current[dragEnd.id]) {
             dragEnd.position = lastSnappedPosition.current[dragEnd.id];
             delete lastSnappedPosition.current[dragEnd.id];
           }
+          // Finalize multi-select drag: update all other selected nodes
+          const mds = multiDragStart.current;
+          if (mds && mds.primaryId === dragEnd.id && mds.others.length > 0) {
+            const primaryStart = mds.positions.get(dragEnd.id);
+            const finalPos = dragEnd.position || nodes.find((n) => n.id === dragEnd.id)?.position;
+            if (primaryStart && finalPos) {
+              const dx = finalPos.x - primaryStart.x;
+              const dy = finalPos.y - primaryStart.y;
+              // We'll apply the delta via setNodes after originalOnNodesChange
+              const otherPositions = mds.others.map((id) => {
+                const start = mds.positions.get(id);
+                return { id, x: start.x + dx, y: start.y + dy };
+              });
+              // Apply changes, then set other nodes
+              originalOnNodesChange(changes);
+              setNodes((nds) =>
+                nds.map((n) => {
+                  const op = otherPositions.find((p) => p.id === n.id);
+                  return op ? { ...n, position: { x: op.x, y: op.y } } : n;
+                })
+              );
+              delete dragSnapLock.current[dragEnd.id];
+              delete dragStartInfo.current[dragEnd.id];
+              multiDragStart.current = null;
+              return;
+            }
+          }
+          delete dragSnapLock.current[dragEnd.id];
+          delete dragStartInfo.current[dragEnd.id];
+          multiDragStart.current = null;
         }
         if (resizeEnd) {
           const lock = resizeLock.current[resizeEnd.id];
@@ -90,6 +121,24 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes, 
           return;
         }
 
+        // Determine which nodes are part of this multi-select drag
+        const selected = selectedIdsRef?.current || new Set();
+        const isMultiDrag = selected.size > 1 && selected.has(dragging.id);
+
+        // Initialize multi-drag start positions on first drag frame
+        if (isMultiDrag && !multiDragStart.current) {
+          const positions = new Map();
+          const others = [];
+          for (const id of selected) {
+            const n = nodes.find((nd) => nd.id === id);
+            if (n) {
+              positions.set(id, { x: n.position.x, y: n.position.y });
+              if (id !== dragging.id) others.push(id);
+            }
+          }
+          multiDragStart.current = { primaryId: dragging.id, positions, others };
+        }
+
         // Track drag start position for overlap escape
         if (!dragStartInfo.current[dragging.id]) {
           dragStartInfo.current[dragging.id] = {
@@ -112,8 +161,10 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes, 
           position: dragging.position,
         });
 
+        // Exclude other selected nodes from snap targets during multi-drag
+        const excludeIds = isMultiDrag ? selected : new Set([dragging.id]);
         const otherEdges = nodes
-          .filter((n) => n.id !== dragging.id)
+          .filter((n) => !excludeIds.has(n.id))
           .map(getNodeEdges);
 
         const lock = dragSnapLock.current[dragging.id] || { x: null, y: null };
@@ -175,6 +226,24 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes, 
         };
         dragging.position = snappedPos;
         lastSnappedPosition.current[dragging.id] = snappedPos;
+
+        // Move other selected nodes by the same delta
+        const mds = multiDragStart.current;
+        if (mds && mds.primaryId === dragging.id && mds.others.length > 0) {
+          const primaryStart = mds.positions.get(dragging.id);
+          const dx = snappedPos.x - primaryStart.x;
+          const dy = snappedPos.y - primaryStart.y;
+          // Apply changes for the primary node first, then batch-update others
+          originalOnNodesChange(changes);
+          setNodes((nds) =>
+            nds.map((n) => {
+              if (!mds.others.includes(n.id)) return n;
+              const start = mds.positions.get(n.id);
+              return { ...n, position: { x: start.x + dx, y: start.y + dy } };
+            })
+          );
+          return;
+        }
       } else if (resizing) {
         const resizingNode = nodes.find((n) => n.id === resizing.id);
         if (!resizingNode) {
