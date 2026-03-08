@@ -377,8 +377,9 @@ function GitHubIcon() {
  * Build a README.md with an embedded thumbnail image.
  */
 function buildReadme(name, description) {
+  const cacheBust = Date.now();
   const lines = [`# ${name}`, ""];
-  lines.push("![thumbnail](thumbnail.jpg)", "");
+  lines.push(`![thumbnail](thumbnail.jpg?v=${cacheBust})`, "");
   if (description) {
     lines.push(description, "");
   }
