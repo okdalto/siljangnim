@@ -441,7 +441,7 @@ export function autoTags(metadata) {
 /**
  * Update a node's summary, metadata, and auto-tags.
  */
-export async function updateNodeMetadata(nodeId, state) {
+export async function updateNodeMetadata(nodeId, state, opts = {}) {
   try {
     const node = await storage.readNode(nodeId);
     const metadata = extractMetadata(state);
@@ -456,9 +456,61 @@ export async function updateNodeMetadata(nodeId, state) {
     node.tags = [...new Set([...existingUserTags, ...tags])];
 
     await storage.writeNode(node);
+
+    // Generate AI title in background (non-blocking)
+    if (opts.generateTitle !== false) {
+      generateAITitle(node, state.chat_history).then(() => {
+        opts.onTitleUpdated?.();
+      }).catch(() => {});
+    }
+
     return node;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Use AI to generate a concise title summarizing the prompt interaction.
+ */
+async function generateAITitle(node, chatHistory) {
+  try {
+    const apiKey = sessionStorage.getItem("siljangnim:apiKey") || "";
+    if (!apiKey) return;
+
+    // Extract the last user prompt and assistant response
+    let userPrompt = null;
+    let assistantResponse = null;
+    for (let i = chatHistory.length - 1; i >= 0; i--) {
+      if (!assistantResponse && chatHistory[i]?.role === "assistant") {
+        assistantResponse = (chatHistory[i].text || chatHistory[i].content || "").slice(0, 300);
+      }
+      if (!userPrompt && chatHistory[i]?.role === "user") {
+        userPrompt = (chatHistory[i].text || chatHistory[i].content || "").slice(0, 300);
+      }
+      if (userPrompt && assistantResponse) break;
+    }
+
+    if (!userPrompt && !assistantResponse) return;
+
+    const { callAnthropic } = await import("./anthropicClient.js");
+    const result = await callAnthropic({
+      apiKey,
+      model: "claude-haiku-4-5-20251001",
+      maxTokens: 40,
+      system: "Generate a very short title (under 40 chars, no quotes) summarizing what was done in this creative coding interaction. Write in the same language as the user prompt. Be specific about the visual/technical change, not generic.",
+      messages: [{ role: "user", content: `User asked: ${userPrompt || "(no prompt)"}\nAssistant did: ${assistantResponse || "(no response)"}` }],
+      tools: [],
+    });
+
+    const titleText = result.contentBlocks?.find(b => b.type === "text")?.text?.trim();
+    if (titleText && titleText.length > 0) {
+      const cleanTitle = titleText.replace(/^["']|["']$/g, "").slice(0, 60);
+      node.title = cleanTitle;
+      await storage.writeNode(node);
+    }
+  } catch {
+    // AI title generation is non-critical
   }
 }
 

@@ -142,37 +142,27 @@ export default function useMessageDispatcher(params) {
             chat_history: getMessagesRef?.current?.() || [],
             debug_logs: getDebugLogsRef?.current?.() || [],
           };
-          // Use the assistant's last response as node title (summarizes what was done)
+          // Use user prompt as temporary title (AI will generate a better one async)
           const history = currentState.chat_history;
-          let assistantText = null;
           let userPrompt = null;
           for (let i = history.length - 1; i >= 0; i--) {
-            if (!assistantText && history[i]?.role === "assistant") {
-              assistantText = (history[i].text || history[i].content || "").trim();
-            }
-            if (!userPrompt && history[i]?.role === "user") {
+            if (history[i]?.role === "user") {
               userPrompt = (history[i].text || history[i].content || "").trim();
+              break;
             }
-            if (assistantText && userPrompt) break;
           }
           const lastMsg = history[history.length - 1];
-          // Prefer assistant summary; extract first meaningful line
-          let titleSource = assistantText || userPrompt || "Prompt result";
-          // Strip markdown headers, leading whitespace, etc.
-          titleSource = titleSource.replace(/^#+\s*/gm, "").replace(/^\s*[-*]\s*/gm, "").trim();
-          // Take first line only
-          const firstLine = titleSource.split("\n")[0].trim();
-          const title = firstLine
-            ? firstLine.slice(0, 80) + (firstLine.length > 80 ? "…" : "")
-            : "Prompt result";
+          const promptLine = (userPrompt || "Prompt result").split("\n")[0].trim();
+          const title = promptLine.slice(0, 60) + (promptLine.length > 60 ? "…" : "");
 
+          const reloadTree = () => pt.loadTree?.(projName);
           if (overwriteModeRef?.current && pt.overwriteCurrentNode) {
             // Overwrite current node in-place
             pt.overwriteCurrentNode(projName, currentState, {
               title,
               prompt: lastMsg?.text || lastMsg?.content || null,
             }).then((node) => {
-              if (node) updateNodeMetadata(node.id, currentState).catch(() => {});
+              if (node) updateNodeMetadata(node.id, currentState, { onTitleUpdated: reloadTree }).catch(() => {});
             }).catch(() => { /* non-critical */ });
           } else {
             // Default: create new child node
@@ -181,8 +171,8 @@ export default function useMessageDispatcher(params) {
               type: "prompt_node",
               prompt: lastMsg?.text || lastMsg?.content || null,
             }).then((node) => {
-              // Auto-generate summary, metadata, and tags
-              if (node) updateNodeMetadata(node.id, currentState).catch(() => {});
+              // Auto-generate summary, metadata, tags, and AI title
+              if (node) updateNodeMetadata(node.id, currentState, { onTitleUpdated: reloadTree }).catch(() => {});
             }).catch(() => { /* non-critical */ });
           }
         }
