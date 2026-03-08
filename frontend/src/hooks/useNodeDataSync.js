@@ -119,6 +119,7 @@ export default function useNodeDataSync({
   rfInstanceRef,
   // Asset nodes
   assetNodes,
+  onAssetUpload,
   onPromptSuggestion,
   // AI Debugger props
   debugger: dbg,
@@ -444,5 +445,29 @@ export default function useNodeDataSync({
 
       return updated;
     });
+  }, [setNodes, assetNodes?.assets]);
+
+  // --- Asset browser node sync ---
+  const onAssetUploadRef = useRef(onAssetUpload);
+  onAssetUploadRef.current = onAssetUpload;
+
+  useEffect(() => {
+    if (!assetNodes) return;
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === "assetBrowser"
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                assets: assetNodes.assets,
+                onDelete: (id) => assetDeleteRef.current?.(id),
+                onSelect: (id) => assetSelectRef.current?.(id),
+                onUpload: (files) => onAssetUploadRef.current?.(files),
+              },
+            }
+          : node
+      )
+    );
   }, [setNodes, assetNodes?.assets]);
 }
