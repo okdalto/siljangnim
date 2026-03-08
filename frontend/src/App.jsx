@@ -838,9 +838,23 @@ export default function App() {
       const isMulti = e.shiftKey || e.metaKey || e.ctrlKey;
 
       setSelectedIds((prev) => {
-        const next = isMulti ? new Set(prev) : new Set();
-        next.add(nodeId);
-        return next;
+        if (isMulti) {
+          // Toggle selection with modifier key
+          const next = new Set(prev);
+          if (next.has(nodeId)) {
+            next.delete(nodeId);
+          } else {
+            next.add(nodeId);
+          }
+          return next;
+        }
+        // Without modifier: if clicking an already-selected node in a multi-selection,
+        // keep the selection (user is about to drag the group)
+        if (prev.size > 1 && prev.has(nodeId)) {
+          return prev;
+        }
+        // Otherwise, select only this node
+        return new Set([nodeId]);
       });
     };
 
