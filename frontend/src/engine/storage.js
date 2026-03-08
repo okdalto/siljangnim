@@ -250,6 +250,12 @@ export async function listUploads() {
     .map((k) => k.slice(prefix.length));
 }
 
+export async function deleteUpload(filename) {
+  const store = await tx(STORE_BLOBS, "readwrite");
+  const key = blobKey(filename);
+  await idbReq(store.delete(key));
+}
+
 export async function getUploadInfo(filename) {
   const store = await tx(STORE_BLOBS);
   const entry = await idbReq(store.get(blobKey(filename)));

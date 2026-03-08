@@ -226,6 +226,22 @@ const TOOLS = [
       required: ["question", "options"],
     },
   },
+  {
+    name: "delete_asset",
+    description:
+      "Delete an uploaded asset from the workspace by filename. " +
+      "Use list_uploaded_files first to see available assets.",
+    input_schema: {
+      type: "object",
+      properties: {
+        filename: {
+          type: "string",
+          description: "The filename of the asset to delete (e.g. 'texture.png').",
+        },
+      },
+      required: ["filename"],
+    },
+  },
 ];
 
 export default TOOLS;

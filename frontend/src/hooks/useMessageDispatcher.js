@@ -368,6 +368,18 @@ export default function useMessageDispatcher(params) {
         }
         break;
 
+      case "asset_deleted_by_agent": {
+        // Agent deleted an asset via tool — remove from UI
+        const delFilename = msg.filename;
+        if (delFilename && assetNodes.findByFilename) {
+          const desc = assetNodes.findByFilename(delFilename);
+          if (desc) assetNodes.deleteAsset(desc.id);
+        }
+        // Add system message to chat
+        chat.addSystemMessage?.(`[Asset deleted by agent: ${delFilename}]`);
+        break;
+      }
+
       case "processing_status":
         assetNodes.handleProcessingStatus(msg.filename, msg.status);
         break;

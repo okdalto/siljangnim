@@ -65,6 +65,10 @@ export default function useChat(sendRef) {
     setDebugLogs((prev) => [...prev, entry]);
   }, []);
 
+  const addSystemMessage = useCallback((text) => {
+    setMessages((prev) => [...prev, { role: "system", text }]);
+  }, []);
+
   const addErrorLog = useCallback((text) => {
     setDebugLogs((prev) => [
       ...prev,
@@ -92,6 +96,7 @@ export default function useChat(sendRef) {
     handleAnswer,
     handleCancel,
     addAssistantText,
+    addSystemMessage,
     addLog,
     addErrorLog,
     setProcessing: setIsProcessing,

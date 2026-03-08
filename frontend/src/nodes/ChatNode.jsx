@@ -203,11 +203,13 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
           <div
             key={i}
             className={`px-3 py-2 rounded-lg max-w-[90%] ${
-              msg.role === "user" ? "ml-auto" : ""
+              msg.role === "user" ? "ml-auto" : msg.role === "system" ? "mx-auto text-center" : ""
             }`}
             style={
               msg.role === "user"
                 ? { background: "var(--accent)", color: "var(--accent-text)" }
+                : msg.role === "system"
+                ? { background: "transparent", color: "var(--chrome-text-muted)", fontSize: "11px", fontStyle: "italic" }
                 : { background: "var(--chrome-bg-elevated)", color: "var(--chrome-text)" }
             }
           >
