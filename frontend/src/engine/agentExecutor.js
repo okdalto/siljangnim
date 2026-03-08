@@ -7,6 +7,30 @@
  */
 
 import { callAnthropic } from "./anthropicClient.js";
+
+/** Build a markdown section describing the client environment. */
+function getEnvironmentSection() {
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+  const isMac = /Macintosh/i.test(ua);
+  const isWindows = /Windows/i.test(ua);
+  const isLinux = /Linux/i.test(ua) && !isAndroid;
+  const hasTouch = typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
+  const platform = isIOS ? "iOS" : isAndroid ? "Android" : isMac ? "macOS" : isWindows ? "Windows" : isLinux ? "Linux" : "unknown";
+  const screenW = typeof screen !== "undefined" ? screen.width : 0;
+  const screenH = typeof screen !== "undefined" ? screen.height : 0;
+  const dpr = typeof devicePixelRatio !== "undefined" ? devicePixelRatio : 1;
+
+  return `\n\n## CLIENT ENVIRONMENT
+- **Platform**: ${platform}${isMobile ? " (mobile)" : " (desktop)"}
+- **Touch support**: ${hasTouch ? "yes" : "no"}${hasTouch ? " — use ctx.mouse for touch input (touch maps to mouse)" : ""}
+- **Screen**: ${screenW}×${screenH} @ ${dpr}x DPR
+- **Note**: ${isMobile
+    ? "This is a mobile device. Prefer touch-friendly interactions (drag, swipe, tap). Avoid hover-dependent effects. Keep performance in mind — use simpler shaders when possible."
+    : "Desktop environment with mouse and keyboard. ctx.mouse and ctx.keys are available."}`;
+}
 import { buildSystemPrompt } from "./agentPrompts.js";
 import TOOLS from "./agentTools.js";
 import { handleTool } from "./toolHandlers.js";
@@ -178,6 +202,9 @@ export async function runAgent({
       }
     } catch { /* technique matching is non-critical */ }
   }
+
+  // Inject environment info
+  systemPrompt += getEnvironmentSection();
 
   // Inject asset context if available
   if (assetContext.length > 0) {
@@ -650,6 +677,9 @@ export async function runWithPlan({
       }
     } catch { /* technique matching is non-critical */ }
   }
+
+  // Inject environment info
+  baseSystemPrompt += getEnvironmentSection();
 
   if (assetContext.length > 0) {
     const assetLines = assetContext.map((a) => {
