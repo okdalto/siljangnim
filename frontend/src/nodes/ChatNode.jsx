@@ -292,16 +292,6 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
           className="hidden"
           onChange={handleFileInputChange}
         />
-        {/* Branch selector */}
-        {treeNodes.length > 0 && (
-          <BranchSelector
-            treeNodes={treeNodes}
-            activeNodeId={activeTreeNodeId}
-            onBranchFromNode={onBranchFromNode}
-            onSwitchToNode={onSwitchToNode}
-            compact
-          />
-        )}
         {/* Attach button */}
         <button
           type="button"
