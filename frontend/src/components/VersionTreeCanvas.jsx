@@ -334,6 +334,65 @@ export default function VersionTreeCanvas({
     setDragOffset({ x: 0, y: 0 });
   }, [activeNodeId]);
 
+  // Keyboard arrow navigation
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !activeNodeId) return;
+
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
+      const activeNode = nodesMap.get(activeNodeId);
+      if (!activeNode) return;
+
+      let targetId = null;
+
+      switch (e.key) {
+        case "ArrowUp": {
+          // Go to parent
+          if (activeNode.parentId && nodesMap.has(activeNode.parentId)) {
+            targetId = activeNode.parentId;
+          }
+          break;
+        }
+        case "ArrowDown": {
+          // Go to first child
+          const children = childrenMap.get(activeNodeId) || [];
+          if (children.length > 0) {
+            targetId = children[0].id;
+          }
+          break;
+        }
+        case "ArrowLeft":
+        case "ArrowRight": {
+          // Go to sibling (same parent)
+          const parentId = activeNode.parentId;
+          const siblings = parentId
+            ? (childrenMap.get(parentId) || [])
+            : roots;
+          if (siblings.length <= 1) break;
+          const idx = siblings.findIndex((n) => n.id === activeNodeId);
+          if (idx < 0) break;
+          const next = e.key === "ArrowRight"
+            ? siblings[(idx + 1) % siblings.length]
+            : siblings[(idx - 1 + siblings.length) % siblings.length];
+          targetId = next.id;
+          break;
+        }
+        default:
+          return;
+      }
+
+      if (targetId && targetId !== activeNodeId) {
+        e.preventDefault();
+        onDoubleClickNode(targetId);
+      }
+    };
+
+    el.addEventListener("keydown", handleKeyDown);
+    return () => el.removeEventListener("keydown", handleKeyDown);
+  }, [activeNodeId, nodesMap, childrenMap, roots, onDoubleClickNode]);
+
   // Drag handlers
   const handlePointerDown = useCallback((e) => {
     if (e.button !== 0) return;
@@ -380,7 +439,8 @@ export default function VersionTreeCanvas({
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-hidden relative"
+      className="flex-1 overflow-hidden relative outline-none"
+      tabIndex={0}
       style={{ cursor: dragRef.current.dragging ? "grabbing" : "grab" }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
