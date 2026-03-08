@@ -261,7 +261,17 @@ function UpdateSection() {
 
 /* ── Main component ─────────────────────────────────────────────── */
 
-export default function SettingsMenu({ onChangeApiKey }) {
+const PROVIDER_LABELS = { anthropic: "Claude", openai: "OpenAI", gemini: "Gemini", glm: "GLM", custom: "Custom" };
+const PROVIDER_MODELS = {
+  anthropic: [
+    { id: "claude-sonnet-4-6", label: "Sonnet 4.6" },
+    { id: "claude-opus-4-6", label: "Opus 4.6" },
+    { id: "claude-haiku-4-5-20251001", label: "Haiku 4.5" },
+  ],
+};
+const PROMPT_MODE_LABELS = { hybrid: "Hybrid", code: "Code", conversational: "Conversational" };
+
+export default function SettingsMenu({ onChangeApiKey, backendTarget, onBackendTargetChange, promptMode, onPromptModeChange, selectedModel, onModelChange, provider }) {
   const [open, setOpen] = useState(false);
   const popoverRef = useRef(null);
   const { settings, update } = useContext(SettingsContext);
@@ -376,6 +386,81 @@ export default function SettingsMenu({ onChangeApiKey }) {
               Change
             </button>
           </SettingRow>
+
+          {/* ── Renderer (mobile-only, desktop shows in toolbar) ── */}
+          {onBackendTargetChange && (
+            <>
+              <hr className="my-2.5" style={{ borderColor: "var(--chrome-border)" }} />
+              <SectionLabel>Renderer</SectionLabel>
+              <SettingRow label="Backend">
+                <div className="flex gap-0.5 rounded overflow-hidden" style={{ border: "1px solid var(--chrome-border)" }}>
+                  {["auto", "webgl", "webgpu"].map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => onBackendTargetChange(t)}
+                      className="px-2 py-0.5 text-[10px] transition-colors"
+                      style={{
+                        background: backendTarget === t ? "var(--accent-color, #6366f1)" : "transparent",
+                        color: backendTarget === t ? "#fff" : "var(--chrome-text-muted)",
+                      }}
+                    >
+                      {t === "auto" ? "Auto" : t === "webgl" ? "WebGL2" : "WebGPU"}
+                    </button>
+                  ))}
+                </div>
+              </SettingRow>
+            </>
+          )}
+
+          {/* ── Prompt Mode (mobile-only) ── */}
+          {onPromptModeChange && (
+            <>
+              <hr className="my-2.5" style={{ borderColor: "var(--chrome-border)" }} />
+              <SectionLabel>Prompt Mode</SectionLabel>
+              <SettingRow label="Mode">
+                <div className="flex gap-0.5 rounded overflow-hidden" style={{ border: "1px solid var(--chrome-border)" }}>
+                  {Object.entries(PROMPT_MODE_LABELS).map(([key, label]) => (
+                    <button
+                      key={key}
+                      onClick={() => onPromptModeChange(key)}
+                      className="px-2 py-0.5 text-[10px] transition-colors"
+                      style={{
+                        background: promptMode === key ? "var(--accent-color, #6366f1)" : "transparent",
+                        color: promptMode === key ? "#fff" : "var(--chrome-text-muted)",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </SettingRow>
+            </>
+          )}
+
+          {/* ── Model (mobile-only) ── */}
+          {onModelChange && provider && PROVIDER_MODELS[provider] && (
+            <>
+              <hr className="my-2.5" style={{ borderColor: "var(--chrome-border)" }} />
+              <SectionLabel>Model</SectionLabel>
+              <SettingRow label={PROVIDER_LABELS[provider] || provider}>
+                <div className="flex flex-col gap-0.5">
+                  {PROVIDER_MODELS[provider].map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => onModelChange(m.id)}
+                      className="text-[10px] px-2 py-0.5 rounded text-right transition-colors"
+                      style={{
+                        background: selectedModel === m.id ? "var(--accent-color, #6366f1)" : "transparent",
+                        color: selectedModel === m.id ? "#fff" : "var(--chrome-text-secondary)",
+                      }}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </SettingRow>
+            </>
+          )}
 
           {/* ── App Update ──────────────────────────────────── */}
           {!BROWSER_ONLY && (
