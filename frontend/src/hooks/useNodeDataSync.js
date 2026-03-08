@@ -349,105 +349,11 @@ export default function useNodeDataSync({
     );
   }, [setNodes, sceneJSON, panels.customPanels]);
 
-  // --- Asset node sync (add/remove/update) ---
+  // --- Asset browser node sync ---
   const assetSelectRef = useRef(assetNodes?.selectAsset);
   assetSelectRef.current = assetNodes?.selectAsset;
-  const assetRenameRef = useRef(assetNodes?.renameAsset);
-  assetRenameRef.current = assetNodes?.renameAsset;
   const assetDeleteRef = useRef(assetNodes?.deleteAsset);
   assetDeleteRef.current = assetNodes?.deleteAsset;
-  const assetExecuteActionRef = useRef(assetNodes?.executeAction);
-  assetExecuteActionRef.current = assetNodes?.executeAction;
-  const onPromptSuggestionRef = useRef(onPromptSuggestion);
-  onPromptSuggestionRef.current = onPromptSuggestion;
-
-  useEffect(() => {
-    if (!assetNodes) return;
-    const assets = assetNodes.assets;
-
-    setNodes((nds) => {
-      let updated = nds;
-
-      // Update existing asset nodes data
-      updated = updated.map((node) => {
-        if (node.type !== "assetNode") return node;
-        const assetId = node.id.replace("asset_node_", "");
-        const desc = assets.get(assetId);
-        if (!desc) return node;
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            descriptor: desc,
-            onSelect: (id) => assetSelectRef.current?.(id),
-            onRename: (id, name) => assetRenameRef.current?.(id, name),
-            onDelete: (id) => assetDeleteRef.current?.(id),
-            onAction: (id, actionType) => {
-              const result = assetExecuteActionRef.current?.(id, actionType);
-              if (result?.type === "prompt_suggestion") {
-                onPromptSuggestionRef.current?.(result.text);
-              }
-            },
-          },
-        };
-      });
-
-      // Add new asset nodes
-      const assetNodeIds = new Set([...assets.keys()].map((id) => `asset_node_${id}`));
-      for (const [assetId, desc] of assets) {
-        const nodeId = `asset_node_${assetId}`;
-        if (!updated.some((n) => n.id === nodeId)) {
-          const pos = findEmptyPosition(updated, 180, 200, rfInstanceRef?.current);
-          updated = [
-            ...updated,
-            {
-              id: nodeId,
-              type: "assetNode",
-              position: pos,
-              style: { width: 180, height: 200 },
-              data: {
-                descriptor: desc,
-                onSelect: (id) => assetSelectRef.current?.(id),
-                onRename: (id, name) => assetRenameRef.current?.(id, name),
-                onAction: (id, actionType) => {
-                  const result = assetExecuteActionRef.current?.(id, actionType);
-                  if (result?.type === "prompt_suggestion") {
-                    onPromptSuggestionRef.current?.(result.text);
-                  }
-                },
-              },
-            },
-          ];
-        }
-      }
-
-      // Remove asset nodes whose descriptors no longer exist
-      updated = updated.filter((n) => n.type !== "assetNode" || assetNodeIds.has(n.id));
-
-      // Apply pending layouts for asset nodes
-      if (pendingLayoutsRef.current) {
-        const layoutMap = new Map(pendingLayoutsRef.current.map((l) => [l.id, l]));
-        const appliedIds = new Set();
-        updated = updated.map((n) => {
-          if (n.type !== "assetNode") return n;
-          const saved = layoutMap.get(n.id);
-          if (saved) {
-            appliedIds.add(n.id);
-            return { ...n, position: saved.position, style: saved.style || n.style };
-          }
-          return n;
-        });
-        if (appliedIds.size > 0) {
-          const remaining = pendingLayoutsRef.current.filter((l) => !appliedIds.has(l.id));
-          pendingLayoutsRef.current = remaining.length > 0 ? remaining : null;
-        }
-      }
-
-      return updated;
-    });
-  }, [setNodes, assetNodes?.assets]);
-
-  // --- Asset browser node sync ---
   const onAssetUploadRef = useRef(onAssetUpload);
   onAssetUploadRef.current = onAssetUpload;
 
