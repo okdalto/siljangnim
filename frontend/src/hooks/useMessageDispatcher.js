@@ -3,6 +3,37 @@ import { updateNodeMetadata } from "../engine/projectTree.js";
 import * as storage from "../engine/storage.js";
 
 /**
+ * Apply saved UI state (viewport zoom/pan, paused, backendTarget, collapsed states, fixedResolution).
+ */
+function _applyUiState(uiState, { setPaused, setBackendTarget, rfInstanceRef, nodeUiStateRef }) {
+  if (!uiState) return;
+
+  // Restore paused
+  if (typeof uiState.paused === "boolean") setPaused(uiState.paused);
+
+  // Restore backendTarget
+  if (uiState.backendTarget) setBackendTarget?.(uiState.backendTarget);
+
+  // Restore collapsed states and fixedResolution into the ref
+  // (nodes will pick these up on next data sync cycle)
+  if (nodeUiStateRef?.current) {
+    if (uiState.collapsed && typeof uiState.collapsed === "object") {
+      nodeUiStateRef.current.collapsed = { ...uiState.collapsed };
+    }
+    nodeUiStateRef.current.viewportFixedResolution = uiState.viewportFixedResolution ?? null;
+  }
+
+  // Restore React Flow viewport (zoom/pan) — deferred to after layout settles
+  if (uiState.viewport && rfInstanceRef?.current) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      try {
+        rfInstanceRef.current?.setViewport(uiState.viewport, { duration: 0 });
+      } catch { /* ignore if RF not ready */ }
+    }));
+  }
+}
+
+/**
  * @param {Object} params - All dependencies for message handling (chat, apiKey, project, panels, kf, state setters, refs)
  * @returns {(msg: {type: string, [key: string]: any}) => void} handleMessage callback
  */
@@ -27,6 +58,8 @@ export default function useMessageDispatcher(params) {
       setProjectManifest,
       overwriteModeRef,
       autoSave,
+      // UI state persistence
+      setBackendTarget, rfInstanceRef, nodeUiStateRef,
     } = deps.current;
     if (!msg || !msg.type) return;
 
@@ -74,6 +107,8 @@ export default function useMessageDispatcher(params) {
         panels.restorePanels(msg.panels || {});
         if (msg.debug_logs) chat.setDebugLogs(msg.debug_logs);
         assetNodes.restore(msg.workspace_state?.assets || {});
+        // Restore UI state (viewport zoom/pan, paused, backendTarget, collapsed, fixedResolution)
+        _applyUiState(msg.workspace_state?.ui_state, { setPaused, setBackendTarget, rfInstanceRef, nodeUiStateRef });
         // Allow layout saves after React Flow has fully reconciled (double-rAF)
         requestAnimationFrame(() => requestAnimationFrame(() => { initSettledRef.current = true; }));
         break;
@@ -270,6 +305,8 @@ export default function useMessageDispatcher(params) {
         panels.restorePanels(msg.panels || {});
         chat.setDebugLogs(msg.debug_logs || []);
         assetNodes.restore(msg.workspace_state?.assets || {});
+        // Restore UI state (viewport zoom/pan, paused, backendTarget, collapsed, fixedResolution)
+        _applyUiState(msg.workspace_state?.ui_state, { setPaused, setBackendTarget, rfInstanceRef, nodeUiStateRef });
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = false;
         // Allow layout saves after React Flow has fully reconciled (double-rAF)

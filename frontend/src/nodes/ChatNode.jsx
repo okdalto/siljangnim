@@ -18,7 +18,22 @@ function readFileAsBase64(file) {
 }
 
 export default function ChatNode({ data, standalone = false, hideHeader = false }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsedRaw] = useState(() => data.initialCollapsed ?? false);
+  const setCollapsed = useCallback((v) => {
+    setCollapsedRaw((prev) => {
+      const next = typeof v === "function" ? v(prev) : v;
+      data.onCollapsedChange?.(next);
+      return next;
+    });
+  }, [data.onCollapsedChange]);
+  // Sync collapsed state when project is restored
+  const prevInitCollapsed = useRef(data.initialCollapsed);
+  useEffect(() => {
+    if (data.initialCollapsed !== prevInitCollapsed.current) {
+      prevInitCollapsed.current = data.initialCollapsed;
+      setCollapsedRaw(data.initialCollapsed ?? false);
+    }
+  }, [data.initialCollapsed]);
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);

@@ -157,6 +157,13 @@ export default function App() {
     if (engineRef.current) engineRef.current._selectedModel = modelId;
   }, []);
 
+  // Per-node UI state (collapsed, fixedResolution) — tracked here so we can
+  // persist them in workspace_state snapshots and restore on checkout.
+  const nodeUiStateRef = useRef({
+    collapsed: {},            // { chat: false, viewport: false, debugLog: false, ... }
+    viewportFixedResolution: null, // null = auto, [w, h] = fixed
+  });
+
   // Asset manager panel
   const [assetsPanelOpen, setAssetsPanelOpen] = useState(false);
   const toggleAssetsPanel = useCallback(() => setAssetsPanelOpen((v) => !v), []);
@@ -246,7 +253,19 @@ export default function App() {
     });
   }, []);
 
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+  const backendTargetRef = useRef(backendTarget);
+  backendTargetRef.current = backendTarget;
+
   const getWorkspaceState = useCallback(() => {
+    // Capture React Flow viewport (zoom/pan)
+    let viewport = { x: 0, y: 0, zoom: 1 };
+    try {
+      const vp = rfInstanceRef.current?.getViewport();
+      if (vp) viewport = { x: vp.x, y: vp.y, zoom: vp.zoom };
+    } catch { /* ignore */ }
+
     return {
       version: 1,
       keyframes: kf.getKeyframeTracks(),
@@ -254,6 +273,13 @@ export default function App() {
       loop,
       node_layouts: getNodeLayouts(),
       assets: assetNodes.serialize(),
+      ui_state: {
+        viewport,
+        paused: pausedRef.current,
+        backendTarget: backendTargetRef.current,
+        collapsed: { ...nodeUiStateRef.current.collapsed },
+        viewportFixedResolution: nodeUiStateRef.current.viewportFixedResolution,
+      },
     };
   }, [duration, loop, kf.getKeyframeTracks, getNodeLayouts, assetNodes.serialize]);
 
@@ -526,6 +552,7 @@ export default function App() {
     setProjectManifest,
     overwriteModeRef,
     autoSave,
+    setBackendTarget, rfInstanceRef, nodeUiStateRef,
   });
 
   const ws = useWebSocket(BROWSER_ONLY ? null : WS_URL, handleMessage);
@@ -897,6 +924,7 @@ export default function App() {
     overwriteMode,
     onToggleOverwrite: handleToggleOverwrite,
     backendTarget,
+    nodeUiStateRef,
   });
 
   return (
