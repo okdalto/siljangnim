@@ -76,6 +76,24 @@ export default function useAssetNodes() {
       const category = categoryFromFilename(filename);
       const techInfo = buildTechInfo(category, result.metadata || {});
 
+      // Create preview URL from blob data for visual categories
+      let previewUrl = null;
+      let thumbnailUrl = null;
+
+      if (
+        category === ASSET_CATEGORY.IMAGE ||
+        category === ASSET_CATEGORY.VIDEO ||
+        category === ASSET_CATEGORY.SVG
+      ) {
+        previewUrl = URL.createObjectURL(new Blob([data], { type: mimeType }));
+      }
+
+      // For video, extract captured thumbnail from processor outputs
+      if (category === ASSET_CATEGORY.VIDEO) {
+        const thumbOutput = (result.outputs || []).find((o) => o.type === "thumbnail");
+        if (thumbOutput?.dataUrl) thumbnailUrl = thumbOutput.dataUrl;
+      }
+
       setAssets((prev) => {
         const desc = prev.get(assetId);
         if (!desc) return prev;
@@ -86,6 +104,8 @@ export default function useAssetNodes() {
           processorOutputs: result.outputs || [],
           processorMetadata: result.metadata || {},
           technicalInfo: techInfo,
+          previewUrl: previewUrl || desc.previewUrl,
+          thumbnailUrl: thumbnailUrl || desc.thumbnailUrl,
           aiSummary: result.metadata?.aiSummary || null,
           updatedAt: new Date().toISOString(),
         });
@@ -273,15 +293,47 @@ export default function useAssetNodes() {
     return obj;
   }, []);
 
-  const restore = useCallback((assetsObj) => {
+  const restore = useCallback(async (assetsObj) => {
     const map = new Map();
     if (assetsObj && typeof assetsObj === "object") {
       for (const [id, desc] of Object.entries(assetsObj)) {
-        map.set(id, { ...desc, id });
+        map.set(id, { ...desc, id, previewUrl: null, thumbnailUrl: null });
       }
     }
     setAssets(map);
     setSelectedAssetId(null);
+
+    // Regenerate preview blob URLs from IndexedDB
+    if (map.size > 0) {
+      try {
+        const storageModule = await import("../engine/storage.js");
+        const updates = new Map();
+        for (const [id, desc] of map) {
+          const cat = desc.category || categoryFromFilename(desc.filename);
+          if (
+            cat === ASSET_CATEGORY.IMAGE ||
+            cat === ASSET_CATEGORY.VIDEO ||
+            cat === ASSET_CATEGORY.SVG
+          ) {
+            try {
+              const entry = await storageModule.readUpload(desc.filename);
+              const url = URL.createObjectURL(new Blob([entry.data], { type: desc.mimeType }));
+              updates.set(id, { previewUrl: url });
+            } catch { /* file not in store */ }
+          }
+        }
+        if (updates.size > 0) {
+          setAssets((prev) => {
+            const next = new Map(prev);
+            for (const [id, upd] of updates) {
+              const d = next.get(id);
+              if (d) next.set(id, { ...d, ...upd });
+            }
+            return next;
+          });
+        }
+      } catch { /* storage unavailable */ }
+    }
   }, []);
 
   // ---- Get descriptors for prompt context ----
