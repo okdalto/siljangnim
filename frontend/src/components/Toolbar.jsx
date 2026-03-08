@@ -132,11 +132,13 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
             <span className="text-[10px]">from {projectManifest.provenance.github_repo}</span>
           </span>
         )}
-        {saveStatus === "unsaved" && (
-          <div className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" title="Unsaved changes" />
-        )}
         {saveStatus === "saving" && (
-          <span className="flex-shrink-0" style={{ color: "var(--chrome-text-muted)" }}>Saving...</span>
+          <span className="flex-shrink-0 text-[10px]" style={{ color: "var(--chrome-text-muted)" }}>Saving...</span>
+        )}
+        {saveStatus === "saved" && activeProject && (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" style={{ color: "var(--chrome-text-muted)" }}>
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
         )}
       </div>
 

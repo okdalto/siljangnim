@@ -1100,6 +1100,180 @@ export async function importWorkspaceFromZip(zipBlob) {
 }
 
 // ---------------------------------------------------------------------------
+// Auto-save (Figma-style)
+// ---------------------------------------------------------------------------
+
+/**
+ * Auto-save the current project (manifest-only update).
+ * Files are already written under the correct prefix in IndexedDB,
+ * so we just update chat_history, thumbnail, and manifest metadata.
+ *
+ * @param {Array} chatHistory - current chat messages
+ * @param {string|null} thumbnailB64 - optional thumbnail data URL
+ * @returns {Promise<object|null>} updated manifest or null if skipped
+ */
+export async function autoSaveCurrentProject(chatHistory, thumbnailB64 = null) {
+  const currentName = getActiveProjectName();
+  if (!currentName || currentName === DEFAULT_PROJECT) return null;
+
+  const store = await tx(STORE_PROJECTS);
+  const existing = await idbReq(store.get(currentName));
+  if (!existing) return null;
+
+  const now = new Date().toISOString();
+
+  // Update chat_history
+  if (chatHistory) {
+    const chatStore = await tx(STORE_FILES, "readwrite");
+    await idbReq(chatStore.put(chatHistory, `${currentName}/chat_history.json`));
+  }
+
+  // Update thumbnail
+  let hasThumbnail = existing.has_thumbnail || false;
+  if (thumbnailB64) {
+    try {
+      const b64 = thumbnailB64.includes(",") ? thumbnailB64.split(",")[1] : thumbnailB64;
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const thumbStore = await tx(STORE_BLOBS, "readwrite");
+      await idbReq(
+        thumbStore.put(
+          { data: bytes.buffer, mimeType: "image/jpeg", size: bytes.length },
+          `${currentName}/thumbnail.jpg`
+        )
+      );
+      hasThumbnail = true;
+    } catch { /* ignore */ }
+  }
+
+  // Update manifest
+  existing.updated_at = now;
+  existing.has_thumbnail = hasThumbnail;
+
+  const metaStore = await tx(STORE_PROJECTS, "readwrite");
+  await idbReq(metaStore.put(existing, currentName));
+
+  // Update manifest in files store
+  const mfStore = await tx(STORE_FILES, "readwrite");
+  await idbReq(mfStore.put(existing, `${currentName}/${MANIFEST_FILENAME}`));
+
+  return existing;
+}
+
+/**
+ * Auto-create a project from the current _untitled workspace.
+ * Moves all _untitled/* files and blobs to newName/*.
+ *
+ * @param {string} suggestedName - desired project name
+ * @param {Array} chatHistory - current chat messages
+ * @param {string|null} thumbnailB64 - optional thumbnail data URL
+ * @returns {Promise<object>} created manifest
+ */
+export async function autoCreateProject(suggestedName, chatHistory, thumbnailB64 = null) {
+  // Sanitize and resolve conflicts
+  let baseName = sanitizeName(suggestedName || "untitled-project");
+  let targetName = baseName;
+  const ps = await tx(STORE_PROJECTS);
+  const allKeys = await idbReq(ps.getAllKeys());
+  const keySet = new Set(allKeys);
+  if (keySet.has(targetName)) {
+    let counter = 1;
+    while (keySet.has(`${baseName}_${counter}`)) counter++;
+    targetName = `${baseName}_${counter}`;
+  }
+
+  const now = new Date().toISOString();
+  const srcPrefix = `${DEFAULT_PROJECT}/`;
+  const dstPrefix = `${targetName}/`;
+
+  // Move files: _untitled/* → targetName/*
+  const db = await openDB();
+  const filesStore = await tx(STORE_FILES);
+  const allFileKeys = await idbReq(filesStore.getAllKeys());
+  const fileKeysToMove = allFileKeys.filter((k) => k.startsWith(srcPrefix));
+
+  for (const key of fileKeysToMove) {
+    const data = await idbReq((await tx(STORE_FILES)).get(key));
+    const newKey = dstPrefix + key.slice(srcPrefix.length);
+    await idbReq((await tx(STORE_FILES, "readwrite")).put(data, newKey));
+    await idbReq((await tx(STORE_FILES, "readwrite")).delete(key));
+  }
+
+  // Move blobs: _untitled/* → targetName/*
+  const blobStore = await tx(STORE_BLOBS);
+  const allBlobKeys = await idbReq(blobStore.getAllKeys());
+  const blobKeysToMove = allBlobKeys.filter((k) => k.startsWith(srcPrefix));
+
+  for (const key of blobKeysToMove) {
+    const data = await idbReq((await tx(STORE_BLOBS)).get(key));
+    const newKey = dstPrefix + key.slice(srcPrefix.length);
+    await idbReq((await tx(STORE_BLOBS, "readwrite")).put(data, newKey));
+    await idbReq((await tx(STORE_BLOBS, "readwrite")).delete(key));
+  }
+
+  // Move project tree nodes
+  const nodes = await listProjectNodes(DEFAULT_PROJECT);
+  for (const node of nodes) {
+    node.projectName = targetName;
+    await writeNode(node);
+  }
+
+  // Save chat history
+  const chatStore = await tx(STORE_FILES, "readwrite");
+  await idbReq(chatStore.put(chatHistory || [], `${targetName}/chat_history.json`));
+
+  // Save thumbnail
+  let hasThumbnail = false;
+  if (thumbnailB64) {
+    try {
+      const b64 = thumbnailB64.includes(",") ? thumbnailB64.split(",")[1] : thumbnailB64;
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const thumbStore = await tx(STORE_BLOBS, "readwrite");
+      await idbReq(
+        thumbStore.put(
+          { data: bytes.buffer, mimeType: "image/jpeg", size: bytes.length },
+          `${targetName}/thumbnail.jpg`
+        )
+      );
+      hasThumbnail = true;
+    } catch { /* ignore */ }
+  }
+
+  // Build display name (preserve original casing)
+  const displayName = (suggestedName || "Untitled Project").trim().slice(0, 128);
+
+  // Create manifest
+  const manifest = createProjectManifest(
+    {
+      name: targetName,
+      display_name: displayName,
+      description: "",
+      created_at: now,
+      updated_at: now,
+      has_thumbnail: hasThumbnail,
+    },
+    [],
+    {
+      provenance: buildProvenanceLocal(),
+      trust: { safe_mode: false, trusted_by: null, trusted_at: null },
+    }
+  );
+
+  const metaStore = await tx(STORE_PROJECTS, "readwrite");
+  await idbReq(metaStore.put(manifest, targetName));
+
+  // Write manifest to files store
+  const mfStore = await tx(STORE_FILES, "readwrite");
+  await idbReq(mfStore.put(manifest, `${targetName}/${MANIFEST_FILENAME}`));
+
+  setActiveProjectName(targetName);
+  return manifest;
+}
+
+// ---------------------------------------------------------------------------
 // Trust management
 // ---------------------------------------------------------------------------
 
