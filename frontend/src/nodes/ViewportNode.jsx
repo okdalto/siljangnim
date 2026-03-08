@@ -4,7 +4,7 @@ import GLEngine from "../engine/GLEngine.js";
 import ResolutionSelector from "../components/viewport/ResolutionSelector.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 
-export default function ViewportNode({ data, standalone = false, hideHeader = false }) {
+export default function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
   const { sceneJSON, engineRef, onError, paused, safeModeActive } = data;
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -337,7 +337,12 @@ export default function ViewportNode({ data, standalone = false, hideHeader = fa
             <ResolutionSelector
               resolution={resolution}
               fixedResolution={fixedResolution}
-              onResolutionChange={setFixedResolution}
+              onResolutionChange={(res) => {
+                setFixedResolution(res);
+                if (res && data.onResizeNode) {
+                  data.onResizeNode(res[0], res[1]);
+                }
+              }}
             />
             <span style={{ color: "var(--chrome-text-muted)" }}>
               {fps} FPS

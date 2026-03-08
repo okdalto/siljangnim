@@ -192,11 +192,34 @@ export default function useNodeDataSync({
 
   // --- Viewport node sync ---
   // When safe_mode is active, pass null sceneJSON to block script execution
+  const VIEWPORT_HEADER_HEIGHT = 36; // px — header bar height
   useEffect(() => {
     setNodes((nds) =>
       nds.map((node) =>
         node.id === "viewport"
-          ? { ...node, data: { ...node.data, sceneJSON: safeModeActive ? null : sceneJSON, engineRef, paused, onError: handleShaderErrorRef.current, safeModeActive } }
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                sceneJSON: safeModeActive ? null : sceneJSON,
+                engineRef,
+                paused,
+                onError: handleShaderErrorRef.current,
+                safeModeActive,
+                onResizeNode: (w, h) => {
+                  // Resize viewport node to match the chosen resolution aspect ratio
+                  // Keep current width, adjust height proportionally
+                  setNodes((prev) =>
+                    prev.map((n) => {
+                      if (n.id !== "viewport") return n;
+                      const currentWidth = parseFloat(n.style?.width) || 670;
+                      const aspectHeight = Math.round(currentWidth * (h / w)) + VIEWPORT_HEADER_HEIGHT;
+                      return { ...n, style: { ...n.style, height: aspectHeight } };
+                    })
+                  );
+                },
+              },
+            }
           : node
       )
     );
