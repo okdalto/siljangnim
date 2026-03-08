@@ -396,6 +396,8 @@ export default function VersionTreeCanvas({
   // Drag handlers
   const handlePointerDown = useCallback((e) => {
     if (e.button !== 0) return;
+    // Focus the container so keyboard navigation works
+    containerRef.current?.focus();
     // Don't start drag if clicking on a tree node
     if (e.target.closest("[data-tree-node]")) return;
     dragRef.current = {
