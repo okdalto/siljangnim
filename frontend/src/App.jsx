@@ -36,7 +36,6 @@ import ChatNode from "./nodes/ChatNode.jsx";
 import CustomPanelNode from "./nodes/CustomPanelNode.jsx";
 import ViewportNode from "./nodes/ViewportNode.jsx";
 import DebugLogNode from "./nodes/DebugLogNode.jsx";
-import AssetNode from "./nodes/AssetNode.jsx";
 import AssetBrowserNode from "./nodes/AssetBrowserNode.jsx";
 import useAssetNodes from "./hooks/useAssetNodes.js";
 import ApiKeyModal from "./components/ApiKeyModal.jsx";
@@ -64,7 +63,6 @@ const nodeTypes = {
   viewport: ViewportNode,
   debugLog: DebugLogNode,
   customPanel: CustomPanelNode,
-  assetNode: AssetNode,
   assetBrowser: AssetBrowserNode,
 };
 
