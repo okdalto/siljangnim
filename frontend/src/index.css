@@ -121,7 +121,7 @@ body,
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   gap: 2px;
-  padding-bottom: 48px; /* space for fixed Timeline bar */
+  padding-bottom: 100px; /* space for fixed Timeline bar + MobileChatInput */
   background: var(--app-bg);
 }
 
