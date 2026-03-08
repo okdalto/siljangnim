@@ -198,7 +198,18 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
         {!isMobile && connected && provider && (
           <ModelSelector provider={provider} selectedModel={selectedModel} onModelChange={onModelChange} />
         )}
-        <SettingsMenu onChangeApiKey={onChangeApiKey} />
+        <SettingsMenu
+          onChangeApiKey={onChangeApiKey}
+          {...(isMobile ? {
+            backendTarget,
+            onBackendTargetChange,
+            promptMode,
+            onPromptModeChange,
+            selectedModel,
+            onModelChange,
+            provider,
+          } : {})}
+        />
       </div>
     </div>
   );
