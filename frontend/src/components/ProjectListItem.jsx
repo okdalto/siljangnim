@@ -52,6 +52,18 @@ function DownloadIcon() {
   );
 }
 
+function ForkIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline">
+      <circle cx="12" cy="18" r="3" />
+      <circle cx="6" cy="6" r="3" />
+      <circle cx="18" cy="6" r="3" />
+      <path d="M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9" />
+      <line x1="12" y1="12" x2="12" y2="15" />
+    </svg>
+  );
+}
+
 function FolderBrowseIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline">
@@ -60,7 +72,7 @@ function FolderBrowseIcon() {
   );
 }
 
-function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename }) {
+function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename, onFork }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const deleteTimerRef = useRef(null);
 
@@ -327,6 +339,17 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename }) {
                       </div>
                     )}
                   </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newName = prompt("New project name:", `${p.display_name || p.name} (copy)`);
+                      if (newName?.trim()) onFork?.(p.name, newName.trim());
+                    }}
+                    className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                    title="Fork project"
+                  >
+                    <ForkIcon />
+                  </button>
                   <button
                     onClick={handleDeleteClick}
                     className="text-zinc-500 hover:text-red-400 transition-colors"

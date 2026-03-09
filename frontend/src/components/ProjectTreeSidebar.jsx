@@ -30,6 +30,7 @@ export default function ProjectTreeSidebar({
   onProjectLoad,
   onProjectDelete,
   onProjectRename,
+  onProjectFork,
   onProjectImport,
   // GitHub
   github,
@@ -219,6 +220,7 @@ export default function ProjectTreeSidebar({
                         onLoad={onProjectLoad}
                         onDelete={onProjectDelete}
                         onRename={onProjectRename}
+                        onFork={onProjectFork}
                       />
                     ))
                   )}

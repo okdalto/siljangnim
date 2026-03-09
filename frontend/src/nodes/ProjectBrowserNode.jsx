@@ -25,6 +25,7 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
     onLoad,
     onDelete,
     onRename,
+    onFork,
     onImport,
     onDeleteWorkspaceFile,
     workspaceFilesVersion,
@@ -190,6 +191,7 @@ export default function ProjectBrowserNode({ data, standalone = false, hideHeade
             onLoad={onLoad}
             onDelete={onDelete}
             onRename={onRename}
+            onFork={onFork}
           />
         ))}
       </div>

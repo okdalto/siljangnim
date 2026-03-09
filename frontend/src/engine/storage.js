@@ -571,6 +571,121 @@ export async function renameProject(oldName, newDisplayName) {
   return meta;
 }
 
+export async function forkProject(srcName, newDisplayName) {
+  const srcSanitized = sanitizeName(srcName);
+  const dstBase = sanitizeName(newDisplayName);
+
+  // Check source exists
+  const srcStore = await tx(STORE_PROJECTS);
+  const srcMeta = await idbReq(srcStore.get(srcSanitized));
+  if (!srcMeta) throw new Error(`Project not found: ${srcName}`);
+
+  // Resolve name conflict — append -2, -3, etc.
+  const allKeys = await idbReq((await tx(STORE_PROJECTS)).getAllKeys());
+  const keySet = new Set(allKeys);
+  let dstName = dstBase;
+  if (keySet.has(dstName)) {
+    let counter = 2;
+    while (keySet.has(`${dstBase}-${counter}`)) counter++;
+    dstName = `${dstBase}-${counter}`;
+  }
+
+  const srcPrefix = `${srcSanitized}/`;
+  const dstPrefix = `${dstName}/`;
+  const now = new Date().toISOString();
+
+  // Copy files
+  const db = await openDB();
+  const filesStore = await tx(STORE_FILES);
+  const allFileKeys = await idbReq(filesStore.getAllKeys());
+  const fileKeys = allFileKeys.filter((k) => k.startsWith(srcPrefix));
+  if (fileKeys.length) {
+    const fileTx = db.transaction(STORE_FILES, "readwrite");
+    const ws = fileTx.objectStore(STORE_FILES);
+    for (const key of fileKeys) {
+      const data = await idbReq(ws.get(key));
+      const newKey = dstPrefix + key.slice(srcPrefix.length);
+      ws.put(data, newKey);
+    }
+    await new Promise((resolve, reject) => {
+      fileTx.oncomplete = resolve;
+      fileTx.onerror = () => reject(fileTx.error);
+    });
+  }
+
+  // Copy blobs
+  const blobStore = await tx(STORE_BLOBS);
+  const allBlobKeys = await idbReq(blobStore.getAllKeys());
+  const blobKeys = allBlobKeys.filter((k) => k.startsWith(srcPrefix));
+  if (blobKeys.length) {
+    const blobTx = db.transaction(STORE_BLOBS, "readwrite");
+    const bs = blobTx.objectStore(STORE_BLOBS);
+    for (const key of blobKeys) {
+      const data = await idbReq(bs.get(key));
+      const newKey = dstPrefix + key.slice(srcPrefix.length);
+      bs.put(data, newKey);
+    }
+    await new Promise((resolve, reject) => {
+      blobTx.oncomplete = resolve;
+      blobTx.onerror = () => reject(blobTx.error);
+    });
+  }
+
+  // Copy nodes with new UUIDs and remapped parentIds
+  const srcNodes = await listProjectNodes(srcSanitized);
+  if (srcNodes.length) {
+    const idMap = {};
+    for (const node of srcNodes) {
+      idMap[node.id] = crypto.randomUUID();
+    }
+    const nodeTx = db.transaction(STORE_NODES, "readwrite");
+    const ns = nodeTx.objectStore(STORE_NODES);
+    for (const node of srcNodes) {
+      const newNode = {
+        ...node,
+        id: idMap[node.id],
+        projectName: dstName,
+        parentId: node.parentId ? (idMap[node.parentId] || null) : null,
+      };
+      ns.put(newNode);
+    }
+    await new Promise((resolve, reject) => {
+      nodeTx.oncomplete = resolve;
+      nodeTx.onerror = () => reject(nodeTx.error);
+    });
+  }
+
+  // Create new manifest
+  const displayName = newDisplayName.trim() || srcMeta.display_name || dstName;
+  const manifest = createProjectManifest(
+    {
+      name: dstName,
+      display_name: displayName,
+      description: srcMeta.description || "",
+      created_at: now,
+      updated_at: now,
+      has_thumbnail: srcMeta.has_thumbnail || false,
+    },
+    srcMeta.assets || [],
+    {
+      provenance: {
+        ...buildProvenanceLocal(),
+        forked_from: srcMeta.display_name || srcSanitized,
+      },
+      trust: { safe_mode: false, trusted_by: null, trusted_at: null },
+    }
+  );
+
+  const metaStore = await tx(STORE_PROJECTS, "readwrite");
+  await idbReq(metaStore.put(manifest, dstName));
+
+  // Also write manifest to files store
+  const manifestStore = await tx(STORE_FILES, "readwrite");
+  await idbReq(manifestStore.put(manifest, `${dstName}/${MANIFEST_FILENAME}`));
+
+  return manifest;
+}
+
 export async function newUntitledWorkspace() {
   const prefix = `${DEFAULT_PROJECT}/`;
   const db = await openDB();
