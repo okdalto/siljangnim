@@ -110,17 +110,19 @@ export default class TFDetectorManager extends BaseManager {
     if (!this.initialized || !this._model) return;
     try {
       const predictions = await this._model.detect(source, this.maxDetections, this.minScore);
+      const sw = source.videoWidth || source.width || source.naturalWidth || 1;
+      const sh = source.videoHeight || source.height || source.naturalHeight || 1;
       this.detections = predictions.map((p) => {
         const classIndex = COCO_CLASS_INDEX.get(p.class) ?? -1;
-        // bbox from coco-ssd: [x, y, width, height] in pixels
-        const sw = source.videoWidth || source.width || source.naturalWidth || 1;
-        const sh = source.videoHeight || source.height || source.naturalHeight || 1;
         if (sw === 0 || sh === 0) return null;
+        // bbox: raw pixel coords from coco-ssd [x, y, width, height]
+        // bboxNorm: normalized 0-1 coords for shader/texture use
         return {
           class: p.class,
           classIndex,
           score: p.score,
-          bbox: [p.bbox[0] / sw, p.bbox[1] / sh, p.bbox[2] / sw, p.bbox[3] / sh],
+          bbox: [p.bbox[0], p.bbox[1], p.bbox[2], p.bbox[3]],
+          bboxNorm: [p.bbox[0] / sw, p.bbox[1] / sh, p.bbox[2] / sw, p.bbox[3] / sh],
         };
       }).filter(Boolean);
       this.count = this.detections.length;
@@ -140,7 +142,7 @@ export default class TFDetectorManager extends BaseManager {
     const bboxData = new Float32Array(N * 4);
     for (let i = 0; i < Math.min(this.detections.length, N); i++) {
       const d = this.detections[i];
-      const [x, y, w, h] = d.bbox;
+      const [x, y, w, h] = d.bboxNorm;
       bboxData[i * 4] = x + w / 2; // centerX
       bboxData[i * 4 + 1] = y + h / 2; // centerY
       bboxData[i * 4 + 2] = w;
