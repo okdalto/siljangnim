@@ -995,6 +995,20 @@ export default class GLEngine {
       ctx.time = time;
       ctx.dt = dt;
       ctx.isOffline ??= false;
+
+      // Sync registered video elements to timeline time (real-time mode)
+      const videos = ctx._registeredVideos;
+      if (videos?.size) {
+        for (const [video, opts] of videos) {
+          const dur = video.duration;
+          if (!dur || isNaN(dur)) continue;
+          const target = opts.loop !== false ? (time % dur) : Math.min(time, dur);
+          // Only seek if drifted more than half a frame (~16ms)
+          if (Math.abs(video.currentTime - target) > 0.016) {
+            video.currentTime = target;
+          }
+        }
+      }
       ctx.mouse = [this._mouseSnapshot[0], this._mouseSnapshot[1], this._mouseSnapshot[2], this._mouseSnapshot[3]];
       ctx.mousePrev = [this._mousePrev[0], this._mousePrev[1], this._mousePrev[2], this._mousePrev[3]];
       ctx.mouseDown = this._mouseDownSnapshot;
