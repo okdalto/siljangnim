@@ -256,6 +256,44 @@ export async function deleteUpload(filename) {
   await idbReq(store.delete(key));
 }
 
+/**
+ * Get blob URLs for all uploaded files in the active project.
+ * @returns {Promise<Map<string, string>>} Map of filename → blob URL
+ */
+export async function getAllUploadBlobUrls() {
+  const result = new Map();
+  const store = await tx(STORE_BLOBS);
+  const allKeys = await idbReq(store.getAllKeys());
+  const uploadKeys = allKeys.filter((k) => k.includes("/uploads/"));
+  for (const key of uploadKeys) {
+    const blobStore = await tx(STORE_BLOBS);
+    const entry = await idbReq(blobStore.get(key));
+    if (entry?.data) {
+      const filename = key.split("/uploads/").pop();
+      const blob = new Blob([entry.data], { type: entry.mimeType || "application/octet-stream" });
+      result.set(filename, URL.createObjectURL(blob));
+    }
+  }
+  return result;
+}
+
+/**
+ * Get a single blob URL for an uploaded file.
+ * @param {string} filename - The upload filename
+ * @returns {Promise<string>} Blob URL
+ */
+export async function getUploadBlobUrl(filename) {
+  const store = await tx(STORE_BLOBS);
+  const allKeys = await idbReq(store.getAllKeys());
+  const matchKey = allKeys.find((k) => k.endsWith(`/uploads/${filename}`));
+  if (!matchKey) throw new Error(`Upload not found: ${filename}`);
+  const blobStore = await tx(STORE_BLOBS);
+  const entry = await idbReq(blobStore.get(matchKey));
+  if (!entry?.data) throw new Error(`Upload data missing: ${filename}`);
+  const blob = new Blob([entry.data], { type: entry.mimeType || "application/octet-stream" });
+  return URL.createObjectURL(blob);
+}
+
 export async function getUploadInfo(filename) {
   const store = await tx(STORE_BLOBS);
   const entry = await idbReq(store.get(blobKey(filename)));

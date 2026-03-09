@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -28,16 +28,15 @@ import useSettings from "./hooks/useSettings.js";
 import useUniformHistory from "./hooks/useUniformHistory.js";
 import useMessageDispatcher from "./hooks/useMessageDispatcher.js";
 import useNodeDataSync from "./hooks/useNodeDataSync.js";
+import useKeyboardShortcuts from "./hooks/useKeyboardShortcuts.js";
+import useTreeActions from "./hooks/useTreeActions.js";
 import useAIDebugger from "./hooks/useAIDebugger.js";
 import usePromptMode from "./hooks/usePromptMode.js";
 import FeedbackButton from "./components/FeedbackButton.jsx";
 import EngineContext from "./contexts/EngineContext.js";
 import SettingsContext from "./contexts/SettingsContext.js";
-import ChatNode from "./nodes/ChatNode.jsx";
-import CustomPanelNode from "./nodes/CustomPanelNode.jsx";
-import ViewportNode from "./nodes/ViewportNode.jsx";
-import DebugLogNode from "./nodes/DebugLogNode.jsx";
-import AssetBrowserNode from "./nodes/AssetBrowserNode.jsx";
+import SceneContext from "./contexts/SceneContext.js";
+import { nodeTypes, initialNodes } from "./config/nodeConfig.js";
 import useAssetNodes from "./hooks/useAssetNodes.js";
 import ApiKeyModal from "./components/ApiKeyModal.jsx";
 import MobileLayout from "./components/MobileLayout.jsx";
@@ -58,14 +57,6 @@ import { nextUndoSeq } from "./utils/undoSeq.js";
 
 const UNIFORM_HISTORY_LIMIT = 100;
 
-const nodeTypes = {
-  chat: ChatNode,
-  viewport: ViewportNode,
-  debugLog: DebugLogNode,
-  customPanel: CustomPanelNode,
-  assetBrowser: AssetBrowserNode,
-};
-
 const BROWSER_ONLY = import.meta.env.VITE_MODE === "browser";
 
 const WS_URL = import.meta.env.DEV
@@ -79,37 +70,6 @@ if (BROWSER_ONLY) {
   _agentEngine = new AgentEngine(_messageBus);
   _messageBus.setEngine(_agentEngine);
 }
-
-const initialNodes = [
-  {
-    id: "chat",
-    type: "chat",
-    position: { x: 50, y: 550 },
-    style: { width: 670, height: 380 },
-    data: { messages: [], onSend: () => { } },
-  },
-  {
-    id: "viewport",
-    type: "viewport",
-    position: { x: 50, y: 50 },
-    style: { width: 670, height: 480 },
-    data: { sceneJSON: null, engineRef: null, paused: false },
-  },
-  {
-    id: "debugLog",
-    type: "debugLog",
-    position: { x: 750, y: 50 },
-    style: { width: 320, height: 480 },
-    data: { logs: [] },
-  },
-  {
-    id: "assetBrowser",
-    type: "assetBrowser",
-    position: { x: 750, y: 550 },
-    style: { width: 320, height: 380 },
-    data: { assets: new Map(), onDelete: () => {}, onSelect: () => {}, onUpload: () => {} },
-  },
-];
 
 export default function App() {
   const { isMobile } = useMobile();
@@ -361,19 +321,18 @@ export default function App() {
   // AI Debugger (needs sceneJSONRef)
   const aiDebugger = useAIDebugger(sendRef, sceneJSONRef, chat.addLog);
 
-  const getSceneJSONRef = useRef(() => sceneJSONRef.current);
-  const getUiConfigRef = useRef(() => uiConfigRef.current);
-  const getWorkspaceStateRef = useRef(getWorkspaceState);
-  getWorkspaceStateRef.current = getWorkspaceState;
-  const getPanelsRef = useRef(() => panelsDataRef.current);
-  const getMessagesRef = useRef(() => messagesRef.current);
-  const getDebugLogsRef = useRef(() => chat.debugLogs);
-  const getActiveProjectNameRef = useRef(() => {
-    return project.activeProject ? storageApi.getActiveProjectName() : null;
+  const gettersRef = useRef({
+    getSceneJSON: () => sceneJSONRef.current,
+    getUiConfig: () => uiConfigRef.current,
+    getWorkspaceState,
+    getPanels: () => panelsDataRef.current,
+    getMessages: () => messagesRef.current,
+    getDebugLogs: () => chat.debugLogs,
+    getActiveProjectName: () => project.activeProject ? storageApi.getActiveProjectName() : null,
   });
-  getActiveProjectNameRef.current = () => {
-    return project.activeProject ? storageApi.getActiveProjectName() : null;
-  };
+  gettersRef.current.getWorkspaceState = getWorkspaceState;
+  gettersRef.current.getDebugLogs = () => chat.debugLogs;
+  gettersRef.current.getActiveProjectName = () => project.activeProject ? storageApi.getActiveProjectName() : null;
 
   // Version compare
   const apiKeyConfigRef = useRef(apiKey.savedConfig);
@@ -409,52 +368,6 @@ export default function App() {
     }
   }, [project.activeProject, tree.ensureRoot, tree.loadTree, getWorkspaceState, chat.debugLogs]);
 
-  // T key → toggle version tree sidebar
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.code !== "KeyT") return;
-      const tag = e.target.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable) return;
-      e.preventDefault();
-      tree.toggleSidebar();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [tree.toggleSidebar]);
-
-  // Spacebar toggle pause
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.code !== "Space") return;
-      const tag = e.target.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable) return;
-      e.preventDefault();
-      setPaused((p) => !p);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  // F key → fit view to selected nodes (or all)
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.code !== "KeyF") return;
-      const tag = e.target.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable) return;
-      e.preventDefault();
-      const rf = rfInstanceRef.current;
-      if (!rf) return;
-      const ids = selectedIdsRef.current;
-      rf.fitView({
-        nodes: ids.size > 0 ? [...ids].map((id) => ({ id })) : undefined,
-        duration: 300,
-        padding: 0.15,
-      });
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
   // --- Uniform change undo/redo (extracted hook) ---
   const {
     uniformHistoryRef, uniformCoalesceRef, uniformValuesRef,
@@ -464,49 +377,21 @@ export default function App() {
   const resetUniformHistoryRef = useRef(resetUniformHistory);
   resetUniformHistoryRef.current = resetUniformHistory;
 
-  // Undo/Redo shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
-      const tag = e.target.tagName;
-      const isTextEntry = tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable ||
-        (tag === "INPUT" && ["text", "number", "search", "url", "email", "password"].includes(e.target.type));
-      if (isTextEntry) return;
-      e.preventDefault();
-      if (kf.isEditorOpen.current) {
-        if (e.shiftKey) kf.redoKeyframes();
-        else kf.undoKeyframes();
-      } else if (e.shiftKey) {
-        // REDO: 3-way seq comparison
-        const uFuture = uniformHistoryRef.current.future;
-        const lFuture = layoutHistoryRef.current.future;
-        const pFuture = panels.panelHistoryRef.current.future;
-        const uSeq = uFuture.length > 0 ? uFuture[uFuture.length - 1].seq ?? 0 : -1;
-        const lSeq = lFuture.length > 0 ? lFuture[lFuture.length - 1].seq ?? 0 : -1;
-        const pSeq = pFuture.length > 0 ? pFuture[pFuture.length - 1].seq ?? 0 : -1;
-        const maxSeq = Math.max(uSeq, lSeq, pSeq);
-        if (maxSeq < 0) return;
-        if (pSeq === maxSeq) panels.redoPanelClose();
-        else if (uSeq >= lSeq) redoUniform();
-        else redo();
-      } else {
-        // UNDO: 3-way seq comparison
-        const uPast = uniformHistoryRef.current.past;
-        const lPast = layoutHistoryRef.current.past;
-        const pPast = panels.panelHistoryRef.current.past;
-        const uSeq = uPast.length > 0 ? uPast[uPast.length - 1].seq ?? 0 : -1;
-        const lSeq = lPast.length > 0 ? lPast[lPast.length - 1].seq ?? 0 : -1;
-        const pSeq = pPast.length > 0 ? pPast[pPast.length - 1].seq ?? 0 : -1;
-        const maxSeq = Math.max(uSeq, lSeq, pSeq);
-        if (maxSeq < 0) return;
-        if (pSeq === maxSeq) panels.undoPanelClose();
-        else if (uSeq >= lSeq) undoUniform();
-        else undo();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo, redo, kf.undoKeyframes, kf.redoKeyframes, kf.isEditorOpen, undoUniform, redoUniform, panels.undoPanelClose, panels.redoPanelClose]);
+  // Keyboard shortcuts (T, Space, F, Ctrl+Z, Cmd+S)
+  useKeyboardShortcuts({
+    setPaused,
+    toggleSidebar: tree.toggleSidebar,
+    rfInstanceRef,
+    selectedIdsRef,
+    undo,
+    redo,
+    undoUniform,
+    redoUniform,
+    uniformHistoryRef,
+    layoutHistoryRef,
+    kf,
+    panels,
+  });
 
   // Debounced send workspace state to backend
   const wsStateTimerRef = useRef(null);
@@ -557,9 +442,8 @@ export default function App() {
     autoSave.triggerAutoSave();
   };
 
-  // Buffer for thinking content from agent_status (fallback if agent_log misses it)
-  const thinkingBufferRef = useRef("");
-  const thinkingLogReceivedRef = useRef(false);
+  // Buffers for thinking content from agent_status (fallback if agent_log misses it)
+  const buffersRef = useRef({ thinkingBuffer: "", thinkingLogReceived: false });
 
   // Settings ref for message dispatcher (avoids stale closure in [] deps callback)
   const settingsRef = useRef(settings);
@@ -573,12 +457,10 @@ export default function App() {
     recorderFnsRef, pendingLayoutsRef, setNodes,
     resetUniformHistoryRef, initSettledRef,
     wsStateTimerRef, kfMountedRef, durationLoopMountedRef,
-    thinkingBufferRef, thinkingLogReceivedRef,
+    buffersRef,
     settingsRef,
     projectTreeRef,
-    getSceneJSONRef, getUiConfigRef, getWorkspaceStateRef,
-    getPanelsRef, getMessagesRef, getDebugLogsRef,
-    getActiveProjectNameRef,
+    gettersRef,
     setProjectManifest,
     overwriteModeRef,
     autoSave,
@@ -606,17 +488,6 @@ export default function App() {
   useEffect(() => {
     if (BROWSER_ONLY) send({ type: "request_state" });
   }, [send]);
-
-  // Cmd+S / Ctrl+S — prevent browser default (auto-save handles everything)
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-        e.preventDefault();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   const handleUniformChange = useCallback(
     (uniform, value) => {
@@ -651,97 +522,21 @@ export default function App() {
     [send, autoSave.triggerAutoSave]
   );
 
-  // Handle restoring scene from tree node (double-click)
-  const handleTreeNodeRestore = useCallback(async (nodeId) => {
-    const projName = storageApi.getActiveProjectName();
-    if (!projName) return;
-    try {
-      const state = await tree.restoreNode(nodeId, projName);
-      // Reuse the project_loaded message path
-      handleMessage({
-        type: "project_loaded",
-        meta: { name: projName, display_name: project.activeProject },
-        scene_json: state.scene_json,
-        ui_config: state.ui_config,
-        workspace_state: state.workspace_state,
-        panels: state.panels,
-        chat_history: state.chat_history,
-        debug_logs: state.debug_logs,
-      });
-    } catch (err) {
-      chat.addLog({ agent: "System", message: `Failed to restore node: ${err.message}`, level: "error" });
-    }
-  }, [tree.restoreNode, handleMessage, project.activeProject, chat.addLog]);
-
-  // Handle "Continue from here" in tree
-  const handleContinueFromNode = useCallback(async (nodeId) => {
-    await handleTreeNodeRestore(nodeId);
-  }, [handleTreeNodeRestore]);
-
-  // Branch from chat input — set source node for next prompt
-  const handleBranchFromChat = useCallback((nodeId) => {
-    tree.setActiveNodeId(nodeId);
-    // Open sidebar to show the branch context
-    tree.setSidebarOpen(true);
-  }, [tree.setActiveNodeId, tree.setSidebarOpen]);
-
-  // Switch to a branch tip node from chat
-  const handleSwitchToNodeFromChat = useCallback(async (nodeId) => {
-    await handleTreeNodeRestore(nodeId);
-  }, [handleTreeNodeRestore]);
-
-  // Handle branch from tree node
-  const handleTreeBranch = useCallback(async (nodeId, title) => {
-    const projName = storageApi.getActiveProjectName();
-    if (!projName) return;
-    await tree.branchFromNode(nodeId, projName, title);
-  }, [tree.branchFromNode]);
-
-  // Handle rename in tree
-  const handleTreeRename = useCallback(async (nodeId, newTitle) => {
-    const projName = storageApi.getActiveProjectName();
-    if (!projName) return;
-    await tree.renameNode(nodeId, newTitle, projName);
-  }, [tree.renameNode]);
-
-  // Handle toggle favorite
-  const handleTreeToggleFavorite = useCallback(async (nodeId) => {
-    const projName = storageApi.getActiveProjectName();
-    if (!projName) return;
-    await tree.toggleFavorite(nodeId, projName);
-  }, [tree.toggleFavorite]);
-
-  // Handle pin checkpoint
-  const handleTreePinCheckpoint = useCallback(async (nodeId) => {
-    const projName = storageApi.getActiveProjectName();
-    if (!projName) return;
-    await tree.pinCheckpoint(nodeId, projName);
-  }, [tree.pinCheckpoint]);
-
-  // Handle duplicate node (creates a checkpoint copy as a sibling)
-  const handleTreeDuplicate = useCallback(async (nodeId) => {
-    const projName = storageApi.getActiveProjectName();
-    if (!projName) return;
-    await tree.pinCheckpoint(nodeId, projName);
-  }, [tree.pinCheckpoint]);
-
-  // Handle compare
-  const handleStartCompare = useCallback((nodeId) => {
-    compare.startCompare(nodeId);
-  }, [compare.startCompare]);
-
-  const handleSelectCompareTarget = useCallback((nodeId) => {
-    const projName = storageApi.getActiveProjectName();
-    if (!projName) return;
-    compare.selectCompareTarget(nodeId, projName);
-  }, [compare.selectCompareTarget]);
-
-  // Handle delete node
-  const handleTreeDeleteNode = useCallback(async (nodeId) => {
-    const projName = storageApi.getActiveProjectName();
-    if (!projName) return;
-    await tree.deleteNodeTree(nodeId, projName);
-  }, [tree.deleteNodeTree]);
+  // Tree-related callbacks (extracted hook)
+  const {
+    handleTreeNodeRestore,
+    handleContinueFromNode,
+    handleBranchFromChat,
+    handleSwitchToNodeFromChat,
+    handleTreeBranch,
+    handleTreeRename,
+    handleTreeToggleFavorite,
+    handleTreePinCheckpoint,
+    handleTreeDuplicate,
+    handleStartCompare,
+    handleSelectCompareTarget,
+    handleTreeDeleteNode,
+  } = useTreeActions({ tree, compare, handleMessage, project, chat });
 
   const handleNewProject = useCallback(() => {
     // No unsaved-changes dialog — auto-save ensures everything is persisted
@@ -972,9 +767,14 @@ export default function App() {
     nodeUiStateRef,
   });
 
+  const sceneCtxValue = useMemo(() => ({
+    sceneJSON, uiConfig, paused, duration, loop, backendTarget, safeModeActive,
+  }), [sceneJSON, uiConfig, paused, duration, loop, backendTarget, safeModeActive]);
+
   return (
     <SettingsContext.Provider value={settingsCtx}>
     <EngineContext.Provider value={engineRef}>
+    <SceneContext.Provider value={sceneCtxValue}>
       <div className={`w-screen h-screen ${isMobile ? "pt-10 pb-20" : "pt-10 pb-10"}`}>
         <Toolbar
           onNewProject={handleNewProject}
@@ -1185,6 +985,7 @@ export default function App() {
         isAuthenticated={github.isAuthenticated}
         token={github.token}
       />
+    </SceneContext.Provider>
     </EngineContext.Provider>
     </SettingsContext.Provider>
   );

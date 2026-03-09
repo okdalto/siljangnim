@@ -291,6 +291,10 @@ async function _runAgentLoop({
   let overloadRetries = 0;
   const recentToolSigs = [];
 
+  // Incremental byte tracking for token estimation (avoids full JSON.stringify each turn)
+  let runningBytes = new Blob([JSON.stringify(messages)]).size;
+  let lastMsgCount = messages.length;
+
   try {
     while (turns < MAX_TURNS) {
       turns++;
@@ -298,21 +302,42 @@ async function _runAgentLoop({
       // Check cancellation
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
+      // Incrementally update byte estimate for newly pushed messages
+      if (messages.length > lastMsgCount) {
+        for (let i = lastMsgCount; i < messages.length; i++) {
+          runningBytes += new Blob([JSON.stringify(messages[i])]).size;
+        }
+        lastMsgCount = messages.length;
+      }
+
+      // Safety: full recomputation every 5 turns to prevent drift
+      if (turns % 5 === 0) {
+        runningBytes = new Blob([JSON.stringify(messages)]).size;
+        lastMsgCount = messages.length;
+      }
+
       // Pre-flight compaction (estimate ~3 bytes/token for mixed content including multibyte)
-      const estTokens = new Blob([JSON.stringify(messages)]).size / 3;
+      const estTokens = runningBytes / 3;
       const compactThreshold = 150000;
       if (estTokens > compactThreshold) {
         log("System", `Estimated ~${Math.round(estTokens)} tokens — compacting...`, "info");
         onStatus?.("thinking", "Compacting conversation...");
         compactMessages(messages);
+        // Recompute after compaction
+        runningBytes = new Blob([JSON.stringify(messages)]).size;
+        lastMsgCount = messages.length;
       }
 
       // Sanitize: remove empty messages
       const cleaned = messages.filter(
         (m) => m.content != null && m.content !== "" && !(Array.isArray(m.content) && m.content.length === 0)
       );
-      messages.length = 0;
-      messages.push(...cleaned);
+      if (cleaned.length !== messages.length) {
+        messages.length = 0;
+        messages.push(...cleaned);
+        runningBytes = new Blob([JSON.stringify(messages)]).size;
+        lastMsgCount = messages.length;
+      }
 
       // --- Call Anthropic ---
       let contentBlocks, stopReason;

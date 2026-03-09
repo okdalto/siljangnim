@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 /**
  * Find a non-overlapping position for a new panel among existing nodes.
@@ -107,6 +107,22 @@ function findEmptyPosition(existingNodes, width, height, rfInstance) {
   return { x: vpRight + _PLACEMENT_GAP, y: vpTop };
 }
 
+/**
+ * Update data for a single node by ID.
+ * @param {Function} setNodes - React Flow setNodes
+ * @param {string} nodeId - Target node ID
+ * @param {Function} dataMapper - (prevData) => newData partial
+ */
+function updateNodeData(setNodes, nodeId, dataMapper) {
+  setNodes((nds) =>
+    nds.map((node) =>
+      node.id === nodeId
+        ? { ...node, data: { ...node.data, ...dataMapper(node.data) } }
+        : node
+    )
+  );
+}
+
 export default function useNodeDataSync({
   setNodes, chat, sceneJSON, paused, uiConfig,
   handleUniformChange, project, handleDeleteWorkspaceFile,
@@ -159,36 +175,26 @@ export default function useNodeDataSync({
 
   // --- Chat node sync ---
   useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) =>
-        node.id === "chat"
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                messages: chat.messages,
-                onSend: chat.handleSend,
-                isProcessing: chat.isProcessing,
-                agentStatus: chat.agentStatus,
-                onNewChat: chat.handleNewChat,
-                onCancel: chat.handleCancel,
-                pendingQuestion: chat.pendingQuestion,
-                onAnswer: chat.handleAnswer,
-                activeNodeTitle: activeNodeTitle || null,
-                promptMode: promptMode || "hybrid",
-                treeNodes: treeNodes || [],
-                activeTreeNodeId: activeTreeNodeId || null,
-                onBranchFromNode: (...args) => onBranchFromNodeRef.current?.(...args),
-                onSwitchToNode: (...args) => onSwitchToNodeRef.current?.(...args),
-                overwriteMode: overwriteMode || false,
-                onToggleOverwrite,
-                initialCollapsed: nodeUiStateRef?.current?.collapsed?.chat,
-                onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.chat = v; },
-              },
-            }
-          : node
-      )
-    );
+    updateNodeData(setNodes, "chat", () => ({
+      messages: chat.messages,
+      onSend: chat.handleSend,
+      isProcessing: chat.isProcessing,
+      agentStatus: chat.agentStatus,
+      onNewChat: chat.handleNewChat,
+      onCancel: chat.handleCancel,
+      pendingQuestion: chat.pendingQuestion,
+      onAnswer: chat.handleAnswer,
+      activeNodeTitle: activeNodeTitle || null,
+      promptMode: promptMode || "hybrid",
+      treeNodes: treeNodes || [],
+      activeTreeNodeId: activeTreeNodeId || null,
+      onBranchFromNode: (...args) => onBranchFromNodeRef.current?.(...args),
+      onSwitchToNode: (...args) => onSwitchToNodeRef.current?.(...args),
+      overwriteMode: overwriteMode || false,
+      onToggleOverwrite,
+      initialCollapsed: nodeUiStateRef?.current?.collapsed?.chat,
+      onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.chat = v; },
+    }));
   }, [
     setNodes, chat.messages, chat.handleSend, chat.isProcessing, chat.agentStatus,
     chat.handleNewChat, chat.handleCancel, chat.pendingQuestion, chat.handleAnswer, activeNodeTitle, promptMode,
@@ -199,39 +205,27 @@ export default function useNodeDataSync({
   // When safe_mode is active, pass null sceneJSON to block script execution
   const VIEWPORT_HEADER_HEIGHT = 36; // px — header bar height
   useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) =>
-        node.id === "viewport"
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                sceneJSON: safeModeActive ? null : sceneJSON,
-                engineRef,
-                paused,
-                onError: handleShaderErrorRef.current,
-                safeModeActive,
-                initialCollapsed: nodeUiStateRef?.current?.collapsed?.viewport,
-                onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.viewport = v; },
-                initialFixedResolution: nodeUiStateRef?.current?.viewportFixedResolution,
-                onFixedResolutionChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.viewportFixedResolution = v; },
-                onResizeNode: (w, h) => {
-                  // Resize viewport node to match the chosen resolution aspect ratio
-                  // Keep current width, adjust height proportionally
-                  setNodes((prev) =>
-                    prev.map((n) => {
-                      if (n.id !== "viewport") return n;
-                      const currentWidth = parseFloat(n.style?.width) || 670;
-                      const aspectHeight = Math.round(currentWidth * (h / w)) + VIEWPORT_HEADER_HEIGHT;
-                      return { ...n, style: { ...n.style, height: aspectHeight } };
-                    })
-                  );
-                },
-              },
-            }
-          : node
-      )
-    );
+    updateNodeData(setNodes, "viewport", () => ({
+      sceneJSON: safeModeActive ? null : sceneJSON,
+      engineRef,
+      paused,
+      onError: handleShaderErrorRef.current,
+      safeModeActive,
+      initialCollapsed: nodeUiStateRef?.current?.collapsed?.viewport,
+      onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.viewport = v; },
+      initialFixedResolution: nodeUiStateRef?.current?.viewportFixedResolution,
+      onFixedResolutionChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.viewportFixedResolution = v; },
+      onResizeNode: (w, h) => {
+        setNodes((prev) =>
+          prev.map((n) => {
+            if (n.id !== "viewport") return n;
+            const currentWidth = parseFloat(n.style?.width) || 670;
+            const aspectHeight = Math.round(currentWidth * (h / w)) + VIEWPORT_HEADER_HEIGHT;
+            return { ...n, style: { ...n.style, height: aspectHeight } };
+          })
+        );
+      },
+    }));
   }, [setNodes, sceneJSON, paused, safeModeActive]);
 
   // Refs for debugger callbacks
@@ -242,29 +236,19 @@ export default function useNodeDataSync({
 
   // --- Debug log node sync ---
   useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) =>
-        node.id === "debugLog"
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                logs: chat.debugLogs,
-                compileLogs: dbg?.compileLogs || [],
-                validationLogs: dbg?.validationLogs || [],
-                diagnosis: dbg?.diagnosis || null,
-                patches: dbg?.patches || [],
-                simpleExplanation: dbg?.simpleExplanation || null,
-                backendName: backendTarget === "webgpu" ? "WebGPU" : (backendTarget === "webgl2" ? "WebGL2" : (engineRef?.current?.backendName || "WebGL2")),
-                onApplyPatch: (patch) => applyPatchRef.current?.(patch),
-                onRunDiagnosis: () => runDiagnosisRef.current?.(),
-                initialCollapsed: nodeUiStateRef?.current?.collapsed?.debugLog,
-                onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.debugLog = v; },
-              },
-            }
-          : node
-      )
-    );
+    updateNodeData(setNodes, "debugLog", () => ({
+      logs: chat.debugLogs,
+      compileLogs: dbg?.compileLogs || [],
+      validationLogs: dbg?.validationLogs || [],
+      diagnosis: dbg?.diagnosis || null,
+      patches: dbg?.patches || [],
+      simpleExplanation: dbg?.simpleExplanation || null,
+      backendName: backendTarget === "webgpu" ? "WebGPU" : (backendTarget === "webgl2" ? "WebGL2" : (engineRef?.current?.backendName || "WebGL2")),
+      onApplyPatch: (patch) => applyPatchRef.current?.(patch),
+      onRunDiagnosis: () => runDiagnosisRef.current?.(),
+      initialCollapsed: nodeUiStateRef?.current?.collapsed?.debugLog,
+      onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.debugLog = v; },
+    }));
   }, [setNodes, chat.debugLogs, dbg?.compileLogs, dbg?.validationLogs, dbg?.diagnosis, dbg?.patches, dbg?.simpleExplanation, backendTarget]);
 
   // --- Custom panel nodes sync (data + add/remove) ---
@@ -365,23 +349,30 @@ export default function useNodeDataSync({
     duration, loop,
   ]);
 
-  // --- Re-merge control defaults when sceneJSON uniforms change ---
-  // The main panel sync effect doesn't depend on sceneJSON, so this lightweight
-  // effect ensures controls get updated `ctrl.default` values when the agent
-  // modifies uniform values in scene.json.
+  // Pre-compute merged controls for all panels (replaces separate re-merge effect)
+  const mergedControlsMap = useMemo(() => {
+    const map = new Map();
+    for (const [panelId, panel] of panels.customPanels) {
+      if (panel.controls) {
+        map.set(panelId, mergeControlDefaultsRef.current(panel.controls));
+      }
+    }
+    return map;
+  }, [panels.customPanels, sceneJSON?.uniforms]);
+
+  // Apply merged controls when they change
   useEffect(() => {
-    if (!sceneJSON?.uniforms) return;
+    if (mergedControlsMap.size === 0) return;
     setNodes((nds) =>
       nds.map((node) => {
-        if (node.type !== "customPanel" || !node.data?.controls) return node;
+        if (node.type !== "customPanel") return node;
         const panelId = node.id.replace("panel_", "");
-        const panel = panels.customPanels.get(panelId);
-        if (!panel?.controls) return node;
-        const merged = mergeControlDefaultsRef.current(panel.controls);
+        const merged = mergedControlsMap.get(panelId);
+        if (!merged) return node;
         return { ...node, data: { ...node.data, controls: merged } };
       })
     );
-  }, [setNodes, sceneJSON, panels.customPanels]);
+  }, [setNodes, mergedControlsMap]);
 
   // --- Asset browser node sync ---
   const assetSelectRef = useRef(assetNodes?.selectAsset);
@@ -393,21 +384,11 @@ export default function useNodeDataSync({
 
   useEffect(() => {
     if (!assetNodes) return;
-    setNodes((nds) =>
-      nds.map((node) =>
-        node.id === "assetBrowser"
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                assets: assetNodes.assets,
-                onDelete: (id) => assetDeleteRef.current?.(id),
-                onSelect: (id) => assetSelectRef.current?.(id),
-                onUpload: (files) => onAssetUploadRef.current?.(files),
-              },
-            }
-          : node
-      )
-    );
+    updateNodeData(setNodes, "assetBrowser", () => ({
+      assets: assetNodes.assets,
+      onDelete: (id) => assetDeleteRef.current?.(id),
+      onSelect: (id) => assetSelectRef.current?.(id),
+      onUpload: (files) => onAssetUploadRef.current?.(files),
+    }));
   }, [setNodes, assetNodes?.assets]);
 }
