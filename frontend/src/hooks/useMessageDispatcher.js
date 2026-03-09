@@ -289,6 +289,13 @@ export default function useMessageDispatcher(params) {
         autoSave?.triggerAutoSave?.();
         break;
 
+      case "set_timeline":
+        if (typeof msg.duration === "number") setDuration(msg.duration);
+        if (typeof msg.loop === "boolean") setLoop(msg.loop);
+        dirtyRef.current = true;
+        autoSave?.triggerAutoSave?.();
+        break;
+
       case "api_key_required":
         apiKey.setRequired();
         break;

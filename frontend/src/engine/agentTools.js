@@ -227,6 +227,25 @@ const TOOLS = [
     },
   },
   {
+    name: "set_timeline",
+    description:
+      "Set timeline properties: duration (seconds) and/or loop (true/false). " +
+      "Use this to match timeline duration to video length or adjust playback behavior.",
+    input_schema: {
+      type: "object",
+      properties: {
+        duration: {
+          type: "number",
+          description: "Timeline duration in seconds.",
+        },
+        loop: {
+          type: "boolean",
+          description: "Whether the timeline loops.",
+        },
+      },
+    },
+  },
+  {
     name: "delete_asset",
     description:
       "Delete an uploaded asset from the workspace by filename. " +
