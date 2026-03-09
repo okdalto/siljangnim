@@ -6,7 +6,7 @@
  * Loop detection (3 warn, 5 break).
  */
 
-import { callAnthropic } from "./anthropicClient.js";
+import { callLLM } from "./llmClient.js";
 import { classifyApiError } from "./agentErrorHandler.js";
 import { detectToolLoop } from "./agentLoopDetector.js";
 
@@ -245,6 +245,8 @@ export async function runAgent({
   assetContext = [],
   backendTarget = "auto",
   modelOverride,
+  provider = "anthropic",
+  providerConfig = {},
 }) {
   log("System", `Starting agent for: "${userPrompt}"`, "info");
   if (files?.length) {
@@ -276,6 +278,8 @@ export async function runAgent({
     signal,
     injectedMessages,
     modelOverride,
+    provider,
+    providerConfig,
   });
 }
 
@@ -295,10 +299,13 @@ async function _runAgentLoop({
   signal,
   injectedMessages = [],
   modelOverride,
+  provider = "anthropic",
+  providerConfig = {},
 }) {
-  const modelName = modelOverride || MODEL_COMPLEX;
-  const useThinking = modelName.includes("opus") || modelName.includes("sonnet");
-  const maxTokens = useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX;
+  const modelName = modelOverride || (providerConfig.model || MODEL_COMPLEX);
+  const isAnthropic = provider === "anthropic";
+  const useThinking = isAnthropic && (modelName.includes("opus") || modelName.includes("sonnet"));
+  const maxTokens = providerConfig.max_tokens || (useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX);
 
   log("System", `Model: ${modelName}`, "info");
 
@@ -356,12 +363,14 @@ async function _runAgentLoop({
         lastMsgCount = messages.length;
       }
 
-      // --- Call Anthropic ---
+      // --- Call LLM ---
       let contentBlocks, stopReason;
       let thinkingBuffer = "";
       try {
-        const result = await callAnthropic({
+        const result = await callLLM({
+          provider,
           apiKey,
+          baseUrl: providerConfig.base_url,
           model: modelName,
           maxTokens,
           system: systemPrompt,
@@ -623,20 +632,25 @@ async function _runAgentLoop({
  *
  * @returns {Object|null} Parsed plan, or null if planning fails
  */
-async function runPlanner({ apiKey, userPrompt, conversation, currentState, log, onStatus, signal }) {
+async function runPlanner({ apiKey, userPrompt, conversation, currentState, log, onStatus, signal, provider = "anthropic", providerConfig = {} }) {
   onStatus?.("thinking", "Planning execution...");
   log("System", "Running planner for execution context rebuild", "info");
 
   const plannerMessages = buildPlannerMessages(userPrompt, conversation, currentState);
 
   try {
-    const result = await callAnthropic({
+    const { getSmallModel } = await import("./llmClient.js");
+    const plannerModel = provider === "anthropic" ? PLANNER_MODEL : (getSmallModel(provider) || providerConfig.model || PLANNER_MODEL);
+
+    const result = await callLLM({
+      provider,
       apiKey,
-      model: PLANNER_MODEL,
+      baseUrl: providerConfig.base_url,
+      model: plannerModel,
       maxTokens: PLANNER_MAX_TOKENS,
       system: PLANNER_SYSTEM,
       messages: plannerMessages,
-      tools: [], // no tools for planner
+      tools: [],
       signal,
     });
 
@@ -685,6 +699,8 @@ export async function runWithPlan({
   assetContext = [],
   backendTarget = "auto",
   modelOverride,
+  provider = "anthropic",
+  providerConfig = {},
 }) {
   // Check if planning is warranted
   if (!shouldPlan(messages.length, userPrompt)) {
@@ -692,13 +708,14 @@ export async function runWithPlan({
       apiKey, userPrompt, log, broadcast, onText, onStatus,
       files, messages, errorCollector, userAnswerPromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
+      provider, providerConfig,
     });
   }
 
   // --- Phase 1: Plan ---
   const plan = await runPlanner({
     apiKey, userPrompt, conversation: messages, currentState,
-    log, onStatus, signal,
+    log, onStatus, signal, provider, providerConfig,
   });
 
   if (!plan) {
@@ -707,6 +724,7 @@ export async function runWithPlan({
       apiKey, userPrompt, log, broadcast, onText, onStatus,
       files, messages, errorCollector, userAnswerPromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
+      provider, providerConfig,
     });
   }
 
@@ -745,6 +763,8 @@ export async function runWithPlan({
     signal,
     injectedMessages,
     modelOverride,
+    provider,
+    providerConfig,
   });
 
   // Sync final assistant response back to the original conversation

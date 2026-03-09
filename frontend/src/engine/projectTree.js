@@ -478,6 +478,10 @@ async function generateAITitle(node, chatHistory) {
     const apiKey = sessionStorage.getItem("siljangnim:apiKey") || "";
     if (!apiKey) return;
 
+    const provider = sessionStorage.getItem("siljangnim:provider") || "anthropic";
+    let providerConfig = {};
+    try { providerConfig = JSON.parse(sessionStorage.getItem("siljangnim:providerConfig") || "{}"); } catch { /* ignore */ }
+
     // Extract the last user prompt and assistant response
     let userPrompt = null;
     let assistantResponse = null;
@@ -493,10 +497,13 @@ async function generateAITitle(node, chatHistory) {
 
     if (!userPrompt && !assistantResponse) return;
 
-    const { callAnthropic } = await import("./anthropicClient.js");
-    const result = await callAnthropic({
+    const { callLLM, getSmallModel } = await import("./llmClient.js");
+    const model = getSmallModel(provider) || providerConfig.model || "claude-haiku-4-5-20251001";
+    const result = await callLLM({
+      provider,
       apiKey,
-      model: "claude-haiku-4-5-20251001",
+      baseUrl: providerConfig.base_url,
+      model,
       maxTokens: 40,
       system: "Generate a very short title (under 40 chars, no quotes) summarizing what was done in this creative coding interaction. Write in the same language as the user prompt. Be specific about the visual/technical change, not generic.",
       messages: [{ role: "user", content: `User asked: ${userPrompt || "(no prompt)"}\nAssistant did: ${assistantResponse || "(no response)"}` }],
@@ -523,6 +530,10 @@ export async function generateProjectName(chatHistory) {
     const apiKey = sessionStorage.getItem("siljangnim:apiKey") || "";
     if (!apiKey) return null;
 
+    const provider = sessionStorage.getItem("siljangnim:provider") || "anthropic";
+    let providerConfig = {};
+    try { providerConfig = JSON.parse(sessionStorage.getItem("siljangnim:providerConfig") || "{}"); } catch { /* ignore */ }
+
     let userPrompt = null;
     let assistantResponse = null;
     for (let i = chatHistory.length - 1; i >= 0; i--) {
@@ -537,10 +548,13 @@ export async function generateProjectName(chatHistory) {
 
     if (!userPrompt && !assistantResponse) return null;
 
-    const { callAnthropic } = await import("./anthropicClient.js");
-    const result = await callAnthropic({
+    const { callLLM, getSmallModel } = await import("./llmClient.js");
+    const model = getSmallModel(provider) || providerConfig.model || "claude-haiku-4-5-20251001";
+    const result = await callLLM({
+      provider,
       apiKey,
-      model: "claude-haiku-4-5-20251001",
+      baseUrl: providerConfig.base_url,
+      model,
       maxTokens: 30,
       system: "You are a project naming tool. Output ONLY a short project name (under 30 chars). No quotes, no explanation, no apologies, no markdown. Just the name. Write in the same language as the user.",
       messages: [{ role: "user", content: `Name this project based on the conversation:\nUser asked: ${userPrompt || "(no prompt)"}\nAssistant did: ${assistantResponse || "(no response)"}` }],

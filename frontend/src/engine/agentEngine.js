@@ -7,7 +7,7 @@
 
 import * as storage from "./storage.js";
 import { DEFAULT_SCENE_JSON, DEFAULT_UI_CONFIG } from "./storage.js";
-import { validateApiKey } from "./anthropicClient.js";
+import { validateProvider } from "./llmClient.js";
 import { runAgent, runWithPlan } from "./agentExecutor.js";
 import { classifyError } from "./errorClassifier.js";
 import { base64ToUint8Array } from "../utils/base64Utils.js";
@@ -22,6 +22,10 @@ export default class AgentEngine {
 
     // State (replaces WsContext)
     this.apiKey = sessionStorage.getItem("siljangnim:apiKey") || null;
+    this.provider = sessionStorage.getItem("siljangnim:provider") || "anthropic";
+    try {
+      this.providerConfig = JSON.parse(sessionStorage.getItem("siljangnim:providerConfig") || "{}");
+    } catch { this.providerConfig = {}; }
     this.chatHistory = [];
     this.agentBusy = false;
     this.abortController = null;
@@ -210,6 +214,8 @@ async function triggerAutoFix(errorMessage, engine) {
       userAnswerPromise: () => engine.userAnswerPromise(),
       signal: abortController.signal,
       backendTarget: engine._backendTarget,
+      provider: engine.provider,
+      providerConfig: engine.providerConfig,
     });
     engine.broadcast({ type: "chat_done" });
   } catch (err) {
@@ -233,19 +239,44 @@ async function triggerAutoFix(errorMessage, engine) {
 const HANDLERS = {
   async set_api_key(msg) {
     const key = (msg.key || "").trim();
-    if (!key) {
+    const provider = msg.provider || "anthropic";
+
+    // Custom provider can have empty key
+    if (!key && provider !== "custom") {
       this.broadcast({ type: "api_key_invalid", error: "No API key provided" });
       return;
     }
 
-    const { valid, error } = await validateApiKey(key);
+    // Build config object from msg fields
+    const validationConfig = {};
+    if (msg.endpoint) validationConfig.endpoint = msg.endpoint;
+    if (msg.base_url) validationConfig.base_url = msg.base_url;
+    if (msg.model) validationConfig.model = msg.model;
+    if (msg.max_tokens) validationConfig.max_tokens = msg.max_tokens;
+    if (msg.context_window) validationConfig.context_window = msg.context_window;
+
+    const { valid, error } = await validateProvider(provider, key, validationConfig);
     if (valid) {
       this.apiKey = key;
+      this.provider = provider;
+
+      const providerConfig = { ...validationConfig };
+
+      // For GLM, compute base_url from endpoint
+      if (provider === "glm" && msg.endpoint) {
+        providerConfig.base_url = `https://${msg.endpoint}/api/paas/v4`;
+      }
+
+      this.providerConfig = providerConfig;
+
       sessionStorage.setItem("siljangnim:apiKey", key);
+      sessionStorage.setItem("siljangnim:provider", provider);
+      sessionStorage.setItem("siljangnim:providerConfig", JSON.stringify(providerConfig));
+
       this.broadcast({
         type: "api_key_valid",
-        provider: "anthropic",
-        config: { provider: "anthropic" },
+        provider,
+        config: { provider, ...providerConfig },
       });
     } else {
       this.broadcast({ type: "api_key_invalid", error });
@@ -358,6 +389,8 @@ const HANDLERS = {
           assetContext: this._getAssetContext?.() || [],
           backendTarget: this._backendTarget,
           modelOverride: this._selectedModel,
+          provider: this.provider,
+          providerConfig: this.providerConfig,
         });
         this._lastPromptContext = null;
         this.broadcast({ type: "chat_done" });
@@ -663,9 +696,15 @@ const HANDLERS = {
     const panels = await storage.ensureDefaultPanels(uiConfig);
     const projects = await storage.listProjects();
 
-    // Check for saved API key
+    // Check for saved API key and provider
     const savedKey = sessionStorage.getItem("siljangnim:apiKey");
     if (savedKey) this.apiKey = savedKey;
+    const savedProvider = sessionStorage.getItem("siljangnim:provider");
+    if (savedProvider) this.provider = savedProvider;
+    try {
+      const savedConfig = sessionStorage.getItem("siljangnim:providerConfig");
+      if (savedConfig) this.providerConfig = JSON.parse(savedConfig);
+    } catch { /* ignore */ }
 
     // Restore active project metadata, chat history, and debug logs
     let activeProject = null;
@@ -701,7 +740,7 @@ const HANDLERS = {
       projects,
       workspace_state: wsState,
       panels,
-      api_config: savedKey ? { provider: "anthropic" } : null,
+      api_config: savedKey ? { provider: this.provider, ...this.providerConfig } : null,
       active_project: activeProject || undefined,
       chat_history: chatHistory.length > 0 ? chatHistory : undefined,
       debug_logs: debugLogs.length > 0 ? debugLogs : undefined,
