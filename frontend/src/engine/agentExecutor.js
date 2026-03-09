@@ -8,6 +8,13 @@
 
 import { callAnthropic } from "./anthropicClient.js";
 
+/** Detect platform type for prompt section filtering. */
+function detectPlatformType() {
+  if (typeof navigator === "undefined") return "server";
+  const ua = navigator.userAgent;
+  return /iPhone|iPad|iPod|Android/i.test(ua) ? "web-mobile" : "web-desktop";
+}
+
 /** Build a markdown section describing the client environment. */
 function getEnvironmentSection() {
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
@@ -157,6 +164,53 @@ function buildMultimodalContent(userPrompt, files) {
  * @param {Array} [params.injectedMessages] - Queue of injected user messages
  * @returns {Promise<{chatText: string}>}
  */
+
+/**
+ * Build an augmented system prompt by injecting backend target, technique hints,
+ * environment info, and asset context into a base system prompt.
+ */
+async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarget, assetContext = [], systemPromptAddition = "" } = {}) {
+  let prompt = basePrompt;
+
+  if (systemPromptAddition) {
+    prompt += "\n\n" + systemPromptAddition;
+  }
+
+  // Inject backend target if available
+  if (backendTarget && backendTarget !== "auto") {
+    prompt += `\n\n## ACTIVE BACKEND TARGET\nThe current project uses **${backendTarget}** backend. Generate ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} shaders accordingly. Follow the ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} rules strictly.`;
+  }
+
+  // Inject matching technique hints
+  if (userPrompt) {
+    try {
+      const { findTechniques } = await import("./techniqueKnowledgeBase.js");
+      const matches = findTechniques(userPrompt);
+      if (matches.length > 0) {
+        const top3 = matches.slice(0, 3);
+        const hints = top3.map(t => `- **${t.name}** (${t.category}): ${t.description?.slice(0, 100) || t.summary?.slice(0, 100) || ""}`).join("\n");
+        prompt += `\n\n## SUGGESTED TECHNIQUES\nBased on the user prompt, these techniques from the knowledge base may be relevant:\n${hints}\nConsider using their patterns as a starting point if applicable.`;
+      }
+    } catch { /* technique matching is non-critical */ }
+  }
+
+  // Inject environment info
+  prompt += getEnvironmentSection();
+
+  // Inject asset context if available
+  if (assetContext.length > 0) {
+    const assetLines = assetContext.map((a) => {
+      let line = `- "${a.semanticName}" (${a.filename}, ${a.category})`;
+      if (a.aiSummary) line += `: ${a.aiSummary}`;
+      if (a.processingStatus !== "ready") line += ` [${a.processingStatus}]`;
+      return line;
+    });
+    prompt += `\n\n## WORKSPACE ASSETS\nThe following assets are loaded in the workspace:\n${assetLines.join("\n")}\nUse \`ctx.uploads["filename"]\` to reference them in scripts.`;
+  }
+
+  return prompt;
+}
+
 export async function runAgent({
   apiKey,
   userPrompt,
@@ -180,42 +234,10 @@ export async function runAgent({
     log("System", `Files attached: ${files.map((f) => f.name).join(", ")}`, "info");
   }
 
-  let systemPrompt = buildSystemPrompt(userPrompt, !!files?.length);
-  if (systemPromptAddition) {
-    systemPrompt += "\n\n" + systemPromptAddition;
-  }
-
-  // Inject backend target if available
-  if (backendTarget && backendTarget !== "auto") {
-    systemPrompt += `\n\n## ACTIVE BACKEND TARGET\nThe current project uses **${backendTarget}** backend. Generate ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} shaders accordingly. Follow the ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} rules strictly.`;
-  }
-
-  // Inject matching technique hints
-  if (userPrompt) {
-    try {
-      const { findTechniques } = await import("./techniqueKnowledgeBase.js");
-      const matches = findTechniques(userPrompt);
-      if (matches.length > 0) {
-        const top3 = matches.slice(0, 3);
-        const hints = top3.map(t => `- **${t.name}** (${t.category}): ${t.description?.slice(0, 100) || t.summary?.slice(0, 100) || ""}`).join("\n");
-        systemPrompt += `\n\n## SUGGESTED TECHNIQUES\nBased on the user prompt, these techniques from the knowledge base may be relevant:\n${hints}\nConsider using their patterns as a starting point if applicable.`;
-      }
-    } catch { /* technique matching is non-critical */ }
-  }
-
-  // Inject environment info
-  systemPrompt += getEnvironmentSection();
-
-  // Inject asset context if available
-  if (assetContext.length > 0) {
-    const assetLines = assetContext.map((a) => {
-      let line = `- "${a.semanticName}" (${a.filename}, ${a.category})`;
-      if (a.aiSummary) line += `: ${a.aiSummary}`;
-      if (a.processingStatus !== "ready") line += ` [${a.processingStatus}]`;
-      return line;
-    });
-    systemPrompt += `\n\n## WORKSPACE ASSETS\nThe following assets are loaded in the workspace:\n${assetLines.join("\n")}\nUse \`ctx.uploads["filename"]\` to reference them in scripts.`;
-  }
+  const systemPrompt = await buildAugmentedSystemPrompt(
+    buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType()),
+    { userPrompt, backendTarget, assetContext, systemPromptAddition },
+  );
 
   // Build user message content
   const content = files?.length
@@ -702,41 +724,10 @@ export async function runWithPlan({
   // --- Phase 2: Rebuild execution context ---
   onStatus?.("thinking", "Rebuilding execution context...");
 
-  let baseSystemPrompt = buildSystemPrompt(userPrompt, !!files?.length);
-  if (systemPromptAddition) {
-    baseSystemPrompt += "\n\n" + systemPromptAddition;
-  }
-
-  // Inject backend target if available
-  if (backendTarget && backendTarget !== "auto") {
-    baseSystemPrompt += `\n\n## ACTIVE BACKEND TARGET\nThe current project uses **${backendTarget}** backend. Generate ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} shaders accordingly. Follow the ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} rules strictly.`;
-  }
-
-  // Inject matching technique hints
-  if (userPrompt) {
-    try {
-      const { findTechniques } = await import("./techniqueKnowledgeBase.js");
-      const matches = findTechniques(userPrompt);
-      if (matches.length > 0) {
-        const top3 = matches.slice(0, 3);
-        const hints = top3.map(t => `- **${t.name}** (${t.category}): ${t.description?.slice(0, 100) || t.summary?.slice(0, 100) || ""}`).join("\n");
-        baseSystemPrompt += `\n\n## SUGGESTED TECHNIQUES\nBased on the user prompt, these techniques from the knowledge base may be relevant:\n${hints}\nConsider using their patterns as a starting point if applicable.`;
-      }
-    } catch { /* technique matching is non-critical */ }
-  }
-
-  // Inject environment info
-  baseSystemPrompt += getEnvironmentSection();
-
-  if (assetContext.length > 0) {
-    const assetLines = assetContext.map((a) => {
-      let line = `- "${a.semanticName}" (${a.filename}, ${a.category})`;
-      if (a.aiSummary) line += `: ${a.aiSummary}`;
-      if (a.processingStatus !== "ready") line += ` [${a.processingStatus}]`;
-      return line;
-    });
-    baseSystemPrompt += `\n\n## WORKSPACE ASSETS\n${assetLines.join("\n")}`;
-  }
+  const baseSystemPrompt = await buildAugmentedSystemPrompt(
+    buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType()),
+    { userPrompt, backendTarget, assetContext, systemPromptAddition },
+  );
 
   const { systemPrompt: execSystemPrompt, messages: execMessages } =
     buildExecutionContext(plan, currentState, baseSystemPrompt);

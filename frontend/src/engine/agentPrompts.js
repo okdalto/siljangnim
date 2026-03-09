@@ -84,7 +84,8 @@ Each script function receives a \`ctx\` object with these fields:
 | ctx.midi | object | Real-time MIDI input (see midi section) |
 | ctx.detector | object | TensorFlow.js object detection (see tf_detector section) |
 | ctx.sam | object | Segment Anything Model (see sam section) |
-| ctx.osc | object | OSC input/output via backend relay (see osc section) |`,
+| ctx.osc | object | OSC input/output via backend relay (see osc section) |
+| ctx.mic | object | Real-time microphone input with FFT analysis (see mic section) |`,
   },
   {
     id: "ctx_utils",
@@ -317,6 +318,7 @@ The system assembles the JSON automatically. No escaping needed at all.`,
   {
     id: "keyboard",
     core: false,
+    platforms: ["web-desktop"],
     keywords: [
       "keyboard", "key", "arrow", "wasd", "키보드", "방향키",
     ],
@@ -563,6 +565,7 @@ Only attempt to fix script/shader errors.`,
   {
     id: "wgsl_rules",
     core: false,
+    platforms: ["web-desktop"],
     keywords: ["wgsl", "webgpu", "compute", "pipeline", "bind group", "storage buffer"],
     content: `\
 ### WGSL Rules (for WebGPU backend)
@@ -592,6 +595,7 @@ When the scene targets WebGPU backend:
   {
     id: "per_project_backend",
     core: false,
+    platforms: ["web-desktop"],
     keywords: ["backend", "webgpu", "webgl", "target", "gpu"],
     content: `\
 ### Per-Project Backend Handling
@@ -611,6 +615,7 @@ When generating or modifying scenes:
   {
     id: "gpu_simulation",
     core: false,
+    platforms: ["web-desktop", "web-mobile"],
     keywords: [
       "simulation", "particle", "physarum", "fluid", "compute",
       "ping-pong", "volume", "voxel", "agent", "trail",
@@ -729,6 +734,7 @@ const dest = ctx.audioDestination;  // connect here for speakers + recording
   {
     id: "mediapipe",
     core: false,
+    platforms: ["web-desktop"],
     keywords: [
       "mediapipe", "pose", "hand", "face", "landmark", "tracking", "body",
       "포즈", "손", "얼굴", "랜드마크", "트래킹",
@@ -775,6 +781,7 @@ gl.bindTexture(gl.TEXTURE_2D, ctx.mediapipe.faceMeshTexture);
   {
     id: "midi",
     core: false,
+    platforms: ["web-desktop"],
     keywords: [
       "midi", "controller", "cc", "note", "knob", "fader", "keyboard",
       "미디", "컨트롤러",
@@ -807,6 +814,7 @@ gl.bindTexture(gl.TEXTURE_2D, ctx.midi.texture);
   {
     id: "tf_detector",
     core: false,
+    platforms: ["web-desktop"],
     keywords: [
       "detect", "object", "recognition", "coco", "tensorflow", "person",
       "객체", "인식", "감지", "사물",
@@ -836,6 +844,7 @@ ctx.detector.count; // number of detections
   {
     id: "sam",
     core: false,
+    platforms: ["web-desktop"],
     keywords: [
       "segment", "sam", "mask", "cutout", "foreground", "background",
       "세그먼트", "분리", "마스크", "배경",
@@ -875,6 +884,7 @@ gl.bindTexture(gl.TEXTURE_2D, ctx.sam.maskTexture);
   {
     id: "osc",
     core: false,
+    platforms: ["web-desktop"],
     keywords: [
       "osc", "ableton", "touchdesigner", "resolume", "live", "音楽",
       "오에스씨", "에이블턴",
@@ -906,6 +916,36 @@ gl.bindTexture(gl.TEXTURE_2D, ctx.osc.texture);
 **Note:** OSC requires the Python backend (UDP cannot be received in browsers). \
 The backend needs \`python-osc\` installed: \`pip install python-osc\`.`,
   },
+  {
+    id: "mic",
+    core: false,
+    keywords: ["mic", "microphone", "audio input", "voice", "sound input"],
+    content: `\
+## MICROPHONE INPUT
+
+\`ctx.mic\` provides real-time microphone audio input with FFT analysis.
+
+\`\`\`js
+// In setup:
+await ctx.mic.init();  // requests browser microphone permission
+
+// In render:
+const bass   = ctx.mic.bass;    // 0.0–1.0
+const mid    = ctx.mic.mid;     // 0.0–1.0
+const treble = ctx.mic.treble;  // 0.0–1.0
+const energy = ctx.mic.energy;  // 0.0–1.0
+
+// Raw FFT arrays (Uint8Array[1024] each):
+const freq = ctx.mic.frequencyData;
+const wave = ctx.mic.waveformData;
+
+// Texture: 1024×2 R8 (row 0 = frequency, row 1 = waveform)
+gl.bindTexture(gl.TEXTURE_2D, ctx.mic.fftTexture);
+\`\`\`
+
+**Note:** Microphone requires user permission (browser will prompt). \
+Audio is analysed only — it is NOT routed to speakers (no feedback loop).`,
+  },
 ];
 
 // Full prompt (all sections)
@@ -915,13 +955,19 @@ const _FULL_PROMPT = PROMPT_SECTIONS.map((s) => s.content).join("\n\n") + "\n";
 const _FILE_SECTIONS = new Set(["uploads"]);
 
 /**
- * Build system prompt with optional keyword-based section filtering.
- * For browser-only mode, always returns the full prompt (Anthropic only).
+ * Build system prompt with platform-based section filtering.
+ * @param {string} userPrompt
+ * @param {boolean} hasFiles
+ * @param {string} [platform] — "web-desktop", "web-mobile", or "server". If omitted, all sections included.
  */
-export function buildSystemPrompt(userPrompt = "", hasFiles = false) {
-  // In browser-only mode we always use Anthropic, so full prompt is fine.
-  // But we still support keyword filtering for potential future use.
-  return _FULL_PROMPT;
+export function buildSystemPrompt(userPrompt = "", hasFiles = false, platform = null) {
+  if (!platform) return _FULL_PROMPT;
+  const sections = PROMPT_SECTIONS.filter((s) => {
+    if (s.core) return true;
+    if (!s.platforms) return true;
+    return s.platforms.includes(platform);
+  });
+  return sections.map((s) => s.content).join("\n\n") + "\n";
 }
 
 export { PROMPT_SECTIONS };
