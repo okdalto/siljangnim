@@ -183,12 +183,24 @@ ctx.state.videoDuration = video.duration;
 video.remove();
 return { frames: Object.keys(cache).length, duration: video.duration };
 \`\`\`
-**Step 2: Call \`set_timeline\` to match video duration.**
-**Step 3: Call \`write_scene\` — render reads the pre-computed cache:**
+**Step 2: Call \`set_timeline({duration: <returned duration>, loop: false})\`.**
+**Step 3: Call \`write_scene\` — setup loads video for display, render reads cached detections. \
+Do NOT call ctx.detector.init() or ctx.detector.detect() in the scene — all detection \
+is already done in preprocess.**
 \`\`\`js
-// In render — instant lookup, no inference cost:
+// write_scene setup:
+const video = document.createElement("video");
+video.src = ctx.uploads["video.mp4"];
+video.crossOrigin = "anonymous";
+video.muted = true;
+await new Promise(r => { video.onloadedmetadata = r; });
+ctx.utils.registerVideo(video); // locks video to ctx.time
+ctx.state.video = video;
+ctx.state.videoTex = ctx.gl.createTexture();
+
+// write_scene render — NO detector calls, just read the cache:
 const s = ctx.state;
-const cache = s.detectionCache;
+const cache = s.detectionCache; // from preprocess
 const timeMs = Math.round((ctx.time % s.videoDuration) * 1000);
 let best = null, bestDist = Infinity;
 for (const ms in cache) {
@@ -196,6 +208,7 @@ for (const ms in cache) {
   if (dist < bestDist) { bestDist = dist; best = cache[ms]; }
 }
 const detections = best || [];
+// Upload video frame as texture + draw bounding boxes from detections
 \`\`\`
 
 GPU Textures (both modes): bboxTexture (centerX,centerY,w,h), classTexture (classIdx,confidence,0,0) — MAX_DETECTIONS×1 RGBA32F`,
