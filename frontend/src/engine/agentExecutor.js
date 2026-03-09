@@ -204,6 +204,18 @@ async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarge
     const assetLines = assetContext.map((a) => {
       let line = `- "${a.semanticName}" (${a.filename}, ${a.category})`;
       if (a.aiSummary) line += `: ${a.aiSummary}`;
+      // Include key technical info (duration, dimensions, fps, etc.)
+      if (a.technicalInfo && typeof a.technicalInfo === "object") {
+        const ti = a.technicalInfo;
+        const parts = [];
+        if (ti.duration != null) parts.push(`duration=${ti.duration}s`);
+        if (ti.width != null && ti.height != null) parts.push(`${ti.width}×${ti.height}`);
+        if (ti.fps != null) parts.push(`${ti.fps}fps`);
+        if (ti.sampleRate != null) parts.push(`${ti.sampleRate}Hz`);
+        if (ti.channels != null) parts.push(`${ti.channels}ch`);
+        if (ti.bpm != null) parts.push(`~${ti.bpm}bpm`);
+        if (parts.length) line += ` [${parts.join(", ")}]`;
+      }
       if (a.processingStatus !== "ready") line += ` [${a.processingStatus}]`;
       return line;
     });
