@@ -280,7 +280,7 @@ export default class GLEngine {
       this._lastErrorMessage = null;
       try {
         this._scriptRenderFn = newScript.render
-          ? new Function("ctx", newScript.render)
+          ? new Function("ctx", `return (async () => { ${newScript.render} })();`)
           : null;
         // cleanup 함수는 교체만 하고 실행하지 않음 — state 보존이 목적
         this._scriptCleanupFn = newScript.cleanup
@@ -792,7 +792,7 @@ export default class GLEngine {
         this._scriptSetupFn = new Function("ctx", `return (async () => { ${setupBody} })();`);
       }
       if (renderBody) {
-        this._scriptRenderFn = new Function("ctx", renderBody);
+        this._scriptRenderFn = new Function("ctx", `return (async () => { ${renderBody} })();`);
       }
       if (cleanupBody) {
         this._scriptCleanupFn = new Function("ctx", cleanupBody);
@@ -1016,7 +1016,17 @@ export default class GLEngine {
       }
 
       try {
-        this._scriptRenderFn(ctx);
+        const p = this._scriptRenderFn(ctx);
+        if (p && typeof p.catch === "function") {
+          p.catch((err) => {
+            console.error("[GLEngine] Script render error (async):", err);
+            if (err.message !== this._lastErrorMessage) {
+              this._lastErrorMessage = err.message;
+              this.onError?.(err);
+              window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
+            }
+          });
+        }
       } catch (err) {
         console.error("[GLEngine] Script render error:", err);
         if (err.message !== this._lastErrorMessage) {
