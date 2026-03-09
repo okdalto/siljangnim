@@ -40,7 +40,15 @@ export default class VideoFrameExtractor {
           this._frameResolve = null;
         }
       },
-      error: (e) => console.error("[VideoFrameExtractor] decode error:", e),
+      error: (e) => {
+        console.error("[VideoFrameExtractor] decode error:", e);
+        this._decodeError = true;
+        // Unblock any pending _waitForFrame so it doesn't hang forever
+        if (this._frameResolve) {
+          this._frameResolve();
+          this._frameResolve = null;
+        }
+      },
     });
 
     this._decoder.configure(decoderConfig);
@@ -58,7 +66,7 @@ export default class VideoFrameExtractor {
    * The returned VideoFrame is valid until the next call to getFrameAtTime() or dispose().
    */
   async getFrameAtTime(time) {
-    if (!this._configured || this._chunks.length === 0) return null;
+    if (!this._configured || this._chunks.length === 0 || this._decodeError) return null;
 
     const targetUs = Math.round(time * 1_000_000);
 
@@ -123,6 +131,16 @@ export default class VideoFrameExtractor {
     if (this._pendingFrame) return Promise.resolve();
     return new Promise((resolve) => {
       this._frameResolve = resolve;
+      // Safety timeout — if decoder never produces output, don't hang forever
+      this._waitTimer = setTimeout(() => {
+        if (this._frameResolve) {
+          console.warn("[VideoFrameExtractor] _waitForFrame timed out");
+          this._frameResolve();
+          this._frameResolve = null;
+        }
+      }, 2000);
+    }).finally(() => {
+      clearTimeout(this._waitTimer);
     });
   }
 
