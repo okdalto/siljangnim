@@ -1203,16 +1203,22 @@ export default class GLEngine {
           // WebCodecs path — decode frame directly
           const dur = extractor.duration;
           const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
+          const extractors = this._offlineExtractors;
           seekPromises.push(
-            withFrameTimeout(
-              extractor.getFrameAtTime(targetTime).then((frame) => {
-                if (video._offlineFrame && video._offlineFrame !== frame) {
-                  // Don't close — the extractor manages frame lifecycle
-                }
-                video._offlineFrame = frame;
-              }),
-              3000, "extractor.getFrameAtTime",
-            ),
+            (async () => {
+              let timedOut = false;
+              const result = await Promise.race([
+                extractor.getFrameAtTime(targetTime),
+                new Promise((resolve) => setTimeout(() => { timedOut = true; resolve(null); }, 3000)),
+              ]);
+              if (timedOut) {
+                console.warn("[GLEngine] extractor timed out for video, removing (fallback to seek)");
+                extractors.delete(video);
+                try { extractor.dispose(); } catch (_) {}
+                return;
+              }
+              video._offlineFrame = result;
+            })(),
           );
         } else {
           // Legacy seek path
@@ -1240,7 +1246,7 @@ export default class GLEngine {
     }
 
     const p = this._renderFrame(time, dt);
-    if (p) await withFrameTimeout(p, 10000, "scriptRender");
+    if (p) await withFrameTimeout(p, 5000, "scriptRender");
     this._frameCount++;
   }
 

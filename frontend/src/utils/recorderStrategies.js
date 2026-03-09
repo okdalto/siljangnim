@@ -428,7 +428,10 @@ export async function startOfflineWebCodecs(ctx) {
         if (encoder.encodeQueueSize >= MAX_QUEUE) break;
 
         if (frameCount === 0) console.log("[OfflineRec] rendering first frame, t=%s endTime=%s", currentTime, endTime);
-        await engine.renderOfflineFrame(currentTime, dt);
+        await Promise.race([
+          engine.renderOfflineFrame(currentTime, dt),
+          new Promise((resolve) => setTimeout(resolve, 6000)),
+        ]);
         if (frameCount === 0) console.log("[OfflineRec] first frame rendered, creating VideoFrame");
         const gl = engine.gl;
         if (gl) gl.finish();
