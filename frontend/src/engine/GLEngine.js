@@ -1339,12 +1339,38 @@ export default class GLEngine {
     // Use persistent preprocess state — survives across loadScene calls
     if (!this._preprocessState) this._preprocessState = {};
 
+    // Expose managers so preprocess can use ctx.detector, ctx.audio, etc.
+    const tfMgr = this._tfDetectorManager;
+    const samMgr = this._samManager;
+
     const ctx = {
       gl,
       canvas,
       uploads,
       utils: this._scriptCtx?.utils || {},
       state: this._preprocessState,
+      detector: {
+        init: (options) => tfMgr.init(options),
+        detect: async (source, options) => {
+          const results = await tfMgr.detect(source, { ...options });
+          return results;
+        },
+        get initialized() { return tfMgr.initialized; },
+        get detections() { return tfMgr.detections; },
+        get count() { return tfMgr.count; },
+      },
+      sam: {
+        init: () => samMgr.init(),
+        encode: (source, sourceId) => samMgr.encode(source, sourceId),
+        segment: (prompt) => samMgr.segment(prompt),
+        get mask() { return samMgr.mask; },
+        get masks() { return samMgr.masks; },
+      },
+      audio: this._scriptCtx?.audio || {},
+      mediapipe: this._scriptCtx?.mediapipe || {},
+      midi: this._scriptCtx?.midi || {},
+      osc: this._scriptCtx?.osc || {},
+      mic: this._scriptCtx?.mic || {},
     };
 
     const fn = new Function("ctx", "gl", "canvas", `return (async () => { ${code} })();`);
