@@ -1036,6 +1036,25 @@ export default class GLEngine {
         ctx.backendType = this._backend.backendType;
       }
 
+      // Drift-correct registered video elements to match ctx.time.
+      // In real-time mode, video.play() runs on its own clock which drifts
+      // from ctx.time. Re-sync when drift exceeds threshold to keep
+      // video frames aligned with agent graphics (e.g. bounding boxes).
+      if (!ctx.isOffline) {
+        const videos = ctx._registeredVideos;
+        if (videos?.size) {
+          for (const [video, opts] of videos) {
+            const dur = video.duration;
+            if (!dur || isNaN(dur) || video.readyState < 2) continue;
+            const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
+            const drift = Math.abs(video.currentTime - targetTime);
+            if (drift > 0.1) {
+              video.currentTime = targetTime;
+            }
+          }
+        }
+      }
+
       // Update MIDI texture before script render (messages arrive via callbacks)
       if (this._midiManager?.initialized) {
         this._midiManager.updateTextures(gl);
