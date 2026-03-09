@@ -395,7 +395,9 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
             </button>
           </div>
         </div>
-        {!collapsed && canvasContent}
+        <div style={collapsed ? { height: 0, overflow: "hidden" } : { flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          {canvasContent}
+        </div>
       </div>
     </>
   );
