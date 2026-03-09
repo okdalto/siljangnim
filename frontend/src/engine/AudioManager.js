@@ -221,12 +221,14 @@ export default class AudioManager {
    * Called every frame by the engine. Reads FFT data, updates texture & band values.
    * @param {WebGL2RenderingContext} gl
    * @param {number} engineTime — current engine time in seconds
+   * @param {boolean} [isOffline=false] — skip drift correction during offline rendering
    */
-  updateFrame(gl, engineTime) {
+  updateFrame(gl, engineTime, isOffline = false) {
     if (!this._analyser || !this._buffer) return;
 
     // Drift correction with hysteresis to avoid oscillation around threshold
-    if (this._playing && this.duration > 0) {
+    // Skip in offline mode — Web Audio currentTime doesn't match synthetic engine time
+    if (!isOffline && this._playing && this.duration > 0) {
       const drift = Math.abs(this.currentTime - (engineTime % this.duration));
       if (drift > 0.15) {
         // Large drift — re-sync immediately

@@ -60,9 +60,11 @@ export default class MicManager extends BaseManager {
   /**
    * Called every frame by the engine. Reads FFT data, updates texture & band values.
    * @param {WebGL2RenderingContext} gl
+   * @param {boolean} [isOffline=false] — skip live mic reads during offline rendering
    */
-  updateFrame(gl) {
+  updateFrame(gl, isOffline = false) {
     if (!this._analyser || !this.initialized) return;
+    if (isOffline) return; // no live mic data during offline rendering
 
     // Read FFT data
     this._analyser.getByteFrequencyData(this.frequencyData);

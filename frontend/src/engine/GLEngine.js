@@ -317,7 +317,8 @@ export default class GLEngine {
       gl: this.gl,
       canvas: this.canvas,
       state: {},
-      uploads: {}, // populated with blob URLs for uploaded files
+      uploads: {},
+      isOffline: false, // populated with blob URLs for uploaded files
       utils: {
         createProgram: (vertSource, fragSource) => createProgram(this.gl, vertSource, fragSource),
         compileShader: (type, source) => compileShader(this.gl, type, source),
@@ -596,7 +597,9 @@ export default class GLEngine {
     ctx.mediapipe = {
       init: (options) => mpManager.init(this.gl, options),
       detect: (source, timestamp) => {
-        mpManager.detect(source, timestamp);
+        // In offline mode, use ctx.time-based timestamp (ms) for monotonic MediaPipe input
+        const ts = timestamp ?? (ctx.isOffline ? Math.round(ctx.time * 1000) : undefined);
+        mpManager.detect(source, ts);
         mpManager.updateTextures(this.gl);
       },
       get initialized() { return mpManager.initialized; },
@@ -632,8 +635,9 @@ export default class GLEngine {
       init: (options) => tfMgr.init(options),
       load: (options) => tfMgr.init(options), // alias for init
       detect: async (source, options) => {
-        const results = await tfMgr.detect(source, options);
-        if (!options?.immediate) tfMgr.updateTextures(this.gl);
+        const opts = ctx.isOffline ? { isOffline: true, ...options } : options;
+        const results = await tfMgr.detect(source, opts);
+        if (!opts?.immediate) tfMgr.updateTextures(this.gl);
         return results;
       },
       get initialized() { return tfMgr.initialized; },
@@ -966,7 +970,7 @@ export default class GLEngine {
       const ctx = this._scriptCtx;
       ctx.time = time;
       ctx.dt = dt;
-      if (!ctx.isOffline) ctx.isOffline = false;
+      ctx.isOffline ??= false;
       ctx.mouse = [this._mouseSnapshot[0], this._mouseSnapshot[1], this._mouseSnapshot[2], this._mouseSnapshot[3]];
       ctx.mousePrev = [this._mousePrev[0], this._mousePrev[1], this._mousePrev[2], this._mousePrev[3]];
       ctx.mouseDown = this._mouseDownSnapshot;
@@ -996,12 +1000,12 @@ export default class GLEngine {
 
       // Update mic FFT data before script render
       if (this._micManager?.initialized) {
-        this._micManager.updateFrame(gl);
+        this._micManager.updateFrame(gl, ctx.isOffline);
       }
 
       // Update audio data before script render
       if (this._audioManager) {
-        this._audioManager.updateFrame(gl, time);
+        this._audioManager.updateFrame(gl, time, ctx.isOffline);
         const am = this._audioManager;
         ctx.audio.isLoaded = am.isLoaded;
         ctx.audio.isPlaying = am.isPlaying;
