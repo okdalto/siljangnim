@@ -378,51 +378,60 @@ export async function startOfflineWebCodecs(ctx) {
   // Start video frames once audio is queued and videos are prepared
   Promise.all([audioReady, videosReady]).then(() => {
     scheduleNextFrame(stepFrame, rafRef);
+  }).catch((e) => {
+    console.error("Offline recording setup failed:", e);
+    scheduleNextFrame(stepFrame, rafRef);
   });
 
   const stepFrame = async () => {
-    if (offlineAbortRef.current) {
-      finalize();
-      return;
-    }
-
-    if (encoder.encodeQueueSize >= MAX_QUEUE) {
-      encoder.addEventListener(
-        "dequeue",
-        () => {
-          scheduleNextFrame(stepFrame, rafRef);
-        },
-        { once: true },
-      );
-      return;
-    }
-
-    for (let i = 0; i < BATCH; i++) {
-      if (currentTime >= endTime) {
+    try {
+      if (finalized) return;
+      if (offlineAbortRef.current) {
         finalize();
         return;
       }
-      if (encoder.encodeQueueSize >= MAX_QUEUE) break;
 
-      await engine.renderOfflineFrame(currentTime, dt);
-      const gl = engine.gl;
-      if (gl) gl.finish();
+      if (encoder.encodeQueueSize >= MAX_QUEUE) {
+        encoder.addEventListener(
+          "dequeue",
+          () => {
+            scheduleNextFrame(stepFrame, rafRef);
+          },
+          { once: true },
+        );
+        return;
+      }
 
-      const frame = new VideoFrame(canvas, {
-        timestamp: Math.round(currentTime * 1_000_000),
-        ...(isWebm && alpha ? { alpha: "keep" } : {}),
-      });
-      const keyFrame = frameCount % (fps * 2) === 0;
-      encoder.encode(frame, { keyFrame });
-      frame.close();
+      for (let i = 0; i < BATCH; i++) {
+        if (currentTime >= endTime) {
+          finalize();
+          return;
+        }
+        if (encoder.encodeQueueSize >= MAX_QUEUE) break;
 
-      frameCount++;
-      currentTime += dt;
+        await engine.renderOfflineFrame(currentTime, dt);
+        const gl = engine.gl;
+        if (gl) gl.finish();
+
+        const frame = new VideoFrame(canvas, {
+          timestamp: Math.round(currentTime * 1_000_000),
+          ...(isWebm && alpha ? { alpha: "keep" } : {}),
+        });
+        const keyFrame = frameCount % (fps * 2) === 0;
+        encoder.encode(frame, { keyFrame });
+        frame.close();
+
+        frameCount++;
+        currentTime += dt;
+      }
+
+      setElapsedTime(currentTime);
+      setProgress(computeProgress(currentTime, endTime, renderStartTime, fps));
+      scheduleNextFrame(stepFrame, rafRef);
+    } catch (e) {
+      console.error("Offline WebCodecs stepFrame error:", e);
+      finalize();
     }
-
-    setElapsedTime(currentTime);
-    setProgress(computeProgress(currentTime, endTime, renderStartTime, fps));
-    scheduleNextFrame(stepFrame, rafRef);
   };
 }
 
