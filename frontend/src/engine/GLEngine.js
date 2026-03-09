@@ -631,10 +631,10 @@ export default class GLEngine {
     ctx.detector = {
       init: (options) => tfMgr.init(options),
       load: (options) => tfMgr.init(options), // alias for init
-      detect: async (source) => {
-        await tfMgr.detect(source);
-        tfMgr.updateTextures(this.gl);
-        return tfMgr.detections;
+      detect: async (source, options) => {
+        const results = await tfMgr.detect(source, options);
+        if (!options?.immediate) tfMgr.updateTextures(this.gl);
+        return results;
       },
       get initialized() { return tfMgr.initialized; },
       get detections() { return tfMgr.detections; },

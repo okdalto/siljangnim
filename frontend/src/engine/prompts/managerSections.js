@@ -150,6 +150,20 @@ ctx.detector.count; // number of detections (also available via detections.lengt
 
 // GPU Textures (use bboxNorm internally): bboxTexture (centerX,centerY,w,h), classTexture (classIdx,confidence,0,0)
 // Both MAX_DETECTIONS×1 RGBA32F
+
+// --- Batch pre-cache (in setup, for uploaded videos): ---
+// Use { immediate: true } to bypass throttle for fast sequential detection.
+const video = s.video; // already created video element
+const cache = new Map();
+const step = 0.2; // seconds between samples
+await new Promise(r => { video.onloadedmetadata = r; });
+for (let t = 0; t < video.duration; t += step) {
+  video.currentTime = t;
+  await new Promise(r => video.addEventListener('seeked', r, { once: true }));
+  cache.set(Math.round(t * 1000), await ctx.detector.detect(video, { immediate: true }));
+}
+s.detectionCache = cache;
+// In render: lookup nearest cached result by ctx.time
 \`\`\``,
   },
   {

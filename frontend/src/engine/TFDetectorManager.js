@@ -108,25 +108,31 @@ export default class TFDetectorManager extends BaseManager {
   }
 
   /**
-   * Run detection on a source element.
+   * Run detection on a source element and return results.
    * @param {HTMLVideoElement|HTMLImageElement|HTMLCanvasElement} source
+   * @param {object} [options]
+   * @param {boolean} [options.immediate=false] Bypass throttle & concurrency guard (for batch/pre-cache use).
    */
-  async detect(source) {
+  async detect(source, options = {}) {
     if (!this.initialized || !this._model) return this.detections;
 
-    // Throttle + concurrency guard using wall-clock time (immune to ctx.time resets)
-    const now = performance.now();
-    if (this._detecting || now - this._lastDetectWall < this._detectIntervalMs) {
-      return this.detections; // return cached results
+    const immediate = options.immediate === true;
+
+    if (!immediate) {
+      // Throttle + concurrency guard using wall-clock time (immune to ctx.time resets)
+      const now = performance.now();
+      if (this._detecting || now - this._lastDetectWall < this._detectIntervalMs) {
+        return this.detections; // return cached results
+      }
+      this._detecting = true;
+      this._lastDetectWall = now;
     }
 
-    this._detecting = true;
-    this._lastDetectWall = now;
     try {
       const predictions = await this._model.detect(source, this.maxDetections, this.minScore);
       const sw = source.videoWidth || source.width || source.naturalWidth || 1;
       const sh = source.videoHeight || source.height || source.naturalHeight || 1;
-      this.detections = predictions.map((p) => {
+      const results = predictions.map((p) => {
         const classIndex = COCO_CLASS_INDEX.get(p.class) ?? -1;
         if (sw === 0 || sh === 0) return null;
         return {
@@ -137,13 +143,21 @@ export default class TFDetectorManager extends BaseManager {
           bboxNorm: [p.bbox[0] / sw, p.bbox[1] / sh, p.bbox[2] / sw, p.bbox[3] / sh],
         };
       }).filter(Boolean);
-      this.count = this.detections.length;
+
+      if (!immediate) {
+        // Update shared state for real-time use
+        this.detections = results;
+        this.count = results.length;
+      }
+      return results;
     } catch (err) {
       console.warn("[TFDetectorManager] detect error:", err);
+      return immediate ? [] : this.detections;
     } finally {
-      this._detecting = false;
+      if (!immediate) {
+        this._detecting = false;
+      }
     }
-    return this.detections;
   }
 
   /**
