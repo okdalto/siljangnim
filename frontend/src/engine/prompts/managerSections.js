@@ -139,8 +139,8 @@ Two modes: **Online** (live detection each frame) and **Offline** (pre-cache all
 **IMPORTANT: You MUST call \`await ctx.detector.init()\` in setup before using detect(). Without init(), the model is not loaded and detect() silently returns empty results.**
 
 **Choose the right mode:**
-- **Online mode**: Use for webcam or when video changes unpredictably. Runs detect() each frame (auto-throttled).
-- **Offline mode**: Use for uploaded/fixed videos. Pre-computes all detections in setup — render is instant with no per-frame inference cost. **Prefer this for uploaded videos.**
+- **Online mode**: Use when the user wants **real-time / every-frame / live** detection. Works with any source (webcam, uploaded video, etc.). detect() is auto-throttled internally — just call it every frame. **Always use this when the user asks for "real-time", "every frame", or "live" detection.**
+- **Offline mode**: Use when the user wants to **pre-analyze** an entire video upfront. Pre-computes all detections in setup — render is instant with no per-frame cost. Good for uploaded videos when real-time is not needed.
 
 ### Online Mode (webcam / live source)
 \`\`\`js
@@ -161,7 +161,7 @@ for (const d of detections) {
 ctx.detector.count; // number of detections
 \`\`\`
 
-### Offline Mode (uploaded video — PREFERRED for non-live sources)
+### Offline Mode (pre-analyze entire video in setup)
 \`\`\`js
 // In setup — REQUIRED:
 await ctx.detector.init({ maxDetections: 20, minScore: 0.4 });
