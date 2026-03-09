@@ -1144,7 +1144,6 @@ export default class GLEngine {
     this._scriptRenderFn = null;
     this._scriptCleanupFn = null;
 
-    const gl = this.gl;
     this._midiManager?.deleteTextures?.(gl);
     this._tfDetectorManager?.deleteTextures?.(gl);
     this._samManager?.deleteTextures?.(gl);
