@@ -476,7 +476,7 @@ async function toolClosePanel(input, broadcast) {
   return `ok — panel '${panelId}' closed.`;
 }
 
-async function toolStartRecording(input, broadcast) {
+async function toolStartRecording(input, broadcast, recordingDonePromise) {
   const resetTimeline = input.resetTimeline !== false;
   const msg = { type: "start_recording" };
   if (input.duration != null) msg.duration = input.duration;
@@ -484,6 +484,13 @@ async function toolStartRecording(input, broadcast) {
   if (resetTimeline) msg.resetTimeline = true;
   broadcast(msg);
   const durationStr = input.duration ? ` for ${input.duration}s` : "";
+
+  // If duration is specified and we have a promise factory, wait for recording to finish
+  if (input.duration != null && recordingDonePromise) {
+    const promise = recordingDonePromise();
+    await promise;
+    return `ok — recording finished (${input.duration}s)${resetTimeline ? " (timeline was reset to 0)" : ""}.`;
+  }
   return `ok — recording started${durationStr}${resetTimeline ? " (timeline reset to 0)" : ""}.`;
 }
 
@@ -605,6 +612,9 @@ export async function handleTool(name, inputData, broadcast, context = {}) {
   }
   if (name === "ask_user") {
     return handler(inputData, broadcast, context.userAnswerPromise);
+  }
+  if (name === "start_recording") {
+    return handler(inputData, broadcast, context.recordingDonePromise);
   }
   if (name === "run_preprocess") {
     return handler(inputData, broadcast, context.preprocessPromise);

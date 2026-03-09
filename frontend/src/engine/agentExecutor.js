@@ -252,6 +252,7 @@ export async function runAgent({
   errorCollector,
   userAnswerPromise,
   preprocessPromise,
+  recordingDonePromise,
   signal,
   injectedMessages = [],
   systemPromptAddition = "",
@@ -289,6 +290,7 @@ export async function runAgent({
     errorCollector,
     userAnswerPromise,
     preprocessPromise,
+    recordingDonePromise,
     signal,
     injectedMessages,
     modelOverride,
@@ -311,6 +313,7 @@ async function _runAgentLoop({
   errorCollector,
   userAnswerPromise,
   preprocessPromise,
+  recordingDonePromise,
   signal,
   injectedMessages = [],
   modelOverride,
@@ -577,6 +580,7 @@ async function _runAgentLoop({
             errorCollector,
             userAnswerPromise,
             preprocessPromise,
+            recordingDonePromise,
           });
           if (resultStr?.startsWith("Error")) isError = true;
         } catch (e) {
@@ -710,6 +714,7 @@ export async function runWithPlan({
   errorCollector,
   userAnswerPromise,
   preprocessPromise,
+  recordingDonePromise,
   signal,
   injectedMessages = [],
   systemPromptAddition = "",
@@ -723,7 +728,7 @@ export async function runWithPlan({
   if (!shouldPlan(messages.length, userPrompt)) {
     return runAgent({
       apiKey, userPrompt, log, broadcast, onText, onStatus,
-      files, messages, errorCollector, userAnswerPromise, preprocessPromise,
+      files, messages, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
       provider, providerConfig,
     });
@@ -739,7 +744,7 @@ export async function runWithPlan({
     // Fallback: direct execution
     return runAgent({
       apiKey, userPrompt, log, broadcast, onText, onStatus,
-      files, messages, errorCollector, userAnswerPromise, preprocessPromise,
+      files, messages, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
       provider, providerConfig,
     });
@@ -778,6 +783,7 @@ export async function runWithPlan({
     errorCollector,
     userAnswerPromise,
     preprocessPromise,
+    recordingDonePromise,
     signal,
     injectedMessages,
     modelOverride,

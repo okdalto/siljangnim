@@ -328,6 +328,15 @@ export default function App() {
   const recorderFnsRef = useRef({ startRecording, stopRecording, engineRef });
   recorderFnsRef.current = { startRecording, stopRecording, engineRef };
 
+  // Notify agent engine when recording finishes (so start_recording tool can await completion)
+  const prevRecordingRef = useRef(false);
+  useEffect(() => {
+    if (prevRecordingRef.current && !recording && BROWSER_ONLY && _agentEngine) {
+      _agentEngine.handleMessage({ type: "recording_done" });
+    }
+    prevRecordingRef.current = recording;
+  }, [recording]);
+
   // Load project tree when active project changes (lazy migration: ensure root node)
   useEffect(() => {
     const projName = storageApi.getActiveProjectName();

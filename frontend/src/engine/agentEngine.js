@@ -92,6 +92,8 @@ export default class AgentEngine {
     // Preprocess mechanism for run_preprocess tool
     this._preprocessResolve = null;
     this._preprocessReject = null;
+    // Recording completion mechanism for start_recording tool
+    this._recordingDoneResolve = null;
   }
 
   /** Dispatch a message from engine to React UI. */
@@ -122,6 +124,13 @@ export default class AgentEngine {
   userAnswerPromise() {
     return new Promise((resolve) => {
       this._userAnswerResolve = resolve;
+    });
+  }
+
+  /** Create a promise that resolves when recording completes. */
+  recordingDonePromise() {
+    return new Promise((resolve) => {
+      this._recordingDoneResolve = resolve;
     });
   }
 
@@ -224,6 +233,7 @@ async function triggerAutoFix(errorMessage, engine) {
       errorCollector: engine.errorCollector,
       userAnswerPromise: () => engine.userAnswerPromise(),
       preprocessPromise: () => engine.preprocessPromise(),
+      recordingDonePromise: () => engine.recordingDonePromise(),
       signal: abortController.signal,
       backendTarget: engine._backendTarget,
       provider: engine.provider,
@@ -396,6 +406,7 @@ const HANDLERS = {
           errorCollector: this.errorCollector,
           userAnswerPromise: () => this.userAnswerPromise(),
           preprocessPromise: () => this.preprocessPromise(),
+          recordingDonePromise: () => this.recordingDonePromise(),
           signal: abortController.signal,
           injectedMessages: this.injectedMessages,
           systemPromptAddition: this._promptModeAddition,
@@ -471,6 +482,13 @@ const HANDLERS = {
     if (this._userAnswerResolve) {
       this._userAnswerResolve(text);
       this._userAnswerResolve = null;
+    }
+  },
+
+  async recording_done(msg) {
+    if (this._recordingDoneResolve) {
+      this._recordingDoneResolve();
+      this._recordingDoneResolve = null;
     }
   },
 
@@ -707,6 +725,10 @@ const HANDLERS = {
         this._preprocessReject(new Error("cancelled"));
         this._preprocessResolve = null;
         this._preprocessReject = null;
+      }
+      if (this._recordingDoneResolve) {
+        this._recordingDoneResolve();
+        this._recordingDoneResolve = null;
       }
       // Abort first — the finally block in the prompt handler will clear the controller
       this.abortController.abort();
