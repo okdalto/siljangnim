@@ -18,17 +18,24 @@ export default function FeedbackButton({ isAuthenticated, token }) {
   const [result, setResult] = useState(null); // { ok, message, url }
   const panelRef = useRef(null);
 
-  // Close on outside click
+  // Close on outside click or Escape
   useEffect(() => {
     if (!open) return;
-    const handler = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
+    const handlePointer = (e) => {
+      if (!submitting && panelRef.current && !panelRef.current.contains(e.target)) {
         setOpen(false);
       }
     };
-    document.addEventListener("pointerdown", handler);
-    return () => document.removeEventListener("pointerdown", handler);
-  }, [open]);
+    const handleKey = (e) => {
+      if (e.key === "Escape" && !submitting) setOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointer);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointer);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open, submitting]);
 
   const resetForm = () => {
     setCategory("bug");
@@ -92,9 +99,7 @@ export default function FeedbackButton({ isAuthenticated, token }) {
         message: "Issue created!",
         url: data.html_url,
       });
-      setTitle("");
-      setDescription("");
-      setCategory("bug");
+      resetForm();
     } catch (err) {
       setResult({ ok: false, message: err.message });
     } finally {
