@@ -1180,6 +1180,16 @@ export default class GLEngine {
     if (this._scriptCtx) this._scriptCtx.isOffline = true;
     this.onTime?.(time);
 
+    // Timeout helper — prevents hanging on broken video seeks or async renders
+    const withFrameTimeout = (promise, ms, label) =>
+      Promise.race([
+        promise,
+        new Promise((resolve) => setTimeout(() => {
+          console.warn("[GLEngine] %s timed out at t=%s (skipping)", label, time.toFixed(3));
+          resolve();
+        }, ms)),
+      ]);
+
     // Seek all registered video elements to the target time before rendering.
     // Uses VideoFrameExtractor (WebCodecs) for MP4s when available,
     // falls back to _seekVideo for non-MP4 or unsupported browsers.
@@ -1194,12 +1204,15 @@ export default class GLEngine {
           const dur = extractor.duration;
           const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
           seekPromises.push(
-            extractor.getFrameAtTime(targetTime).then((frame) => {
-              if (video._offlineFrame && video._offlineFrame !== frame) {
-                // Don't close — the extractor manages frame lifecycle
-              }
-              video._offlineFrame = frame;
-            }),
+            withFrameTimeout(
+              extractor.getFrameAtTime(targetTime).then((frame) => {
+                if (video._offlineFrame && video._offlineFrame !== frame) {
+                  // Don't close — the extractor manages frame lifecycle
+                }
+                video._offlineFrame = frame;
+              }),
+              5000, "extractor.getFrameAtTime",
+            ),
           );
         } else {
           // Legacy seek path
@@ -1214,12 +1227,12 @@ export default class GLEngine {
           const firstFrameNotReady = time < 0.001 && video.readyState < 2;
 
           if (needsSeek || firstFrameNotReady) {
-            seekPromises.push((async () => {
+            seekPromises.push(withFrameTimeout((async () => {
               if (!needsSeek && firstFrameNotReady) {
                 await _seekVideo(video, 0.001);
               }
               await _seekVideo(video, targetTime);
-            })());
+            })(), 5000, "seekVideo"));
           }
         }
       }
@@ -1227,7 +1240,7 @@ export default class GLEngine {
     }
 
     const p = this._renderFrame(time, dt);
-    if (p) await p;
+    if (p) await withFrameTimeout(p, 10000, "scriptRender");
     this._frameCount++;
   }
 
