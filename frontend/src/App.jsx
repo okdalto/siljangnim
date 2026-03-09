@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -30,6 +30,9 @@ import useMessageDispatcher from "./hooks/useMessageDispatcher.js";
 import useNodeDataSync from "./hooks/useNodeDataSync.js";
 import useKeyboardShortcuts from "./hooks/useKeyboardShortcuts.js";
 import useTreeActions from "./hooks/useTreeActions.js";
+import useNodeSelection from "./hooks/useNodeSelection.js";
+import useWorkspaceStateSync from "./hooks/useWorkspaceStateSync.js";
+import useAssetHandlers from "./hooks/useAssetHandlers.js";
 import useAIDebugger from "./hooks/useAIDebugger.js";
 import usePromptMode from "./hooks/usePromptMode.js";
 import FeedbackButton from "./components/FeedbackButton.jsx";
@@ -80,9 +83,7 @@ export default function App() {
   const [edges, , onEdgesChange] = useEdgesState([]);
   // Custom selection state — completely decoupled from ReactFlow's node state.
   // Declared early so useNodeSnapping can access it for multi-select drag.
-  const [selectedIds, setSelectedIds] = useState(new Set());
-  const selectedIdsRef = useRef(selectedIds);
-  selectedIdsRef.current = selectedIds;
+  const { selectedIds, selectedIdsRef } = useNodeSelection();
   const { onNodesChange: onNodesChangeSnapped, guides } = useNodeSnapping(nodes, rawOnNodesChange, setNodes, settings, selectedIdsRef);
   const getSeq = useCallback(() => nextUndoSeq(), []);
   const onLayoutCommitRef = useRef(null);
@@ -159,47 +160,9 @@ export default function App() {
   const chat = useChat(sendRef);
   const panels = useCustomPanels(sendRef);
   const assetNodes = useAssetNodes();
-  const handleAssetUpload = useCallback(async (files) => {
-    const saved = [];
-    for (const file of files) {
-      const buf = await file.arrayBuffer();
-      await storageApi.saveUpload(file.name, buf, file.type);
-      saved.push({ name: file.name, mimeType: file.type, size: file.size });
-    }
-    if (saved.length > 0) {
-      assetNodes.createAssetsFromUpload(saved);
-      const names = saved.map((f) => f.name).join(", ");
-      const notification = `[Asset uploaded: ${names}]`;
-      chat.addSystemMessage(notification);
-      // Record in agent engine chatHistory so the model knows about the asset
-      if (BROWSER_ONLY && _agentEngine) {
-        _agentEngine.chatHistory.push({ role: "user", text: notification });
-      } else {
-        sendRef.current?.({ type: "asset_notification", text: notification });
-      }
-    }
-  }, [assetNodes.createAssetsFromUpload, chat.addSystemMessage]);
-
-  const handleAssetDelete = useCallback((assetId) => {
-    const desc = assetNodes.assets.get(assetId);
-    const name = desc?.filename || desc?.semanticName || assetId;
-    // Warn if the asset might be referenced in the current scene
-    const sceneStr = JSON.stringify(sceneJSON || {});
-    const isReferenced = sceneStr.includes(name);
-    if (isReferenced) {
-      if (!window.confirm(`"${name}" is referenced in the current scene. Deleting it may cause errors. Continue?`)) {
-        return;
-      }
-    }
-    assetNodes.deleteAsset(assetId);
-    const notification = `[Asset deleted: ${name}]`;
-    chat.addSystemMessage(notification);
-    if (BROWSER_ONLY && _agentEngine) {
-      _agentEngine.chatHistory.push({ role: "user", text: notification });
-    } else {
-      sendRef.current?.({ type: "asset_notification", text: notification });
-    }
-  }, [assetNodes.assets, assetNodes.deleteAsset, chat.addSystemMessage, sceneJSON]);
+  const { handleAssetUpload, handleAssetDelete } = useAssetHandlers({
+    assetNodes, chat, sendRef, BROWSER_ONLY, agentEngine: _agentEngine, sceneJSON,
+  });
 
   // Wire asset context getter to browser-mode agent engine
   if (BROWSER_ONLY && _agentEngine) {
@@ -393,54 +356,9 @@ export default function App() {
     panels,
   });
 
-  // Debounced send workspace state to backend
-  const wsStateTimerRef = useRef(null);
-  const sendWorkspaceState = useCallback(() => {
-    if (wsStateTimerRef.current) clearTimeout(wsStateTimerRef.current);
-    wsStateTimerRef.current = setTimeout(() => {
-      sendRef.current?.({ type: "update_workspace_state", workspace_state: getWorkspaceState() });
-    }, 2000);
-  }, [getWorkspaceState]);
-
-  // Immediate (non-debounced) send — for user actions like drag end
-  const sendWorkspaceStateNow = useCallback(() => {
-    if (wsStateTimerRef.current) clearTimeout(wsStateTimerRef.current);
-    sendRef.current?.({ type: "update_workspace_state", workspace_state: getWorkspaceState() });
-  }, [getWorkspaceState]);
-
-  // Use ref so effects don't re-fire when sendWorkspaceState changes
-  const sendWsRef = useRef(sendWorkspaceState);
-  sendWsRef.current = sendWorkspaceState;
-
-  // Send workspace state when keyframes change (skip init restore)
-  const kfMountedRef = useRef(false);
-  useEffect(() => {
-    if (!kfMountedRef.current) {
-      kfMountedRef.current = true;
-      return;
-    }
-    if (kf.keyframeVersion > 0) {
-      sendWsRef.current();
-      autoSave.triggerAutoSave();
-    }
-  }, [kf.keyframeVersion, autoSave.triggerAutoSave]);
-
-  const durationLoopMountedRef = useRef(false);
-  useEffect(() => {
-    if (!durationLoopMountedRef.current) {
-      durationLoopMountedRef.current = true;
-      return;
-    }
-    sendWsRef.current();
-    autoSave.triggerAutoSave();
-  }, [duration, loop, autoSave.triggerAutoSave]);
-
-  // Save workspace state when node layout changes (drag/resize end)
-  onLayoutCommitRef.current = () => {
-    if (!initSettledRef.current) return; // suppress during init/project load
-    sendWorkspaceStateNow();
-    autoSave.triggerAutoSave();
-  };
+  // Debounced + immediate workspace-state sync to backend
+  const { wsStateTimerRef, sendWorkspaceState, sendWorkspaceStateNow, kfMountedRef, durationLoopMountedRef } =
+    useWorkspaceStateSync({ sendRef, getWorkspaceState, kf, duration, loop, autoSave, initSettledRef, onLayoutCommitRef });
 
   // Buffers for thinking content from agent_status (fallback if agent_log misses it)
   const buffersRef = useRef({ thinkingBuffer: "", thinkingLogReceived: false });
@@ -637,67 +555,6 @@ export default function App() {
       aiDebugger.addRuntimeError(err, "render");
     }
   }, [chat.addLog, aiDebugger.addCompileLog, aiDebugger.addRuntimeError]);
-
-  // --- Node selection (fully decoupled from ReactFlow's node state) ---
-  // Uses a separate selectedIds state + DOM data-attribute for visual feedback.
-  // This is immune to race conditions from frequent setNodes calls.
-  useEffect(() => {
-    const handlePointerDown = (e) => {
-      const flowEl = e.target.closest('.react-flow');
-      if (!flowEl) return;
-      if (e.target.closest('.react-flow__controls') ||
-          e.target.closest('.react-flow__minimap') ||
-          e.target.closest('.react-flow__panel')) return;
-
-      const nodeEl = e.target.closest('.react-flow__node');
-
-      if (!nodeEl) {
-        // Pane click — deselect all
-        if (selectedIdsRef.current.size > 0) setSelectedIds(new Set());
-        return;
-      }
-
-      const nodeId = nodeEl.getAttribute('data-id');
-      if (!nodeId) return;
-
-      const isMulti = e.shiftKey || e.metaKey || e.ctrlKey;
-
-      setSelectedIds((prev) => {
-        if (isMulti) {
-          // Toggle selection with modifier key
-          const next = new Set(prev);
-          if (next.has(nodeId)) {
-            next.delete(nodeId);
-          } else {
-            next.add(nodeId);
-          }
-          return next;
-        }
-        // Without modifier: if clicking an already-selected node in a multi-selection,
-        // keep the selection (user is about to drag the group)
-        if (prev.size > 1 && prev.has(nodeId)) {
-          return prev;
-        }
-        // Otherwise, select only this node
-        return new Set([nodeId]);
-      });
-    };
-
-    window.addEventListener('pointerdown', handlePointerDown);
-    return () => window.removeEventListener('pointerdown', handlePointerDown);
-  }, []);
-
-  // Sync selection to DOM data-attribute (useLayoutEffect = before paint, no flash)
-  useLayoutEffect(() => {
-    document.querySelectorAll('.react-flow__node').forEach((el) => {
-      const nodeId = el.getAttribute('data-id');
-      if (selectedIds.has(nodeId)) {
-        el.setAttribute('data-custom-selected', '');
-      } else {
-        el.removeAttribute('data-custom-selected');
-      }
-    });
-  }, [selectedIds]);
 
   // Wrap panel close to capture node position + assign undo seq
   const handlePanelClose = useCallback((panelId) => {
