@@ -337,8 +337,9 @@ export default function useMessageDispatcher(params) {
         break;
 
       case "project_loaded":
-        // Clear preprocess state from previous project
-        recorderFnsRef.current.engineRef?.current?.clearPreprocessState();
+        // Switch node scope — saves outgoing node's preprocess state and
+        // clears in-memory state so loadScene restores the new node's data.
+        recorderFnsRef.current.engineRef?.current?.setActiveNodeId(msg.nodeId || null);
         // Project-loaded-specific: meta, dirty flag, workspace version
         if (msg.meta) {
           project.setActiveProject(msg.meta.display_name || msg.meta.name);

@@ -12,6 +12,7 @@ export default function useTreeActions({ tree, compare, handleMessage, project, 
       const state = await tree.restoreNode(nodeId, projName);
       handleMessage({
         type: "project_loaded",
+        nodeId,
         meta: { name: projName, display_name: project.activeProject },
         scene_json: state.scene_json,
         ui_config: state.ui_config,
