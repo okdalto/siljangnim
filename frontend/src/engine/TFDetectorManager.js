@@ -112,20 +112,27 @@ export default class TFDetectorManager extends BaseManager {
    * @param {HTMLVideoElement|HTMLImageElement|HTMLCanvasElement} source
    * @param {object} [options]
    * @param {boolean} [options.immediate=false] Bypass throttle & concurrency guard (for batch/pre-cache use).
+   * @param {boolean} [options.isOffline=false] Offline rendering mode — bypasses wall-clock throttle but keeps concurrency guard.
    */
   async detect(source, options = {}) {
     if (!this.initialized || !this._model) return this.detections;
 
     const immediate = options.immediate === true;
+    const isOffline = options.isOffline === true;
 
     if (!immediate) {
-      // Throttle + concurrency guard using wall-clock time (immune to ctx.time resets)
-      const now = performance.now();
-      if (this._detecting || now - this._lastDetectWall < this._detectIntervalMs) {
-        return this.detections; // return cached results
+      // Concurrency guard — always active (except immediate mode)
+      if (this._detecting) return this.detections;
+
+      // Wall-clock throttle — skip in offline mode (each frame needs fresh detection)
+      if (!isOffline) {
+        const now = performance.now();
+        if (now - this._lastDetectWall < this._detectIntervalMs) {
+          return this.detections;
+        }
+        this._lastDetectWall = now;
       }
       this._detecting = true;
-      this._lastDetectWall = now;
     }
 
     try {
