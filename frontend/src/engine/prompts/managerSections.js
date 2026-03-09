@@ -134,43 +134,66 @@ gl.bindTexture(gl.TEXTURE_2D, ctx.midi.texture);
 ## OBJECT DETECTION (TensorFlow.js COCO-SSD)
 
 \`ctx.detector\` provides real-time object detection using COCO-SSD (80 classes).
+Two modes: **Online** (live detection each frame) and **Offline** (pre-cache all detections in setup, look up in render).
 
 **IMPORTANT: You MUST call \`await ctx.detector.init()\` in setup before using detect(). Without init(), the model is not loaded and detect() silently returns empty results.**
 
+**Choose the right mode:**
+- **Online mode**: Use for webcam or when video changes unpredictably. Runs detect() each frame (auto-throttled).
+- **Offline mode**: Use for uploaded/fixed videos. Pre-computes all detections in setup — render is instant with no per-frame inference cost. **Prefer this for uploaded videos.**
+
+### Online Mode (webcam / live source)
 \`\`\`js
-// In setup — REQUIRED, always call init() first:
+// In setup — REQUIRED:
 await ctx.detector.init({ maxDetections: 10, minScore: 0.5 });
 ctx.state.video = (await ctx.utils.initWebcam()).video;
 
 // In render:
-// detect() is auto-throttled & concurrency-safe — just call it every frame, no manual throttle needed.
-// Returns cached detections if called too frequently. Do NOT add your own busy flag or interval check.
+// detect() is auto-throttled & concurrency-safe — just call it every frame.
+// Returns cached detections if called too frequently. Do NOT add your own throttle.
 const detections = await ctx.detector.detect(ctx.state.video);
 for (const d of detections) {
   // d.class: "person", d.score: 0.95
-  // d.bbox: [x, y, w, h] in PIXELS (raw from COCO-SSD, matches video dimensions)
+  // d.bbox: [x, y, w, h] in PIXELS
   // d.bboxNorm: [x, y, w, h] normalized 0-1 (for shader use)
   // d.classIndex: 0 (COCO class index)
 }
-ctx.detector.count; // number of detections (also available via detections.length)
+ctx.detector.count; // number of detections
+\`\`\`
 
-// GPU Textures (use bboxNorm internally): bboxTexture (centerX,centerY,w,h), classTexture (classIdx,confidence,0,0)
-// Both MAX_DETECTIONS×1 RGBA32F
-
-// --- Batch pre-cache (in setup, for uploaded videos): ---
-// Use { immediate: true } to bypass throttle for fast sequential detection.
-const video = s.video; // already created video element
-const cache = new Map();
-const step = 0.2; // seconds between samples
+### Offline Mode (uploaded video — PREFERRED for non-live sources)
+\`\`\`js
+// In setup — REQUIRED:
+await ctx.detector.init({ maxDetections: 20, minScore: 0.4 });
+const video = s.video; // video element already created
 await new Promise(r => { video.onloadedmetadata = r; });
+// Pre-cache detections at regular intervals across the entire video
+const cache = new Map();
+const step = 0.2; // seconds between samples (adjust for precision vs speed)
 for (let t = 0; t < video.duration; t += step) {
   video.currentTime = t;
   await new Promise(r => video.addEventListener('seeked', r, { once: true }));
+  // { immediate: true } bypasses throttle for fast sequential detection
   cache.set(Math.round(t * 1000), await ctx.detector.detect(video, { immediate: true }));
 }
 s.detectionCache = cache;
-// In render: lookup nearest cached result by ctx.time
-\`\`\``,
+video.currentTime = 0;
+video.loop = true;
+video.play();
+
+// In render — instant lookup, no inference cost:
+const timeMs = Math.round((ctx.time % video.duration) * 1000);
+// Find nearest cached frame
+let best = null, bestDist = Infinity;
+for (const [ms, dets] of s.detectionCache) {
+  const dist = Math.abs(ms - timeMs);
+  if (dist < bestDist) { bestDist = dist; best = dets; }
+}
+const detections = best || [];
+// Use detections same as online mode: d.class, d.bbox, d.bboxNorm, d.score
+\`\`\`
+
+GPU Textures (both modes): bboxTexture (centerX,centerY,w,h), classTexture (classIdx,confidence,0,0) — MAX_DETECTIONS×1 RGBA32F`,
   },
   {
     id: "sam",
