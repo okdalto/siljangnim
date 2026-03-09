@@ -236,7 +236,7 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
               Security Notice
             </p>
             <ul className="text-[11px] space-y-1" style={{ color: "var(--chrome-text-secondary)" }}>
-              <li>Your API key is stored in your browser's localStorage and sent to our proxy server to forward to the AI provider.</li>
+              <li>Your API key is stored in your browser's sessionStorage and sent to our proxy server to forward to the AI provider.</li>
               <li>We do not log or store your key on the server, but it is transmitted over the network.</li>
               <li>Anyone with access to this browser's dev tools can read the stored key.</li>
               <li>Use a key with spending limits and rotate it regularly.</li>
