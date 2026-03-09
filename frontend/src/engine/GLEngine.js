@@ -970,6 +970,8 @@ export default class GLEngine {
     if (this._paused) {
       // Adjust _startTime so that getCurrentTime() returns targetTime
       this._startTime = this._pauseStart - this._pausedTime - targetTime;
+      // Trigger a render so the viewport shows the frame at the new time
+      this._needsPausedRender = true;
     } else {
       this._startTime = now - this._pausedTime - targetTime;
     }
@@ -1299,6 +1301,11 @@ export default class GLEngine {
    * Call after the offline render loop finishes.
    */
   disposeOfflineVideos() {
+    // Reset offline flag so drift correction resumes in _renderFrame
+    if (this._scriptCtx) {
+      this._scriptCtx.isOffline = false;
+    }
+
     if (!this._offlineExtractors) return;
     for (const [video, extractor] of this._offlineExtractors) {
       extractor.dispose();
@@ -1308,6 +1315,16 @@ export default class GLEngine {
       }
     }
     this._offlineExtractors = null;
+
+    // Resume playback on registered videos (paused during offline recording)
+    const videos = this._scriptCtx?._registeredVideos;
+    if (videos?.size) {
+      for (const [video] of videos) {
+        if (video.paused) {
+          video.play().catch(() => {});
+        }
+      }
+    }
   }
 
   /**
