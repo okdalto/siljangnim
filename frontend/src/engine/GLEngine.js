@@ -634,6 +634,7 @@ export default class GLEngine {
       detect: async (source) => {
         await tfMgr.detect(source);
         tfMgr.updateTextures(this.gl);
+        return tfMgr.detections;
       },
       get initialized() { return tfMgr.initialized; },
       get detections() { return tfMgr.detections; },

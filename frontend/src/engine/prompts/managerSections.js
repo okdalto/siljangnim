@@ -137,12 +137,15 @@ await ctx.detector.init({ maxDetections: 10, minScore: 0.5 });
 ctx.state.video = (await ctx.utils.initWebcam()).video;
 
 // In render:
-await ctx.detector.detect(ctx.state.video);
-for (const d of ctx.detector.detections) {
+// detect() returns the detections array (Promise<Array>).
+// bbox values are ALREADY NORMALIZED 0-1 — do NOT divide by video width/height again.
+const detections = await ctx.detector.detect(ctx.state.video);
+for (const d of detections) {
   // d.class: "person", d.score: 0.95, d.bbox: [x, y, w, h] (normalized 0-1)
   // d.classIndex: 0 (COCO class index)
+  // To convert to pixel coords: x_px = d.bbox[0] * canvasWidth, etc.
 }
-ctx.detector.count; // number of detections
+ctx.detector.count; // number of detections (also available via detections.length)
 
 // Textures: bboxTexture (centerX,centerY,w,h), classTexture (classIdx,confidence,0,0)
 // Both MAX_DETECTIONS×1 RGBA32F
