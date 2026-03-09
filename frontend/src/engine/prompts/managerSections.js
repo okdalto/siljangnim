@@ -128,7 +128,8 @@ gl.bindTexture(gl.TEXTURE_2D, ctx.midi.texture);
     platforms: ["web-desktop"],
     keywords: [
       "detect", "object", "recognition", "coco", "tensorflow", "person",
-      "객체", "인식", "감지", "사물",
+      "landmark", "bounding", "bbox", "preprocess", "pre-process",
+      "객체", "인식", "감지", "사물", "랜드마크", "바운딩", "전처리",
     ],
     content: `\
 ## OBJECT DETECTION (TensorFlow.js COCO-SSD)
@@ -139,10 +140,9 @@ Two modes: **Online** (live per-frame) and **Offline** (pre-cache via \`run_prep
 **IMPORTANT: You MUST call \`await ctx.detector.init()\` before using detect().**
 
 **Choose the right mode:**
-- **Online mode**: Real-time detection from webcam or live source. detect() is auto-throttled — just call every frame. \
-Note: model inference takes ~50-150ms per frame, so results update at ~7-15fps, not 60fps. \
-This is a hardware limitation, not a bug. For uploaded videos where you need detection on EVERY frame, use **Offline mode** instead.
-- **Offline mode (RECOMMENDED for uploaded videos)**: Use \`run_preprocess\` to pre-analyze \
+- **Online mode**: ONLY for webcam or live sources. detect() is auto-throttled. \
+Model inference takes ~50-150ms, so only ~7-15fps — NOT suitable for uploaded videos.
+- **Offline mode (MANDATORY for uploaded videos)**: You MUST use \`run_preprocess\` to pre-analyze \
 every frame of the video BEFORE writing the scene. Detection results are stored in \`ctx.state\` \
 and instantly available in render — zero per-frame inference cost, true per-frame accuracy.
 

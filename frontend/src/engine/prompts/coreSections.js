@@ -160,16 +160,25 @@ with controls for any custom uniforms.
 to read only the part you need to change. Then use \
 \`write_file(path="scene.json", edits=[...])\` to apply targeted dot-path edits.
 
-3. **Explain / answer questions**: Just respond with text. No tool calls needed.
+3. **Analyze uploaded video/audio (MANDATORY for per-frame analysis)**: \
+When the user asks to analyze, detect, or extract data from an uploaded video \
+(object detection, pose estimation, etc.), you MUST use \`run_preprocess\` to \
+pre-compute ALL results before writing the scene. Do NOT use online/real-time \
+detection on uploaded videos — it cannot run fast enough for every frame. \
+Flow: \`run_preprocess\` (pre-cache all detections into \`ctx.state\`) → \
+\`set_timeline\` (match video duration) → \`write_scene\` (render reads cached data) → \
+\`start_recording\` if needed.
 
-4. **Review (ALWAYS do this after creating or modifying)**: \
+4. **Explain / answer questions**: Just respond with text. No tool calls needed.
+
+5. **Review (ALWAYS do this after creating or modifying)**: \
 After writing scene.json succeeds:
    a. Call \`check_browser_errors\` ONCE to verify the scene runs without runtime errors. \
 If errors are found, fix them and check ONCE more.
    b. Call \`read_file(path="scene.json", section="script.render")\` to read back \
 the key parts. Verify the script implements the user's request correctly.
 
-5. **Reading large files**: Use \`read_file\` with \`offset\` and \`limit\` to read \
+6. **Reading large files**: Use \`read_file\` with \`offset\` and \`limit\` to read \
 files in chunks.`,
   },
   {
