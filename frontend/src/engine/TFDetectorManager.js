@@ -65,6 +65,11 @@ export default class TFDetectorManager extends BaseManager {
     // Config
     this.maxDetections = MAX_DETECTIONS;
     this.minScore = 0.5;
+
+    // Built-in throttle & concurrency guard
+    this._detecting = false;
+    this._lastDetectWall = 0; // wall-clock ms (not ctx.time)
+    this._detectIntervalMs = 150; // min ms between detect calls
   }
 
   /**
@@ -107,7 +112,16 @@ export default class TFDetectorManager extends BaseManager {
    * @param {HTMLVideoElement|HTMLImageElement|HTMLCanvasElement} source
    */
   async detect(source) {
-    if (!this.initialized || !this._model) return;
+    if (!this.initialized || !this._model) return this.detections;
+
+    // Throttle + concurrency guard using wall-clock time (immune to ctx.time resets)
+    const now = performance.now();
+    if (this._detecting || now - this._lastDetectWall < this._detectIntervalMs) {
+      return this.detections; // return cached results
+    }
+
+    this._detecting = true;
+    this._lastDetectWall = now;
     try {
       const predictions = await this._model.detect(source, this.maxDetections, this.minScore);
       const sw = source.videoWidth || source.width || source.naturalWidth || 1;
@@ -115,8 +129,6 @@ export default class TFDetectorManager extends BaseManager {
       this.detections = predictions.map((p) => {
         const classIndex = COCO_CLASS_INDEX.get(p.class) ?? -1;
         if (sw === 0 || sh === 0) return null;
-        // bbox: raw pixel coords from coco-ssd [x, y, width, height]
-        // bboxNorm: normalized 0-1 coords for shader/texture use
         return {
           class: p.class,
           classIndex,
@@ -128,7 +140,10 @@ export default class TFDetectorManager extends BaseManager {
       this.count = this.detections.length;
     } catch (err) {
       console.warn("[TFDetectorManager] detect error:", err);
+    } finally {
+      this._detecting = false;
     }
+    return this.detections;
   }
 
   /**

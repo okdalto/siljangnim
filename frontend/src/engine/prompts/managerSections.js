@@ -137,7 +137,8 @@ await ctx.detector.init({ maxDetections: 10, minScore: 0.5 });
 ctx.state.video = (await ctx.utils.initWebcam()).video;
 
 // In render:
-// detect() returns the detections array (Promise<Array>).
+// detect() is auto-throttled & concurrency-safe — just call it every frame, no manual throttle needed.
+// Returns cached detections if called too frequently. Do NOT add your own busy flag or interval check.
 const detections = await ctx.detector.detect(ctx.state.video);
 for (const d of detections) {
   // d.class: "person", d.score: 0.95
