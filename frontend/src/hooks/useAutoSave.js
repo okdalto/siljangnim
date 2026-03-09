@@ -20,7 +20,7 @@ export default function useAutoSave({ captureThumbnailRef, getMessagesRef, setPr
 
   const triggerAutoSave = useCallback(() => {
     const activeName = getActiveProjectName();
-    if (!activeName || activeName === "_untitled") return;
+    if (!activeName) return;
 
     if (timerRef.current) clearTimeout(timerRef.current);
 

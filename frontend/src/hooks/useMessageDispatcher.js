@@ -151,6 +151,7 @@ export default function useMessageDispatcher(params) {
 
       case "assistant_text":
         chat.addAssistantText(msg.text);
+        autoSave?.triggerAutoSave?.();
         break;
 
       case "chat_done": {
