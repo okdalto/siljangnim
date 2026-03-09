@@ -28,6 +28,7 @@ import {
   isSafeMode,
   trustManifest,
 } from "./portableSchema.js";
+import { base64ToUint8Array } from "../utils/base64Utils.js";
 
 const DB_NAME = "siljangnim";
 const DB_VERSION = 2;
@@ -384,10 +385,7 @@ export async function saveProject(name, chatHistory, description = "", thumbnail
   let hasThumbnail = false;
   if (thumbnailB64) {
     try {
-      const b64 = thumbnailB64.includes(",") ? thumbnailB64.split(",")[1] : thumbnailB64;
-      const binary = atob(b64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const bytes = base64ToUint8Array(thumbnailB64);
       const thumbStore = await tx(STORE_BLOBS, "readwrite");
       await idbReq(
         thumbStore.put(
@@ -1291,10 +1289,7 @@ export async function autoSaveCurrentProject(chatHistory, thumbnailB64 = null) {
   let hasThumbnail = existing.has_thumbnail || false;
   if (thumbnailB64) {
     try {
-      const b64 = thumbnailB64.includes(",") ? thumbnailB64.split(",")[1] : thumbnailB64;
-      const binary = atob(b64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const bytes = base64ToUint8Array(thumbnailB64);
       const thumbStore = await tx(STORE_BLOBS, "readwrite");
       await idbReq(
         thumbStore.put(
@@ -1386,10 +1381,7 @@ export async function autoCreateProject(suggestedName, chatHistory, thumbnailB64
   let hasThumbnail = false;
   if (thumbnailB64) {
     try {
-      const b64 = thumbnailB64.includes(",") ? thumbnailB64.split(",")[1] : thumbnailB64;
-      const binary = atob(b64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const bytes = base64ToUint8Array(thumbnailB64);
       const thumbStore = await tx(STORE_BLOBS, "readwrite");
       await idbReq(
         thumbStore.put(
@@ -1613,10 +1605,7 @@ export async function readNodeThumbnailUrl(projectName, nodeId) {
 export async function writeNodeThumbnail(projectName, nodeId, dataUrl) {
   if (!dataUrl) return;
   try {
-    const b64 = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
-    const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const bytes = base64ToUint8Array(dataUrl);
     const store = await tx(STORE_BLOBS, "readwrite");
     await idbReq(
       store.put(

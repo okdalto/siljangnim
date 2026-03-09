@@ -1,4 +1,5 @@
 import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
+import BaseManager from "./BaseManager.js";
 
 /**
  * MicManager — Real-time microphone input with FFT analysis.
@@ -7,15 +8,13 @@ import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
  * FFT data (frequency + waveform) as shader-ready textures and band energies.
  */
 
-export default class MicManager {
+export default class MicManager extends BaseManager {
   constructor() {
+    super();
     this._audioContext = null;
     this._analyser = null;
     this._stream = null;
     this._sourceNode = null;
-
-    this.initialized = false;
-    this._initializing = false;
 
     // FFT data arrays (allocated once analyser is ready)
     this.frequencyData = null; // Uint8Array[1024]
@@ -37,10 +36,7 @@ export default class MicManager {
    * Idempotent — calling multiple times is safe.
    */
   async init() {
-    if (this.initialized || this._initializing) return;
-    this._initializing = true;
-
-    try {
+    await this._guardedInit(async () => {
       this._stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
       this._audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -58,13 +54,7 @@ export default class MicManager {
 
       this.frequencyData = new Uint8Array(this._analyser.frequencyBinCount);
       this.waveformData = new Uint8Array(this._analyser.frequencyBinCount);
-
-      this.initialized = true;
-    } catch (err) {
-      console.error("MicManager: failed to init microphone", err);
-    } finally {
-      this._initializing = false;
-    }
+    });
   }
 
   /**

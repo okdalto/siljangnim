@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import useExternalUniformChange from "../../hooks/useExternalUniformChange.js";
+import { rgbArrayToHex, hexToRgb } from "../../utils/colorUtils.js";
 
 function parseColorDefault(d) {
   const hex = (typeof d === "string" ? d : "#ffffff").slice(0, 7);
@@ -21,19 +22,14 @@ export default function ColorControl({ ctrl, onUniformChange }) {
 
   useExternalUniformChange(ctrl.uniform, (v) => {
     if (Array.isArray(v) && v.length >= 3) {
-      const r = Math.round(v[0] * 255).toString(16).padStart(2, "0");
-      const g = Math.round(v[1] * 255).toString(16).padStart(2, "0");
-      const b = Math.round(v[2] * 255).toString(16).padStart(2, "0");
-      setColor(`#${r}${g}${b}`);
+      setColor(rgbArrayToHex(v));
       if (v.length >= 4) setAlpha(v[3]);
     }
   });
 
   const emit = useCallback(
     (hex, a) => {
-      const r = parseInt(hex.slice(1, 3), 16) / 255;
-      const g = parseInt(hex.slice(3, 5), 16) / 255;
-      const b = parseInt(hex.slice(5, 7), 16) / 255;
+      const [r, g, b] = hexToRgb(hex);
       onUniformChange?.(ctrl.uniform, [r, g, b, a]);
     },
     [ctrl.uniform, onUniformChange]

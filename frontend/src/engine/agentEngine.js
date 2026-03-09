@@ -9,25 +9,8 @@ import * as storage from "./storage.js";
 import { DEFAULT_SCENE_JSON, DEFAULT_UI_CONFIG } from "./storage.js";
 import { validateApiKey } from "./anthropicClient.js";
 import { runAgent, runWithPlan } from "./agentExecutor.js";
-
-// ---------------------------------------------------------------------------
-// Error classification
-// ---------------------------------------------------------------------------
-
-const ENGINE_ERROR_PATTERNS = [
-  "ResizeObserver", "VideoEncoder", "MediaRecorder", "MediaPipe",
-  "captureStream", "WebSocket", "Failed to fetch", "net::ERR_",
-  "NS_ERROR_", "NotAllowedError", "NotSupportedError", "AbortError",
-  "QuotaExceededError", "recorder", "muxer", "mp4-muxer", "webm-muxer",
-];
-
-function classifyError(message) {
-  const lower = message.toLowerCase();
-  for (const pattern of ENGINE_ERROR_PATTERNS) {
-    if (lower.includes(pattern.toLowerCase())) return "engine";
-  }
-  return "script";
-}
+import { classifyError } from "./errorClassifier.js";
+import { base64ToUint8Array } from "../utils/base64Utils.js";
 
 // ---------------------------------------------------------------------------
 // AgentEngine class
@@ -296,10 +279,7 @@ const HANDLERS = {
         try {
           // f is { name, data_b64 (base64), mime_type, size }
           const raw = f.data_b64 || f.data || "";
-          const b64 = raw.includes(",") ? raw.split(",")[1] : raw;
-          const binary = atob(b64);
-          const bytes = new Uint8Array(binary.length);
-          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          const bytes = base64ToUint8Array(raw);
           await storage.saveUpload(f.name, bytes.buffer, f.mime_type);
           savedFiles.push({ name: f.name, mime_type: f.mime_type, size: f.size || bytes.length });
         } catch (e) {

@@ -7,6 +7,8 @@
  */
 
 import { callAnthropic } from "./anthropicClient.js";
+import { classifyApiError } from "./agentErrorHandler.js";
+import { detectToolLoop } from "./agentLoopDetector.js";
 
 /** Detect platform type for prompt section filtering. */
 function detectPlatformType() {
@@ -388,84 +390,34 @@ async function _runAgentLoop({
         contentBlocks = result.contentBlocks;
         stopReason = result.stopReason;
       } catch (err) {
-        // Handle specific API errors
         if (err.name === "AbortError") throw err;
 
-        const errMsg = (err.message || "").toLowerCase();
-        const status = err.status || 0;
+        const decision = classifyApiError(err, {
+          overloadRetries,
+          compactRetries,
+          maxOverloadRetries: MAX_OVERLOAD_RETRIES,
+          maxCompactRetries: MAX_COMPACT_RETRIES,
+        });
 
-        // Overloaded / rate limited
-        if (status === 529 || status === 429 || errMsg.includes("overloaded") || errMsg.includes("rate_limit")) {
-          overloadRetries++;
-          if (overloadRetries > MAX_OVERLOAD_RETRIES) {
-            log("System", `API overloaded after ${MAX_OVERLOAD_RETRIES} retries`, "error");
-            throw err;
-          }
-          const delay = Math.min(2 ** overloadRetries, 30);
-          log("System", `API overloaded — retrying in ${delay}s...`, "info");
-          onStatus?.("thinking", `Server busy, retrying in ${delay}s...`);
-          await sleep(delay * 1000, signal);
-          continue;
+        if (decision.action === "throw") {
+          if (decision.message) log("System", decision.message, "error");
+          throw err;
         }
 
-        // Context too long
-        if (errMsg.includes("prompt is too long") || errMsg.includes("too long")) {
+        if (decision.action === "compact") {
           compactRetries++;
-          if (compactRetries > MAX_COMPACT_RETRIES) {
-            log("System", "Context too long after compaction", "error");
-            throw err;
-          }
-          log("System", "Context too long — compacting...", "info");
+          log("System", decision.message, "info");
           onStatus?.("thinking", "Compacting conversation...");
           compactMessages(messages);
           continue;
         }
 
-        // Server errors
-        if (status >= 500) {
+        if (decision.action === "retry") {
           overloadRetries++;
-          if (overloadRetries > MAX_OVERLOAD_RETRIES) throw err;
-          const delay = Math.min(2 ** overloadRetries, 30);
-          log("System", `Server error — retrying in ${delay}s...`, "info");
-          onStatus?.("thinking", `Server error, retrying in ${delay}s...`);
-          await sleep(delay * 1000, signal);
-          continue;
-        }
-
-        // Network / stream errors (e.g. mobile browser backgrounded, stream timeout)
-        const isNetworkError = status === 0 || errMsg.includes("timeout") || errMsg.includes("aborted");
-        if (isNetworkError && (
-          errMsg.includes("fetch") || errMsg.includes("network") ||
-          errMsg.includes("timeout") || errMsg.includes("failed") ||
-          errMsg.includes("terminated") || errMsg.includes("connection") ||
-          errMsg.includes("aborted") || errMsg.includes("stream") ||
-          errMsg.includes("readable") || errMsg.includes("body")
-        )) {
-          overloadRetries++;
-          if (overloadRetries > MAX_OVERLOAD_RETRIES) throw err;
-          // Wait for page to be visible before retrying
-          if (document.hidden) {
-            log("System", "App backgrounded — will resume when visible...", "info");
-            onStatus?.("thinking", "Paused (app in background)...");
-            await waitForVisible(signal);
-          }
-          const delay = Math.min(2 ** overloadRetries, 10);
-          log("System", `Connection lost — retrying in ${delay}s...`, "info");
-          onStatus?.("thinking", `Reconnecting in ${delay}s...`);
-          await sleep(delay * 1000, signal);
-          continue;
-        }
-
-        // Catch-all: any non-HTTP error (status undefined/0) that wasn't caught above
-        // is likely a network issue — retry rather than crashing
-        if (!status || status === 0) {
-          overloadRetries++;
-          if (overloadRetries > MAX_OVERLOAD_RETRIES) throw err;
-          const delay = Math.min(2 ** overloadRetries, 10);
-          log("System", `Unexpected error: ${err.message} — retrying in ${delay}s...`, "info");
-          onStatus?.("thinking", `Error, retrying in ${delay}s...`);
+          log("System", decision.message, "info");
+          onStatus?.("thinking", decision.message);
           if (document.hidden) await waitForVisible(signal);
-          await sleep(delay * 1000, signal);
+          await sleep(decision.delay * 1000, signal);
           continue;
         }
 
@@ -630,26 +582,23 @@ async function _runAgentLoop({
       messages.push({ role: "user", content: toolResults });
 
       // --- Loop detection ---
-      const last10 = recentToolSigs.slice(-10);
-      const sigCounts = {};
-      for (const s of last10) sigCounts[s] = (sigCounts[s] || 0) + 1;
-      const maxCount = Math.max(0, ...Object.values(sigCounts));
+      const loopResult = detectToolLoop(recentToolSigs, {
+        warnThreshold: LOOP_WARN_THRESHOLD,
+        breakThreshold: LOOP_BREAK_THRESHOLD,
+      });
 
-      if (maxCount >= LOOP_BREAK_THRESHOLD) {
-        log("System", `Loop detected (${maxCount} identical calls) — stopping`, "warning");
-        // Inject warning and let model respond
+      if (loopResult.action === "break") {
+        log("System", `Loop detected (${loopResult.count} identical calls) — stopping`, "warning");
         messages.push({
           role: "user",
           content: "SYSTEM: You are in an infinite loop calling the same tool repeatedly. STOP calling tools and respond to the user with what you have so far.",
         });
         break;
       }
-      if (maxCount >= LOOP_WARN_THRESHOLD) {
-        // Inject warning as a separate user message (not a fake tool_result,
-        // which the API rejects if there's no matching tool_use)
+      if (loopResult.action === "warn") {
         messages.push({
           role: "user",
-          content: `WARNING: You have called the same tool ${maxCount} times. If you are stuck in a loop, try a different approach or respond to the user with what you have.`,
+          content: `WARNING: You have called the same tool ${loopResult.count} times. If you are stuck in a loop, try a different approach or respond to the user with what you have.`,
         });
       }
     }

@@ -6,6 +6,7 @@
  */
 
 import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
+import BaseManager from "./BaseManager.js";
 
 const CDN_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18";
 const WASM_BASE = `${CDN_BASE}/wasm`;
@@ -24,8 +25,9 @@ const LANDMARK_COUNTS = {
   faceMesh: 478,
 };
 
-export default class MediaPipeManager {
+export default class MediaPipeManager extends BaseManager {
   constructor() {
+    super();
     this._vision = null;          // CDN module reference
     this._filesetResolver = null; // WASM fileset
 
@@ -44,9 +46,6 @@ export default class MediaPipeManager {
     this.handsTexture = null;     // 21×2
     this.faceMeshTexture = null;  // 478×1
 
-    // State flags
-    this.initialized = false;
-    this._initializing = false;
     this._tasks = [];             // which tasks were requested
   }
 
@@ -61,9 +60,6 @@ export default class MediaPipeManager {
    * @param {number} [options.maxFaces=1]
    */
   async init(gl, options = {}) {
-    if (this.initialized || this._initializing) return;
-    this._initializing = true;
-
     const {
       tasks = ["pose"],
       delegate = "GPU",
@@ -74,7 +70,7 @@ export default class MediaPipeManager {
 
     this._tasks = tasks;
 
-    try {
+    await this._guardedInit(async () => {
       // Dynamic import from CDN (webpackIgnore keeps bundler away)
       const vision = await import(
         /* webpackIgnore: true */
@@ -120,13 +116,7 @@ export default class MediaPipeManager {
       }
 
       await Promise.all(promises);
-      this.initialized = true;
-    } catch (err) {
-      console.error("[MediaPipeManager] init failed:", err);
-      throw err;
-    } finally {
-      this._initializing = false;
-    }
+    });
   }
 
   /**

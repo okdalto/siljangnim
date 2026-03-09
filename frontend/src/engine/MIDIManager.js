@@ -1,4 +1,5 @@
 import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
+import BaseManager from "./BaseManager.js";
 
 /**
  * MIDIManager — Real-time MIDI input via Web MIDI API.
@@ -11,8 +12,9 @@ import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
  *   Row 1: Note velocities (128 notes, R=velocity 0-1, G=1 if on, BA=0)
  *   Row 2: Global data (pixel 0: R=pitchBend -1..1, G=noteCount, B=lastCC, A=lastNote)
  */
-export default class MIDIManager {
+export default class MIDIManager extends BaseManager {
   constructor() {
+    super();
     this._midiAccess = null;
     this._selectedInputId = null;
     this._listeners = [];
@@ -36,16 +38,11 @@ export default class MIDIManager {
     // GPU texture
     this.texture = null;
 
-    // State
-    this.initialized = false;
-    this._initializing = false;
     this._devices = []; // [{id, name, manufacturer}]
   }
 
   async init() {
-    if (this.initialized || this._initializing) return;
-    this._initializing = true;
-    try {
+    await this._guardedInit(async () => {
       if (!navigator.requestMIDIAccess) {
         throw new Error("Web MIDI API not supported in this browser");
       }
@@ -57,13 +54,7 @@ export default class MIDIManager {
       if (this._devices.length > 0 && !this._selectedInputId) {
         this.selectInput(this._devices[0].id);
       }
-      this.initialized = true;
-    } catch (err) {
-      console.error("[MIDIManager] init failed:", err);
-      throw err;
-    } finally {
-      this._initializing = false;
-    }
+    });
   }
 
   get devices() { return this._devices; }
