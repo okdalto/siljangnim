@@ -293,8 +293,12 @@ export async function startOfflineWebCodecs(ctx) {
     });
   }
 
+  let hasVideoChunks = false;
   const encoder = new VideoEncoder({
-    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+    output: (chunk, meta) => {
+      hasVideoChunks = true;
+      muxer.addVideoChunk(chunk, meta);
+    },
     error: (e) => console.error("VideoEncoder error:", e),
   });
   encoder.configure({
@@ -326,12 +330,17 @@ export async function startOfflineWebCodecs(ctx) {
     try {
       if (audioEncoder?.state === "configured") await audioEncoder.flush();
       if (encoder.state === "configured") await encoder.flush();
-      muxer.finalize();
-      const blob = new Blob([target.buffer], { type: blobType });
-      if (!discardRef.current) {
-        downloadBlob(blob, `recording_${Date.now()}.${fileExt}`);
+      if (!hasVideoChunks) {
+        console.warn("No video frames were encoded – skipping file output");
+        setCompletionInfo({ success: false, error: "No video frames produced", timeTaken });
+      } else {
+        muxer.finalize();
+        const blob = new Blob([target.buffer], { type: blobType });
+        if (!discardRef.current) {
+          downloadBlob(blob, `recording_${Date.now()}.${fileExt}`);
+        }
+        setCompletionInfo({ success: true, fileSize: blob.size, timeTaken });
       }
-      setCompletionInfo({ success: true, fileSize: blob.size, timeTaken });
     } catch (e) {
       console.error("Offline recording finalize error:", e);
       setCompletionInfo({ success: false, error: e.message, timeTaken });
