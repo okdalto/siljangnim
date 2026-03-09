@@ -118,22 +118,6 @@ export default function App() {
     if (engineRef.current) engineRef.current._selectedModel = modelId;
   }, []);
 
-  // Auto-switch model when provider changes (if current model doesn't belong to new provider)
-  const currentProvider = apiKey.savedConfig?.provider;
-  useEffect(() => {
-    if (!currentProvider) return;
-    const PROVIDER_MODELS = {
-      anthropic: ["claude-sonnet-4-6", "claude-opus-4-6", "claude-haiku-4-5-20251001"],
-      openai: ["gpt-4o", "gpt-4o-mini", "o3"],
-      gemini: ["gemini-2.5-pro", "gemini-2.0-flash"],
-      glm: ["glm-4-plus"],
-    };
-    const models = PROVIDER_MODELS[currentProvider];
-    if (models && !models.includes(selectedModel)) {
-      handleModelChange(models[0]);
-    }
-  }, [currentProvider]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // Per-node UI state (collapsed, fixedResolution) — tracked here so we can
   // persist them in workspace_state snapshots and restore on checkout.
   const nodeUiStateRef = useRef({
@@ -185,6 +169,22 @@ export default function App() {
     _agentEngine._getAssetContext = assetNodes.getPromptContext;
     _agentEngine._selectedModel = selectedModel;
   }
+
+  // Auto-switch model when provider changes (if current model doesn't belong to new provider)
+  const currentProvider = apiKey.savedConfig?.provider;
+  useEffect(() => {
+    if (!currentProvider) return;
+    const PROVIDER_MODELS = {
+      anthropic: ["claude-sonnet-4-6", "claude-opus-4-6", "claude-haiku-4-5-20251001"],
+      openai: ["gpt-4o", "gpt-4o-mini", "o3"],
+      gemini: ["gemini-2.5-pro", "gemini-2.0-flash"],
+      glm: ["glm-4-plus"],
+    };
+    const models = PROVIDER_MODELS[currentProvider];
+    if (models && !models.includes(selectedModel)) {
+      handleModelChange(models[0]);
+    }
+  }, [currentProvider]); // eslint-disable-line react-hooks/exhaustive-deps
   const kf = useKeyframes(engineRef);
 
   const captureThumbnail = useCallback(() => {
