@@ -9,6 +9,7 @@
  * for backward compatibility with existing scenes.
  */
 
+import { getAllUploadBlobUrls, getUploadBlobUrl } from "./storage.js";
 import { createProgram, compileShader, DEFAULT_QUAD_VERTEX_SHADER, DEFAULT_3D_VERTEX_SHADER } from "./shaderUtils.js";
 import { createQuadGeometry, createBoxGeometry, createSphereGeometry, createPlaneGeometry } from "./geometries.js";
 import AudioManager from "./AudioManager.js";
@@ -17,6 +18,7 @@ import MIDIManager from "./MIDIManager.js";
 import TFDetectorManager from "./TFDetectorManager.js";
 import SAMManager from "./SAMManager.js";
 import OSCManager from "./OSCManager.js";
+import MicManager from "./MicManager.js";
 import { sampleCurve } from "../utils/curves.js";
 import * as mat4 from "./mat4.js";
 import * as quat from "./quat.js";
@@ -115,6 +117,7 @@ export default class GLEngine {
 
     // OSC manager
     this._oscManager = new OSCManager();
+    this._micManager = new MicManager();
 
     // Manager registry for centralized cleanup
     this._managers = [
@@ -124,6 +127,7 @@ export default class GLEngine {
       this._tfDetectorManager,
       this._samManager,
       this._oscManager,
+      this._micManager,
     ];
 
     // Script mode
@@ -591,6 +595,20 @@ export default class GLEngine {
       get texture() { return oscMgr.texture; },
     };
 
+    // --- Mic ---
+    const micMgr = this._micManager;
+    ctx.mic = {
+      init: () => micMgr.init(),
+      get initialized() { return micMgr.initialized; },
+      get bass() { return micMgr.bass; },
+      get mid() { return micMgr.mid; },
+      get treble() { return micMgr.treble; },
+      get energy() { return micMgr.energy; },
+      get frequencyData() { return micMgr.frequencyData; },
+      get waveformData() { return micMgr.waveformData; },
+      get fftTexture() { return micMgr.fftTexture; },
+    };
+
     this._scriptCtx = ctx;
 
     // --- Draw call validation wrapper ---
@@ -892,6 +910,11 @@ export default class GLEngine {
         this._oscManager.updateTextures(gl);
       }
 
+      // Update mic FFT data before script render
+      if (this._micManager?.initialized) {
+        this._micManager.updateFrame(gl);
+      }
+
       // Update audio data before script render
       if (this._audioManager) {
         this._audioManager.updateFrame(gl, time);
@@ -1170,46 +1193,10 @@ export default class GLEngine {
   /** Pre-populate ctx.uploads with blob URLs for all uploaded files, then run setup. */
   async _prepareUploadsAndRunSetup(ctx) {
     try {
-      // Load all upload blob URLs from IndexedDB
-      const DB_NAME = "siljangnim";
-      const DB_VERSION = 2;
-      const db = await new Promise((resolve, reject) => {
-        const req = indexedDB.open(DB_NAME, DB_VERSION);
-        req.onupgradeneeded = () => {
-          const d = req.result;
-          if (!d.objectStoreNames.contains("files")) d.createObjectStore("files");
-          if (!d.objectStoreNames.contains("projects")) d.createObjectStore("projects");
-          if (!d.objectStoreNames.contains("blobs")) d.createObjectStore("blobs");
-          if (!d.objectStoreNames.contains("project_nodes")) d.createObjectStore("project_nodes");
-        };
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-
-      const tx = db.transaction("blobs", "readonly");
-      const store = tx.objectStore("blobs");
-      const allKeys = await new Promise((resolve, reject) => {
-        const req = store.getAllKeys();
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-
-      const uploadKeys = allKeys.filter((k) => k.includes("/uploads/"));
-      for (const key of uploadKeys) {
-        const tx2 = db.transaction("blobs", "readonly");
-        const store2 = tx2.objectStore("blobs");
-        const entry = await new Promise((resolve, reject) => {
-          const req = store2.get(key);
-          req.onsuccess = () => resolve(req.result);
-          req.onerror = () => reject(req.error);
-        });
-        if (entry?.data) {
-          const filename = key.split("/uploads/").pop();
-          const blob = new Blob([entry.data], { type: entry.mimeType || "application/octet-stream" });
-          ctx.uploads[filename] = URL.createObjectURL(blob);
-        }
+      const blobUrls = await getAllUploadBlobUrls();
+      for (const [filename, url] of blobUrls) {
+        ctx.uploads[filename] = url;
       }
-      db.close();
     } catch (e) {
       console.warn("[GLEngine] Failed to pre-populate uploads:", e);
     }
@@ -1229,41 +1216,7 @@ export default class GLEngine {
 
   /** Load an uploaded file from IndexedDB and return a blob URL. */
   async _getUploadBlobUrl(filename) {
-    const DB_NAME = "siljangnim";
-    const DB_VERSION = 2;
-    const db = await new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = () => {
-        const d = req.result;
-        if (!d.objectStoreNames.contains("files")) d.createObjectStore("files");
-        if (!d.objectStoreNames.contains("projects")) d.createObjectStore("projects");
-        if (!d.objectStoreNames.contains("blobs")) d.createObjectStore("blobs");
-        if (!d.objectStoreNames.contains("project_nodes")) d.createObjectStore("project_nodes");
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-    const tx = db.transaction("blobs", "readonly");
-    const store = tx.objectStore("blobs");
-    const allKeys = await new Promise((resolve, reject) => {
-      const req = store.getAllKeys();
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-    const matchKey = allKeys.find((k) => k.endsWith(`/uploads/${filename}`));
-    if (!matchKey) throw new Error(`Upload not found: ${filename}`);
-    // Open a new transaction since the previous one may have auto-committed
-    const tx2 = db.transaction("blobs", "readonly");
-    const store2 = tx2.objectStore("blobs");
-    const entry = await new Promise((resolve, reject) => {
-      const req = store2.get(matchKey);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-    db.close();
-    if (!entry?.data) throw new Error(`Upload data missing: ${filename}`);
-    const blob = new Blob([entry.data], { type: entry.mimeType || "application/octet-stream" });
-    return URL.createObjectURL(blob);
+    return getUploadBlobUrl(filename);
   }
 
   dispose() {

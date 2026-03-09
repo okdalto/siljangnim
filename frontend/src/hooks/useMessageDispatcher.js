@@ -34,6 +34,67 @@ function _applyUiState(uiState, { setPaused, setBackendTarget, rfInstanceRef, no
 }
 
 /**
+ * Common workspace state restoration logic shared by "init" and "project_loaded" handlers.
+ */
+function _restoreWorkspaceState(msg, deps) {
+  const {
+    chat, panels, kf, assetNodes,
+    setSceneJSON, setUiConfig, setDuration, setLoop,
+    pendingLayoutsRef, setNodes,
+    resetUniformHistoryRef, initSettledRef,
+    wsStateTimerRef, kfMountedRef, durationLoopMountedRef,
+    settingsRef, setPaused,
+    setBackendTarget, rfInstanceRef, nodeUiStateRef,
+  } = deps;
+
+  // Suppress layout saves until settled
+  initSettledRef.current = false;
+  // Cancel any pending debounced workspace state save
+  if (wsStateTimerRef.current) { clearTimeout(wsStateTimerRef.current); wsStateTimerRef.current = null; }
+  // Reset mount guards so the kf/duration effects skip the restore-triggered fire
+  kfMountedRef.current = false;
+  durationLoopMountedRef.current = false;
+  resetUniformHistoryRef.current();
+
+  if (msg.scene_json) setSceneJSON(msg.scene_json);
+  if (msg.ui_config) setUiConfig(msg.ui_config);
+
+  // Restore chat history
+  if (msg.chat_history?.length) {
+    chat.restoreMessages(msg.chat_history);
+  } else if (msg.chat_history) {
+    chat.restoreMessages(msg.chat_history);
+  }
+
+  // Restore workspace state (keyframes, duration, loop, layouts)
+  if (msg.workspace_state) {
+    kf.restoreKeyframes(msg.workspace_state.keyframes);
+    if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
+    if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
+    if (msg.workspace_state.node_layouts) {
+      pendingLayoutsRef.current = msg.workspace_state.node_layouts;
+      const layoutMap = new Map(msg.workspace_state.node_layouts.map((l) => [l.id, l]));
+      setNodes((nds) => nds.map((n) => {
+        const saved = layoutMap.get(n.id);
+        return saved ? { ...n, position: saved.position, style: saved.style || n.style } : n;
+      }));
+    }
+  } else {
+    kf.restoreKeyframes(null);
+    setDuration(settingsRef?.current?.defaultDuration ?? 30);
+    setLoop(settingsRef?.current?.defaultLoop ?? true);
+  }
+
+  panels.restorePanels(msg.panels || {});
+  chat.setDebugLogs(msg.debug_logs || []);
+  assetNodes.restore(msg.workspace_state?.assets || {});
+  _applyUiState(msg.workspace_state?.ui_state, { setPaused, setBackendTarget, rfInstanceRef, nodeUiStateRef });
+
+  // Allow layout saves after React Flow has fully reconciled (double-rAF)
+  requestAnimationFrame(() => requestAnimationFrame(() => { initSettledRef.current = true; }));
+}
+
+/**
  * @param {Object} params - All dependencies for message handling (chat, apiKey, project, panels, kf, state setters, refs)
  * @returns {(msg: {type: string, [key: string]: any}) => void} handleMessage callback
  */
@@ -49,33 +110,32 @@ export default function useMessageDispatcher(params) {
       recorderFnsRef, pendingLayoutsRef, setNodes,
       resetUniformHistoryRef, initSettledRef,
       wsStateTimerRef, kfMountedRef, durationLoopMountedRef,
-      thinkingBufferRef, thinkingLogReceivedRef,
+      buffersRef,
       settingsRef,
       projectTreeRef,
-      getSceneJSONRef, getUiConfigRef, getWorkspaceStateRef,
-      getPanelsRef, getMessagesRef, getDebugLogsRef,
-      getActiveProjectNameRef,
+      gettersRef,
       setProjectManifest,
       overwriteModeRef,
       autoSave,
       // UI state persistence
       setBackendTarget, rfInstanceRef, nodeUiStateRef,
     } = deps.current;
+    // Destructure grouped refs
+    const thinkingBufferRef = { get current() { return buffersRef.current.thinkingBuffer; }, set current(v) { buffersRef.current.thinkingBuffer = v; } };
+    const thinkingLogReceivedRef = { get current() { return buffersRef.current.thinkingLogReceived; }, set current(v) { buffersRef.current.thinkingLogReceived = v; } };
+    const getSceneJSONRef = { current: gettersRef.current.getSceneJSON };
+    const getUiConfigRef = { current: gettersRef.current.getUiConfig };
+    const getWorkspaceStateRef = { current: gettersRef.current.getWorkspaceState };
+    const getPanelsRef = { current: gettersRef.current.getPanels };
+    const getMessagesRef = { current: gettersRef.current.getMessages };
+    const getDebugLogsRef = { current: gettersRef.current.getDebugLogs };
+    const getActiveProjectNameRef = { current: gettersRef.current.getActiveProjectName };
     if (!msg || !msg.type) return;
 
     switch (msg.type) {
       case "init":
-        // Suppress layout saves until init settles (prevent overwriting saved positions)
-        initSettledRef.current = false;
-        // Cancel any pending debounced workspace state save
-        if (wsStateTimerRef.current) { clearTimeout(wsStateTimerRef.current); wsStateTimerRef.current = null; }
-        // Reset mount guards so the kf/duration effects skip the restore-triggered fire
-        kfMountedRef.current = false;
-        durationLoopMountedRef.current = false;
-        resetUniformHistoryRef.current();
+        // Init-specific: API config, projects, active project, processing state
         if (msg.api_config) apiKey.setSavedConfig(msg.api_config);
-        if (msg.scene_json) setSceneJSON(msg.scene_json);
-        if (msg.ui_config) setUiConfig(msg.ui_config);
         if (msg.projects) project.setProjectList(msg.projects);
         if (msg.active_project) {
           project.setActiveProject(msg.active_project.display_name || msg.active_project.name);
@@ -84,33 +144,9 @@ export default function useMessageDispatcher(params) {
           project.setActiveProject(null);
           setProjectManifest?.(null);
         }
-        if (msg.chat_history?.length) chat.restoreMessages(msg.chat_history);
         chat.setProcessing(!!msg.is_processing);
-        if (msg.workspace_state) {
-          kf.restoreKeyframes(msg.workspace_state.keyframes);
-          if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
-          if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
-          if (msg.workspace_state.node_layouts) {
-            pendingLayoutsRef.current = msg.workspace_state.node_layouts;
-            // Direct application for core nodes — belt-and-suspenders alongside pendingLayoutsRef
-            const layoutMap = new Map(msg.workspace_state.node_layouts.map((l) => [l.id, l]));
-            setNodes((nds) => nds.map((n) => {
-              const saved = layoutMap.get(n.id);
-              return saved ? { ...n, position: saved.position, style: saved.style || n.style } : n;
-            }));
-          }
-        } else {
-          kf.restoreKeyframes(null);
-          setDuration(settingsRef?.current?.defaultDuration ?? 30);
-          setLoop(settingsRef?.current?.defaultLoop ?? true);
-        }
-        panels.restorePanels(msg.panels || {});
-        if (msg.debug_logs) chat.setDebugLogs(msg.debug_logs);
-        assetNodes.restore(msg.workspace_state?.assets || {});
-        // Restore UI state (viewport zoom/pan, paused, backendTarget, collapsed, fixedResolution)
-        _applyUiState(msg.workspace_state?.ui_state, { setPaused, setBackendTarget, rfInstanceRef, nodeUiStateRef });
-        // Allow layout saves after React Flow has fully reconciled (double-rAF)
-        requestAnimationFrame(() => requestAnimationFrame(() => { initSettledRef.current = true; }));
+        // Common restoration
+        _restoreWorkspaceState(msg, deps.current);
         break;
 
       case "assistant_text":
@@ -269,48 +305,15 @@ export default function useMessageDispatcher(params) {
         break;
 
       case "project_loaded":
-        // Suppress layout saves until project load settles
-        initSettledRef.current = false;
-        // Cancel any pending debounced workspace state save
-        if (wsStateTimerRef.current) { clearTimeout(wsStateTimerRef.current); wsStateTimerRef.current = null; }
-        // Reset mount guards so the kf/duration effects skip the restore-triggered fire
-        kfMountedRef.current = false;
-        durationLoopMountedRef.current = false;
-        resetUniformHistoryRef.current();
+        // Project-loaded-specific: meta, dirty flag, workspace version
         if (msg.meta) {
           project.setActiveProject(msg.meta.display_name || msg.meta.name);
           setProjectManifest?.(msg.meta);
         }
-        if (msg.chat_history) chat.restoreMessages(msg.chat_history);
-        if (msg.scene_json) setSceneJSON(msg.scene_json);
-        if (msg.ui_config) setUiConfig(msg.ui_config);
-        if (msg.workspace_state) {
-          kf.restoreKeyframes(msg.workspace_state.keyframes);
-          if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
-          if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
-          if (msg.workspace_state.node_layouts) {
-            pendingLayoutsRef.current = msg.workspace_state.node_layouts;
-            // Direct application for core nodes — belt-and-suspenders alongside pendingLayoutsRef
-            const layoutMap = new Map(msg.workspace_state.node_layouts.map((l) => [l.id, l]));
-            setNodes((nds) => nds.map((n) => {
-              const saved = layoutMap.get(n.id);
-              return saved ? { ...n, position: saved.position, style: saved.style || n.style } : n;
-            }));
-          }
-        } else {
-          kf.restoreKeyframes(null);
-          setDuration(settingsRef?.current?.defaultDuration ?? 30);
-          setLoop(settingsRef?.current?.defaultLoop ?? true);
-        }
-        panels.restorePanels(msg.panels || {});
-        chat.setDebugLogs(msg.debug_logs || []);
-        assetNodes.restore(msg.workspace_state?.assets || {});
-        // Restore UI state (viewport zoom/pan, paused, backendTarget, collapsed, fixedResolution)
-        _applyUiState(msg.workspace_state?.ui_state, { setPaused, setBackendTarget, rfInstanceRef, nodeUiStateRef });
+        // Common restoration
+        _restoreWorkspaceState(msg, deps.current);
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = false;
-        // Allow layout saves after React Flow has fully reconciled (double-rAF)
-        requestAnimationFrame(() => requestAnimationFrame(() => { initSettledRef.current = true; }));
         break;
 
       case "open_panel":
@@ -393,6 +396,7 @@ export default function useMessageDispatcher(params) {
         break;
 
       case "scene_updated":
+        // Alias — same as scene_update but without dirty/autosave
         if (msg.scene_json) setSceneJSON(msg.scene_json);
         if (msg.ui_config) setUiConfig(msg.ui_config);
         break;
