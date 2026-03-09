@@ -13,6 +13,10 @@ import { createProgram, compileShader, DEFAULT_QUAD_VERTEX_SHADER, DEFAULT_3D_VE
 import { createQuadGeometry, createBoxGeometry, createSphereGeometry, createPlaneGeometry } from "./geometries.js";
 import AudioManager from "./AudioManager.js";
 import MediaPipeManager from "./MediaPipeManager.js";
+import MIDIManager from "./MIDIManager.js";
+import TFDetectorManager from "./TFDetectorManager.js";
+import SAMManager from "./SAMManager.js";
+import OSCManager from "./OSCManager.js";
 import { sampleCurve } from "../utils/curves.js";
 import * as mat4 from "./mat4.js";
 import * as quat from "./quat.js";
@@ -99,6 +103,18 @@ export default class GLEngine {
 
     // MediaPipe Vision manager
     this._mediapipeManager = new MediaPipeManager();
+
+    // MIDI manager
+    this._midiManager = new MIDIManager();
+
+    // TensorFlow.js detector manager
+    this._tfDetectorManager = new TFDetectorManager();
+
+    // SAM (Segment Anything Model) manager
+    this._samManager = new SAMManager();
+
+    // OSC manager
+    this._oscManager = new OSCManager();
 
     // Script mode
     this._scriptCtx = null;
@@ -497,6 +513,74 @@ export default class GLEngine {
       get faceMeshTexture() { return mpManager.faceMeshTexture; },
     };
 
+    // MIDI API
+    const midiMgr = this._midiManager;
+    ctx.midi = {
+      init: () => midiMgr.init(),
+      get initialized() { return midiMgr.initialized; },
+      get devices() { return midiMgr.devices; },
+      selectInput: (id) => midiMgr.selectInput(id),
+      mapCC: (cc, uniform, min, max) => midiMgr.mapCC(cc, uniform, min, max),
+      unmapCC: (cc) => midiMgr.unmapCC(cc),
+      get cc() { return midiMgr.cc; },
+      get notes() { return midiMgr.notes; },
+      get activeNotes() { return midiMgr.activeNotes; },
+      get pitchBend() { return midiMgr.pitchBend; },
+      get lastCC() { return midiMgr.lastCC; },
+      get lastNote() { return midiMgr.lastNote; },
+      get texture() { return midiMgr.texture; },
+    };
+
+    // TensorFlow.js object detection API
+    const tfMgr = this._tfDetectorManager;
+    ctx.detector = {
+      init: (options) => tfMgr.init(options),
+      detect: async (source) => {
+        await tfMgr.detect(source);
+        tfMgr.updateTextures(this.gl);
+      },
+      get initialized() { return tfMgr.initialized; },
+      get detections() { return tfMgr.detections; },
+      get count() { return tfMgr.count; },
+      get bboxTexture() { return tfMgr.bboxTexture; },
+      get classTexture() { return tfMgr.classTexture; },
+    };
+
+    // SAM (Segment Anything) API
+    const samMgr = this._samManager;
+    ctx.sam = {
+      init: () => samMgr.init(),
+      encode: (source, sourceId) => samMgr.encode(source, sourceId),
+      segment: async (prompt) => {
+        await samMgr.segment(prompt);
+        samMgr.updateTextures(this.gl);
+      },
+      get initialized() { return samMgr.initialized; },
+      get isEncoding() { return samMgr.isEncoding; },
+      get modelProgress() { return samMgr.modelProgress; },
+      get mask() { return samMgr.mask; },
+      get maskWidth() { return samMgr.maskWidth; },
+      get maskHeight() { return samMgr.maskHeight; },
+      get masks() { return samMgr.masks; },
+      get maskTexture() { return samMgr.maskTexture; },
+      set onProgress(fn) { samMgr.onProgress = fn; },
+    };
+
+    // OSC API
+    const oscMgr = this._oscManager;
+    ctx.osc = {
+      init: (options) => oscMgr.init(options),
+      get initialized() { return oscMgr.initialized; },
+      get connected() { return oscMgr.connected; },
+      getValue: (address, argIndex) => oscMgr.getValue(address, argIndex),
+      get values() { return oscMgr.values; },
+      mapAddress: (addr, uniform, argIdx, min, max) => oscMgr.mapAddress(addr, uniform, argIdx, min, max),
+      unmapAddress: (addr) => oscMgr.unmapAddress(addr),
+      send: (addr, args, host, port) => oscMgr.send(addr, args, host, port),
+      get messageLog() { return oscMgr.messageLog; },
+      get texture() { return oscMgr.texture; },
+    };
+
     this._scriptCtx = ctx;
 
     // --- Draw call validation wrapper ---
@@ -788,6 +872,16 @@ export default class GLEngine {
         ctx.backendType = this._backend.backendType;
       }
 
+      // Update MIDI texture before script render (messages arrive via callbacks)
+      if (this._midiManager?.initialized) {
+        this._midiManager.updateTextures(gl);
+      }
+
+      // Update OSC texture before script render
+      if (this._oscManager?.initialized) {
+        this._oscManager.updateTextures(gl);
+      }
+
       // Update audio data before script render
       if (this._audioManager) {
         this._audioManager.updateFrame(gl, time);
@@ -1050,8 +1144,18 @@ export default class GLEngine {
     this._scriptRenderFn = null;
     this._scriptCleanupFn = null;
 
+    const gl = this.gl;
+    this._midiManager?.deleteTextures?.(gl);
+    this._tfDetectorManager?.deleteTextures?.(gl);
+    this._samManager?.deleteTextures?.(gl);
+    this._oscManager?.deleteTextures?.(gl);
+
     this._audioManager?.reset();
     this._mediapipeManager?.reset();
+    this._midiManager?.reset();
+    this._tfDetectorManager?.reset();
+    this._samManager?.reset();
+    this._oscManager?.reset();
     this._disposeReadbackCache();
 
     this._customUniforms = {};
@@ -1163,6 +1267,10 @@ export default class GLEngine {
     this._disposeScene();
     this._audioManager?.dispose();
     this._mediapipeManager?.dispose();
+    this._midiManager?.dispose();
+    this._tfDetectorManager?.dispose();
+    this._samManager?.dispose();
+    this._oscManager?.dispose();
     this._disposeReadbackCache();
     if (this._backend) {
       this._backend.dispose();

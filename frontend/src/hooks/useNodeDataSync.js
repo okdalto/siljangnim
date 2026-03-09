@@ -120,6 +120,7 @@ export default function useNodeDataSync({
   // Asset nodes
   assetNodes,
   onAssetUpload,
+  onAssetDelete,
   onPromptSuggestion,
   // AI Debugger props
   debugger: dbg,
@@ -385,8 +386,8 @@ export default function useNodeDataSync({
   // --- Asset browser node sync ---
   const assetSelectRef = useRef(assetNodes?.selectAsset);
   assetSelectRef.current = assetNodes?.selectAsset;
-  const assetDeleteRef = useRef(assetNodes?.deleteAsset);
-  assetDeleteRef.current = assetNodes?.deleteAsset;
+  const assetDeleteRef = useRef(onAssetDelete);
+  assetDeleteRef.current = onAssetDelete;
   const onAssetUploadRef = useRef(onAssetUpload);
   onAssetUploadRef.current = onAssetUpload;
 
