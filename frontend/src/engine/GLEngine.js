@@ -1211,7 +1211,7 @@ export default class GLEngine {
                 }
                 video._offlineFrame = frame;
               }),
-              5000, "extractor.getFrameAtTime",
+              3000, "extractor.getFrameAtTime",
             ),
           );
         } else {
@@ -1232,7 +1232,7 @@ export default class GLEngine {
                 await _seekVideo(video, 0.001);
               }
               await _seekVideo(video, targetTime);
-            })(), 5000, "seekVideo"));
+            })(), 3000, "seekVideo"));
           }
         }
       }
