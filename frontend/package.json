@@ -15,6 +15,7 @@
     "fflate": "^0.8.2",
     "jszip": "^3.10.1",
     "mp4-muxer": "^5.2.2",
+    "mp4box": "^0.5.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",

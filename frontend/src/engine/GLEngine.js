@@ -27,6 +27,7 @@ import { createPingPong } from "./pingPong.js";
 import { createOrbitCamera } from "./orbitCamera.js";
 import * as noise from "./noise.js";
 import { createVerletSystem } from "./verletPhysics.js";
+import VideoFrameExtractor from "./VideoFrameExtractor.js";
 import { selectBackend, getBackendDisplayName, BackendType } from "./gpu/index.js";
 import * as shaderTarget from "./gpu/shaderTarget.js";
 import { RenderGraph } from "./gpu/renderGraph.js";
@@ -375,9 +376,11 @@ export default class GLEngine {
          */
         uploadTexture: (texture, source) => {
           const g = this.gl;
+          // If source is a video element with an offline frame, use that instead
+          const actual = source._offlineFrame || source;
           g.bindTexture(g.TEXTURE_2D, texture);
           g.pixelStorei(g.UNPACK_FLIP_Y_WEBGL, true);
-          g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, source);
+          g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, actual);
           g.pixelStorei(g.UNPACK_FLIP_Y_WEBGL, false);
           g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
           g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
@@ -458,10 +461,13 @@ export default class GLEngine {
          */
         updateVideoTexture: (texture, video) => {
           const g = this.gl;
-          if (video.readyState >= video.HAVE_CURRENT_DATA) {
+          // Prefer decoded offline frame (VideoFrame from WebCodecs)
+          const source = video._offlineFrame || video;
+          const ready = video._offlineFrame || video.readyState >= video.HAVE_CURRENT_DATA;
+          if (ready) {
             g.bindTexture(g.TEXTURE_2D, texture);
             g.pixelStorei(g.UNPACK_FLIP_Y_WEBGL, true);
-            g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, video);
+            g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, source);
             g.pixelStorei(g.UNPACK_FLIP_Y_WEBGL, false);
             g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
             g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
@@ -1122,34 +1128,47 @@ export default class GLEngine {
     if (this._scriptCtx) this._scriptCtx.isOffline = true;
     this.onTime?.(time);
 
-    // Seek all registered video elements to the target time before rendering,
-    // using _seekVideo which guarantees frame decode completion.
+    // Seek all registered video elements to the target time before rendering.
+    // Uses VideoFrameExtractor (WebCodecs) for MP4s when available,
+    // falls back to _seekVideo for non-MP4 or unsupported browsers.
     const videos = this._scriptCtx?._registeredVideos;
     if (videos?.size) {
       const seekPromises = [];
       for (const [video, opts] of videos) {
-        // Pause video if it's playing — video.play() from setup interferes
-        // with frame-by-frame seeking in offline mode.
-        if (!video.paused) {
-          video.pause();
-        }
+        const extractor = this._offlineExtractors?.get(video);
 
-        const dur = video.duration;
-        if (!dur || isNaN(dur)) continue;
-        const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
+        if (extractor) {
+          // WebCodecs path — decode frame directly
+          const dur = extractor.duration;
+          const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
+          seekPromises.push(
+            extractor.getFrameAtTime(targetTime).then((frame) => {
+              if (video._offlineFrame && video._offlineFrame !== frame) {
+                // Don't close — the extractor manages frame lifecycle
+              }
+              video._offlineFrame = frame;
+            }),
+          );
+        } else {
+          // Legacy seek path
+          if (!video.paused) {
+            video.pause();
+          }
+          const dur = video.duration;
+          if (!dur || isNaN(dur)) continue;
+          const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
 
-        const needsSeek = Math.abs(video.currentTime - targetTime) > 0.001;
-        const firstFrameNotReady = time < 0.001 && video.readyState < 2;
+          const needsSeek = Math.abs(video.currentTime - targetTime) > 0.001;
+          const firstFrameNotReady = time < 0.001 && video.readyState < 2;
 
-        if (needsSeek || firstFrameNotReady) {
-          seekPromises.push((async () => {
-            // For first frame where currentTime is already 0, nudge slightly
-            // to force a seek event.
-            if (!needsSeek && firstFrameNotReady) {
-              await _seekVideo(video, 0.001);
-            }
-            await _seekVideo(video, targetTime);
-          })());
+          if (needsSeek || firstFrameNotReady) {
+            seekPromises.push((async () => {
+              if (!needsSeek && firstFrameNotReady) {
+                await _seekVideo(video, 0.001);
+              }
+              await _seekVideo(video, targetTime);
+            })());
+          }
         }
       }
       if (seekPromises.length) await Promise.all(seekPromises);
@@ -1158,6 +1177,63 @@ export default class GLEngine {
     const p = this._renderFrame(time, dt);
     if (p) await p;
     this._frameCount++;
+  }
+
+  /**
+   * Prepare VideoFrameExtractors for all registered MP4 videos.
+   * Call once before the offline render loop begins.
+   * Non-MP4 or failed videos silently fall back to the legacy seek path.
+   */
+  async prepareOfflineVideos() {
+    this._offlineExtractors = new Map();
+    const videos = this._scriptCtx?._registeredVideos;
+    if (!videos?.size) return;
+    if (typeof VideoDecoder === "undefined") return;
+
+    const promises = [];
+    for (const [video] of videos) {
+      promises.push(
+        (async () => {
+          try {
+            const src = video.currentSrc || video.src;
+            if (!src) return;
+            const resp = await fetch(src);
+            const buf = await resp.arrayBuffer();
+            // Check for MP4 ftyp header
+            const header = new Uint8Array(buf, 0, 8);
+            const ftyp =
+              header[4] === 0x66 && // f
+              header[5] === 0x74 && // t
+              header[6] === 0x79 && // y
+              header[7] === 0x70;   // p
+            if (!ftyp) return;
+
+            const extractor = new VideoFrameExtractor();
+            await extractor.init(buf);
+            this._offlineExtractors.set(video, extractor);
+          } catch (e) {
+            console.warn("[GLEngine] VideoFrameExtractor init failed, using seek fallback:", e);
+          }
+        })(),
+      );
+    }
+    await Promise.all(promises);
+  }
+
+  /**
+   * Dispose all offline VideoFrameExtractors.
+   * Call after the offline render loop finishes.
+   */
+  disposeOfflineVideos() {
+    if (!this._offlineExtractors) return;
+    for (const [video, extractor] of this._offlineExtractors) {
+      extractor.dispose();
+      if (video._offlineFrame) {
+        video._offlineFrame.close();
+        video._offlineFrame = null;
+      }
+    }
+    this._offlineExtractors = null;
   }
 
   /**
