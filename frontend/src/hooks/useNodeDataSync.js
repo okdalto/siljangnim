@@ -389,6 +389,8 @@ export default function useNodeDataSync({
       onDelete: (id) => assetDeleteRef.current?.(id),
       onSelect: (id) => assetSelectRef.current?.(id),
       onUpload: (files) => onAssetUploadRef.current?.(files),
+      workspaceFilesVersion,
+      onDeleteWorkspaceFile: (f) => handleDeleteWorkspaceFileRef.current?.(f),
     }));
-  }, [setNodes, assetNodes?.assets]);
+  }, [setNodes, assetNodes?.assets, workspaceFilesVersion]);
 }

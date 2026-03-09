@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { NodeResizer } from "@xyflow/react";
 import { ASSET_CATEGORY } from "../engine/assetDescriptor.js";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
-import { readUpload } from "../engine/storage.js";
+import { readUpload, listFiles, readTextFile } from "../engine/storage.js";
 
 const CATEGORY_ICONS = {
   [ASSET_CATEGORY.IMAGE]: "\u{1F5BC}",
@@ -189,10 +189,160 @@ function AssetViewer({ descriptor, onBack, onDownload }) {
   );
 }
 
+// --- Workspace file icons by extension ---
+const WS_FILE_ICONS = {
+  json: "\u{1F4CB}", glsl: "\u{1F308}", wgsl: "\u{1F308}", js: "\u{1F4DC}",
+  ts: "\u{1F4DC}", txt: "\u{1F4C4}", md: "\u{1F4DD}", csv: "\u{1F4CA}",
+  html: "\u{1F310}", css: "\u{1F3A8}",
+};
+
+function WorkspaceFileItem({ filename, onClick, onDelete }) {
+  const ext = (filename.split(".").pop() || "").toLowerCase();
+  const icon = WS_FILE_ICONS[ext] || "\u{1F4C4}";
+
+  return (
+    <div
+      onClick={() => onClick?.(filename)}
+      className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors group"
+      style={{ background: "transparent" }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--input-bg)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+    >
+      <div
+        className="w-8 h-8 rounded flex-shrink-0 flex items-center justify-center"
+        style={{ background: "var(--input-bg)" }}
+      >
+        <span className="text-sm">{icon}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[11px] truncate" style={{ color: "var(--chrome-text)" }}>
+          {filename}
+        </div>
+        <div className="text-[9px]" style={{ color: "var(--chrome-text-muted)" }}>workspace</div>
+      </div>
+      {onDelete && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(filename); }}
+          className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ color: "var(--chrome-text-muted)" }}
+          title="Delete file"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function WorkspaceFileViewer({ filename, onBack }) {
+  const scrollRef = useRef(null);
+  useStopWheelPropagation(scrollRef);
+  const [content, setContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      try {
+        const text = await readTextFile(filename);
+        if (!cancelled) setContent(typeof text === "string" ? text : JSON.stringify(text, null, 2));
+      } catch {
+        if (!cancelled) setContent("(unable to read file)");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [filename]);
+
+  return (
+    <div ref={scrollRef} className="flex-1 flex flex-col overflow-hidden nowheel nodrag">
+      <div className="flex items-center gap-2 px-2 py-1.5 flex-shrink-0" style={{ borderBottom: "1px solid var(--node-border)" }}>
+        <button onClick={onBack} className="text-zinc-400 hover:text-zinc-200 transition-colors p-0.5" title="Back">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <span className="text-[11px] truncate flex-1" style={{ color: "var(--chrome-text)" }}>{filename}</span>
+      </div>
+      <div className="flex-1 overflow-auto p-2">
+        {loading ? (
+          <span className="text-[10px]" style={{ color: "var(--chrome-text-muted)" }}>Loading...</span>
+        ) : (
+          <pre
+            className="text-[10px] leading-relaxed whitespace-pre-wrap break-all w-full h-full overflow-auto p-2 rounded"
+            style={{ color: "var(--chrome-text-muted)", background: "var(--input-bg)", fontFamily: "monospace" }}
+          >
+            {(content || "").slice(0, 5000)}
+            {(content || "").length > 5000 && "\n\n... (truncated)"}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Internal files to hide from the workspace list
+const HIDDEN_WS_FILES = new Set(["workspace_state.json"]);
+
+function WorkspaceFilesSection({ version, onDeleteFile }) {
+  const [files, setFiles] = useState([]);
+  const [collapsed, setCollapsed] = useState(false);
+  const [viewingFile, setViewingFile] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const all = await listFiles();
+        if (!cancelled) setFiles(all.filter((f) => !HIDDEN_WS_FILES.has(f)));
+      } catch {
+        if (!cancelled) setFiles([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [version]);
+
+  if (viewingFile) {
+    return <WorkspaceFileViewer filename={viewingFile} onBack={() => setViewingFile(null)} />;
+  }
+
+  return (
+    <div>
+      <div
+        className="flex items-center gap-1 px-3 py-1 cursor-pointer select-none"
+        style={{ borderTop: "1px solid var(--node-border)", color: "var(--chrome-text-muted)" }}
+        onClick={() => setCollapsed((v) => !v)}
+      >
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+          style={{ transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)", transition: "transform 0.15s" }}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        <span className="text-[10px] font-medium">Scene Files ({files.length})</span>
+      </div>
+      {!collapsed && files.length > 0 && (
+        <div className="pb-1">
+          {files.map((f) => (
+            <WorkspaceFileItem
+              key={f}
+              filename={f}
+              onClick={setViewingFile}
+              onDelete={onDeleteFile}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // --- Main Component ---
 
 export default function AssetBrowserNode({ data }) {
-  const { assets, onDelete, onSelect, onUpload } = data;
+  const { assets, onDelete, onSelect, onUpload, workspaceFilesVersion, onDeleteWorkspaceFile } = data;
   const [collapsed, setCollapsed] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [viewingId, setViewingId] = useState(null);
@@ -325,22 +475,25 @@ export default function AssetBrowserNode({ data }) {
             />
           ) : (
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-1 nowheel nodrag">
-              {assetList.length === 0 ? (
+              {assetList.length === 0 && !workspaceFilesVersion && (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
                   <span className="text-[11px]" style={{ color: "var(--chrome-text-muted)" }}>
                     No assets yet. Upload files or drag & drop here.
                   </span>
                 </div>
-              ) : (
-                assetList.map((desc) => (
-                  <AssetItem
-                    key={desc.id}
-                    descriptor={desc}
-                    onDelete={onDelete}
-                    onClick={(id) => setViewingId(id)}
-                  />
-                ))
               )}
+              {assetList.length > 0 && assetList.map((desc) => (
+                <AssetItem
+                  key={desc.id}
+                  descriptor={desc}
+                  onDelete={onDelete}
+                  onClick={(id) => setViewingId(id)}
+                />
+              ))}
+              <WorkspaceFilesSection
+                version={workspaceFilesVersion}
+                onDeleteFile={onDeleteWorkspaceFile}
+              />
             </div>
           )}
         </>
