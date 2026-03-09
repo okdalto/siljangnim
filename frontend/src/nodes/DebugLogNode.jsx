@@ -116,6 +116,58 @@ function LogEntries({ logs, scrollRef }) {
   );
 }
 
+function formatLogsAsText(logs) {
+  return logs.map((l) => `[${l.agent}] ${l.level === "thinking" ? "[Thinking] " : ""}${l.message}`).join("\n");
+}
+
+function formatDiagnosisAsText(diagnosis) {
+  if (!diagnosis) return "(no diagnosis)";
+  const lines = [`Health Score: ${diagnosis.healthScore}/100`, diagnosis.summary, ""];
+  for (const err of diagnosis.errors || []) {
+    lines.push(`[${err.severity}] ${err.title}`);
+    if (err.detail) lines.push(`  ${err.detail}`);
+    if (err.suggestions?.length) lines.push(`  Suggestion: ${err.suggestions[0]}`);
+  }
+  return lines.join("\n");
+}
+
+function CopyLogsButton({ activeTab, logs, compileLogs, validationLogs, diagnosis }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback((e) => {
+    e.stopPropagation();
+    let text;
+    if (activeTab === "logs") {
+      text = formatLogsAsText(logs.filter((l) => l.level !== "compile" && l.level !== "validation"));
+    } else if (activeTab === "compile") {
+      text = formatLogsAsText(compileLogs);
+    } else if (activeTab === "validation") {
+      text = formatLogsAsText(validationLogs);
+    } else if (activeTab === "diagnosis") {
+      text = formatDiagnosisAsText(diagnosis);
+    }
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }).catch(() => {});
+  }, [activeTab, logs, compileLogs, validationLogs, diagnosis]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="text-[10px] px-2 py-0.5 rounded transition-colors"
+      style={{
+        background: copied ? "rgba(34,197,94,0.2)" : "var(--input-bg)",
+        color: copied ? "rgb(134,239,172)" : "var(--chrome-text-muted)",
+      }}
+      title="Copy logs to clipboard"
+    >
+      {copied ? "Copied" : "Copy"}
+    </button>
+  );
+}
+
 export default function DebugLogNode({ data, standalone = false, hideHeader = false }) {
   const [collapsed, setCollapsedRaw] = useState(() => data.initialCollapsed ?? false);
   const setCollapsed = useCallback((v) => {
@@ -182,15 +234,18 @@ export default function DebugLogNode({ data, standalone = false, hideHeader = fa
         onDoubleClick={() => setCollapsed((v) => !v)}
       >
         <span>Debug Panel</span>
-        {onRunDiagnosis && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onRunDiagnosis(); }}
-            className="text-[10px] px-2 py-0.5 rounded bg-orange-600/20 text-orange-300 hover:bg-orange-600/40 transition-colors nodrag"
-            title="Run AI diagnosis on current scene"
-          >
-            Diagnose
-          </button>
-        )}
+        <div className="flex items-center gap-1.5 nodrag">
+          <CopyLogsButton activeTab={activeTab} logs={logs} compileLogs={compileLogs} validationLogs={validationLogs} diagnosis={diagnosis} />
+          {onRunDiagnosis && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onRunDiagnosis(); }}
+              className="text-[10px] px-2 py-0.5 rounded bg-orange-600/20 text-orange-300 hover:bg-orange-600/40 transition-colors"
+              title="Run AI diagnosis on current scene"
+            >
+              Diagnose
+            </button>
+          )}
+        </div>
       </div>
       )}
 
