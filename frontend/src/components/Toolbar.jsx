@@ -67,8 +67,32 @@ function ModelSelector({ provider, selectedModel, onModelChange }) {
   );
 }
 
-export default function Toolbar({ onNewProject, activeProject, connected, provider, saveStatus, onChangeApiKey, onToggleTree, treeOpen, promptMode, onPromptModeChange, projectManifest, backendTarget, onBackendTargetChange, selectedModel, onModelChange }) {
+export default function Toolbar({ onNewProject, activeProject, connected, provider, saveStatus, onChangeApiKey, onToggleTree, treeOpen, promptMode, onPromptModeChange, projectManifest, backendTarget, onBackendTargetChange, selectedModel, onModelChange, onProjectRename }) {
   const { isMobile } = useMobile();
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState("");
+  const editRef = useRef(null);
+
+  const startEditing = useCallback(() => {
+    if (!activeProject) return;
+    setEditValue(activeProject);
+    setEditing(true);
+  }, [activeProject]);
+
+  const commitRename = useCallback(() => {
+    setEditing(false);
+    const trimmed = editValue.trim();
+    if (trimmed && trimmed !== activeProject && onProjectRename) {
+      onProjectRename(activeProject, trimmed);
+    }
+  }, [editValue, activeProject, onProjectRename]);
+
+  useEffect(() => {
+    if (editing && editRef.current) {
+      editRef.current.focus();
+      editRef.current.select();
+    }
+  }, [editing]);
 
   return (
     <div
@@ -123,7 +147,28 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
         className={`absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 text-xs font-medium truncate text-center ${isMobile ? "max-w-[30%]" : "max-w-[40%]"}`}
         style={{ color: "var(--chrome-text-secondary)" }}
       >
-        {activeProject || "Untitled"}
+        {editing ? (
+          <input
+            ref={editRef}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={commitRename}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commitRename();
+              if (e.key === "Escape") setEditing(false);
+            }}
+            className="bg-transparent border-b text-xs font-medium text-center outline-none"
+            style={{ color: "var(--chrome-text)", borderColor: "var(--accent-color, #6366f1)", width: Math.max(60, editValue.length * 7 + 16) }}
+          />
+        ) : (
+          <span
+            onDoubleClick={startEditing}
+            className="cursor-default select-none"
+            title={activeProject ? "Double-click to rename" : ""}
+          >
+            {activeProject || "Untitled"}
+          </span>
+        )}
         {projectManifest?.provenance?.source_type === "github" && projectManifest.provenance.github_repo && (
           <span className="flex items-center gap-1 flex-shrink-0" style={{ color: "var(--chrome-text-muted)" }} title={`From GitHub: ${projectManifest.provenance.github_repo}`}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
