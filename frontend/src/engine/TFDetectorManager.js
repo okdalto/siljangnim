@@ -60,9 +60,6 @@ export default class TFDetectorManager extends BaseManager {
     this.minScore = options.minScore ?? 0.5;
 
     await this._guardedInit(async () => {
-      // Load tf.js and coco-ssd module in parallel
-      const cocoSsdPromise = import(/* webpackIgnore: true */ "https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/+esm");
-
       // tf.min.js is a UMD script — must be loaded via <script> tag so it
       // registers window.tf.  ESM dynamic import() does NOT work for it.
       if (!window.tf) {
@@ -83,7 +80,8 @@ export default class TFDetectorManager extends BaseManager {
       }
       await window.tf.setBackend("webgl");
       await window.tf.ready();
-      const cocoSsd = await cocoSsdPromise;
+      // coco-ssd must be imported AFTER window.tf is ready — it checks for tf at import time
+      const cocoSsd = await import(/* webpackIgnore: true */ "https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/+esm");
       this._model = await cocoSsd.load({ base: "lite_mobilenet_v2" });
     });
   }
