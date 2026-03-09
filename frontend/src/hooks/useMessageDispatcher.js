@@ -170,7 +170,8 @@ export default function useMessageDispatcher(params) {
         // Auto-create project if currently untitled
         const activeProj = project.activeProject;
         const activeName = storage.getActiveProjectName();
-        if (!activeProj || activeName === "_untitled") {
+        const isNewProject = !activeProj || activeName === "_untitled";
+        if (isNewProject) {
           const history = getMessagesRef?.current?.() || [];
           // Temporary name from user message (shown immediately)
           let autoName = "Untitled Project";
@@ -201,6 +202,16 @@ export default function useMessageDispatcher(params) {
                   setProjectManifest?.(updated);
                   const refreshed = await storage.listProjects();
                   project.setProjectList(refreshed);
+                  // Also update the first tree node title with the project name
+                  const pt = projectTreeRef?.current;
+                  const activeNodeId = pt?.activeNodeId;
+                  if (activeNodeId) {
+                    try {
+                      const { renameNode } = await import("../engine/projectTree.js");
+                      await renameNode(activeNodeId, aiName);
+                      pt.loadTree?.(updated.display_name);
+                    } catch {}
+                  }
                 } catch (e) {
                   console.warn("[chat_done] AI rename failed:", e);
                 }
@@ -240,23 +251,22 @@ export default function useMessageDispatcher(params) {
           const title = promptLine.slice(0, 60) + (promptLine.length > 60 ? "…" : "");
 
           const reloadTree = () => pt.loadTree?.(projName);
+          // For new projects, skip separate AI title generation — project name will be used
+          const skipAITitle = isNewProject;
           if (overwriteModeRef?.current && pt.overwriteCurrentNode) {
-            // Overwrite current node in-place
             pt.overwriteCurrentNode(projName, currentState, {
               title,
               prompt: lastMsg?.text || lastMsg?.content || null,
             }).then((node) => {
-              if (node) updateNodeMetadata(node.id, currentState, { onTitleUpdated: reloadTree }).catch(() => {});
+              if (node) updateNodeMetadata(node.id, currentState, { generateTitle: !skipAITitle, onTitleUpdated: reloadTree }).catch(() => {});
             }).catch(() => { /* non-critical */ });
           } else {
-            // Default: create new child node
             pt.createNodeAfterPrompt(projName, currentState, {
               title,
               type: "prompt_node",
               prompt: lastMsg?.text || lastMsg?.content || null,
             }).then((node) => {
-              // Auto-generate summary, metadata, tags, and AI title
-              if (node) updateNodeMetadata(node.id, currentState, { onTitleUpdated: reloadTree }).catch(() => {});
+              if (node) updateNodeMetadata(node.id, currentState, { generateTitle: !skipAITitle, onTitleUpdated: reloadTree }).catch(() => {});
             }).catch(() => { /* non-critical */ });
           }
         }
