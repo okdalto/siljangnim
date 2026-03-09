@@ -33,6 +33,7 @@ async function downloadUploadedFile(filename) {
 function AssetItem({ descriptor, onDelete, onClick }) {
   const { id, semanticName, filename, category, previewUrl, thumbnailUrl, technicalInfo, processingStatus } = descriptor;
   const thumb = thumbnailUrl || previewUrl;
+  const [imgFailed, setImgFailed] = useState(false);
 
   return (
     <div
@@ -46,8 +47,8 @@ function AssetItem({ descriptor, onDelete, onClick }) {
         className="w-8 h-8 rounded flex-shrink-0 flex items-center justify-center overflow-hidden"
         style={{ background: "var(--input-bg)" }}
       >
-        {thumb ? (
-          <img src={thumb} alt={filename} className="w-full h-full object-cover" />
+        {thumb && !imgFailed ? (
+          <img src={thumb} alt={filename} className="w-full h-full object-cover" onError={() => setImgFailed(true)} />
         ) : (
           <span className="text-sm">{CATEGORY_ICONS[category] || CATEGORY_ICONS[ASSET_CATEGORY.UNKNOWN]}</span>
         )}
