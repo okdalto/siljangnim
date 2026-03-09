@@ -34,6 +34,55 @@ import { RenderGraph } from "./gpu/renderGraph.js";
 import { transpileGLSL, transpileFragmentGLSL, transpileVertexGLSL } from "./gpu/glslToWgsl.js";
 
 /**
+ * JSON replacer/reviver for preprocess state serialization.
+ * Converts Maps to tagged objects so they survive JSON round-trip.
+ */
+const _MAP_TAG = "__map__";
+const _SET_TAG = "__set__";
+
+/** Recursively convert Maps/Sets to tagged plain objects for IndexedDB storage. */
+function _prepareForPersist(value, seen = new WeakSet()) {
+  if (value == null || typeof value !== "object") return value;
+  if (value instanceof Map) {
+    return { [_MAP_TAG]: true, entries: [...value].map(([k, v]) => [k, _prepareForPersist(v, seen)]) };
+  }
+  if (value instanceof Set) {
+    return { [_SET_TAG]: true, values: [...value].map(v => _prepareForPersist(v, seen)) };
+  }
+  // Skip DOM nodes, WebGL objects, functions, typed arrays with huge buffers
+  if (value instanceof HTMLElement || value instanceof WebGLProgram ||
+      value instanceof WebGLTexture || value instanceof WebGLBuffer ||
+      typeof value === "function") return undefined;
+  // Prevent circular references
+  if (seen.has(value)) return undefined;
+  seen.add(value);
+  if (Array.isArray(value)) return value.map(v => _prepareForPersist(v, seen));
+  const out = {};
+  for (const [k, v] of Object.entries(value)) {
+    const prepared = _prepareForPersist(v, seen);
+    if (prepared !== undefined) out[k] = prepared;
+  }
+  return out;
+}
+
+/** Recursively restore tagged objects back to Maps/Sets after IndexedDB read. */
+function _restoreFromPersist(value) {
+  if (value == null || typeof value !== "object") return value;
+  if (value[_MAP_TAG] && Array.isArray(value.entries)) {
+    return new Map(value.entries.map(([k, v]) => [k, _restoreFromPersist(v)]));
+  }
+  if (value[_SET_TAG] && Array.isArray(value.values)) {
+    return new Set(value.values.map(v => _restoreFromPersist(v)));
+  }
+  if (Array.isArray(value)) return value.map(v => _restoreFromPersist(v));
+  const out = {};
+  for (const [k, v] of Object.entries(value)) {
+    out[k] = _restoreFromPersist(v);
+  }
+  return out;
+}
+
+/**
  * Seek a video to exact time and wait for frame decode completion.
  * seeked event alone does NOT guarantee the frame is ready for texImage2D/detect.
  */
@@ -1601,7 +1650,7 @@ export default class GLEngine {
 
   /**
    * Persist preprocess state to IndexedDB, scoped by node ID.
-   * Non-serializable values (DOM elements, WebGL objects, etc.) are stripped.
+   * Handles Maps, Sets, and strips non-serializable values (DOM, WebGL, etc.).
    */
   async _persistPreprocessState(state, nodeId) {
     const key = nodeId ? `preprocess_state_${nodeId}.json` : "preprocess_state.json";
@@ -1611,7 +1660,7 @@ export default class GLEngine {
       } else {
         let serializable;
         try {
-          serializable = JSON.parse(JSON.stringify(state));
+          serializable = _prepareForPersist(state);
         } catch {
           console.warn("[GLEngine] preprocess state not serializable, skipping persist");
           return;
@@ -1633,14 +1682,14 @@ export default class GLEngine {
       if (nodeKey) {
         const data = await readJson(nodeKey);
         if (data != null) {
-          this._preprocessState = data;
+          this._preprocessState = _restoreFromPersist(data);
           return;
         }
       }
       // Fallback to legacy global key (for backward compat)
       const data = await readJson("preprocess_state.json");
       if (data != null) {
-        this._preprocessState = data;
+        this._preprocessState = _restoreFromPersist(data);
       }
     } catch {
       // File not found — no persisted state, that's fine
