@@ -31,6 +31,8 @@ The engine exposes these utilities on \`ctx.utils\` for convenience:
 | \`ctx.utils.loadImage(url)\` | Load image → \`Promise<{texture, width, height}>\` (Y-flipped) |
 | \`ctx.utils.initWebcam()\` | Start webcam → \`Promise<{video, texture, stream}>\` |
 | \`ctx.utils.updateVideoTexture(texture, video)\` | Refresh webcam/video texture each frame (Y-flipped) |
+| \`ctx.utils.seekVideo(video, time)\` | Seek video to exact time (seconds) and wait for frame decode. **Always use this instead of raw video.currentTime + seeked event** — seeked alone doesn't guarantee the frame is decoded. Essential for frame-by-frame preprocess loops. |
+| \`ctx.utils.registerVideo(video, opts?)\` | Register video for automatic time-sync during offline recording. Engine seeks it to ctx.time before each frame. opts: \`{loop: true}\` |
 | \`ctx.utils.createRenderTarget(w, h, opts?)\` | FBO render target creation → \`{framebuffer, texture, width, height}\`. Store in \`ctx.state\`. opts: \`{internalFormat, format, type, filter, depth}\` |
 | \`ctx.utils.sampleCurve(points, t)\` | Sample a graph control's curve at position t (0-1). \`points\` = \`ctx.uniforms.u_curve\` |
 | \`ctx.utils.createMesh(prog, geometry)\` | Create a ready-to-draw mesh from geometry → \`{vao, draw(mode?), dispose()}\`. Automatically binds a_position, a_normal, a_uv attributes and index buffer. **Always prefer this over manual VAO/VBO setup.** |
