@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import { updateNodeMetadata } from "../engine/projectTree.js";
+import { updateNodeMetadata, generateProjectName } from "../engine/projectTree.js";
 import * as storage from "../engine/storage.js";
 
 /**
@@ -171,8 +171,8 @@ export default function useMessageDispatcher(params) {
         const activeProj = project.activeProject;
         const activeName = storage.getActiveProjectName();
         if (!activeProj || activeName === "_untitled") {
-          // Extract project name from assistant response
           const history = getMessagesRef?.current?.() || [];
+          // Temporary name from user message (shown immediately)
           let autoName = "Untitled Project";
           for (let i = history.length - 1; i >= 0; i--) {
             if (history[i]?.role === "user") {
@@ -190,8 +190,21 @@ export default function useMessageDispatcher(params) {
               setProjectManifest?.(manifest);
               const projects = await storage.listProjects();
               project.setProjectList(projects);
-              // Trigger auto-save after project creation
               autoSave?.triggerAutoSave?.();
+
+              // Background: generate AI project name and rename
+              generateProjectName(history).then(async (aiName) => {
+                if (!aiName) return;
+                try {
+                  const updated = await storage.renameProject(manifest.display_name, aiName);
+                  project.setActiveProject(updated.display_name);
+                  setProjectManifest?.(updated);
+                  const refreshed = await storage.listProjects();
+                  project.setProjectList(refreshed);
+                } catch (e) {
+                  console.warn("[chat_done] AI rename failed:", e);
+                }
+              }).catch(() => {});
             } catch (e) {
               console.warn("[chat_done] auto-create project failed:", e);
             }
