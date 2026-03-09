@@ -83,6 +83,7 @@ export default function useAssetNodes() {
       if (
         category === ASSET_CATEGORY.IMAGE ||
         category === ASSET_CATEGORY.VIDEO ||
+        category === ASSET_CATEGORY.AUDIO ||
         category === ASSET_CATEGORY.SVG
       ) {
         previewUrl = URL.createObjectURL(new Blob([data], { type: mimeType }));
@@ -313,6 +314,7 @@ export default function useAssetNodes() {
           if (
             cat === ASSET_CATEGORY.IMAGE ||
             cat === ASSET_CATEGORY.VIDEO ||
+            cat === ASSET_CATEGORY.AUDIO ||
             cat === ASSET_CATEGORY.SVG
           ) {
             try {
