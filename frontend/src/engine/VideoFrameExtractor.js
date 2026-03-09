@@ -70,16 +70,18 @@ export default class VideoFrameExtractor {
       this._reset();
     }
 
-    // Already have a good enough frame? (1ms tolerance for float rounding)
+    // Consume any already-queued frames
     this._consumeUpTo(targetUs);
-    if (this._currentFrame && this._currentFrame.timestamp >= targetUs - 1000) {
+
+    // Confirmed correct frame: _currentFrame is at/before target AND
+    // queue already has a future frame (so _currentFrame is the last before target)
+    if (this._currentFrame && this._hasFramePast(targetUs)) {
       return this._currentFrame;
     }
 
-    // Decode chunks and wait for output until we have a frame at the target.
-    // Chunks are in decode order (DTS) but decoder outputs in display order (PTS).
-    // We can't use chunk.timestamp (CTS) for early exit because it's non-monotonic
-    // for B-frame content. Instead, rely solely on decoder output timestamps.
+    // Decode chunks until we have the correct display frame.
+    // We need both: a _currentFrame with timestamp <= targetUs, AND a queued
+    // frame past targetUs to confirm _currentFrame is the last one before target.
     while (this._chunkIndex < this._chunks.length) {
       this._decoder.decode(this._chunks[this._chunkIndex]);
       this._chunkIndex++;
@@ -90,7 +92,7 @@ export default class VideoFrameExtractor {
       await this._waitForOutput();
 
       this._consumeUpTo(targetUs);
-      if (this._currentFrame && this._currentFrame.timestamp >= targetUs - 1000) {
+      if (this._currentFrame && this._hasFramePast(targetUs)) {
         break;
       }
     }
@@ -100,28 +102,38 @@ export default class VideoFrameExtractor {
 
   /**
    * Consume output queue up to the target time.
-   * Keeps the last frame whose timestamp <= targetUs, or the first frame past it
-   * if no earlier frame exists. Frames beyond the target stay in the queue.
+   * Mirrors browser behavior: display the last frame with timestamp <= targetUs.
+   * Frames after targetUs stay in the queue for future calls.
    */
   _consumeUpTo(targetUs) {
     while (this._outputQueue.length > 0) {
       const frame = this._outputQueue[0];
 
-      // If this frame overshoots and we already have a frame close enough to the target, keep it for next call
-      if (frame.timestamp > targetUs + 1000 && this._currentFrame && this._currentFrame.timestamp >= targetUs - 1000) {
+      // Frame is past the target — don't consume.
+      // If we have no frame at all, take it as best effort (e.g. first frame > time 0).
+      if (frame.timestamp > targetUs) {
+        if (!this._currentFrame) {
+          this._outputQueue.shift();
+          this._currentFrame = frame;
+        }
         break;
       }
 
+      // Frame is at or before target — consume it
       this._outputQueue.shift();
       if (this._currentFrame) {
         this._currentFrame.close();
       }
       this._currentFrame = frame;
-
-      if (frame.timestamp >= targetUs - 1000) {
-        break;
-      }
     }
+  }
+
+  /**
+   * Check if the output queue has a frame past the target time,
+   * confirming that _currentFrame is the correct display frame.
+   */
+  _hasFramePast(targetUs) {
+    return this._outputQueue.length > 0 && this._outputQueue[0].timestamp > targetUs;
   }
 
   /**
