@@ -79,7 +79,12 @@ Each script function receives a \`ctx\` object with these fields:
 | ctx.utils | object | Utility functions (see below) |
 | ctx.audio | object | Audio playback & analysis (see below) |
 | ctx.audioContext | AudioContext | Engine-managed AudioContext for procedural sound |
-| ctx.audioDestination | GainNode | Connect here instead of ac.destination (routes to speakers + recording) |`,
+| ctx.audioDestination | GainNode | Connect here instead of ac.destination (routes to speakers + recording) |
+| ctx.mediapipe | object | MediaPipe face/pose/hand tracking (see mediapipe section) |
+| ctx.midi | object | Real-time MIDI input (see midi section) |
+| ctx.detector | object | TensorFlow.js object detection (see tf_detector section) |
+| ctx.sam | object | Segment Anything Model (see sam section) |
+| ctx.osc | object | OSC input/output via backend relay (see osc section) |`,
   },
   {
     id: "ctx_utils",
@@ -685,6 +690,87 @@ with production-ready templates for common graphics techniques:
 use it as a starting point and customize. This produces more reliable, \
 higher-quality results than blank generation. Combine multiple techniques \
 (e.g. volumetric cloud + bloom + chromatic aberration) for rich visuals.`,
+  },
+  {
+    id: "audio",
+    core: false,
+    keywords: [
+      "audio", "sound", "music", "fft", "frequency", "waveform", "bass",
+      "treble", "오디오", "소리", "음악", "주파수",
+    ],
+    content: `\
+## AUDIO API
+
+\`ctx.audio\` provides audio playback and real-time FFT analysis.
+
+\`\`\`js
+// In setup:
+await ctx.audio.load(ctx.uploads["music.mp3"]);
+ctx.audio.play();
+ctx.audio.setVolume(0.8);
+
+// In render (values updated every frame automatically):
+ctx.audio.bass;          // 0.0–1.0 (low frequency energy)
+ctx.audio.mid;           // 0.0–1.0 (mid frequency energy)
+ctx.audio.treble;        // 0.0–1.0 (high frequency energy)
+ctx.audio.energy;        // 0.0–1.0 (overall energy)
+ctx.audio.frequencyData; // Uint8Array[1024] — raw FFT bins
+ctx.audio.waveformData;  // Uint8Array[1024] — time domain
+ctx.audio.fftTexture;    // R8 texture (1024×2: row0=frequency, row1=waveform)
+ctx.audio.isPlaying;     // boolean
+ctx.audio.currentTime;   // seconds
+ctx.audio.duration;      // seconds
+
+// Procedural audio (via Web Audio API):
+const ac = ctx.audioContext;  // AudioContext
+const dest = ctx.audioDestination;  // connect here for speakers + recording
+\`\`\``,
+  },
+  {
+    id: "mediapipe",
+    core: false,
+    keywords: [
+      "mediapipe", "pose", "hand", "face", "landmark", "tracking", "body",
+      "포즈", "손", "얼굴", "랜드마크", "트래킹",
+    ],
+    content: `\
+## MEDIAPIPE VISION (Pose / Hands / Face Mesh)
+
+\`ctx.mediapipe\` provides real-time body tracking via MediaPipe Vision Tasks (CDN loaded).
+
+\`\`\`js
+// In setup:
+await ctx.mediapipe.init({ tasks: ["pose", "hands", "faceMesh"] });
+ctx.state.video = (await ctx.utils.initWebcam()).video;
+
+// In render:
+ctx.mediapipe.detect(ctx.state.video);
+
+// Pose landmarks (33 points):
+if (ctx.mediapipe.pose) {
+  for (const p of ctx.mediapipe.pose) {
+    // p.x, p.y (0-1 normalized), p.z, p.visibility
+  }
+}
+// Pose texture: 33×1 RGBA32F (R=x, G=y, B=z, A=visibility)
+gl.bindTexture(gl.TEXTURE_2D, ctx.mediapipe.poseTexture);
+
+// Hands (up to 2):
+if (ctx.mediapipe.hands) {
+  // ctx.mediapipe.hands[0] = [{x,y,z}, ...] (21 landmarks)
+}
+// Hands texture: 21×2 RGBA32F (row per hand)
+gl.bindTexture(gl.TEXTURE_2D, ctx.mediapipe.handsTexture);
+
+// Face mesh (478 points):
+if (ctx.mediapipe.faceMesh) {
+  // ctx.mediapipe.faceMesh[i] = {x, y, z}
+}
+// Face texture: 478×1 RGBA32F
+gl.bindTexture(gl.TEXTURE_2D, ctx.mediapipe.faceMeshTexture);
+\`\`\`
+
+**Init options:** \`{ tasks, delegate ("GPU"|"CPU"), maxPoses, maxHands, maxFaces }\``,
   },
   {
     id: "midi",
