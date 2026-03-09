@@ -147,7 +147,8 @@ const TOOLS = [
     name: "start_recording",
     description:
       "Start recording the WebGL canvas to a WebM video file. " +
-      "If duration is specified, recording stops automatically.",
+      "If duration is specified, recording stops automatically. " +
+      "By default, the timeline resets to the beginning before recording starts.",
     input_schema: {
       type: "object",
       properties: {
@@ -158,6 +159,10 @@ const TOOLS = [
         fps: {
           type: "number",
           description: "Frames per second (default 30).",
+        },
+        resetTimeline: {
+          type: "boolean",
+          description: "Reset timeline to the beginning before recording (default true).",
         },
       },
     },

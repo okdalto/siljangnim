@@ -356,6 +356,10 @@ export default function useMessageDispatcher(params) {
         break;
 
       case "start_recording":
+        // Reset timeline to beginning before recording (default behavior)
+        if (msg.resetTimeline) {
+          recorderFnsRef.current.engineRef?.current?.seekTo(0);
+        }
         setPaused(false);
         recorderFnsRef.current.startRecording({
           fps: msg.fps || 30,

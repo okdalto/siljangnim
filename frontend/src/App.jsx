@@ -325,8 +325,8 @@ export default function App() {
 
   // Recording
   const { recording, elapsedTime: recordingTime, startRecording, stopRecording } = useRecorder(engineRef);
-  const recorderFnsRef = useRef({ startRecording, stopRecording });
-  recorderFnsRef.current = { startRecording, stopRecording };
+  const recorderFnsRef = useRef({ startRecording, stopRecording, engineRef });
+  recorderFnsRef.current = { startRecording, stopRecording, engineRef };
 
   // Load project tree when active project changes (lazy migration: ensure root node)
   useEffect(() => {
