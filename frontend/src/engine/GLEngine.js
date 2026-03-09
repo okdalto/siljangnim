@@ -31,6 +31,25 @@ import * as shaderTarget from "./gpu/shaderTarget.js";
 import { RenderGraph } from "./gpu/renderGraph.js";
 import { transpileGLSL, transpileFragmentGLSL, transpileVertexGLSL } from "./gpu/glslToWgsl.js";
 
+/** Map GL uniform type enum → setter function */
+function _uniformSetter(gl, type, loc) {
+  switch (type) {
+    case gl.FLOAT:        return (v) => gl.uniform1f(loc, v);
+    case gl.FLOAT_VEC2:   return (x, y) => gl.uniform2f(loc, x, y);
+    case gl.FLOAT_VEC3:   return (x, y, z) => gl.uniform3f(loc, x, y, z);
+    case gl.FLOAT_VEC4:   return (x, y, z, w) => gl.uniform4f(loc, x, y, z, w);
+    case gl.INT: case gl.BOOL: case gl.SAMPLER_2D: case gl.SAMPLER_3D: case gl.SAMPLER_CUBE:
+                          return (v) => gl.uniform1i(loc, v);
+    case gl.INT_VEC2:     return (x, y) => gl.uniform2i(loc, x, y);
+    case gl.INT_VEC3:     return (x, y, z) => gl.uniform3i(loc, x, y, z);
+    case gl.INT_VEC4:     return (x, y, z, w) => gl.uniform4i(loc, x, y, z, w);
+    case gl.FLOAT_MAT2:   return (v) => gl.uniformMatrix2fv(loc, false, v);
+    case gl.FLOAT_MAT3:   return (v) => gl.uniformMatrix3fv(loc, false, v);
+    case gl.FLOAT_MAT4:   return (v) => gl.uniformMatrix4fv(loc, false, v);
+    default:              return (v) => gl.uniform1f(loc, v);
+  }
+}
+
 const GEOMETRY_CREATORS = {
   quad: createQuadGeometry,
   box: createBoxGeometry,
@@ -436,6 +455,93 @@ export default class GLEngine {
             g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
             g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
           }
+        },
+
+        /**
+         * Create a ready-to-draw mesh from a geometry object and a shader program.
+         * Handles VAO, VBOs, optional index buffer, and attribute binding automatically.
+         * @param {WebGLProgram} prog
+         * @param {object} geometry — from createQuadGeometry / createBoxGeometry / etc.
+         * @returns {{ vao, draw, dispose }}
+         */
+        createMesh: (prog, geometry) => {
+          const g = this.gl;
+          const vao = g.createVertexArray();
+          g.bindVertexArray(vao);
+          const buffers = [];
+
+          // Attribute mapping: geometry key → { name, size }
+          const attribs = [
+            { key: "positions", name: "a_position", size: geometry.dimension || 3 },
+            { key: "normals",   name: "a_normal",   size: 3 },
+            { key: "uvs",      name: "a_uv",       size: 2 },
+          ];
+          for (const attr of attribs) {
+            const data = geometry[attr.key];
+            if (!data) continue;
+            const loc = g.getAttribLocation(prog, attr.name);
+            if (loc < 0) continue;
+            const buf = g.createBuffer();
+            g.bindBuffer(g.ARRAY_BUFFER, buf);
+            g.bufferData(g.ARRAY_BUFFER, data, g.STATIC_DRAW);
+            g.enableVertexAttribArray(loc);
+            g.vertexAttribPointer(loc, attr.size, g.FLOAT, false, 0, 0);
+            buffers.push(buf);
+          }
+
+          // Index buffer
+          let indexBuf = null;
+          const hasIndices = !!geometry.indices;
+          if (hasIndices) {
+            indexBuf = g.createBuffer();
+            g.bindBuffer(g.ELEMENT_ARRAY_BUFFER, indexBuf);
+            g.bufferData(g.ELEMENT_ARRAY_BUFFER, geometry.indices, g.STATIC_DRAW);
+          }
+          g.bindVertexArray(null);
+
+          const vertexCount = geometry.vertexCount;
+          const indexType = hasIndices && geometry.indices instanceof Uint32Array
+            ? g.UNSIGNED_INT : g.UNSIGNED_SHORT;
+
+          return {
+            vao,
+            draw: (mode) => {
+              g.bindVertexArray(vao);
+              if (hasIndices) {
+                g.drawElements(mode ?? g.TRIANGLES, vertexCount, indexType, 0);
+              } else {
+                g.drawArrays(mode ?? g.TRIANGLES, 0, vertexCount);
+              }
+              g.bindVertexArray(null);
+            },
+            dispose: () => {
+              g.deleteVertexArray(vao);
+              for (const b of buffers) g.deleteBuffer(b);
+              if (indexBuf) g.deleteBuffer(indexBuf);
+            },
+          };
+        },
+
+        /**
+         * Get all active uniform locations from a program, with setter methods.
+         * Returns an object keyed by uniform name, each with a .set(...) method.
+         * @param {WebGLProgram} prog
+         * @returns {object} uniforms — e.g. uniforms.u_time.set(1.0)
+         */
+        getUniforms: (prog) => {
+          const g = this.gl;
+          const count = g.getProgramParameter(prog, g.ACTIVE_UNIFORMS);
+          const uniforms = {};
+          for (let i = 0; i < count; i++) {
+            const info = g.getActiveUniform(prog, i);
+            if (!info) continue;
+            const name = info.name.replace(/\[0\]$/, "");
+            const loc = g.getUniformLocation(prog, name);
+            if (!loc) continue;
+            const setter = _uniformSetter(g, info.type, loc);
+            uniforms[name] = { location: loc, type: info.type, set: setter };
+          }
+          return uniforms;
         },
 
         // --- New utility modules ---
