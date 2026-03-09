@@ -15,6 +15,24 @@ import BaseManager from "./BaseManager.js";
 
 const MAX_DETECTIONS = 20;
 
+/** Load a UMD script via <script> tag and poll for a global to appear. */
+function _loadScript(src, checkFn, label) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.onerror = () => reject(new Error(`Failed to load ${label} from CDN`));
+    s.onload = () => {
+      const poll = (tries = 0) => {
+        if (checkFn()) return resolve();
+        if (tries > 50) return reject(new Error(`${label} script loaded but global not available`));
+        setTimeout(() => poll(tries + 1), 100);
+      };
+      poll();
+    };
+    document.head.appendChild(s);
+  });
+}
+
 // COCO-SSD class names (80 classes)
 const COCO_CLASSES = [
   "person","bicycle","car","motorcycle","airplane","bus","train","truck","boat",
@@ -60,29 +78,27 @@ export default class TFDetectorManager extends BaseManager {
     this.minScore = options.minScore ?? 0.5;
 
     await this._guardedInit(async () => {
-      // tf.min.js is a UMD script — must be loaded via <script> tag so it
-      // registers window.tf.  ESM dynamic import() does NOT work for it.
+      // Both tf.js and coco-ssd are UMD scripts — must be loaded via <script>
+      // tags so they register on window. ESM dynamic import() doesn't work
+      // reliably because coco-ssd checks for window.tf at parse time.
       if (!window.tf) {
-        await new Promise((resolve, reject) => {
-          const s = document.createElement("script");
-          s.src = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
-          s.onerror = () => reject(new Error("Failed to load TensorFlow.js from CDN"));
-          s.onload = () => {
-            const check = (tries = 0) => {
-              if (window.tf) return resolve();
-              if (tries > 50) return reject(new Error("TensorFlow.js loaded but window.tf not available"));
-              setTimeout(() => check(tries + 1), 100);
-            };
-            check();
-          };
-          document.head.appendChild(s);
-        });
+        await _loadScript(
+          "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js",
+          () => !!window.tf,
+          "TensorFlow.js",
+        );
       }
       await window.tf.setBackend("webgl");
       await window.tf.ready();
-      // coco-ssd must be imported AFTER window.tf is ready — it checks for tf at import time
-      const cocoSsd = await import(/* webpackIgnore: true */ "https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/+esm");
-      this._model = await cocoSsd.load({ base: "lite_mobilenet_v2" });
+
+      if (!window.cocoSsd) {
+        await _loadScript(
+          "https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js",
+          () => !!window.cocoSsd,
+          "COCO-SSD",
+        );
+      }
+      this._model = await window.cocoSsd.load({ base: "lite_mobilenet_v2" });
     });
   }
 
