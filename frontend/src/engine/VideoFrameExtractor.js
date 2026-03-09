@@ -2,17 +2,17 @@
  * VideoFrameExtractor — Demux MP4 with mp4box.js + decode with WebCodecs VideoDecoder.
  *
  * Provides frame-accurate random access without relying on <video>.currentTime seeking.
- * Only one VideoFrame is held at a time; the previous frame is closed automatically.
+ * Uses an output queue to correctly handle B-frame reordering and avoid frame loss.
  */
 import MP4Box from "mp4box";
 
 export default class VideoFrameExtractor {
   constructor() {
     this._decoder = null;
-    this._chunks = [];      // EncodedVideoChunk[] in decode order
+    this._chunks = [];      // EncodedVideoChunk[] in decode order (DTS)
     this._chunkIndex = 0;   // next chunk to decode
     this._currentFrame = null;
-    this._pendingFrame = null;
+    this._outputQueue = [];  // decoded VideoFrames in display order
     this._frameResolve = null;
     this._configured = false;
     this._duration = 0;     // seconds
@@ -30,11 +30,7 @@ export default class VideoFrameExtractor {
 
     this._decoder = new VideoDecoder({
       output: (frame) => {
-        // Close any previously pending frame that wasn't consumed
-        if (this._pendingFrame) {
-          this._pendingFrame.close();
-        }
-        this._pendingFrame = frame;
+        this._outputQueue.push(frame);
         if (this._frameResolve) {
           this._frameResolve();
           this._frameResolve = null;
@@ -43,7 +39,6 @@ export default class VideoFrameExtractor {
       error: (e) => {
         console.error("[VideoFrameExtractor] decode error:", e);
         this._decodeError = true;
-        // Unblock any pending _waitForFrame so it doesn't hang forever
         if (this._frameResolve) {
           this._frameResolve();
           this._frameResolve = null;
@@ -75,32 +70,27 @@ export default class VideoFrameExtractor {
       this._reset();
     }
 
-    // Decode chunks until we pass the target time
+    // Already have a good enough frame? (1ms tolerance for float rounding)
+    this._consumeUpTo(targetUs);
+    if (this._currentFrame && this._currentFrame.timestamp >= targetUs - 1000) {
+      return this._currentFrame;
+    }
+
+    // Decode chunks and wait for output until we have a frame at the target.
+    // Chunks are in decode order (DTS) but decoder outputs in display order (PTS).
+    // We can't use chunk.timestamp (CTS) for early exit because it's non-monotonic
+    // for B-frame content. Instead, rely solely on decoder output timestamps.
     while (this._chunkIndex < this._chunks.length) {
-      const chunk = this._chunks[this._chunkIndex];
-
-      // If the next chunk is beyond our target and we already have a frame, stop
-      if (this._currentFrame && chunk.timestamp > targetUs) {
-        break;
-      }
-
-      this._decoder.decode(chunk);
+      this._decoder.decode(this._chunks[this._chunkIndex]);
       this._chunkIndex++;
 
-      // Wait for the decoder to produce a frame (short timeout for B-frame reordering)
-      await this._waitForFrame();
+      // Wait for the decoder to produce at least one frame (50ms timeout for
+      // chunks that don't immediately produce output, e.g. reference frames
+      // buffered for B-frame reordering)
+      await this._waitForOutput();
 
-      // Only promote if decoder actually produced a new frame
-      if (this._pendingFrame) {
-        if (this._currentFrame) {
-          this._currentFrame.close();
-        }
-        this._currentFrame = this._pendingFrame;
-        this._pendingFrame = null;
-      }
-
-      // If we've reached or passed the target, stop
-      if (this._currentFrame && this._currentFrame.timestamp >= targetUs) {
+      this._consumeUpTo(targetUs);
+      if (this._currentFrame && this._currentFrame.timestamp >= targetUs - 1000) {
         break;
       }
     }
@@ -109,13 +99,37 @@ export default class VideoFrameExtractor {
   }
 
   /**
+   * Consume output queue up to the target time.
+   * Keeps the last frame whose timestamp <= targetUs, or the first frame past it
+   * if no earlier frame exists. Frames beyond the target stay in the queue.
+   */
+  _consumeUpTo(targetUs) {
+    while (this._outputQueue.length > 0) {
+      const frame = this._outputQueue[0];
+
+      // If this frame overshoots and we already have a usable frame, keep it for next call
+      if (frame.timestamp > targetUs + 1000 && this._currentFrame) {
+        break;
+      }
+
+      this._outputQueue.shift();
+      if (this._currentFrame) {
+        this._currentFrame.close();
+      }
+      this._currentFrame = frame;
+
+      if (frame.timestamp >= targetUs - 1000) {
+        break;
+      }
+    }
+  }
+
+  /**
    * Reset decoder state to allow re-decoding from the beginning (for loops).
    */
   _reset() {
     if (this._decoder?.state === "configured") {
       this._decoder.reset();
-      // Re-configure after reset
-      // We stored the config during init via the demux helper
       this._decoder.configure(this._decoderConfig);
     }
     this._chunkIndex = 0;
@@ -123,18 +137,14 @@ export default class VideoFrameExtractor {
       this._currentFrame.close();
       this._currentFrame = null;
     }
-    if (this._pendingFrame) {
-      this._pendingFrame.close();
-      this._pendingFrame = null;
-    }
+    for (const f of this._outputQueue) f.close();
+    this._outputQueue = [];
   }
 
-  _waitForFrame() {
-    if (this._pendingFrame) return Promise.resolve();
+  _waitForOutput() {
+    if (this._outputQueue.length > 0) return Promise.resolve();
     return new Promise((resolve) => {
       this._frameResolve = resolve;
-      // Short timeout: B-frame reordering means not every chunk produces output.
-      // 50ms is enough for real output; if no frame, we continue to next chunk.
       this._waitTimer = setTimeout(() => {
         if (this._frameResolve) {
           this._frameResolve();
@@ -151,10 +161,8 @@ export default class VideoFrameExtractor {
       this._currentFrame.close();
       this._currentFrame = null;
     }
-    if (this._pendingFrame) {
-      this._pendingFrame.close();
-      this._pendingFrame = null;
-    }
+    for (const f of this._outputQueue) f.close();
+    this._outputQueue = [];
     if (this._decoder && this._decoder.state !== "closed") {
       this._decoder.close();
     }
