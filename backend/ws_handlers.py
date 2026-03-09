@@ -589,6 +589,71 @@ async def handle_request_state(ws, msg, ctx: WsContext):
 
 
 # ---------------------------------------------------------------------------
+# OSC handlers
+# ---------------------------------------------------------------------------
+
+async def handle_osc_start(ws, msg, ctx):
+    """Start the OSC UDP listener and relay messages to this WebSocket."""
+    try:
+        from osc_server import osc_relay
+    except ImportError:
+        await ws.send_text(json.dumps({"type": "error", "message": "python-osc not installed"}))
+        return
+
+    port = msg.get("port", 9000)
+
+    async def relay_callback(address, args):
+        try:
+            await ws.send_text(json.dumps({
+                "type": "osc_message",
+                "address": address,
+                "args": args,
+            }))
+        except Exception:
+            pass
+
+    ctx.osc_callback = relay_callback
+    osc_relay.register(relay_callback)
+
+    if not osc_relay.running:
+        try:
+            await osc_relay.start(port=port)
+        except Exception as e:
+            await ws.send_text(json.dumps({"type": "error", "message": f"OSC start failed: {e}"}))
+            return
+
+    await ws.send_text(json.dumps({"type": "osc_started", "port": port}))
+
+
+async def handle_osc_stop(ws, msg, ctx):
+    """Unregister this WebSocket from OSC relay."""
+    try:
+        from osc_server import osc_relay
+    except ImportError:
+        return
+
+    cb = getattr(ctx, "osc_callback", None)
+    if cb:
+        osc_relay.unregister(cb)
+        ctx.osc_callback = None
+
+
+async def handle_osc_send(ws, msg, ctx):
+    """Send an OSC message to an external application."""
+    try:
+        from osc_server import send_osc
+    except ImportError:
+        await ws.send_text(json.dumps({"type": "error", "message": "python-osc not installed"}))
+        return
+
+    address = msg.get("address", "/")
+    args = msg.get("args", [])
+    host = msg.get("host", "127.0.0.1")
+    port = msg.get("port", 8000)
+    await send_osc(address, args, host, port)
+
+
+# ---------------------------------------------------------------------------
 # Dispatch table
 # ---------------------------------------------------------------------------
 
@@ -609,4 +674,7 @@ HANDLERS = {
     "restore_panel": handle_restore_panel,
     "cancel_agent": handle_cancel_agent,
     "request_state": handle_request_state,
+    "osc_start": handle_osc_start,
+    "osc_stop": handle_osc_stop,
+    "osc_send": handle_osc_send,
 }

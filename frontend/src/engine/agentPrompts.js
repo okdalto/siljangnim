@@ -686,6 +686,140 @@ use it as a starting point and customize. This produces more reliable, \
 higher-quality results than blank generation. Combine multiple techniques \
 (e.g. volumetric cloud + bloom + chromatic aberration) for rich visuals.`,
   },
+  {
+    id: "midi",
+    core: false,
+    keywords: [
+      "midi", "controller", "cc", "note", "knob", "fader", "keyboard",
+      "미디", "컨트롤러",
+    ],
+    content: `\
+## MIDI INPUT
+
+\`ctx.midi\` provides real-time MIDI controller input via Web MIDI API.
+
+\`\`\`js
+// In setup:
+await ctx.midi.init();
+// Optionally select a specific device:
+// const devices = ctx.midi.devices; // [{id, name, manufacturer}]
+// ctx.midi.selectInput(devices[0].id);
+
+// Map CC to uniform:
+ctx.midi.mapCC(1, "u_modWheel", 0, 1);
+
+// In render:
+const cc1 = ctx.midi.cc[1];          // 0.0–1.0
+const noteVel = ctx.midi.notes[60];   // velocity of middle C (0 if off)
+const bend = ctx.midi.pitchBend;      // -1.0 to 1.0
+const noteCount = ctx.midi.activeNotes.size;
+
+// Texture: 128×3 RGBA32F (row0=CC, row1=notes, row2=globals)
+gl.bindTexture(gl.TEXTURE_2D, ctx.midi.texture);
+\`\`\``,
+  },
+  {
+    id: "tf_detector",
+    core: false,
+    keywords: [
+      "detect", "object", "recognition", "coco", "tensorflow", "person",
+      "객체", "인식", "감지", "사물",
+    ],
+    content: `\
+## OBJECT DETECTION (TensorFlow.js COCO-SSD)
+
+\`ctx.detector\` provides real-time object detection using COCO-SSD (80 classes).
+
+\`\`\`js
+// In setup:
+await ctx.detector.init({ maxDetections: 10, minScore: 0.5 });
+ctx.state.video = (await ctx.utils.initWebcam()).video;
+
+// In render:
+await ctx.detector.detect(ctx.state.video);
+for (const d of ctx.detector.detections) {
+  // d.class: "person", d.score: 0.95, d.bbox: [x, y, w, h] (normalized 0-1)
+  // d.classIndex: 0 (COCO class index)
+}
+ctx.detector.count; // number of detections
+
+// Textures: bboxTexture (centerX,centerY,w,h), classTexture (classIdx,confidence,0,0)
+// Both MAX_DETECTIONS×1 RGBA32F
+\`\`\``,
+  },
+  {
+    id: "sam",
+    core: false,
+    keywords: [
+      "segment", "sam", "mask", "cutout", "foreground", "background",
+      "세그먼트", "분리", "마스크", "배경",
+    ],
+    content: `\
+## SEGMENT ANYTHING (SAM) — Browser Offline
+
+\`ctx.sam\` runs SAM ViT-B entirely in the browser via ONNX Runtime Web. \
+Models are cached in IndexedDB after first download (~160MB).
+
+\`\`\`js
+// In setup:
+ctx.sam.onProgress = (p) => console.log("SAM loading:", (p*100).toFixed(0)+"%");
+await ctx.sam.init();  // downloads model on first use, cached afterwards
+
+// Encode image (heavy, ~2-5s, run once per image):
+await ctx.sam.encode(imageElement, "myImage");
+
+// Segment with point prompts (fast, ~50ms):
+await ctx.sam.segment({
+  points: [
+    { x: 0.5, y: 0.5, label: 1 },  // foreground point (normalized 0-1)
+    { x: 0.1, y: 0.1, label: 0 },  // background point
+  ],
+});
+
+// Or with bounding box:
+await ctx.sam.segment({ box: { x1: 0.2, y1: 0.2, x2: 0.8, y2: 0.8 } });
+
+// Use mask in shader:
+// ctx.sam.maskTexture — RGBA32F, R channel = 0 or 1
+gl.bindTexture(gl.TEXTURE_2D, ctx.sam.maskTexture);
+// ctx.sam.mask — Float32Array (width × height)
+// ctx.sam.masks — all mask options [{mask, score}]
+\`\`\``,
+  },
+  {
+    id: "osc",
+    core: false,
+    keywords: [
+      "osc", "ableton", "touchdesigner", "resolume", "live", "音楽",
+      "오에스씨", "에이블턴",
+    ],
+    content: `\
+## OSC (Open Sound Control)
+
+\`ctx.osc\` receives OSC messages from external apps (Ableton, TouchDesigner, etc.) \
+via the Python backend's UDP relay.
+
+\`\`\`js
+// In setup:
+await ctx.osc.init({ port: 9000 });  // backend listens on UDP port 9000
+
+// Map OSC address to uniform:
+ctx.osc.mapAddress("/slider/1", "u_speed", 0, 0, 1);
+
+// In render:
+const val = ctx.osc.getValue("/slider/1");  // latest value
+ctx.osc.values; // Map of all addresses → args arrays
+
+// Send OSC back to external app:
+ctx.osc.send("/feedback/color", [1.0, 0.5, 0.0], "127.0.0.1", 8000);
+
+// Texture: 128×1 RGBA32F (each slot = one address, up to 4 float args)
+gl.bindTexture(gl.TEXTURE_2D, ctx.osc.texture);
+\`\`\`
+
+**Note:** OSC requires the Python backend (UDP cannot be received in browsers). \
+The backend needs \`python-osc\` installed: \`pip install python-osc\`.`,
+  },
 ];
 
 // Full prompt (all sections)
