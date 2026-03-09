@@ -649,6 +649,7 @@ export default function App() {
           onBackendTargetChange={handleBackendTargetChange}
           selectedModel={selectedModel}
           onModelChange={handleModelChange}
+          onProjectRename={project.handleProjectRename}
         />
 
         {safeModeActive && (
