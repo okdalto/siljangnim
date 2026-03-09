@@ -1215,6 +1215,10 @@ export default class GLEngine {
           const dur = video.duration && !isNaN(video.duration) ? video.duration : extractor.duration;
           const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
           const extractors = this._offlineExtractors;
+
+          // Sync video.currentTime so scripts reading it get the correct value
+          video.currentTime = targetTime;
+
           seekPromises.push(
             (async () => {
               let timedOut = false;
@@ -1270,6 +1274,12 @@ export default class GLEngine {
     this._offlineExtractors = new Map();
     const videos = this._scriptCtx?._registeredVideos;
     if (!videos?.size) return;
+
+    // Pause all registered videos so they don't play independently during offline rendering
+    for (const [video] of videos) {
+      if (!video.paused) video.pause();
+    }
+
     if (typeof VideoDecoder === "undefined") return;
 
     const promises = [];
