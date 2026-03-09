@@ -101,7 +101,7 @@ export async function ensureRootNode(projectName, currentState) {
     currentState.debug_logs
   );
 
-  const snapshotKey = `${projectName}/_snapshots/${nodeId}.json`;
+  const snapshotKey = `_snapshots/${nodeId}.json`;
   await storage.writeFile(snapshotKey, snapshot);
 
   const node = {
@@ -165,7 +165,7 @@ export async function createNodeAfterPrompt(projectName, parentNodeId, currentSt
 
   if (shouldCheckpoint) {
     // Store full snapshot
-    snapshotRef = `${projectName}/_snapshots/${nodeId}.json`;
+    snapshotRef = `_snapshots/${nodeId}.json`;
     await storage.writeFile(snapshotRef, currentSnapshot);
   } else {
     // Store patch relative to parent
@@ -175,10 +175,10 @@ export async function createNodeAfterPrompt(projectName, parentNodeId, currentSt
 
     if (ops.length === 0) {
       // No changes — still create node but as checkpoint for simplicity
-      snapshotRef = `${projectName}/_snapshots/${nodeId}.json`;
+      snapshotRef = `_snapshots/${nodeId}.json`;
       await storage.writeFile(snapshotRef, currentSnapshot);
     } else {
-      patchRef = `${projectName}/_patches/${nodeId}.json`;
+      patchRef = `_patches/${nodeId}.json`;
       await storage.writeFile(patchRef, {
         version: 1,
         parentNodeId,
@@ -204,7 +204,7 @@ export async function createNodeAfterPrompt(projectName, parentNodeId, currentSt
     isCheckpoint: shouldCheckpoint || !patchRef,
     snapshotRef: snapshotRef,
     patchRef: patchRef,
-    thumbnailRef: thumbnailDataUrl ? `${projectName}/_thumbs/${nodeId}.jpg` : null,
+    thumbnailRef: thumbnailDataUrl ? `_thumbs/${nodeId}.jpg` : null,
     tags: [],
     metadata: {},
   };
@@ -230,13 +230,13 @@ export async function overwriteNode(nodeId, projectName, currentState, opts = {}
   );
 
   // Always store as checkpoint when overwriting
-  const snapshotRef = `${projectName}/_snapshots/${nodeId}.json`;
+  const snapshotRef = `_snapshots/${nodeId}.json`;
   await storage.writeFile(snapshotRef, snapshot);
 
   // Update thumbnail if provided
   if (opts.thumbnailDataUrl) {
     await storage.writeNodeThumbnail(projectName, nodeId, opts.thumbnailDataUrl);
-    node.thumbnailRef = `${projectName}/_thumbs/${nodeId}.jpg`;
+    node.thumbnailRef = `_thumbs/${nodeId}.jpg`;
   }
 
   node.isCheckpoint = true;
@@ -268,7 +268,7 @@ export async function createBranch(projectName, sourceNodeId, title = "Branch") 
 export async function duplicateAsCheckpoint(projectName, sourceNodeId) {
   const state = await reconstructScene(sourceNodeId, projectName);
   const nodeId = crypto.randomUUID();
-  const snapshotRef = `${projectName}/_snapshots/${nodeId}.json`;
+  const snapshotRef = `_snapshots/${nodeId}.json`;
   await storage.writeFile(snapshotRef, state);
 
   const sourceNode = await storage.readNode(sourceNodeId);
