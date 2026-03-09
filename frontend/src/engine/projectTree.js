@@ -542,8 +542,8 @@ export async function generateProjectName(chatHistory) {
       apiKey,
       model: "claude-haiku-4-5-20251001",
       maxTokens: 30,
-      system: "Generate a concise project name (under 30 chars, no quotes). Write in the same language as the user.",
-      messages: [{ role: "user", content: `User: ${userPrompt || "(no prompt)"}\nAssistant: ${assistantResponse || "(no response)"}` }],
+      system: "You are a project naming tool. Output ONLY a short project name (under 30 chars). No quotes, no explanation, no apologies, no markdown. Just the name. Write in the same language as the user.",
+      messages: [{ role: "user", content: `Name this project based on the conversation:\nUser asked: ${userPrompt || "(no prompt)"}\nAssistant did: ${assistantResponse || "(no response)"}` }],
       tools: [],
     });
 
