@@ -9,7 +9,7 @@
  * for backward compatibility with existing scenes.
  */
 
-import { getAllUploadBlobUrls, getUploadBlobUrl } from "./storage.js";
+import { getAllUploadBlobUrls, getUploadBlobUrl, readJson, writeJson } from "./storage.js";
 import { createProgram, compileShader, DEFAULT_QUAD_VERTEX_SHADER, DEFAULT_3D_VERTEX_SHADER } from "./shaderUtils.js";
 import { createQuadGeometry, createBoxGeometry, createSphereGeometry, createPlaneGeometry } from "./geometries.js";
 import { uniformSetter, GEOMETRY_CREATORS } from "./uniformSetters.js";
@@ -264,7 +264,7 @@ export default class GLEngine {
   /**
    * Load a scene JSON and set up script execution.
    */
-  loadScene(sceneJSON) {
+  async loadScene(sceneJSON) {
     const gl = this.gl;
     if (!gl) return;
 
@@ -307,6 +307,11 @@ export default class GLEngine {
     this._setupReady = false;
     this._scene = sceneJSON;
     this._lastErrorMessage = null; // reset error debounce for new scene
+
+    // Restore persisted preprocess state from IndexedDB if not already in memory
+    if (!this._preprocessState) {
+      await this._restorePreprocessState();
+    }
 
     const script = sceneJSON.script || {};
     const setupBody = script.setup || "";
@@ -1453,6 +1458,9 @@ export default class GLEngine {
     // ctx.state may have been mutated by the script — keep reference
     this._preprocessState = ctx.state;
 
+    // Persist to IndexedDB so state survives page refresh
+    this._persistPreprocessState(this._preprocessState);
+
     return result;
   }
 
@@ -1464,6 +1472,47 @@ export default class GLEngine {
   /** Clear preprocess state. Call on project switch. */
   clearPreprocessState() {
     this._preprocessState = null;
+    this._persistPreprocessState(null);
+  }
+
+  /**
+   * Persist preprocess state to IndexedDB so it survives page refresh.
+   * Non-serializable values (DOM elements, WebGL objects, etc.) are stripped.
+   */
+  async _persistPreprocessState(state) {
+    try {
+      if (state == null) {
+        // Delete by writing null
+        await writeJson("preprocess_state.json", null);
+      } else {
+        // structuredClone throws on non-cloneable values; fall back to
+        // JSON round-trip which silently strips functions/DOM/GL objects.
+        let serializable;
+        try {
+          serializable = JSON.parse(JSON.stringify(state));
+        } catch {
+          console.warn("[GLEngine] preprocess state not serializable, skipping persist");
+          return;
+        }
+        await writeJson("preprocess_state.json", serializable);
+      }
+    } catch (err) {
+      console.warn("[GLEngine] failed to persist preprocess state:", err);
+    }
+  }
+
+  /**
+   * Restore preprocess state from IndexedDB (e.g. after page refresh).
+   */
+  async _restorePreprocessState() {
+    try {
+      const data = await readJson("preprocess_state.json");
+      if (data != null) {
+        this._preprocessState = data;
+      }
+    } catch {
+      // File not found — no persisted state, that's fine
+    }
   }
 
   dispose() {

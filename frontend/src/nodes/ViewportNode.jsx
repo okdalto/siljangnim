@@ -104,13 +104,11 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
       return;
     }
     console.log("[ViewportNode] Loading scene:", sceneJSON.mode || "unknown");
-    try {
-      setError(null);
-      engine.loadScene(sceneJSON);
-    } catch (err) {
+    setError(null);
+    engine.loadScene(sceneJSON).catch((err) => {
       console.error("[ViewportNode] loadScene error:", err);
       setError(err.message || String(err));
-    }
+    });
   }, [sceneJSON]);
 
   // Handle pause/resume
