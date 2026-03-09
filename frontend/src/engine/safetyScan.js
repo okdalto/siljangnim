@@ -12,6 +12,15 @@ const BLOCKED_PATTERNS = [
   { re: /importScripts\s*\(/, msg: "Script imports external scripts" },
   { re: /navigator\.sendBeacon\s*\(/, msg: "Script sends beacons to external servers" },
   { re: /postMessage\s*\(/, msg: "Script uses cross-origin messaging" },
+  // Data exfiltration via image/script loading
+  { re: /new\s+Image\s*\(\s*\)[\s\S]*?\.src\s*=/, msg: "Script may exfiltrate data via image loading" },
+  { re: /document\.create/, msg: "Script creates DOM elements" },
+  // WebSocket for data exfiltration
+  { re: /new\s+WebSocket\s*\(/, msg: "Script opens WebSocket connections" },
+  // Service workers
+  { re: /navigator\.serviceWorker/, msg: "Script registers service workers" },
+  // Dynamic import
+  { re: /import\s*\(/, msg: "Script uses dynamic import" },
 ];
 
 const WARN_PATTERNS = [
@@ -20,7 +29,40 @@ const WARN_PATTERNS = [
   { re: /localStorage|sessionStorage/, msg: "Script accesses browser storage" },
   { re: /indexedDB/, msg: "Script accesses IndexedDB" },
   { re: /crypto\.subtle/, msg: "Script uses crypto API" },
+  // Obfuscation detection
+  { re: /\bwindow\s*\[/, msg: "Script uses bracket notation on window — possible obfuscation" },
+  { re: /\bglobalThis\s*\[/, msg: "Script uses bracket notation on globalThis — possible obfuscation" },
+  { re: /String\.fromCharCode/, msg: "Script builds strings from char codes — possible obfuscation" },
+  { re: /atob\s*\(/, msg: "Script decodes base64 — possible obfuscation" },
+  { re: /\\u[0-9a-fA-F]{4}/, msg: "Script contains unicode escapes — possible obfuscation" },
+  { re: /\\x[0-9a-fA-F]{2}/, msg: "Script contains hex escapes — possible obfuscation" },
 ];
+
+/**
+ * Check for string concatenation tricks used to bypass simple regex patterns.
+ * e.g. "ev" + "al", 'doc' + 'ument'
+ */
+function detectConcatObfuscation(code) {
+  const issues = [];
+  const suspiciousWords = ["eval", "Function", "fetch", "cookie", "localStorage", "sessionStorage", "XMLHttpRequest", "innerHTML", "document", "window"];
+  for (const word of suspiciousWords) {
+    // Check for string concat patterns like "ev"+"al" or 'ev'+'al'
+    for (let i = 1; i < word.length; i++) {
+      const left = word.slice(0, i);
+      const right = word.slice(i);
+      const concatRe = new RegExp(`['"\`]${escapeRegex(left)}['"\`]\\s*\\+\\s*['"\`]${escapeRegex(right)}['"\`]`);
+      if (concatRe.test(code)) {
+        issues.push({ type: "error", message: `Script uses string concatenation to build "${word}" — obfuscated dangerous call` });
+        break;
+      }
+    }
+  }
+  return issues;
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 export function scanProject(manifest, files, blobs) {
   const issues = [];
@@ -46,16 +88,33 @@ export function scanProject(manifest, files, blobs) {
     for (const { re, msg } of WARN_PATTERNS) {
       if (re.test(allCode)) issues.push({ type: "warning", message: msg });
     }
+
+    // String concatenation obfuscation detection
+    const concatIssues = detectConcatObfuscation(allCode);
+    issues.push(...concatIssues);
   }
 
-  // 3. Oversized assets
+  // 3. Also scan custom panel HTML content
+  for (const [key, value] of Object.entries(files || {})) {
+    if (key === "panels.json" && value?.panels) {
+      for (const panel of Object.values(value.panels)) {
+        if (panel.html) {
+          for (const { re, msg } of BLOCKED_PATTERNS) {
+            if (re.test(panel.html)) issues.push({ type: "error", message: `Panel "${panel.title || key}": ${msg}` });
+          }
+        }
+      }
+    }
+  }
+
+  // 4. Oversized assets
   const blobEntries = Object.entries(blobs || {});
   const totalSize = blobEntries.reduce((sum, [, b]) => sum + (b.size || 0), 0);
   if (totalSize > 100 * 1024 * 1024) {
     warnings.push({ type: "warning", message: `Large project: ${(totalSize / 1024 / 1024).toFixed(1)}MB of assets` });
   }
 
-  // 4. Missing assets referenced in manifest
+  // 5. Missing assets referenced in manifest
   if (manifest?.assets) {
     for (const asset of manifest.assets) {
       const filename = asset.filename;

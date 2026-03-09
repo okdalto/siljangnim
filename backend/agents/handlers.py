@@ -698,10 +698,25 @@ async def _tool_stop_recording(input_data: dict, broadcast: BroadcastCallback) -
 
 
 _BLOCKED_PYTHON_PATTERNS = [
-    "os.system", "subprocess.call", "subprocess.run", "subprocess.Popen",
+    # OS command execution
+    "os.system", "os.popen", "os.exec",
+    "subprocess.call", "subprocess.run", "subprocess.Popen", "subprocess.check_output",
+    # File deletion
     "shutil.rmtree", "os.remove", "os.unlink", "os.rmdir",
-    "__import__('os')", "__import__('subprocess')",
-    "exec(", "compile(",
+    # Dynamic code execution
+    "exec(", "compile(", "eval(",
+    # Import smuggling (any quote style)
+    "__import__(",
+    "importlib",
+    # Attribute tricks for obfuscation
+    "getattr(", "setattr(",
+    # Network access
+    "import socket", "import requests", "import urllib", "import http",
+    # Low-level system access
+    "import ctypes", "import signal",
+    # File system access outside workspace
+    "open('/", 'open("/', "open(\\",
+    "pathlib.Path('/", 'pathlib.Path("/',
 ]
 
 async def _tool_run_python(input_data: dict, broadcast: BroadcastCallback) -> str:
