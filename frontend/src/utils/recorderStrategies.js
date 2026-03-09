@@ -98,7 +98,7 @@ function computeProgress(currentTime, endTime, renderStartTime, fps) {
   return { percent, eta, currentFrame, totalFrames };
 }
 
-export function startOfflinePng(ctx) {
+export async function startOfflinePng(ctx) {
   const {
     engine, canvas, fps, duration, alpha,
     setRecording, setElapsedTime, setProgress, setCompletionInfo,
@@ -109,6 +109,7 @@ export function startOfflinePng(ctx) {
 
   engine.setPaused(true);
   engine.seekTo(0);
+  await engine.prepareOfflineVideos();
 
   if (alpha) {
     alphaRef.current = true;
@@ -161,6 +162,7 @@ export function startOfflinePng(ctx) {
     }
     setProgress(null);
     setRecording(false);
+    engine.disposeOfflineVideos();
     restoreEngine();
   };
 
@@ -205,7 +207,7 @@ export function startOfflinePng(ctx) {
   scheduleNextFrame(stepFrame, rafRef);
 }
 
-export function startOfflineWebCodecs(ctx) {
+export async function startOfflineWebCodecs(ctx) {
   const {
     engine, canvas, fps, duration, format, alpha, videoBitsPerSecond,
     hasAudio, audioBuffer,
@@ -236,6 +238,7 @@ export function startOfflineWebCodecs(ctx) {
 
   engine.setPaused(true);
   engine.seekTo(0);
+  const videosReady = engine.prepareOfflineVideos();
 
   // WebM + alpha support (VP9 supports alpha channel)
   if (isWebm && alpha) {
@@ -337,6 +340,7 @@ export function startOfflineWebCodecs(ctx) {
     if (encoder.state !== "closed") encoder.close();
     setProgress(null);
     setRecording(false);
+    engine.disposeOfflineVideos();
     restoreEngine();
   };
 
@@ -362,8 +366,8 @@ export function startOfflineWebCodecs(ctx) {
       )
     : Promise.resolve();
 
-  // Start video frames once audio is queued
-  audioReady.then(() => {
+  // Start video frames once audio is queued and videos are prepared
+  Promise.all([audioReady, videosReady]).then(() => {
     scheduleNextFrame(stepFrame, rafRef);
   });
 
@@ -413,7 +417,7 @@ export function startOfflineWebCodecs(ctx) {
   };
 }
 
-export function startOfflineFallback(ctx) {
+export async function startOfflineFallback(ctx) {
   const {
     engine, canvas, fps, duration,
     setRecording, setElapsedTime, setProgress, setCompletionInfo,
@@ -425,6 +429,7 @@ export function startOfflineFallback(ctx) {
 
   engine.setPaused(true);
   engine.seekTo(0);
+  await engine.prepareOfflineVideos();
 
   const stream = canvas.captureStream(0);
   const track = stream.getVideoTracks()[0];
@@ -456,6 +461,7 @@ export function startOfflineFallback(ctx) {
     setCompletionInfo({ success: true, fileSize: blob.size, timeTaken });
     setProgress(null);
     setRecording(false);
+    engine.disposeOfflineVideos();
     restoreEngine();
   };
   recorder.start(100);
