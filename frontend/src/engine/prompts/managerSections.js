@@ -167,9 +167,10 @@ ctx.detector.count; // number of detections
 await ctx.detector.init({ maxDetections: 20, minScore: 0.4 });
 const video = s.video; // video element already created
 await new Promise(r => { video.onloadedmetadata = r; });
-// Pre-cache detections at regular intervals across the entire video
+// Pre-cache detections for EVERY FRAME of the video
 const cache = new Map();
-const step = 0.2; // seconds between samples (adjust for precision vs speed)
+const fps = 30; // match the video's frame rate (use 24, 30, or 60 as appropriate)
+const step = 1 / fps; // per-frame interval
 for (let t = 0; t < video.duration; t += step) {
   video.currentTime = t;
   await new Promise(r => video.addEventListener('seeked', r, { once: true }));
