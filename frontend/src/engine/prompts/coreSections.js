@@ -135,10 +135,13 @@ Unified file I/O with 4 tools:
 - \`list_files(path)\`: List workspace files.
 - \`list_uploaded_files\`: See all uploaded files.
 - \`run_preprocess({code})\`: Run JavaScript in the engine context **before** writing a scene. \
-  Has access to \`ctx.uploads\` (blob URLs), \`ctx.gl\`, \`ctx.canvas\`. \
+  Has access to \`ctx.uploads\` (blob URLs), \`ctx.gl\`, \`ctx.canvas\`, and \`ctx.state\`. \
   The code must \`return\` a value — the result is sent back to you as JSON. \
-  Use this to inspect uploaded files (e.g. get video duration/dimensions), \
-  pre-compute data, or validate assets before building the scene.`,
+  **Data stored in \`ctx.state\` persists into the next scene's \`ctx.state\`** — \
+  use this to pre-compute heavy data (detection caches, parsed files, etc.) \
+  that setup/render can access directly. Example flow: \
+  \`run_preprocess\` → store cache in \`ctx.state.cache\` → \`write_scene\` → \
+  render reads \`s.cache\` (already populated from preprocess).`,
   },
   {
     id: "workflow",

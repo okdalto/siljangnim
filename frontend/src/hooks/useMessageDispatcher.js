@@ -337,6 +337,8 @@ export default function useMessageDispatcher(params) {
         break;
 
       case "project_loaded":
+        // Clear preprocess state from previous project
+        recorderFnsRef.current.engineRef?.current?.clearPreprocessState();
         // Project-loaded-specific: meta, dirty flag, workspace version
         if (msg.meta) {
           project.setActiveProject(msg.meta.display_name || msg.meta.name);
