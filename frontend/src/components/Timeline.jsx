@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import RecordMenu from "./RecordMenu.jsx";
 
-export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange, recording, recordingTime, onStartRecord, onStopRecord, canvasWidth, canvasHeight }) {
+export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange, recording, recordingTime, onStartRecord, onStopRecord, canvasWidth, canvasHeight, progress, completionInfo }) {
   const progressRef = useRef(null);
   const timeDisplayRef = useRef(null);
   const barRef = useRef(null);
@@ -160,6 +160,9 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
         onStop={onStopRecord}
         canvasWidth={canvasWidth}
         canvasHeight={canvasHeight}
+        progress={progress}
+        completionInfo={completionInfo}
+        sceneDuration={duration}
       />
 
       {/* Scrub bar */}
