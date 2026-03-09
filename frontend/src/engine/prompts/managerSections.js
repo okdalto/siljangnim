@@ -51,8 +51,10 @@ const dest = ctx.audioDestination;  // connect here for speakers + recording
 
 \`ctx.mediapipe\` provides real-time body tracking via MediaPipe Vision Tasks (CDN loaded).
 
+**IMPORTANT: You MUST call \`await ctx.mediapipe.init()\` in setup before using detect().**
+
 \`\`\`js
-// In setup:
+// In setup — REQUIRED:
 await ctx.mediapipe.init({ tasks: ["pose", "hands", "faceMesh"] });
 ctx.state.video = (await ctx.utils.initWebcam()).video;
 
@@ -98,8 +100,10 @@ gl.bindTexture(gl.TEXTURE_2D, ctx.mediapipe.faceMeshTexture);
 
 \`ctx.midi\` provides real-time MIDI controller input via Web MIDI API.
 
+**IMPORTANT: You MUST call \`await ctx.midi.init()\` in setup before reading MIDI data.**
+
 \`\`\`js
-// In setup:
+// In setup — REQUIRED:
 await ctx.midi.init();
 // Optionally select a specific device:
 // const devices = ctx.midi.devices; // [{id, name, manufacturer}]
@@ -131,8 +135,10 @@ gl.bindTexture(gl.TEXTURE_2D, ctx.midi.texture);
 
 \`ctx.detector\` provides real-time object detection using COCO-SSD (80 classes).
 
+**IMPORTANT: You MUST call \`await ctx.detector.init()\` in setup before using detect(). Without init(), the model is not loaded and detect() silently returns empty results.**
+
 \`\`\`js
-// In setup:
+// In setup — REQUIRED, always call init() first:
 await ctx.detector.init({ maxDetections: 10, minScore: 0.5 });
 ctx.state.video = (await ctx.utils.initWebcam()).video;
 
@@ -180,8 +186,10 @@ s.detectionCache = cache;
 \`ctx.sam\` runs SAM ViT-B entirely in the browser via ONNX Runtime Web. \
 Models are cached in IndexedDB after first download (~160MB).
 
+**IMPORTANT: You MUST call \`await ctx.sam.init()\` in setup before using encode()/decode().**
+
 \`\`\`js
-// In setup:
+// In setup — REQUIRED:
 ctx.sam.onProgress = (p) => console.log("SAM loading:", (p*100).toFixed(0)+"%");
 await ctx.sam.init();  // downloads model on first use, cached afterwards
 
@@ -220,8 +228,10 @@ gl.bindTexture(gl.TEXTURE_2D, ctx.sam.maskTexture);
 \`ctx.osc\` receives OSC messages from external apps (Ableton, TouchDesigner, etc.) \
 via the Python backend's UDP relay.
 
+**IMPORTANT: You MUST call \`await ctx.osc.init()\` in setup before reading OSC data.**
+
 \`\`\`js
-// In setup:
+// In setup — REQUIRED:
 await ctx.osc.init({ port: 9000 });  // backend listens on UDP port 9000
 
 // Map OSC address to uniform:
@@ -251,8 +261,10 @@ The backend needs \`python-osc\` installed: \`pip install python-osc\`.`,
 
 \`ctx.mic\` provides real-time microphone audio input with FFT analysis.
 
+**IMPORTANT: You MUST call \`await ctx.mic.init()\` in setup before reading mic data.**
+
 \`\`\`js
-// In setup:
+// In setup — REQUIRED:
 await ctx.mic.init();  // requests browser microphone permission
 
 // In render:
