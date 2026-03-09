@@ -194,7 +194,7 @@ video.src = ctx.uploads["video.mp4"];
 video.crossOrigin = "anonymous";
 video.muted = true;
 await new Promise(r => { video.onloadedmetadata = r; });
-ctx.utils.registerVideo(video); // locks video to ctx.time
+ctx.utils.registerVideo(video); // auto-seeks in offline recording mode
 ctx.state.video = video;
 ctx.state.videoTex = ctx.gl.createTexture();
 
