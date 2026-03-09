@@ -116,6 +116,16 @@ export default class GLEngine {
     // OSC manager
     this._oscManager = new OSCManager();
 
+    // Manager registry for centralized cleanup
+    this._managers = [
+      this._audioManager,
+      this._mediapipeManager,
+      this._midiManager,
+      this._tfDetectorManager,
+      this._samManager,
+      this._oscManager,
+    ];
+
     // Script mode
     this._scriptCtx = null;
     this._scriptSetupFn = null;
@@ -1144,17 +1154,12 @@ export default class GLEngine {
     this._scriptRenderFn = null;
     this._scriptCleanupFn = null;
 
-    this._midiManager?.deleteTextures?.(gl);
-    this._tfDetectorManager?.deleteTextures?.(gl);
-    this._samManager?.deleteTextures?.(gl);
-    this._oscManager?.deleteTextures?.(gl);
-
-    this._audioManager?.reset();
-    this._mediapipeManager?.reset();
-    this._midiManager?.reset();
-    this._tfDetectorManager?.reset();
-    this._samManager?.reset();
-    this._oscManager?.reset();
+    for (const mgr of this._managers) {
+      mgr?.deleteTextures?.(gl);
+    }
+    for (const mgr of this._managers) {
+      mgr?.reset?.();
+    }
     this._disposeReadbackCache();
 
     this._customUniforms = {};
@@ -1264,12 +1269,9 @@ export default class GLEngine {
   dispose() {
     this.stop();
     this._disposeScene();
-    this._audioManager?.dispose();
-    this._mediapipeManager?.dispose();
-    this._midiManager?.dispose();
-    this._tfDetectorManager?.dispose();
-    this._samManager?.dispose();
-    this._oscManager?.dispose();
+    for (const mgr of this._managers) {
+      mgr?.dispose?.();
+    }
     this._disposeReadbackCache();
     if (this._backend) {
       this._backend.dispose();

@@ -1,3 +1,5 @@
+import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
+
 /**
  * SAMManager — Segment Anything Model in the browser via ONNX Runtime Web.
  *
@@ -277,7 +279,10 @@ export default class SAMManager {
     for (let i = 0; i < w * h; i++) {
       rgba[i * 4] = this.mask[i];
     }
-    this.maskTexture = this._uploadTexture(gl, this.maskTexture, w, h, rgba);
+    const forceRealloc = this._lastTexW !== w || this._lastTexH !== h;
+    this.maskTexture = uploadDataTexture(gl, this.maskTexture, w, h, rgba, { forceRealloc });
+    this._lastTexW = w;
+    this._lastTexH = h;
   }
 
   reset() {
@@ -294,7 +299,7 @@ export default class SAMManager {
   }
 
   deleteTextures(gl) {
-    if (this.maskTexture && gl) { gl.deleteTexture(this.maskTexture); this.maskTexture = null; }
+    deleteTexture(gl, this.maskTexture); this.maskTexture = null;
   }
 
   dispose() {
@@ -402,27 +407,4 @@ export default class SAMManager {
     });
   }
 
-  _uploadTexture(gl, existing, width, height, data) {
-    let tex = existing;
-    if (!tex) {
-      tex = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, width, height, 0, gl.RGBA, gl.FLOAT, data);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    } else {
-      gl.bindTexture(gl.TEXTURE_2D, tex);
-      // Recreate if dimensions changed
-      if (this._lastTexW !== width || this._lastTexH !== height) {
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, width, height, 0, gl.RGBA, gl.FLOAT, data);
-      } else {
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RGBA, gl.FLOAT, data);
-      }
-    }
-    this._lastTexW = width;
-    this._lastTexH = height;
-    return tex;
-  }
 }
