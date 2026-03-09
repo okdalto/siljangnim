@@ -108,7 +108,7 @@ export default function FeedbackButton({ isAuthenticated, token }) {
   };
 
   return (
-    <div ref={panelRef} className="fixed bottom-4 right-4 z-40">
+    <div ref={panelRef} className="fixed bottom-14 right-4 z-40">
       {open && (
         <form
           onSubmit={handleSubmit}
