@@ -10,7 +10,7 @@ const PROXY_URL = "/api/proxy";
 
 const SMALL_MODELS = {
   anthropic: "claude-haiku-4-5-20251001",
-  openai: "gpt-4o-mini",
+  openai: "gpt-5-mini",
   gemini: "gemini-2.0-flash",
   glm: "glm-4-flash",
   custom: null, // use the configured model
