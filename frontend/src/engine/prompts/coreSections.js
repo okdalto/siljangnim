@@ -133,7 +133,12 @@ Unified file I/O with 4 tools:
   Create or fully replace scene.json. Pass raw JS code as separate string parameters — \
   NO JSON escaping needed.
 - \`list_files(path)\`: List workspace files.
-- \`list_uploaded_files\`: See all uploaded files.`,
+- \`list_uploaded_files\`: See all uploaded files.
+- \`run_preprocess({code})\`: Run JavaScript in the engine context **before** writing a scene. \
+  Has access to \`ctx.uploads\` (blob URLs), \`ctx.gl\`, \`ctx.canvas\`. \
+  The code must \`return\` a value — the result is sent back to you as JSON. \
+  Use this to inspect uploaded files (e.g. get video duration/dimensions), \
+  pre-compute data, or validate assets before building the scene.`,
   },
   {
     id: "workflow",

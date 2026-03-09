@@ -251,6 +251,7 @@ export async function runAgent({
   messages,
   errorCollector,
   userAnswerPromise,
+  preprocessPromise,
   signal,
   injectedMessages = [],
   systemPromptAddition = "",
@@ -287,6 +288,7 @@ export async function runAgent({
     onStatus,
     errorCollector,
     userAnswerPromise,
+    preprocessPromise,
     signal,
     injectedMessages,
     modelOverride,
@@ -308,6 +310,7 @@ async function _runAgentLoop({
   onStatus,
   errorCollector,
   userAnswerPromise,
+  preprocessPromise,
   signal,
   injectedMessages = [],
   modelOverride,
@@ -573,6 +576,7 @@ async function _runAgentLoop({
           resultStr = await handleTool(block.name, block.input, broadcast, {
             errorCollector,
             userAnswerPromise,
+            preprocessPromise,
           });
           if (resultStr?.startsWith("Error")) isError = true;
         } catch (e) {
@@ -705,6 +709,7 @@ export async function runWithPlan({
   currentState, // { scene_json, ui_config, panels, assets }
   errorCollector,
   userAnswerPromise,
+  preprocessPromise,
   signal,
   injectedMessages = [],
   systemPromptAddition = "",
@@ -718,7 +723,7 @@ export async function runWithPlan({
   if (!shouldPlan(messages.length, userPrompt)) {
     return runAgent({
       apiKey, userPrompt, log, broadcast, onText, onStatus,
-      files, messages, errorCollector, userAnswerPromise,
+      files, messages, errorCollector, userAnswerPromise, preprocessPromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
       provider, providerConfig,
     });
@@ -734,7 +739,7 @@ export async function runWithPlan({
     // Fallback: direct execution
     return runAgent({
       apiKey, userPrompt, log, broadcast, onText, onStatus,
-      files, messages, errorCollector, userAnswerPromise,
+      files, messages, errorCollector, userAnswerPromise, preprocessPromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
       provider, providerConfig,
     });
@@ -772,6 +777,7 @@ export async function runWithPlan({
     onStatus,
     errorCollector,
     userAnswerPromise,
+    preprocessPromise,
     signal,
     injectedMessages,
     modelOverride,

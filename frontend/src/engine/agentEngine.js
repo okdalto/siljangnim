@@ -89,6 +89,9 @@ export default class AgentEngine {
 
     // User answer mechanism for ask_user tool
     this._userAnswerResolve = null;
+    // Preprocess mechanism for run_preprocess tool
+    this._preprocessResolve = null;
+    this._preprocessReject = null;
   }
 
   /** Dispatch a message from engine to React UI. */
@@ -119,6 +122,14 @@ export default class AgentEngine {
   userAnswerPromise() {
     return new Promise((resolve) => {
       this._userAnswerResolve = resolve;
+    });
+  }
+
+  /** Create a promise that resolves when preprocess completes. */
+  preprocessPromise() {
+    return new Promise((resolve, reject) => {
+      this._preprocessResolve = resolve;
+      this._preprocessReject = reject;
     });
   }
 
@@ -212,6 +223,7 @@ async function triggerAutoFix(errorMessage, engine) {
       messages: engine.conversation,
       errorCollector: engine.errorCollector,
       userAnswerPromise: () => engine.userAnswerPromise(),
+      preprocessPromise: () => engine.preprocessPromise(),
       signal: abortController.signal,
       backendTarget: engine._backendTarget,
       provider: engine.provider,
@@ -383,6 +395,7 @@ const HANDLERS = {
           currentState,
           errorCollector: this.errorCollector,
           userAnswerPromise: () => this.userAnswerPromise(),
+          preprocessPromise: () => this.preprocessPromise(),
           signal: abortController.signal,
           injectedMessages: this.injectedMessages,
           systemPromptAddition: this._promptModeAddition,
@@ -458,6 +471,22 @@ const HANDLERS = {
     if (this._userAnswerResolve) {
       this._userAnswerResolve(text);
       this._userAnswerResolve = null;
+    }
+  },
+
+  async preprocess_result(msg) {
+    if (msg.error) {
+      if (this._preprocessReject) {
+        this._preprocessReject(new Error(msg.error));
+        this._preprocessResolve = null;
+        this._preprocessReject = null;
+      }
+    } else {
+      if (this._preprocessResolve) {
+        this._preprocessResolve(msg.result);
+        this._preprocessResolve = null;
+        this._preprocessReject = null;
+      }
     }
   },
 
@@ -673,6 +702,11 @@ const HANDLERS = {
       if (this._userAnswerResolve) {
         this._userAnswerResolve("(cancelled)");
         this._userAnswerResolve = null;
+      }
+      if (this._preprocessReject) {
+        this._preprocessReject(new Error("cancelled"));
+        this._preprocessResolve = null;
+        this._preprocessReject = null;
       }
       // Abort first — the finally block in the prompt handler will clear the controller
       this.abortController.abort();
