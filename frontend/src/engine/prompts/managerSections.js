@@ -134,13 +134,17 @@ gl.bindTexture(gl.TEXTURE_2D, ctx.midi.texture);
 ## OBJECT DETECTION (TensorFlow.js COCO-SSD)
 
 \`ctx.detector\` provides real-time object detection using COCO-SSD (80 classes).
-Two modes: **Online** (live detection each frame) and **Offline** (pre-cache all detections in setup, look up in render).
+Two modes: **Online** (live per-frame) and **Offline** (pre-cache via \`run_preprocess\`).
 
-**IMPORTANT: You MUST call \`await ctx.detector.init()\` in setup before using detect(). Without init(), the model is not loaded and detect() silently returns empty results.**
+**IMPORTANT: You MUST call \`await ctx.detector.init()\` before using detect().**
 
 **Choose the right mode:**
-- **Online mode**: Use when the user wants **real-time / every-frame / live** detection. Works with any source (webcam, uploaded video, etc.). detect() is auto-throttled internally — just call it every frame. **Always use this when the user asks for "real-time", "every frame", or "live" detection.**
-- **Offline mode**: Use when the user wants to **pre-analyze** an entire video upfront. Pre-computes all detections in setup — render is instant with no per-frame cost. Good for uploaded videos when real-time is not needed.
+- **Online mode**: Real-time detection from webcam or live source. detect() is auto-throttled — just call every frame. \
+Note: model inference takes ~50-150ms per frame, so results update at ~7-15fps, not 60fps. \
+This is a hardware limitation, not a bug. For uploaded videos where you need detection on EVERY frame, use **Offline mode** instead.
+- **Offline mode (RECOMMENDED for uploaded videos)**: Use \`run_preprocess\` to pre-analyze \
+every frame of the video BEFORE writing the scene. Detection results are stored in \`ctx.state\` \
+and instantly available in render — zero per-frame inference cost, true per-frame accuracy.
 
 ### Online Mode (webcam / live source)
 \`\`\`js
@@ -149,49 +153,47 @@ await ctx.detector.init({ maxDetections: 10, minScore: 0.5 });
 ctx.state.video = (await ctx.utils.initWebcam()).video;
 
 // In render:
-// detect() is auto-throttled & concurrency-safe — just call it every frame.
-// Returns cached detections if called too frequently. Do NOT add your own throttle.
 const detections = await ctx.detector.detect(ctx.state.video);
 for (const d of detections) {
-  // d.class: "person", d.score: 0.95
-  // d.bbox: [x, y, w, h] in PIXELS
-  // d.bboxNorm: [x, y, w, h] normalized 0-1 (for shader use)
-  // d.classIndex: 0 (COCO class index)
+  // d.class, d.score, d.bbox [x,y,w,h] px, d.bboxNorm [x,y,w,h] 0-1, d.classIndex
 }
-ctx.detector.count; // number of detections
 \`\`\`
 
-### Offline Mode (pre-analyze entire video in setup)
+### Offline Mode (uploaded video — use run_preprocess)
+**Step 1: Call \`run_preprocess\` to pre-cache all detections:**
 \`\`\`js
-// In setup — REQUIRED:
+// run_preprocess code:
 await ctx.detector.init({ maxDetections: 20, minScore: 0.4 });
-const video = s.video; // video element already created
+const video = document.createElement("video");
+video.src = ctx.uploads["video.mp4"];
+video.crossOrigin = "anonymous";
 await new Promise(r => { video.onloadedmetadata = r; });
-// Pre-cache detections for EVERY FRAME of the video
-const cache = new Map();
-const fps = 30; // match the video's frame rate (use 24, 30, or 60 as appropriate)
-const step = 1 / fps; // per-frame interval
+const cache = {};
+const fps = 30;
+const step = 1 / fps;
 for (let t = 0; t < video.duration; t += step) {
   video.currentTime = t;
   await new Promise(r => video.addEventListener('seeked', r, { once: true }));
-  // { immediate: true } bypasses throttle for fast sequential detection
-  cache.set(Math.round(t * 1000), await ctx.detector.detect(video, { immediate: true }));
+  cache[Math.round(t * 1000)] = await ctx.detector.detect(video, { immediate: true });
 }
-s.detectionCache = cache;
-video.currentTime = 0;
-video.loop = true;
-video.play();
-
+ctx.state.detectionCache = cache;
+ctx.state.videoDuration = video.duration;
+video.remove();
+return { frames: Object.keys(cache).length, duration: video.duration };
+\`\`\`
+**Step 2: Call \`set_timeline\` to match video duration.**
+**Step 3: Call \`write_scene\` — render reads the pre-computed cache:**
+\`\`\`js
 // In render — instant lookup, no inference cost:
-const timeMs = Math.round((ctx.time % video.duration) * 1000);
-// Find nearest cached frame
+const s = ctx.state;
+const cache = s.detectionCache;
+const timeMs = Math.round((ctx.time % s.videoDuration) * 1000);
 let best = null, bestDist = Infinity;
-for (const [ms, dets] of s.detectionCache) {
-  const dist = Math.abs(ms - timeMs);
-  if (dist < bestDist) { bestDist = dist; best = dets; }
+for (const ms in cache) {
+  const dist = Math.abs(Number(ms) - timeMs);
+  if (dist < bestDist) { bestDist = dist; best = cache[ms]; }
 }
 const detections = best || [];
-// Use detections same as online mode: d.class, d.bbox, d.bboxNorm, d.score
 \`\`\`
 
 GPU Textures (both modes): bboxTexture (centerX,centerY,w,h), classTexture (classIdx,confidence,0,0) — MAX_DETECTIONS×1 RGBA32F`,
