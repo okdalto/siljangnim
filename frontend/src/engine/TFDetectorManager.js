@@ -66,8 +66,16 @@ export default class TFDetectorManager extends BaseManager {
         await new Promise((resolve, reject) => {
           const s = document.createElement("script");
           s.src = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
-          s.onload = resolve;
           s.onerror = () => reject(new Error("Failed to load TensorFlow.js from CDN"));
+          s.onload = () => {
+            // Wait for window.tf to actually be available after script executes
+            const check = (tries = 0) => {
+              if (window.tf) return resolve();
+              if (tries > 50) return reject(new Error("TensorFlow.js loaded but window.tf not available"));
+              setTimeout(() => check(tries + 1), 100);
+            };
+            check();
+          };
           document.head.appendChild(s);
         });
       }
