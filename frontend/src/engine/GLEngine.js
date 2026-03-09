@@ -891,6 +891,17 @@ export default class GLEngine {
       this._startTime = now - this._pausedTime - targetTime;
     }
     this._audioManager?.syncSeek(targetTime, this._paused);
+
+    // Seek registered video elements to match
+    const videos = this._scriptCtx?._registeredVideos;
+    if (videos?.size) {
+      for (const [video, opts] of videos) {
+        const dur = video.duration;
+        if (!dur || isNaN(dur)) continue;
+        const t = opts.loop !== false ? (targetTime % dur) : Math.min(targetTime, dur);
+        video.currentTime = t;
+      }
+    }
   }
 
   setDuration(d) {

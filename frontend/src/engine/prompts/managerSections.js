@@ -169,6 +169,8 @@ video.src = ctx.uploads["video.mp4"];
 video.crossOrigin = "anonymous";
 await new Promise(r => { video.onloadedmetadata = r; });
 const cache = {};
+// IMPORTANT: Use the SAME fps as the recording (typically 30).
+// Do NOT reduce fps to speed up — it causes temporal misalignment with the video.
 const fps = 30;
 const step = 1 / fps;
 for (let t = 0; t < video.duration; t += step) {
