@@ -162,13 +162,18 @@ HTML panels (and \`html\` type controls) have access to \`window.panel\`:
       "record", "video", "capture", "녹화", "영상", "캡처",
     ],
     content: `\
-## RECORDING
+## RECORDING & TIMELINE
 
-You can record the WebGL canvas to a WebM video file:
+You can record the WebGL canvas to a video file:
 
-- \`start_recording({duration?, fps?})\`: Start recording. If \`duration\` is provided \
-(in seconds), recording stops automatically. Default fps is 30.
-- \`stop_recording()\`: Stop recording manually. The WebM file auto-downloads in the browser.`,
+- \`start_recording({duration?, fps?, resetTimeline?})\`: Start recording. \
+Timeline resets to 0 by default. If \`duration\` is provided (seconds), recording stops automatically. Default fps is 30.
+- \`stop_recording()\`: Stop recording manually. The file auto-downloads in the browser.
+- \`set_timeline({duration?, loop?})\`: Set timeline duration and loop mode.
+
+**When using video/audio assets, ALWAYS match the timeline duration to the media length.** \
+Check the asset's technical info for its duration (shown in WORKSPACE ASSETS section), \
+then call \`set_timeline({duration: <media_duration>, loop: true})\` before or after \`write_scene\`.`,
   },
   {
     id: "keyframes",
