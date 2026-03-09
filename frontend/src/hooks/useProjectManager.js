@@ -29,6 +29,13 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
     [sendRef]
   );
 
+  const handleProjectFork = useCallback(
+    (name, newDisplayName) => {
+      sendRef.current?.({ type: "project_fork", name, newDisplayName });
+    },
+    [sendRef]
+  );
+
   const handleProjectImport = useCallback(async (file) => {
     // Try backend API first
     try {
@@ -63,6 +70,7 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
     handleProjectLoad,
     handleProjectDelete,
     handleProjectRename,
+    handleProjectFork,
     handleProjectImport,
     setProjectList,
     setActiveProject,

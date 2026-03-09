@@ -576,6 +576,16 @@ const HANDLERS = {
     }
   },
 
+  async project_fork(msg) {
+    try {
+      await storage.forkProject(msg.name || "", msg.newDisplayName || "");
+      const projects = await storage.listProjects();
+      this.broadcast({ type: "project_list", projects });
+    } catch (e) {
+      this.broadcast({ type: "project_fork_error", error: e.message });
+    }
+  },
+
   async project_delete(msg) {
     try {
       await storage.deleteProject(msg.name || "");

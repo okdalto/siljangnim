@@ -827,6 +827,7 @@ export default function App() {
             onProjectLoad={project.handleProjectLoad}
             onProjectDelete={project.handleProjectDelete}
             onProjectRename={project.handleProjectRename}
+            onProjectFork={project.handleProjectFork}
             onProjectImport={project.handleProjectImport}
             github={github}
             onGitHubSave={() => setShowGitHubSave(true)}
@@ -936,6 +937,7 @@ export default function App() {
             onProjectLoad={project.handleProjectLoad}
             onProjectDelete={project.handleProjectDelete}
             onProjectRename={project.handleProjectRename}
+            onProjectFork={project.handleProjectFork}
             onProjectImport={project.handleProjectImport}
             onDeleteWorkspaceFile={handleDeleteWorkspaceFile}
             workspaceFilesVersion={workspaceFilesVersion}
