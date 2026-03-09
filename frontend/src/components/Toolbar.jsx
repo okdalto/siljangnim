@@ -11,6 +11,18 @@ const PROVIDER_MODELS = {
     { id: "claude-opus-4-6", label: "Opus 4.6" },
     { id: "claude-haiku-4-5-20251001", label: "Haiku 4.5" },
   ],
+  openai: [
+    { id: "gpt-4o", label: "GPT-4o" },
+    { id: "gpt-4o-mini", label: "GPT-4o Mini" },
+    { id: "o3", label: "o3" },
+  ],
+  gemini: [
+    { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
+    { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+  ],
+  glm: [
+    { id: "glm-4-plus", label: "GLM-4 Plus" },
+  ],
 };
 
 function ModelSelector({ provider, selectedModel, onModelChange }) {

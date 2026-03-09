@@ -2,9 +2,12 @@
  * Vercel Edge Function — multi-purpose API proxy.
  *
  * Routes (via ?target= query param):
- *   (default)              → Anthropic Messages API
- *   ?target=github&endpoint=device/code       → GitHub Device Flow
- *   ?target=github&endpoint=oauth/access_token → GitHub OAuth token
+ *   (default / anthropic)   → Anthropic Messages API
+ *   ?target=openai           → OpenAI Chat Completions API
+ *   ?target=gemini           → Google Gemini API
+ *   ?target=glm              → GLM (BigModel) API
+ *   ?target=custom           → Custom OpenAI-compatible endpoint
+ *   ?target=github&endpoint= → GitHub OAuth
  */
 export const config = { runtime: "edge", maxDuration: 300 };
 
@@ -28,6 +31,8 @@ function getCorsOrigin(req) {
   return null;
 }
 
+const CORS_HEADERS = "Content-Type, x-api-key, anthropic-version, Authorization, x-base-url, x-model";
+
 export default async function handler(req) {
   const corsOrigin = getCorsOrigin(req);
 
@@ -36,7 +41,7 @@ export default async function handler(req) {
       headers: {
         ...(corsOrigin && { "Access-Control-Allow-Origin": corsOrigin }),
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, x-api-key, anthropic-version",
+        "Access-Control-Allow-Headers": CORS_HEADERS,
       },
     });
   }
@@ -75,6 +80,90 @@ export default async function handler(req) {
     return new Response(resBody, {
       status: res.status,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": corsOrigin },
+    });
+  }
+
+  // --- OpenAI API proxy ---
+  if (target === "openai") {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: req.headers.get("authorization") || "",
+      },
+      body: req.body,
+    });
+    return new Response(response.body, {
+      status: response.status,
+      headers: {
+        "Content-Type": response.headers.get("Content-Type") || "application/json",
+        "Access-Control-Allow-Origin": corsOrigin,
+      },
+    });
+  }
+
+  // --- Gemini API proxy ---
+  if (target === "gemini") {
+    const model = req.headers.get("x-model") || "gemini-2.0-flash";
+    const apiKey = req.headers.get("x-api-key") || "";
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}&alt=sse`;
+    const response = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: req.body,
+    });
+    return new Response(response.body, {
+      status: response.status,
+      headers: {
+        "Content-Type": response.headers.get("Content-Type") || "application/json",
+        "Access-Control-Allow-Origin": corsOrigin,
+      },
+    });
+  }
+
+  // --- GLM API proxy ---
+  if (target === "glm") {
+    const baseUrl = (req.headers.get("x-base-url") || "https://open.bigmodel.cn/api/paas/v4").replace(/\/+$/, "");
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: req.headers.get("authorization") || "",
+      },
+      body: req.body,
+    });
+    return new Response(response.body, {
+      status: response.status,
+      headers: {
+        "Content-Type": response.headers.get("Content-Type") || "application/json",
+        "Access-Control-Allow-Origin": corsOrigin,
+      },
+    });
+  }
+
+  // --- Custom OpenAI-compatible proxy ---
+  if (target === "custom") {
+    const baseUrl = (req.headers.get("x-base-url") || "").replace(/\/+$/, "");
+    if (!baseUrl) {
+      return new Response(JSON.stringify({ error: "x-base-url header required for custom target" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": corsOrigin },
+      });
+    }
+    const headers = { "Content-Type": "application/json" };
+    const auth = req.headers.get("authorization");
+    if (auth) headers.Authorization = auth;
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers,
+      body: req.body,
+    });
+    return new Response(response.body, {
+      status: response.status,
+      headers: {
+        "Content-Type": response.headers.get("Content-Type") || "application/json",
+        "Access-Control-Allow-Origin": corsOrigin,
+      },
     });
   }
 
