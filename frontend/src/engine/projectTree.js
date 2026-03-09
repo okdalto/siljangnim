@@ -514,6 +514,49 @@ async function generateAITitle(node, chatHistory) {
   }
 }
 
+/**
+ * Generate a concise AI project name from chat history.
+ * Returns null on failure so callers can fall back to their own naming.
+ */
+export async function generateProjectName(chatHistory) {
+  try {
+    const apiKey = sessionStorage.getItem("siljangnim:apiKey") || "";
+    if (!apiKey) return null;
+
+    let userPrompt = null;
+    let assistantResponse = null;
+    for (let i = chatHistory.length - 1; i >= 0; i--) {
+      if (!assistantResponse && chatHistory[i]?.role === "assistant") {
+        assistantResponse = (chatHistory[i].text || chatHistory[i].content || "").slice(0, 300);
+      }
+      if (!userPrompt && chatHistory[i]?.role === "user") {
+        userPrompt = (chatHistory[i].text || chatHistory[i].content || "").slice(0, 300);
+      }
+      if (userPrompt && assistantResponse) break;
+    }
+
+    if (!userPrompt && !assistantResponse) return null;
+
+    const { callAnthropic } = await import("./anthropicClient.js");
+    const result = await callAnthropic({
+      apiKey,
+      model: "claude-haiku-4-5-20251001",
+      maxTokens: 30,
+      system: "Generate a concise project name (under 30 chars, no quotes). Write in the same language as the user.",
+      messages: [{ role: "user", content: `User: ${userPrompt || "(no prompt)"}\nAssistant: ${assistantResponse || "(no response)"}` }],
+      tools: [],
+    });
+
+    const text = result.contentBlocks?.find(b => b.type === "text")?.text?.trim();
+    if (text && text.length > 0) {
+      return text.replace(/^["']|["']$/g, "").slice(0, 30);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Tree utilities
 // ---------------------------------------------------------------------------
