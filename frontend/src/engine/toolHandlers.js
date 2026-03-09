@@ -533,6 +533,27 @@ async function toolAskUser(input, broadcast, userAnswerPromise) {
   return `The user answered: ${answer}`;
 }
 
+async function toolRunPreprocess(input, broadcast, preprocessPromise) {
+  const code = input.code;
+  if (!code) return "Error: 'code' parameter is required.";
+
+  // Send code to dispatcher, which runs it in GLEngine
+  broadcast({ type: "run_preprocess", code });
+
+  // Wait for result from the engine
+  try {
+    const result = await preprocessPromise();
+    if (result === undefined || result === null) return "ok — preprocess completed (no return value).";
+    try {
+      return JSON.stringify(result, null, 2);
+    } catch {
+      return String(result);
+    }
+  } catch (err) {
+    return `Error during preprocess: ${err.message || String(err)}`;
+  }
+}
+
 async function toolSetTimeline(input, broadcast) {
   const updates = {};
   if (input.duration != null) updates.duration = Number(input.duration);
@@ -563,6 +584,7 @@ const TOOL_HANDLERS = {
   ask_user: toolAskUser,
   delete_asset: toolDeleteAsset,
   set_timeline: toolSetTimeline,
+  run_preprocess: toolRunPreprocess,
 };
 
 /**
@@ -583,6 +605,9 @@ export async function handleTool(name, inputData, broadcast, context = {}) {
   }
   if (name === "ask_user") {
     return handler(inputData, broadcast, context.userAnswerPromise);
+  }
+  if (name === "run_preprocess") {
+    return handler(inputData, broadcast, context.preprocessPromise);
   }
   return handler(inputData, broadcast);
 }

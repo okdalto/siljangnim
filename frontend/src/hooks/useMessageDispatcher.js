@@ -117,6 +117,7 @@ export default function useMessageDispatcher(params) {
       setProjectManifest,
       overwriteModeRef,
       autoSave,
+      agentEngine,
       // UI state persistence
       setBackendTarget, rfInstanceRef, nodeUiStateRef,
     } = deps.current;
@@ -371,6 +372,23 @@ export default function useMessageDispatcher(params) {
       case "stop_recording":
         recorderFnsRef.current.stopRecording();
         break;
+
+      case "run_preprocess": {
+        const glEngine = recorderFnsRef.current.engineRef?.current;
+        if (!glEngine) {
+          agentEngine?.handleMessage?.({ type: "preprocess_result", error: "Engine not available" });
+          break;
+        }
+        (async () => {
+          try {
+            const result = await glEngine.runPreprocess(msg.code);
+            agentEngine?.handleMessage?.({ type: "preprocess_result", result });
+          } catch (err) {
+            agentEngine?.handleMessage?.({ type: "preprocess_result", error: err.message || String(err) });
+          }
+        })();
+        break;
+      }
 
       case "workspace_state_update":
         kfMountedRef.current = false;

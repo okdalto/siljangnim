@@ -399,6 +399,7 @@ export default function App() {
     overwriteModeRef,
     autoSave,
     setBackendTarget, rfInstanceRef, nodeUiStateRef,
+    agentEngine: _agentEngine,
   });
 
   const ws = useWebSocket(BROWSER_ONLY ? null : WS_URL, handleMessage);

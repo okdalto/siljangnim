@@ -1317,6 +1317,36 @@ export default class GLEngine {
     this._setupReady = true;
   }
 
+  /**
+   * Run a preprocess script in the engine context.
+   * The script has access to ctx.uploads, ctx.utils, gl, canvas, etc.
+   * It should return a value (or resolve a promise) which becomes the result.
+   */
+  async runPreprocess(code) {
+    const gl = this.gl;
+    const canvas = this.canvas;
+
+    // Build a lightweight ctx with uploads + utils
+    const uploads = {};
+    try {
+      const blobUrls = await getAllUploadBlobUrls();
+      for (const [filename, url] of blobUrls) {
+        uploads[filename] = url;
+      }
+    } catch { /* ignore */ }
+
+    const ctx = {
+      gl,
+      canvas,
+      uploads,
+      utils: this._scriptCtx?.utils || {},
+      state: this._scriptCtx?.state || {},
+    };
+
+    const fn = new Function("ctx", "gl", "canvas", `return (async () => { ${code} })();`);
+    return await fn(ctx, gl, canvas);
+  }
+
   /** Load an uploaded file from IndexedDB and return a blob URL. */
   async _getUploadBlobUrl(filename) {
     return getUploadBlobUrl(filename);

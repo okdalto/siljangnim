@@ -251,6 +251,30 @@ const TOOLS = [
     },
   },
   {
+    name: "run_preprocess",
+    description:
+      "Run a preprocessing script in the engine context BEFORE writing the scene. " +
+      "Use this for heavy operations like analyzing video duration, pre-computing detection caches, " +
+      "reading file contents, etc. The script has access to ctx.uploads (blob URLs for uploaded files), " +
+      "ctx.gl, ctx.canvas, and ctx.utils. The script must RETURN a value — the returned value " +
+      "is sent back to you as the tool result (auto-serialized to JSON). " +
+      "Results are NOT persisted — store computed data via write_scene's setup/state if needed.",
+    input_schema: {
+      type: "object",
+      properties: {
+        code: {
+          type: "string",
+          description:
+            "JavaScript code to execute. Must return a value. " +
+            "Example: 'const v = document.createElement(\"video\"); v.src = ctx.uploads[\"clip.mp4\"]; " +
+            "await new Promise(r => { v.onloadedmetadata = r; }); " +
+            "return { duration: v.duration, width: v.videoWidth, height: v.videoHeight };'",
+        },
+      },
+      required: ["code"],
+    },
+  },
+  {
     name: "delete_asset",
     description:
       "Delete an uploaded asset from the workspace by filename. " +
