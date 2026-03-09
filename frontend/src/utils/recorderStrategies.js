@@ -375,11 +375,23 @@ export async function startOfflineWebCodecs(ctx) {
       )
     : Promise.resolve();
 
+  // Timeout wrapper — prevent hanging if video prep or audio render stalls
+  const withTimeout = (promise, ms, label) =>
+    Promise.race([
+      promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+      ),
+    ]);
+
   // Start video frames once audio is queued and videos are prepared
-  Promise.all([audioReady, videosReady]).then(() => {
+  Promise.all([
+    withTimeout(audioReady, 30000, "audioReady"),
+    withTimeout(videosReady, 30000, "videosReady"),
+  ]).then(() => {
     scheduleNextFrame(stepFrame, rafRef);
   }).catch((e) => {
-    console.error("Offline recording setup failed:", e);
+    console.warn("[OfflineRec] setup issue (continuing anyway):", e);
     scheduleNextFrame(stepFrame, rafRef);
   });
 
@@ -429,7 +441,7 @@ export async function startOfflineWebCodecs(ctx) {
       setProgress(computeProgress(currentTime, endTime, renderStartTime, fps));
       scheduleNextFrame(stepFrame, rafRef);
     } catch (e) {
-      console.error("Offline WebCodecs stepFrame error:", e);
+      console.error("[OfflineRec] stepFrame error:", e);
       finalize();
     }
   };
