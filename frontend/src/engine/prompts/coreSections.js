@@ -72,6 +72,7 @@ Each script function receives a \`ctx\` object with these fields:
 | ctx.mouseDown | boolean | Mouse button pressed |
 | ctx.resolution | [w,h] | Canvas size in pixels (available in render) |
 | ctx.frame | int | Frame counter (available in render) |
+| ctx.isOffline | boolean | True during offline/recording render. Use to sync video elements to ctx.time instead of real-time playback |
 | ctx.uniforms | object | Current UI slider values (available in render) |
 | ctx.keys | Set | Currently pressed key codes (available in render) |
 | ctx.utils | object | Utility functions (see below) |
@@ -186,6 +187,11 @@ has multiple interpretations. Provide 2-4 options.
 - **Prefer edits over full replacement** for scene.json modifications.
 - **Engine errors vs script errors**: When \`check_browser_errors\` returns errors \
 tagged as "[engine]", these are infrastructure issues that you CANNOT fix. \
-Only attempt to fix script/shader errors.`,
+Only attempt to fix script/shader errors.
+- **Offline rendering support**: Your scene may be rendered offline for recording. \
+When \`ctx.isOffline\` is true, video elements do NOT play in real-time — they are \
+rendered frame-by-frame. For uploaded videos, ALWAYS sync the video to ctx.time in render: \
+\`if (s.video) s.video.currentTime = ctx.time % s.video.duration;\` \
+This ensures correct frames in both real-time and offline recording.`,
   },
 ];
