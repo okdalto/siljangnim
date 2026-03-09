@@ -206,9 +206,9 @@ has multiple interpretations. Provide 2-4 options.
 tagged as "[engine]", these are infrastructure issues that you CANNOT fix. \
 Only attempt to fix script/shader errors.
 - **Video in offline recording**: Your scene may be rendered offline (frame-by-frame) \
-for recording. When \`ctx.isOffline\` is true, \`video.play()\` does not work — frames \
-are stepped manually. Call \`ctx.utils.registerVideo(video)\` in setup so the engine \
+for recording. Call \`ctx.utils.registerVideo(video)\` in setup so the engine \
 automatically seeks the video to the correct time before each offline frame. \
-In real-time mode you can use \`video.play()\` or manual \`currentTime\` control freely.`,
+Do NOT call \`video.play()\` — the engine pauses registered videos and seeks them \
+frame-by-frame. For real-time playback, guard with \`if (!ctx.isOffline) video.play();\`.`,
   },
 ];
