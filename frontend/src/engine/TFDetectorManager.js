@@ -1,4 +1,5 @@
 import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
+import BaseManager from "./BaseManager.js";
 
 /**
  * TFDetectorManager — Real-time object detection via TensorFlow.js COCO-SSD.
@@ -30,8 +31,9 @@ const COCO_CLASSES = [
 
 const COCO_CLASS_INDEX = new Map(COCO_CLASSES.map((c, i) => [c, i]));
 
-export default class TFDetectorManager {
+export default class TFDetectorManager extends BaseManager {
   constructor() {
+    super();
     this._model = null;
 
     // Detection results
@@ -45,10 +47,6 @@ export default class TFDetectorManager {
     // Config
     this.maxDetections = MAX_DETECTIONS;
     this.minScore = 0.5;
-
-    // State
-    this.initialized = false;
-    this._initializing = false;
   }
 
   /**
@@ -58,24 +56,24 @@ export default class TFDetectorManager {
    * @param {number} [options.minScore=0.5]
    */
   async init(options = {}) {
-    if (this.initialized || this._initializing) return;
-    this._initializing = true;
-
     this.maxDetections = options.maxDetections ?? MAX_DETECTIONS;
     this.minScore = options.minScore ?? 0.5;
 
-    try {
-      // Dynamically import from CDN
-      await import(/* webpackIgnore: true */ "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js");
+    await this._guardedInit(async () => {
+      // tf.min.js is a UMD script — must be loaded via <script> tag so it
+      // registers window.tf.  ESM dynamic import() does NOT work for it.
+      if (!window.tf) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
+          s.onload = resolve;
+          s.onerror = () => reject(new Error("Failed to load TensorFlow.js from CDN"));
+          document.head.appendChild(s);
+        });
+      }
       const cocoSsd = await import(/* webpackIgnore: true */ "https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/+esm");
       this._model = await cocoSsd.load({ base: "lite_mobilenet_v2" });
-      this.initialized = true;
-    } catch (err) {
-      console.error("[TFDetectorManager] init failed:", err);
-      throw err;
-    } finally {
-      this._initializing = false;
-    }
+    });
   }
 
   /**
