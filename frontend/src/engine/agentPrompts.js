@@ -117,11 +117,33 @@ The engine exposes these utilities on \`ctx.utils\` for convenience:
 | \`ctx.utils.updateVideoTexture(texture, video)\` | Refresh webcam/video texture each frame (Y-flipped) |
 | \`ctx.utils.createRenderTarget(w, h, opts?)\` | FBO render target creation → \`{framebuffer, texture, width, height}\`. Store in \`ctx.state\`. opts: \`{internalFormat, format, type, filter, depth}\` |
 | \`ctx.utils.sampleCurve(points, t)\` | Sample a graph control's curve at position t (0-1). \`points\` = \`ctx.uniforms.u_curve\` |
+| \`ctx.utils.createMesh(prog, geometry)\` | Create a ready-to-draw mesh from geometry → \`{vao, draw(mode?), dispose()}\`. Automatically binds a_position, a_normal, a_uv attributes and index buffer. **Always prefer this over manual VAO/VBO setup.** |
+| \`ctx.utils.getUniforms(prog)\` | Auto-discover and cache all uniform locations → \`{u_time: {set(v)}, u_resolution: {set(x,y)}, ...}\`. Call \`.set()\` with values matching the GLSL type. **Always prefer this over manual getUniformLocation calls.** |
 
 **Y-coordinate note**: All texture upload utilities automatically flip Y to match \
 GL coordinates (bottom-left origin). Mouse coordinates (\`ctx.mouse\`) are in \
 screen space (0,0 = top-left, 1,1 = bottom-right). If you need GL-space mouse Y, \
 use \`1.0 - ctx.mouse[1]\`.
+
+#### createMesh + getUniforms example (recommended pattern)
+
+\`\`\`js
+// setup:
+const prog = ctx.utils.createProgram(ctx.utils.DEFAULT_QUAD_VERTEX_SHADER, fragSrc);
+const mesh = ctx.utils.createMesh(prog, ctx.utils.createQuadGeometry());
+const u = ctx.utils.getUniforms(prog);
+ctx.state = { prog, mesh, u };
+
+// render:
+gl.useProgram(ctx.state.prog);
+ctx.state.u.u_time.set(ctx.time);
+ctx.state.u.u_resolution.set(ctx.resolution[0], ctx.resolution[1]);
+ctx.state.mesh.draw();
+
+// cleanup:
+gl.deleteProgram(ctx.state.prog);
+ctx.state.mesh.dispose();
+\`\`\`
 
 ---
 
@@ -919,6 +941,7 @@ The backend needs \`python-osc\` installed: \`pip install python-osc\`.`,
   {
     id: "mic",
     core: false,
+    platforms: ["web-desktop"],
     keywords: ["mic", "microphone", "audio input", "voice", "sound input"],
     content: `\
 ## MICROPHONE INPUT
@@ -955,17 +978,29 @@ const _FULL_PROMPT = PROMPT_SECTIONS.map((s) => s.content).join("\n\n") + "\n";
 const _FILE_SECTIONS = new Set(["uploads"]);
 
 /**
- * Build system prompt with platform-based section filtering.
+ * Build system prompt with platform + keyword-based section filtering.
+ * Core sections are always included. Non-core sections are included only
+ * when the user prompt contains at least one of their keywords, or when
+ * they have file-attached content and files are present.
  * @param {string} userPrompt
  * @param {boolean} hasFiles
- * @param {string} [platform] — "web-desktop", "web-mobile", or "server". If omitted, all sections included.
+ * @param {string} [platform] — "web-desktop", "web-mobile", or "server". If omitted, all platforms allowed.
  */
 export function buildSystemPrompt(userPrompt = "", hasFiles = false, platform = null) {
-  if (!platform) return _FULL_PROMPT;
+  const prompt = userPrompt.toLowerCase();
   const sections = PROMPT_SECTIONS.filter((s) => {
+    // Core sections always included
     if (s.core) return true;
-    if (!s.platforms) return true;
-    return s.platforms.includes(platform);
+    // Platform filter
+    if (platform && s.platforms && !s.platforms.includes(platform)) return false;
+    // File-related sections forced when files are attached
+    if (hasFiles && _FILE_SECTIONS.has(s.id)) return true;
+    // Keyword matching — include only if user prompt mentions a keyword
+    if (s.keywords && s.keywords.length > 0) {
+      return s.keywords.some((kw) => prompt.includes(kw.toLowerCase()));
+    }
+    // Sections without keywords are always included
+    return true;
   });
   return sections.map((s) => s.content).join("\n\n") + "\n";
 }
