@@ -12,8 +12,10 @@ const PROVIDER_MODELS = {
     { id: "claude-haiku-4-5-20251001", label: "Haiku 4.5" },
   ],
   openai: [
+    { id: "gpt-5.4", label: "GPT-5.4" },
+    { id: "gpt-5.4-pro", label: "GPT-5.4 Pro" },
+    { id: "gpt-5-mini", label: "GPT-5 Mini" },
     { id: "gpt-4o", label: "GPT-4o" },
-    { id: "gpt-4o-mini", label: "GPT-4o Mini" },
     { id: "o3", label: "o3" },
   ],
   gemini: [
