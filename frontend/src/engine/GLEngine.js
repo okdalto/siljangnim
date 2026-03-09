@@ -154,6 +154,7 @@ export default class GLEngine {
     this._mouseDown = false;
     this._mouseDownSnapshot = false;
     this._mouseDownPrev = false;
+    this._mouseHover = false;
     this._pressedKeys = new Set();
     this._keyboardBindings = {}; // uniform name → KeyboardEvent.code
 
@@ -1080,6 +1081,7 @@ export default class GLEngine {
       ctx.mouse = [this._mouseSnapshot[0], this._mouseSnapshot[1], this._mouseSnapshot[2], this._mouseSnapshot[3]];
       ctx.mousePrev = [this._mousePrev[0], this._mousePrev[1], this._mousePrev[2], this._mousePrev[3]];
       ctx.mouseDown = this._mouseDownSnapshot;
+      ctx.mouseHover = this._mouseHover;
       ctx.resolution = [this.canvas.width, this.canvas.height];
       ctx.frame = this._frameCount;
       ctx.uniforms = { ...this._customUniforms };
@@ -1424,6 +1426,10 @@ export default class GLEngine {
   updateMouse(x, y, pressed) {
     this._mouse = [x, y, pressed ? x : this._mouse[2], pressed ? y : this._mouse[3]];
     this._mouseDown = pressed;
+  }
+
+  updateMouseHover(hovering) {
+    this._mouseHover = hovering;
   }
 
   updateKey(code, pressed) {

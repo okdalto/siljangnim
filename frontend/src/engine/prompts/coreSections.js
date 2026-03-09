@@ -70,6 +70,7 @@ Each script function receives a \`ctx\` object with these fields:
 | ctx.mouse | [x,y,cx,cy] | Mouse position normalized 0-1 in screen space (0,0=top-left). cx,cy = click position. Do NOT divide by resolution. For GL Y, use \`1.0 - ctx.mouse[1]\` |
 | ctx.mousePrev | [x,y,cx,cy] | Previous frame mouse (same format). Use \`ctx.mouse[0] - ctx.mousePrev[0]\` for delta |
 | ctx.mouseDown | boolean | Mouse button pressed |
+| ctx.mouseHover | boolean | True when cursor is over the viewport |
 | ctx.resolution | [w,h] | Canvas size in pixels (available in render) |
 | ctx.frame | int | Frame counter (available in render) |
 | ctx.isOffline | boolean | True during offline/recording render. Use to sync video elements to ctx.time instead of real-time playback |
