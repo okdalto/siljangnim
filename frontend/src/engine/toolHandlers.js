@@ -531,6 +531,18 @@ async function toolAskUser(input, broadcast, userAnswerPromise) {
   return `The user answered: ${answer}`;
 }
 
+async function toolSetTimeline(input, broadcast) {
+  const updates = {};
+  if (input.duration != null) updates.duration = Number(input.duration);
+  if (input.loop != null) updates.loop = Boolean(input.loop);
+  if (Object.keys(updates).length === 0) return "Error: provide at least one of 'duration' or 'loop'.";
+  broadcast({ type: "set_timeline", ...updates });
+  const parts = [];
+  if (updates.duration != null) parts.push(`duration=${updates.duration}s`);
+  if (updates.loop != null) parts.push(`loop=${updates.loop}`);
+  return `ok — timeline updated: ${parts.join(", ")}.`;
+}
+
 // ---------------------------------------------------------------------------
 // Dispatch table
 // ---------------------------------------------------------------------------
@@ -548,6 +560,7 @@ const TOOL_HANDLERS = {
   check_browser_errors: toolCheckBrowserErrors,
   ask_user: toolAskUser,
   delete_asset: toolDeleteAsset,
+  set_timeline: toolSetTimeline,
 };
 
 /**
