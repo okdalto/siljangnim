@@ -107,8 +107,8 @@ export default class VideoFrameExtractor {
     while (this._outputQueue.length > 0) {
       const frame = this._outputQueue[0];
 
-      // If this frame overshoots and we already have a usable frame, keep it for next call
-      if (frame.timestamp > targetUs + 1000 && this._currentFrame) {
+      // If this frame overshoots and we already have a frame close enough to the target, keep it for next call
+      if (frame.timestamp > targetUs + 1000 && this._currentFrame && this._currentFrame.timestamp >= targetUs - 1000) {
         break;
       }
 

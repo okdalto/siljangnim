@@ -9,7 +9,7 @@
  * for backward compatibility with existing scenes.
  */
 
-import { getAllUploadBlobUrls, getUploadBlobUrl, readJson, writeJson } from "./storage.js";
+import { getAllUploadBlobUrls, getUploadBlobUrl, readJson, writeJson, getProjectManifest } from "./storage.js";
 import { createProgram, compileShader, DEFAULT_QUAD_VERTEX_SHADER, DEFAULT_3D_VERTEX_SHADER } from "./shaderUtils.js";
 import { createQuadGeometry, createBoxGeometry, createSphereGeometry, createPlaneGeometry } from "./geometries.js";
 import { uniformSetter, GEOMETRY_CREATORS } from "./uniformSetters.js";
@@ -1203,7 +1203,8 @@ export default class GLEngine {
 
         if (extractor) {
           // WebCodecs path — decode frame directly
-          const dur = extractor.duration;
+          // Use video.duration (same as online drift-correction) for consistent loop timing
+          const dur = video.duration && !isNaN(video.duration) ? video.duration : extractor.duration;
           const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
           const extractors = this._offlineExtractors;
           seekPromises.push(
@@ -1556,6 +1557,25 @@ export default class GLEngine {
       }
     } catch (e) {
       console.warn("[GLEngine] Failed to pre-populate uploads:", e);
+    }
+
+    // Check for excluded (missing) assets from manifest
+    try {
+      const manifest = await getProjectManifest();
+      if (manifest?.excluded_assets?.length > 0) {
+        const missingList = [];
+        for (const asset of manifest.excluded_assets) {
+          if (!ctx.uploads[asset.filename]) {
+            ctx.uploads[asset.filename] = null; // mark as missing
+            missingList.push(asset);
+          }
+        }
+        if (missingList.length > 0) {
+          this.onMissingAssets?.(missingList);
+        }
+      }
+    } catch {
+      // Manifest read may fail — continue.
     }
 
     // Run setup (async)
