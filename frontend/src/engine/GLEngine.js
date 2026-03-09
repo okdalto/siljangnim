@@ -316,7 +316,7 @@ export default class GLEngine {
     const ctx = {
       gl: this.gl,
       canvas: this.canvas,
-      state: {},
+      state: { ...(this._preprocessState || {}) },
       uploads: {},
       isOffline: false, // populated with blob URLs for uploaded files
       utils: {
@@ -1319,8 +1319,9 @@ export default class GLEngine {
 
   /**
    * Run a preprocess script in the engine context.
-   * The script has access to ctx.uploads, ctx.utils, gl, canvas, etc.
-   * It should return a value (or resolve a promise) which becomes the result.
+   * The script has access to ctx.uploads, ctx.utils, gl, canvas, and ctx.state.
+   * Data stored in ctx.state persists and is carried into subsequent scenes'
+   * setup/render via ctx.state (merged automatically on loadScene).
    */
   async runPreprocess(code) {
     const gl = this.gl;
@@ -1335,16 +1336,24 @@ export default class GLEngine {
       }
     } catch { /* ignore */ }
 
+    // Use persistent preprocess state — survives across loadScene calls
+    if (!this._preprocessState) this._preprocessState = {};
+
     const ctx = {
       gl,
       canvas,
       uploads,
       utils: this._scriptCtx?.utils || {},
-      state: this._scriptCtx?.state || {},
+      state: this._preprocessState,
     };
 
     const fn = new Function("ctx", "gl", "canvas", `return (async () => { ${code} })();`);
-    return await fn(ctx, gl, canvas);
+    const result = await fn(ctx, gl, canvas);
+
+    // ctx.state may have been mutated by the script — keep reference
+    this._preprocessState = ctx.state;
+
+    return result;
   }
 
   /** Load an uploaded file from IndexedDB and return a blob URL. */
@@ -1352,9 +1361,15 @@ export default class GLEngine {
     return getUploadBlobUrl(filename);
   }
 
+  /** Clear preprocess state. Call on project switch. */
+  clearPreprocessState() {
+    this._preprocessState = null;
+  }
+
   dispose() {
     this.stop();
     this._disposeScene();
+    this._preprocessState = null;
     for (const mgr of this._managers) {
       mgr?.dispose?.();
     }

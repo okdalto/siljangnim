@@ -255,10 +255,12 @@ const TOOLS = [
     description:
       "Run a preprocessing script in the engine context BEFORE writing the scene. " +
       "Use this for heavy operations like analyzing video duration, pre-computing detection caches, " +
-      "reading file contents, etc. The script has access to ctx.uploads (blob URLs for uploaded files), " +
-      "ctx.gl, ctx.canvas, and ctx.utils. The script must RETURN a value — the returned value " +
-      "is sent back to you as the tool result (auto-serialized to JSON). " +
-      "Results are NOT persisted — store computed data via write_scene's setup/state if needed.",
+      "reading file contents, etc. The script has access to ctx.uploads (blob URLs), " +
+      "ctx.gl, ctx.canvas, ctx.utils, and ctx.state. The script must RETURN a value — " +
+      "the returned value is sent back to you as JSON. " +
+      "IMPORTANT: Data stored in ctx.state PERSISTS into the next scene's ctx.state — " +
+      "use this to pre-compute heavy data that setup/render can access directly via s.key " +
+      "(where s = ctx.state).",
     input_schema: {
       type: "object",
       properties: {
