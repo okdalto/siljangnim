@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   startOfflinePng,
   startOfflineWebCodecs,
@@ -11,7 +11,7 @@ import {
  * Hook for recording WebGL canvas.
  *
  * Paths:
- * - PNG + offline: frame-by-frame → ZIP (fflate)
+ * - PNG + offline: frame-by-frame → streaming ZIP (fflate)
  * - MP4 + offline: WebCodecs H.264 + mp4-muxer → MP4
  * - WebM + offline: WebCodecs VP9 + webm-muxer → WebM
  * - MP4 + realtime: WebCodecs H.264 + mp4-muxer (live capture) → MP4
@@ -22,6 +22,8 @@ import {
 export default function useRecorder(engineRef) {
   const [recording, setRecording] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [progress, setProgress] = useState(null);
+  const [completionInfoRaw, setCompletionInfoRaw] = useState(null);
 
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -34,6 +36,31 @@ export default function useRecorder(engineRef) {
   const finalizeRef = useRef(null);
   const savedSizeRef = useRef(null);
   const alphaRef = useRef(false);
+  const discardRef = useRef(false);
+  const completionTimerRef = useRef(null);
+  const contextLostHandlerRef = useRef(null);
+
+  // Auto-clear completionInfo after 5 seconds
+  const setCompletionInfo = useCallback((info) => {
+    if (completionTimerRef.current) {
+      clearTimeout(completionTimerRef.current);
+      completionTimerRef.current = null;
+    }
+    setCompletionInfoRaw(info);
+    if (info) {
+      completionTimerRef.current = setTimeout(() => {
+        setCompletionInfoRaw(null);
+        completionTimerRef.current = null;
+      }, 5000);
+    }
+  }, []);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+    };
+  }, []);
 
   const updateElapsed = useCallback(() => {
     setElapsedTime((performance.now() - startTimeRef.current) / 1000);
@@ -54,6 +81,11 @@ export default function useRecorder(engineRef) {
   const restoreEngine = useCallback(() => {
     const eng = engineRef.current;
     if (eng) {
+      // Remove WebGL context loss listener
+      if (contextLostHandlerRef.current && eng.canvas) {
+        eng.canvas.removeEventListener("webglcontextlost", contextLostHandlerRef.current);
+        contextLostHandlerRef.current = null;
+      }
       if (alphaRef.current) {
         eng.recreateContext({ alpha: false });
         alphaRef.current = false;
@@ -66,10 +98,23 @@ export default function useRecorder(engineRef) {
       eng.setPaused(false);
     }
     offlineRef.current = false;
+    discardRef.current = false;
   }, [engineRef]);
 
   const stopRecording = useCallback(() => {
+    // Abort confirmation for incomplete offline recording
+    if (offlineRef.current && finalizeRef.current) {
+      const keepPartial = window.confirm(
+        "Recording is still in progress.\n\nOK = Download partial recording\nCancel = Discard"
+      );
+      if (!keepPartial) {
+        discardRef.current = true;
+      }
+    }
+
     if (rafRef.current) {
+      // Clear both — offline uses setTimeout, realtime uses rAF
+      clearTimeout(rafRef.current);
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
@@ -96,15 +141,31 @@ export default function useRecorder(engineRef) {
 
       offlineRef.current = offline;
       offlineAbortRef.current = false;
+      discardRef.current = false;
       chunksRef.current = [];
       filenameRef.current = filename || null;
       savedSizeRef.current = null;
+      setProgress(null);
+      setCompletionInfo(null);
 
       // Resolution override
       if (resolution && (resolution.width !== canvas.width || resolution.height !== canvas.height)) {
         savedSizeRef.current = { width: canvas.width, height: canvas.height };
         engine.resize(resolution.width, resolution.height);
       }
+
+      // WebGL context loss handler
+      const handleContextLost = (e) => {
+        e.preventDefault();
+        console.error("WebGL context lost during recording");
+        if (offlineRef.current) {
+          offlineAbortRef.current = true;
+        } else {
+          stopRecording();
+        }
+      };
+      canvas.addEventListener("webglcontextlost", handleContextLost);
+      contextLostHandlerRef.current = handleContextLost;
 
       // Audio — only include if an actual audio file is loaded
       const audioManager = engine._audioManager;
@@ -151,7 +212,8 @@ export default function useRecorder(engineRef) {
       const ctx = {
         engine, canvas, fps, duration, format, alpha,
         videoBitsPerSecond, mimeType, hasAudio, audioStream, audioBuffer,
-        setRecording, setElapsedTime, downloadBlob,
+        setRecording, setElapsedTime, setProgress, setCompletionInfo,
+        downloadBlob, discardRef,
         rafRef, finalizeRef, offlineAbortRef, alphaRef, filenameRef,
         recorderRef, chunksRef, startTimeRef, autoStopRef,
         restoreEngine, restoreOnRealtimeStop,
@@ -170,8 +232,8 @@ export default function useRecorder(engineRef) {
         startRealtimeWebm(ctx);
       }
     },
-    [engineRef, updateElapsed, stopRecording, downloadBlob, restoreEngine]
+    [engineRef, updateElapsed, stopRecording, downloadBlob, restoreEngine, setCompletionInfo]
   );
 
-  return { recording, elapsedTime, startRecording, stopRecording };
+  return { recording, elapsedTime, progress, completionInfo: completionInfoRaw, startRecording, stopRecording };
 }

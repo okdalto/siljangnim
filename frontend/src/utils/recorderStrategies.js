@@ -1,12 +1,13 @@
 import { Muxer as Mp4Muxer, ArrayBufferTarget as Mp4Target } from "mp4-muxer";
 import { Muxer as WebmMuxer, ArrayBufferTarget as WebmTarget } from "webm-muxer";
-import { zipSync } from "fflate";
+import { Zip, ZipPassThrough } from "fflate";
 
 /**
  * Each strategy receives a context object and initiates recording.
  * Context shape:
  *   engine, canvas, fps, duration, bitrate, alpha,
- *   setRecording, setElapsedTime, downloadBlob,
+ *   setRecording, setElapsedTime, setProgress, setCompletionInfo,
+ *   downloadBlob, discardRef,
  *   rafRef, finalizeRef, offlineAbortRef, alphaRef, filenameRef,
  *   restoreEngine,
  *   // MediaRecorder paths only:
@@ -27,6 +28,20 @@ function avcCodecForResolution(w, h) {
   return "avc1.640033";                        // High L5.1 — 4K+
 }
 
+// ---- Offline scheduling helpers ----
+// setTimeout(0) instead of rAF avoids 60fps cap and background-tab throttling.
+
+function scheduleNextFrame(callback, rafRef) {
+  rafRef.current = setTimeout(callback, 0);
+}
+
+function cancelScheduledFrame(rafRef) {
+  if (rafRef.current != null) {
+    clearTimeout(rafRef.current);
+    rafRef.current = null;
+  }
+}
+
 // ---- Audio helpers ----
 
 async function renderOfflineAudio(audioBuffer, endTime) {
@@ -43,7 +58,7 @@ async function renderOfflineAudio(audioBuffer, endTime) {
 
 async function encodeOfflineAudio(renderedBuffer, audioEncoder) {
   const { sampleRate, numberOfChannels } = renderedBuffer;
-  const CHUNK_FRAMES = 960; // 20ms @ 48kHz
+  const CHUNK_FRAMES = Math.round(sampleRate * 0.02); // 20ms at any sample rate
   const totalFrames = renderedBuffer.length;
 
   // Extract channel data
@@ -72,10 +87,22 @@ async function encodeOfflineAudio(renderedBuffer, audioEncoder) {
   }
 }
 
+// ---- Progress helper ----
+
+function computeProgress(currentTime, endTime, renderStartTime, fps) {
+  const percent = Math.min(100, (currentTime / endTime) * 100);
+  const elapsed = (performance.now() - renderStartTime) / 1000;
+  const eta = percent > 0 ? (elapsed / percent) * (100 - percent) : 0;
+  const currentFrame = Math.round(currentTime * fps);
+  const totalFrames = Math.round(endTime * fps);
+  return { percent, eta, currentFrame, totalFrames };
+}
+
 export function startOfflinePng(ctx) {
   const {
     engine, canvas, fps, duration, alpha,
-    setRecording, setElapsedTime, downloadBlob,
+    setRecording, setElapsedTime, setProgress, setCompletionInfo,
+    downloadBlob, discardRef,
     rafRef, finalizeRef, offlineAbortRef, alphaRef, filenameRef,
     restoreEngine,
   } = ctx;
@@ -97,8 +124,14 @@ export function startOfflinePng(ctx) {
         : 30;
   let currentTime = 0;
   let frameIndex = 0;
-  const pngBuffers = {};
 
+  // Streaming ZIP — frames are pushed immediately and can be GC'd
+  const zipChunks = [];
+  const zip = new Zip((err, data, _final) => {
+    if (!err) zipChunks.push(data);
+  });
+
+  const renderStartTime = performance.now();
   setElapsedTime(0);
   setRecording(true);
 
@@ -108,17 +141,25 @@ export function startOfflinePng(ctx) {
     if (finalized) return;
     finalized = true;
     finalizeRef.current = null;
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
+    cancelScheduledFrame(rafRef);
+    const timeTaken = ((performance.now() - renderStartTime) / 1000).toFixed(1);
     try {
-      const zipped = zipSync(pngBuffers, { level: 0 });
-      const blob = new Blob([zipped], { type: "application/zip" });
-      downloadBlob(blob, filenameRef.current || `png_sequence_${Date.now()}.zip`);
+      zip.end();
+      let totalLen = 0;
+      for (const c of zipChunks) totalLen += c.length;
+      const merged = new Uint8Array(totalLen);
+      let off = 0;
+      for (const c of zipChunks) { merged.set(c, off); off += c.length; }
+      const blob = new Blob([merged], { type: "application/zip" });
+      if (!discardRef.current) {
+        downloadBlob(blob, filenameRef.current || `png_sequence_${Date.now()}.zip`);
+      }
+      setCompletionInfo({ success: true, fileSize: blob.size, timeTaken });
     } catch (e) {
       console.error("PNG sequence ZIP error:", e);
+      setCompletionInfo({ success: false, error: e.message, timeTaken });
     }
+    setProgress(null);
     setRecording(false);
     restoreEngine();
   };
@@ -143,29 +184,38 @@ export function startOfflinePng(ctx) {
     const blob = await new Promise((resolve) =>
       canvas.toBlob(resolve, "image/png")
     );
-    const arrayBuf = await blob.arrayBuffer();
-    const padded = String(frameIndex).padStart(6, "0");
-    pngBuffers[`frame_${padded}.png`] = new Uint8Array(arrayBuf);
+    if (!blob) {
+      console.error("canvas.toBlob() returned null, skipping frame", frameIndex);
+    } else {
+      const arrayBuf = await blob.arrayBuffer();
+      const padded = String(frameIndex).padStart(6, "0");
+      const entry = new ZipPassThrough(`frame_${padded}.png`);
+      zip.add(entry);
+      entry.push(new Uint8Array(arrayBuf), true);
+    }
 
     frameIndex++;
     currentTime += dt;
     setElapsedTime(currentTime);
+    setProgress(computeProgress(currentTime, endTime, renderStartTime, fps));
 
-    rafRef.current = requestAnimationFrame(stepFrame);
+    scheduleNextFrame(stepFrame, rafRef);
   };
 
-  rafRef.current = requestAnimationFrame(stepFrame);
+  scheduleNextFrame(stepFrame, rafRef);
 }
 
 export function startOfflineWebCodecs(ctx) {
   const {
-    engine, canvas, fps, duration, format, videoBitsPerSecond,
+    engine, canvas, fps, duration, format, alpha, videoBitsPerSecond,
     hasAudio, audioBuffer,
-    setRecording, setElapsedTime, downloadBlob,
-    rafRef, finalizeRef, offlineAbortRef,
+    setRecording, setElapsedTime, setProgress, setCompletionInfo,
+    downloadBlob, discardRef,
+    rafRef, finalizeRef, offlineAbortRef, alphaRef,
     restoreEngine,
   } = ctx;
 
+  const isWebm = format === "webm";
   const configs = format === "mp4"
     ? {
         MuxerClass: Mp4Muxer, TargetClass: Mp4Target,
@@ -186,6 +236,12 @@ export function startOfflineWebCodecs(ctx) {
 
   engine.setPaused(true);
   engine.seekTo(0);
+
+  // WebM + alpha support (VP9 supports alpha channel)
+  if (isWebm && alpha) {
+    alphaRef.current = true;
+    engine.recreateContext({ alpha: true });
+  }
 
   const dt = 1 / fps;
   const endTime =
@@ -244,11 +300,13 @@ export function startOfflineWebCodecs(ctx) {
     height: canvas.height,
     bitrate: videoBitsPerSecond,
     framerate: fps,
+    ...(isWebm && alpha ? { alpha: "keep" } : {}),
   });
 
   let currentTime = 0;
   let frameCount = 0;
 
+  const renderStartTime = performance.now();
   setElapsedTime(0);
   setRecording(true);
 
@@ -260,21 +318,24 @@ export function startOfflineWebCodecs(ctx) {
     if (finalized) return;
     finalized = true;
     finalizeRef.current = null;
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
+    cancelScheduledFrame(rafRef);
+    const timeTaken = ((performance.now() - renderStartTime) / 1000).toFixed(1);
     try {
       if (audioEncoder?.state === "configured") await audioEncoder.flush();
       if (encoder.state === "configured") await encoder.flush();
       muxer.finalize();
       const blob = new Blob([target.buffer], { type: blobType });
-      downloadBlob(blob, `recording_${Date.now()}.${fileExt}`);
+      if (!discardRef.current) {
+        downloadBlob(blob, `recording_${Date.now()}.${fileExt}`);
+      }
+      setCompletionInfo({ success: true, fileSize: blob.size, timeTaken });
     } catch (e) {
       console.error("Offline recording finalize error:", e);
+      setCompletionInfo({ success: false, error: e.message, timeTaken });
     }
     if (audioEncoder?.state !== "closed") audioEncoder?.close();
     if (encoder.state !== "closed") encoder.close();
+    setProgress(null);
     setRecording(false);
     restoreEngine();
   };
@@ -283,12 +344,13 @@ export function startOfflineWebCodecs(ctx) {
 
   encoder.addEventListener("error", () => {
     console.error("VideoEncoder fatal error – aborting recording");
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
+    finalized = true;
+    finalizeRef.current = null;
+    cancelScheduledFrame(rafRef);
     if (audioEncoder?.state !== "closed") audioEncoder?.close();
     if (encoder.state !== "closed") encoder.close();
+    setCompletionInfo({ success: false, error: "VideoEncoder fatal error", timeTaken: ((performance.now() - renderStartTime) / 1000).toFixed(1) });
+    setProgress(null);
     setRecording(false);
     restoreEngine();
   });
@@ -302,7 +364,7 @@ export function startOfflineWebCodecs(ctx) {
 
   // Start video frames once audio is queued
   audioReady.then(() => {
-    rafRef.current = requestAnimationFrame(stepFrame);
+    scheduleNextFrame(stepFrame, rafRef);
   });
 
   const stepFrame = async () => {
@@ -315,7 +377,7 @@ export function startOfflineWebCodecs(ctx) {
       encoder.addEventListener(
         "dequeue",
         () => {
-          rafRef.current = requestAnimationFrame(stepFrame);
+          scheduleNextFrame(stepFrame, rafRef);
         },
         { once: true },
       );
@@ -335,6 +397,7 @@ export function startOfflineWebCodecs(ctx) {
 
       const frame = new VideoFrame(canvas, {
         timestamp: Math.round(currentTime * 1_000_000),
+        ...(isWebm && alpha ? { alpha: "keep" } : {}),
       });
       const keyFrame = frameCount % (fps * 2) === 0;
       encoder.encode(frame, { keyFrame });
@@ -345,15 +408,17 @@ export function startOfflineWebCodecs(ctx) {
     }
 
     setElapsedTime(currentTime);
-    rafRef.current = requestAnimationFrame(stepFrame);
+    setProgress(computeProgress(currentTime, endTime, renderStartTime, fps));
+    scheduleNextFrame(stepFrame, rafRef);
   };
 }
 
 export function startOfflineFallback(ctx) {
   const {
     engine, canvas, fps, duration,
-    setRecording, setElapsedTime, downloadBlob,
-    rafRef, recorderRef, chunksRef,
+    setRecording, setElapsedTime, setProgress, setCompletionInfo,
+    downloadBlob, discardRef,
+    rafRef, recorderRef, chunksRef, offlineAbortRef,
     mimeType, videoBitsPerSecond,
     restoreEngine, stopRecording,
   } = ctx;
@@ -363,22 +428,6 @@ export function startOfflineFallback(ctx) {
 
   const stream = canvas.captureStream(0);
   const track = stream.getVideoTracks()[0];
-  const recorder = new MediaRecorder(stream, {
-    mimeType,
-    videoBitsPerSecond,
-  });
-  recorder.ondataavailable = (e) => {
-    if (e.data.size > 0) chunksRef.current.push(e.data);
-  };
-  recorder.onstop = () => {
-    setRecording(false);
-    const blob = new Blob(chunksRef.current, { type: mimeType });
-    chunksRef.current = [];
-    downloadBlob(blob);
-    restoreEngine();
-  };
-  recorder.start(100);
-  recorderRef.current = recorder;
 
   const dt = 1 / fps;
   const endTime =
@@ -387,12 +436,44 @@ export function startOfflineFallback(ctx) {
       : engine._duration > 0
         ? engine._duration
         : 30;
+
+  const renderStartTime = performance.now();
+
+  const recorder = new MediaRecorder(stream, {
+    mimeType,
+    videoBitsPerSecond,
+  });
+  recorder.ondataavailable = (e) => {
+    if (e.data.size > 0) chunksRef.current.push(e.data);
+  };
+  recorder.onstop = () => {
+    const timeTaken = ((performance.now() - renderStartTime) / 1000).toFixed(1);
+    const blob = new Blob(chunksRef.current, { type: mimeType });
+    chunksRef.current = [];
+    if (!discardRef.current) {
+      downloadBlob(blob);
+    }
+    setCompletionInfo({ success: true, fileSize: blob.size, timeTaken });
+    setProgress(null);
+    setRecording(false);
+    restoreEngine();
+  };
+  recorder.start(100);
+  recorderRef.current = recorder;
+
   let currentTime = 0;
 
   setElapsedTime(0);
   setRecording(true);
 
   const stepFrame = async () => {
+    if (offlineAbortRef.current) {
+      if (recorderRef.current && recorderRef.current.state !== "inactive") {
+        recorderRef.current.stop();
+      }
+      return;
+    }
+
     if (!recorderRef.current || recorderRef.current.state === "inactive")
       return;
 
@@ -406,18 +487,19 @@ export function startOfflineFallback(ctx) {
 
     currentTime += dt;
     setElapsedTime(currentTime);
+    setProgress(computeProgress(currentTime, endTime, renderStartTime, fps));
 
-    rafRef.current = requestAnimationFrame(stepFrame);
+    scheduleNextFrame(stepFrame, rafRef);
   };
 
-  rafRef.current = requestAnimationFrame(stepFrame);
+  scheduleNextFrame(stepFrame, rafRef);
 }
 
 export function startRealtimeMp4(ctx) {
   const {
     canvas, fps, duration, videoBitsPerSecond,
     hasAudio, audioStream,
-    setRecording, setElapsedTime, downloadBlob,
+    setRecording, setElapsedTime, setCompletionInfo, downloadBlob,
     rafRef, finalizeRef, startTimeRef, autoStopRef,
     restoreOnRealtimeStop,
   } = ctx;
@@ -520,19 +602,23 @@ export function startRealtimeMp4(ctx) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
+    const timeTaken = ((performance.now() - startTimeRef.current) / 1000).toFixed(1);
     try {
       if (audioReader) await audioReader.cancel();
       if (audioEncoder?.state === "configured") await audioEncoder.flush();
       if (encoder.state === "configured") await encoder.flush();
       if (!hasCodecMeta) {
         console.warn("No video frames with codec metadata were produced");
+        setCompletionInfo({ success: false, error: "No video frames produced", timeTaken });
       } else {
         muxer.finalize();
         const blob = new Blob([target.buffer], { type: "video/mp4" });
         downloadBlob(blob, `recording_${Date.now()}.mp4`);
+        setCompletionInfo({ success: true, fileSize: blob.size, timeTaken });
       }
     } catch (e) {
       console.error("Realtime MP4 finalize error:", e);
+      setCompletionInfo({ success: false, error: e.message, timeTaken });
     }
     if (audioEncoder?.state !== "closed") audioEncoder?.close();
     if (encoder.state !== "closed") encoder.close();
@@ -551,6 +637,7 @@ export function startRealtimeMp4(ctx) {
     }
     if (audioEncoder?.state !== "closed") audioEncoder?.close();
     if (encoder.state !== "closed") encoder.close();
+    setCompletionInfo({ success: false, error: "VideoEncoder fatal error", timeTaken: ((performance.now() - startTimeRef.current) / 1000).toFixed(1) });
     setRecording(false);
     restoreOnRealtimeStop();
   });
@@ -587,7 +674,7 @@ export function startRealtimeMp4(ctx) {
 export function startRealtimeWebm(ctx) {
   const {
     canvas, fps, duration, hasAudio, audioStream,
-    setRecording, setElapsedTime, downloadBlob,
+    setRecording, setElapsedTime, setCompletionInfo, downloadBlob,
     rafRef, recorderRef, chunksRef, startTimeRef, autoStopRef,
     mimeType, videoBitsPerSecond,
     restoreOnRealtimeStop, stopRecording, updateElapsed,
@@ -616,9 +703,11 @@ export function startRealtimeWebm(ctx) {
   };
   recorder.onstop = () => {
     setRecording(false);
+    const timeTaken = ((performance.now() - startTimeRef.current) / 1000).toFixed(1);
     const blob = new Blob(chunksRef.current, { type: mimeType });
     chunksRef.current = [];
     downloadBlob(blob);
+    setCompletionInfo({ success: true, fileSize: blob.size, timeTaken });
     restoreOnRealtimeStop();
   };
   recorder.start(100);

@@ -324,7 +324,7 @@ export default function App() {
   const [showGitHubLoad, setShowGitHubLoad] = useState(false);
 
   // Recording
-  const { recording, elapsedTime: recordingTime, startRecording, stopRecording } = useRecorder(engineRef);
+  const { recording, elapsedTime: recordingTime, progress: recProgress, completionInfo: recCompletionInfo, startRecording, stopRecording } = useRecorder(engineRef);
   const recorderFnsRef = useRef({ startRecording, stopRecording, engineRef });
   recorderFnsRef.current = { startRecording, stopRecording, engineRef };
 
@@ -744,6 +744,8 @@ export default function App() {
           onStopRecord={stopRecording}
           canvasWidth={canvasSize.width}
           canvasHeight={canvasSize.height}
+          progress={recProgress}
+          completionInfo={recCompletionInfo}
         />
 
         {apiKey.apiKeyRequired && (

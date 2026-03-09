@@ -16,6 +16,12 @@ const RESOLUTION_PRESETS = [
   { label: "640×360", w: 640, h: 360 },
 ];
 
+function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function BtnGroup({ items, value, onChange, disabled }) {
   return (
     <div className="flex gap-0.5">
@@ -49,6 +55,9 @@ export default function RecordMenu({
   onStop,
   canvasWidth,
   canvasHeight,
+  progress,
+  completionInfo,
+  sceneDuration,
 }) {
   const [open, setOpen] = useState(false);
   const popoverRef = useRef(null);
@@ -65,6 +74,8 @@ export default function RecordMenu({
   const [customW, setCustomW] = useState("");
   const [customH, setCustomH] = useState("");
   const [alpha, setAlpha] = useState(false);
+  const [recDurationMode, setRecDurationMode] = useState("scene"); // "scene" | "custom"
+  const [customDuration, setCustomDuration] = useState("");
 
   useClickOutside(popoverRef, open, () => setOpen(false));
 
@@ -73,7 +84,7 @@ export default function RecordMenu({
     (f) => {
       setFormat(f);
       if (f === "PNG") setMode("Offline");
-      if (f !== "PNG") setAlpha(false);
+      if (f !== "PNG" && f !== "WebM") setAlpha(false);
     },
     []
   );
@@ -140,6 +151,18 @@ export default function RecordMenu({
     const pixels = w * h;
     const bitrate = pixels * QUALITY_MULTIPLIER[quality];
 
+    // Resolve recording duration
+    let parsedDuration;
+    if (mode === "Offline") {
+      if (recDurationMode === "custom") {
+        const v = parseFloat(customDuration);
+        parsedDuration = !isNaN(v) && v > 0 ? v : undefined;
+      } else {
+        // "scene" — use sceneDuration if valid
+        parsedDuration = sceneDuration > 0 ? sceneDuration : undefined;
+      }
+    }
+
     onStart({
       format: format.toLowerCase(),
       fps,
@@ -147,10 +170,11 @@ export default function RecordMenu({
       bitrate,
       offline: mode === "Offline",
       resolution: { width: w, height: h },
-      alpha: format === "PNG" && alpha,
+      alpha: (format === "PNG" || format === "WebM") && alpha,
+      duration: parsedDuration,
     });
     setOpen(false);
-  }, [format, fps, quality, mode, resolution, customRes, customW, customH, canvasWidth, canvasHeight, onStart, alpha]);
+  }, [format, fps, quality, mode, resolution, customRes, customW, customH, canvasWidth, canvasHeight, onStart, alpha, recDurationMode, customDuration, sceneDuration]);
 
   return (
     <div ref={popoverRef} className="relative">
@@ -187,8 +211,31 @@ export default function RecordMenu({
               .padStart(2, "0")}
           </span>
         )}
+        {/* Progress indicator during offline recording */}
+        {recording && progress && (
+          <span className="text-xs font-mono min-w-[60px]" style={{ color: "var(--chrome-text-secondary)" }}>
+            {progress.percent.toFixed(0)}%
+            {progress.eta > 0 && ` ~${Math.ceil(progress.eta)}s`}
+          </span>
+        )}
       </button>
       <style>{`@keyframes rec-blink { 0%,100% { opacity:1 } 50% { opacity:0.3 } }`}</style>
+
+      {/* Completion toast */}
+      {completionInfo && !recording && (
+        <div
+          className="absolute bottom-full left-0 mb-1 px-2 py-1 rounded text-xs whitespace-nowrap shadow-lg"
+          style={{
+            background: completionInfo.success ? "var(--chrome-bg-elevated)" : "#7f1d1d",
+            border: "1px solid var(--chrome-border)",
+            color: completionInfo.success ? "var(--chrome-text)" : "#fca5a5",
+          }}
+        >
+          {completionInfo.success
+            ? `${formatFileSize(completionInfo.fileSize)} in ${completionInfo.timeTaken}s`
+            : `Error: ${completionInfo.error}`}
+        </div>
+      )}
 
       {/* Popover */}
       {open && !recording && (
@@ -268,10 +315,60 @@ export default function RecordMenu({
           <div className="mb-2">
             <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>Mode</div>
             <BtnGroup items={MODES} value={mode} onChange={handleModeChange} disabled={format === "PNG"} />
+            {format === "PNG" && (
+              <div className="mt-1 text-xs" style={{ color: "var(--chrome-text-muted)" }}>
+                PNG requires offline mode for frame-accurate capture
+              </div>
+            )}
           </div>
 
-          {/* Alpha (PNG only) */}
-          {format === "PNG" && (
+          {/* Duration (Offline only) */}
+          {mode === "Offline" && (
+            <div className="mb-2">
+              <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>Duration</div>
+              <div className="flex gap-0.5 items-center">
+                <button
+                  onClick={() => setRecDurationMode("scene")}
+                  className="text-xs px-2 py-1 rounded transition-colors"
+                  style={
+                    recDurationMode === "scene"
+                      ? { background: "var(--accent)", color: "var(--accent-text)" }
+                      : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
+                  }
+                >
+                  Scene ({sceneDuration > 0 ? `${sceneDuration}s` : "\u221E"})
+                </button>
+                <button
+                  onClick={() => {
+                    setRecDurationMode("custom");
+                    if (!customDuration) setCustomDuration(String(sceneDuration > 0 ? sceneDuration : 10));
+                  }}
+                  className="text-xs px-2 py-1 rounded transition-colors"
+                  style={
+                    recDurationMode === "custom"
+                      ? { background: "var(--accent)", color: "var(--accent-text)" }
+                      : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
+                  }
+                >
+                  Custom
+                </button>
+                {recDurationMode === "custom" && (
+                  <input
+                    type="text"
+                    autoFocus
+                    value={customDuration}
+                    onChange={(e) => setCustomDuration(e.target.value)}
+                    placeholder="sec"
+                    className="w-14 text-xs text-center rounded px-1 py-1 outline-none focus:border-blue-500"
+                    style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--input-text)" }}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Alpha (PNG + WebM) */}
+          {(format === "PNG" || format === "WebM") && (
             <div className="mb-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
