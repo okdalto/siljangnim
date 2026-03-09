@@ -338,6 +338,8 @@ export default function App() {
   }, [recording]);
 
   // Load project tree when active project changes (lazy migration: ensure root node)
+  // NOTE: Only depend on activeProject — do NOT depend on getWorkspaceState/debugLogs
+  // as those change every scene update and cause tree flicker.
   useEffect(() => {
     const projName = storageApi.getActiveProjectName();
     if (projName) {
@@ -354,7 +356,8 @@ export default function App() {
     } else {
       tree.loadTree(null);
     }
-  }, [project.activeProject, tree.ensureRoot, tree.loadTree, getWorkspaceState, chat.debugLogs]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project.activeProject]);
 
   // --- Uniform change undo/redo (extracted hook) ---
   const {
