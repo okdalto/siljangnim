@@ -477,12 +477,14 @@ async function toolClosePanel(input, broadcast) {
 }
 
 async function toolStartRecording(input, broadcast) {
+  const resetTimeline = input.resetTimeline !== false;
   const msg = { type: "start_recording" };
   if (input.duration != null) msg.duration = input.duration;
   if (input.fps != null) msg.fps = input.fps;
+  if (resetTimeline) msg.resetTimeline = true;
   broadcast(msg);
   const durationStr = input.duration ? ` for ${input.duration}s` : "";
-  return `ok — recording started${durationStr}.`;
+  return `ok — recording started${durationStr}${resetTimeline ? " (timeline reset to 0)" : ""}.`;
 }
 
 async function toolStopRecording(input, broadcast) {
