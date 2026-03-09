@@ -1079,7 +1079,9 @@ export default class GLEngine {
     if (this._scriptCtx) this._scriptCtx.isOffline = true;
     this.onTime?.(time);
 
-    // Seek all registered video elements to the target time before rendering
+    // Seek all registered video elements to the target time before rendering.
+    // After seeked event, use createImageBitmap to ensure the frame is fully
+    // decoded and ready for texImage2D — seeked alone doesn't guarantee this.
     const videos = this._scriptCtx?._registeredVideos;
     if (videos?.size) {
       const seekPromises = [];
@@ -1088,10 +1090,18 @@ export default class GLEngine {
         if (!dur || isNaN(dur)) continue;
         const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
         if (Math.abs(video.currentTime - targetTime) > 0.001) {
-          seekPromises.push(new Promise((resolve) => {
-            video.addEventListener("seeked", resolve, { once: true });
-            video.currentTime = targetTime;
-          }));
+          seekPromises.push((async () => {
+            await new Promise((resolve) => {
+              video.addEventListener("seeked", resolve, { once: true });
+              video.currentTime = targetTime;
+            });
+            // Force frame decode — createImageBitmap resolves only when the
+            // video frame is fully decoded and available for GL upload.
+            try {
+              const bmp = await createImageBitmap(video);
+              bmp.close();
+            } catch { /* ignore — video may not support createImageBitmap */ }
+          })());
         }
       }
       if (seekPromises.length) await Promise.all(seekPromises);
