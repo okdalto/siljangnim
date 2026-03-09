@@ -30,6 +30,7 @@ import useMessageDispatcher from "./hooks/useMessageDispatcher.js";
 import useNodeDataSync from "./hooks/useNodeDataSync.js";
 import useAIDebugger from "./hooks/useAIDebugger.js";
 import usePromptMode from "./hooks/usePromptMode.js";
+import FeedbackButton from "./components/FeedbackButton.jsx";
 import EngineContext from "./contexts/EngineContext.js";
 import SettingsContext from "./contexts/SettingsContext.js";
 import ChatNode from "./nodes/ChatNode.jsx";
@@ -1180,6 +1181,10 @@ export default function App() {
         </div>
 
       </div>
+      <FeedbackButton
+        isAuthenticated={github.isAuthenticated}
+        token={github.token}
+      />
     </EngineContext.Provider>
     </SettingsContext.Provider>
   );
