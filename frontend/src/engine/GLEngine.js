@@ -1086,11 +1086,32 @@ export default class GLEngine {
     if (videos?.size) {
       const seekPromises = [];
       for (const [video, opts] of videos) {
+        // Pause video if it's playing — video.play() from setup interferes
+        // with frame-by-frame seeking in offline mode.
+        if (!video.paused) {
+          video.pause();
+        }
+
         const dur = video.duration;
         if (!dur || isNaN(dur)) continue;
         const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
-        if (Math.abs(video.currentTime - targetTime) > 0.001) {
+
+        // Always seek + decode on the very first frame (time near 0) even if
+        // currentTime appears to match — the video may not have decoded any
+        // frame yet (readyState < HAVE_CURRENT_DATA).
+        const needsSeek = Math.abs(video.currentTime - targetTime) > 0.001;
+        const firstFrameNotReady = time < 0.001 && video.readyState < 2; // HAVE_CURRENT_DATA
+
+        if (needsSeek || firstFrameNotReady) {
           seekPromises.push((async () => {
+            // For first frame where currentTime is already 0, nudge slightly
+            // then seek back to force a seeked event.
+            if (!needsSeek && firstFrameNotReady) {
+              video.currentTime = 0.001;
+              await new Promise((resolve) => {
+                video.addEventListener("seeked", resolve, { once: true });
+              });
+            }
             await new Promise((resolve) => {
               video.addEventListener("seeked", resolve, { once: true });
               video.currentTime = targetTime;
