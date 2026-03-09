@@ -319,7 +319,20 @@ export default class GLEngine {
       state: { ...(this._preprocessState || {}) },
       uploads: {},
       isOffline: false, // populated with blob URLs for uploaded files
+      _registeredVideos: new Map(),
       utils: {
+        /**
+         * Register a video element for automatic time-sync during offline recording.
+         * In offline mode, the engine will seek the video to ctx.time before each frame.
+         * @param {HTMLVideoElement} video - The video element to register
+         * @param {Object} [options] - { loop: true } (default: loop)
+         */
+        registerVideo: (video, options = {}) => {
+          ctx._registeredVideos.set(video, { loop: options.loop !== false });
+        },
+        unregisterVideo: (video) => {
+          ctx._registeredVideos.delete(video);
+        },
         createProgram: (vertSource, fragSource) => createProgram(this.gl, vertSource, fragSource),
         compileShader: (type, source) => compileShader(this.gl, type, source),
         createQuadGeometry,
@@ -1054,6 +1067,25 @@ export default class GLEngine {
   async renderOfflineFrame(time, dt) {
     if (this._scriptCtx) this._scriptCtx.isOffline = true;
     this.onTime?.(time);
+
+    // Seek all registered video elements to the target time before rendering
+    const videos = this._scriptCtx?._registeredVideos;
+    if (videos?.size) {
+      const seekPromises = [];
+      for (const [video, opts] of videos) {
+        const dur = video.duration;
+        if (!dur || isNaN(dur)) continue;
+        const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
+        if (Math.abs(video.currentTime - targetTime) > 0.001) {
+          seekPromises.push(new Promise((resolve) => {
+            video.addEventListener("seeked", resolve, { once: true });
+            video.currentTime = targetTime;
+          }));
+        }
+      }
+      if (seekPromises.length) await Promise.all(seekPromises);
+    }
+
     const p = this._renderFrame(time, dt);
     if (p) await p;
     this._frameCount++;

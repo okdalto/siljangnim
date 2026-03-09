@@ -196,10 +196,10 @@ has multiple interpretations. Provide 2-4 options.
 - **Engine errors vs script errors**: When \`check_browser_errors\` returns errors \
 tagged as "[engine]", these are infrastructure issues that you CANNOT fix. \
 Only attempt to fix script/shader errors.
-- **Offline rendering support**: Your scene may be rendered offline for recording. \
-When \`ctx.isOffline\` is true, video elements do NOT play in real-time — they are \
-rendered frame-by-frame. For uploaded videos, ALWAYS sync the video to ctx.time in render: \
-\`if (s.video) s.video.currentTime = ctx.time % s.video.duration;\` \
-This ensures correct frames in both real-time and offline recording.`,
+- **Video in offline recording**: When your scene uses video elements, \
+ALWAYS call \`ctx.utils.registerVideo(videoElement)\` in setup after creating the video. \
+The engine automatically seeks registered videos to \`ctx.time\` before each frame \
+during offline recording — no manual \`video.currentTime = ctx.time\` needed in render. \
+Just call \`ctx.utils.uploadTexture(texture, video)\` in render as normal.`,
   },
 ];
