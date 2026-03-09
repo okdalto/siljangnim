@@ -715,13 +715,14 @@ const HANDLERS = {
       try {
         activeProject = await storage.getProjectManifest(activeName);
       } catch { /* ignore — will start as untitled */ }
+    }
 
-      // Restore chat history from IndexedDB
+    // Restore chat history from IndexedDB (including _untitled)
+    if (activeName) {
       try {
         chatHistory = await storage.readJson("chat_history.json");
       } catch { /* empty */ }
 
-      // Restore debug logs from IndexedDB
       try {
         debugLogs = await storage.readJson("debug_logs.json");
       } catch { /* empty */ }
@@ -730,6 +731,10 @@ const HANDLERS = {
       if (Array.isArray(chatHistory) && chatHistory.length > 0) {
         this.chatHistory.length = 0;
         this.chatHistory.push(...chatHistory);
+        // Rebuild LLM conversation context from chat history
+        this.conversation = chatHistory
+          .filter((m) => m.role === "user" || m.role === "assistant")
+          .map((m) => ({ role: m.role, content: m.text || "" }));
       }
     }
 

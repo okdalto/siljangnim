@@ -1271,7 +1271,16 @@ export async function importWorkspaceFromZip(zipBlob) {
  */
 export async function autoSaveCurrentProject(chatHistory, thumbnailB64 = null) {
   const currentName = getActiveProjectName();
-  if (!currentName || currentName === DEFAULT_PROJECT) return null;
+  if (!currentName) return null;
+
+  // For _untitled, only persist chat history and debug logs (no project metadata)
+  if (currentName === DEFAULT_PROJECT) {
+    if (chatHistory) {
+      const chatStore = await tx(STORE_FILES, "readwrite");
+      await idbReq(chatStore.put(chatHistory, `${currentName}/chat_history.json`));
+    }
+    return null;
+  }
 
   const store = await tx(STORE_PROJECTS);
   const existing = await idbReq(store.get(currentName));
