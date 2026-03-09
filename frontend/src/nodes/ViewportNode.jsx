@@ -196,6 +196,14 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
     engine.updateMouse(x, y, false);
   }, []);
 
+  const handleMouseEnter = useCallback(() => {
+    engineInternalRef.current?.updateMouseHover(true);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    engineInternalRef.current?.updateMouseHover(false);
+  }, []);
+
   // Touch tracking (maps to mouse input)
   const handleTouchStart = useCallback((e) => {
     const engine = engineInternalRef.current;
@@ -271,6 +279,8 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
       onMouseMove={handleMouseMove}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

@@ -87,15 +87,17 @@ export default class VideoFrameExtractor {
       this._decoder.decode(chunk);
       this._chunkIndex++;
 
-      // Wait for the decoder to produce a frame
+      // Wait for the decoder to produce a frame (short timeout for B-frame reordering)
       await this._waitForFrame();
 
-      // Close old current frame, promote pending
-      if (this._currentFrame) {
-        this._currentFrame.close();
+      // Only promote if decoder actually produced a new frame
+      if (this._pendingFrame) {
+        if (this._currentFrame) {
+          this._currentFrame.close();
+        }
+        this._currentFrame = this._pendingFrame;
+        this._pendingFrame = null;
       }
-      this._currentFrame = this._pendingFrame;
-      this._pendingFrame = null;
 
       // If we've reached or passed the target, stop
       if (this._currentFrame && this._currentFrame.timestamp >= targetUs) {
@@ -131,14 +133,14 @@ export default class VideoFrameExtractor {
     if (this._pendingFrame) return Promise.resolve();
     return new Promise((resolve) => {
       this._frameResolve = resolve;
-      // Safety timeout — if decoder never produces output, don't hang forever
+      // Short timeout: B-frame reordering means not every chunk produces output.
+      // 50ms is enough for real output; if no frame, we continue to next chunk.
       this._waitTimer = setTimeout(() => {
         if (this._frameResolve) {
-          console.warn("[VideoFrameExtractor] _waitForFrame timed out");
           this._frameResolve();
           this._frameResolve = null;
         }
-      }, 2000);
+      }, 50);
     }).finally(() => {
       clearTimeout(this._waitTimer);
     });
