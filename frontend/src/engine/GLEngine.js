@@ -953,7 +953,7 @@ export default class GLEngine {
 
   _renderFrame(time, dt) {
     const gl = this.gl;
-    if (!gl || !this._scene) return;
+    if (!gl || !this._scene) return null;
 
     // Snapshot previous mouse state at start of frame (reuse arrays to avoid GC)
     const mp = this._mousePrev, ms = this._mouseSnapshot, m = this._mouse;
@@ -966,6 +966,7 @@ export default class GLEngine {
       const ctx = this._scriptCtx;
       ctx.time = time;
       ctx.dt = dt;
+      if (!ctx.isOffline) ctx.isOffline = false;
       ctx.mouse = [this._mouseSnapshot[0], this._mouseSnapshot[1], this._mouseSnapshot[2], this._mouseSnapshot[3]];
       ctx.mousePrev = [this._mousePrev[0], this._mousePrev[1], this._mousePrev[2], this._mousePrev[3]];
       ctx.mouseDown = this._mouseDownSnapshot;
@@ -1027,6 +1028,7 @@ export default class GLEngine {
               window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
             }
           });
+          return p; // return promise for offline rendering to await
         }
       } catch (err) {
         console.error("[GLEngine] Script render error:", err);
@@ -1037,15 +1039,19 @@ export default class GLEngine {
         }
       }
     }
+    return null;
   }
 
   /**
    * Render a single frame at the given time for offline recording.
    * Called by the recorder loop instead of the normal rAF loop.
+   * Async to allow awaiting async render functions (e.g. detector.detect).
    */
-  renderOfflineFrame(time, dt) {
+  async renderOfflineFrame(time, dt) {
+    if (this._scriptCtx) this._scriptCtx.isOffline = true;
     this.onTime?.(time);
-    this._renderFrame(time, dt);
+    const p = this._renderFrame(time, dt);
+    if (p) await p;
     this._frameCount++;
   }
 

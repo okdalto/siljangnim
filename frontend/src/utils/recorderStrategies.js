@@ -136,7 +136,7 @@ export function startOfflinePng(ctx) {
       return;
     }
 
-    engine.renderOfflineFrame(currentTime, dt);
+    await engine.renderOfflineFrame(currentTime, dt);
     const gl = engine.gl;
     if (gl) gl.finish();
 
@@ -305,7 +305,7 @@ export function startOfflineWebCodecs(ctx) {
     rafRef.current = requestAnimationFrame(stepFrame);
   });
 
-  const stepFrame = () => {
+  const stepFrame = async () => {
     if (offlineAbortRef.current) {
       finalize();
       return;
@@ -329,7 +329,7 @@ export function startOfflineWebCodecs(ctx) {
       }
       if (encoder.encodeQueueSize >= MAX_QUEUE) break;
 
-      engine.renderOfflineFrame(currentTime, dt);
+      await engine.renderOfflineFrame(currentTime, dt);
       const gl = engine.gl;
       if (gl) gl.finish();
 
@@ -392,7 +392,7 @@ export function startOfflineFallback(ctx) {
   setElapsedTime(0);
   setRecording(true);
 
-  const stepFrame = () => {
+  const stepFrame = async () => {
     if (!recorderRef.current || recorderRef.current.state === "inactive")
       return;
 
@@ -401,7 +401,7 @@ export function startOfflineFallback(ctx) {
       return;
     }
 
-    engine.renderOfflineFrame(currentTime, dt);
+    await engine.renderOfflineFrame(currentTime, dt);
     if (track.requestFrame) track.requestFrame();
 
     currentTime += dt;
