@@ -5,6 +5,8 @@
  * Exposes landmark data as plain arrays and RGBA32F textures for shader consumption.
  */
 
+import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
+
 const CDN_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18";
 const WASM_BASE = `${CDN_BASE}/wasm`;
 
@@ -216,9 +218,7 @@ export default class MediaPipeManager {
           }
         }
       }
-      this.poseTexture = this._uploadFloat32Texture(
-        gl, this.poseTexture, count, 1, data
-      );
+      this.poseTexture = uploadDataTexture(gl, this.poseTexture, count, 1, data);
     }
 
     // Hands: 21×2 RGBA32F (row 0 = hand 0, row 1 = hand 1)
@@ -240,9 +240,7 @@ export default class MediaPipeManager {
           }
         }
       }
-      this.handsTexture = this._uploadFloat32Texture(
-        gl, this.handsTexture, count, 2, data
-      );
+      this.handsTexture = uploadDataTexture(gl, this.handsTexture, count, 2, data);
     }
 
     // Face mesh: 478×1 RGBA32F
@@ -260,10 +258,14 @@ export default class MediaPipeManager {
           }
         }
       }
-      this.faceMeshTexture = this._uploadFloat32Texture(
-        gl, this.faceMeshTexture, count, 1, data
-      );
+      this.faceMeshTexture = uploadDataTexture(gl, this.faceMeshTexture, count, 1, data);
     }
+  }
+
+  deleteTextures(gl) {
+    deleteTexture(gl, this.poseTexture); this.poseTexture = null;
+    deleteTexture(gl, this.handsTexture); this.handsTexture = null;
+    deleteTexture(gl, this.faceMeshTexture); this.faceMeshTexture = null;
   }
 
   /**
@@ -303,33 +305,4 @@ export default class MediaPipeManager {
     this._filesetResolver = null;
   }
 
-  // ---- Private helpers ----
-
-  /**
-   * Create or update an RGBA32F texture with NEAREST filtering.
-   */
-  _uploadFloat32Texture(gl, existing, width, height, data) {
-    let tex = existing;
-    if (!tex) {
-      tex = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.texImage2D(
-        gl.TEXTURE_2D, 0, gl.RGBA32F,
-        width, height, 0,
-        gl.RGBA, gl.FLOAT, data
-      );
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    } else {
-      gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.texSubImage2D(
-        gl.TEXTURE_2D, 0, 0, 0,
-        width, height,
-        gl.RGBA, gl.FLOAT, data
-      );
-    }
-    return tex;
-  }
 }

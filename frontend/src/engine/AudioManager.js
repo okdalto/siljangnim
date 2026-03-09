@@ -1,3 +1,5 @@
+import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
+
 /**
  * AudioManager — Web Audio API wrapper for real-time audio playback & FFT analysis.
  *
@@ -270,15 +272,16 @@ export default class AudioManager {
     // Keep fftTexture — it will be reused or overwritten
   }
 
+  deleteTextures(gl) {
+    deleteTexture(gl, this.fftTexture); this.fftTexture = null;
+  }
+
   /**
    * Full teardown including AudioContext.
    */
   dispose() {
     this.reset();
-    if (this.fftTexture) {
-      // Cannot delete without gl reference, let GC handle it
-      this.fftTexture = null;
-    }
+    this.fftTexture = null;
     if (this._audioContext) {
       this._audioContext.close().catch(() => {});
       this._audioContext = null;
@@ -314,23 +317,15 @@ export default class AudioManager {
 
   _updateFFTTexture(gl) {
     const w = this._fftTextureWidth;
-
-    if (!this.fftTexture) {
-      this.fftTexture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, this.fftTexture);
-      // Allocate 1024 x 2, R8
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, w, 2, 0, gl.RED, gl.UNSIGNED_BYTE, null);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    } else {
-      gl.bindTexture(gl.TEXTURE_2D, this.fftTexture);
-    }
-
-    // Row 0: frequency data
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, w, 1, gl.RED, gl.UNSIGNED_BYTE, this.frequencyData);
-    // Row 1: waveform data
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 1, w, 1, gl.RED, gl.UNSIGNED_BYTE, this.waveformData);
+    // Combine frequency + waveform into a single 2-row buffer
+    const combined = new Uint8Array(w * 2);
+    combined.set(this.frequencyData, 0);
+    combined.set(this.waveformData, w);
+    this.fftTexture = uploadDataTexture(gl, this.fftTexture, w, 2, combined, {
+      internalFormat: gl.R8,
+      format: gl.RED,
+      type: gl.UNSIGNED_BYTE,
+      filter: gl.LINEAR,
+    });
   }
 }

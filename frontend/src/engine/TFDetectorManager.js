@@ -1,3 +1,5 @@
+import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
+
 /**
  * TFDetectorManager — Real-time object detection via TensorFlow.js COCO-SSD.
  *
@@ -120,7 +122,7 @@ export default class TFDetectorManager {
       bboxData[i * 4 + 2] = w;
       bboxData[i * 4 + 3] = h;
     }
-    this.bboxTexture = this._uploadTexture(gl, this.bboxTexture, N, 1, bboxData);
+    this.bboxTexture = uploadDataTexture(gl, this.bboxTexture, N, 1, bboxData);
 
     // Class texture: classIndex, confidence, 0, 0
     const classData = new Float32Array(N * 4);
@@ -129,7 +131,7 @@ export default class TFDetectorManager {
       classData[i * 4] = d.classIndex;
       classData[i * 4 + 1] = d.score;
     }
-    this.classTexture = this._uploadTexture(gl, this.classTexture, N, 1, classData);
+    this.classTexture = uploadDataTexture(gl, this.classTexture, N, 1, classData);
   }
 
   reset() {
@@ -140,8 +142,8 @@ export default class TFDetectorManager {
   }
 
   deleteTextures(gl) {
-    if (this.bboxTexture && gl) { gl.deleteTexture(this.bboxTexture); this.bboxTexture = null; }
-    if (this.classTexture && gl) { gl.deleteTexture(this.classTexture); this.classTexture = null; }
+    deleteTexture(gl, this.bboxTexture); this.bboxTexture = null;
+    deleteTexture(gl, this.classTexture); this.classTexture = null;
   }
 
   dispose() {
@@ -152,24 +154,6 @@ export default class TFDetectorManager {
     this._initializing = false;
   }
 
-  // --- Private ---
-
-  _uploadTexture(gl, existing, width, height, data) {
-    let tex = existing;
-    if (!tex) {
-      tex = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, width, height, 0, gl.RGBA, gl.FLOAT, data);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    } else {
-      gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RGBA, gl.FLOAT, data);
-    }
-    return tex;
-  }
 }
 
 export { COCO_CLASSES };
