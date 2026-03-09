@@ -1458,6 +1458,12 @@ export default class GLEngine {
     // ctx.state may have been mutated by the script — keep reference
     this._preprocessState = ctx.state;
 
+    // Merge new preprocess state into the active scene's ctx.state so
+    // changes are visible immediately without requiring a scene reload.
+    if (this._scriptCtx && this._scriptCtx.state !== ctx.state) {
+      Object.assign(this._scriptCtx.state, ctx.state);
+    }
+
     // Persist to IndexedDB so state survives page refresh
     this._persistPreprocessState(this._preprocessState);
 
