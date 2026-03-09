@@ -174,8 +174,10 @@ const cache = {};
 const fps = 30;
 const step = 1 / fps;
 for (let t = 0; t < video.duration; t += step) {
-  video.currentTime = t;
-  await new Promise(r => video.addEventListener('seeked', r, { once: true }));
+  // IMPORTANT: Use ctx.utils.seekVideo() — it waits for BOTH seek AND frame decode.
+  // Raw video.currentTime + seeked event does NOT guarantee the frame is decoded,
+  // causing detect() to read stale/duplicate frames.
+  await ctx.utils.seekVideo(video, t);
   cache[Math.round(t * 1000)] = await ctx.detector.detect(video, { immediate: true });
 }
 ctx.state.detectionCache = cache;

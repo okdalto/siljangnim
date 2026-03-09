@@ -32,6 +32,22 @@ import * as shaderTarget from "./gpu/shaderTarget.js";
 import { RenderGraph } from "./gpu/renderGraph.js";
 import { transpileGLSL, transpileFragmentGLSL, transpileVertexGLSL } from "./gpu/glslToWgsl.js";
 
+/**
+ * Seek a video to exact time and wait for frame decode completion.
+ * seeked event alone does NOT guarantee the frame is ready for texImage2D/detect.
+ */
+async function _seekVideo(video, time) {
+  if (!video || !Number.isFinite(time)) return;
+  video.currentTime = time;
+  await new Promise((resolve) => {
+    video.addEventListener("seeked", resolve, { once: true });
+  });
+  try {
+    const bmp = await createImageBitmap(video);
+    bmp.close();
+  } catch { /* ignore if unsupported */ }
+}
+
 export default class GLEngine {
   /**
    * @param {HTMLCanvasElement} canvas
@@ -338,6 +354,9 @@ export default class GLEngine {
         unregisterVideo: (video) => {
           ctx._registeredVideos.delete(video);
         },
+
+        seekVideo: _seekVideo,
+
         createProgram: (vertSource, fragSource) => createProgram(this.gl, vertSource, fragSource),
         compileShader: (type, source) => compileShader(this.gl, type, source),
         createQuadGeometry,
@@ -1084,9 +1103,8 @@ export default class GLEngine {
     if (this._scriptCtx) this._scriptCtx.isOffline = true;
     this.onTime?.(time);
 
-    // Seek all registered video elements to the target time before rendering.
-    // After seeked event, use createImageBitmap to ensure the frame is fully
-    // decoded and ready for texImage2D — seeked alone doesn't guarantee this.
+    // Seek all registered video elements to the target time before rendering,
+    // using _seekVideo which guarantees frame decode completion.
     const videos = this._scriptCtx?._registeredVideos;
     if (videos?.size) {
       const seekPromises = [];
@@ -1101,32 +1119,17 @@ export default class GLEngine {
         if (!dur || isNaN(dur)) continue;
         const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
 
-        // Always seek + decode on the very first frame (time near 0) even if
-        // currentTime appears to match — the video may not have decoded any
-        // frame yet (readyState < HAVE_CURRENT_DATA).
         const needsSeek = Math.abs(video.currentTime - targetTime) > 0.001;
-        const firstFrameNotReady = time < 0.001 && video.readyState < 2; // HAVE_CURRENT_DATA
+        const firstFrameNotReady = time < 0.001 && video.readyState < 2;
 
         if (needsSeek || firstFrameNotReady) {
           seekPromises.push((async () => {
             // For first frame where currentTime is already 0, nudge slightly
-            // then seek back to force a seeked event.
+            // to force a seek event.
             if (!needsSeek && firstFrameNotReady) {
-              video.currentTime = 0.001;
-              await new Promise((resolve) => {
-                video.addEventListener("seeked", resolve, { once: true });
-              });
+              await _seekVideo(video, 0.001);
             }
-            await new Promise((resolve) => {
-              video.addEventListener("seeked", resolve, { once: true });
-              video.currentTime = targetTime;
-            });
-            // Force frame decode — createImageBitmap resolves only when the
-            // video frame is fully decoded and available for GL upload.
-            try {
-              const bmp = await createImageBitmap(video);
-              bmp.close();
-            } catch { /* ignore — video may not support createImageBitmap */ }
+            await _seekVideo(video, targetTime);
           })());
         }
       }
@@ -1426,7 +1429,7 @@ export default class GLEngine {
       gl,
       canvas,
       uploads,
-      utils: this._scriptCtx?.utils || {},
+      utils: { seekVideo: _seekVideo, ...(this._scriptCtx?.utils || {}) },
       state: this._preprocessState,
       detector: {
         init: (options) => tfMgr.init(options),
