@@ -403,6 +403,12 @@ export async function startOfflineWebCodecs(ctx) {
         return;
       }
 
+      if (encoder.state !== "configured") {
+        console.error("[OfflineRec] encoder not configured, state:", encoder.state);
+        finalize();
+        return;
+      }
+
       if (encoder.encodeQueueSize >= MAX_QUEUE) {
         encoder.addEventListener(
           "dequeue",
@@ -421,7 +427,9 @@ export async function startOfflineWebCodecs(ctx) {
         }
         if (encoder.encodeQueueSize >= MAX_QUEUE) break;
 
+        if (frameCount === 0) console.log("[OfflineRec] rendering first frame, t=%s endTime=%s", currentTime, endTime);
         await engine.renderOfflineFrame(currentTime, dt);
+        if (frameCount === 0) console.log("[OfflineRec] first frame rendered, creating VideoFrame");
         const gl = engine.gl;
         if (gl) gl.finish();
 
@@ -432,6 +440,7 @@ export async function startOfflineWebCodecs(ctx) {
         const keyFrame = frameCount % (fps * 2) === 0;
         encoder.encode(frame, { keyFrame });
         frame.close();
+        if (frameCount === 0) console.log("[OfflineRec] first frame encoded successfully");
 
         frameCount++;
         currentTime += dt;
