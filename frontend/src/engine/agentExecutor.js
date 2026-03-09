@@ -208,6 +208,21 @@ async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarge
     prompt += `\n\n## WORKSPACE ASSETS\nThe following assets are loaded in the workspace:\n${assetLines.join("\n")}\nUse \`ctx.uploads["filename"]\` to reference them in scripts.`;
   }
 
+  // Detect user language and enforce matching response language.
+  // Placed at the end of the system prompt for maximum adherence.
+  if (userPrompt) {
+    const hasKorean = /[\uAC00-\uD7AF\u1100-\u11FF]/.test(userPrompt);
+    const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF]/.test(userPrompt);
+    const hasChinese = /[\u4E00-\u9FFF]/.test(userPrompt) && !hasJapanese && !hasKorean;
+    let lang = null;
+    if (hasKorean) lang = "Korean";
+    else if (hasJapanese) lang = "Japanese";
+    else if (hasChinese) lang = "Chinese";
+    if (lang) {
+      prompt += `\n\n## RESPONSE LANGUAGE\n**You MUST reply entirely in ${lang}.** The user wrote in ${lang}. Do not mix in English unless quoting code or technical terms.`;
+    }
+  }
+
   return prompt;
 }
 
