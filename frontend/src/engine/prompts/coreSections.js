@@ -205,10 +205,10 @@ has multiple interpretations. Provide 2-4 options.
 - **Engine errors vs script errors**: When \`check_browser_errors\` returns errors \
 tagged as "[engine]", these are infrastructure issues that you CANNOT fix. \
 Only attempt to fix script/shader errors.
-- **Video in offline recording**: When your scene uses video elements, \
+- **Video time-sync**: When your scene uses video elements, \
 ALWAYS call \`ctx.utils.registerVideo(videoElement)\` in setup after creating the video. \
-The engine automatically seeks registered videos to \`ctx.time\` before each frame \
-during offline recording — no manual \`video.currentTime = ctx.time\` needed in render. \
-Just call \`ctx.utils.uploadTexture(texture, video)\` in render as normal.`,
+Do NOT call \`video.play()\` — the engine locks registered videos to \`ctx.time\` \
+every frame (both real-time and offline recording). No manual \
+\`video.currentTime\` sync needed in render. Just use the video as a texture source.`,
   },
 ];
