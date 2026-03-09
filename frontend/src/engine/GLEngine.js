@@ -111,6 +111,9 @@ export default class GLEngine {
     // Keyframe manager (set externally via setKeyframeManager)
     this._keyframeManager = null;
 
+    // Active node ID for per-node preprocess state scoping
+    this._activeNodeId = null;
+
     // Audio manager
     this._audioManager = new AudioManager();
 
@@ -1563,7 +1566,7 @@ export default class GLEngine {
     }
 
     // Persist to IndexedDB so state survives page refresh
-    this._persistPreprocessState(this._preprocessState);
+    this._persistPreprocessState(this._preprocessState, this._activeNodeId);
 
     return result;
   }
@@ -1573,24 +1576,39 @@ export default class GLEngine {
     return getUploadBlobUrl(filename);
   }
 
-  /** Clear preprocess state. Call on project switch. */
+  /**
+   * Set the active node ID for per-node preprocess state scoping.
+   * Call before loadScene when switching nodes.
+   * @param {string|null} nodeId
+   */
+  setActiveNodeId(nodeId) {
+    // Save current state for the outgoing node before switching
+    if (this._activeNodeId && this._preprocessState) {
+      this._persistPreprocessState(this._preprocessState, this._activeNodeId);
+    }
+    this._activeNodeId = nodeId;
+    // Clear in-memory state; loadScene will restore from IndexedDB for the new node
+    this._preprocessState = null;
+  }
+
+  /** Clear preprocess state for the current node. */
   clearPreprocessState() {
     this._preprocessState = null;
-    this._persistPreprocessState(null);
+    if (this._activeNodeId) {
+      this._persistPreprocessState(null, this._activeNodeId);
+    }
   }
 
   /**
-   * Persist preprocess state to IndexedDB so it survives page refresh.
+   * Persist preprocess state to IndexedDB, scoped by node ID.
    * Non-serializable values (DOM elements, WebGL objects, etc.) are stripped.
    */
-  async _persistPreprocessState(state) {
+  async _persistPreprocessState(state, nodeId) {
+    const key = nodeId ? `preprocess_state_${nodeId}.json` : "preprocess_state.json";
     try {
       if (state == null) {
-        // Delete by writing null
-        await writeJson("preprocess_state.json", null);
+        await writeJson(key, null);
       } else {
-        // structuredClone throws on non-cloneable values; fall back to
-        // JSON round-trip which silently strips functions/DOM/GL objects.
         let serializable;
         try {
           serializable = JSON.parse(JSON.stringify(state));
@@ -1598,7 +1616,7 @@ export default class GLEngine {
           console.warn("[GLEngine] preprocess state not serializable, skipping persist");
           return;
         }
-        await writeJson("preprocess_state.json", serializable);
+        await writeJson(key, serializable);
       }
     } catch (err) {
       console.warn("[GLEngine] failed to persist preprocess state:", err);
@@ -1606,10 +1624,20 @@ export default class GLEngine {
   }
 
   /**
-   * Restore preprocess state from IndexedDB (e.g. after page refresh).
+   * Restore preprocess state from IndexedDB for the active node.
    */
   async _restorePreprocessState() {
+    // Try node-scoped key first, then legacy global key
+    const nodeKey = this._activeNodeId ? `preprocess_state_${this._activeNodeId}.json` : null;
     try {
+      if (nodeKey) {
+        const data = await readJson(nodeKey);
+        if (data != null) {
+          this._preprocessState = data;
+          return;
+        }
+      }
+      // Fallback to legacy global key (for backward compat)
       const data = await readJson("preprocess_state.json");
       if (data != null) {
         this._preprocessState = data;
