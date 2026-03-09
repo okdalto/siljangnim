@@ -985,6 +985,12 @@ export default class GLEngine {
         if (!dur || isNaN(dur)) continue;
         const t = opts.loop !== false ? (targetTime % dur) : Math.min(targetTime, dur);
         video.currentTime = t;
+        // Video decode is async — re-render once the frame is ready
+        if (this._paused) {
+          video.addEventListener("seeked", () => {
+            this._needsPausedRender = true;
+          }, { once: true });
+        }
       }
     }
   }
