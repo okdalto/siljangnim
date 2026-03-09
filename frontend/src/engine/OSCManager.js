@@ -1,4 +1,5 @@
 import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
+import BaseManager from "./BaseManager.js";
 
 /**
  * OSCManager — Open Sound Control bridge via WebSocket relay.
@@ -15,8 +16,9 @@ import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
 
 const MAX_SLOTS = 128;
 
-export default class OSCManager {
+export default class OSCManager extends BaseManager {
   constructor() {
+    super();
     this._ws = null;
     this._wsUrl = null;
 
@@ -41,9 +43,6 @@ export default class OSCManager {
     // GPU texture
     this.texture = null;
 
-    // State
-    this.initialized = false;
-    this._initializing = false;
     this.connected = false;
     this.port = 9000; // OSC receive port (backend side)
   }
@@ -55,12 +54,9 @@ export default class OSCManager {
    * @param {number} [options.port=9000] — OSC UDP port for backend to listen on
    */
   async init(options = {}) {
-    if (this.initialized || this._initializing) return;
-    this._initializing = true;
-
     this.port = options.port ?? 9000;
 
-    try {
+    await this._guardedInit(async () => {
       // Determine WebSocket URL
       const wsUrl = options.wsUrl || this._autoWsUrl();
       this._wsUrl = wsUrl;
@@ -69,14 +65,7 @@ export default class OSCManager {
 
       // Tell backend to start OSC listener
       this._send({ type: "osc_start", port: this.port });
-
-      this.initialized = true;
-    } catch (err) {
-      console.error("[OSCManager] init failed:", err);
-      throw err;
-    } finally {
-      this._initializing = false;
-    }
+    });
   }
 
   /**

@@ -1,4 +1,5 @@
 import { uploadDataTexture, deleteTexture } from "./textureUtils.js";
+import BaseManager from "./BaseManager.js";
 
 /**
  * SAMManager — Segment Anything Model in the browser via ONNX Runtime Web.
@@ -18,8 +19,9 @@ const CACHE_DB_NAME = "siljangnim-sam-cache";
 const CACHE_STORE = "models";
 const INPUT_SIZE = 1024; // SAM expects 1024×1024
 
-export default class SAMManager {
+export default class SAMManager extends BaseManager {
   constructor() {
+    super();
     this._ort = null; // ONNX Runtime
     this._encoderSession = null;
     this._decoderSession = null;
@@ -37,9 +39,6 @@ export default class SAMManager {
     // GPU texture
     this.maskTexture = null;  // width×height R32F equivalent packed into RGBA
 
-    // State
-    this.initialized = false;
-    this._initializing = false;
     this._encoding = false;
     this._modelProgress = 0; // 0-1 download progress
 
@@ -55,10 +54,7 @@ export default class SAMManager {
    * Load ONNX Runtime and SAM models (with IndexedDB caching).
    */
   async init() {
-    if (this.initialized || this._initializing) return;
-    this._initializing = true;
-
-    try {
+    await this._guardedInit(async () => {
       // Load ONNX Runtime Web
       this._ort = await import(
         /* webpackIgnore: true */
@@ -79,14 +75,7 @@ export default class SAMManager {
       this._decoderSession = await this._ort.InferenceSession.create(decoderBuf, {
         executionProviders: ["wasm"],
       });
-
-      this.initialized = true;
-    } catch (err) {
-      console.error("[SAMManager] init failed:", err);
-      throw err;
-    } finally {
-      this._initializing = false;
-    }
+    });
   }
 
   /**

@@ -13,6 +13,7 @@ import {
   ASSET_CATEGORY,
   categoryFromFilename,
 } from "./assetDescriptor.js";
+import { rgbToHex, colorDistance } from "../utils/colorUtils.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -31,27 +32,6 @@ function toBlob(data, mimeType) {
  */
 function toBlobUrl(data, mimeType) {
   return URL.createObjectURL(toBlob(data, mimeType));
-}
-
-/**
- * Convert an RGB array [r, g, b] to a hex color string.
- */
-function rgbToHex(r, g, b) {
-  return (
-    "#" +
-    [r, g, b]
-      .map((c) => Math.round(c).toString(16).padStart(2, "0"))
-      .join("")
-  );
-}
-
-/**
- * Euclidean distance between two RGB colors.
- */
-function colorDistance(a, b) {
-  return Math.sqrt(
-    (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2
-  );
 }
 
 // ---------------------------------------------------------------------------

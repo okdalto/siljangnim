@@ -5,6 +5,7 @@
  */
 
 import * as storage from "./storage.js";
+import { deepClone } from "../utils/objectUtils.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -255,7 +256,7 @@ async function toolWriteFile(input, broadcast) {
       else data = {};
     }
 
-    data = JSON.parse(JSON.stringify(data)); // deep clone
+    data = deepClone(data);
     const warnings = [];
     let appliedCount = 0;
 

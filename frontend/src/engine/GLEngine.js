@@ -12,6 +12,7 @@
 import { getAllUploadBlobUrls, getUploadBlobUrl } from "./storage.js";
 import { createProgram, compileShader, DEFAULT_QUAD_VERTEX_SHADER, DEFAULT_3D_VERTEX_SHADER } from "./shaderUtils.js";
 import { createQuadGeometry, createBoxGeometry, createSphereGeometry, createPlaneGeometry } from "./geometries.js";
+import { uniformSetter, GEOMETRY_CREATORS } from "./uniformSetters.js";
 import AudioManager from "./AudioManager.js";
 import MediaPipeManager from "./MediaPipeManager.js";
 import MIDIManager from "./MIDIManager.js";
@@ -30,32 +31,6 @@ import { selectBackend, getBackendDisplayName, BackendType } from "./gpu/index.j
 import * as shaderTarget from "./gpu/shaderTarget.js";
 import { RenderGraph } from "./gpu/renderGraph.js";
 import { transpileGLSL, transpileFragmentGLSL, transpileVertexGLSL } from "./gpu/glslToWgsl.js";
-
-/** Map GL uniform type enum → setter function */
-function _uniformSetter(gl, type, loc) {
-  switch (type) {
-    case gl.FLOAT:        return (v) => gl.uniform1f(loc, v);
-    case gl.FLOAT_VEC2:   return (x, y) => gl.uniform2f(loc, x, y);
-    case gl.FLOAT_VEC3:   return (x, y, z) => gl.uniform3f(loc, x, y, z);
-    case gl.FLOAT_VEC4:   return (x, y, z, w) => gl.uniform4f(loc, x, y, z, w);
-    case gl.INT: case gl.BOOL: case gl.SAMPLER_2D: case gl.SAMPLER_3D: case gl.SAMPLER_CUBE:
-                          return (v) => gl.uniform1i(loc, v);
-    case gl.INT_VEC2:     return (x, y) => gl.uniform2i(loc, x, y);
-    case gl.INT_VEC3:     return (x, y, z) => gl.uniform3i(loc, x, y, z);
-    case gl.INT_VEC4:     return (x, y, z, w) => gl.uniform4i(loc, x, y, z, w);
-    case gl.FLOAT_MAT2:   return (v) => gl.uniformMatrix2fv(loc, false, v);
-    case gl.FLOAT_MAT3:   return (v) => gl.uniformMatrix3fv(loc, false, v);
-    case gl.FLOAT_MAT4:   return (v) => gl.uniformMatrix4fv(loc, false, v);
-    default:              return (v) => gl.uniform1f(loc, v);
-  }
-}
-
-const GEOMETRY_CREATORS = {
-  quad: createQuadGeometry,
-  box: createBoxGeometry,
-  sphere: createSphereGeometry,
-  plane: createPlaneGeometry,
-};
 
 export default class GLEngine {
   /**
@@ -538,7 +513,7 @@ export default class GLEngine {
             const name = info.name.replace(/\[0\]$/, "");
             const loc = g.getUniformLocation(prog, name);
             if (!loc) continue;
-            const setter = _uniformSetter(g, info.type, loc);
+            const setter = uniformSetter(g, info.type, loc);
             uniforms[name] = { location: loc, type: info.type, set: setter };
           }
           return uniforms;
