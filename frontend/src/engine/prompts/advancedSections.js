@@ -27,6 +27,9 @@ The engine exposes these utilities on \`ctx.utils\` for convenience:
 | \`ctx.utils.createPlaneGeometry(w?, h?, wSegs?, hSegs?)\` | Returns XZ plane with indices (3D) |
 | \`ctx.utils.DEFAULT_QUAD_VERTEX_SHADER\` | Default vertex shader for fullscreen quads |
 | \`ctx.utils.DEFAULT_3D_VERTEX_SHADER\` | Default vertex shader for 3D geometry |
+| \`ctx.utils.fetchJSON(url)\` | Fetch JSON from URL → \`Promise<object>\`. Use in setup to load external data (APIs, config files) |
+| \`ctx.utils.fetchText(url)\` | Fetch text from URL → \`Promise<string>\`. Use for loading raw text, CSV, SVG, etc. |
+| \`ctx.utils.fetchBuffer(url)\` | Fetch binary from URL → \`Promise<ArrayBuffer>\`. Use for loading binary data, models, etc. |
 | \`ctx.utils.uploadTexture(texture, source)\` | Upload image/video/canvas to texture with Y-flip for GL |
 | \`ctx.utils.loadImage(url)\` | Load image → \`Promise<{texture, width, height}>\` (Y-flipped) |
 | \`ctx.utils.initWebcam()\` | Start webcam → \`Promise<{video, texture, stream}>\` |
