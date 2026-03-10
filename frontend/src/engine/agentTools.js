@@ -277,6 +277,27 @@ const TOOLS = [
     },
   },
   {
+    name: "web_fetch",
+    description:
+      "Fetch a web page or API endpoint and return its content as text. " +
+      "Use this to read documentation, GitHub repos, API responses, or any public URL. " +
+      "HTML pages are converted to readable text. JSON responses are returned as-is.",
+    input_schema: {
+      type: "object",
+      properties: {
+        url: {
+          type: "string",
+          description: "The URL to fetch (must be a full URL starting with http:// or https://).",
+        },
+        max_length: {
+          type: "number",
+          description: "Maximum number of characters to return (default 50000). Truncated if longer.",
+        },
+      },
+      required: ["url"],
+    },
+  },
+  {
     name: "delete_asset",
     description:
       "Delete an uploaded asset from the workspace by filename. " +

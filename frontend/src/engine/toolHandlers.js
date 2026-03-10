@@ -561,6 +561,38 @@ async function toolRunPreprocess(input, broadcast, preprocessPromise) {
   }
 }
 
+async function toolWebFetch(input) {
+  const url = input.url;
+  if (!url || typeof url !== "string") return "Error: 'url' is required.";
+  const maxLen = input.max_length ?? 50000;
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) return `Error: HTTP ${resp.status} ${resp.statusText}`;
+    const contentType = resp.headers.get("content-type") || "";
+    let text = await resp.text();
+
+    // Strip HTML tags for readability if it's an HTML page
+    if (contentType.includes("text/html")) {
+      // Parse with DOMParser for clean text extraction
+      const doc = new DOMParser().parseFromString(text, "text/html");
+      // Remove script/style elements
+      for (const el of doc.querySelectorAll("script, style, nav, footer, header")) {
+        el.remove();
+      }
+      text = doc.body?.innerText || doc.body?.textContent || text;
+      // Collapse whitespace
+      text = text.replace(/\n{3,}/g, "\n\n").trim();
+    }
+
+    if (text.length > maxLen) {
+      text = text.slice(0, maxLen) + `\n\n... (truncated at ${maxLen} characters)`;
+    }
+    return text;
+  } catch (err) {
+    return `Error fetching URL: ${err.message || String(err)}`;
+  }
+}
+
 async function toolSetTimeline(input, broadcast) {
   const updates = {};
   if (input.duration != null) updates.duration = Number(input.duration);
@@ -592,6 +624,7 @@ const TOOL_HANDLERS = {
   delete_asset: toolDeleteAsset,
   set_timeline: toolSetTimeline,
   run_preprocess: toolRunPreprocess,
+  web_fetch: toolWebFetch,
 };
 
 /**

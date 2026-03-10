@@ -169,39 +169,40 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
     return () => observer.disconnect();
   }, []);
 
+  // Shared coordinate helper – converts a client-space event to [0,1] canvas-space.
+  const getCanvasCoords = useCallback((clientX, clientY) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    return [(clientX - rect.left) / rect.width, (clientY - rect.top) / rect.height];
+  }, []);
+
   // Mouse tracking
   const handleMouseMove = useCallback((e) => {
     const engine = engineInternalRef.current;
     if (!engine) return;
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    engine.updateMouse(x, y, e.buttons > 0);
+    const coords = getCanvasCoords(e.clientX, e.clientY);
+    if (!coords) return;
+    engine.updateMouse(coords[0], coords[1], e.buttons > 0);
     // Ensure hover is set (mouseEnter may have been missed if mouse was already over)
     if (!engine._mouseHover) engine.updateMouseHover(true);
-  }, []);
+  }, [getCanvasCoords]);
 
   const handleMouseDown = useCallback((e) => {
     const engine = engineInternalRef.current;
     if (!engine) return;
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    engine.updateMouse(x, y, true);
+    const coords = getCanvasCoords(e.clientX, e.clientY);
+    if (!coords) return;
+    engine.updateMouse(coords[0], coords[1], true);
     containerRef.current?.focus();
-  }, []);
+  }, [getCanvasCoords]);
 
   const handleMouseUp = useCallback((e) => {
     const engine = engineInternalRef.current;
     if (!engine) return;
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    engine.updateMouse(x, y, false);
-  }, []);
+    const coords = getCanvasCoords(e.clientX, e.clientY);
+    if (!coords) return;
+    engine.updateMouse(coords[0], coords[1], false);
+  }, [getCanvasCoords]);
 
   const handleMouseEnter = useCallback(() => {
     engineInternalRef.current?.updateMouseHover(true);
@@ -214,27 +215,23 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
   // Touch tracking (maps to mouse input)
   const handleTouchStart = useCallback((e) => {
     const engine = engineInternalRef.current;
-    if (!engine) return;
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect || !e.touches.length) return;
+    if (!engine || !e.touches.length) return;
     const touch = e.touches[0];
-    const x = (touch.clientX - rect.left) / rect.width;
-    const y = (touch.clientY - rect.top) / rect.height;
-    engine.updateMouse(x, y, true);
+    const coords = getCanvasCoords(touch.clientX, touch.clientY);
+    if (!coords) return;
+    engine.updateMouse(coords[0], coords[1], true);
     e.preventDefault();
-  }, []);
+  }, [getCanvasCoords]);
 
   const handleTouchMove = useCallback((e) => {
     const engine = engineInternalRef.current;
-    if (!engine) return;
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect || !e.touches.length) return;
+    if (!engine || !e.touches.length) return;
     const touch = e.touches[0];
-    const x = (touch.clientX - rect.left) / rect.width;
-    const y = (touch.clientY - rect.top) / rect.height;
-    engine.updateMouse(x, y, true);
+    const coords = getCanvasCoords(touch.clientX, touch.clientY);
+    if (!coords) return;
+    engine.updateMouse(coords[0], coords[1], true);
     e.preventDefault();
-  }, []);
+  }, [getCanvasCoords]);
 
   const handleTouchEnd = useCallback((e) => {
     const engine = engineInternalRef.current;
