@@ -135,6 +135,9 @@ Unified file I/O with 4 tools:
   NO JSON escaping needed.
 - \`list_files(path)\`: List workspace files.
 - \`list_uploaded_files\`: See all uploaded files.
+- \`web_fetch(url, max_length?)\`: Fetch a web page or API endpoint and return its text content. \
+  HTML pages are auto-converted to readable text. Use this to read documentation, \
+  GitHub repos, reference code, API responses, or any public URL.
 - \`run_preprocess({code})\`: Run JavaScript in the engine context **before** writing a scene. \
   Has access to \`ctx.uploads\` (blob URLs), \`ctx.gl\`, \`ctx.canvas\`, and \`ctx.state\`. \
   The code must \`return\` a value — the result is sent back to you as JSON. \
