@@ -14,6 +14,7 @@ import {
   createWorkspaceManifest,
 } from "../engine/portableSchema.js";
 import * as storageApi from "../engine/storage.js";
+import AssetExcludeDialog from "./AssetExcludeDialog.jsx";
 
 export default function GitHubSaveDialog({ token, user, projectName, captureThumbnail, onClose, onSaved }) {
   const [mode, setMode] = useState("choose"); // choose | new | existing
@@ -34,6 +35,15 @@ export default function GitHubSaveDialog({ token, user, projectName, captureThum
   const [thumbnailUrl, setThumbnailUrl] = useState(null);
   const [includeThumbnail, setIncludeThumbnail] = useState(true);
   const [includeChatHistory, setIncludeChatHistory] = useState(true);
+  const [uploadAssets, setUploadAssets] = useState([]);
+  const [excludedAssets, setExcludedAssets] = useState(new Set());
+  const [showAssetDialog, setShowAssetDialog] = useState(false);
+  const [assetsExpanded, setAssetsExpanded] = useState(false);
+
+  // Load upload list on mount
+  useEffect(() => {
+    storageApi.listUploadAssets().then(setUploadAssets).catch(() => {});
+  }, []);
 
   // Capture thumbnail on mount
   useEffect(() => {
@@ -75,7 +85,7 @@ export default function GitHubSaveDialog({ token, user, projectName, captureThum
     setStep(3);
     try {
       // Collect project files
-      const files = await collectProjectFiles(projectName, { includeChatHistory });
+      const files = await collectProjectFiles(projectName, { includeChatHistory, excludeAssets: excludedAssets });
 
       // Always re-capture thumbnail and rebuild README so the image is fresh on every push
       let thumbData = null;
@@ -139,7 +149,7 @@ export default function GitHubSaveDialog({ token, user, projectName, captureThum
     } finally {
       setSaving(false);
     }
-  }, [token, user, mode, newRepoName, newRepoDesc, isPrivate, selectedRepo, projectPath, commitMessage, projectName, branch, onSaved, includeThumbnail, captureThumbnail, thumbnailUrl, includeChatHistory]);
+  }, [token, user, mode, newRepoName, newRepoDesc, isPrivate, selectedRepo, projectPath, commitMessage, projectName, branch, onSaved, includeThumbnail, captureThumbnail, thumbnailUrl, includeChatHistory, excludedAssets]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }}>
@@ -331,6 +341,60 @@ export default function GitHubSaveDialog({ token, user, projectName, captureThum
                 Include chat history
               </label>
 
+              {/* Asset exclude section */}
+              {uploadAssets.length > 0 && (
+                <div>
+                  <button
+                    onClick={() => setAssetsExpanded((v) => !v)}
+                    className="flex items-center gap-1 text-[11px] font-medium w-full"
+                    style={{ color: "var(--chrome-text-secondary)" }}
+                  >
+                    <svg
+                      width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                      style={{ transform: assetsExpanded ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s" }}
+                    >
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                    Assets ({uploadAssets.length})
+                    {excludedAssets.size > 0 && (
+                      <span className="text-[10px] text-amber-400 ml-1">
+                        ({excludedAssets.size} excluded)
+                      </span>
+                    )}
+                  </button>
+                  {assetsExpanded && (
+                    <div className="mt-1 max-h-32 overflow-y-auto rounded px-1" style={{ border: "1px solid var(--chrome-border)" }}>
+                      {uploadAssets.map((asset) => (
+                        <label
+                          key={asset.filename}
+                          className="flex items-center gap-2 px-1 py-1 text-[11px] hover:bg-white/5 cursor-pointer"
+                          style={{ color: "var(--chrome-text)" }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!excludedAssets.has(asset.filename)}
+                            onChange={() => {
+                              setExcludedAssets((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(asset.filename)) next.delete(asset.filename);
+                                else next.add(asset.filename);
+                                return next;
+                              });
+                            }}
+                          />
+                          <span className="truncate flex-1">{asset.filename}</span>
+                          <span className="text-[10px] flex-shrink-0" style={{ color: "var(--chrome-text-muted)" }}>
+                            {asset.file_size > 1024 * 1024
+                              ? `${(asset.file_size / (1024 * 1024)).toFixed(1)} MB`
+                              : `${(asset.file_size / 1024).toFixed(1)} KB`}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div>
                 <label className="text-[11px] font-medium block mb-1" style={{ color: "var(--chrome-text-secondary)" }}>
                   Commit message
@@ -407,7 +471,7 @@ function buildReadme(name, description, hasThumbnail = true) {
 /**
  * Collect all project files from IndexedDB for GitHub push.
  */
-async function collectProjectFiles(projectName, { includeChatHistory = true } = {}) {
+async function collectProjectFiles(projectName, { includeChatHistory = true, excludeAssets = new Set() } = {}) {
   const sanitized = projectName; // Already sanitized in storage layer
   const activeName = storageApi.getActiveProjectName();
   const files = [];
@@ -418,6 +482,20 @@ async function collectProjectFiles(projectName, { includeChatHistory = true } = 
     manifest = await storageApi.getProjectManifest(activeName);
   } catch {
     manifest = null;
+  }
+
+  // Build excluded_assets metadata for the manifest
+  if (manifest && excludeAssets.size > 0) {
+    const excludedMeta = [];
+    for (const filename of excludeAssets) {
+      try {
+        const info = await storageApi.getUploadInfo(filename);
+        excludedMeta.push(storageApi.buildExcludedAssetMeta(filename, info));
+      } catch {
+        excludedMeta.push(storageApi.buildExcludedAssetMeta(filename));
+      }
+    }
+    manifest = { ...manifest, excluded_assets: excludedMeta };
   }
 
   if (manifest) {
@@ -459,10 +537,11 @@ async function collectProjectFiles(projectName, { includeChatHistory = true } = 
     } catch { /* ignore */ }
   }
 
-  // Get uploads (as base64)
+  // Get uploads (as base64), skipping excluded assets
   try {
     const uploadList = await storageApi.listUploads();
     for (const filename of uploadList) {
+      if (excludeAssets.has(filename)) continue;
       const entry = await storageApi.readUpload(filename);
       const bytes = new Uint8Array(entry.data);
       let binary = "";

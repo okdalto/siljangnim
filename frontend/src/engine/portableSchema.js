@@ -91,6 +91,7 @@ export function createProjectManifest(meta, assets = [], opts = {}) {
       file_size: a.fileSize || a.file_size || 0,
       technical_info: a.technicalInfo || a.technical_info || {},
     })),
+    excluded_assets: opts.excluded_assets || [],
   };
 }
 
@@ -182,6 +183,11 @@ export function validateManifest(manifest) {
   // Ensure assets array
   if (!Array.isArray(m.assets)) {
     m.assets = [];
+  }
+
+  // Ensure excluded_assets array
+  if (!Array.isArray(m.excluded_assets)) {
+    m.excluded_assets = [];
   }
 
   return m;

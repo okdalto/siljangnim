@@ -634,7 +634,8 @@ function sanitizeName(name) {
  * @returns {Promise<Blob>} ZIP file as a Blob (application/zip)
  */
 export async function exportProjectToZip(projectName, options = {}) {
-  const { includeChat = true, includeNodes = true } = options;
+  const { includeChat = true, includeNodes = true, excludeAssets = null } = options;
+  const excludeSet = excludeAssets instanceof Set ? excludeAssets : (excludeAssets ? new Set(excludeAssets) : null);
   const sanitized = sanitizeName(projectName);
   const zip = new ZipWriter();
 
@@ -653,10 +654,7 @@ export async function exportProjectToZip(projectName, options = {}) {
 
   const rootPrefix = `${sanitized}/`;
 
-  await zip.addFile(
-    `${rootPrefix}${MANIFEST_FILENAME}`,
-    TEXT_ENCODER.encode(JSON.stringify(manifest, null, 2))
-  );
+  // Manifest will be written after we know which assets are excluded.
 
   // --- Workspace JSON files -----------------------------------------------
   for (const filename of PROJECT_JSON_FILES) {
@@ -679,9 +677,20 @@ export async function exportProjectToZip(projectName, options = {}) {
   }
 
   // --- Uploaded binary assets (uploads/) -----------------------------------
+  const excludedMeta = [];
   try {
     const uploadNames = await storageApi.listUploads();
     for (const uploadName of uploadNames) {
+      if (excludeSet && excludeSet.has(uploadName)) {
+        // Record excluded asset metadata
+        try {
+          const info = await storageApi.getUploadInfo(uploadName);
+          excludedMeta.push(storageApi.buildExcludedAssetMeta(uploadName, info));
+        } catch {
+          excludedMeta.push(storageApi.buildExcludedAssetMeta(uploadName));
+        }
+        continue;
+      }
       try {
         const upload = await storageApi.readUpload(uploadName);
         if (upload && upload.data) {
@@ -697,6 +706,17 @@ export async function exportProjectToZip(projectName, options = {}) {
   } catch {
     // No uploads store or empty — continue.
   }
+
+  // Record excluded assets in manifest
+  if (excludedMeta.length > 0) {
+    manifest = { ...manifest, excluded_assets: excludedMeta };
+  }
+
+  // --- Write manifest (after excluded_assets are known) --------------------
+  await zip.addFile(
+    `${rootPrefix}${MANIFEST_FILENAME}`,
+    TEXT_ENCODER.encode(JSON.stringify(manifest, null, 2))
+  );
 
   // --- Version tree nodes (_nodes/) ----------------------------------------
   if (includeNodes) {

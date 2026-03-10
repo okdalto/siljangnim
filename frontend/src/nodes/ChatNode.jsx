@@ -171,12 +171,9 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
           type="button"
           onClick={onNewChat}
           disabled={isProcessing}
-          className="text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-0.5 rounded hover:bg-zinc-700"
-          title="New Chat"
+          className="text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed px-1.5 py-0.5 rounded hover:bg-zinc-700"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
+          New Chat
         </button>
       </div>
       )}
