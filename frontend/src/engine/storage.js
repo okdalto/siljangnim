@@ -306,6 +306,41 @@ export async function getUploadInfo(filename) {
   };
 }
 
+/**
+ * Build an excluded-asset metadata object from an upload's info.
+ * @param {string} filename
+ * @param {{mime_type?: string, size?: number}} [info] - from getUploadInfo; omit for fallback
+ * @returns {{ filename: string, category: string, mime_type: string, file_size: number, semantic_name: string }}
+ */
+export function buildExcludedAssetMeta(filename, info) {
+  const mimeType = info?.mime_type || "application/octet-stream";
+  return {
+    filename,
+    category: mimeType.split("/")[0] || "unknown",
+    mime_type: mimeType,
+    file_size: info?.size || 0,
+    semantic_name: filename,
+  };
+}
+
+/**
+ * List all uploaded assets with metadata (for asset-exclude UIs).
+ * @returns {Promise<Array<{ filename: string, category: string, mime_type: string, file_size: number }>>}
+ */
+export async function listUploadAssets() {
+  const names = await listUploads();
+  const items = [];
+  for (const filename of names) {
+    try {
+      const info = await getUploadInfo(filename);
+      items.push(buildExcludedAssetMeta(filename, info));
+    } catch {
+      items.push(buildExcludedAssetMeta(filename));
+    }
+  }
+  return items;
+}
+
 // ---------------------------------------------------------------------------
 // Project management
 // ---------------------------------------------------------------------------
@@ -723,7 +758,8 @@ export async function newUntitledWorkspace() {
 // Project export/import (ZIP)
 // ---------------------------------------------------------------------------
 
-export async function exportProjectZip(name, { includeChat = true } = {}) {
+export async function exportProjectZip(name, { includeChat = true, excludeAssets = null } = {}) {
+  const excludeSet = excludeAssets instanceof Set ? excludeAssets : (excludeAssets ? new Set(excludeAssets) : null);
   const sanitized = sanitizeName(name);
   const store = await tx(STORE_PROJECTS);
   let meta = await idbReq(store.get(sanitized));
@@ -733,7 +769,7 @@ export async function exportProjectZip(name, { includeChat = true } = {}) {
   if (!meta.schema_version || meta.schema_version < CURRENT_SCHEMA_VERSION) {
     meta = migrateV1toV2(meta);
   }
-  const manifest = validateManifest(meta);
+  let manifest = validateManifest(meta);
 
   // Collect text files from STORE_FILES
   const filesStore = await tx(STORE_FILES);
@@ -754,8 +790,20 @@ export async function exportProjectZip(name, { includeChat = true } = {}) {
   const allBlobKeys = await idbReq(blobStore.getAllKeys());
   const blobPrefix = `${sanitized}/`;
   const blobs = {};
+  const excludedMeta = [];
   for (const key of allBlobKeys.filter((k) => k.startsWith(blobPrefix))) {
     const relPath = key.slice(blobPrefix.length);
+    // Check if this upload should be excluded
+    const uploadName = relPath.startsWith("uploads/") ? relPath.slice("uploads/".length) : null;
+    if (uploadName && excludeSet && excludeSet.has(uploadName)) {
+      const bs = await tx(STORE_BLOBS);
+      const entry = await idbReq(bs.get(key));
+      excludedMeta.push(buildExcludedAssetMeta(uploadName, {
+        mime_type: entry?.mimeType || "application/octet-stream",
+        size: entry?.size || 0,
+      }));
+      continue;
+    }
     const bs = await tx(STORE_BLOBS);
     const entry = await idbReq(bs.get(key));
     if (entry && entry.data) {
@@ -764,6 +812,11 @@ export async function exportProjectZip(name, { includeChat = true } = {}) {
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
       blobs[relPath] = { data_b64: btoa(binary), mimeType: entry.mimeType, size: entry.size };
     }
+  }
+
+  // Record excluded assets in manifest
+  if (excludedMeta.length > 0) {
+    manifest = { ...manifest, excluded_assets: excludedMeta };
   }
 
   // Collect project nodes

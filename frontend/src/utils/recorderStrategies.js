@@ -42,6 +42,15 @@ function cancelScheduledFrame(rafRef) {
   }
 }
 
+// ---- Common finalize cleanup ----
+// Shared tail called at the end of every strategy's finalize/onstop path.
+function finalizeCleanup({ setProgress, setRecording, engine, restoreEngine }) {
+  setProgress(null);
+  setRecording(false);
+  engine.disposeOfflineVideos();
+  restoreEngine();
+}
+
 // ---- Audio helpers ----
 
 async function renderOfflineAudio(audioBuffer, endTime) {
@@ -160,10 +169,7 @@ export async function startOfflinePng(ctx) {
       console.error("PNG sequence ZIP error:", e);
       setCompletionInfo({ success: false, error: e.message, timeTaken });
     }
-    setProgress(null);
-    setRecording(false);
-    engine.disposeOfflineVideos();
-    restoreEngine();
+    finalizeCleanup({ setProgress, setRecording, engine, restoreEngine });
   };
 
   finalizeRef.current = finalize;
@@ -347,10 +353,7 @@ export async function startOfflineWebCodecs(ctx) {
     }
     if (audioEncoder?.state !== "closed") audioEncoder?.close();
     if (encoder.state !== "closed") encoder.close();
-    setProgress(null);
-    setRecording(false);
-    engine.disposeOfflineVideos();
-    restoreEngine();
+    finalizeCleanup({ setProgress, setRecording, engine, restoreEngine });
   };
 
   finalizeRef.current = finalize;
@@ -363,9 +366,7 @@ export async function startOfflineWebCodecs(ctx) {
     if (audioEncoder?.state !== "closed") audioEncoder?.close();
     if (encoder.state !== "closed") encoder.close();
     setCompletionInfo({ success: false, error: "VideoEncoder fatal error", timeTaken: ((performance.now() - renderStartTime) / 1000).toFixed(1) });
-    setProgress(null);
-    setRecording(false);
-    restoreEngine();
+    finalizeCleanup({ setProgress, setRecording, engine, restoreEngine });
   });
 
   // Kick off audio rendering + encoding before video frames
@@ -427,12 +428,10 @@ export async function startOfflineWebCodecs(ctx) {
         }
         if (encoder.encodeQueueSize >= MAX_QUEUE) break;
 
-        if (frameCount === 0) console.log("[OfflineRec] rendering first frame, t=%s endTime=%s", currentTime, endTime);
         await Promise.race([
           engine.renderOfflineFrame(currentTime, dt),
           new Promise((resolve) => setTimeout(resolve, 6000)),
         ]);
-        if (frameCount === 0) console.log("[OfflineRec] first frame rendered, creating VideoFrame");
         const gl = engine.gl;
         if (gl) gl.finish();
 
@@ -443,8 +442,6 @@ export async function startOfflineWebCodecs(ctx) {
         const keyFrame = frameCount % (fps * 2) === 0;
         encoder.encode(frame, { keyFrame });
         frame.close();
-        if (frameCount === 0) console.log("[OfflineRec] first frame encoded successfully");
-
         frameCount++;
         currentTime += dt;
       }
@@ -501,10 +498,7 @@ export async function startOfflineFallback(ctx) {
       downloadBlob(blob);
     }
     setCompletionInfo({ success: true, fileSize: blob.size, timeTaken });
-    setProgress(null);
-    setRecording(false);
-    engine.disposeOfflineVideos();
-    restoreEngine();
+    finalizeCleanup({ setProgress, setRecording, engine, restoreEngine });
   };
   recorder.start(100);
   recorderRef.current = recorder;

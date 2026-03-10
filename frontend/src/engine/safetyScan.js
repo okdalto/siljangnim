@@ -115,11 +115,31 @@ export function scanProject(manifest, files, blobs) {
   }
 
   // 5. Missing assets referenced in manifest
+  const excludedFilenames = new Set((manifest?.excluded_assets || []).map((a) => a.filename));
   if (manifest?.assets) {
     for (const asset of manifest.assets) {
       const filename = asset.filename;
       if (filename && !blobs?.[`uploads/${filename}`] && !files?.[`uploads/${filename}`]) {
-        warnings.push({ type: "info", message: `Asset "${filename}" listed in manifest but not found in files` });
+        if (excludedFilenames.has(filename)) {
+          warnings.push({ type: "warning", message: `Asset "${filename}" was intentionally excluded. You need to add this asset to use this project.` });
+        } else {
+          warnings.push({ type: "info", message: `Asset "${filename}" listed in manifest but not found in files` });
+        }
+      }
+    }
+  }
+
+  // 5b. Warn about intentionally excluded assets (even if not in assets list)
+  if (manifest?.excluded_assets) {
+    for (const asset of manifest.excluded_assets) {
+      if (!excludedFilenames.has(asset.filename)) continue; // already handled above
+      const inBlobs = blobs?.[`uploads/${asset.filename}`] || files?.[`uploads/${asset.filename}`];
+      if (!inBlobs) {
+        // Only add if not already warned via assets list above
+        const alreadyWarned = warnings.some((w) => w.message.includes(`"${asset.filename}"`));
+        if (!alreadyWarned) {
+          warnings.push({ type: "warning", message: `Asset "${asset.filename}" was intentionally excluded. You need to add this asset to use this project.` });
+        }
       }
     }
   }

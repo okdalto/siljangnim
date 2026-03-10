@@ -3,7 +3,8 @@ import FileTree from "./fileBrowser/FileTree.jsx";
 import FilePreview from "./fileBrowser/FilePreview.jsx";
 import CodePreviewPanel from "./CodePreviewPanel.jsx";
 import { timeAgo } from "../utils/timeFormat.js";
-import { exportProjectZip, readThumbnailUrl } from "../engine/storage.js";
+import { exportProjectZip, readThumbnailUrl, listUploadAssets } from "../engine/storage.js";
+import AssetExcludeDialog from "./AssetExcludeDialog.jsx";
 
 const API_BASE = import.meta.env.DEV
   ? `http://${window.location.hostname}:8000`
@@ -97,6 +98,10 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename, onF
   const [exportMenuPos, setExportMenuPos] = useState({ top: 0, right: 0 });
   const exportMenuRef = useRef(null);
 
+  // Asset exclude dialog for selective export
+  const [showAssetExclude, setShowAssetExclude] = useState(false);
+  const [assetList, setAssetList] = useState([]);
+
   useEffect(() => {
     if (confirmDelete) {
       deleteTimerRef.current = setTimeout(() => setConfirmDelete(false), 3000);
@@ -151,30 +156,33 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename, onF
     setExportMenuOpen((v) => !v);
   }, []);
 
-  const doExport = useCallback(async (includeChat) => {
+  const doExport = useCallback(async (includeChat, excludeAssets = null) => {
     setExportMenuOpen(false);
     const filename = `${p.display_name || p.name}.zip`;
-    try {
-      // Try backend API first
-      const url = `${API_BASE}/api/projects/${encodeURIComponent(p.name)}/export${includeChat ? "" : "?no_chat=1"}`;
-      const res = await fetch(url);
-      if (res.ok) {
-        const contentType = res.headers.get("content-type") || "";
-        if (contentType.includes("zip") || contentType.includes("octet-stream")) {
-          const blob = await res.blob();
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = blobUrl;
-          a.download = filename;
-          a.click();
-          URL.revokeObjectURL(blobUrl);
-          return;
+    // If excluding assets, skip backend API (it doesn't support excludeAssets)
+    if (!excludeAssets) {
+      try {
+        // Try backend API first
+        const url = `${API_BASE}/api/projects/${encodeURIComponent(p.name)}/export${includeChat ? "" : "?no_chat=1"}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const contentType = res.headers.get("content-type") || "";
+          if (contentType.includes("zip") || contentType.includes("octet-stream")) {
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(blobUrl);
+            return;
+          }
         }
-      }
-    } catch { /* backend unavailable */ }
+      } catch { /* backend unavailable */ }
+    }
     // Fallback: IndexedDB export (web-only mode)
     try {
-      const jsonStr = await exportProjectZip(p.name, { includeChat });
+      const jsonStr = await exportProjectZip(p.name, { includeChat, excludeAssets });
       const blob = new Blob([jsonStr], { type: "application/json" });
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -184,6 +192,15 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename, onF
       URL.revokeObjectURL(blobUrl);
     } catch { /* ignore */ }
   }, [p.name, p.display_name]);
+
+  const handleExportSelectAssets = useCallback(async (e) => {
+    e.stopPropagation();
+    setExportMenuOpen(false);
+    try {
+      setAssetList(await listUploadAssets());
+      setShowAssetExclude(true);
+    } catch { /* ignore */ }
+  }, []);
 
   // Close export menu on outside click
   useEffect(() => {
@@ -336,6 +353,13 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename, onF
                         >
                           Export (no chat)
                         </button>
+                        <button
+                          onClick={handleExportSelectAssets}
+                          className="text-left px-3 py-1.5 hover:bg-zinc-700 transition-colors"
+                          style={{ color: "var(--chrome-text)", borderTop: "1px solid var(--chrome-border)" }}
+                        >
+                          Export (select assets)
+                        </button>
                       </div>
                     )}
                   </div>
@@ -408,6 +432,18 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename, onF
             </div>
           )}
         </div>
+      )}
+
+      {/* Asset exclude dialog for selective export */}
+      {showAssetExclude && (
+        <AssetExcludeDialog
+          assets={assetList}
+          onConfirm={(excludedSet) => {
+            setShowAssetExclude(false);
+            doExport(true, excludedSet.size > 0 ? excludedSet : null);
+          }}
+          onCancel={() => setShowAssetExclude(false)}
+        />
       )}
     </div>
   );
