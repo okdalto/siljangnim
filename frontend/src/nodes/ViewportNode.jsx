@@ -3,6 +3,7 @@ import { NodeResizer } from "@xyflow/react";
 import GLEngine from "../engine/GLEngine.js";
 import ResolutionSelector from "../components/viewport/ResolutionSelector.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
+import MissingAssetsBar from "../components/MissingAssetsBar.jsx";
 
 export default function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
   const { sceneJSON, engineRef, onError, paused, safeModeActive } = data;
@@ -23,6 +24,7 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
   }, [data.onFixedResolutionChange]);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [missingAssets, setMissingAssets] = useState([]);
   const [collapsed, setCollapsedRaw] = useState(() => data.initialCollapsed ?? false);
   const setCollapsed = useCallback((v) => {
     setCollapsedRaw((prev) => {
@@ -66,6 +68,9 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
       engine.onFPS = setFps;
       engine.onBackendReady = (type) => {
         setBackendName(type === "webgpu" ? "WebGPU" : "WebGL2");
+      };
+      engine.onMissingAssets = (list) => {
+        setMissingAssets(list);
       };
       engineInternalRef.current = engine;
 
@@ -173,6 +178,8 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
     engine.updateMouse(x, y, e.buttons > 0);
+    // Ensure hover is set (mouseEnter may have been missed if mouse was already over)
+    if (!engine._mouseHover) engine.updateMouseHover(true);
   }, []);
 
   const handleMouseDown = useCallback((e) => {
@@ -293,6 +300,18 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
         className="absolute inset-0 w-full h-full"
         style={{ imageRendering: "auto" }}
       />
+      {missingAssets.length > 0 && (
+        <MissingAssetsBar
+          missingAssets={missingAssets}
+          onAssetsReplaced={() => {
+            setMissingAssets([]);
+            const engine = engineInternalRef.current;
+            if (engine && data.sceneJSON) {
+              engine.loadScene(data.sceneJSON);
+            }
+          }}
+        />
+      )}
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4">
           <div className="bg-red-950 border border-red-800 rounded-lg p-3 max-w-full max-h-full overflow-auto">

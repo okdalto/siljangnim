@@ -411,6 +411,33 @@ export default class GLEngine {
 
         seekVideo: _seekVideo,
 
+        /**
+         * Fetch JSON from a URL. Returns parsed object.
+         */
+        fetchJSON: async (url) => {
+          const resp = await fetch(url);
+          if (!resp.ok) throw new Error(`fetchJSON failed: ${resp.status} ${resp.statusText}`);
+          return resp.json();
+        },
+
+        /**
+         * Fetch text from a URL. Returns string.
+         */
+        fetchText: async (url) => {
+          const resp = await fetch(url);
+          if (!resp.ok) throw new Error(`fetchText failed: ${resp.status} ${resp.statusText}`);
+          return resp.text();
+        },
+
+        /**
+         * Fetch binary data from a URL. Returns ArrayBuffer.
+         */
+        fetchBuffer: async (url) => {
+          const resp = await fetch(url);
+          if (!resp.ok) throw new Error(`fetchBuffer failed: ${resp.status} ${resp.statusText}`);
+          return resp.arrayBuffer();
+        },
+
         createProgram: (vertSource, fragSource) => createProgram(this.gl, vertSource, fragSource),
         compileShader: (type, source) => compileShader(this.gl, type, source),
         createQuadGeometry,
