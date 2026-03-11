@@ -181,6 +181,20 @@ async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarge
   // Inject backend target if available
   if (backendTarget && backendTarget !== "auto") {
     prompt += `\n\n## ACTIVE BACKEND TARGET\nThe current project uses **${backendTarget}** backend. Generate ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} shaders accordingly. Follow the ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} rules strictly.`;
+
+    // Force-include WebGPU-related sections when backend is "webgpu",
+    // even if the user didn't mention any trigger keywords.
+    if (backendTarget === "webgpu") {
+      try {
+        const { advancedSections } = await import("./prompts/advancedSections.js");
+        const webgpuSectionIds = new Set(["wgsl_rules", "per_project_backend"]);
+        for (const section of advancedSections) {
+          if (webgpuSectionIds.has(section.id) && !prompt.includes(section.content)) {
+            prompt += "\n\n" + section.content;
+          }
+        }
+      } catch { /* non-critical */ }
+    }
   }
 
   // Inject matching technique hints
