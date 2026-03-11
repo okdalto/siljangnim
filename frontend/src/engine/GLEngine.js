@@ -201,6 +201,7 @@ export default class GLEngine {
     this._scriptRenderFn = null;
     this._scriptCleanupFn = null;
     this._setupReady = false; // true after async setup() completes
+    this._loadGeneration = 0; // incremented on each loadScene to cancel stale async setups
 
     // Timeline
     this._duration = 0;      // 0 = infinite (no loop)
@@ -418,6 +419,7 @@ export default class GLEngine {
     // --- FULL RELOAD ---
     this._disposeScene();
     this._setupReady = false;
+    const generation = ++this._loadGeneration; // cancel any in-flight async setup
     this._scene = sceneJSON;
     this._lastErrorMessage = null; // reset error debounce for new scene
 
@@ -1015,7 +1017,7 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       }
 
       // Pre-populate ctx.uploads with blob URLs, then run setup
-      this._prepareUploadsAndRunSetup(ctx);
+      this._prepareUploadsAndRunSetup(ctx, generation);
     } catch (err) {
       console.error("[GLEngine] Script error:", err);
       this.onError?.(err);
@@ -1702,19 +1704,22 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
   }
 
   /** Pre-populate ctx.uploads with blob URLs for all uploaded files, then run setup. */
-  async _prepareUploadsAndRunSetup(ctx) {
+  async _prepareUploadsAndRunSetup(ctx, generation) {
     try {
       const blobUrls = await getAllUploadBlobUrls();
+      if (generation !== this._loadGeneration) return; // stale — a newer loadScene superseded us
       for (const [filename, url] of blobUrls) {
         ctx.uploads[filename] = url;
       }
     } catch (e) {
       console.warn("[GLEngine] Failed to pre-populate uploads:", e);
     }
+    if (generation !== this._loadGeneration) return;
 
     // Check for missing assets — both excluded and genuinely absent from IndexedDB
     try {
       const manifest = await getProjectManifest();
+      if (generation !== this._loadGeneration) return;
       const missingList = [];
 
       // Check excluded assets
@@ -1745,11 +1750,13 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     } catch {
       // Manifest read may fail — continue.
     }
+    if (generation !== this._loadGeneration) return;
 
     // Wait for backend initialization before running setup
     // (WebGPU scenes need ctx.renderer to be available in setup)
     if (this._backendPromise) {
       try { await this._backendPromise; } catch { /* handled in initBackend */ }
+      if (generation !== this._loadGeneration) return;
       // Inject backend into ctx now that it's ready
       if (this._backend && !ctx.renderer) {
         ctx.renderer = this._backend;
@@ -1798,6 +1805,7 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
         window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
       }
     }
+    if (generation !== this._loadGeneration) return; // another loadScene started while setup ran
     this._setupReady = setupOk;
 
     // If setup failed, draw a visible error indicator on the canvas so
