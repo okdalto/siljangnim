@@ -1872,7 +1872,17 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       midi: this._scriptCtx?.midi || {},
       osc: this._scriptCtx?.osc || {},
       mic: this._scriptCtx?.mic || {},
+      // Expose renderer so preprocess can check WebGPU availability
+      renderer: this._backend || null,
+      backendType: this._backend?.backendType || "webgl2",
     };
+
+    // Wait for backend if still initializing
+    if (this._backendPromise && !this._backend) {
+      try { await this._backendPromise; } catch { /* handled in initBackend */ }
+      ctx.renderer = this._backend || null;
+      ctx.backendType = this._backend?.backendType || "webgl2";
+    }
 
     const fn = new Function("ctx", "gl", "canvas", `return (async () => { ${code} })();`);
     const result = await fn(ctx, gl, canvas);
