@@ -42,9 +42,20 @@ function buildSnapshot(sceneJson, uiConfig, workspaceState, panels, chatHistory,
 async function walkToCheckpoint(nodeId) {
   const chain = [];
   let currentId = nodeId;
+  const visited = new Set();
 
   while (currentId) {
+    if (visited.has(currentId)) {
+      console.warn(`[projectTree] Cycle detected at node ${currentId}, breaking chain`);
+      break;
+    }
+    visited.add(currentId);
+
     const node = await storage.readNode(currentId);
+    if (!node) {
+      console.warn(`[projectTree] Missing node ${currentId} in chain, stopping walk`);
+      break;
+    }
     chain.unshift(node);
     if (node.isCheckpoint) break;
     currentId = node.parentId;
@@ -61,7 +72,7 @@ async function patchChainLength(parentId) {
   let currentId = parentId;
   while (currentId) {
     const node = await storage.readNode(currentId);
-    if (node.isCheckpoint) break;
+    if (!node || node.isCheckpoint) break;
     count++;
     currentId = node.parentId;
   }
