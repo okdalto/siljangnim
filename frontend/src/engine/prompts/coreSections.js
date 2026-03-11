@@ -151,6 +151,9 @@ Unified file I/O with 4 tools:
 - \`web_fetch(url, max_length?)\`: Fetch a web page or API endpoint and return its text content. \
   HTML pages are auto-converted to readable text. Use this to read documentation, \
   GitHub repos, reference code, API responses, or any public URL.
+- \`unzip_asset(filename, prefix?)\`: Extract a ZIP file from uploads into individual files. \
+  Each extracted file is saved as a separate upload. Use \`prefix\` to namespace files \
+  (e.g. \`prefix="models/"\`). Returns list of extracted filenames.
 - \`run_preprocess({code})\`: Run JavaScript in the engine context **before** writing a scene. \
   Has access to \`ctx.uploads\` (blob URLs), \`ctx.gl\`, \`ctx.canvas\`, and \`ctx.state\`. \
   The code must \`return\` a value — the result is sent back to you as JSON. \

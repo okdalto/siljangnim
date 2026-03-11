@@ -313,6 +313,26 @@ const TOOLS = [
       required: ["filename"],
     },
   },
+  {
+    name: "unzip_asset",
+    description:
+      "Extract a ZIP file from uploads and save its contents as individual upload files. " +
+      "Returns a list of extracted filenames. Use list_uploaded_files to see the ZIP file first.",
+    input_schema: {
+      type: "object",
+      properties: {
+        filename: {
+          type: "string",
+          description: "The filename of the ZIP archive in uploads (e.g. 'models.zip').",
+        },
+        prefix: {
+          type: "string",
+          description: "Optional prefix folder for extracted files (e.g. 'models/'). Default: no prefix.",
+        },
+      },
+      required: ["filename"],
+    },
+  },
 ];
 
 export default TOOLS;
