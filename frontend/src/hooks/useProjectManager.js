@@ -26,6 +26,8 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
   const handleProjectRename = useCallback(
     (name, newDisplayName) => {
       sendRef.current?.({ type: "project_rename", name, newDisplayName });
+      // Immediately update the active project name in the UI
+      setActiveProject((prev) => (prev === name ? newDisplayName : prev));
     },
     [sendRef]
   );
