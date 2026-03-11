@@ -174,24 +174,27 @@ export default function useMessageDispatcher(params) {
         setWorkspaceFilesVersion((v) => v + 1);
         dirtyRef.current = true;
 
-        // Auto-create project if currently untitled
-        const activeProj = project.activeProject;
-        const activeName = storage.getActiveProjectName();
-        const isNewProject = !activeProj || activeName === "_untitled";
-        if (isNewProject) {
-          const history = getMessagesRef?.current?.() || [];
-          // Temporary name from user message (shown immediately)
-          let autoName = "Untitled Project";
-          for (let i = history.length - 1; i >= 0; i--) {
-            if (history[i]?.role === "user") {
-              const txt = (history[i].text || history[i].content || "").trim();
-              if (txt) {
-                autoName = txt.replace(/^#+\s*/gm, "").split("\n")[0].trim().slice(0, 60) || autoName;
+        // Auto-create project (if untitled) then create tree node.
+        // Both run in the same async block to avoid race conditions —
+        // node creation must use the final project name, not the stale one.
+        (async () => {
+          const activeProj = project.activeProject;
+          const activeName = storage.getActiveProjectName();
+          const isNewProject = !activeProj || activeName === "_untitled";
+          let projName = activeName;
+
+          if (isNewProject) {
+            const history = getMessagesRef?.current?.() || [];
+            let autoName = "Untitled Project";
+            for (let i = history.length - 1; i >= 0; i--) {
+              if (history[i]?.role === "user") {
+                const txt = (history[i].text || history[i].content || "").trim();
+                if (txt) {
+                  autoName = txt.replace(/^#+\s*/gm, "").split("\n")[0].trim().slice(0, 60) || autoName;
+                }
+                break;
               }
-              break;
             }
-          }
-          (async () => {
             try {
               const manifest = await storage.autoCreateProject(autoName, history);
               project.setActiveProject(manifest.display_name);
@@ -199,8 +202,10 @@ export default function useMessageDispatcher(params) {
               const projects = await storage.listProjects();
               project.setProjectList(projects);
               autoSave?.triggerAutoSave?.();
+              // Use the newly created project name for node creation below
+              projName = storage.getActiveProjectName();
 
-              // Background: generate AI project name and rename
+              // Background: generate AI project name and rename (non-blocking)
               generateProjectName(history).then(async (aiName) => {
                 if (!aiName) return;
                 try {
@@ -209,14 +214,13 @@ export default function useMessageDispatcher(params) {
                   setProjectManifest?.(updated);
                   const refreshed = await storage.listProjects();
                   project.setProjectList(refreshed);
-                  // Also update the first tree node title with the project name
-                  const pt = projectTreeRef?.current;
-                  const activeNodeId = pt?.activeNodeId;
-                  if (activeNodeId) {
+                  const pt2 = projectTreeRef?.current;
+                  const activeNodeId2 = pt2?.activeNodeId;
+                  if (activeNodeId2) {
                     try {
                       const { renameNode } = await import("../engine/projectTree.js");
-                      await renameNode(activeNodeId, aiName);
-                      pt.loadTree?.(updated.display_name);
+                      await renameNode(activeNodeId2, aiName);
+                      pt2.loadTree?.(updated.display_name);
                     } catch {}
                   }
                 } catch (e) {
@@ -226,16 +230,14 @@ export default function useMessageDispatcher(params) {
             } catch (e) {
               console.warn("[chat_done] auto-create project failed:", e);
             }
-          })();
-        } else {
-          // Trigger auto-save for existing project
-          autoSave?.triggerAutoSave?.();
-        }
+          } else {
+            autoSave?.triggerAutoSave?.();
+          }
 
-        // Create tree node after prompt completes
-        const pt = projectTreeRef?.current;
-        const projName = getActiveProjectNameRef?.current?.();
-        if (pt && projName) {
+          // Create tree node after prompt completes (project is now guaranteed to exist)
+          const pt = projectTreeRef?.current;
+          if (!pt || !projName) return;
+
           const currentState = {
             scene_json: getSceneJSONRef?.current?.() || {},
             ui_config: getUiConfigRef?.current?.() || {},
@@ -244,7 +246,6 @@ export default function useMessageDispatcher(params) {
             chat_history: getMessagesRef?.current?.() || [],
             debug_logs: getDebugLogsRef?.current?.() || [],
           };
-          // Use user prompt as temporary title (AI will generate a better one async)
           const history = currentState.chat_history;
           let userPrompt = null;
           for (let i = history.length - 1; i >= 0; i--) {
@@ -258,25 +259,24 @@ export default function useMessageDispatcher(params) {
           const title = promptLine.slice(0, 60) + (promptLine.length > 60 ? "…" : "");
 
           const reloadTree = () => pt.loadTree?.(projName);
-          // For new projects, skip separate AI title generation — project name will be used
           const skipAITitle = isNewProject;
-          if (overwriteModeRef?.current && pt.overwriteCurrentNode) {
-            pt.overwriteCurrentNode(projName, currentState, {
-              title,
-              prompt: lastMsg?.text || lastMsg?.content || null,
-            }).then((node) => {
+          try {
+            if (overwriteModeRef?.current && pt.overwriteCurrentNode) {
+              const node = await pt.overwriteCurrentNode(projName, currentState, {
+                title,
+                prompt: lastMsg?.text || lastMsg?.content || null,
+              });
               if (node) updateNodeMetadata(node.id, currentState, { generateTitle: !skipAITitle, onTitleUpdated: reloadTree }).catch(() => {});
-            }).catch(() => { /* non-critical */ });
-          } else {
-            pt.createNodeAfterPrompt(projName, currentState, {
-              title,
-              type: "prompt_node",
-              prompt: lastMsg?.text || lastMsg?.content || null,
-            }).then((node) => {
+            } else {
+              const node = await pt.createNodeAfterPrompt(projName, currentState, {
+                title,
+                type: "prompt_node",
+                prompt: lastMsg?.text || lastMsg?.content || null,
+              });
               if (node) updateNodeMetadata(node.id, currentState, { generateTitle: !skipAITitle, onTitleUpdated: reloadTree }).catch(() => {});
-            }).catch(() => { /* non-critical */ });
-          }
-        }
+            }
+          } catch { /* non-critical */ }
+        })();
         break;
       }
 
