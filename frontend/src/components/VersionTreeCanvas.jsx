@@ -269,6 +269,8 @@ export default function VersionTreeCanvas({
 }) {
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ w: 256, h: 400 });
+  const [zoom, setZoom] = useState(1);
+  const [focusMode, setFocusMode] = useState(false); // F key toggle
 
   // Auto-focus when sidebar opens so arrow keys work immediately
   useEffect(() => {
@@ -308,8 +310,46 @@ export default function VersionTreeCanvas({
     return { roots: r, childrenMap: cm, nodesMap: nm };
   }, [treeNodes]);
 
-  // Layout
-  const positions = useMemo(() => layoutTree(roots, childrenMap), [roots, childrenMap]);
+  // Focus mode: filter to ancestor chain + descendants of active node
+  const visibleNodes = useMemo(() => {
+    if (!focusMode || !activeNodeId || !nodesMap.has(activeNodeId)) return treeNodes;
+    const visible = new Set();
+    // Ancestors
+    let cur = activeNodeId;
+    while (cur) {
+      visible.add(cur);
+      cur = nodesMap.get(cur)?.parentId;
+    }
+    // Descendants
+    const stack = [activeNodeId];
+    while (stack.length) {
+      const id = stack.pop();
+      visible.add(id);
+      for (const child of childrenMap.get(id) || []) stack.push(child.id);
+    }
+    return treeNodes.filter((n) => visible.has(n.id));
+  }, [focusMode, activeNodeId, treeNodes, nodesMap, childrenMap]);
+
+  // Rebuild layout from visible nodes
+  const { visibleRoots, visibleChildrenMap } = useMemo(() => {
+    const cm = new Map();
+    const r = [];
+    const nodeSet = new Set(visibleNodes.map((n) => n.id));
+    const sorted = [...visibleNodes].sort((a, b) => a.createdAt - b.createdAt);
+    for (const node of sorted) {
+      if (!cm.has(node.id)) cm.set(node.id, []);
+      if (node.parentId === null || !nodeSet.has(node.parentId)) {
+        r.push(node);
+      } else {
+        if (!cm.has(node.parentId)) cm.set(node.parentId, []);
+        cm.get(node.parentId).push(node);
+      }
+    }
+    return { visibleRoots: r, visibleChildrenMap: cm };
+  }, [visibleNodes]);
+
+  // Layout (uses visible nodes in focus mode)
+  const positions = useMemo(() => layoutTree(visibleRoots, visibleChildrenMap), [visibleRoots, visibleChildrenMap]);
 
   // Compute content bounds
   const bounds = useMemo(() => {
@@ -343,14 +383,41 @@ export default function VersionTreeCanvas({
     setDragOffset({ x: 0, y: 0 });
   }, [activeNodeId]);
 
-  // Keyboard arrow navigation
+  // Keyboard navigation + F key focus toggle
   useEffect(() => {
     const el = containerRef.current;
-    if (!el || !activeNodeId) return;
+    if (!el) return;
 
     const handleKeyDown = (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
+      // F key: toggle focus mode
+      if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        setFocusMode((v) => !v);
+        setDragOffset({ x: 0, y: 0 });
+        return;
+      }
+
+      // Zoom keys
+      if (e.key === "=" || e.key === "+") {
+        e.preventDefault();
+        setZoom((z) => Math.min(2.5, z + 0.15));
+        return;
+      }
+      if (e.key === "-") {
+        e.preventDefault();
+        setZoom((z) => Math.max(0.3, z - 0.15));
+        return;
+      }
+      if (e.key === "0") {
+        e.preventDefault();
+        setZoom(1);
+        setDragOffset({ x: 0, y: 0 });
+        return;
+      }
+
+      if (!activeNodeId) return;
       const activeNode = nodesMap.get(activeNodeId);
       if (!activeNode) return;
 
@@ -358,27 +425,20 @@ export default function VersionTreeCanvas({
 
       switch (e.key) {
         case "ArrowUp": {
-          // Go to parent
           if (activeNode.parentId && nodesMap.has(activeNode.parentId)) {
             targetId = activeNode.parentId;
           }
           break;
         }
         case "ArrowDown": {
-          // Go to first child
           const children = childrenMap.get(activeNodeId) || [];
-          if (children.length > 0) {
-            targetId = children[0].id;
-          }
+          if (children.length > 0) targetId = children[0].id;
           break;
         }
         case "ArrowLeft":
         case "ArrowRight": {
-          // Go to sibling (same parent)
           const parentId = activeNode.parentId;
-          const siblings = parentId
-            ? (childrenMap.get(parentId) || [])
-            : roots;
+          const siblings = parentId ? (childrenMap.get(parentId) || []) : roots;
           if (siblings.length <= 1) break;
           const idx = siblings.findIndex((n) => n.id === activeNodeId);
           if (idx < 0) break;
@@ -401,6 +461,13 @@ export default function VersionTreeCanvas({
     el.addEventListener("keydown", handleKeyDown);
     return () => el.removeEventListener("keydown", handleKeyDown);
   }, [activeNodeId, nodesMap, childrenMap, roots, onDoubleClickNode]);
+
+  // Mouse wheel zoom
+  const handleWheel = useCallback((e) => {
+    e.preventDefault();
+    const factor = e.deltaY > 0 ? 0.92 : 1.08;
+    setZoom((z) => Math.max(0.3, Math.min(2.5, z * factor)));
+  }, []);
 
   // Drag handlers
   const handlePointerDown = useCallback((e) => {
@@ -432,6 +499,14 @@ export default function VersionTreeCanvas({
   const handlePointerUp = useCallback(() => {
     dragRef.current.dragging = false;
   }, []);
+
+  // Attach wheel handler (passive: false needed for preventDefault)
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
 
   // Content width/height for SVG
   const contentW = bounds.maxX - bounds.minX + NODE_W * 2;
@@ -465,6 +540,8 @@ export default function VersionTreeCanvas({
           top: springPos.y,
           width: contentW,
           height: contentH,
+          transform: `scale(${zoom})`,
+          transformOrigin: "0 0",
         }}
         data-tree-bg=""
       >
@@ -472,11 +549,11 @@ export default function VersionTreeCanvas({
         <svg
           style={{ position: "absolute", left: 0, top: 0, width: contentW, height: contentH, overflow: "visible", pointerEvents: "none" }}
         >
-          <TreeEdges roots={roots} childrenMap={childrenMap} positions={positions} />
+          <TreeEdges roots={visibleRoots} childrenMap={visibleChildrenMap} positions={positions} />
         </svg>
 
         {/* Nodes */}
-        {treeNodes.map((node) => {
+        {visibleNodes.map((node) => {
           const p = positions.get(node.id);
           if (!p) return null;
           return (
@@ -495,6 +572,46 @@ export default function VersionTreeCanvas({
             />
           );
         })}
+      </div>
+
+      {/* Zoom / Focus controls */}
+      <div className="absolute bottom-2 right-2 flex items-center gap-1 pointer-events-auto" style={{ zIndex: 10 }}>
+        <button
+          onClick={() => setFocusMode((v) => !v)}
+          className="w-6 h-6 rounded flex items-center justify-center text-[10px] transition-colors"
+          style={{
+            background: focusMode ? "var(--accent, #6366f1)" : "var(--input-bg, #333)",
+            color: focusMode ? "#fff" : "var(--chrome-text-muted)",
+            border: "1px solid var(--chrome-border, #444)",
+          }}
+          title={focusMode ? "Show full tree (F)" : "Focus on active branch (F)"}
+        >
+          F
+        </button>
+        <button
+          onClick={() => setZoom((z) => Math.max(0.3, z - 0.15))}
+          className="w-6 h-6 rounded flex items-center justify-center text-xs transition-colors"
+          style={{ background: "var(--input-bg, #333)", color: "var(--chrome-text-muted)", border: "1px solid var(--chrome-border, #444)" }}
+          title="Zoom out (−)"
+        >
+          −
+        </button>
+        <button
+          onClick={() => { setZoom(1); setDragOffset({ x: 0, y: 0 }); }}
+          className="min-w-[32px] h-6 rounded flex items-center justify-center text-[10px] transition-colors"
+          style={{ background: "var(--input-bg, #333)", color: "var(--chrome-text-muted)", border: "1px solid var(--chrome-border, #444)" }}
+          title="Reset zoom (0)"
+        >
+          {Math.round(zoom * 100)}%
+        </button>
+        <button
+          onClick={() => setZoom((z) => Math.min(2.5, z + 0.15))}
+          className="w-6 h-6 rounded flex items-center justify-center text-xs transition-colors"
+          style={{ background: "var(--input-bg, #333)", color: "var(--chrome-text-muted)", border: "1px solid var(--chrome-border, #444)" }}
+          title="Zoom in (+)"
+        >
+          +
+        </button>
       </div>
     </div>
   );
