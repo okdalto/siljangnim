@@ -6,7 +6,7 @@ import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 import MissingAssetsBar from "../components/MissingAssetsBar.jsx";
 
 export default function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
-  const { sceneJSON, engineRef, onError, paused, safeModeActive } = data;
+  const { sceneJSON, engineRef, onError, paused, safeModeActive, backendTarget } = data;
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const engineInternalRef = useRef(null);
@@ -59,7 +59,8 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
     if (!canvas) return;
 
     try {
-      const engine = new GLEngine(canvas);
+      const prefer = data.backendTarget === "webgpu" ? "webgpu" : "webgl2";
+      const engine = new GLEngine(canvas, { preferBackend: prefer });
       engine.onError = (err) => {
         console.error("[ViewportNode] GLEngine error:", err);
         setError(err.message || String(err));
@@ -92,6 +93,16 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
     }
   }, []);
 
+  // Switch backend when backendTarget changes at runtime
+  useEffect(() => {
+    const engine = engineInternalRef.current;
+    if (!engine || !backendTarget) return;
+    const prefer = backendTarget === "webgpu" ? "webgpu" : "webgl2";
+    engine.switchBackend(prefer).catch((err) => {
+      console.warn("[ViewportNode] Backend switch warning:", err.message);
+    });
+  }, [backendTarget]);
+
   // Keep App's engineRef in sync (it may arrive as null on first render then update)
   useEffect(() => {
     if (engineRef && engineInternalRef.current) {
@@ -110,7 +121,14 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
     }
     console.log("[ViewportNode] Loading scene:", sceneJSON.mode || "unknown");
     setError(null);
-    engine.loadScene(sceneJSON)
+
+    // If scene requests a different backend, switch before loading
+    const wantBackend = sceneJSON.backendTarget === "webgpu" ? "webgpu" : "webgl2";
+    const switchPromise = engine.switchBackend(wantBackend).catch((err) => {
+      console.warn("[ViewportNode] Backend switch warning:", err?.message);
+    });
+
+    switchPromise.then(() => engine.loadScene(sceneJSON))
       .then(() => {
         // Notify agent error collector that the scene has loaded
         window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded"));
