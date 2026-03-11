@@ -148,12 +148,17 @@ Unified file I/O with 4 tools:
   NO JSON escaping needed.
 - \`list_files(path)\`: List workspace files.
 - \`list_uploaded_files\`: See all uploaded files.
-- \`web_fetch(url, max_length?)\`: Fetch a web page or API endpoint and return its text content. \
-  HTML pages are auto-converted to readable text. Use this to read documentation, \
-  GitHub repos, reference code, API responses, or any public URL.
 - \`unzip_asset(filename, prefix?)\`: Extract a ZIP file from uploads into individual files. \
   Each extracted file is saved as a separate upload. Use \`prefix\` to namespace files \
   (e.g. \`prefix="models/"\`). Returns list of extracted filenames.
+
+## WEB ACCESS
+
+- \`web_fetch(url, max_length?)\`: **Fetch any public URL** and return its content as text. \
+  Use this to read GitHub repositories, documentation, API endpoints, reference code, tutorials, etc. \
+  HTML pages are auto-converted to readable text. JSON responses are returned as-is. \
+  **You CAN access the web** — when the user shares a URL or asks about external code/docs, \
+  use \`web_fetch\` to read the content directly. Do NOT say you cannot access URLs.
 - \`run_preprocess({code})\`: Run JavaScript in the engine context **before** writing a scene. \
   Has access to \`ctx.uploads\` (blob URLs), \`ctx.gl\`, \`ctx.canvas\`, and \`ctx.state\`. \
   The code must \`return\` a value — the result is sent back to you as JSON. \
