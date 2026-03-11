@@ -131,13 +131,25 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
     console.log("[ViewportNode] Loading scene:", sceneJSON.mode || "unknown");
     setError(null);
 
-    // If scene requests a different backend, switch before loading
+    // If scene requests a different backend, switch before loading.
+    // Also await any pending backend init (switchBackend may return early
+    // if the preference is already set but init is still in progress).
     const wantBackend = sceneJSON.backendTarget === "webgpu" ? "webgpu" : "webgl2";
     const switchPromise = engine.switchBackend(wantBackend).catch((err) => {
       console.warn("[ViewportNode] Backend switch warning:", err?.message);
     });
 
-    switchPromise.then(() => engine.loadScene(sceneJSON))
+    const readyPromise = switchPromise.then(() => {
+      // Ensure backend init is complete before loading scene
+      if (engine._backendPromise) return engine._backendPromise.catch(() => {});
+    });
+
+    readyPromise.then(() => {
+        engine.loadScene(sceneJSON);
+        // Wait for async setup to complete before dispatching scene_loaded
+        // (setup may be waiting for WebGPU backend init, blob URL loading, etc.)
+        return engine._setupPromise;
+      })
       .then(() => {
         // Notify agent error collector that the scene has loaded,
         // including setup status so check_browser_errors can diagnose white screens

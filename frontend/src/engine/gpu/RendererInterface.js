@@ -169,11 +169,27 @@ export class RendererInterface {
 
   destroyPipeline(handle) { throw new Error("Not implemented: destroyPipeline"); }
 
+  // ─── Bind Group Layout / Pipeline Layout ─────────────────
+
+  /**
+   * Create a bind group layout (explicit layout definition).
+   * @param {{ entries: Array<object>, label?: string }} desc
+   * @returns {GPUBindGroupLayoutHandle}
+   */
+  createBindGroupLayout(desc) { throw new Error("Not implemented: createBindGroupLayout"); }
+
+  /**
+   * Create a pipeline layout from bind group layouts.
+   * @param {{ bindGroupLayouts: Array<GPUBindGroupLayoutHandle>, label?: string }} desc
+   * @returns {GPUPipelineLayoutHandle}
+   */
+  createPipelineLayout(desc) { throw new Error("Not implemented: createPipelineLayout"); }
+
   // ─── Bind Group / Resources ──────────────────────────────
 
   /**
    * Create a bind group (uniform/texture/sampler/storage binding set).
-   * @param {{ layout?: object, entries: Array<{ binding: number, resource: object }>, label?: string }} desc
+   * @param {{ layout?: object, pipeline?: object, groupIndex?: number, entries: Array<{ binding: number, resource: object }>, label?: string }} desc
    * @returns {GPUBindGroupHandle}
    */
   createBindGroup(desc) { throw new Error("Not implemented: createBindGroup"); }
