@@ -623,38 +623,56 @@ higher-quality results than blank generation. Combine multiple techniques \
 Each project may specify a \`backendTarget\` in its scene metadata:
 - \`"auto"\` (default): Use WebGL2 + GLSL. Use \`ctx.gl\` and \`ctx.utils\`.
 - \`"webgl"\`: Force WebGL2. Same as auto.
-- \`"webgpu"\`: Force WebGPU + WGSL. **Use \`ctx.renderer\` (RendererInterface)** — \
-never use raw \`GPUDevice\`, \`GPURenderPipeline\`, or \`navigator.gpu\` directly.
+- \`"webgpu"\`: Force WebGPU + WGSL. **Use \`ctx.renderer\` (RendererInterface)** for the abstraction API. \
+For advanced use (raw compute shaders, atomic ops, storage buffers), you can also access the raw \`GPUDevice\` via \`ctx.renderer.getNativeContext()\`.
 
 ### WebGPU Scene Workflow
 
 When backendTarget is "webgpu", follow this pattern:
 
-1. **Set backendTarget** to \`"webgpu"\` in scene JSON.
-2. **setup**: Create resources via \`ctx.renderer\`:
-   - \`ctx.renderer.createShaderModule({ code: wgslCode })\`
-   - \`ctx.renderer.createRenderPipeline({ vertex: {...}, fragment: {...} })\`
-   - \`ctx.renderer.createBuffer({ usage, size, data? })\`
-   - \`ctx.renderer.createBindGroup({ entries: [...] })\`
+1. **Set backendTarget** to \`"webgpu"\` in scene JSON metadata.
+2. **setup**: Create resources via \`ctx.renderer\` or raw \`GPUDevice\`:
+   - Abstraction API: \`ctx.renderer.createShaderModule()\`, \`createRenderPipeline()\`, \`createBuffer()\`, \`createBindGroup()\`
+   - Raw API: \`const device = ctx.renderer.getNativeContext(); device.createComputePipeline(...)\` etc.
    - Store everything in \`ctx.state\`.
 3. **render**: Draw each frame:
-   - Update uniforms with \`ctx.renderer.writeBuffer()\`
-   - \`const enc = ctx.renderer.beginFrame()\`
-   - \`const pass = ctx.renderer.beginRenderPass(enc, { colorAttachments: [...] })\`
-   - \`ctx.renderer.setPipeline(pass, pipeline)\`
-   - \`ctx.renderer.setBindGroup(pass, 0, bindGroup)\`
-   - \`ctx.renderer.draw(pass, vertexCount)\`
-   - \`ctx.renderer.endRenderPass(pass)\`
-   - \`ctx.renderer.endFrame(enc)\`
-4. **cleanup**: Destroy all resources:
-   - \`ctx.renderer.destroyPipeline()\`, \`destroyBuffer()\`, \`destroyTexture()\`, \
-\`destroyBindGroup()\`, \`destroyShaderModule()\`
+   - For abstraction API: \`beginFrame()\` → \`beginRenderPass()\` → draw → \`endRenderPass()\` → \`endFrame()\`
+   - For raw API: use \`device.createCommandEncoder()\`, \`device.queue.submit()\` etc. directly
+   - **IMPORTANT**: After WebGPU rendering, call \`ctx.utils.blitToCanvas()\` to copy the result to the visible canvas
+4. **cleanup**: Destroy all resources.
+
+### blitToCanvas — Displaying WebGPU Output
+
+The WebGPU backend renders to an internal OffscreenCanvas. The visible canvas uses WebGL2.
+After each frame of WebGPU rendering, you MUST call \`ctx.utils.blitToCanvas()\` to copy the \
+WebGPU output to the visible canvas. Without this call, the screen will appear blank.
+
+\`\`\`js
+// render function pattern for WebGPU scenes:
+function render(ctx) {
+  const device = ctx.renderer.getNativeContext();
+  // ... do WebGPU rendering (compute, render passes) ...
+  device.queue.submit([commandEncoder.finish()]);
+  ctx.utils.blitToCanvas(); // copy WebGPU result to visible canvas
+}
+\`\`\`
+
+### Raw WebGPU Access
+
+For compute-heavy scenes (particle simulations, fluid dynamics, etc.), use the raw GPUDevice:
+\`\`\`js
+const device = ctx.renderer.getNativeContext();     // GPUDevice
+const gpuCanvas = ctx.renderer.canvas;               // OffscreenCanvas used by WebGPU
+const gpuContext = ctx.renderer.context;              // GPUCanvasContext
+const format = navigator.gpu.getPreferredCanvasFormat();
+\`\`\`
 
 When generating or modifying scenes:
 1. Read the current backendTarget from scene metadata.
-2. If target is "webgpu", write WGSL shaders and use \`ctx.renderer\`.
+2. If target is "webgpu", write WGSL shaders and use \`ctx.renderer\` (or raw device for compute).
 3. If target is "auto" or absent, default to WebGL2/GLSL with \`ctx.gl\`.
 4. When the user explicitly requests WebGPU or compute shaders, set backendTarget to "webgpu".
-5. Never mix GLSL and WGSL in the same shader program — pick one based on the backend.`,
+5. Never mix GLSL and WGSL in the same shader program — pick one based on the backend.
+6. Always call \`ctx.utils.blitToCanvas()\` at the end of WebGPU render functions.`,
   },
 ];

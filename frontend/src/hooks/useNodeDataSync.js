@@ -216,6 +216,7 @@ export default function useNodeDataSync({
       sceneJSON: safeModeActive ? null : sceneJSON,
       engineRef,
       paused,
+      backendTarget,
       onError: handleShaderErrorRef.current,
       safeModeActive,
       initialCollapsed: nodeUiStateRef?.current?.collapsed?.viewport,
@@ -233,7 +234,7 @@ export default function useNodeDataSync({
         );
       },
     }));
-  }, [setNodes, sceneJSON, paused, safeModeActive]);
+  }, [setNodes, sceneJSON, paused, safeModeActive, backendTarget]);
 
   // Refs for debugger callbacks
   const runDiagnosisRef = useRef(dbg?.runDiagnosis);

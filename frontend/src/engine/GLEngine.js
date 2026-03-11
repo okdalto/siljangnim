@@ -288,6 +288,22 @@ export default class GLEngine {
     this._backend = backend;
   }
 
+  /**
+   * Switch backend at runtime (e.g. when backendTarget changes).
+   * Disposes the old backend and initializes the new one.
+   */
+  async switchBackend(preferBackend) {
+    if (this._backendOptions.preferBackend === preferBackend) return;
+    // Dispose old backend
+    if (this._backend) {
+      this._backend.dispose();
+      this._backend = null;
+      this._backendReady = false;
+    }
+    this._backendOptions = { ...this._backendOptions, preferBackend };
+    await this.initBackend();
+  }
+
   /** Get the active backend (or null if not initialized). */
   get backend() { return this._backend; }
 
@@ -442,6 +458,51 @@ export default class GLEngine {
           const resp = await fetch(url);
           if (!resp.ok) throw new Error(`fetchBuffer failed: ${resp.status} ${resp.statusText}`);
           return resp.arrayBuffer();
+        },
+
+        /**
+         * Blit the WebGPU OffscreenCanvas to the visible WebGL canvas.
+         * Call once per frame in render() after WebGPU rendering is done.
+         * Sets up a fullscreen-quad blit program on first call (cached).
+         */
+        blitToCanvas: () => {
+          const g = this.gl;
+          const src = this._backend?.canvas;
+          if (!g || !src) return;
+          // Lazy-init blit resources
+          if (!this._blitProgram) {
+            const vs = `#version 300 es
+in vec2 a_pos;
+out vec2 v_uv;
+void main(){v_uv=a_pos*0.5+0.5;gl_Position=vec4(a_pos,0,1);}`;
+            const fs = `#version 300 es
+precision mediump float;
+in vec2 v_uv;
+out vec4 fragColor;
+uniform sampler2D u_tex;
+void main(){fragColor=texture(u_tex,v_uv);}`;
+            this._blitProgram = createProgram(g, vs, fs);
+            this._blitTex = g.createTexture();
+            const buf = g.createBuffer();
+            g.bindBuffer(g.ARRAY_BUFFER, buf);
+            g.bufferData(g.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), g.STATIC_DRAW);
+            this._blitVAO = g.createVertexArray();
+            g.bindVertexArray(this._blitVAO);
+            g.enableVertexAttribArray(0);
+            g.vertexAttribPointer(0, 2, g.FLOAT, false, 0, 0);
+            g.bindVertexArray(null);
+          }
+          g.bindFramebuffer(g.FRAMEBUFFER, null);
+          g.viewport(0, 0, g.drawingBufferWidth, g.drawingBufferHeight);
+          g.useProgram(this._blitProgram);
+          g.activeTexture(g.TEXTURE0);
+          g.bindTexture(g.TEXTURE_2D, this._blitTex);
+          g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, src);
+          g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
+          g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
+          g.bindVertexArray(this._blitVAO);
+          g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
+          g.bindVertexArray(null);
         },
 
         createProgram: (vertSource, fragSource) => createProgram(this.gl, vertSource, fragSource),
