@@ -683,6 +683,22 @@ When generating or modifying scenes:
 4. When the user explicitly requests WebGPU or compute shaders, include \`backendTarget: "webgpu"\` in the \`write_scene\` call.
 5. Never mix GLSL and WGSL in the same shader program — pick one based on the backend.
 6. The engine auto-blits WebGPU output to the visible canvas after each render frame.
-7. **CRITICAL**: Always include \`backendTarget\` in \`write_scene\` for WebGPU scenes. Without it, the engine defaults to WebGL2 and \`ctx.renderer\` will not have a WebGPU device.`,
+7. **CRITICAL**: Always include \`backendTarget\` in \`write_scene\` for WebGPU scenes. Without it, the engine defaults to WebGL2 and \`ctx.renderer\` will not have a WebGPU device.
+
+### IMPORTANT: GPU Resource Lifecycle
+
+- **All GPU resources (buffers, pipelines, textures, bind groups, shader modules) MUST be created in \`setup\`, NOT in \`preprocess\`.**
+- \`write_scene\` triggers a backend switch + scene reload, which **destroys the old GPUDevice** and creates a new one. Any GPU objects from a previous device become invalid.
+- \`ctx.state\` is serialized to IndexedDB between scenes — **GPU objects (GPUBuffer, GPUTexture, GPUPipeline, etc.) cannot be serialized** and will be silently dropped from state.
+- **Do NOT use \`run_preprocess\` to create GPU resources.** Preprocess is for data preparation (downloading data, computing CPU-side arrays, etc.), not for GPU initialization.
+- Store GPU handles in \`ctx.state\` during setup (they persist in memory for the render loop), but understand they will NOT survive a scene reload.
+- If setup fails, \`check_browser_errors\` will report both JavaScript exceptions and WebGPU validation errors (shader compilation errors, bind group mismatches, buffer size issues, etc.).
+
+### WebGPU Debugging Tips
+
+- When setup fails, always call \`check_browser_errors\` — it will show specific WebGPU validation errors.
+- Common WebGPU errors: WGSL syntax errors, struct alignment issues (vec3f needs 16-byte alignment in uniform buffers), bind group layout mismatches, buffer size too small.
+- For complex scenes, build incrementally: start with a minimal working pipeline, then add features one at a time. Do NOT write all shaders and pipelines in a single attempt.
+- Test each pipeline separately before combining them.`,
   },
 ];

@@ -585,6 +585,19 @@ async function toolCheckBrowserErrors(input, broadcast, errorCollector) {
     }
   }
 
+  // Also consume any pending WebGPU validation errors from the renderer
+  // (these are captured by the uncapturederror handler but may not have
+  // been forwarded to console.error yet, e.g. during render loop)
+  const engine = errorCollector._engineRef?.current;
+  const renderer = engine?._backend;
+  if (renderer?.consumeValidationErrors) {
+    const gpuErrors = renderer.consumeValidationErrors();
+    for (const e of gpuErrors) {
+      const msg = `[WebGPU ${e.type}] ${e.message}`;
+      if (!errors.includes(msg)) errors.push(msg);
+    }
+  }
+
   const parts = [];
 
   // Report setup status — helps diagnose white screens with "no errors"
