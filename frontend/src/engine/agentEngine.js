@@ -60,8 +60,8 @@ export default class AgentEngine {
 
     // Listen for viewport scene load completion
     if (typeof window !== "undefined") {
-      window.addEventListener("siljangnim:scene_loaded", () => {
-        this.errorCollector.ackSceneLoad();
+      window.addEventListener("siljangnim:scene_loaded", (e) => {
+        this.errorCollector.ackSceneLoad(e.detail);
       });
     }
 
@@ -84,6 +84,7 @@ export default class AgentEngine {
       // Scene load acknowledgement — resolves when viewport finishes loading
       _sceneLoadResolve: null,
       _sceneLoaded: true, // starts as true (no pending load)
+      _setupReady: null,  // tracks whether the last scene's setup() succeeded
       push(msg) {
         this.errors.push(msg);
         if (this._resolve) { this._resolve(); this._resolve = null; }
@@ -93,13 +94,17 @@ export default class AgentEngine {
         // Clear previous timer if re-entered (multiple write_scene calls in sequence)
         clearTimeout(this._sceneLoadTimer);
         this._sceneLoaded = false;
+        this._setupReady = null; // unknown until scene loads
         // Auto-resolve after 5s if viewport never acks (safety net)
         this._sceneLoadTimer = setTimeout(() => this.ackSceneLoad(), 5000);
       },
       /** Called when viewport finishes loadScene(). */
-      ackSceneLoad() {
+      ackSceneLoad(detail) {
         clearTimeout(this._sceneLoadTimer);
         this._sceneLoaded = true;
+        if (detail && typeof detail.setupReady === "boolean") {
+          this._setupReady = detail.setupReady;
+        }
         if (this._sceneLoadResolve) { this._sceneLoadResolve(); this._sceneLoadResolve = null; }
       },
       /** Wait for the viewport to finish loading the scene (if pending). */

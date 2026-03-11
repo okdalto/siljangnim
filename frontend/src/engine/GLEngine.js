@@ -379,6 +379,10 @@ export default class GLEngine {
           ? new Function("ctx", newScript.cleanup)
           : null;
       } catch (err) {
+        // Compilation failed — clear the broken function and mark setup as failed
+        // so the render loop doesn't try to use it.
+        this._scriptRenderFn = null;
+        this._setupReady = false;
         console.error("[GLEngine] Hot-reload compile error:", err);
         this.onError?.(err);
         window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
@@ -1732,16 +1736,27 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     }
 
     // Run setup (async)
+    let setupOk = true;
     if (this._scriptSetupFn) {
       try {
         await this._scriptSetupFn(ctx);
       } catch (err) {
+        setupOk = false;
         console.error("[GLEngine] Setup error:", err);
         this.onError?.(err);
         window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
       }
     }
-    this._setupReady = true;
+    this._setupReady = setupOk;
+
+    // If setup failed, draw a visible error indicator on the canvas so
+    // the agent and user can clearly see something went wrong (instead of
+    // a silent white screen that looks like "no errors").
+    if (!setupOk && this.gl) {
+      const g = this.gl;
+      g.clearColor(0.15, 0.05, 0.05, 1);
+      g.clear(g.COLOR_BUFFER_BIT);
+    }
   }
 
   /**
