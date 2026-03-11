@@ -8,6 +8,7 @@
  *   ?target=glm              → GLM (BigModel) API
  *   ?target=custom           → Custom OpenAI-compatible endpoint
  *   ?target=github&endpoint= → GitHub OAuth
+ *   ?target=fetch             → Generic URL fetch (for web_fetch tool, avoids CORS)
  */
 export const config = { runtime: "edge", maxDuration: 300 };
 
@@ -31,7 +32,7 @@ function getCorsOrigin(req) {
   return null;
 }
 
-const CORS_HEADERS = "Content-Type, x-api-key, anthropic-version, Authorization, x-base-url, x-model";
+const CORS_HEADERS = "Content-Type, x-api-key, anthropic-version, Authorization, x-base-url, x-model, x-fetch-url";
 
 export default async function handler(req) {
   const corsOrigin = getCorsOrigin(req);
@@ -81,6 +82,36 @@ export default async function handler(req) {
       status: res.status,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": corsOrigin },
     });
+  }
+
+  // --- Generic URL fetch proxy (for web_fetch tool) ---
+  if (target === "fetch") {
+    const fetchUrl = req.headers.get("x-fetch-url");
+    if (!fetchUrl) {
+      return new Response(JSON.stringify({ error: "x-fetch-url header required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": corsOrigin },
+      });
+    }
+    try {
+      const response = await fetch(fetchUrl, {
+        headers: { "User-Agent": "siljangnim-agent/1.0" },
+        redirect: "follow",
+      });
+      const body = await response.text();
+      return new Response(body, {
+        status: response.status,
+        headers: {
+          "Content-Type": response.headers.get("Content-Type") || "text/plain",
+          "Access-Control-Allow-Origin": corsOrigin,
+        },
+      });
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), {
+        status: 502,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": corsOrigin },
+      });
+    }
   }
 
   // --- OpenAI API proxy ---
