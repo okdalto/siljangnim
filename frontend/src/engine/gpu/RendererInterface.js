@@ -257,6 +257,8 @@ export class RendererInterface {
     if (this.validationErrors.length > this.maxValidationErrors) {
       this.validationErrors.shift();
     }
+    // Log to console so agent error collector picks it up
+    console.error(`[WebGPU ${type}] ${message}`);
     // Dispatch custom event for Debug Panel
     window.dispatchEvent(new CustomEvent("gpu-validation-error", { detail: entry }));
   }
