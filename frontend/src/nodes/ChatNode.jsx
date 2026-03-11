@@ -37,7 +37,7 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer, hideInput = false, activeNodeTitle = null, promptMode = "hybrid", treeNodes = [], activeTreeNodeId = null, onBranchFromNode, onSwitchToNode, overwriteMode = false, onToggleOverwrite, sceneReferences = [], onRemoveReference, onClearReferences } = data;
+  const { messages = [], onSend, onRetryInterrupted, isProcessing = false, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer, hideInput = false, activeNodeTitle = null, promptMode = "hybrid", treeNodes = [], activeTreeNodeId = null, onBranchFromNode, onSwitchToNode, overwriteMode = false, onToggleOverwrite, sceneReferences = [], onRemoveReference, onClearReferences } = data;
   const messagesRef = useRef(null);
   const fileInputRef = useRef(null);
   const thinkingRef = useRef(null);
@@ -229,7 +229,7 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
               <button
                 className="mt-1.5 px-2.5 py-1 rounded text-xs font-medium"
                 style={{ background: "var(--accent)", color: "var(--accent-text)" }}
-                onClick={() => onSend?.(msg.interruptedPrompt)}
+                onClick={() => onRetryInterrupted?.(msg.interruptedPrompt)}
               >
                 다시 시도
               </button>

@@ -90,6 +90,8 @@ export default class AgentEngine {
       },
       /** Called when write_scene broadcasts — marks a pending scene load. */
       expectSceneLoad() {
+        // Clear previous timer if re-entered (multiple write_scene calls in sequence)
+        clearTimeout(this._sceneLoadTimer);
         this._sceneLoaded = false;
         // Auto-resolve after 5s if viewport never acks (safety net)
         this._sceneLoadTimer = setTimeout(() => this.ackSceneLoad(), 5000);
@@ -636,6 +638,7 @@ const HANDLERS = {
 
   async new_project(msg) {
     // Auto-save is handled by useAutoSave hook; no need to save here
+    this._clearInterruptedPrompt();
     this.chatHistory.length = 0;
     this.conversation.length = 0;
 
@@ -671,6 +674,7 @@ const HANDLERS = {
     }
 
     // Auto-save is handled by useAutoSave hook; just load the requested project
+    this._clearInterruptedPrompt();
     try {
       const result = await storage.loadProject(msg.name || "");
       this.chatHistory.length = 0;
@@ -858,12 +862,12 @@ const HANDLERS = {
     }
 
     // Detect interrupted agent work from a previous session (page refresh)
+    // Keep sessionStorage intact so a second refresh still shows the retry option.
+    // It's only cleared when the agent completes, is cancelled, or a new chat/project starts.
     let interruptedPrompt = null;
     if (this._interruptedPrompt && !this.agentBusy) {
       interruptedPrompt = this._interruptedPrompt;
-      // Clear it from sessionStorage — the UI will decide whether to retry
-      this._interruptedPrompt = null;
-      try { sessionStorage.removeItem("siljangnim:interruptedPrompt"); } catch { /* ignore */ }
+      this._interruptedPrompt = null; // prevent re-broadcasting on same session
     }
 
     this.broadcast({
