@@ -506,8 +506,18 @@ async function toolStopRecording(input, broadcast) {
  * them through the errorCollector interface.
  */
 async function toolCheckBrowserErrors(input, broadcast, errorCollector) {
-  // Wait up to 3 seconds for errors to arrive
+  // Wait up to 3 seconds for errors to arrive (waits for scene load first)
   const errors = await errorCollector.waitForErrors(3000);
+
+  // Second short wait to catch late-arriving WebGPU validation errors
+  // (GPU shader compilation and pipeline creation are async)
+  if (!errors.length || errorCollector._setupReady === false) {
+    await new Promise((r) => setTimeout(r, 800));
+    const late = errorCollector.errors.splice(0);
+    for (const e of late) {
+      if (!errors.includes(e)) errors.push(e);
+    }
+  }
 
   const parts = [];
 
