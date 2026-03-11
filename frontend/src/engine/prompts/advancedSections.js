@@ -239,7 +239,7 @@ and draw a fullscreen quad with the texture.`,
     id: "wgsl_rules",
     core: false,
     platforms: ["web-desktop"],
-    keywords: ["wgsl", "webgpu", "compute", "pipeline", "bind group", "storage buffer"],
+    keywords: ["wgsl", "webgpu", "compute", "pipeline", "bind group", "storage buffer", "atomic", "struct", "simulation"],
     content: `\
 ### WGSL Rules (for WebGPU backend)
 
@@ -248,16 +248,68 @@ When the scene targets WebGPU backend:
 - Fragment output: @location(0) var<out> fragColor: vec4f
 - Use @group(0) @binding(N) for resource bindings
 - Vertex inputs use @location(N) annotations
-- Types: f32, i32, u32, vec2f, vec3f, vec4f, mat4x4f
 - Functions: fn main() -> @location(0) vec4f { ... }
 - Built-ins: @builtin(position), @builtin(vertex_index)
 - Texture sampling: textureSample(t, s, uv)
 - No implicit type conversions — explicit cast with f32(), i32(), etc.
 
+### WGSL Types
+
+**Scalars**: f32, i32, u32, bool
+**Vectors**: vec2f, vec3f, vec4f, vec2i, vec3i, vec4i, vec2u, vec3u, vec4u
+**Matrices**: mat2x2f, mat3x3f, mat4x4f (column-major)
+**Arrays**:
+- Runtime-sized (in storage buffers): \`array<f32>\`, \`array<Particle>\`
+- Fixed-size (local variables): \`array<vec3f, 3>\`, \`array<f32, 16>\`
+
+### Structs
+
+Define custom data types with \`struct\`. Fields use comma or semicolon separators:
+\`\`\`wgsl
+struct Particle {
+    position: vec3f,
+    velocity: vec3f,
+    C: mat3x3f,
+}
+\`\`\`
+Use structs in buffers: \`var<storage, read> particles: array<Particle>\`
+
+### Atomic Operations
+
+For concurrent read-write in compute shaders (e.g. grid accumulation):
+- Atomic types: \`atomic<i32>\`, \`atomic<u32>\` (only in storage buffers)
+- Operations: \`atomicAdd(&val, delta)\`, \`atomicSub\`, \`atomicMax\`, \`atomicMin\`, \`atomicAnd\`, \`atomicOr\`, \`atomicXor\`
+- \`atomicLoad(&val)\` / \`atomicStore(&val, v)\` for read/write
+- \`atomicCompareExchangeWeak(&val, cmp, v)\` for CAS
+- Atomics only support i32/u32 — for f32, use fixed-point encoding:
+\`\`\`wgsl
+override multiplier: f32;  // pipeline-overridable constant
+fn encodeFixedPoint(v: f32) -> i32 { return i32(v * multiplier); }
+fn decodeFixedPoint(v: i32) -> f32 { return f32(v) / multiplier; }
+\`\`\`
+
+### Pipeline-Overridable Constants
+
+Use \`override\` for values set at pipeline creation time (not at runtime):
+\`\`\`wgsl
+override workgroupSize: u32 = 64;
+override gridScale: f32;
+@compute @workgroup_size(workgroupSize) fn main(...) { ... }
+\`\`\`
+Set via \`ctx.renderer.createComputePipeline({ compute: { constants: { workgroupSize: 128, gridScale: 2.0 } } })\`
+
+### Storage Buffer Access Modes
+
+- \`var<storage, read>\` — read-only (most common for input data)
+- \`var<storage, read_write>\` — read-write (for output / accumulation buffers)
+- \`var<uniform>\` — small constants (max 64KB, must be 16-byte aligned)
+
 ### Compute Shaders (WebGPU only)
-- @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3u) { ... }
-- Storage buffers: @group(0) @binding(0) var<storage, read_write> data: array<f32>
-- Use for: particle simulation, fluid dynamics, audio analysis acceleration
+- \`@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3u) { ... }\`
+- Storage buffers: \`@group(0) @binding(0) var<storage, read_write> data: array<f32>\`
+- Use for: particle simulation (MPM, SPH, DEM), fluid dynamics, grid-based accumulation, audio analysis
+- Guard threads: \`if (id.x >= numParticles) { return; }\`
+- Dispatch from JS: \`r.dispatch(pass, ceil(count / 64), 1, 1)\`
 
 ### ctx.renderer API (RendererInterface)
 
