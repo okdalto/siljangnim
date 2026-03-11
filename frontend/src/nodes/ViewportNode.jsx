@@ -110,10 +110,17 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
     }
     console.log("[ViewportNode] Loading scene:", sceneJSON.mode || "unknown");
     setError(null);
-    engine.loadScene(sceneJSON).catch((err) => {
-      console.error("[ViewportNode] loadScene error:", err);
-      setError(err.message || String(err));
-    });
+    engine.loadScene(sceneJSON)
+      .then(() => {
+        // Notify agent error collector that the scene has loaded
+        window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded"));
+      })
+      .catch((err) => {
+        console.error("[ViewportNode] loadScene error:", err);
+        setError(err.message || String(err));
+        // Still ack scene load so error checker doesn't hang
+        window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded"));
+      });
   }, [sceneJSON]);
 
   // Handle pause/resume

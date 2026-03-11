@@ -73,6 +73,15 @@ export default function useChat(sendRef) {
     setMessages((prev) => [...prev, { role: "system", text }]);
   }, []);
 
+  const addInterruptedMessage = useCallback((prompt) => {
+    setMessages((prev) => [...prev, {
+      role: "system",
+      text: `이전 대화가 새로고침으로 중단되었습니다.`,
+      interrupted: true,
+      interruptedPrompt: prompt,
+    }]);
+  }, []);
+
   const addErrorLog = useCallback((text) => {
     setDebugLogs((prev) => [
       ...prev,
@@ -101,6 +110,7 @@ export default function useChat(sendRef) {
     handleCancel,
     addAssistantText,
     addSystemMessage,
+    addInterruptedMessage,
     addLog,
     addErrorLog,
     setProcessing: setIsProcessing,

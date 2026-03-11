@@ -37,9 +37,16 @@ export default class AgentEngine {
     // Prompt mode enhancement
     this._promptModeAddition = "";
 
-    // Mobile background resume: save last prompt context for retry
+    // Background / page-refresh resume: save last prompt context for retry
     this._lastPromptContext = null;
     this._backgroundRetryPending = false;
+
+    // Restore interrupted prompt from sessionStorage (survives page refresh)
+    try {
+      const saved = sessionStorage.getItem("siljangnim:interruptedPrompt");
+      if (saved) this._interruptedPrompt = JSON.parse(saved);
+    } catch { /* ignore */ }
+    if (!this._interruptedPrompt) this._interruptedPrompt = null;
 
     // Listen for visibility change to auto-retry interrupted agent calls
     if (typeof document !== "undefined") {
@@ -48,6 +55,13 @@ export default class AgentEngine {
           this._backgroundRetryPending = false;
           this._retryLastPrompt();
         }
+      });
+    }
+
+    // Listen for viewport scene load completion
+    if (typeof window !== "undefined") {
+      window.addEventListener("siljangnim:scene_loaded", () => {
+        this.errorCollector.ackSceneLoad();
       });
     }
 
@@ -67,11 +81,33 @@ export default class AgentEngine {
     this.errorCollector = {
       errors: [],
       _resolve: null,
+      // Scene load acknowledgement — resolves when viewport finishes loading
+      _sceneLoadResolve: null,
+      _sceneLoaded: true, // starts as true (no pending load)
       push(msg) {
         this.errors.push(msg);
         if (this._resolve) { this._resolve(); this._resolve = null; }
       },
+      /** Called when write_scene broadcasts — marks a pending scene load. */
+      expectSceneLoad() {
+        this._sceneLoaded = false;
+        // Auto-resolve after 5s if viewport never acks (safety net)
+        this._sceneLoadTimer = setTimeout(() => this.ackSceneLoad(), 5000);
+      },
+      /** Called when viewport finishes loadScene(). */
+      ackSceneLoad() {
+        clearTimeout(this._sceneLoadTimer);
+        this._sceneLoaded = true;
+        if (this._sceneLoadResolve) { this._sceneLoadResolve(); this._sceneLoadResolve = null; }
+      },
+      /** Wait for the viewport to finish loading the scene (if pending). */
+      async waitForSceneLoad() {
+        if (this._sceneLoaded) return;
+        await new Promise((resolve) => { this._sceneLoadResolve = resolve; });
+      },
       async waitForErrors(timeoutMs) {
+        // First wait for any pending scene load to complete
+        await this.waitForSceneLoad();
         if (this.errors.length) {
           const result = [...this.errors];
           this.errors = [];
@@ -99,6 +135,13 @@ export default class AgentEngine {
   /** Dispatch a message from engine to React UI. */
   broadcast(msg) {
     this.bus.dispatch(msg);
+  }
+
+  /** Clear the interrupted prompt marker (agent completed or was cancelled). */
+  _clearInterruptedPrompt() {
+    this._lastPromptContext = null;
+    this._interruptedPrompt = null;
+    try { sessionStorage.removeItem("siljangnim:interruptedPrompt"); } catch { /* ignore */ }
   }
 
   /** Retry the last interrupted prompt (mobile background resume). */
@@ -400,8 +443,11 @@ const HANDLERS = {
       promptAddition += `\n\n## REFERENCED SCENES\nThe user has referenced the following previous scene(s) from the version tree. Use them as context — the user may want to reuse, combine, or compare elements from these scenes.\n\n${refSections}`;
     }
 
-    // Save context for mobile background retry
+    // Save context for mobile background retry + page refresh recovery
     this._lastPromptContext = { userPrompt, files: savedFiles.length ? savedFiles : undefined };
+    try {
+      sessionStorage.setItem("siljangnim:interruptedPrompt", JSON.stringify({ userPrompt, timestamp: Date.now() }));
+    } catch { /* ignore */ }
 
     // Run agent asynchronously (with planning when conversation is long)
     (async () => {
@@ -429,12 +475,12 @@ const HANDLERS = {
           provider: this.provider,
           providerConfig: this.providerConfig,
         });
-        this._lastPromptContext = null;
+        this._clearInterruptedPrompt();
         this.broadcast({ type: "chat_done" });
       } catch (err) {
         // User-initiated cancel
         if (err.name === "AbortError") {
-          this._lastPromptContext = null;
+          this._clearInterruptedPrompt();
           this.broadcast({ type: "chat_done" });
           return;
         }
@@ -474,7 +520,7 @@ const HANDLERS = {
           userMsg = "입력이 모델의 컨텍스트 한도를 초과했습니다. 대화를 새로 시작해 주세요.";
         }
 
-        this._lastPromptContext = null;
+        this._clearInterruptedPrompt();
         this.broadcast({
           type: "agent_log", agent: "System",
           message: `Agent error: ${err.message}`, level: "error",
@@ -519,6 +565,10 @@ const HANDLERS = {
         this._preprocessReject = null;
       }
     }
+  },
+
+  async scene_loaded() {
+    this.errorCollector.ackSceneLoad();
   },
 
   async console_error(msg) {
@@ -574,7 +624,7 @@ const HANDLERS = {
       this.abortController = null;
       this.agentBusy = false;
     }
-    this._lastPromptContext = null;
+    this._clearInterruptedPrompt();
     this._backgroundRetryPending = false;
     this.chatHistory.length = 0;
     this.conversation.length = 0;
@@ -807,6 +857,15 @@ const HANDLERS = {
       }
     }
 
+    // Detect interrupted agent work from a previous session (page refresh)
+    let interruptedPrompt = null;
+    if (this._interruptedPrompt && !this.agentBusy) {
+      interruptedPrompt = this._interruptedPrompt;
+      // Clear it from sessionStorage — the UI will decide whether to retry
+      this._interruptedPrompt = null;
+      try { sessionStorage.removeItem("siljangnim:interruptedPrompt"); } catch { /* ignore */ }
+    }
+
     this.broadcast({
       type: "init",
       scene_json: scene,
@@ -818,6 +877,7 @@ const HANDLERS = {
       active_project: activeProject || undefined,
       chat_history: chatHistory.length > 0 ? chatHistory : undefined,
       debug_logs: debugLogs.length > 0 ? debugLogs : undefined,
+      interrupted_prompt: interruptedPrompt || undefined,
     });
   },
 };
