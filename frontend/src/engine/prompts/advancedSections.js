@@ -666,19 +666,22 @@ function render(ctx) {
 }
 \`\`\`
 
-### Raw WebGPU Access
+### Raw WebGPU Access (advanced — use only when ctx.renderer API is insufficient)
 
-For compute-heavy scenes (particle simulations, fluid dynamics, etc.), use the raw GPUDevice:
+For rare cases where \`ctx.renderer\` doesn't expose a needed feature, you can access the raw GPUDevice:
 \`\`\`js
 const device = ctx.renderer.getNativeContext();     // GPUDevice
 const gpuCanvas = ctx.renderer.canvas;               // OffscreenCanvas used by WebGPU
 const gpuContext = ctx.renderer.context;              // GPUCanvasContext
 const format = navigator.gpu.getPreferredCanvasFormat();
 \`\`\`
+**⚠ Prefer \`ctx.renderer\` for ALL operations** including compute pipelines, storage buffers, and atomic ops. \
+The abstraction API fully supports compute: \`createComputePipeline()\`, \`beginComputePass()\`, \`dispatch()\`, etc. \
+Raw device access bypasses error tracking and may cause silent failures.
 
 When generating or modifying scenes:
 1. Read the current backendTarget from scene metadata.
-2. If target is "webgpu", write WGSL shaders and use \`ctx.renderer\` (or raw device for compute).
+2. If target is "webgpu", write WGSL shaders and **always use \`ctx.renderer\`** (including for compute shaders).
 3. If target is "auto" or absent, default to WebGL2/GLSL with \`ctx.gl\`.
 4. When the user explicitly requests WebGPU or compute shaders, include \`backendTarget: "webgpu"\` in the \`write_scene\` call.
 5. Never mix GLSL and WGSL in the same shader program — pick one based on the backend.

@@ -167,20 +167,31 @@ function buildMultimodalContent(userPrompt, files) {
  * Build an augmented system prompt by injecting backend target, technique hints,
  * environment info, and asset context into a base system prompt.
  */
-async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarget, assetContext = [], systemPromptAddition = "" } = {}) {
+async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarget, assetContext = [], systemPromptAddition = "", conversationHistory = [] } = {}) {
   let prompt = basePrompt;
 
   if (systemPromptAddition) {
     prompt += "\n\n" + systemPromptAddition;
   }
 
-  // Auto-detect WebGPU intent from user prompt keywords when backend is "auto"
+  // Auto-detect WebGPU intent from user prompt AND conversation history when backend is "auto"
   let effectiveBackend = backendTarget;
-  if ((!effectiveBackend || effectiveBackend === "auto") && userPrompt) {
-    const lower = userPrompt.toLowerCase();
+  if ((!effectiveBackend || effectiveBackend === "auto")) {
     const webgpuKeywords = ["webgpu", "wgsl", "compute shader", "컴퓨트 셰이더", "storage buffer", "gpudevice", "gpubuffer"];
+    // Check current prompt
+    const lower = (userPrompt || "").toLowerCase();
     if (webgpuKeywords.some((kw) => lower.includes(kw))) {
       effectiveBackend = "webgpu";
+    }
+    // Check recent conversation history (user messages only, last 10)
+    if (effectiveBackend === "auto" || !effectiveBackend) {
+      const recentUserMsgs = conversationHistory
+        .filter((m) => m.role === "user")
+        .slice(-10)
+        .map((m) => (typeof m.content === "string" ? m.content : "").toLowerCase());
+      if (recentUserMsgs.some((msg) => webgpuKeywords.some((kw) => msg.includes(kw)))) {
+        effectiveBackend = "webgpu";
+      }
     }
   }
 
@@ -289,7 +300,7 @@ export async function runAgent({
 
   const systemPrompt = await buildAugmentedSystemPrompt(
     buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType()),
-    { userPrompt, backendTarget, assetContext, systemPromptAddition },
+    { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages },
   );
 
   // Build user message content
@@ -788,7 +799,7 @@ export async function runWithPlan({
 
   const baseSystemPrompt = await buildAugmentedSystemPrompt(
     buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType()),
-    { userPrompt, backendTarget, assetContext, systemPromptAddition },
+    { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages },
   );
 
   const { systemPrompt: execSystemPrompt, messages: execMessages } =
