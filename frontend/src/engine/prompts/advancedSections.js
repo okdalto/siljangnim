@@ -630,7 +630,8 @@ For advanced use (raw compute shaders, atomic ops, storage buffers), you can als
 
 When backendTarget is "webgpu", follow this pattern:
 
-1. **Set backendTarget** to \`"webgpu"\` in scene JSON metadata.
+1. **Set backendTarget** to \`"webgpu"\` — pass \`backendTarget: "webgpu"\` in the \`write_scene\` tool call. \
+This ensures WebGPU backend is initialized BEFORE the scene loads. Do NOT set it separately via write_file edits.
 2. **setup**: Create resources via \`ctx.renderer\` or raw \`GPUDevice\`:
    - Abstraction API: \`ctx.renderer.createShaderModule()\`, \`createRenderPipeline()\`, \`createBuffer()\`, \`createBindGroup()\`
    - Raw API: \`const device = ctx.renderer.getNativeContext(); device.createComputePipeline(...)\` etc.
@@ -671,8 +672,9 @@ When generating or modifying scenes:
 1. Read the current backendTarget from scene metadata.
 2. If target is "webgpu", write WGSL shaders and use \`ctx.renderer\` (or raw device for compute).
 3. If target is "auto" or absent, default to WebGL2/GLSL with \`ctx.gl\`.
-4. When the user explicitly requests WebGPU or compute shaders, set backendTarget to "webgpu".
+4. When the user explicitly requests WebGPU or compute shaders, include \`backendTarget: "webgpu"\` in the \`write_scene\` call.
 5. Never mix GLSL and WGSL in the same shader program — pick one based on the backend.
-6. Always call \`ctx.utils.blitToCanvas()\` at the end of WebGPU render functions.`,
+6. Always call \`ctx.utils.blitToCanvas()\` at the end of WebGPU render functions.
+7. **CRITICAL**: Always include \`backendTarget\` in \`write_scene\` for WebGPU scenes. Without it, the engine defaults to WebGL2 and \`ctx.renderer\` will not have a WebGPU device.`,
   },
 ];

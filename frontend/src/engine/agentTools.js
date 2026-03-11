@@ -199,6 +199,7 @@ const TOOLS = [
         cleanup: { type: "string", description: "JS code for script.cleanup (runs on dispose)." },
         uniforms: { type: "object", description: 'Uniform definitions, e.g. {"u_speed": {"type": "float", "value": 1.0}}' },
         clearColor: { type: "array", items: { type: "number" }, description: "[r,g,b,a] clear color (0-1). Default: [0,0,0,1]" },
+        backendTarget: { type: "string", enum: ["auto", "webgl", "webgpu"], description: 'Set to "webgpu" when using WebGPU/compute shaders. Default: "auto" (WebGL2).' },
       },
       required: ["render"],
     },
