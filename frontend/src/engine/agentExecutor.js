@@ -65,8 +65,8 @@ const LOOP_BREAK_THRESHOLD = 5;
 
 // Model configuration
 const MODEL_COMPLEX = "claude-sonnet-4-6";
-const MODEL_COMPLEX_MAX = 32768;
-const MODEL_THINKING_MAX = 64000; // with explicit budget: ~10k thinking + ~54k output
+const MODEL_COMPLEX_MAX = 16384;
+const MODEL_THINKING_MAX = 32000; // with explicit budget: ~10k thinking + ~22k output
 
 // ---------------------------------------------------------------------------
 // Conversation compaction
