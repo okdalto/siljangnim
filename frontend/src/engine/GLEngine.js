@@ -313,6 +313,17 @@ export default class GLEngine {
   }
 
   /**
+   * Auto-blit WebGPU OffscreenCanvas to the visible WebGL2 canvas after render.
+   * Called automatically by the render loop — agent code does NOT need to call
+   * ctx.utils.blitToCanvas() manually (though it still works if they do).
+   */
+  _autoBlitIfWebGPU(ctx) {
+    if (this._backend?.backendType === BackendType.WEBGPU && this._backend?.canvas) {
+      ctx.utils.blitToCanvas();
+    }
+  }
+
+  /**
    * Recreate the WebGL2 context with different options (e.g. alpha).
    * Saves the current scene, destroys old context, creates new one,
    * re-enables extensions, and reloads the scene.
@@ -1257,7 +1268,10 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       try {
         const p = this._scriptRenderFn(ctx);
         if (p && typeof p.catch === "function") {
-          p.catch((err) => {
+          p.then(() => {
+            // Auto-blit WebGPU OffscreenCanvas to visible canvas after async render
+            this._autoBlitIfWebGPU(ctx);
+          }).catch((err) => {
             console.error("[GLEngine] Script render error (async):", err);
             if (err.message !== this._lastErrorMessage) {
               this._lastErrorMessage = err.message;
@@ -1267,6 +1281,8 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
           });
           return p; // return promise for offline rendering to await
         }
+        // Auto-blit WebGPU OffscreenCanvas to visible canvas after sync render
+        this._autoBlitIfWebGPU(ctx);
       } catch (err) {
         console.error("[GLEngine] Script render error:", err);
         if (err.message !== this._lastErrorMessage) {
@@ -1733,6 +1749,26 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
         ctx.renderer = this._backend;
         ctx.backendType = this._backend.backendType;
       }
+    }
+
+    // Check for backend mismatch: scene wants WebGPU but got WebGL2 (fallback)
+    const wantedBackend = this._scene?.backendTarget;
+    if (wantedBackend === "webgpu" && ctx.backendType !== "webgpu") {
+      const err = new Error(
+        "WebGPU backend requested but not available. " +
+        "Fell back to WebGL2. Check that your browser supports WebGPU " +
+        "(Chrome 113+, Edge 113+, or enable chrome://flags/#enable-unsafe-webgpu)."
+      );
+      console.error("[GLEngine]", err.message);
+      this.onError?.(err);
+      window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
+      this._setupReady = false;
+      if (this.gl) {
+        const g = this.gl;
+        g.clearColor(0.15, 0.05, 0.05, 1);
+        g.clear(g.COLOR_BUFFER_BIT);
+      }
+      return;
     }
 
     // Run setup (async)
