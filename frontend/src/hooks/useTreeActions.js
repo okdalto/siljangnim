@@ -4,8 +4,12 @@ import * as storageApi from "../engine/storage.js";
 /**
  * Extracts tree-related callbacks from App.jsx.
  */
-export default function useTreeActions({ tree, compare, handleMessage, project, chat }) {
+export default function useTreeActions({ tree, compare, handleMessage, project, chat, agentEngine }) {
   const handleTreeNodeRestore = useCallback(async (nodeId) => {
+    if (agentEngine?.abortController) {
+      chat.addLog({ agent: "System", message: "에이전트가 실행 중입니다. 완료 후 노드를 전환해 주세요.", level: "warn" });
+      return;
+    }
     const projName = storageApi.getActiveProjectName();
     if (!projName) return;
     try {
@@ -24,7 +28,7 @@ export default function useTreeActions({ tree, compare, handleMessage, project, 
     } catch (err) {
       chat.addLog({ agent: "System", message: `Failed to restore node: ${err.message}`, level: "error" });
     }
-  }, [tree.restoreNode, handleMessage, project.activeProject, chat.addLog]);
+  }, [tree.restoreNode, handleMessage, project.activeProject, chat.addLog, agentEngine]);
 
   const handleContinueFromNode = useCallback(async (nodeId) => {
     await handleTreeNodeRestore(nodeId);
@@ -80,10 +84,14 @@ export default function useTreeActions({ tree, compare, handleMessage, project, 
   }, [compare.selectCompareTarget]);
 
   const handleTreeDeleteNode = useCallback(async (nodeId) => {
+    if (agentEngine?.abortController) {
+      chat.addLog({ agent: "System", message: "에이전트가 실행 중입니다. 완료 후 삭제해 주세요.", level: "warn" });
+      return;
+    }
     const projName = storageApi.getActiveProjectName();
     if (!projName) return;
     await tree.deleteNodeTree(nodeId, projName);
-  }, [tree.deleteNodeTree]);
+  }, [tree.deleteNodeTree, agentEngine, chat.addLog]);
 
   return {
     handleTreeNodeRestore,
