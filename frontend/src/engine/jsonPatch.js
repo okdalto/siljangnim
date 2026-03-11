@@ -135,7 +135,10 @@ export function apply(doc, ops) {
       }
       if (parent == null) break;
     }
-    if (parent == null) continue;
+    if (parent == null) {
+      console.warn(`[jsonPatch] Skipping ${op.op} at "${op.path}" — parent path does not exist`);
+      continue;
+    }
 
     const lastToken = tokens[tokens.length - 1];
 
