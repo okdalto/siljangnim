@@ -391,11 +391,24 @@ export default function VersionTreeCanvas({
     const handleKeyDown = (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
-      // F key: toggle focus mode
+      // F key: fit entire tree to view
       if (e.key === "f" || e.key === "F") {
         e.preventDefault();
-        setFocusMode((v) => !v);
+        // Compute zoom to fit all content in the container
+        const cw = bounds.maxX - bounds.minX + NODE_W * 2;
+        const ch = bounds.maxY - bounds.minY + NODE_H * 2;
+        if (cw > 0 && ch > 0) {
+          const pad = 40; // px padding
+          const fitZoom = Math.min(
+            (containerSize.w - pad * 2) / cw,
+            (containerSize.h - pad * 2) / ch,
+            1.5, // don't zoom in excessively
+          );
+          setZoom(Math.max(0.15, fitZoom));
+        }
         setDragOffset({ x: 0, y: 0 });
+        // Also exit focus mode so the full tree is visible
+        setFocusMode(false);
         return;
       }
 
@@ -460,13 +473,25 @@ export default function VersionTreeCanvas({
 
     el.addEventListener("keydown", handleKeyDown);
     return () => el.removeEventListener("keydown", handleKeyDown);
-  }, [activeNodeId, nodesMap, childrenMap, roots, onDoubleClickNode]);
+  }, [activeNodeId, nodesMap, childrenMap, roots, onDoubleClickNode, bounds, containerSize]);
 
-  // Mouse wheel zoom
+  // Mouse wheel zoom — dampen to avoid jumpy trackpad behavior
+  const wheelAccRef = useRef(0);
+  const wheelTimerRef = useRef(null);
   const handleWheel = useCallback((e) => {
     e.preventDefault();
-    const factor = e.deltaY > 0 ? 0.92 : 1.08;
-    setZoom((z) => Math.max(0.3, Math.min(2.5, z * factor)));
+    // Accumulate small deltas (trackpad sends many tiny events)
+    wheelAccRef.current += e.deltaY;
+    if (wheelTimerRef.current) return; // batch within a frame
+    wheelTimerRef.current = requestAnimationFrame(() => {
+      const acc = wheelAccRef.current;
+      wheelAccRef.current = 0;
+      wheelTimerRef.current = null;
+      // Clamp accumulated delta to avoid huge jumps
+      const clamped = Math.max(-80, Math.min(80, acc));
+      const factor = 1 - clamped * 0.002;
+      setZoom((z) => Math.max(0.15, Math.min(3, z * factor)));
+    });
   }, []);
 
   // Drag handlers
@@ -577,14 +602,24 @@ export default function VersionTreeCanvas({
       {/* Zoom / Focus controls */}
       <div className="absolute bottom-2 right-2 flex items-center gap-1 pointer-events-auto" style={{ zIndex: 10 }}>
         <button
-          onClick={() => setFocusMode((v) => !v)}
+          onClick={() => {
+            const cw = bounds.maxX - bounds.minX + NODE_W * 2;
+            const ch = bounds.maxY - bounds.minY + NODE_H * 2;
+            if (cw > 0 && ch > 0) {
+              const pad = 40;
+              const fitZoom = Math.min((containerSize.w - pad * 2) / cw, (containerSize.h - pad * 2) / ch, 1.5);
+              setZoom(Math.max(0.15, fitZoom));
+            }
+            setDragOffset({ x: 0, y: 0 });
+            setFocusMode(false);
+          }}
           className="w-6 h-6 rounded flex items-center justify-center text-[10px] transition-colors"
           style={{
-            background: focusMode ? "var(--accent, #6366f1)" : "var(--input-bg, #333)",
-            color: focusMode ? "#fff" : "var(--chrome-text-muted)",
+            background: "var(--input-bg, #333)",
+            color: "var(--chrome-text-muted)",
             border: "1px solid var(--chrome-border, #444)",
           }}
-          title={focusMode ? "Show full tree (F)" : "Focus on active branch (F)"}
+          title="Fit all (F)"
         >
           F
         </button>
