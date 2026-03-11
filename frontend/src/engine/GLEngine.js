@@ -1191,7 +1191,13 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
 
   _renderFrame(time, dt) {
     const gl = this.gl;
-    if (!gl || !this._scene) return null;
+    if (!gl) return null;
+    if (!this._scene || !this._scriptRenderFn || !this._scriptCtx || !this._setupReady) {
+      // No active scene or setup not ready — clear to black so stale frames don't linger
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      return null;
+    }
 
     // Snapshot previous mouse state at start of frame (reuse arrays to avoid GC)
     const mp = this._mousePrev, ms = this._mouseSnapshot, m = this._mouse;
@@ -1200,115 +1206,113 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     ms[0] = m[0]; ms[1] = m[1]; ms[2] = m[2]; ms[3] = m[3];
     this._mouseDownSnapshot = this._mouseDown;
 
-    if (this._scriptRenderFn && this._scriptCtx && this._setupReady) {
-      const ctx = this._scriptCtx;
-      ctx.time = time;
-      ctx.dt = dt;
-      ctx.isOffline ??= false;
-      ctx.mouse = [this._mouseSnapshot[0], this._mouseSnapshot[1], this._mouseSnapshot[2], this._mouseSnapshot[3]];
-      ctx.mousePrev = [this._mousePrev[0], this._mousePrev[1], this._mousePrev[2], this._mousePrev[3]];
-      ctx.mouseDown = this._mouseDownSnapshot;
-      ctx.mouseHover = this._mouseHover;
-      ctx.resolution = [this.canvas.width, this.canvas.height];
-      ctx.frame = this._frameCount;
-      ctx.uniforms = { ...this._customUniforms };
-      if (this._keyframeManager) {
-        Object.assign(ctx.uniforms, this._keyframeManager.evaluateAll(time));
-      }
-      ctx.keys = this._pressedKeys;
+    const ctx = this._scriptCtx;
+    ctx.time = time;
+    ctx.dt = dt;
+    ctx.isOffline ??= false;
+    ctx.mouse = [this._mouseSnapshot[0], this._mouseSnapshot[1], this._mouseSnapshot[2], this._mouseSnapshot[3]];
+    ctx.mousePrev = [this._mousePrev[0], this._mousePrev[1], this._mousePrev[2], this._mousePrev[3]];
+    ctx.mouseDown = this._mouseDownSnapshot;
+    ctx.mouseHover = this._mouseHover;
+    ctx.resolution = [this.canvas.width, this.canvas.height];
+    ctx.frame = this._frameCount;
+    ctx.uniforms = { ...this._customUniforms };
+    if (this._keyframeManager) {
+      Object.assign(ctx.uniforms, this._keyframeManager.evaluateAll(time));
+    }
+    ctx.keys = this._pressedKeys;
 
-      // Sync renderer abstraction reference (may have been initialized after scene load)
-      if (this._backend && !ctx.renderer) {
-        ctx.renderer = this._backend;
-        ctx.backendType = this._backend.backendType;
-        // Apply shader module wrapping if not already done
-        if (typeof ctx.renderer.createShaderModule === "function" && !ctx.renderer._wrapped) {
-          const origCreateShaderModule = ctx.renderer.createShaderModule.bind(ctx.renderer);
-          ctx.renderer.createShaderModule = (desc) => {
-            const transpiledCode = this._transpileShaderSource(desc.code);
-            return origCreateShaderModule({ ...desc, code: transpiledCode });
-          };
-          ctx.renderer._wrapped = true;
-        }
+    // Sync renderer abstraction reference (may have been initialized after scene load)
+    if (this._backend && !ctx.renderer) {
+      ctx.renderer = this._backend;
+      ctx.backendType = this._backend.backendType;
+      // Apply shader module wrapping if not already done
+      if (typeof ctx.renderer.createShaderModule === "function" && !ctx.renderer._wrapped) {
+        const origCreateShaderModule = ctx.renderer.createShaderModule.bind(ctx.renderer);
+        ctx.renderer.createShaderModule = (desc) => {
+          const transpiledCode = this._transpileShaderSource(desc.code);
+          return origCreateShaderModule({ ...desc, code: transpiledCode });
+        };
+        ctx.renderer._wrapped = true;
       }
+    }
 
-      // Drift-correct registered video elements to match ctx.time.
-      // In real-time mode, video.play() runs on its own clock which drifts
-      // from ctx.time. Re-sync when drift exceeds threshold to keep
-      // video frames aligned with agent graphics (e.g. bounding boxes).
-      if (!ctx.isOffline) {
-        const videos = ctx._registeredVideos;
-        if (videos?.size) {
-          for (const [video, opts] of videos) {
-            const dur = video.duration;
-            if (!dur || isNaN(dur) || video.readyState < 2) continue;
-            const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
-            const drift = Math.abs(video.currentTime - targetTime);
-            if (drift > 0.1) {
-              video.currentTime = targetTime;
-            }
+    // Drift-correct registered video elements to match ctx.time.
+    // In real-time mode, video.play() runs on its own clock which drifts
+    // from ctx.time. Re-sync when drift exceeds threshold to keep
+    // video frames aligned with agent graphics (e.g. bounding boxes).
+    if (!ctx.isOffline) {
+      const videos = ctx._registeredVideos;
+      if (videos?.size) {
+        for (const [video, opts] of videos) {
+          const dur = video.duration;
+          if (!dur || isNaN(dur) || video.readyState < 2) continue;
+          const targetTime = opts.loop !== false ? (time % dur) : Math.min(time, dur);
+          const drift = Math.abs(video.currentTime - targetTime);
+          if (drift > 0.1) {
+            video.currentTime = targetTime;
           }
         }
       }
+    }
 
-      // Update MIDI texture before script render (messages arrive via callbacks)
-      if (this._midiManager?.initialized) {
-        this._midiManager.updateTextures(gl);
+    // Update MIDI texture before script render (messages arrive via callbacks)
+    if (this._midiManager?.initialized) {
+      this._midiManager.updateTextures(gl);
+    }
+
+    // Update OSC texture before script render
+    if (this._oscManager?.initialized) {
+      this._oscManager.updateTextures(gl);
+    }
+
+    // Update mic FFT data before script render
+    if (this._micManager?.initialized) {
+      this._micManager.updateFrame(gl, ctx.isOffline);
+    }
+
+    // Update audio data before script render
+    if (this._audioManager) {
+      this._audioManager.updateFrame(gl, time, ctx.isOffline);
+      const am = this._audioManager;
+      ctx.audio.isLoaded = am.isLoaded;
+      ctx.audio.isPlaying = am.isPlaying;
+      ctx.audio.duration = am.duration;
+      ctx.audio.currentTime = am.currentTime;
+      ctx.audio.bass = am.bass;
+      ctx.audio.mid = am.mid;
+      ctx.audio.treble = am.treble;
+      ctx.audio.energy = am.energy;
+      ctx.audio.frequencyData = am.frequencyData;
+      ctx.audio.waveformData = am.waveformData;
+      ctx.audio.fftTexture = am.fftTexture;
+      ctx.audio.volume = am.volume;
+    }
+
+    try {
+      const p = this._scriptRenderFn(ctx);
+      if (p && typeof p.catch === "function") {
+        p.then(() => {
+          // Auto-blit WebGPU OffscreenCanvas to visible canvas after async render
+          this._autoBlitIfWebGPU(ctx);
+        }).catch((err) => {
+          console.error("[GLEngine] Script render error (async):", err);
+          if (err.message !== this._lastErrorMessage) {
+            this._lastErrorMessage = err.message;
+            this.onError?.(err);
+            window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
+          }
+        });
+        return p; // return promise for offline rendering to await
       }
-
-      // Update OSC texture before script render
-      if (this._oscManager?.initialized) {
-        this._oscManager.updateTextures(gl);
-      }
-
-      // Update mic FFT data before script render
-      if (this._micManager?.initialized) {
-        this._micManager.updateFrame(gl, ctx.isOffline);
-      }
-
-      // Update audio data before script render
-      if (this._audioManager) {
-        this._audioManager.updateFrame(gl, time, ctx.isOffline);
-        const am = this._audioManager;
-        ctx.audio.isLoaded = am.isLoaded;
-        ctx.audio.isPlaying = am.isPlaying;
-        ctx.audio.duration = am.duration;
-        ctx.audio.currentTime = am.currentTime;
-        ctx.audio.bass = am.bass;
-        ctx.audio.mid = am.mid;
-        ctx.audio.treble = am.treble;
-        ctx.audio.energy = am.energy;
-        ctx.audio.frequencyData = am.frequencyData;
-        ctx.audio.waveformData = am.waveformData;
-        ctx.audio.fftTexture = am.fftTexture;
-        ctx.audio.volume = am.volume;
-      }
-
-      try {
-        const p = this._scriptRenderFn(ctx);
-        if (p && typeof p.catch === "function") {
-          p.then(() => {
-            // Auto-blit WebGPU OffscreenCanvas to visible canvas after async render
-            this._autoBlitIfWebGPU(ctx);
-          }).catch((err) => {
-            console.error("[GLEngine] Script render error (async):", err);
-            if (err.message !== this._lastErrorMessage) {
-              this._lastErrorMessage = err.message;
-              this.onError?.(err);
-              window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
-            }
-          });
-          return p; // return promise for offline rendering to await
-        }
-        // Auto-blit WebGPU OffscreenCanvas to visible canvas after sync render
-        this._autoBlitIfWebGPU(ctx);
-      } catch (err) {
-        console.error("[GLEngine] Script render error:", err);
-        if (err.message !== this._lastErrorMessage) {
-          this._lastErrorMessage = err.message;
-          this.onError?.(err);
-          window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
-        }
+      // Auto-blit WebGPU OffscreenCanvas to visible canvas after sync render
+      this._autoBlitIfWebGPU(ctx);
+    } catch (err) {
+      console.error("[GLEngine] Script render error:", err);
+      if (err.message !== this._lastErrorMessage) {
+        this._lastErrorMessage = err.message;
+        this.onError?.(err);
+        window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
       }
     }
     return null;
