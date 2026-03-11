@@ -314,6 +314,7 @@ const HANDLERS = {
 
     const userPrompt = msg.text || "";
     const isRetry = !!msg._isRetry;
+    const sceneReferences = msg.sceneReferences || [];
 
     if (this.agentBusy) {
       if (userPrompt.trim()) {
@@ -387,6 +388,18 @@ const HANDLERS = {
     // Gather current workspace state for plan-based execution
     const currentState = await this._getCurrentState();
 
+    // Build system prompt addition with referenced scenes
+    let promptAddition = this._promptModeAddition || "";
+    if (sceneReferences.length > 0) {
+      const refSections = sceneReferences.map((ref) => {
+        const json = typeof ref.sceneJson === "string" ? ref.sceneJson : JSON.stringify(ref.sceneJson, null, 2);
+        // Truncate very long scenes to avoid blowing context
+        const truncated = json.length > 12000 ? json.slice(0, 12000) + "\n... (truncated)" : json;
+        return `### Referenced Scene: "${ref.title}" (node ${ref.nodeId})\n\`\`\`json\n${truncated}\n\`\`\``;
+      }).join("\n\n");
+      promptAddition += `\n\n## REFERENCED SCENES\nThe user has referenced the following previous scene(s) from the version tree. Use them as context — the user may want to reuse, combine, or compare elements from these scenes.\n\n${refSections}`;
+    }
+
     // Save context for mobile background retry
     this._lastPromptContext = { userPrompt, files: savedFiles.length ? savedFiles : undefined };
 
@@ -409,7 +422,7 @@ const HANDLERS = {
           recordingDonePromise: () => this.recordingDonePromise(),
           signal: abortController.signal,
           injectedMessages: this.injectedMessages,
-          systemPromptAddition: this._promptModeAddition,
+          systemPromptAddition: promptAddition,
           assetContext: this._getAssetContext?.() || [],
           backendTarget: this._backendTarget,
           modelOverride: this._selectedModel,

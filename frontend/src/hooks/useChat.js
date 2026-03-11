@@ -18,16 +18,20 @@ export default function useChat(sendRef) {
   }, [debugLogs]);
 
   const handleSend = useCallback(
-    (text, files) => {
+    (text, files, sceneReferences) => {
       const msg = { role: "user", text };
       if (files?.length) {
         msg.files = files.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
+      }
+      if (sceneReferences?.length) {
+        msg.sceneReferences = sceneReferences.map((r) => ({ nodeId: r.nodeId, title: r.title }));
       }
       setMessages((prev) => [...prev, msg]);
       setIsProcessing(true);
 
       const wsMsg = { type: "prompt", text };
       if (files?.length) wsMsg.files = files;
+      if (sceneReferences?.length) wsMsg.sceneReferences = sceneReferences;
       sendRef.current?.(wsMsg);
     },
     [sendRef]

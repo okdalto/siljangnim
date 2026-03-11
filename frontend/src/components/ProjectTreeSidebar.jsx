@@ -19,6 +19,7 @@ export default function ProjectTreeSidebar({
   onPinCheckpoint,
   onDeleteNode,
   onContinueFrom,
+  onReferenceInChat,
   // Compare mode
   compareSourceId,
   onStartCompare,
@@ -81,13 +82,16 @@ export default function ProjectTreeSidebar({
       case "checkpoint":
         onPinCheckpoint?.(node.id);
         break;
+      case "reference":
+        onReferenceInChat?.(node);
+        break;
       case "delete":
         if (window.confirm(`Delete "${node.title}" and all its children?`)) {
           onDeleteNode?.(node.id);
         }
         break;
     }
-  }, [onContinueFrom, onBranch, onDuplicate, onRename, onToggleFavorite, onPinCheckpoint, onDeleteNode, onStartCompare]);
+  }, [onContinueFrom, onBranch, onDuplicate, onRename, onToggleFavorite, onPinCheckpoint, onDeleteNode, onStartCompare, onReferenceInChat]);
 
   const handleImportFile = useCallback((e) => {
     const file = e.target.files?.[0];
