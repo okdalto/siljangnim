@@ -605,6 +605,49 @@ async function toolSetTimeline(input, broadcast) {
   return `ok — timeline updated: ${parts.join(", ")}.`;
 }
 
+async function toolUnzipAsset(input, broadcast) {
+  const filename = input.filename;
+  if (!filename) return "Error: 'filename' is required.";
+  const prefix = input.prefix || "";
+
+  try {
+    const entry = await storage.readUpload(filename);
+    const JSZip = (await import("jszip")).default;
+    const zip = await JSZip.loadAsync(entry.data);
+
+    const extracted = [];
+    const promises = [];
+
+    zip.forEach((relPath, file) => {
+      if (file.dir) return; // skip directories
+      const saveName = prefix + relPath;
+      promises.push(
+        file.async("arraybuffer").then(async (buf) => {
+          // Guess MIME type from extension
+          const ext = relPath.split(".").pop()?.toLowerCase() || "";
+          const mimeMap = {
+            png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg",
+            gif: "image/gif", webp: "image/webp", svg: "image/svg+xml",
+            mp4: "video/mp4", webm: "video/webm", mp3: "audio/mpeg",
+            wav: "audio/wav", ogg: "audio/ogg", json: "application/json",
+            txt: "text/plain", csv: "text/csv", obj: "text/plain",
+            glb: "model/gltf-binary", gltf: "model/gltf+json",
+          };
+          const mime = mimeMap[ext] || "application/octet-stream";
+          await storage.saveUpload(saveName, buf, mime);
+          extracted.push(saveName);
+        })
+      );
+    });
+
+    await Promise.all(promises);
+    broadcast({ type: "uploads_changed" });
+    return `ok — extracted ${extracted.length} files:\n${extracted.join("\n")}`;
+  } catch (err) {
+    return `Error extracting ZIP: ${err.message || String(err)}`;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Dispatch table
 // ---------------------------------------------------------------------------
@@ -625,6 +668,7 @@ const TOOL_HANDLERS = {
   set_timeline: toolSetTimeline,
   run_preprocess: toolRunPreprocess,
   web_fetch: toolWebFetch,
+  unzip_asset: toolUnzipAsset,
 };
 
 /**
