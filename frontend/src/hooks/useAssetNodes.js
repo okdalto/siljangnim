@@ -298,7 +298,21 @@ export default function useAssetNodes() {
     const map = new Map();
     if (assetsObj && typeof assetsObj === "object") {
       for (const [id, desc] of Object.entries(assetsObj)) {
-        map.set(id, { ...desc, id, previewUrl: null, thumbnailUrl: null });
+        // Mark visual assets as "restoring" so UI shows a loading indicator
+        const cat = desc.category || categoryFromFilename(desc.filename);
+        const needsRestore =
+          cat === ASSET_CATEGORY.IMAGE ||
+          cat === ASSET_CATEGORY.VIDEO ||
+          cat === ASSET_CATEGORY.AUDIO ||
+          cat === ASSET_CATEGORY.SVG ||
+          cat === ASSET_CATEGORY.DATA;
+        map.set(id, {
+          ...desc,
+          id,
+          previewUrl: null,
+          thumbnailUrl: null,
+          processingStatus: needsRestore ? "restoring" : (desc.processingStatus || "ready"),
+        });
       }
     }
     setAssets(map);
@@ -320,22 +334,28 @@ export default function useAssetNodes() {
             try {
               const entry = await storageModule.readUpload(desc.filename);
               const url = URL.createObjectURL(new Blob([entry.data], { type: desc.mimeType }));
-              updates.set(id, { previewUrl: url });
-            } catch { /* file not in store */ }
-          } else if (cat === ASSET_CATEGORY.DATA && !desc.technicalInfo?.preview) {
-            // Regenerate text preview for DATA files missing it
+              updates.set(id, { previewUrl: url, processingStatus: "ready" });
+            } catch {
+              updates.set(id, { processingStatus: "missing" });
+            }
+          } else if (cat === ASSET_CATEGORY.DATA) {
             try {
               const entry = await storageModule.readUpload(desc.filename);
-              const text = new TextDecoder("utf-8").decode(entry.data);
-              const ext = (desc.filename.split(".").pop() || "").toLowerCase();
-              let preview = text;
-              if (ext === "json") {
-                try { preview = JSON.stringify(JSON.parse(text), null, 2); } catch { /* raw text */ }
+              let techUpdate = {};
+              if (!desc.technicalInfo?.preview) {
+                const text = new TextDecoder("utf-8").decode(entry.data);
+                const ext = (desc.filename.split(".").pop() || "").toLowerCase();
+                let preview = text;
+                if (ext === "json") {
+                  try { preview = JSON.stringify(JSON.parse(text), null, 2); } catch { /* raw text */ }
+                }
+                if (preview.length > 2000) preview = preview.slice(0, 2000) + "\n...";
+                techUpdate = { technicalInfo: { ...(desc.technicalInfo || {}), preview } };
               }
-              if (preview.length > 2000) preview = preview.slice(0, 2000) + "\n...";
-              const techInfo = { ...(desc.technicalInfo || {}), preview };
-              updates.set(id, { technicalInfo: techInfo });
-            } catch { /* file not in store */ }
+              updates.set(id, { processingStatus: "ready", ...techUpdate });
+            } catch {
+              updates.set(id, { processingStatus: "missing" });
+            }
           }
         }
         if (updates.size > 0) {

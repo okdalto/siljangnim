@@ -81,7 +81,7 @@ function ModelSelector({ provider, selectedModel, onModelChange }) {
   );
 }
 
-export default function Toolbar({ onNewProject, activeProject, connected, provider, saveStatus, onChangeApiKey, onToggleTree, treeOpen, promptMode, onPromptModeChange, projectManifest, backendTarget, onBackendTargetChange, selectedModel, onModelChange, onProjectRename }) {
+export default function Toolbar({ onNewProject, activeProject, connected, provider, saveStatus, onChangeApiKey, onToggleTree, treeOpen, promptMode, onPromptModeChange, projectManifest, backendTarget, onBackendTargetChange, selectedModel, onModelChange, onProjectRename, githubAuth }) {
   const { isMobile } = useMobile();
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
@@ -249,6 +249,7 @@ export default function Toolbar({ onNewProject, activeProject, connected, provid
             selectedModel,
             onModelChange,
             provider,
+            githubAuth,
           } : {})}
         />
       </div>

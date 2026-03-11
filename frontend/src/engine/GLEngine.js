@@ -1619,20 +1619,35 @@ export default class GLEngine {
       console.warn("[GLEngine] Failed to pre-populate uploads:", e);
     }
 
-    // Check for excluded (missing) assets from manifest
+    // Check for missing assets — both excluded and genuinely absent from IndexedDB
     try {
       const manifest = await getProjectManifest();
+      const missingList = [];
+
+      // Check excluded assets
       if (manifest?.excluded_assets?.length > 0) {
-        const missingList = [];
         for (const asset of manifest.excluded_assets) {
           if (!ctx.uploads[asset.filename]) {
-            ctx.uploads[asset.filename] = null; // mark as missing
+            ctx.uploads[asset.filename] = null;
             missingList.push(asset);
           }
         }
-        if (missingList.length > 0) {
-          this.onMissingAssets?.(missingList);
+      }
+
+      // Check all declared assets — detect ones missing from IndexedDB
+      if (manifest?.assets?.length > 0) {
+        const excludedNames = new Set((manifest.excluded_assets || []).map((a) => a.filename));
+        for (const asset of manifest.assets) {
+          if (excludedNames.has(asset.filename)) continue; // already handled above
+          if (!ctx.uploads[asset.filename]) {
+            ctx.uploads[asset.filename] = null;
+            missingList.push(asset);
+          }
         }
+      }
+
+      if (missingList.length > 0) {
+        this.onMissingAssets?.(missingList);
       }
     } catch {
       // Manifest read may fail — continue.

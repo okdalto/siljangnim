@@ -53,8 +53,10 @@ const CATEGORY_ICONS = {
 const STATUS_COLORS = {
   pending: "var(--chrome-text-muted)",
   processing: "#f59e0b",
+  restoring: "#60a5fa",
   ready: "#22c55e",
   error: "#ef4444",
+  missing: "#ef4444",
 };
 
 // ---- Compact tech info display ----
@@ -102,7 +104,35 @@ function TechSummary({ descriptor }) {
 // ---- Preview thumbnail ----
 
 function AssetPreview({ descriptor }) {
-  const { category, previewUrl, thumbnailUrl, filename } = descriptor;
+  const { category, previewUrl, thumbnailUrl, filename, processingStatus } = descriptor;
+
+  // Loading state — asset exists in saved state, blob URL being regenerated
+  if (processingStatus === "restoring") {
+    return (
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 opacity-60">
+        <div className="w-5 h-5 border-2 border-blue-400 border-t-blue-200 rounded-full animate-spin" />
+        <span className="text-[9px]" style={{ color: "var(--chrome-text-muted)" }}>Loading...</span>
+      </div>
+    );
+  }
+
+  // Missing state — asset not found in IndexedDB
+  if (processingStatus === "missing") {
+    return (
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5 p-2">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <span className="text-[9px] text-center leading-tight" style={{ color: "#ef4444" }}>
+          Asset missing
+        </span>
+        <span className="text-[8px] text-center truncate max-w-full" style={{ color: "var(--chrome-text-muted)" }}>
+          {filename}
+        </span>
+      </div>
+    );
+  }
 
   const url = thumbnailUrl || previewUrl;
 
@@ -207,6 +237,15 @@ function AssetNode({ data }) {
         </span>
         {processingStatus === "processing" && (
           <div className="w-2.5 h-2.5 border border-yellow-500 border-t-yellow-300 rounded-full animate-spin flex-shrink-0" />
+        )}
+        {processingStatus === "restoring" && (
+          <div className="w-2.5 h-2.5 border border-blue-400 border-t-blue-200 rounded-full animate-spin flex-shrink-0" />
+        )}
+        {processingStatus === "missing" && (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" className="flex-shrink-0">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
         )}
         <button
           onClick={handleDelete}
