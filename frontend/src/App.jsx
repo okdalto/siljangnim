@@ -484,7 +484,7 @@ export default function App() {
     handleStartCompare,
     handleSelectCompareTarget,
     handleTreeDeleteNode,
-  } = useTreeActions({ tree, compare, handleMessage, project, chat });
+  } = useTreeActions({ tree, compare, handleMessage, project, chat, agentEngine: _agentEngine });
 
   const handleNewProject = useCallback(() => {
     // No unsaved-changes dialog — auto-save ensures everything is persisted
