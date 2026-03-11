@@ -345,6 +345,147 @@ Core methods:
 | \`destroyBindGroup(handle)\` | Destroy bind group |
 | \`destroyRenderTarget(handle)\` | Destroy render target |
 | \`destroyShaderModule(handle)\` | Destroy shader module |
+| \`beginComputePass(encoder, { label? })\` | Begin compute pass (WebGPU only) |
+| \`endComputePass(pass)\` | End compute pass |
+| \`setComputePipeline(pass, pipeline)\` | Set compute pipeline in compute pass |
+| \`dispatch(pass, x, y?, z?)\` | Dispatch compute workgroups |
+| \`readPixels(target?, x, y, w, h)\` | Read pixels from render target (async) |
+| \`resize(width, height)\` | Resize the drawing surface |
+| \`getCapabilities()\` | Returns \`{ backend, maxTextureSize, compute, storageBuffers, ... }\` |
+| \`getNativeContext()\` | Get raw GPUDevice (WebGPU) or WebGL2RenderingContext |
+
+### Bind Group Resource Types
+
+\`createBindGroup({ entries: [{ binding: N, resource: { type, ... } }] })\`
+
+| Resource type | Fields | Description |
+|---------------|--------|-------------|
+| \`"uniform-buffer"\` | \`{ buffer, offset?, size? }\` | Uniform buffer binding |
+| \`"storage-buffer"\` | \`{ buffer, offset?, size? }\` | Storage buffer binding (read or read_write) |
+| \`"texture"\` | \`{ texture }\` | Texture binding |
+| \`"sampler"\` | \`{ sampler }\` | Sampler binding |
+| \`"storage-texture"\` | \`{ texture }\` | Read-write texture binding |
+
+### WebGPU Compute Simulation Example (Particle System)
+
+\`\`\`js
+// setup:
+const r = ctx.renderer;
+const N = 100000;
+
+// Create particle data buffer (position + velocity)
+const initData = new Float32Array(N * 4);
+for (let i = 0; i < N; i++) {
+  initData[i*4+0] = (Math.random()-0.5)*2; // x
+  initData[i*4+1] = (Math.random()-0.5)*2; // y
+  initData[i*4+2] = (Math.random()-0.5)*0.01; // vx
+  initData[i*4+3] = (Math.random()-0.5)*0.01; // vy
+}
+const particleBuf = r.createBuffer({ usage: [BufferUsage.STORAGE, BufferUsage.VERTEX], data: initData });
+const uniformBuf = r.createBuffer({ usage: [BufferUsage.UNIFORM, BufferUsage.COPY_DST], size: 16 });
+
+// Compute shader: update particles
+const computeModule = r.createShaderModule({ code: \`
+  struct Params { dt: f32, count: u32, _pad: vec2f }
+  @group(0) @binding(0) var<uniform> params: Params;
+  @group(0) @binding(1) var<storage, read_write> particles: array<vec4f>;
+
+  @compute @workgroup_size(64)
+  fn main(@builtin(global_invocation_id) id: vec3u) {
+    if (id.x >= params.count) { return; }
+    var p = particles[id.x];
+    p.x += p.z * params.dt;  // x += vx * dt
+    p.y += p.w * params.dt;  // y += vy * dt
+    // Bounce off walls
+    if (abs(p.x) > 1.0) { p.z = -p.z; p.x = clamp(p.x, -1.0, 1.0); }
+    if (abs(p.y) > 1.0) { p.w = -p.w; p.y = clamp(p.y, -1.0, 1.0); }
+    particles[id.x] = p;
+  }
+\` });
+const computePipeline = r.createComputePipeline({ module: computeModule, entryPoint: "main" });
+const computeBG = r.createBindGroup({ entries: [
+  { binding: 0, resource: { type: "uniform-buffer", buffer: uniformBuf } },
+  { binding: 1, resource: { type: "storage-buffer", buffer: particleBuf } },
+]});
+
+// Render shader: draw particles as points
+const renderModule = r.createShaderModule({ code: \`
+  @vertex fn vs(@location(0) posvel: vec4f) -> @builtin(position) vec4f {
+    return vec4f(posvel.xy, 0.0, 1.0);
+  }
+  @fragment fn fs() -> @location(0) vec4f {
+    return vec4f(1.0, 0.6, 0.2, 1.0);
+  }
+\` });
+const renderPipeline = r.createRenderPipeline({
+  vertex: { module: renderModule, entryPoint: "vs",
+    buffers: [{ arrayStride: 16, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x4" }] }]
+  },
+  fragment: { module: renderModule, entryPoint: "fs" },
+  primitive: { topology: "point-list" },
+});
+const renderBG = r.createBindGroup({ entries: [] });
+ctx.state = { r, N, particleBuf, uniformBuf, computePipeline, computeBG, renderPipeline, renderBG, computeModule, renderModule };
+
+// render:
+const s = ctx.state;
+s.r.writeBuffer(s.uniformBuf, new Float32Array([ctx.dt, s.N, 0, 0]));
+const enc = s.r.beginFrame();
+// Step 1: compute pass — update particles
+const cp = s.r.beginComputePass(enc, {});
+s.r.setComputePipeline(cp, s.computePipeline);
+s.r.setBindGroup(cp, 0, s.computeBG);
+s.r.dispatch(cp, Math.ceil(s.N / 64));
+s.r.endComputePass(cp);
+// Step 2: render pass — draw particles
+const rp = s.r.beginRenderPass(enc, { colorAttachments: [{ clearColor: [0,0,0,1] }] });
+s.r.setPipeline(rp, s.renderPipeline);
+s.r.setVertexBuffer(rp, 0, s.particleBuf);
+s.r.draw(rp, s.N);
+s.r.endRenderPass(rp);
+s.r.endFrame(enc);
+
+// cleanup:
+const { r: rr } = ctx.state;
+for (const h of [ctx.state.particleBuf, ctx.state.uniformBuf]) rr.destroyBuffer(h);
+for (const h of [ctx.state.computePipeline, ctx.state.renderPipeline]) rr.destroyPipeline(h);
+for (const h of [ctx.state.computeBG, ctx.state.renderBG]) rr.destroyBindGroup(h);
+for (const h of [ctx.state.computeModule, ctx.state.renderModule]) rr.destroyShaderModule(h);
+\`\`\`
+
+### Multi-Pipeline Pattern (Compute → Compute → Render)
+
+For complex simulations (MPM, SPH) that need multiple compute passes per frame:
+\`\`\`js
+// render — chain compute passes then render:
+const enc = r.beginFrame();
+// Pass 1: scatter particles to grid
+const p1 = r.beginComputePass(enc, {});
+r.setComputePipeline(p1, scatterPipeline);
+r.setBindGroup(p1, 0, scatterBG);
+r.dispatch(p1, Math.ceil(numParticles / 64));
+r.endComputePass(p1);
+// Pass 2: grid update
+const p2 = r.beginComputePass(enc, {});
+r.setComputePipeline(p2, gridPipeline);
+r.setBindGroup(p2, 0, gridBG);
+r.dispatch(p2, Math.ceil(gridSize / 64));
+r.endComputePass(p2);
+// Pass 3: gather from grid back to particles
+const p3 = r.beginComputePass(enc, {});
+r.setComputePipeline(p3, gatherPipeline);
+r.setBindGroup(p3, 0, gatherBG);
+r.dispatch(p3, Math.ceil(numParticles / 64));
+r.endComputePass(p3);
+// Pass 4: render
+const rp = r.beginRenderPass(enc, { colorAttachments: [{ clearColor: [0,0,0,1] }], depthAttachment: { clearDepth: 1.0 } });
+r.setPipeline(rp, renderPipeline);
+r.setBindGroup(rp, 0, renderBG);
+r.setVertexBuffer(rp, 0, particleBuf);
+r.draw(rp, numParticles);
+r.endRenderPass(rp);
+r.endFrame(enc);
+\`\`\`
 
 ### WebGPU Fullscreen Quad Example
 
