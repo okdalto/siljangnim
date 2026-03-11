@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import * as storageApi from "../engine/storage.js";
+import { showToast } from "./useToast.js";
 
 /**
  * Extracts tree-related callbacks from App.jsx.
@@ -7,7 +8,7 @@ import * as storageApi from "../engine/storage.js";
 export default function useTreeActions({ tree, compare, handleMessage, project, chat, agentEngine }) {
   const handleTreeNodeRestore = useCallback(async (nodeId) => {
     if (agentEngine?.abortController) {
-      chat.addLog({ agent: "System", message: "에이전트가 실행 중입니다. 완료 후 노드를 전환해 주세요.", level: "warn" });
+      showToast("에이전트가 실행 중입니다. 완료 후 노드를 전환해 주세요.", "warn");
       return;
     }
     const projName = storageApi.getActiveProjectName();
@@ -85,13 +86,13 @@ export default function useTreeActions({ tree, compare, handleMessage, project, 
 
   const handleTreeDeleteNode = useCallback(async (nodeId) => {
     if (agentEngine?.abortController) {
-      chat.addLog({ agent: "System", message: "에이전트가 실행 중입니다. 완료 후 삭제해 주세요.", level: "warn" });
+      showToast("에이전트가 실행 중입니다. 완료 후 삭제해 주세요.", "warn");
       return;
     }
     const projName = storageApi.getActiveProjectName();
     if (!projName) return;
     await tree.deleteNodeTree(nodeId, projName);
-  }, [tree.deleteNodeTree, agentEngine, chat.addLog]);
+  }, [tree.deleteNodeTree, agentEngine]);
 
   return {
     handleTreeNodeRestore,

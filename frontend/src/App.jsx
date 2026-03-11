@@ -37,11 +37,13 @@ import useAssetHandlers from "./hooks/useAssetHandlers.js";
 import useAIDebugger from "./hooks/useAIDebugger.js";
 import usePromptMode from "./hooks/usePromptMode.js";
 import FeedbackButton from "./components/FeedbackButton.jsx";
+import ToastContainer from "./components/Toast.jsx";
 import EngineContext from "./contexts/EngineContext.js";
 import SettingsContext from "./contexts/SettingsContext.js";
 import SceneContext from "./contexts/SceneContext.js";
 import { nodeTypes, initialNodes } from "./config/nodeConfig.js";
 import useAssetNodes from "./hooks/useAssetNodes.js";
+import { showToast } from "./hooks/useToast.js";
 import ApiKeyModal from "./components/ApiKeyModal.jsx";
 import MobileLayout from "./components/MobileLayout.jsx";
 import Toolbar from "./components/Toolbar.jsx";
@@ -538,7 +540,7 @@ export default function App() {
 
   const handleNewProject = useCallback(() => {
     if (_agentEngine?.abortController) {
-      chat.addLog({ agent: "System", message: "에이전트가 실행 중입니다. 완료 후 새 프로젝트를 만들어 주세요.", level: "warn" });
+      showToast("에이전트가 실행 중입니다. 완료 후 새 프로젝트를 만들어 주세요.", "warn");
       return;
     }
     // No unsaved-changes dialog — auto-save ensures everything is persisted
@@ -971,6 +973,7 @@ export default function App() {
           token={github.token}
         />
       )}
+    <ToastContainer />
     </SceneContext.Provider>
     </EngineContext.Provider>
     </SettingsContext.Provider>
