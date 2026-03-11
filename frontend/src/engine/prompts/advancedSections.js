@@ -259,10 +259,92 @@ When the scene targets WebGPU backend:
 - Storage buffers: @group(0) @binding(0) var<storage, read_write> data: array<f32>
 - Use for: particle simulation, fluid dynamics, audio analysis acceleration
 
+### ctx.renderer API (RendererInterface)
+
+**Always use \`ctx.renderer\` for WebGPU scenes — never use raw GPUDevice/GPURenderPipeline.**
+
+Core methods:
+
+| Method | Description |
+|--------|-------------|
+| \`createShaderModule({ code, label? })\` | Create shader module from WGSL source |
+| \`createRenderPipeline({ vertex, fragment, primitive?, depthStencil? })\` | Create render pipeline |
+| \`createComputePipeline({ compute })\` | Create compute pipeline |
+| \`createBuffer({ usage, size, data? })\` | Create GPU buffer (usage: BufferUsage.VERTEX/INDEX/UNIFORM/STORAGE) |
+| \`writeBuffer(handle, data, offset?)\` | Update buffer data |
+| \`createTexture({ width, height, format?, usage? })\` | Create texture |
+| \`writeTexture(handle, source, options?)\` | Upload image/canvas to texture |
+| \`createSampler({ minFilter?, magFilter?, addressModeU?, addressModeV? })\` | Create sampler |
+| \`createBindGroup({ layout?, entries: [{binding, resource}] })\` | Create bind group |
+| \`createRenderTarget({ width, height, format?, depth? })\` | Create offscreen FBO |
+| \`beginFrame()\` | Start frame → returns encoder |
+| \`endFrame(encoder)\` | Submit commands |
+| \`beginRenderPass(encoder, { colorAttachments, depthAttachment? })\` | Begin render pass |
+| \`endRenderPass(pass)\` | End render pass |
+| \`setPipeline(pass, pipeline)\` | Set active pipeline |
+| \`setBindGroup(pass, index, bindGroup)\` | Bind resources |
+| \`setVertexBuffer(pass, slot, buffer)\` | Set vertex buffer |
+| \`setIndexBuffer(pass, buffer, format?)\` | Set index buffer |
+| \`draw(pass, vertexCount, instances?, firstVertex?, firstInstance?)\` | Draw |
+| \`drawIndexed(pass, indexCount, instances?, firstIndex?, baseVertex?, firstInstance?)\` | Draw indexed |
+| \`destroyBuffer(handle)\` | Destroy buffer |
+| \`destroyTexture(handle)\` | Destroy texture |
+| \`destroyPipeline(handle)\` | Destroy pipeline |
+| \`destroyBindGroup(handle)\` | Destroy bind group |
+| \`destroyRenderTarget(handle)\` | Destroy render target |
+| \`destroyShaderModule(handle)\` | Destroy shader module |
+
+### WebGPU Fullscreen Quad Example
+
+\`\`\`js
+// setup:
+const r = ctx.renderer;
+const shader = r.createShaderModule({ code: \`
+  struct Uniforms { time: f32, _pad1: f32, resolution: vec2f }
+  @group(0) @binding(0) var<uniform> u: Uniforms;
+
+  @vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4f {
+    let pos = array<vec2f, 3>(vec2f(-1,-1), vec2f(3,-1), vec2f(-1,3));
+    return vec4f(pos[i], 0, 1);
+  }
+
+  @fragment fn fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
+    let uv = pos.xy / u.resolution;
+    return vec4f(uv, sin(u.time)*0.5+0.5, 1.0);
+  }
+\` });
+const pipeline = r.createRenderPipeline({ vertex: { module: shader, entryPoint: "vs" }, fragment: { module: shader, entryPoint: "fs" } });
+const ubuf = r.createBuffer({ usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, size: 16 });
+const bindGroup = r.createBindGroup({ entries: [{ binding: 0, resource: { buffer: ubuf._native ?? ubuf } }] });
+ctx.state = { r, pipeline, ubuf, bindGroup, shader };
+
+// render:
+const { r, pipeline, ubuf, bindGroup } = ctx.state;
+r.writeBuffer(ubuf, new Float32Array([ctx.time, 0, ctx.resolution[0], ctx.resolution[1]]));
+const enc = r.beginFrame();
+const pass = r.beginRenderPass(enc, { colorAttachments: [{ loadOp: "clear", clearValue: [0,0,0,1] }] });
+r.setPipeline(pass, pipeline);
+r.setBindGroup(pass, 0, bindGroup);
+r.draw(pass, 3);
+r.endRenderPass(pass);
+r.endFrame(enc);
+
+// cleanup:
+const { r: rr, pipeline: p, ubuf: ub, bindGroup: bg, shader: sh } = ctx.state;
+rr.destroyPipeline(p); rr.destroyBuffer(ub); rr.destroyBindGroup(bg); rr.destroyShaderModule(sh);
+\`\`\`
+
+### shaderTarget — Dual GLSL+WGSL Support
+
+Use \`ctx.shaderTarget\` to write shaders that work on both backends:
+- \`ctx.shaderTarget.dualFragment(glslBody, wgslBody, opts?)\` — Create a shader with both GLSL and WGSL versions
+- \`ctx.shaderTarget.shaderSource({ glsl, wgsl, label? })\` — Wrap pre-written shader sources
+- \`ctx.shaderTarget.selectShader(source, ctx.backendType)\` — Pick the right version for current backend
+
 ### Backend Awareness
 - Check project metadata for backendTarget (auto/webgl/webgpu)
-- When target is "webgpu", generate WGSL shaders
-- When target is "auto" or "webgl", generate GLSL (default)
+- When target is "webgpu", generate WGSL shaders and use \`ctx.renderer\`
+- When target is "auto" or "webgl", generate GLSL and use \`ctx.gl\` (default)
 - The shaderTarget system supports dual output (GLSL+WGSL) via dualFragment()`,
   },
   {
@@ -346,14 +428,39 @@ higher-quality results than blank generation. Combine multiple techniques \
 ### Per-Project Backend Handling
 
 Each project may specify a \`backendTarget\` in its scene metadata:
-- \`"auto"\` (default): Use WebGL2; fall back gracefully. Generate GLSL shaders.
-- \`"webgl"\`: Force WebGL2. Generate GLSL shaders only.
-- \`"webgpu"\`: Force WebGPU. Generate WGSL shaders. Use GPUDevice, GPURenderPipeline, etc.
+- \`"auto"\` (default): Use WebGL2 + GLSL. Use \`ctx.gl\` and \`ctx.utils\`.
+- \`"webgl"\`: Force WebGL2. Same as auto.
+- \`"webgpu"\`: Force WebGPU + WGSL. **Use \`ctx.renderer\` (RendererInterface)** — \
+never use raw \`GPUDevice\`, \`GPURenderPipeline\`, or \`navigator.gpu\` directly.
+
+### WebGPU Scene Workflow
+
+When backendTarget is "webgpu", follow this pattern:
+
+1. **Set backendTarget** to \`"webgpu"\` in scene JSON.
+2. **setup**: Create resources via \`ctx.renderer\`:
+   - \`ctx.renderer.createShaderModule({ code: wgslCode })\`
+   - \`ctx.renderer.createRenderPipeline({ vertex: {...}, fragment: {...} })\`
+   - \`ctx.renderer.createBuffer({ usage, size, data? })\`
+   - \`ctx.renderer.createBindGroup({ entries: [...] })\`
+   - Store everything in \`ctx.state\`.
+3. **render**: Draw each frame:
+   - Update uniforms with \`ctx.renderer.writeBuffer()\`
+   - \`const enc = ctx.renderer.beginFrame()\`
+   - \`const pass = ctx.renderer.beginRenderPass(enc, { colorAttachments: [...] })\`
+   - \`ctx.renderer.setPipeline(pass, pipeline)\`
+   - \`ctx.renderer.setBindGroup(pass, 0, bindGroup)\`
+   - \`ctx.renderer.draw(pass, vertexCount)\`
+   - \`ctx.renderer.endRenderPass(pass)\`
+   - \`ctx.renderer.endFrame(enc)\`
+4. **cleanup**: Destroy all resources:
+   - \`ctx.renderer.destroyPipeline()\`, \`destroyBuffer()\`, \`destroyTexture()\`, \
+\`destroyBindGroup()\`, \`destroyShaderModule()\`
 
 When generating or modifying scenes:
-1. Read the current backendTarget from scene metadata (scene_json.backendTarget or project manifest).
-2. If target is "webgpu", write WGSL shaders and use the WebGPU API instead of WebGL2.
-3. If target is "auto" or absent, default to WebGL2/GLSL.
+1. Read the current backendTarget from scene metadata.
+2. If target is "webgpu", write WGSL shaders and use \`ctx.renderer\`.
+3. If target is "auto" or absent, default to WebGL2/GLSL with \`ctx.gl\`.
 4. When the user explicitly requests WebGPU or compute shaders, set backendTarget to "webgpu".
 5. Never mix GLSL and WGSL in the same shader program — pick one based on the backend.`,
   },
