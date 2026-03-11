@@ -97,14 +97,13 @@ function findEmptyPosition(existingNodes, width, height, rfInstance) {
     }
   }
 
-  // --- Strategy 3: place just to the right of visible area ---
-  const rightX = vpRight + _PLACEMENT_GAP;
-  for (let y = vpTop; y + height <= vpBottom; y += stepY) {
-    if (!overlaps(rightX, y, width, height)) return { x: rightX, y };
-  }
-
-  // Final fallback
-  return { x: vpRight + _PLACEMENT_GAP, y: vpTop };
+  // --- Strategy 3: overlap with offset inside viewport ---
+  // Better to overlap slightly than to place off-screen where the user can't see it.
+  // Use a cascading offset so stacked panels are still distinguishable.
+  const cascadeOffset = (boxes.length % 5) * 30;
+  const fallbackX = Math.min(vpLeft + cascadeOffset, vpRight - width);
+  const fallbackY = Math.min(vpTop + cascadeOffset, vpBottom - height);
+  return { x: fallbackX, y: fallbackY };
 }
 
 /**
@@ -259,6 +258,9 @@ export default function useNodeDataSync({
     }));
   }, [setNodes, chat.debugLogs, dbg?.compileLogs, dbg?.validationLogs, dbg?.diagnosis, dbg?.patches, dbg?.simpleExplanation, backendTarget]);
 
+  // Track newly created panel nodes so we can scroll to them after render
+  const newPanelRef = useRef(null);
+
   // --- Custom panel nodes sync (data + add/remove) ---
   useEffect(() => {
     setNodes((nds) => {
@@ -290,39 +292,44 @@ export default function useNodeDataSync({
 
       // Add/remove custom panel nodes
       const panelNodeIds = new Set([...panels.customPanels.keys()].map((id) => `panel_${id}`));
+      let newlyAdded = null;
       for (const [panelId, panel] of panels.customPanels) {
         const nodeId = `panel_${panelId}`;
         if (!updated.some((n) => n.id === nodeId)) {
           const pw = panel.width || 320;
           const ph = panel.height || 300;
           const pos = findEmptyPosition(updated, pw, ph, rfInstanceRef?.current);
-          updated = [
-            ...updated,
-            {
-              id: nodeId,
-              type: "customPanel",
-              position: pos,
-              style: { width: pw, height: ph },
-              data: {
-                title: panel.title,
-                html: panel.html,
-                controls: panel.controls ? mergeControlDefaultsRef.current(panel.controls) : undefined,
-                onUniformChange: handleUniformChangeRef.current,
-                engineRef,
-                onClose: () => handlePanelCloseRef.current(panelId),
-                keyframeManagerRef: kf.keyframeManagerRef,
-                onKeyframesChange: kf.handlePanelKeyframesChange,
-                onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
-                onDurationChange: setDuration,
-                onLoopChange: setLoop,
-                duration,
-                loop,
-              },
+          const newNode = {
+            id: nodeId,
+            type: "customPanel",
+            position: pos,
+            style: { width: pw, height: ph },
+            data: {
+              title: panel.title,
+              html: panel.html,
+              controls: panel.controls ? mergeControlDefaultsRef.current(panel.controls) : undefined,
+              onUniformChange: handleUniformChangeRef.current,
+              engineRef,
+              onClose: () => handlePanelCloseRef.current(panelId),
+              keyframeManagerRef: kf.keyframeManagerRef,
+              onKeyframesChange: kf.handlePanelKeyframesChange,
+              onOpenKeyframeEditor: kf.handleOpenKeyframeEditor,
+              onDurationChange: setDuration,
+              onLoopChange: setLoop,
+              duration,
+              loop,
             },
-          ];
+          };
+          updated = [...updated, newNode];
+          newlyAdded = newNode;
         }
       }
       updated = updated.filter((n) => n.type !== "customPanel" || panelNodeIds.has(n.id));
+
+      // Schedule scroll-to for the newly created panel
+      if (newlyAdded) {
+        newPanelRef.current = newlyAdded;
+      }
 
       // Apply pending node layouts from project load (incremental)
       if (pendingLayoutsRef.current) {
@@ -356,6 +363,38 @@ export default function useNodeDataSync({
     kf.handleOpenKeyframeEditor, kf.keyframeVersion, kf.handlePanelKeyframesChange, kf.keyframeManagerRef,
     duration, loop,
   ]);
+
+  // Scroll to newly created panel so the user can see it
+  useEffect(() => {
+    const panel = newPanelRef.current;
+    if (!panel) return;
+    newPanelRef.current = null;
+    const rf = rfInstanceRef?.current;
+    if (!rf) return;
+    // Wait for React Flow to reconcile the new node, then scroll to it
+    requestAnimationFrame(() => {
+      try {
+        const pw = parseFloat(panel.style?.width) || 320;
+        const ph = parseFloat(panel.style?.height) || 300;
+        const centerX = panel.position.x + pw / 2;
+        const centerY = panel.position.y + ph / 2;
+        // Only pan if the panel center is outside the current viewport
+        const vp = rf.getViewport();
+        const el = document.querySelector(".react-flow");
+        if (el && vp) {
+          const rect = el.getBoundingClientRect();
+          const z = vp.zoom || 1;
+          const vpLeft = -vp.x / z;
+          const vpTop = -vp.y / z;
+          const vpRight = vpLeft + rect.width / z;
+          const vpBottom = vpTop + rect.height / z;
+          if (centerX < vpLeft || centerX > vpRight || centerY < vpTop || centerY > vpBottom) {
+            rf.setCenter(centerX, centerY, { duration: 300, zoom: z });
+          }
+        }
+      } catch { /* non-critical */ }
+    });
+  }, [panels.customPanels]);
 
   // Pre-compute merged controls for all panels (replaces separate re-merge effect)
   const mergedControlsMap = useMemo(() => {
