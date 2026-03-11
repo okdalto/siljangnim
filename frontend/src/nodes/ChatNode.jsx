@@ -37,7 +37,7 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer, hideInput = false, activeNodeTitle = null, promptMode = "hybrid", treeNodes = [], activeTreeNodeId = null, onBranchFromNode, onSwitchToNode, overwriteMode = false, onToggleOverwrite } = data;
+  const { messages = [], onSend, isProcessing = false, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer, hideInput = false, activeNodeTitle = null, promptMode = "hybrid", treeNodes = [], activeTreeNodeId = null, onBranchFromNode, onSwitchToNode, overwriteMode = false, onToggleOverwrite, sceneReferences = [], onRemoveReference, onClearReferences } = data;
   const messagesRef = useRef(null);
   const fileInputRef = useRef(null);
   const thinkingRef = useRef(null);
@@ -143,11 +143,13 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
       ? attachedFiles.map(({ name, mime_type, size, data_b64 }) => ({ name, mime_type, size, data_b64 }))
       : undefined;
 
-    onSend?.(input.trim(), files);
+    onSend?.(input.trim(), files, sceneReferences.length > 0 ? sceneReferences : undefined);
     setInput("");
     // Clean up preview URLs
     attachedFiles.forEach((f) => { if (f.preview) URL.revokeObjectURL(f.preview); });
     setAttachedFiles([]);
+    // Clear scene references after sending
+    if (sceneReferences.length > 0) onClearReferences?.();
   };
 
   return (
@@ -291,6 +293,34 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
         <div className="px-2 pt-2 flex flex-wrap gap-1" style={{ borderTop: "1px solid var(--node-border)" }}>
           {attachedFiles.map((file, i) => (
             <FileChip key={i} file={file} onRemove={() => removeFile(i)} />
+          ))}
+        </div>
+      )}
+
+      {/* Scene references */}
+      {!hideInput && sceneReferences.length > 0 && (
+        <div className="px-2 py-1.5 flex flex-wrap gap-1 nodrag" style={{ borderTop: "1px solid var(--node-border)" }}>
+          {sceneReferences.map((ref) => (
+            <span
+              key={ref.nodeId}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
+              style={{ background: "rgba(99,102,241,0.2)", color: "#a5b4fc" }}
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+              </svg>
+              {ref.title}
+              <button
+                onClick={() => onRemoveReference?.(ref.nodeId)}
+                className="hover:text-red-400 transition-colors"
+                style={{ lineHeight: 1 }}
+              >
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </span>
           ))}
         </div>
       )}

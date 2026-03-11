@@ -14,6 +14,7 @@ import useMessageBus from "./hooks/useMessageBus.js";
 import MessageBus from "./engine/messageBus.js";
 import AgentEngine from "./engine/agentEngine.js";
 import * as storageApi from "./engine/storage.js";
+import { reconstructScene } from "./engine/projectTree.js";
 import useNodeSnapping from "./hooks/useNodeSnapping.js";
 import useNodeLayoutHistory from "./hooks/useNodeLayoutHistory.js";
 import useRecorder from "./hooks/useRecorder.js";
@@ -626,6 +627,33 @@ export default function App() {
   // Overwrite mode toggle
   const handleToggleOverwrite = useCallback(() => setOverwriteMode((v) => !v), []);
 
+  // Scene references — nodes pinned from version tree for agent context
+  const [sceneReferences, setSceneReferences] = useState([]);
+
+  const handleReferenceInChat = useCallback(async (node) => {
+    // Don't add duplicates
+    if (sceneReferences.some((r) => r.nodeId === node.id)) return;
+    try {
+      const projName = storageApi.getActiveProjectName();
+      const state = await reconstructScene(node.id, projName);
+      setSceneReferences((prev) => [...prev, {
+        nodeId: node.id,
+        title: node.title || "Untitled",
+        sceneJson: state.scene_json,
+      }]);
+    } catch (e) {
+      console.error("[App] Failed to reconstruct scene for reference:", e);
+    }
+  }, [sceneReferences]);
+
+  const handleRemoveReference = useCallback((nodeId) => {
+    setSceneReferences((prev) => prev.filter((r) => r.nodeId !== nodeId));
+  }, []);
+
+  const handleClearReferences = useCallback(() => {
+    setSceneReferences([]);
+  }, []);
+
   // Sync data into nodes (extracted hook)
   useNodeDataSync({
     setNodes, chat, sceneJSON, paused, uiConfig,
@@ -641,6 +669,7 @@ export default function App() {
     onAssetUpload: handleAssetUpload,
     onAssetDelete: handleAssetDelete,
     onPromptSuggestion: (text) => chat.handleSend(text),
+    onClearReferences: handleClearReferences,
     safeModeActive,
     promptMode: promptModeHook.promptMode,
     treeNodes: tree.treeNodes,
@@ -651,6 +680,8 @@ export default function App() {
     onToggleOverwrite: handleToggleOverwrite,
     backendTarget,
     nodeUiStateRef,
+    sceneReferences,
+    onRemoveReference: handleRemoveReference,
   });
 
   const sceneCtxValue = useMemo(() => ({
@@ -706,6 +737,7 @@ export default function App() {
             onPinCheckpoint={handleTreePinCheckpoint}
             onDeleteNode={handleTreeDeleteNode}
             onContinueFrom={handleContinueFromNode}
+            onReferenceInChat={handleReferenceInChat}
             compareSourceId={compare.compareSourceId}
             onStartCompare={handleStartCompare}
             onSelectCompareTarget={handleSelectCompareTarget}

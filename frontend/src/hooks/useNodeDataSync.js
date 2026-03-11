@@ -156,6 +156,10 @@ export default function useNodeDataSync({
   backendTarget,
   // Per-node UI state ref (collapsed, fixedResolution)
   nodeUiStateRef,
+  // Scene references from version tree
+  sceneReferences,
+  onRemoveReference,
+  onClearReferences,
 }) {
   // Use refs for stable callback values to avoid triggering unrelated effects
   const handleUniformChangeRef = useRef(handleUniformChange);
@@ -192,13 +196,16 @@ export default function useNodeDataSync({
       onSwitchToNode: (...args) => onSwitchToNodeRef.current?.(...args),
       overwriteMode: overwriteMode || false,
       onToggleOverwrite,
+      sceneReferences: sceneReferences || [],
+      onRemoveReference,
+      onClearReferences,
       initialCollapsed: nodeUiStateRef?.current?.collapsed?.chat,
       onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.chat = v; },
     }));
   }, [
     setNodes, chat.messages, chat.handleSend, chat.isProcessing, chat.agentStatus,
     chat.handleNewChat, chat.handleCancel, chat.pendingQuestion, chat.handleAnswer, activeNodeTitle, promptMode,
-    treeNodes, activeTreeNodeId, overwriteMode, onToggleOverwrite,
+    treeNodes, activeTreeNodeId, overwriteMode, onToggleOverwrite, sceneReferences, onRemoveReference,
   ]);
 
   // --- Viewport node sync ---
