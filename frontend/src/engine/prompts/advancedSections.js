@@ -321,13 +321,15 @@ Core methods:
 |--------|-------------|
 | \`createShaderModule({ code, label? })\` | Create shader module from WGSL source |
 | \`createRenderPipeline({ vertex, fragment, primitive?, depthStencil? })\` | Create render pipeline |
-| \`createComputePipeline({ compute })\` | Create compute pipeline |
+| \`createComputePipeline({ module, entryPoint?, constants?, label? })\` | Create compute pipeline. \`constants\`: pipeline-overridable constants object |
 | \`createBuffer({ usage, size, data? })\` | Create GPU buffer. usage: string or array of strings — \`"vertex"\`, \`"index"\`, \`"uniform"\`, \`"storage"\`, \`"copy-src"\` |
 | \`writeBuffer(handle, data, offset?)\` | Update buffer data |
 | \`createTexture({ width, height, format?, usage? })\` | Create texture |
 | \`writeTexture(handle, source, options?)\` | Upload image/canvas to texture |
 | \`createSampler({ minFilter?, magFilter?, addressModeU?, addressModeV? })\` | Create sampler |
 | \`createBindGroup({ pipeline, groupIndex?, entries: [{binding, resource}] })\` | Create bind group. Pass \`pipeline\` to auto-derive layout (recommended). \`groupIndex\` defaults to 0 |
+| \`createBindGroupLayout({ entries })\` | Create explicit bind group layout (use native WebGPU entry format) |
+| \`createPipelineLayout({ bindGroupLayouts })\` | Create pipeline layout from bind group layouts |
 | \`createRenderTarget({ width, height, format?, depth? })\` | Create offscreen FBO |
 | \`beginFrame()\` | Start frame → returns encoder |
 | \`endFrame(encoder)\` | Submit commands |
@@ -362,6 +364,7 @@ Core methods:
 |---------------|--------|-------------|
 | \`"uniform-buffer"\` | \`{ buffer, offset?, size? }\` | Uniform buffer binding |
 | \`"storage-buffer"\` | \`{ buffer, offset?, size? }\` | Storage buffer binding (read or read_write) |
+| \`"read-only-storage-buffer"\` | \`{ buffer, offset?, size? }\` | Read-only storage buffer binding |
 | \`"texture"\` | \`{ texture }\` | Texture binding |
 | \`"sampler"\` | \`{ sampler }\` | Sampler binding |
 | \`"storage-texture"\` | \`{ texture }\` | Read-write texture binding |

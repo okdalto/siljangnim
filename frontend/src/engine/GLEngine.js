@@ -1016,12 +1016,14 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
         this._scriptCleanupFn = new Function("ctx", cleanupBody);
       }
 
-      // Pre-populate ctx.uploads with blob URLs, then run setup
-      this._prepareUploadsAndRunSetup(ctx, generation);
+      // Pre-populate ctx.uploads with blob URLs, then run setup.
+      // Store promise so callers (e.g. ViewportNode) can await setup completion.
+      this._setupPromise = this._prepareUploadsAndRunSetup(ctx, generation);
     } catch (err) {
       console.error("[GLEngine] Script error:", err);
       this.onError?.(err);
       window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
+      this._setupPromise = Promise.resolve();
     }
 
     // Parse custom uniforms
@@ -1219,6 +1221,15 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       if (this._backend && !ctx.renderer) {
         ctx.renderer = this._backend;
         ctx.backendType = this._backend.backendType;
+        // Apply shader module wrapping if not already done
+        if (typeof ctx.renderer.createShaderModule === "function" && !ctx.renderer._wrapped) {
+          const origCreateShaderModule = ctx.renderer.createShaderModule.bind(ctx.renderer);
+          ctx.renderer.createShaderModule = (desc) => {
+            const transpiledCode = this._transpileShaderSource(desc.code);
+            return origCreateShaderModule({ ...desc, code: transpiledCode });
+          };
+          ctx.renderer._wrapped = true;
+        }
       }
 
       // Drift-correct registered video elements to match ctx.time.
@@ -1761,6 +1772,17 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       if (this._backend && !ctx.renderer) {
         ctx.renderer = this._backend;
         ctx.backendType = this._backend.backendType;
+
+        // Apply shader module wrapping (transpilation + error interception)
+        // that was skipped in loadScene because ctx.renderer was null
+        if (typeof ctx.renderer.createShaderModule === "function" && !ctx.renderer._wrapped) {
+          const origCreateShaderModule = ctx.renderer.createShaderModule.bind(ctx.renderer);
+          ctx.renderer.createShaderModule = (desc) => {
+            const transpiledCode = this._transpileShaderSource(desc.code);
+            return origCreateShaderModule({ ...desc, code: transpiledCode });
+          };
+          ctx.renderer._wrapped = true;
+        }
       }
     }
 

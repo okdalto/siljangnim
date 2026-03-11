@@ -296,16 +296,20 @@ export class WebGPUBackend extends RendererInterface {
     const { code, label } = desc;
     const module = this.device.createShaderModule({ code, label });
 
-    // Check compilation info for errors
-    module.getCompilationInfo().then((info) => {
+    // Check compilation info for errors — store promise for pipeline error enrichment
+    const compilationPromise = module.getCompilationInfo().then((info) => {
+      const errors = [];
       for (const msg of info.messages) {
         if (msg.type === "error") {
-          this.pushValidationError("shader", `[${label || "shader"}] L${msg.lineNum}: ${msg.message}`);
+          const errMsg = `[${label || "shader"}] L${msg.lineNum}:${msg.linePos || 0}: ${msg.message}`;
+          errors.push(errMsg);
+          this.pushValidationError("shader", errMsg);
         }
       }
+      return errors;
     });
 
-    return { _id: nextId(), _native: module, code, label, _backend: BackendType.WEBGPU };
+    return { _id: nextId(), _native: module, code, label, _backend: BackendType.WEBGPU, _compilationPromise: compilationPromise };
   }
 
   destroyShaderModule(handle) {
@@ -318,31 +322,42 @@ export class WebGPUBackend extends RendererInterface {
   createRenderPipeline(desc) {
     const { vertex, fragment, primitive = {}, depthStencil, label } = desc;
 
+    const vertexDesc = {
+      module: vertex.module._native,
+      entryPoint: vertex.entryPoint || "vs_main",
+      buffers: (vertex.buffers || []).map((b) => ({
+        arrayStride: b.arrayStride,
+        stepMode: b.stepMode || "vertex",
+        attributes: (b.attributes || []).map((a) => ({
+          shaderLocation: a.shaderLocation,
+          offset: a.offset || 0,
+          format: a.format || "float32x2",
+        })),
+      })),
+    };
+    if (vertex.constants) vertexDesc.constants = vertex.constants;
+
+    const fragmentDesc = {
+      module: fragment.module._native,
+      entryPoint: fragment.entryPoint || "fs_main",
+      targets: (fragment.targets || [{ format: this._presentationFormat }]).map((t) => {
+        const target = { format: t.format || this._presentationFormat };
+        if (t.blend) target.blend = t.blend;
+        if (t.writeMask !== undefined) target.writeMask = t.writeMask;
+        return target;
+      }),
+    };
+    if (fragment.constants) fragmentDesc.constants = fragment.constants;
+
     const pipelineDesc = {
       label,
-      layout: "auto",
-      vertex: {
-        module: vertex.module._native,
-        entryPoint: vertex.entryPoint || "vs_main",
-        buffers: (vertex.buffers || []).map((b) => ({
-          arrayStride: b.arrayStride,
-          stepMode: b.stepMode || "vertex",
-          attributes: (b.attributes || []).map((a) => ({
-            shaderLocation: a.shaderLocation,
-            offset: a.offset || 0,
-            format: a.format || "float32x2",
-          })),
-        })),
-      },
-      fragment: {
-        module: fragment.module._native,
-        entryPoint: fragment.entryPoint || "fs_main",
-        targets: (fragment.targets || [{ format: this._presentationFormat }]).map((t) => ({
-          format: t.format || this._presentationFormat,
-        })),
-      },
+      layout: desc.layout === "explicit" ? undefined : "auto",
+      vertex: vertexDesc,
+      fragment: fragmentDesc,
       primitive: {
         topology: gpuTopology(primitive.topology),
+        ...(primitive.cullMode && { cullMode: primitive.cullMode }),
+        ...(primitive.frontFace && { frontFace: primitive.frontFace }),
       },
     };
 
@@ -354,26 +369,73 @@ export class WebGPUBackend extends RendererInterface {
       };
     }
 
-    const pipeline = this.device.createRenderPipeline(pipelineDesc);
-    return { _id: nextId(), _native: pipeline, label };
+    try {
+      const pipeline = this.device.createRenderPipeline(pipelineDesc);
+      return { _id: nextId(), _native: pipeline, label };
+    } catch (err) {
+      // Enrich error with shader compilation info if available
+      const modules = [vertex.module, fragment.module];
+      for (const mod of modules) {
+        if (mod?._compilationPromise) {
+          mod._compilationPromise.then((errors) => {
+            if (errors.length > 0) {
+              this.pushValidationError("pipeline", `createRenderPipeline "${label || ""}" — shader errors:\n${errors.join("\n")}`);
+            }
+          });
+        }
+      }
+      throw new Error(`createRenderPipeline "${label || ""}" failed: ${err.message}`);
+    }
   }
 
   createComputePipeline(desc) {
-    const { module, entryPoint = "main", label } = desc;
-    const pipeline = this.device.createComputePipeline({
-      label,
-      layout: "auto",
-      compute: {
-        module: module._native,
-        entryPoint,
-      },
-    });
-    return { _id: nextId(), _native: pipeline, label };
+    const { module, entryPoint = "main", constants, label } = desc;
+    const computeDesc = {
+      module: module._native,
+      entryPoint,
+    };
+    if (constants) computeDesc.constants = constants;
+
+    try {
+      const pipeline = this.device.createComputePipeline({
+        label,
+        layout: desc.layout === "explicit" ? undefined : "auto",
+        compute: computeDesc,
+      });
+      return { _id: nextId(), _native: pipeline, label };
+    } catch (err) {
+      // Enrich error with shader compilation info if available
+      if (module._compilationPromise) {
+        module._compilationPromise.then((errors) => {
+          if (errors.length > 0) {
+            this.pushValidationError("pipeline", `createComputePipeline "${label || ""}" failed — shader errors:\n${errors.join("\n")}`);
+          }
+        });
+      }
+      throw new Error(`createComputePipeline "${label || ""}" failed: ${err.message}`);
+    }
   }
 
   destroyPipeline(handle) {
     // GPURenderPipeline / GPUComputePipeline don't have destroy — drop ref
     handle._native = null;
+  }
+
+  // ─── Bind Group Layout / Pipeline Layout ────────────────
+
+  createBindGroupLayout(desc) {
+    const { entries, label } = desc;
+    const nativeLayout = this.device.createBindGroupLayout({ entries, label });
+    return { _id: nextId(), _native: nativeLayout, label };
+  }
+
+  createPipelineLayout(desc) {
+    const { bindGroupLayouts, label } = desc;
+    const nativeLayout = this.device.createPipelineLayout({
+      bindGroupLayouts: bindGroupLayouts.map((l) => l._native || l),
+      label,
+    });
+    return { _id: nextId(), _native: nativeLayout, label };
   }
 
   // ─── Bind Group ────────────────────────────────────────
@@ -395,9 +457,9 @@ export class WebGPUBackend extends RendererInterface {
       const entry = { binding: e.binding };
       const r = e.resource;
 
-      if (r.type === "uniform-buffer" || r.type === "storage-buffer") {
+      if (r.type === "uniform-buffer" || r.type === "storage-buffer" || r.type === "read-only-storage-buffer") {
         entry.resource = {
-          buffer: r.buffer._native,
+          buffer: r.buffer._native || r.buffer,
           offset: r.offset || 0,
           size: r.size || r.buffer._size,
         };
