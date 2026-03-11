@@ -130,6 +130,7 @@ export default function useProjectTree(sendRef, captureThumbnail, getWorkspaceSt
 
   /**
    * Delete a node and its descendants.
+   * Returns { navigatedTo } with the new active node ID (or null).
    */
   const deleteNodeTree = useCallback(async (nodeId, projectName) => {
     // Read parent ID before deletion so we can navigate to it afterwards.
@@ -149,19 +150,23 @@ export default function useProjectTree(sendRef, captureThumbnail, getWorkspaceSt
     await projectTree.deleteNodeTree(nodeId, projectName);
 
     // Navigate to the deleted node's parent, or fall back to the most recent node.
+    let navigatedTo = null;
     if (wasActive) {
       const nodes = await storage.listProjectNodes(projectName);
       if (nodes.length > 0) {
         const parentExists = parentId && nodes.some((n) => n.id === parentId);
         if (parentExists) {
           setActiveNodeId(parentId);
+          navigatedTo = parentId;
         } else {
           const sorted = [...nodes].sort((a, b) => b.createdAt - a.createdAt);
           setActiveNodeId(sorted[0].id);
+          navigatedTo = sorted[0].id;
         }
       }
     }
     await loadTree(projectName);
+    return { navigatedTo };
   }, [loadTree]);
 
   const toggleSidebar = useCallback(() => {
