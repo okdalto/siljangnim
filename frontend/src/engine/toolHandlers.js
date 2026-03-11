@@ -566,7 +566,11 @@ async function toolWebFetch(input) {
   if (!url || typeof url !== "string") return "Error: 'url' is required.";
   const maxLen = input.max_length ?? 50000;
   try {
-    const resp = await fetch(url);
+    // Use server-side proxy to avoid CORS restrictions
+    const resp = await fetch("/api/proxy?target=fetch", {
+      method: "POST",
+      headers: { "x-fetch-url": url },
+    });
     if (!resp.ok) return `Error: HTTP ${resp.status} ${resp.statusText}`;
     const contentType = resp.headers.get("content-type") || "";
     let text = await resp.text();
