@@ -171,18 +171,54 @@ export default function App() {
     _agentEngine._selectedModel = selectedModel;
   }
 
-  // Forward uncaught runtime errors (e.g. from GLEngine script execution) to agent error collector
+  // Forward uncaught runtime errors, unhandled rejections, and console warnings
+  // to agent error collector so check_browser_errors can report them.
   useEffect(() => {
     if (!BROWSER_ONLY || !_agentEngine) return;
-    const handler = (event) => {
+    const collector = _agentEngine.errorCollector;
+
+    const onError = (event) => {
       const msg = event.message || event.error?.message || String(event.error || "Unknown error");
-      // Only forward if agent is busy (otherwise it's not relevant to agent work)
+      if (_agentEngine.agentBusy) collector.push(msg);
+    };
+
+    const onRejection = (event) => {
+      const reason = event.reason;
+      const msg = reason instanceof Error ? reason.message : String(reason || "Unhandled promise rejection");
+      if (_agentEngine.agentBusy) collector.push(msg);
+    };
+
+    // Intercept console.warn/error to capture canvas and library warnings
+    const origWarn = console.warn;
+    const origError = console.error;
+    console.warn = (...args) => {
+      origWarn.apply(console, args);
       if (_agentEngine.agentBusy) {
-        _agentEngine.errorCollector.push(msg);
+        const msg = args.map((a) => (typeof a === "string" ? a : String(a))).join(" ");
+        // Only capture meaningful warnings (skip noisy browser internals)
+        if (msg.includes("Error") || msg.includes("error") || msg.includes("Cannot") ||
+            msg.includes("undefined") || msg.includes("null") || msg.includes("failed") ||
+            msg.includes("Failed") || msg.includes("WARNING") || msg.includes("DEPRECATED")) {
+          collector.push(`[warn] ${msg.slice(0, 500)}`);
+        }
       }
     };
-    window.addEventListener("error", handler);
-    return () => window.removeEventListener("error", handler);
+    console.error = (...args) => {
+      origError.apply(console, args);
+      if (_agentEngine.agentBusy) {
+        const msg = args.map((a) => (a instanceof Error ? a.message : typeof a === "string" ? a : String(a))).join(" ");
+        collector.push(msg.slice(0, 500));
+      }
+    };
+
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+      console.warn = origWarn;
+      console.error = origError;
+    };
   }, []);
 
   // Auto-switch model when provider changes (if current model doesn't belong to new provider)
