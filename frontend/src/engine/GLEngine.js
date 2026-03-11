@@ -49,10 +49,14 @@ function _prepareForPersist(value, seen = new WeakSet()) {
   if (value instanceof Set) {
     return { [_SET_TAG]: true, values: [...value].map(v => _prepareForPersist(v, seen)) };
   }
-  // Skip DOM nodes, WebGL objects, functions, typed arrays with huge buffers
+  // Skip DOM nodes, WebGL objects, WebGPU objects, functions
   if (value instanceof HTMLElement || value instanceof WebGLProgram ||
       value instanceof WebGLTexture || value instanceof WebGLBuffer ||
       typeof value === "function") return undefined;
+  // Skip WebGPU native objects (not serializable to IndexedDB)
+  // Check constructor name prefix for broad coverage without risking ReferenceError
+  const ctorName = value.constructor?.name || "";
+  if (ctorName.startsWith("GPU")) return undefined;
   // Prevent circular references
   if (seen.has(value)) return undefined;
   seen.add(value);
@@ -1832,6 +1836,26 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       }
     }
     if (generation !== this._loadGeneration) return; // another loadScene started while setup ran
+
+    // Drain async WebGPU validation errors (shader compilation, pipeline creation, etc.)
+    // These arrive asynchronously via the `uncapturederror` device event and may not
+    // be caught by the try/catch above.
+    if (this._backend?.consumeValidationErrors) {
+      // Brief yield to let queued GPU validation errors arrive
+      await new Promise((r) => setTimeout(r, 150));
+      if (generation !== this._loadGeneration) return;
+      const gpuErrors = this._backend.consumeValidationErrors();
+      if (gpuErrors.length > 0) {
+        setupOk = false;
+        for (const e of gpuErrors) {
+          const msg = `[WebGPU ${e.type}] ${e.message}`;
+          console.error(msg);
+          this.onError?.(new Error(msg));
+          window.dispatchEvent(new ErrorEvent("error", { message: msg, error: new Error(msg) }));
+        }
+      }
+    }
+
     this._setupReady = setupOk;
 
     // If setup failed, draw a visible error indicator on the canvas so

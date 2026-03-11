@@ -171,6 +171,8 @@ export default function App() {
   if (BROWSER_ONLY && _agentEngine) {
     _agentEngine._getAssetContext = assetNodes.getPromptContext;
     _agentEngine._selectedModel = selectedModel;
+    // Wire engine ref so check_browser_errors can access renderer validation errors
+    _agentEngine.errorCollector._engineRef = engineRef;
   }
 
   // Forward uncaught runtime errors, unhandled rejections, and console warnings

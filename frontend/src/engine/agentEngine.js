@@ -81,6 +81,7 @@ export default class AgentEngine {
     this.errorCollector = {
       errors: [],
       _resolve: null,
+      _engineRef: null, // React ref to GLEngine for accessing renderer validation errors
       // Scene load acknowledgement — resolves when viewport finishes loading
       _sceneLoadResolve: null,
       _sceneLoaded: true, // starts as true (no pending load)
