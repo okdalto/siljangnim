@@ -335,6 +335,7 @@ async function parseOpenAISSEStream(body, callbacks) {
     try {
       parsedInput = tc.arguments ? JSON.parse(tc.arguments) : {};
     } catch {
+      console.warn(`[llmClient] Incomplete tool_use JSON for ${tc.name}: ${(tc.arguments || "").slice(0, 100)}...`);
       parsedInput = {};
     }
     contentBlocks.push({

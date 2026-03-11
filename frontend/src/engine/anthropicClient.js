@@ -198,7 +198,9 @@ async function parseSSEStream(body, callbacks) {
               try {
                 parsedInput = toolInput ? JSON.parse(toolInput) : {};
               } catch {
-                // Partial JSON from interrupted stream
+                // Partial JSON from interrupted stream — keep empty so agent loop
+                // can detect truncation (Object.keys(input).length === 0)
+                console.warn(`[anthropicClient] Incomplete tool_use JSON for ${toolName}: ${toolInput.slice(0, 100)}...`);
                 parsedInput = {};
               }
               contentBlocks.push({

@@ -65,8 +65,8 @@ const LOOP_BREAK_THRESHOLD = 5;
 
 // Model configuration
 const MODEL_COMPLEX = "claude-sonnet-4-6";
-const MODEL_COMPLEX_MAX = 16384;
-const MODEL_THINKING_MAX = 32000; // with explicit budget: ~10k thinking + ~22k output
+const MODEL_COMPLEX_MAX = 32768;
+const MODEL_THINKING_MAX = 64000; // with explicit budget: ~10k thinking + ~54k output
 
 // ---------------------------------------------------------------------------
 // Conversation compaction
@@ -84,7 +84,7 @@ function stripThinking(messages) {
 }
 
 function compactMessages(messages) {
-  const TRUNC = 200;
+  const RESULT_TRUNC = 500;
   const SAFE_TOKENS = 120000;
 
   stripThinking(messages);
@@ -100,16 +100,12 @@ function compactMessages(messages) {
 
     for (const block of content) {
       if (typeof block !== "object") continue;
-      if (block.type === "tool_use" && typeof block.input === "object") {
-        for (const key of Object.keys(block.input)) {
-          if (typeof block.input[key] === "string" && block.input[key].length > TRUNC) {
-            block.input[key] = block.input[key].slice(0, TRUNC) + "...(truncated)";
-          }
-        }
-      }
+      // tool_use inputs are NOT truncated — the model needs to see its own
+      // previous tool calls accurately to avoid cascading corruption.
+      // Only tool results (which can be very large read_file outputs etc.) are trimmed.
       if (block.type === "tool_result" && typeof block.content === "string") {
-        if (block.content.length > TRUNC) {
-          block.content = block.content.slice(0, TRUNC) + "...(truncated)";
+        if (block.content.length > RESULT_TRUNC) {
+          block.content = block.content.slice(0, RESULT_TRUNC) + "...(truncated)";
         }
       }
     }
@@ -549,19 +545,32 @@ async function _runAgentLoop({
         continue;
       }
 
-      // Handle max_tokens
+      // Handle max_tokens — the model was cut off, possibly mid-tool-call
       if (stopReason === "max_tokens") {
-        compactRetries++;
-        if (compactRetries > MAX_COMPACT_RETRIES) {
-          log("System", "Max compact retries — using partial response", "info");
-          break;
+        // Check if the last block is a truncated tool_use (empty input = JSON was incomplete)
+        const lastBlock = storedBlocks[storedBlocks.length - 1];
+        const hasTruncatedTool = lastBlock?.type === "tool_use" &&
+          Object.keys(lastBlock.input || {}).length === 0;
+
+        if (hasTruncatedTool) {
+          // Remove the incomplete assistant message — the empty tool_use is useless
+          messages.pop();
+          log("System", `Tool call truncated by token limit — retrying with more budget...`, "warning");
+        } else {
+          compactRetries++;
+          if (compactRetries > MAX_COMPACT_RETRIES) {
+            log("System", "Max compact retries — using partial response", "info");
+            break;
+          }
+          log("System", "Token limit — compacting...", "info");
+          onStatus?.("thinking", "Compacting conversation...");
+          compactMessages(messages);
         }
-        log("System", "Token limit — compacting...", "info");
-        onStatus?.("thinking", "Compacting conversation...");
-        compactMessages(messages);
         messages.push({
           role: "user",
-          content: "You were cut off due to token limit. Continue where you left off.",
+          content: hasTruncatedTool
+            ? "Your tool call was cut off by the token limit and the input was lost. Please retry the tool call, keeping the input concise. If the code is long, consider splitting it into smaller parts using write_file for the main code and write_scene to reference it."
+            : "You were cut off due to token limit. Continue where you left off.",
         });
         continue;
       }
