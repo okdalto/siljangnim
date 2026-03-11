@@ -173,6 +173,7 @@ async function toolWriteScene(input, broadcast) {
 
   if (input.uniforms) scene.uniforms = input.uniforms;
   if (input.clearColor) scene.clearColor = input.clearColor;
+  if (input.backendTarget) scene.backendTarget = input.backendTarget;
 
   normalizeScriptStrings(scene);
   const errors = validateSceneJson(scene);
