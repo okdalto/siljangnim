@@ -98,7 +98,31 @@ async function nodeCount(projectName) {
 export async function ensureRootNode(projectName, currentState) {
   const nodes = await storage.listProjectNodes(projectName);
   if (nodes.length > 0) {
-    return nodes.find((n) => n.parentId === null) || nodes[0];
+    const root = nodes.find((n) => n.parentId === null);
+    if (root) return root;
+    // No root node found — orphaned tree. Pick a checkpoint if available,
+    // otherwise fall back to the oldest node and promote it to root.
+    const checkpoint = nodes.find((n) => n.isCheckpoint);
+    const fallback = checkpoint || [...nodes].sort((a, b) => a.createdAt - b.createdAt)[0];
+    console.warn(`[projectTree] No root node in project "${projectName}", promoting node ${fallback.id}`);
+    fallback.parentId = null;
+    fallback.isCheckpoint = true;
+    if (!fallback.snapshotRef) {
+      // Generate a snapshot for the promoted node
+      try {
+        const state = await reconstructFromChain([fallback]);
+        const snapshotRef = `_snapshots/${fallback.id}.json`;
+        await storage.writeFile(snapshotRef, state);
+        fallback.snapshotRef = snapshotRef;
+      } catch {
+        // If reconstruction fails, create empty snapshot
+        const snapshotRef = `_snapshots/${fallback.id}.json`;
+        await storage.writeFile(snapshotRef, buildSnapshot({}, {}, {}, {}, [], []));
+        fallback.snapshotRef = snapshotRef;
+      }
+    }
+    await storage.writeNode(fallback);
+    return fallback;
   }
 
   // Create root checkpoint
@@ -286,7 +310,7 @@ export async function duplicateAsCheckpoint(projectName, sourceNodeId) {
   const node = {
     ...sourceNode,
     id: nodeId,
-    parentId: sourceNode.parentId,
+    parentId: sourceNodeId,
     isCheckpoint: true,
     snapshotRef,
     patchRef: null,
@@ -337,20 +361,40 @@ async function reconstructFromChain(chain) {
 
   const checkpoint = chain[0];
   if (!checkpoint.isCheckpoint || !checkpoint.snapshotRef) {
-    throw new Error(`Chain root is not a checkpoint: ${checkpoint.id}`);
+    console.warn(`[projectTree] Chain root is not a checkpoint: ${checkpoint.id}, returning empty state`);
+    return buildSnapshot({}, {}, {}, {}, [], []);
   }
 
-  let state = await storage.readFile(checkpoint.snapshotRef);
+  let state;
+  try {
+    state = await storage.readFile(checkpoint.snapshotRef);
+  } catch (err) {
+    console.warn(`[projectTree] Failed to read snapshot for ${checkpoint.id}: ${err.message}`);
+    return buildSnapshot({}, {}, {}, {}, [], []);
+  }
+  if (!state) {
+    console.warn(`[projectTree] Snapshot is null for ${checkpoint.id}`);
+    return buildSnapshot({}, {}, {}, {}, [], []);
+  }
 
   // Apply patches in order
   for (let i = 1; i < chain.length; i++) {
     const node = chain[i];
     if (node.isCheckpoint && node.snapshotRef) {
-      // This node has its own snapshot — use it directly
-      state = await storage.readFile(node.snapshotRef);
+      try {
+        state = await storage.readFile(node.snapshotRef);
+      } catch {
+        console.warn(`[projectTree] Failed to read snapshot for chain node ${node.id}, skipping`);
+      }
     } else if (node.patchRef) {
-      const patch = await storage.readFile(node.patchRef);
-      state = apply(structuredClone(state), patch.ops);
+      try {
+        const patch = await storage.readFile(node.patchRef);
+        if (patch?.ops) {
+          state = apply(structuredClone(state), patch.ops);
+        }
+      } catch {
+        console.warn(`[projectTree] Failed to read/apply patch for node ${node.id}, skipping`);
+      }
     }
   }
 

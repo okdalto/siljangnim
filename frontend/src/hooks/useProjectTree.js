@@ -132,15 +132,21 @@ export default function useProjectTree(sendRef, captureThumbnail, getWorkspaceSt
    * Delete a node and its descendants.
    */
   const deleteNodeTree = useCallback(async (nodeId, projectName) => {
+    // If deleting the active node, clear activeNodeId BEFORE deletion
+    // to prevent stale ref usage by concurrent operations (e.g. chat_done).
+    const wasActive = activeNodeIdRef.current === nodeId;
+    if (wasActive) {
+      setActiveNodeId(null);
+    }
+
     await projectTree.deleteNodeTree(nodeId, projectName);
-    // If deleted node was active, switch to its parent or root
-    if (activeNodeIdRef.current === nodeId) {
+
+    // Find a new active node after deletion
+    if (wasActive) {
       const nodes = await storage.listProjectNodes(projectName);
       if (nodes.length > 0) {
         const sorted = [...nodes].sort((a, b) => b.createdAt - a.createdAt);
         setActiveNodeId(sorted[0].id);
-      } else {
-        setActiveNodeId(null);
       }
     }
     await loadTree(projectName);
