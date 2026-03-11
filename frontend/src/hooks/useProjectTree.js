@@ -132,6 +132,13 @@ export default function useProjectTree(sendRef, captureThumbnail, getWorkspaceSt
    * Delete a node and its descendants.
    */
   const deleteNodeTree = useCallback(async (nodeId, projectName) => {
+    // Read parent ID before deletion so we can navigate to it afterwards.
+    let parentId = null;
+    try {
+      const node = await storage.readNode(nodeId);
+      if (node) parentId = node.parentId;
+    } catch { /* proceed with deletion anyway */ }
+
     // If deleting the active node, clear activeNodeId BEFORE deletion
     // to prevent stale ref usage by concurrent operations (e.g. chat_done).
     const wasActive = activeNodeIdRef.current === nodeId;
@@ -141,12 +148,17 @@ export default function useProjectTree(sendRef, captureThumbnail, getWorkspaceSt
 
     await projectTree.deleteNodeTree(nodeId, projectName);
 
-    // Find a new active node after deletion
+    // Navigate to the deleted node's parent, or fall back to the most recent node.
     if (wasActive) {
       const nodes = await storage.listProjectNodes(projectName);
       if (nodes.length > 0) {
-        const sorted = [...nodes].sort((a, b) => b.createdAt - a.createdAt);
-        setActiveNodeId(sorted[0].id);
+        const parentExists = parentId && nodes.some((n) => n.id === parentId);
+        if (parentExists) {
+          setActiveNodeId(parentId);
+        } else {
+          const sorted = [...nodes].sort((a, b) => b.createdAt - a.createdAt);
+          setActiveNodeId(sorted[0].id);
+        }
       }
     }
     await loadTree(projectName);
