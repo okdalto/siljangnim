@@ -116,7 +116,16 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
   // Load scene when sceneJSON changes
   useEffect(() => {
     const engine = engineInternalRef.current;
-    if (!engine || !sceneJSON) {
+    if (!engine) return;
+    if (!sceneJSON) {
+      // Clear canvas when scene is removed (e.g. new project)
+      const gl = engine.gl;
+      if (gl) {
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      }
+      // Run cleanup of previous scene and reset script functions
+      engine.loadScene({ mode: "shader", script: {} });
       return;
     }
     console.log("[ViewportNode] Loading scene:", sceneJSON.mode || "unknown");
