@@ -439,6 +439,12 @@ const HANDLERS = {
     // Gather current workspace state for plan-based execution
     const currentState = await this._getCurrentState();
 
+    // Auto-sync backendTarget from current scene.json if still "auto"
+    // (fixes desync when scene was saved with backendTarget by a previous agent session)
+    if (this._backendTarget === "auto" && currentState.scene_json?.backendTarget) {
+      this._backendTarget = currentState.scene_json.backendTarget;
+    }
+
     // Build system prompt addition with referenced scenes
     let promptAddition = this._promptModeAddition || "";
     if (sceneReferences.length > 0) {

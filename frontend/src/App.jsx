@@ -155,6 +155,8 @@ export default function App() {
   useEffect(() => {
     if (sceneJSON?.backendTarget) {
       setBackendTarget(sceneJSON.backendTarget);
+      // Also notify agent engine so system prompt includes correct backend sections
+      sendRef.current?.({ type: "set_backend_target", backendTarget: sceneJSON.backendTarget });
     }
   }, [sceneJSON?.backendTarget]);
 

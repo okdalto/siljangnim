@@ -181,6 +181,10 @@ async function toolWriteScene(input, broadcast) {
 
   await storage.writeJson("scene.json", scene);
   broadcast({ type: "scene_update", scene_json: scene });
+  // Sync backend target so subsequent agent turns use the correct prompt sections
+  if (scene.backendTarget) {
+    broadcast({ type: "set_backend_target", backendTarget: scene.backendTarget });
+  }
   return "ok — scene saved and broadcast. Use check_browser_errors to verify it loaded without errors.";
 }
 
