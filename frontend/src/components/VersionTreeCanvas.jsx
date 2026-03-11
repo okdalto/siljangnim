@@ -270,7 +270,7 @@ export default function VersionTreeCanvas({
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ w: 256, h: 400 });
   const [zoom, setZoom] = useState(1);
-  const [focusMode, setFocusMode] = useState(false); // F key toggle
+  const [fitAll, setFitAll] = useState(false); // F key toggle: fit-all ↔ active node
 
   // Auto-focus when sidebar opens so arrow keys work immediately
   useEffect(() => {
@@ -310,46 +310,8 @@ export default function VersionTreeCanvas({
     return { roots: r, childrenMap: cm, nodesMap: nm };
   }, [treeNodes]);
 
-  // Focus mode: filter to ancestor chain + descendants of active node
-  const visibleNodes = useMemo(() => {
-    if (!focusMode || !activeNodeId || !nodesMap.has(activeNodeId)) return treeNodes;
-    const visible = new Set();
-    // Ancestors
-    let cur = activeNodeId;
-    while (cur) {
-      visible.add(cur);
-      cur = nodesMap.get(cur)?.parentId;
-    }
-    // Descendants
-    const stack = [activeNodeId];
-    while (stack.length) {
-      const id = stack.pop();
-      visible.add(id);
-      for (const child of childrenMap.get(id) || []) stack.push(child.id);
-    }
-    return treeNodes.filter((n) => visible.has(n.id));
-  }, [focusMode, activeNodeId, treeNodes, nodesMap, childrenMap]);
-
-  // Rebuild layout from visible nodes
-  const { visibleRoots, visibleChildrenMap } = useMemo(() => {
-    const cm = new Map();
-    const r = [];
-    const nodeSet = new Set(visibleNodes.map((n) => n.id));
-    const sorted = [...visibleNodes].sort((a, b) => a.createdAt - b.createdAt);
-    for (const node of sorted) {
-      if (!cm.has(node.id)) cm.set(node.id, []);
-      if (node.parentId === null || !nodeSet.has(node.parentId)) {
-        r.push(node);
-      } else {
-        if (!cm.has(node.parentId)) cm.set(node.parentId, []);
-        cm.get(node.parentId).push(node);
-      }
-    }
-    return { visibleRoots: r, visibleChildrenMap: cm };
-  }, [visibleNodes]);
-
-  // Layout (uses visible nodes in focus mode)
-  const positions = useMemo(() => layoutTree(visibleRoots, visibleChildrenMap), [visibleRoots, visibleChildrenMap]);
+  // Layout
+  const positions = useMemo(() => layoutTree(roots, childrenMap), [roots, childrenMap]);
 
   // Compute content bounds
   const bounds = useMemo(() => {
@@ -368,19 +330,24 @@ export default function VersionTreeCanvas({
   const dragRef = useRef({ dragging: false, startX: 0, startY: 0, offsetX: 0, offsetY: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  // Target: center active node
+  // Target: center active node (or tree center when fit-all)
   const activePos = activeNodeId ? positions.get(activeNodeId) : null;
-  const centerTargetX = activePos ? containerSize.w / 2 - activePos.x : containerSize.w / 2 - (bounds.minX + bounds.maxX) / 2;
-  const centerTargetY = activePos ? containerSize.h / 2 - activePos.y : containerSize.h / 2 - (bounds.minY + bounds.maxY) / 2;
+  const treeCenterX = (bounds.minX + bounds.maxX) / 2;
+  const treeCenterY = (bounds.minY + bounds.maxY) / 2;
+  const focusX = fitAll ? treeCenterX : (activePos?.x ?? treeCenterX);
+  const focusY = fitAll ? treeCenterY : (activePos?.y ?? treeCenterY);
+  const centerTargetX = containerSize.w / 2 - focusX * zoom;
+  const centerTargetY = containerSize.h / 2 - focusY * zoom;
 
   const targetX = centerTargetX + dragOffset.x;
   const targetY = centerTargetY + dragOffset.y;
 
   const springPos = useSpring(targetX, targetY);
 
-  // Reset drag offset when active node changes
+  // Reset drag offset and exit fit-all when active node changes
   useEffect(() => {
     setDragOffset({ x: 0, y: 0 });
+    setFitAll(false);
   }, [activeNodeId]);
 
   // Keyboard navigation + F key focus toggle
@@ -391,24 +358,31 @@ export default function VersionTreeCanvas({
     const handleKeyDown = (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
-      // F key: fit entire tree to view
+      // F key: toggle fit-all ↔ active node focus
       if (e.key === "f" || e.key === "F") {
         e.preventDefault();
-        // Compute zoom to fit all content in the container
-        const cw = bounds.maxX - bounds.minX + NODE_W * 2;
-        const ch = bounds.maxY - bounds.minY + NODE_H * 2;
-        if (cw > 0 && ch > 0) {
-          const pad = 40; // px padding
-          const fitZoom = Math.min(
-            (containerSize.w - pad * 2) / cw,
-            (containerSize.h - pad * 2) / ch,
-            1.5, // don't zoom in excessively
-          );
-          setZoom(Math.max(0.15, fitZoom));
-        }
-        setDragOffset({ x: 0, y: 0 });
-        // Also exit focus mode so the full tree is visible
-        setFocusMode(false);
+        setFitAll((prev) => {
+          if (!prev) {
+            // Enter fit-all: zoom to show entire tree
+            const cw = bounds.maxX - bounds.minX + NODE_W * 2;
+            const ch = bounds.maxY - bounds.minY + NODE_H * 2;
+            if (cw > 0 && ch > 0) {
+              const pad = 40;
+              const fitZoom = Math.min(
+                (containerSize.w - pad * 2) / cw,
+                (containerSize.h - pad * 2) / ch,
+                1.5,
+              );
+              setZoom(Math.max(0.15, fitZoom));
+            }
+            setDragOffset({ x: 0, y: 0 });
+          } else {
+            // Exit fit-all: snap back to active node at zoom 1
+            setZoom(1);
+            setDragOffset({ x: 0, y: 0 });
+          }
+          return !prev;
+        });
         return;
       }
 
@@ -574,11 +548,11 @@ export default function VersionTreeCanvas({
         <svg
           style={{ position: "absolute", left: 0, top: 0, width: contentW, height: contentH, overflow: "visible", pointerEvents: "none" }}
         >
-          <TreeEdges roots={visibleRoots} childrenMap={visibleChildrenMap} positions={positions} />
+          <TreeEdges roots={roots} childrenMap={childrenMap} positions={positions} />
         </svg>
 
         {/* Nodes */}
-        {visibleNodes.map((node) => {
+        {treeNodes.map((node) => {
           const p = positions.get(node.id);
           if (!p) return null;
           return (
@@ -603,23 +577,30 @@ export default function VersionTreeCanvas({
       <div className="absolute bottom-2 right-2 flex items-center gap-1 pointer-events-auto" style={{ zIndex: 10 }}>
         <button
           onClick={() => {
-            const cw = bounds.maxX - bounds.minX + NODE_W * 2;
-            const ch = bounds.maxY - bounds.minY + NODE_H * 2;
-            if (cw > 0 && ch > 0) {
-              const pad = 40;
-              const fitZoom = Math.min((containerSize.w - pad * 2) / cw, (containerSize.h - pad * 2) / ch, 1.5);
-              setZoom(Math.max(0.15, fitZoom));
-            }
-            setDragOffset({ x: 0, y: 0 });
-            setFocusMode(false);
+            setFitAll((prev) => {
+              if (!prev) {
+                const cw = bounds.maxX - bounds.minX + NODE_W * 2;
+                const ch = bounds.maxY - bounds.minY + NODE_H * 2;
+                if (cw > 0 && ch > 0) {
+                  const pad = 40;
+                  const fitZoom = Math.min((containerSize.w - pad * 2) / cw, (containerSize.h - pad * 2) / ch, 1.5);
+                  setZoom(Math.max(0.15, fitZoom));
+                }
+                setDragOffset({ x: 0, y: 0 });
+              } else {
+                setZoom(1);
+                setDragOffset({ x: 0, y: 0 });
+              }
+              return !prev;
+            });
           }}
           className="w-6 h-6 rounded flex items-center justify-center text-[10px] transition-colors"
           style={{
-            background: "var(--input-bg, #333)",
-            color: "var(--chrome-text-muted)",
+            background: fitAll ? "var(--accent, #6366f1)" : "var(--input-bg, #333)",
+            color: fitAll ? "#fff" : "var(--chrome-text-muted)",
             border: "1px solid var(--chrome-border, #444)",
           }}
-          title="Fit all (F)"
+          title={fitAll ? "Back to active node (F)" : "Fit all (F)"}
         >
           F
         </button>
