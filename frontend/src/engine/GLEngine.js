@@ -260,7 +260,10 @@ export default class GLEngine {
           await gpuBackend.init(offscreen, { alpha: false });
           this._backend = gpuBackend;
         } catch (err) {
-          console.warn("[GLEngine] WebGPU backend init failed, using WebGL2:", err.message);
+          const failMsg = `WebGPU initialization failed: ${err.message}. Falling back to WebGL2.`;
+          console.error("[GLEngine]", failMsg);
+          this.onError?.(new Error(failMsg));
+          window.dispatchEvent(new ErrorEvent("error", { message: failMsg, error: new Error(failMsg) }));
           await this._initWebGLBackend();
         }
       } else {
@@ -270,7 +273,10 @@ export default class GLEngine {
       this._backendReady = true;
       this.onBackendReady?.(this._backend.backendType);
     } catch (err) {
-      console.warn("[GLEngine] Backend init failed:", err.message);
+      const failMsg = `Backend initialization failed: ${err.message}`;
+      console.error("[GLEngine]", failMsg);
+      this.onError?.(new Error(failMsg));
+      window.dispatchEvent(new ErrorEvent("error", { message: failMsg, error: new Error(failMsg) }));
     }
   }
 
@@ -1749,6 +1755,15 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
         ctx.renderer = this._backend;
         ctx.backendType = this._backend.backendType;
       }
+    }
+
+    // Check if scene requested WebGPU but got WebGL2
+    if (this._scene?.backendTarget === "webgpu" && this._backend?.backendType !== "webgpu") {
+      const msg = "Scene requires WebGPU backend but WebGPU is not available. " +
+        (navigator.gpu ? "WebGPU adapter/device request failed." : "This browser does not support WebGPU.");
+      console.error("[GLEngine]", msg);
+      this.onError?.(new Error(msg));
+      window.dispatchEvent(new ErrorEvent("error", { message: msg, error: new Error(msg) }));
     }
 
     // Check for backend mismatch: scene wants WebGPU but got WebGL2 (fallback)
