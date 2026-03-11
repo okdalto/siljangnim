@@ -366,6 +366,16 @@ export default function App() {
   gettersRef.current.getDebugLogs = () => chat.debugLogs;
   gettersRef.current.getActiveProjectName = () => project.activeProject ? storageApi.getActiveProjectName() : null;
 
+  // Full state getter for tree operations (auto-save before switch, etc.)
+  const getState = useCallback(() => ({
+    scene_json: gettersRef.current.getSceneJSON() || {},
+    ui_config: gettersRef.current.getUiConfig() || {},
+    workspace_state: gettersRef.current.getWorkspaceState() || {},
+    panels: gettersRef.current.getPanels() || {},
+    chat_history: gettersRef.current.getMessages() || [],
+    debug_logs: gettersRef.current.getDebugLogs() || [],
+  }), []);
+
   // Version compare
   const apiKeyConfigRef = useRef(apiKey.savedConfig);
   apiKeyConfigRef.current = apiKey.savedConfig;
@@ -536,7 +546,7 @@ export default function App() {
     handleStartCompare,
     handleSelectCompareTarget,
     handleTreeDeleteNode,
-  } = useTreeActions({ tree, compare, handleMessage, project, chat, agentEngine: _agentEngine });
+  } = useTreeActions({ tree, compare, handleMessage, project, chat, agentEngine: _agentEngine, getState });
 
   const handleNewProject = useCallback(() => {
     if (_agentEngine?.abortController) {
