@@ -111,6 +111,7 @@ export default class GLEngine {
     /** @type {import('./gpu/RendererInterface.js').RendererInterface|null} */
     this._backend = null;
     this._backendReady = false;
+    this._backendPromise = null; // resolves when initBackend() completes
     this.onBackendReady = null; // callback(backendType)
 
     // --- Legacy WebGL2 direct access (always available as fallback) ---
@@ -233,6 +234,11 @@ export default class GLEngine {
    * Existing scenes continue to work via ctx.gl regardless.
    */
   async initBackend() {
+    this._backendPromise = this._initBackendInner();
+    return this._backendPromise;
+  }
+
+  async _initBackendInner() {
     try {
       // For backend abstraction, we need a separate canvas or to
       // coordinate with the existing GL context. Since we can't use
@@ -1651,6 +1657,17 @@ export default class GLEngine {
       }
     } catch {
       // Manifest read may fail — continue.
+    }
+
+    // Wait for backend initialization before running setup
+    // (WebGPU scenes need ctx.renderer to be available in setup)
+    if (this._backendPromise) {
+      try { await this._backendPromise; } catch { /* handled in initBackend */ }
+      // Inject backend into ctx now that it's ready
+      if (this._backend && !ctx.renderer) {
+        ctx.renderer = this._backend;
+        ctx.backendType = this._backend.backendType;
+      }
     }
 
     // Run setup (async)
