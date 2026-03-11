@@ -322,12 +322,12 @@ Core methods:
 | \`createShaderModule({ code, label? })\` | Create shader module from WGSL source |
 | \`createRenderPipeline({ vertex, fragment, primitive?, depthStencil? })\` | Create render pipeline |
 | \`createComputePipeline({ compute })\` | Create compute pipeline |
-| \`createBuffer({ usage, size, data? })\` | Create GPU buffer (usage: BufferUsage.VERTEX/INDEX/UNIFORM/STORAGE) |
+| \`createBuffer({ usage, size, data? })\` | Create GPU buffer. usage: string or array of strings — \`"vertex"\`, \`"index"\`, \`"uniform"\`, \`"storage"\`, \`"copy-src"\` |
 | \`writeBuffer(handle, data, offset?)\` | Update buffer data |
 | \`createTexture({ width, height, format?, usage? })\` | Create texture |
 | \`writeTexture(handle, source, options?)\` | Upload image/canvas to texture |
 | \`createSampler({ minFilter?, magFilter?, addressModeU?, addressModeV? })\` | Create sampler |
-| \`createBindGroup({ layout?, entries: [{binding, resource}] })\` | Create bind group |
+| \`createBindGroup({ pipeline, groupIndex?, entries: [{binding, resource}] })\` | Create bind group. Pass \`pipeline\` to auto-derive layout (recommended). \`groupIndex\` defaults to 0 |
 | \`createRenderTarget({ width, height, format?, depth? })\` | Create offscreen FBO |
 | \`beginFrame()\` | Start frame → returns encoder |
 | \`endFrame(encoder)\` | Submit commands |
@@ -381,8 +381,8 @@ for (let i = 0; i < N; i++) {
   initData[i*4+2] = (Math.random()-0.5)*0.01; // vx
   initData[i*4+3] = (Math.random()-0.5)*0.01; // vy
 }
-const particleBuf = r.createBuffer({ usage: [BufferUsage.STORAGE, BufferUsage.VERTEX], data: initData });
-const uniformBuf = r.createBuffer({ usage: [BufferUsage.UNIFORM, BufferUsage.COPY_DST], size: 16 });
+const particleBuf = r.createBuffer({ usage: ["storage", "vertex"], data: initData });
+const uniformBuf = r.createBuffer({ usage: ["uniform"], size: 16 });
 
 // Compute shader: update particles
 const computeModule = r.createShaderModule({ code: \`
@@ -403,7 +403,7 @@ const computeModule = r.createShaderModule({ code: \`
   }
 \` });
 const computePipeline = r.createComputePipeline({ module: computeModule, entryPoint: "main" });
-const computeBG = r.createBindGroup({ entries: [
+const computeBG = r.createBindGroup({ pipeline: computePipeline, groupIndex: 0, entries: [
   { binding: 0, resource: { type: "uniform-buffer", buffer: uniformBuf } },
   { binding: 1, resource: { type: "storage-buffer", buffer: particleBuf } },
 ]});
@@ -424,8 +424,7 @@ const renderPipeline = r.createRenderPipeline({
   fragment: { module: renderModule, entryPoint: "fs" },
   primitive: { topology: "point-list" },
 });
-const renderBG = r.createBindGroup({ entries: [] });
-ctx.state = { r, N, particleBuf, uniformBuf, computePipeline, computeBG, renderPipeline, renderBG, computeModule, renderModule };
+ctx.state = { r, N, particleBuf, uniformBuf, computePipeline, computeBG, renderPipeline, computeModule, renderModule };
 
 // render:
 const s = ctx.state;
@@ -444,12 +443,13 @@ s.r.setVertexBuffer(rp, 0, s.particleBuf);
 s.r.draw(rp, s.N);
 s.r.endRenderPass(rp);
 s.r.endFrame(enc);
+// Engine auto-blits WebGPU output to visible canvas after render
 
 // cleanup:
 const { r: rr } = ctx.state;
 for (const h of [ctx.state.particleBuf, ctx.state.uniformBuf]) rr.destroyBuffer(h);
 for (const h of [ctx.state.computePipeline, ctx.state.renderPipeline]) rr.destroyPipeline(h);
-for (const h of [ctx.state.computeBG, ctx.state.renderBG]) rr.destroyBindGroup(h);
+for (const h of [ctx.state.computeBG]) rr.destroyBindGroup(h);
 for (const h of [ctx.state.computeModule, ctx.state.renderModule]) rr.destroyShaderModule(h);
 \`\`\`
 
@@ -485,6 +485,7 @@ r.setVertexBuffer(rp, 0, particleBuf);
 r.draw(rp, numParticles);
 r.endRenderPass(rp);
 r.endFrame(enc);
+// Engine auto-blits WebGPU output to visible canvas after render
 \`\`\`
 
 ### WebGPU Fullscreen Quad Example
@@ -507,20 +508,23 @@ const shader = r.createShaderModule({ code: \`
   }
 \` });
 const pipeline = r.createRenderPipeline({ vertex: { module: shader, entryPoint: "vs" }, fragment: { module: shader, entryPoint: "fs" } });
-const ubuf = r.createBuffer({ usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, size: 16 });
-const bindGroup = r.createBindGroup({ entries: [{ binding: 0, resource: { buffer: ubuf._native ?? ubuf } }] });
+const ubuf = r.createBuffer({ usage: ["uniform"], size: 16 });
+const bindGroup = r.createBindGroup({ pipeline, groupIndex: 0, entries: [
+  { binding: 0, resource: { type: "uniform-buffer", buffer: ubuf } },
+]});
 ctx.state = { r, pipeline, ubuf, bindGroup, shader };
 
 // render:
 const { r, pipeline, ubuf, bindGroup } = ctx.state;
 r.writeBuffer(ubuf, new Float32Array([ctx.time, 0, ctx.resolution[0], ctx.resolution[1]]));
 const enc = r.beginFrame();
-const pass = r.beginRenderPass(enc, { colorAttachments: [{ loadOp: "clear", clearValue: [0,0,0,1] }] });
+const pass = r.beginRenderPass(enc, { colorAttachments: [{ clearColor: [0,0,0,1] }] });
 r.setPipeline(pass, pipeline);
 r.setBindGroup(pass, 0, bindGroup);
 r.draw(pass, 3);
 r.endRenderPass(pass);
 r.endFrame(enc);
+// Engine auto-blits WebGPU output to visible canvas after render
 
 // cleanup:
 const { r: rr, pipeline: p, ubuf: ub, bindGroup: bg, shader: sh } = ctx.state;
@@ -632,29 +636,30 @@ When backendTarget is "webgpu", follow this pattern:
 
 1. **Set backendTarget** to \`"webgpu"\` — pass \`backendTarget: "webgpu"\` in the \`write_scene\` tool call. \
 This ensures WebGPU backend is initialized BEFORE the scene loads. Do NOT set it separately via write_file edits.
-2. **setup**: Create resources via \`ctx.renderer\` or raw \`GPUDevice\`:
-   - Abstraction API: \`ctx.renderer.createShaderModule()\`, \`createRenderPipeline()\`, \`createBuffer()\`, \`createBindGroup()\`
-   - Raw API: \`const device = ctx.renderer.getNativeContext(); device.createComputePipeline(...)\` etc.
+2. **setup**: Create resources via \`ctx.renderer\` (**always use the abstraction API**):
+   - \`ctx.renderer.createShaderModule()\`, \`createRenderPipeline()\`, \`createComputePipeline()\`
+   - \`ctx.renderer.createBuffer({ usage: ["storage", "vertex"], data })\` — usage is string array
+   - \`ctx.renderer.createBindGroup({ pipeline, entries: [...] })\` — pass pipeline for auto layout
    - Store everything in \`ctx.state\`.
 3. **render**: Draw each frame:
-   - For abstraction API: \`beginFrame()\` → \`beginRenderPass()\` → draw → \`endRenderPass()\` → \`endFrame()\`
-   - For raw API: use \`device.createCommandEncoder()\`, \`device.queue.submit()\` etc. directly
-   - **IMPORTANT**: After WebGPU rendering, call \`ctx.utils.blitToCanvas()\` to copy the result to the visible canvas
+   - \`beginFrame()\` → compute/render passes → \`endFrame()\`
+   - The engine automatically blits WebGPU output to the visible canvas after each frame
 4. **cleanup**: Destroy all resources.
 
 ### blitToCanvas — Displaying WebGPU Output
 
 The WebGPU backend renders to an internal OffscreenCanvas. The visible canvas uses WebGL2.
-After each frame of WebGPU rendering, you MUST call \`ctx.utils.blitToCanvas()\` to copy the \
-WebGPU output to the visible canvas. Without this call, the screen will appear blank.
+The engine **automatically calls \`ctx.utils.blitToCanvas()\`** after each render frame to copy \
+the WebGPU output to the visible canvas. You do NOT need to call it manually (but calling it is harmless).
 
 \`\`\`js
 // render function pattern for WebGPU scenes:
 function render(ctx) {
-  const device = ctx.renderer.getNativeContext();
-  // ... do WebGPU rendering (compute, render passes) ...
-  device.queue.submit([commandEncoder.finish()]);
-  ctx.utils.blitToCanvas(); // copy WebGPU result to visible canvas
+  const r = ctx.renderer;
+  const enc = r.beginFrame();
+  // ... compute passes, render passes ...
+  r.endFrame(enc);
+  // Engine automatically blits WebGPU output to visible canvas
 }
 \`\`\`
 
@@ -674,7 +679,7 @@ When generating or modifying scenes:
 3. If target is "auto" or absent, default to WebGL2/GLSL with \`ctx.gl\`.
 4. When the user explicitly requests WebGPU or compute shaders, include \`backendTarget: "webgpu"\` in the \`write_scene\` call.
 5. Never mix GLSL and WGSL in the same shader program — pick one based on the backend.
-6. Always call \`ctx.utils.blitToCanvas()\` at the end of WebGPU render functions.
+6. The engine auto-blits WebGPU output to the visible canvas after each render frame.
 7. **CRITICAL**: Always include \`backendTarget\` in \`write_scene\` for WebGPU scenes. Without it, the engine defaults to WebGL2 and \`ctx.renderer\` will not have a WebGPU device.`,
   },
 ];

@@ -379,10 +379,17 @@ export class WebGPUBackend extends RendererInterface {
   // ─── Bind Group ────────────────────────────────────────
 
   createBindGroup(desc) {
-    const { layout, entries, label } = desc;
+    const { layout, pipeline, groupIndex = 0, entries, label } = desc;
 
-    // Determine layout from pipeline if needed
-    const bindGroupLayout = layout?._native || layout;
+    // Determine layout: explicit layout, or auto-derive from pipeline
+    let bindGroupLayout;
+    if (layout) {
+      bindGroupLayout = layout._native || layout;
+    } else if (pipeline) {
+      bindGroupLayout = pipeline._native.getBindGroupLayout(groupIndex);
+    } else {
+      throw new Error("createBindGroup requires either 'layout' or 'pipeline' to derive bind group layout");
+    }
 
     const gpuEntries = entries.map((e) => {
       const entry = { binding: e.binding };
