@@ -449,22 +449,48 @@ export default function VersionTreeCanvas({
     return () => el.removeEventListener("keydown", handleKeyDown);
   }, [activeNodeId, nodesMap, childrenMap, roots, onDoubleClickNode, bounds, containerSize]);
 
-  // Mouse wheel zoom — dampen to avoid jumpy trackpad behavior
+  // Mouse wheel zoom — dampen + zoom toward pointer position
   const wheelAccRef = useRef(0);
+  const wheelPosRef = useRef({ x: 0, y: 0 });
   const wheelTimerRef = useRef(null);
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
+  const springPosRef = useRef(springPos);
+  springPosRef.current = springPos;
+
   const handleWheel = useCallback((e) => {
     e.preventDefault();
-    // Accumulate small deltas (trackpad sends many tiny events)
     wheelAccRef.current += e.deltaY;
-    if (wheelTimerRef.current) return; // batch within a frame
+    // Track last pointer position relative to container
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (rect) {
+      wheelPosRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+    if (wheelTimerRef.current) return;
     wheelTimerRef.current = requestAnimationFrame(() => {
       const acc = wheelAccRef.current;
       wheelAccRef.current = 0;
       wheelTimerRef.current = null;
-      // Clamp accumulated delta to avoid huge jumps
       const clamped = Math.max(-80, Math.min(80, acc));
       const factor = 1 - clamped * 0.002;
-      setZoom((z) => Math.max(0.15, Math.min(3, z * factor)));
+      const oldZoom = zoomRef.current;
+      const newZoom = Math.max(0.15, Math.min(3, oldZoom * factor));
+      if (newZoom === oldZoom) return;
+
+      // Adjust offset so the content point under the mouse stays fixed
+      const mx = wheelPosRef.current.x;
+      const my = wheelPosRef.current.y;
+      const sp = springPosRef.current;
+      // Content coordinate under the mouse: (mx - sp.x) / oldZoom
+      // After zoom it should still be at mx: sp.x' + cx * newZoom = mx
+      // => offset delta = mx - sp.x - (mx - sp.x) * (newZoom / oldZoom)
+      //                  = (mx - sp.x) * (1 - newZoom / oldZoom)
+      const ratio = newZoom / oldZoom;
+      const dx = (mx - sp.x) * (1 - ratio);
+      const dy = (my - sp.y) * (1 - ratio);
+
+      setDragOffset((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+      setZoom(newZoom);
     });
   }, []);
 
