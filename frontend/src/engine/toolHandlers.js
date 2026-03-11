@@ -379,6 +379,72 @@ async function toolListFiles(input, broadcast) {
   return "Workspace files:\n" + files.map((f) => `  ${f}`).join("\n");
 }
 
+async function toolSearchCode(input, _broadcast) {
+  const query = input.query || "";
+  if (!query) return "Error: 'query' is required.";
+  const caseSensitive = input.case_sensitive ?? false;
+  const maxResults = Math.min(input.max_results || 50, 200);
+
+  const results = [];
+  const searchRe = caseSensitive ? new RegExp(query, "g") : new RegExp(query, "gi");
+
+  // Search through workspace JSON files (scene.json, etc.)
+  for (const filename of WORKSPACE_FILES) {
+    let data;
+    try { data = await storage.readJson(filename); } catch { continue; }
+
+    // Recursively search string values
+    const searchObj = (obj, path) => {
+      if (results.length >= maxResults) return;
+      if (typeof obj === "string") {
+        const lines = obj.split("\n");
+        for (let i = 0; i < lines.length; i++) {
+          if (results.length >= maxResults) return;
+          if (searchRe.test(lines[i])) {
+            searchRe.lastIndex = 0;
+            results.push({ file: filename, section: path, line: i + 1, text: lines[i].trim() });
+          }
+        }
+      } else if (obj && typeof obj === "object") {
+        for (const [key, value] of Object.entries(obj)) {
+          if (results.length >= maxResults) return;
+          searchObj(value, path ? `${path}.${key}` : key);
+        }
+      }
+    };
+    searchObj(data, "");
+  }
+
+  // Search through .workspace/* text files
+  try {
+    const allFiles = await storage.listFiles(".workspace/");
+    for (const filePath of allFiles) {
+      if (results.length >= maxResults) break;
+      try {
+        const content = await storage.readTextFile(filePath);
+        if (typeof content !== "string") continue;
+        const lines = content.split("\n");
+        for (let i = 0; i < lines.length; i++) {
+          if (results.length >= maxResults) break;
+          if (searchRe.test(lines[i])) {
+            searchRe.lastIndex = 0;
+            results.push({ file: filePath, line: i + 1, text: lines[i].trim() });
+          }
+        }
+      } catch { continue; }
+    }
+  } catch { /* no .workspace files */ }
+
+  if (!results.length) return `No matches found for "${query}".`;
+
+  const lines = results.map((r) => {
+    const loc = r.section ? `${r.file} → ${r.section}:${r.line}` : `${r.file}:${r.line}`;
+    return `  ${loc}  ${r.text}`;
+  });
+  const header = `Found ${results.length}${results.length >= maxResults ? "+" : ""} match(es) for "${query}":`;
+  return header + "\n" + lines.join("\n");
+}
+
 async function toolOpenPanel(input, broadcast) {
   const panelId = input.id || "";
   const title = input.title || "Panel";
@@ -681,6 +747,7 @@ const TOOL_HANDLERS = {
   write_file: toolWriteFile,
   list_uploaded_files: toolListUploadedFiles,
   list_files: toolListFiles,
+  search_code: toolSearchCode,
   open_panel: toolOpenPanel,
   close_panel: toolClosePanel,
   start_recording: toolStartRecording,

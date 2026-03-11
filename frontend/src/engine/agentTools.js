@@ -84,6 +84,33 @@ const TOOLS = [
     },
   },
   {
+    name: "search_code",
+    description:
+      "Search for a string or regex pattern across all workspace files " +
+      "(scene.json script sections, ui_config.json, .workspace/* text files, etc.). " +
+      "Returns matching lines with file paths and line numbers. " +
+      "Useful for finding where a variable, uniform, function, or string is used.",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description:
+            "Search string or regex pattern. Examples: 'u_time', 'getUniformLocation', 'createBuffer'.",
+        },
+        case_sensitive: {
+          type: "boolean",
+          description: "Case-sensitive search (default false).",
+        },
+        max_results: {
+          type: "number",
+          description: "Maximum number of matches to return (default 50, max 200).",
+        },
+      },
+      required: ["query"],
+    },
+  },
+  {
     name: "open_panel",
     description:
       "Open a panel as a draggable node in the UI. " +
