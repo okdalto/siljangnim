@@ -2,16 +2,17 @@ import { useCallback, useState } from "react";
 import { API_BASE } from "../constants/api.js";
 import { importProjectZip } from "../engine/storage.js";
 
-export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages) {
+export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages, agentEngine) {
   const [projectList, setProjectList] = useState([]);
   const [activeProject, setActiveProject] = useState(null);
 
   const handleProjectLoad = useCallback(
     (name) => {
+      if (agentEngine?.abortController) return; // blocked while agent is running
       // No unsaved-changes confirmation needed — auto-save handles everything
       sendRef.current?.({ type: "project_load", name });
     },
-    [sendRef]
+    [sendRef, agentEngine]
   );
 
   const handleProjectDelete = useCallback(

@@ -180,7 +180,7 @@ async function toolWriteScene(input, broadcast) {
 
   await storage.writeJson("scene.json", scene);
   broadcast({ type: "scene_update", scene_json: scene });
-  return "ok — scene saved and broadcast.";
+  return "ok — scene saved and broadcast. Use check_browser_errors to verify it loaded without errors.";
 }
 
 async function toolWriteFile(input, broadcast) {
@@ -639,6 +639,11 @@ const TOOL_HANDLERS = {
 export async function handleTool(name, inputData, broadcast, context = {}) {
   const handler = TOOL_HANDLERS[name];
   if (!handler) return `Unknown tool: ${name}`;
+
+  // Mark pending scene load so check_browser_errors waits for it
+  if ((name === "write_scene" || (name === "write_file" && (inputData.path === "scene.json"))) && context.errorCollector) {
+    context.errorCollector.expectSceneLoad();
+  }
 
   if (name === "check_browser_errors") {
     return handler(inputData, broadcast, context.errorCollector);

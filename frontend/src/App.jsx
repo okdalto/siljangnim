@@ -275,7 +275,7 @@ export default function App() {
   const overwriteModeRef = useRef(false);
   overwriteModeRef.current = overwriteMode;
 
-  const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages);
+  const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages, _agentEngine);
 
   // Auto-save (Figma-style)
   const captureThumbnailRef = useRef(captureThumbnail);
@@ -501,6 +501,10 @@ export default function App() {
   } = useTreeActions({ tree, compare, handleMessage, project, chat, agentEngine: _agentEngine });
 
   const handleNewProject = useCallback(() => {
+    if (_agentEngine?.abortController) {
+      chat.addLog({ agent: "System", message: "에이전트가 실행 중입니다. 완료 후 새 프로젝트를 만들어 주세요.", level: "warn" });
+      return;
+    }
     // No unsaved-changes dialog — auto-save ensures everything is persisted
     chat.clearAll();
     resetUniformHistory();

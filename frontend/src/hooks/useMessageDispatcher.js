@@ -148,6 +148,11 @@ export default function useMessageDispatcher(params) {
         chat.setProcessing(!!msg.is_processing);
         // Common restoration
         _restoreWorkspaceState(msg, deps.current);
+
+        // If there was an interrupted agent prompt from a page refresh, show a retry banner
+        if (msg.interrupted_prompt) {
+          chat.addInterruptedMessage(msg.interrupted_prompt.userPrompt || "");
+        }
         break;
 
       case "assistant_text":

@@ -225,6 +225,15 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
             ) : (
               <MarkdownMessage text={msg.text} />
             )}
+            {msg.interrupted && msg.interruptedPrompt && (
+              <button
+                className="mt-1.5 px-2.5 py-1 rounded text-xs font-medium"
+                style={{ background: "var(--accent)", color: "var(--accent-text)" }}
+                onClick={() => onSend?.(msg.interruptedPrompt)}
+              >
+                다시 시도
+              </button>
+            )}
           </div>
         ))}
         {isProcessing && !pendingQuestion && (
