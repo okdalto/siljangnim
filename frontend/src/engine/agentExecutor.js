@@ -84,7 +84,7 @@ function stripThinking(messages) {
 }
 
 function compactMessages(messages) {
-  const RESULT_TRUNC = 500;
+  const RESULT_TRUNC = 4000;
   const SAFE_TOKENS = 120000;
 
   stripThinking(messages);
