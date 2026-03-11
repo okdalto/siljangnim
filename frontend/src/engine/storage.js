@@ -593,14 +593,30 @@ export async function deleteProject(name) {
 export async function renameProject(oldName, newDisplayName) {
   const sanitized = sanitizeName(oldName);
   const store = await tx(STORE_PROJECTS);
-  const meta = await idbReq(store.get(sanitized));
+  let meta = await idbReq(store.get(sanitized));
+  let actualKey = sanitized;
+
+  // Fallback: if sanitized key doesn't match (display_name diverged from key),
+  // search all projects by display_name
+  if (!meta) {
+    const allStore = await tx(STORE_PROJECTS);
+    const allKeys = await idbReq(allStore.getAllKeys());
+    for (const key of allKeys) {
+      const candidate = await idbReq((await tx(STORE_PROJECTS)).get(key));
+      if (candidate && candidate.display_name === oldName) {
+        meta = candidate;
+        actualKey = key;
+        break;
+      }
+    }
+  }
   if (!meta) throw new Error(`Project not found: ${oldName}`);
 
   meta.display_name = newDisplayName.trim() || meta.display_name;
   meta.updated_at = new Date().toISOString();
 
   const ws = await tx(STORE_PROJECTS, "readwrite");
-  await idbReq(ws.put(meta, sanitized));
+  await idbReq(ws.put(meta, actualKey));
   return meta;
 }
 
