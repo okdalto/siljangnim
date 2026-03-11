@@ -679,6 +679,7 @@ export default function App() {
           selectedModel={selectedModel}
           onModelChange={handleModelChange}
           onProjectRename={project.handleProjectRename}
+          githubAuth={github}
         />
 
         {safeModeActive && (
@@ -872,10 +873,12 @@ export default function App() {
         </div>
 
       </div>
-      <FeedbackButton
-        isAuthenticated={github.isAuthenticated}
-        token={github.token}
-      />
+      {!isMobile && (
+        <FeedbackButton
+          isAuthenticated={github.isAuthenticated}
+          token={github.token}
+        />
+      )}
     </SceneContext.Provider>
     </EngineContext.Provider>
     </SettingsContext.Provider>
