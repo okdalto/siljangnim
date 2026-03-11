@@ -171,6 +171,20 @@ export default function App() {
     _agentEngine._selectedModel = selectedModel;
   }
 
+  // Forward uncaught runtime errors (e.g. from GLEngine script execution) to agent error collector
+  useEffect(() => {
+    if (!BROWSER_ONLY || !_agentEngine) return;
+    const handler = (event) => {
+      const msg = event.message || event.error?.message || String(event.error || "Unknown error");
+      // Only forward if agent is busy (otherwise it's not relevant to agent work)
+      if (_agentEngine.agentBusy) {
+        _agentEngine.errorCollector.push(msg);
+      }
+    };
+    window.addEventListener("error", handler);
+    return () => window.removeEventListener("error", handler);
+  }, []);
+
   // Auto-switch model when provider changes (if current model doesn't belong to new provider)
   const currentProvider = apiKey.savedConfig?.provider;
   useEffect(() => {
@@ -305,7 +319,7 @@ export default function App() {
     getSceneJSON: () => sceneJSONRef.current,
     getUiConfig: () => uiConfigRef.current,
     getWorkspaceState,
-    getPanels: () => panelsDataRef.current,
+    getPanels: () => Object.fromEntries(panelsDataRef.current),
     getMessages: () => messagesRef.current,
     getDebugLogs: () => chat.debugLogs,
     getActiveProjectName: () => project.activeProject ? storageApi.getActiveProjectName() : null,
@@ -349,7 +363,7 @@ export default function App() {
         scene_json: sceneJSONRef.current || {},
         ui_config: uiConfigRef.current || {},
         workspace_state: getWorkspaceState(),
-        panels: panelsDataRef.current || {},
+        panels: Object.fromEntries(panelsDataRef.current || new Map()),
         chat_history: messagesRef.current || [],
         debug_logs: chat.debugLogs || [],
       };
@@ -578,6 +592,12 @@ export default function App() {
   const handleShaderError = useCallback((err) => {
     const message = err.message || String(err);
     chat.addLog({ agent: "WebGL", message, level: "error" });
+    // Forward to agent error collector so check_browser_errors picks it up
+    if (BROWSER_ONLY && _agentEngine) {
+      _agentEngine.errorCollector.push(message);
+    } else {
+      sendRef.current?.({ type: "console_error", message });
+    }
     // Feed shader compile errors to AI debugger
     if (message.includes("compile") || message.includes("shader") || message.includes("GLSL") || message.includes("ERROR:")) {
       aiDebugger.addCompileLog("fragment", "", message);
