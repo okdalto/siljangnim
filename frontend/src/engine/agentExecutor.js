@@ -174,13 +174,23 @@ async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarge
     prompt += "\n\n" + systemPromptAddition;
   }
 
+  // Auto-detect WebGPU intent from user prompt keywords when backend is "auto"
+  let effectiveBackend = backendTarget;
+  if ((!effectiveBackend || effectiveBackend === "auto") && userPrompt) {
+    const lower = userPrompt.toLowerCase();
+    const webgpuKeywords = ["webgpu", "wgsl", "compute shader", "컴퓨트 셰이더", "storage buffer", "gpudevice", "gpubuffer"];
+    if (webgpuKeywords.some((kw) => lower.includes(kw))) {
+      effectiveBackend = "webgpu";
+    }
+  }
+
   // Inject backend target if available
-  if (backendTarget && backendTarget !== "auto") {
-    prompt += `\n\n## ACTIVE BACKEND TARGET\nThe current project uses **${backendTarget}** backend. Generate ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} shaders accordingly. Follow the ${backendTarget === "webgpu" ? "WGSL" : "GLSL"} rules strictly.`;
+  if (effectiveBackend && effectiveBackend !== "auto") {
+    prompt += `\n\n## ACTIVE BACKEND TARGET\nThe current project uses **${effectiveBackend}** backend. Generate ${effectiveBackend === "webgpu" ? "WGSL" : "GLSL"} shaders accordingly. Follow the ${effectiveBackend === "webgpu" ? "WGSL" : "GLSL"} rules strictly.`;
 
     // Force-include WebGPU-related sections when backend is "webgpu",
     // even if the user didn't mention any trigger keywords.
-    if (backendTarget === "webgpu") {
+    if (effectiveBackend === "webgpu") {
       try {
         const { advancedSections } = await import("./prompts/advancedSections.js");
         const webgpuSectionIds = new Set(["wgsl_rules", "per_project_backend"]);
