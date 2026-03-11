@@ -182,6 +182,7 @@ export default function useNodeDataSync({
     updateNodeData(setNodes, "chat", () => ({
       messages: chat.messages,
       onSend: chat.handleSend,
+      onRetryInterrupted: chat.handleRetryInterrupted,
       isProcessing: chat.isProcessing,
       agentStatus: chat.agentStatus,
       onNewChat: chat.handleNewChat,

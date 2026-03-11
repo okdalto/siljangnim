@@ -82,6 +82,15 @@ export default function useChat(sendRef) {
     }]);
   }, []);
 
+  /** Retry an interrupted prompt without duplicating the user message. */
+  const handleRetryInterrupted = useCallback((prompt) => {
+    // Remove the interrupted system message from UI
+    setMessages((prev) => prev.filter((m) => !m.interrupted));
+    setIsProcessing(true);
+    // Send with _isRetry so agentEngine skips chatHistory push
+    sendRef.current?.({ type: "prompt", text: prompt, _isRetry: true });
+  }, [sendRef]);
+
   const addErrorLog = useCallback((text) => {
     setDebugLogs((prev) => [
       ...prev,
@@ -111,6 +120,7 @@ export default function useChat(sendRef) {
     addAssistantText,
     addSystemMessage,
     addInterruptedMessage,
+    handleRetryInterrupted,
     addLog,
     addErrorLog,
     setProcessing: setIsProcessing,
