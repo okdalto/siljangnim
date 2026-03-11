@@ -130,14 +130,19 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
 
     switchPromise.then(() => engine.loadScene(sceneJSON))
       .then(() => {
-        // Notify agent error collector that the scene has loaded
-        window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded"));
+        // Notify agent error collector that the scene has loaded,
+        // including setup status so check_browser_errors can diagnose white screens
+        window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded", {
+          detail: { setupReady: engine._setupReady },
+        }));
       })
       .catch((err) => {
         console.error("[ViewportNode] loadScene error:", err);
         setError(err.message || String(err));
         // Still ack scene load so error checker doesn't hang
-        window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded"));
+        window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded", {
+          detail: { setupReady: false, error: err.message },
+        }));
       });
   }, [sceneJSON]);
 

@@ -508,17 +508,25 @@ async function toolCheckBrowserErrors(input, broadcast, errorCollector) {
   // Wait up to 3 seconds for errors to arrive
   const errors = await errorCollector.waitForErrors(3000);
 
-  if (!errors.length) return "No browser errors detected.";
-
-  const engine = errors.filter((e) => e.startsWith("[engine]"));
-  const script = errors.filter((e) => !e.startsWith("[engine]"));
   const parts = [];
-  if (script.length) {
-    parts.push("Script errors (fix these in scene.json):\n" + script.map((e) => `  - ${e}`).join("\n"));
+
+  // Report setup status — helps diagnose white screens with "no errors"
+  if (errorCollector._setupReady === false) {
+    parts.push("⚠ Scene setup() FAILED — the render loop is NOT running. Check the errors below or verify your setup code.");
   }
-  if (engine.length) {
-    parts.push("Engine/infrastructure errors (NOT caused by your script — do NOT try to fix these):\n" + engine.map((e) => `  - ${e}`).join("\n"));
+
+  if (errors.length) {
+    const engine = errors.filter((e) => e.startsWith("[engine]"));
+    const script = errors.filter((e) => !e.startsWith("[engine]"));
+    if (script.length) {
+      parts.push("Script errors (fix these in scene.json):\n" + script.map((e) => `  - ${e}`).join("\n"));
+    }
+    if (engine.length) {
+      parts.push("Engine/infrastructure errors (NOT caused by your script — do NOT try to fix these):\n" + engine.map((e) => `  - ${e}`).join("\n"));
+    }
   }
+
+  if (!parts.length) return "No browser errors detected. Setup succeeded and render loop is running.";
   return parts.join("\n\n");
 }
 
