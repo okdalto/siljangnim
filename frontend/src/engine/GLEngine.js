@@ -294,6 +294,7 @@ export default class GLEngine {
       // or wraps the existing GL context for WebGL2.
       const prefer = this._backendOptions.preferBackend || "webgl2";
       const force = this._backendOptions.forceBackend || null;
+      const isSwitch = this._isSwitchingBackend; // set by switchBackend
 
       if (prefer === "webgpu" || force === "webgpu") {
         // WebGPU needs its own canvas context — create offscreen
@@ -307,10 +308,17 @@ export default class GLEngine {
           await gpuBackend.init(offscreen, { alpha: false });
           this._backend = gpuBackend;
         } catch (err) {
-          const failMsg = `WebGPU initialization failed: ${err.message}. Falling back to WebGL2.`;
+          const failMsg = `WebGPU initialization failed: ${err.message}`;
           console.error("[GLEngine]", failMsg);
           this.onError?.(new Error(failMsg));
           window.dispatchEvent(new ErrorEvent("error", { message: failMsg, error: new Error(failMsg) }));
+          // If this is a runtime backend switch, throw so switchBackend can
+          // restore the old backend. Silent fallback to WebGL2 would leave
+          // the scene expecting WebGPU but getting WebGL2.
+          if (isSwitch) {
+            throw new Error(failMsg);
+          }
+          // Initial load (not a switch): fall back to WebGL2
           await this._initWebGLBackend();
         }
       } else {
@@ -320,6 +328,10 @@ export default class GLEngine {
       this._backendReady = true;
       this.onBackendReady?.(this._backend.backendType);
     } catch (err) {
+      if (this._isSwitchingBackend) {
+        // Re-throw so switchBackend can restore the old backend
+        throw err;
+      }
       const failMsg = `Backend initialization failed: ${err.message}`;
       console.error("[GLEngine]", failMsg);
       this.onError?.(new Error(failMsg));
@@ -353,6 +365,7 @@ export default class GLEngine {
     this._backend = null;
     this._backendReady = false;
     this._backendOptions = { ...this._backendOptions, preferBackend };
+    this._isSwitchingBackend = true;
 
     try {
       await this.initBackend();
@@ -375,6 +388,8 @@ export default class GLEngine {
         this._tryRecoverContext();
       }
       throw err;
+    } finally {
+      this._isSwitchingBackend = false;
     }
 
     // Verify GL context survived the switch
