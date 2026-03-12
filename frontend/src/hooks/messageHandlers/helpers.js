@@ -1,7 +1,7 @@
 /**
  * Apply saved UI state (viewport zoom/pan, paused, backendTarget, collapsed states, fixedResolution).
  */
-export function applyUiState(uiState, { setPaused, setBackendTarget, rfInstanceRef, nodeUiStateRef }) {
+export function applyUiState(uiState, { setPaused, setBackendTarget, rfInstanceRef, nodeUiStateRef, setNodes }) {
   if (!uiState) return;
   if (typeof uiState.paused === "boolean") setPaused(uiState.paused);
   if (uiState.backendTarget) setBackendTarget?.(uiState.backendTarget);
@@ -10,6 +10,23 @@ export function applyUiState(uiState, { setPaused, setBackendTarget, rfInstanceR
       nodeUiStateRef.current.collapsed = { ...uiState.collapsed };
     }
     nodeUiStateRef.current.viewportFixedResolution = uiState.viewportFixedResolution ?? null;
+  }
+  // Push restored UI state directly into node data so hooks can pick it up
+  if (setNodes) {
+    const fixedRes = uiState.viewportFixedResolution ?? null;
+    const collapsed = uiState.collapsed || {};
+    setNodes((nds) => nds.map((n) => {
+      if (n.id === "viewport") {
+        return { ...n, data: { ...n.data, initialFixedResolution: fixedRes, initialCollapsed: collapsed.viewport } };
+      }
+      if (n.id === "chat") {
+        return { ...n, data: { ...n.data, initialCollapsed: collapsed.chat } };
+      }
+      if (n.id === "debugLog") {
+        return { ...n, data: { ...n.data, initialCollapsed: collapsed.debugLog } };
+      }
+      return n;
+    }));
   }
   if (uiState.viewport && rfInstanceRef?.current) {
     requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -70,7 +87,7 @@ export function restoreWorkspaceState(msg, deps) {
   panels.restorePanels(msg.panels || {});
   chat.setDebugLogs(msg.debug_logs || []);
   assetNodes.restore(msg.workspace_state?.assets || {});
-  applyUiState(msg.workspace_state?.ui_state, { setPaused, setBackendTarget, rfInstanceRef, nodeUiStateRef });
+  applyUiState(msg.workspace_state?.ui_state, { setPaused, setBackendTarget, rfInstanceRef, nodeUiStateRef, setNodes });
 
   requestAnimationFrame(() => requestAnimationFrame(() => { initSettledRef.current = true; }));
 }
