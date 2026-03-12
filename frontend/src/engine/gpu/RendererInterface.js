@@ -264,6 +264,9 @@ export class RendererInterface {
   /** Read pixels from a render target → Uint8Array. */
   readPixels(target, x, y, width, height) { throw new Error("Not implemented: readPixels"); }
 
+  /** Read a storage/vertex buffer back to CPU → TypedArray (async). */
+  readStorageBuffer(bufferHandle, TypedArrayClass, byteOffset, byteLength) { throw new Error("Not implemented: readStorageBuffer"); }
+
   // ─── Validation Error Tracking ───────────────────────────
 
   /** Push a validation error for Debug Panel consumption. */
