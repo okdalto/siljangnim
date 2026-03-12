@@ -303,6 +303,62 @@ function _summarizeFailedCycle(messages, startIdx, endIdx) {
 }
 
 // ---------------------------------------------------------------------------
+// Orphaned tool_use sanitizer
+// ---------------------------------------------------------------------------
+
+/**
+ * Scan conversation history and fix orphaned tool_use blocks.
+ * An orphaned tool_use is an assistant message containing tool_use blocks
+ * that are NOT followed by a user message with matching tool_result blocks.
+ * This can happen after stream drops or max_tokens interruptions.
+ *
+ * Fix strategy: inject synthetic tool_result with an error message so the
+ * conversation remains valid for the next API call.
+ */
+function sanitizeOrphanedToolUse(messages, log) {
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    if (msg.role !== "assistant" || !Array.isArray(msg.content)) continue;
+
+    const toolUseIds = msg.content
+      .filter(b => b.type === "tool_use" && b.id)
+      .map(b => b.id);
+    if (!toolUseIds.length) continue;
+
+    // Check if the next user message has matching tool_results
+    const nextMsg = messages[i + 1];
+    if (nextMsg?.role === "user" && Array.isArray(nextMsg.content)) {
+      const resultIds = new Set(
+        nextMsg.content.filter(b => b.type === "tool_result").map(b => b.tool_use_id)
+      );
+      const missingIds = toolUseIds.filter(id => !resultIds.has(id));
+      if (!missingIds.length) continue;
+
+      // Inject missing tool_results into the existing user message
+      for (const id of missingIds) {
+        nextMsg.content.push({
+          type: "tool_result",
+          tool_use_id: id,
+          content: "Error: tool call was interrupted by a connection error. Please retry if needed.",
+          is_error: true,
+        });
+      }
+      if (log) log("System", `Patched ${missingIds.length} orphaned tool_use(s) at message ${i}`, "info");
+    } else if (!nextMsg || nextMsg.role !== "user") {
+      // No user message follows — inject a synthetic one with all tool_results
+      const syntheticResults = toolUseIds.map(id => ({
+        type: "tool_result",
+        tool_use_id: id,
+        content: "Error: tool call was interrupted by a connection error. Please retry if needed.",
+        is_error: true,
+      }));
+      messages.splice(i + 1, 0, { role: "user", content: syntheticResults });
+      if (log) log("System", `Injected synthetic tool_results for ${toolUseIds.length} orphaned tool_use(s) at message ${i}`, "info");
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Multimodal content builder
 // ---------------------------------------------------------------------------
 
@@ -617,6 +673,13 @@ async function _runAgentLoop({
         lastMsgCount = messages.length;
       }
 
+      // --- Sanitize orphaned tool_use blocks before LLM call ---
+      // After stream drops, an assistant message may contain tool_use blocks
+      // without matching tool_result in the next user message. This causes
+      // API errors ("every tool_use must have a tool_result"). Fix by
+      // injecting synthetic error tool_results for any unmatched tool_use.
+      sanitizeOrphanedToolUse(messages, log);
+
       // --- Call LLM ---
       let contentBlocks, stopReason;
       let thinkingBuffer = "";
@@ -751,19 +814,24 @@ async function _runAgentLoop({
             messages.pop();
           }
           log("System", "Stream incomplete after max retries — using partial response", "warning");
+          onText?.("연결이 반복적으로 끊어져 작업을 중단했습니다. 대화 내용이 너무 길거나 생성하는 코드가 클 수 있습니다. 코드를 더 작은 단위로 나누어 다시 시도해 주세요.");
+          lastText = lastText || "연결이 반복적으로 끊어져 작업을 중단했습니다.";
           break;
         }
         const hasText = storedBlocks.some(b => b.type === "text" && b.text?.trim());
         const hasToolUse = storedBlocks.some(b => b.type === "tool_use");
         if (hasText && !hasToolUse) {
-          // Got partial text only, ask to continue
+          // Got partial text only — keep it and nudge to continue
+          // Extract the last ~200 chars to anchor the continuation point
+          const partialText = storedBlocks.filter(b => b.type === "text").map(b => b.text).join("");
+          const tail = partialText.length > 200 ? "..." + partialText.slice(-200) : partialText;
           log("System", `Stream dropped mid-response — continuing (${overloadRetries}/${MAX_OVERLOAD_RETRIES})...`, "info");
           onStatus?.("thinking", "연결이 끊어졌습니다. 계속 진행합니다...");
           if (document.hidden) await waitForVisible(signal);
           await sleep(Math.min(2 ** overloadRetries, 10) * 1000, signal);
           messages.push({
             role: "user",
-            content: "Your response was interrupted by a network error. Continue exactly where you left off.",
+            content: `Network interruption. Your last output ended with:\n"${tail}"\nContinue from that exact point. Do NOT restart or repeat previous content — just output the remaining part.`,
           });
           continue;
         }
@@ -804,8 +872,8 @@ async function _runAgentLoop({
         messages.push({
           role: "user",
           content: hasAnyToolUse
-            ? "Your tool call was cut off by the token limit and the input was lost. Please retry the tool call, keeping the input concise. If the code is long, consider splitting it into smaller parts using write_file for the main code and write_scene to reference it."
-            : "You were cut off due to token limit. Continue where you left off.",
+            ? "Your tool call was cut off by the token limit and the input was lost. Please retry the tool call with SHORTER code. If the code is very long, split it into phases: write the first working part, verify it, then add the next part incrementally using write_file edits."
+            : "You were cut off due to token limit. Continue from where you stopped — do NOT restart or repeat previous content.",
         });
         continue;
       }
@@ -952,8 +1020,29 @@ async function _runAgentLoop({
         log("System", `Loop detected (${loopResult.count} identical calls) — stopping`, "warning");
         messages.push({
           role: "user",
-          content: "SYSTEM: You are in an infinite loop calling the same tool repeatedly. STOP calling tools and respond to the user with what you have so far.",
+          content: "SYSTEM: You are in an infinite loop calling the same tool repeatedly. STOP calling tools. Explain to the user what you were trying to do and why it keeps failing. Suggest an alternative approach.",
         });
+        // Let the model produce one final explanatory response
+        try {
+          const finalResult = await callLLM({
+            provider,
+            apiKey,
+            baseUrl: providerConfig.base_url,
+            model: modelName,
+            maxTokens: 2048,
+            system: systemPrompt,
+            messages,
+            tools: [],
+            signal,
+          });
+          const finalBlocks = (finalResult.contentBlocks || []).filter(b => b.type !== "thinking");
+          for (const block of finalBlocks) {
+            if (block.type === "text" && block.text?.trim()) {
+              onText?.(block.text);
+              lastText = block.text;
+            }
+          }
+        } catch { /* best effort */ }
         break;
       }
       if (loopResult.action === "warn") {
@@ -970,10 +1059,32 @@ async function _runAgentLoop({
       });
       if (errorLoopResult.action === "break") {
         log("System", `Error loop detected (${errorLoopResult.count}x same pattern) — stopping`, "warning");
+        // Instead of silently breaking, tell the model to explain to the user
         messages.push({
           role: "user",
-          content: `SYSTEM: You keep hitting the same error pattern ${errorLoopResult.count} times: "${errorLoopResult.pattern}". STOP and explain the issue to the user instead of retrying.`,
+          content: `SYSTEM: You keep hitting the same error pattern ${errorLoopResult.count} times: "${errorLoopResult.pattern}". STOP retrying. Explain clearly to the user: (1) what error you keep hitting, (2) what you tried, (3) what approach might work differently. The user can then decide to retry with a different strategy or help you.`,
         });
+        // Let the model produce one final explanatory response, then break
+        try {
+          const finalResult = await callLLM({
+            provider,
+            apiKey,
+            baseUrl: providerConfig.base_url,
+            model: modelName,
+            maxTokens: 2048,
+            system: systemPrompt,
+            messages,
+            tools: [],
+            signal,
+          });
+          const finalBlocks = (finalResult.contentBlocks || []).filter(b => b.type !== "thinking");
+          for (const block of finalBlocks) {
+            if (block.type === "text" && block.text?.trim()) {
+              onText?.(block.text);
+              lastText = block.text;
+            }
+          }
+        } catch { /* best effort — if this fails too, just stop */ }
         break;
       }
       if (errorLoopResult.action === "warn") {
@@ -1312,7 +1423,14 @@ export async function runWithPlan({
   const previousPrompt = messages.filter(m => m.role === "user" && typeof m.content === "string")
     .slice(-2, -1)[0]?.content || "";
 
-  if (!shouldPlan(messages.length, userPrompt, { recentErrors: recentErrorCount, previousPrompt })) {
+  // Detect if a plan was recently executed (within last 6 messages).
+  // The plan-based generator inserts "[Execution context rebuilt]" style messages,
+  // but more reliably, check if the last few user messages include "Proceed with the execution plan."
+  const recentPlanExecuted = messages.slice(-6).some(m =>
+    m.role === "user" && typeof m.content === "string" &&
+    m.content.includes("Proceed with the execution plan"));
+
+  if (!shouldPlan(messages.length, userPrompt, { recentErrors: recentErrorCount, previousPrompt, recentPlanExecuted })) {
     return runAgent({
       apiKey, userPrompt, log, broadcast, onText, onStatus,
       files, messages, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,

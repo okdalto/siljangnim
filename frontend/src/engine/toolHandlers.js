@@ -212,6 +212,7 @@ async function toolWriteFile(input, broadcast) {
   if (!relPath) return "Error: 'path' is required.";
   const rawContent = input.content;
   const rawEdits = input.edits;
+  const appendMode = input.append === true;
 
   if (rawContent == null && rawEdits == null) {
     return "Error: either 'content' or 'edits' is required.";
@@ -222,6 +223,20 @@ async function toolWriteFile(input, broadcast) {
 
   if (!isWorkspaceFile && !isUnderWorkspaceDir) {
     return "Write access denied. Only workspace files and .workspace/ are writable in browser mode.";
+  }
+
+  // Append mode — only for .workspace/* text files
+  if (appendMode) {
+    if (!isUnderWorkspaceDir) {
+      return "Error: append mode is only supported for .workspace/* text files, not workspace JSON files.";
+    }
+    if (rawContent == null) {
+      return "Error: 'content' is required when using append mode.";
+    }
+    let existing = "";
+    try { existing = await storage.readTextFile(relPath); } catch { /* file doesn't exist yet — start fresh */ }
+    await storage.writeTextFile(relPath, existing + (typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent)));
+    return `ok — appended to ${relPath} (total size: ${(existing.length + String(rawContent).length)} chars).`;
   }
 
   // Full replacement (content mode)
@@ -904,6 +919,87 @@ async function toolDebugSubagent(input, broadcast, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// edit_scene — surgical text-level edits within scene script sections
+// ---------------------------------------------------------------------------
+
+async function toolEditScene(input, broadcast) {
+  const edits = input.edits;
+  if (!edits || !Array.isArray(edits) || !edits.length) {
+    return "Error: 'edits' array is required. Each edit: { section, old_text, new_text }.";
+  }
+
+  let scene;
+  try {
+    scene = await storage.readJson("scene.json");
+  } catch {
+    return "Error: no scene.json exists. Use write_scene to create one first.";
+  }
+
+  if (!scene.script || typeof scene.script !== "object") {
+    return "Error: scene.json has no 'script' object.";
+  }
+
+  const warnings = [];
+  let appliedCount = 0;
+
+  for (let i = 0; i < edits.length; i++) {
+    const edit = edits[i];
+    const section = edit.section;
+    const oldText = edit.old_text;
+    const newText = edit.new_text ?? "";
+
+    if (!section || !["setup", "render", "cleanup"].includes(section)) {
+      warnings.push(`Edit ${i}: invalid section '${section}' — must be setup, render, or cleanup.`);
+      continue;
+    }
+    if (oldText == null) {
+      warnings.push(`Edit ${i}: 'old_text' is required.`);
+      continue;
+    }
+
+    const code = scene.script[section];
+    if (code == null) {
+      warnings.push(`Edit ${i}: section '${section}' does not exist in current scene.`);
+      continue;
+    }
+
+    if (!code.includes(oldText)) {
+      // Provide a helpful preview of the section for debugging
+      const preview = code.length > 200 ? code.slice(0, 200) + "..." : code;
+      warnings.push(`Edit ${i}: old_text not found in script.${section}. Current content starts with:\n${preview}`);
+      continue;
+    }
+
+    const occurrences = code.split(oldText).length - 1;
+    if (occurrences > 1) {
+      warnings.push(`Edit ${i}: old_text found ${occurrences} times in script.${section} — only first replaced. Provide more context for unique match.`);
+    }
+
+    scene.script[section] = code.replace(oldText, newText);
+    appliedCount++;
+  }
+
+  if (appliedCount === 0 && warnings.length) {
+    return "Error: no edits applied.\n" + warnings.map((w) => `  - ${w}`).join("\n");
+  }
+
+  normalizeScriptStrings(scene);
+  const errors = validateSceneJson(scene);
+  if (errors.length) {
+    let result = "Validation errors after edits:\n" + errors.map((e) => `  - ${e}`).join("\n");
+    if (warnings.length) result += "\nEdit warnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+    return result;
+  }
+
+  await storage.writeJson("scene.json", scene);
+  broadcast({ type: "scene_update", scene_json: scene });
+
+  let result = `ok — ${appliedCount} edit(s) applied to scene and broadcast.`;
+  if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 // Improvement #8: Success pattern extraction and storage
 // ---------------------------------------------------------------------------
 
@@ -972,6 +1068,7 @@ async function storeSuccessPattern(scene) {
 const TOOL_HANDLERS = {
   read_file: toolReadFile,
   write_scene: toolWriteScene,
+  edit_scene: toolEditScene,
   write_file: toolWriteFile,
   list_uploaded_files: toolListUploadedFiles,
   list_files: toolListFiles,
@@ -1006,7 +1103,7 @@ export async function handleTool(name, inputData, broadcast, context = {}) {
   if (!handler) return `Unknown tool: ${name}`;
 
   // Mark pending scene load so check_browser_errors waits for it
-  if ((name === "write_scene" || (name === "write_file" && (inputData.path === "scene.json"))) && context.errorCollector) {
+  if ((name === "write_scene" || name === "edit_scene" || (name === "write_file" && (inputData.path === "scene.json"))) && context.errorCollector) {
     context.errorCollector.expectSceneLoad();
   }
 

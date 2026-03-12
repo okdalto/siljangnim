@@ -113,6 +113,26 @@ function keywordOverlap(a, b) {
 }
 
 /**
+ * Detect follow-up / continuation messages that should NOT trigger replanning.
+ * These are short directives that refer to the agent's previous output.
+ */
+const FOLLOWUP_PATTERNS = [
+  // Korean follow-ups
+  /^(?:계속|계속해|계속하자|이어서|이어서\s*해|진행해|진행하자|반영해|그렇게\s*해|그래\s*해|ㄱㄱ)(?:\s*줘|주세요|요)?$/i,
+  /^(?:응|네|ㅇㅇ|그래|좋아|알겠어|맞아)\s*.{0,20}(?:해줘|해|반영|진행|계속|적용)/i,
+  /^(?:그거|그것|위에|방금)\s*.{0,15}(?:해줘|해|적용|반영|진행)/i,
+  // English follow-ups
+  /^(?:continue|go ahead|proceed|do it|apply|yes.*do|keep going|carry on)[\s.!]*$/i,
+  /^(?:sounds good|looks good|lgtm|perfect|great|nice)[\s,.!]*(?:do it|go ahead|proceed|apply)?[\s.!]*$/i,
+];
+
+function isFollowUp(text) {
+  const t = text.trim();
+  if (t.length > 80) return false;
+  return FOLLOWUP_PATTERNS.some(re => re.test(t));
+}
+
+/**
  * Heuristic: planning is valuable when the conversation is long enough
  * that context pollution becomes a concern, when the topic changes
  * dramatically, or when repeated failures suggest a fresh approach is needed.
@@ -122,10 +142,11 @@ function keywordOverlap(a, b) {
  * @param {Object} [opts] - additional context
  * @param {number} [opts.recentErrors] - number of recent error-fix cycles
  * @param {string} [opts.previousPrompt] - the previous user prompt for topic change detection
+ * @param {boolean} [opts.recentPlanExecuted] - true if a plan was executed within the last few turns
  * @returns {boolean}
  */
 export function shouldPlan(conversationLength, userPrompt, opts = {}) {
-  const { recentErrors = 0, previousPrompt = "" } = opts;
+  const { recentErrors = 0, previousPrompt = "", recentPlanExecuted = false } = opts;
 
   const trimmed = userPrompt.trim();
 
@@ -135,6 +156,13 @@ export function shouldPlan(conversationLength, userPrompt, opts = {}) {
   // Simple affirmatives / negatives
   const simple = ["yes", "no", "ok", "ㅇㅇ", "ㄴㄴ", "네", "아니요", "응", "ㅇ", "ㄴ"];
   if (simple.includes(trimmed.toLowerCase())) return false;
+
+  // Follow-up / continuation messages — skip planning, continue current work
+  if (isFollowUp(trimmed)) return false;
+
+  // If a plan was recently executed and this is a short prompt (likely a follow-up
+  // or minor adjustment), skip replanning to avoid cascading planner calls
+  if (recentPlanExecuted && trimmed.length < 60) return false;
 
   // Improvement #4a: repeated failures → plan regardless of conversation length
   if (recentErrors >= 3 && conversationLength >= 6) return true;
