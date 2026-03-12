@@ -16,7 +16,12 @@ import {
 
 // ─── Format mappings ───────────────────────────────────────
 
+/** Map abstract format enum OR raw WebGPU format string to GPUTextureFormat. */
 function gpuTextureFormat(fmt) {
+  // If already a raw WebGPU format string, pass through
+  if (typeof fmt === "string" && /^(rgba|bgra|r\d|rg\d|depth|stencil)/.test(fmt)) {
+    return fmt;
+  }
   switch (fmt) {
     case TextureFormat.RGBA8:    return "rgba8unorm";
     case TextureFormat.RGBA16F:  return "rgba16float";
@@ -123,6 +128,7 @@ export class WebGPUBackend extends RendererInterface {
     this.context.configure({
       device: this.device,
       format: this._presentationFormat,
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
       alphaMode: options.alpha ? "premultiplied" : "opaque",
     });
 
@@ -223,8 +229,9 @@ export class WebGPUBackend extends RendererInterface {
   createTexture(desc) {
     const { width, height, format = TextureFormat.RGBA8, usage = [], label } = desc;
     let usageBits = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;
-    if (usage.includes("render-attachment")) usageBits |= GPUTextureUsage.RENDER_ATTACHMENT;
+    if (usage.includes("render-attachment")) usageBits |= GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC;
     if (usage.includes("storage")) usageBits |= GPUTextureUsage.STORAGE_BINDING;
+    if (usage.includes("copy-src")) usageBits |= GPUTextureUsage.COPY_SRC;
 
     const texture = this.device.createTexture({
       size: [width, height],
@@ -236,7 +243,7 @@ export class WebGPUBackend extends RendererInterface {
     return { _id: nextId(), _native: texture, width, height, format, label };
   }
 
-  writeTexture(handle, source, options = {}) {
+  async writeTexture(handle, source, options = {}) {
     if (source instanceof Uint8Array || source instanceof Float32Array) {
       const bytesPerPixel = source instanceof Float32Array ? 16 : 4;
       this.device.queue.writeTexture(
@@ -245,25 +252,20 @@ export class WebGPUBackend extends RendererInterface {
         { bytesPerRow: handle.width * bytesPerPixel, rowsPerImage: handle.height },
         [handle.width, handle.height],
       );
+    } else if (source instanceof ImageBitmap) {
+      this.device.queue.copyExternalImageToTexture(
+        { source, flipY: options.flipY ?? false },
+        { texture: handle._native },
+        [handle.width, handle.height],
+      );
     } else {
-      // ImageBitmap — use copyExternalImageToTexture
-      // Convert to ImageBitmap first if needed
-      if (source instanceof ImageBitmap) {
-        this.device.queue.copyExternalImageToTexture(
-          { source, flipY: options.flipY ?? false },
-          { texture: handle._native },
-          [handle.width, handle.height],
-        );
-      } else {
-        // For HTMLImageElement, HTMLVideoElement, etc. → createImageBitmap first
-        createImageBitmap(source).then((bitmap) => {
-          this.device.queue.copyExternalImageToTexture(
-            { source: bitmap, flipY: options.flipY ?? false },
-            { texture: handle._native },
-            [handle.width, handle.height],
-          );
-        });
-      }
+      // HTMLImageElement, HTMLVideoElement, etc. → await createImageBitmap
+      const bitmap = await createImageBitmap(source);
+      this.device.queue.copyExternalImageToTexture(
+        { source: bitmap, flipY: options.flipY ?? false },
+        { texture: handle._native },
+        [handle.width, handle.height],
+      );
     }
   }
 
