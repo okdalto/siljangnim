@@ -665,6 +665,35 @@ export class WebGPUBackend extends RendererInterface {
     return pixels;
   }
 
+  /**
+   * Read a GPU storage/vertex buffer back to CPU.
+   * The source buffer MUST have been created with usage including "copy-src".
+   * @param {object} bufferHandle — handle from createBuffer()
+   * @param {Function} [TypedArrayClass=Float32Array] — constructor for the result
+   * @param {number} [byteOffset=0] — byte offset into the source buffer
+   * @param {number} [byteLength] — bytes to read (default: entire buffer)
+   * @returns {Promise<TypedArray>} — a copy of the buffer data
+   */
+  async readStorageBuffer(bufferHandle, TypedArrayClass = Float32Array, byteOffset = 0, byteLength) {
+    const srcBuffer = bufferHandle._native || bufferHandle;
+    const size = byteLength ?? (srcBuffer.size - byteOffset);
+
+    const readBuffer = this.device.createBuffer({
+      size,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
+
+    const encoder = this.device.createCommandEncoder();
+    encoder.copyBufferToBuffer(srcBuffer, byteOffset, readBuffer, 0, size);
+    this.device.queue.submit([encoder.finish()]);
+
+    await readBuffer.mapAsync(GPUMapMode.READ);
+    const mapped = new TypedArrayClass(readBuffer.getMappedRange().slice(0));
+    readBuffer.unmap();
+    readBuffer.destroy();
+    return mapped;
+  }
+
   // ─── Internal ──────────────────────────────────────────
 
   _getSupportedFeatures() {

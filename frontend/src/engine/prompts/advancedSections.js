@@ -352,6 +352,7 @@ Core methods:
 | \`setComputePipeline(pass, pipeline)\` | Set compute pipeline in compute pass |
 | \`dispatch(pass, x, y?, z?)\` | Dispatch compute workgroups |
 | \`readPixels(target?, x, y, w, h)\` | Read pixels from render target (async) |
+| \`readStorageBuffer(buffer, TypedArrayClass?, byteOffset?, byteLength?)\` | Read GPU buffer back to CPU (async). Buffer must have \`"copy-src"\` usage |
 | \`resize(width, height)\` | Resize the drawing surface |
 | \`getCapabilities()\` | Returns \`{ backend, maxTextureSize, compute, storageBuffers, ... }\` |
 | \`getNativeContext()\` | Get raw GPUDevice (WebGPU) or WebGL2RenderingContext |
@@ -681,12 +682,96 @@ Raw device access bypasses error tracking and may cause silent failures.
 
 When generating or modifying scenes:
 1. Read the current backendTarget from scene metadata.
-2. If target is "webgpu", write WGSL shaders and **always use \`ctx.renderer\`** (including for compute shaders).
+2. If target is "webgpu", use \`ctx.renderer\` for compute shaders and/or WGSL render pipelines.
 3. If target is "auto" or absent, default to WebGL2/GLSL with \`ctx.gl\`.
 4. When the user explicitly requests WebGPU or compute shaders, include \`backendTarget: "webgpu"\` in the \`write_scene\` call.
 5. Never mix GLSL and WGSL in the same shader program — pick one based on the backend.
 6. The engine auto-blits WebGPU output to the visible canvas after each render frame.
 7. **CRITICAL**: Always include \`backendTarget\` in \`write_scene\` for WebGPU scenes. Without it, the engine defaults to WebGL2 and \`ctx.renderer\` will not have a WebGPU device.
+
+### Hybrid Mode: WebGPU Compute + WebGL2 Rendering
+
+When \`backendTarget\` is \`"webgpu"\`, **both \`ctx.renderer\` (WebGPU) and \`ctx.gl\` (WebGL2) are available simultaneously**. \
+The WebGPU backend runs on a separate OffscreenCanvas; the main canvas retains its WebGL2 context.
+
+This enables a powerful hybrid pattern: **GPU compute simulation via WebGPU + high-quality rendering via WebGL2 GLSL**.
+
+**When to use hybrid mode:**
+- Heavy particle/physics simulation (MPM, SPH, DEM) that benefits from compute shaders
+- Complex WebGL2 rendering pipeline (SSFR, deferred shading, multi-pass post-processing) that would be tedious to rewrite in WGSL
+- Existing WebGL2 scenes that need GPU-accelerated simulation added
+
+**Data flow: WebGPU compute → CPU readback → WebGL2 rendering**
+
+\`\`\`js
+// setup:
+const r = ctx.renderer; // WebGPU
+const gl = ctx.gl;       // WebGL2 — both available!
+
+// 1. Create compute resources on WebGPU
+const computeModule = r.createShaderModule({ code: computeWGSL });
+const computePipeline = r.createComputePipeline({ module: computeModule, entryPoint: "main" });
+// IMPORTANT: include "copy-src" in usage for CPU readback
+const particleBuf = r.createBuffer({ usage: ["storage", "copy-src"], data: initData });
+const computeBG = r.createBindGroup({ pipeline: computePipeline, entries: [
+  { binding: 0, resource: { type: "storage-buffer", buffer: particleBuf } },
+]});
+
+// 2. Create WebGL2 rendering resources (GLSL shaders, VAOs, etc.)
+const prog = ctx.utils.createProgram(vertGLSL, fragGLSL);
+const mesh = ctx.utils.createMesh(prog, geometry);
+const u = ctx.utils.getUniforms(prog);
+
+// 3. Create a WebGL2 VBO for particle positions (will be updated each frame)
+const glPosBuf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, glPosBuf);
+gl.bufferData(gl.ARRAY_BUFFER, initData.byteLength, gl.DYNAMIC_DRAW);
+
+ctx.state = { r, computePipeline, particleBuf, computeBG, computeModule, prog, mesh, u, glPosBuf };
+
+// render:
+const s = ctx.state;
+const gl = ctx.gl;
+
+// Step 1: Run compute shader on WebGPU
+const enc = s.r.beginFrame();
+const cp = s.r.beginComputePass(enc, {});
+s.r.setComputePipeline(cp, s.computePipeline);
+s.r.setBindGroup(cp, 0, s.computeBG);
+s.r.dispatch(cp, Math.ceil(N / 64));
+s.r.endComputePass(cp);
+s.r.endFrame(enc);
+
+// Step 2: Read compute results back to CPU
+const cpuData = await s.r.readStorageBuffer(s.particleBuf, Float32Array);
+
+// Step 3: Upload to WebGL2 and render with GLSL
+gl.bindBuffer(gl.ARRAY_BUFFER, s.glPosBuf);
+gl.bufferSubData(gl.ARRAY_BUFFER, 0, cpuData);
+gl.useProgram(s.prog);
+// ... set uniforms, bindVertexArray, draw ...
+
+// cleanup:
+const { r: rr } = ctx.state;
+rr.destroyBuffer(ctx.state.particleBuf);
+rr.destroyPipeline(ctx.state.computePipeline);
+rr.destroyBindGroup(ctx.state.computeBG);
+rr.destroyShaderModule(ctx.state.computeModule);
+gl.deleteProgram(ctx.state.prog);
+ctx.state.mesh.dispose();
+gl.deleteBuffer(ctx.state.glPosBuf);
+\`\`\`
+
+**Key rules for hybrid mode:**
+- \`ctx.renderer.readStorageBuffer(buf, TypedArrayClass?)\` reads GPU buffer back to CPU. \
+The buffer MUST have \`"copy-src"\` in its usage array.
+- **render function can be \`async\`** — the engine handles returned Promises. \
+Use \`await readStorageBuffer()\` in render to get compute results before WebGL2 drawing. \
+Note: in real-time mode, async render runs fire-and-forget per frame (no backpressure). \
+For heavy readbacks, consider reading every Nth frame and interpolating between updates.
+- Do NOT call \`ctx.utils.blitToCanvas()\` in hybrid mode — you're rendering with WebGL2 directly to the visible canvas, not using WebGPU's render output.
+- WebGPU compute and WebGL2 rendering use separate GPU contexts. The readback goes through CPU (typed array). \
+For moderate data sizes (< 1M floats) this is fast enough for 60fps.
 
 ### IMPORTANT: GPU Resource Lifecycle
 
