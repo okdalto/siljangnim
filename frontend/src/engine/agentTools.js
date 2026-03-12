@@ -361,6 +361,29 @@ const TOOLS = [
       required: ["filename"],
     },
   },
+  {
+    name: "debug_with_subagent",
+    description:
+      "Spawn a debug sub-agent to analyze complex errors. The sub-agent has its own " +
+      "conversation context and can read files, search code, and check browser errors. " +
+      "It returns a detailed diagnosis with root cause, location, and suggested fix. " +
+      "Use this when you encounter errors that are hard to diagnose from the error " +
+      "message alone, or when multiple interacting issues make debugging complex. " +
+      "Do NOT use for simple, obvious errors — just fix those directly.",
+    input_schema: {
+      type: "object",
+      properties: {
+        error_context: {
+          type: "string",
+          description:
+            "Description of the problem for the debug agent. Include: " +
+            "the error message(s), what you were trying to do, and any " +
+            "relevant context. The more detail, the better the diagnosis.",
+        },
+      },
+      required: ["error_context"],
+    },
+  },
 ];
 
 export default TOOLS;

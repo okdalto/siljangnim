@@ -756,6 +756,19 @@ async function toolUnzipAsset(input, broadcast) {
   }
 }
 
+async function toolDebugSubagent(input, broadcast, debugSubagentRunner) {
+  const errorContext = input.error_context;
+  if (!errorContext) return "Error: 'error_context' is required.";
+  if (!debugSubagentRunner) return "Error: debug sub-agent is not available in this context.";
+
+  try {
+    const result = await debugSubagentRunner(errorContext);
+    return result || "Debug sub-agent returned no diagnosis.";
+  } catch (err) {
+    return `Debug sub-agent failed: ${err.message || String(err)}`;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Dispatch table
 // ---------------------------------------------------------------------------
@@ -778,6 +791,7 @@ const TOOL_HANDLERS = {
   run_preprocess: toolRunPreprocess,
   web_fetch: toolWebFetch,
   unzip_asset: toolUnzipAsset,
+  debug_with_subagent: toolDebugSubagent,
 };
 
 /**
@@ -809,6 +823,9 @@ export async function handleTool(name, inputData, broadcast, context = {}) {
   }
   if (name === "run_preprocess") {
     return handler(inputData, broadcast, context.preprocessPromise);
+  }
+  if (name === "debug_with_subagent") {
+    return handler(inputData, broadcast, context.debugSubagentRunner);
   }
   return handler(inputData, broadcast);
 }
