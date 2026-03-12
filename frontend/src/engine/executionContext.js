@@ -44,7 +44,12 @@ Guidelines:
 - If the request modifies existing work, set needs_current_scene=true.
 - If the request references uploaded assets, set needs_assets=true.
 - constraints should mention things the user explicitly wants preserved.
-- Be concise — every token in the plan costs context for the generator.`;
+- Be concise — every token in the plan costs context for the generator.
+- For complex scenes (particle systems, multi-pass rendering, fluid sim):
+  Step 1 should ALWAYS be: write_scene with MINIMAL working skeleton (core structure + basic rendering, < 80 lines).
+  Subsequent steps should add features ONE AT A TIME via edit_scene.
+  Each step should be independently testable via check_browser_errors.
+  NEVER plan to write more than 80 lines in a single write_scene call.`;
 
 // ---------------------------------------------------------------------------
 // Planner model — use Haiku for speed/cost
@@ -298,6 +303,11 @@ export function buildExecutionContext(plan, currentState, baseSystemPrompt) {
     "",
     "Execute this plan step by step. Do not deviate from the approved steps.",
     "You do NOT have access to prior conversation — all relevant context is provided below.",
+    "",
+    "IMPORTANT: Build the scene INCREMENTALLY.",
+    "Phase 1: write_scene with minimal working code (< 80 lines).",
+    "Phase 2: edit_scene to add features one at a time.",
+    "Each edit_scene must be followed by check_browser_errors.",
   );
 
   systemPrompt += planSection.join("\n");
@@ -331,6 +341,50 @@ export function buildExecutionContext(plan, currentState, baseSystemPrompt) {
     : "Proceed with the execution plan.";
 
   const messages = [{ role: "user", content: userContent }];
+
+  return { systemPrompt, messages };
+}
+
+// ---------------------------------------------------------------------------
+// Resume context (checkpoint recovery)
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a fresh system prompt + messages for resuming from a checkpoint.
+ * The agent sees what was already completed and continues from there.
+ *
+ * @param {Object} checkpoint - saved checkpoint data
+ * @param {Object} currentScene - current scene.json from IndexedDB
+ * @param {string} baseSystemPrompt - the normal full system prompt
+ * @returns {{ systemPrompt: string, messages: Array }}
+ */
+export function buildResumeContext(checkpoint, currentScene, baseSystemPrompt) {
+  const { plan, completedSteps = [], userPrompt } = checkpoint;
+
+  let resumeSection = "\n\n## RESUME FROM CHECKPOINT";
+  resumeSection += `\nThe previous session was interrupted. The user's original request: "${userPrompt}"`;
+
+  if (plan && plan.steps) {
+    const stepsWithStatus = plan.steps.map((s, i) =>
+      completedSteps.includes(i) ? `${i + 1}. [DONE] ${s}` : `${i + 1}. ${s}`
+    );
+    const nextStep = completedSteps.length + 1;
+    resumeSection += `\n\nPlan:\n${stepsWithStatus.join("\n")}`;
+    resumeSection += `\n\nContinue from step ${nextStep}. Do NOT redo completed steps.`;
+  } else {
+    resumeSection += "\nA scene was already written. Review it and continue improving or adding features.";
+  }
+
+  const systemPrompt = baseSystemPrompt + resumeSection;
+
+  // Provide the current scene code so the agent knows what exists
+  const sceneStr = JSON.stringify(currentScene, null, 2);
+  const truncated = sceneStr.length > 10000 ? sceneStr.slice(0, 10000) + "\n...(truncated)" : sceneStr;
+
+  const messages = [{
+    role: "user",
+    content: `The following scene.json was already written before the interruption:\n\`\`\`json\n${truncated}\n\`\`\`\n\nContinue from where the previous session left off. Do NOT rewrite the scene from scratch — use edit_scene to add missing features or fix issues.`,
+  }];
 
   return { systemPrompt, messages };
 }

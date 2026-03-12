@@ -552,6 +552,19 @@ const HANDLERS = {
     // Improvement #10: link errorCollector to injectedMessages for push-based errors
     this.errorCollector.setInjectedMessages(this.injectedMessages);
 
+    // Detect checkpoint for resume (crash recovery)
+    let resumeContext = null;
+    try {
+      const checkpoint = await storage.readJson("agent_checkpoint.json");
+      if (checkpoint && checkpoint.sceneWritten && checkpoint.userPrompt) {
+        const currentScene = await storage.readJson("scene.json").catch(() => null);
+        if (currentScene) {
+          resumeContext = { checkpoint, currentScene };
+          log("System", "이전 작업 체크포인트를 감지했습니다 — 이어서 진행합니다", "info");
+        }
+      }
+    } catch { /* no checkpoint — normal flow */ }
+
     // Run agent asynchronously (with planning when conversation is long)
     (async () => {
       try {
@@ -580,6 +593,7 @@ const HANDLERS = {
           provider: this.provider,
           providerConfig: this.providerConfig,
           toolResultCache: this._toolResultCache,
+          resumeContext,
         });
         this._clearInterruptedPrompt();
         this.broadcast({ type: "chat_done" });
@@ -735,6 +749,8 @@ const HANDLERS = {
     this._toolResultCache.clear();
     this.chatHistory.length = 0;
     this.conversation.length = 0;
+    // Clear agent checkpoint
+    storage.deleteFile("agent_checkpoint.json").catch(() => {});
     this.broadcast({
       type: "agent_log", agent: "System",
       message: "Chat history cleared", level: "info",
@@ -747,6 +763,8 @@ const HANDLERS = {
     this._toolResultCache.clear();
     this.chatHistory.length = 0;
     this.conversation.length = 0;
+    // Clear agent checkpoint
+    storage.deleteFile("agent_checkpoint.json").catch(() => {});
 
     await storage.newUntitledWorkspace();
     await storage.writeJson("scene.json", DEFAULT_SCENE_JSON);

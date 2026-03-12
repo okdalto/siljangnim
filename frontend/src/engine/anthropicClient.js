@@ -36,12 +36,20 @@ export async function callAnthropic({
   signal,
   callbacks = {},
 }) {
+  // Wrap system prompt as cacheable content block array for Anthropic prompt caching.
+  // Last tool also gets cache_control so system + tools are both cache-eligible.
+  const cachedTools = tools?.length
+    ? tools.map((t, i) =>
+        i === tools.length - 1 ? { ...t, cache_control: { type: "ephemeral" } } : t
+      )
+    : tools;
+
   const body = {
     model,
     max_tokens: maxTokens,
-    system,
+    system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
     messages,
-    tools,
+    tools: cachedTools,
     stream: true,
   };
 
