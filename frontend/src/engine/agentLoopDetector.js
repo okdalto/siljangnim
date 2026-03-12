@@ -38,8 +38,10 @@ function normalizeError(msg) {
   return msg
     .replace(/at line \d+/g, "at line *")
     .replace(/:\d+:\d+/g, ":*:*")
-    .replace(/'[^']+'/g, "'*'")
-    .replace(/"[^"]+"/g, '"*"')
+    // Only collapse long quoted strings (>20 chars) — short identifiers are kept
+    // to distinguish different errors like "'foo' is not defined" vs "'bar' is not defined"
+    .replace(/'[^']{20,}'/g, "'*'")
+    .replace(/"[^"]{20,}"/g, '"*"')
     .replace(/\b0x[0-9a-fA-F]+\b/g, "0x*")
     .replace(/\b\d{3,}\b/g, "*")
     .trim();
