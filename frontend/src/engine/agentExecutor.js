@@ -519,14 +519,21 @@ async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarge
 
   // Inject backend target if available
   if (effectiveBackend && effectiveBackend !== "auto") {
-    prompt += `\n\n## ACTIVE BACKEND TARGET\nThe current project uses **${effectiveBackend}** backend. Generate ${effectiveBackend === "webgpu" ? "WGSL" : "GLSL"} shaders accordingly. Follow the ${effectiveBackend === "webgpu" ? "WGSL" : "GLSL"} rules strictly.`;
+    const isHybrid = effectiveBackend === "hybrid";
+    const isPureWebGPU = effectiveBackend === "webgpu";
+    const shaderLang = isPureWebGPU ? "WGSL" : "GLSL";
+    const backendDesc = isHybrid
+      ? "**hybrid** (WebGPU compute + WebGL2 GLSL rendering). Use `ctx.renderer` for compute shaders and `ctx.gl` for rendering"
+      : `**${effectiveBackend}**. Generate ${shaderLang} shaders accordingly. Follow the ${shaderLang} rules strictly`;
+    prompt += `\n\n## ACTIVE BACKEND TARGET\nThe current project uses ${backendDesc}.`;
 
-    // Force-include WebGPU-related sections when backend is "webgpu",
-    // even if the user didn't mention any trigger keywords.
-    if (effectiveBackend === "webgpu") {
+    // Force-include WebGPU-related sections when backend needs WebGPU
+    if (isPureWebGPU || isHybrid) {
       try {
         const { advancedSections } = await import("./prompts/advancedSections.js");
-        const webgpuSectionIds = new Set(["wgsl_rules", "per_project_backend"]);
+        const webgpuSectionIds = new Set(isHybrid
+          ? ["per_project_backend"]  // hybrid doesn't need wgsl_rules for rendering
+          : ["wgsl_rules", "per_project_backend"]);
         for (const section of advancedSections) {
           if (webgpuSectionIds.has(section.id) && !prompt.includes(section.content)) {
             prompt += "\n\n" + section.content;
