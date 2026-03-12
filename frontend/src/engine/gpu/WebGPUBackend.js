@@ -126,6 +126,15 @@ export class WebGPUBackend extends RendererInterface {
       alphaMode: options.alpha ? "premultiplied" : "opaque",
     });
 
+    // Create initial depth texture so depthAttachment works before first resize()
+    if (canvas.width > 0 && canvas.height > 0) {
+      this._depthTexture = this.device.createTexture({
+        size: [canvas.width, canvas.height],
+        format: "depth24plus",
+        usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      });
+    }
+
     this.ready = true;
     return this;
   }

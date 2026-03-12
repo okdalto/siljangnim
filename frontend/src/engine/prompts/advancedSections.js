@@ -327,7 +327,7 @@ Core methods:
 | Method | Description |
 |--------|-------------|
 | \`createShaderModule({ code, label? })\` | Create shader module from WGSL source |
-| \`createRenderPipeline({ vertex, fragment, primitive?, depthStencil? })\` | Create render pipeline |
+| \`createRenderPipeline({ vertex, fragment, primitive?, depthStencil? })\` | Create render pipeline. \`depthStencil\` is OPTIONAL — only add it if you need depth testing. If you add \`depthStencil\`, you MUST also pass \`depthAttachment: { clearDepth: 1.0 }\` in \`beginRenderPass\` |
 | \`createComputePipeline({ module, entryPoint?, constants?, layout?, label? })\` | Create compute pipeline. \`constants\`: pipeline-overridable constants. \`layout\`: pass a handle from \`createPipelineLayout()\` to share bind group layout across pipelines (default: auto) |
 | \`createBuffer({ usage, size, data? })\` | Create GPU buffer. usage: string or array of strings — \`"vertex"\`, \`"index"\`, \`"uniform"\`, \`"storage"\`, \`"copy-src"\` |
 | \`writeBuffer(handle, data, offset?)\` | Update buffer data |
@@ -340,7 +340,7 @@ Core methods:
 | \`createRenderTarget({ width, height, format?, depth? })\` | Create offscreen FBO → \`{ texture, width, height }\`. Use \`rt.texture\` (not \`rt\` itself) when passing to bind groups: \`{ type: "texture", texture: rt.texture }\`. Pass whole \`rt\` as \`target\` in \`beginRenderPass\` colorAttachments |
 | \`beginFrame()\` | Start frame → returns encoder |
 | \`endFrame(encoder)\` | Submit commands |
-| \`beginRenderPass(encoder, { colorAttachments, depthAttachment? })\` | Begin render pass |
+| \`beginRenderPass(encoder, { colorAttachments, depthAttachment? })\` | Begin render pass. **depth/pipeline must match**: if pipeline has \`depthStencil\`, pass \`depthAttachment: { clearDepth: 1.0 }\`. If pipeline has NO \`depthStencil\`, omit \`depthAttachment\` |
 | \`endRenderPass(pass)\` | End render pass |
 | \`setPipeline(pass, pipeline)\` | Set active pipeline |
 | \`setBindGroup(pass, index, bindGroup)\` | Bind resources |
