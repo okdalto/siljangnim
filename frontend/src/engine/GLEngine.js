@@ -409,11 +409,9 @@ export default class GLEngine {
       this._restoreGLFromWebGPU();
     }
 
-    // If switching TO WebGPU, release WebGL2 BEFORE WebGPU init
-    // to avoid dual GPU contexts competing for resources
-    if (!wasWebGPU && preferBackend === "webgpu" && this.gl && !this.gl.isContextLost()) {
-      this._releaseGLForWebGPU();
-    }
+    // WebGL2 release is handled inside _initBackendInner AFTER WebGPU
+    // init succeeds. Releasing before init would leave no fallback if
+    // WebGPU fails (e.g. dynamic import 404, adapter unavailable).
 
     try {
       await this.initBackend();
