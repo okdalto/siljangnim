@@ -58,16 +58,45 @@ const PLANNER_MAX_TOKENS = 2048;
 // ---------------------------------------------------------------------------
 
 /**
+ * Extract simple topic keywords from text (words > 3 chars, lowercased).
+ */
+function extractTopicKeywords(text) {
+  const stopWords = new Set([
+    "this", "that", "with", "from", "have", "what", "make", "just",
+    "want", "need", "like", "also", "please", "could", "would", "should",
+    "으로", "에서", "하고", "해주", "해줘", "좀", "것", "거", "이것",
+  ]);
+  return text.toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(w => w.length > 3 && !stopWords.has(w));
+}
+
+/**
+ * Compute keyword overlap ratio between two keyword sets.
+ * Returns 0.0 (no overlap) to 1.0 (identical).
+ */
+function keywordOverlap(a, b) {
+  if (!a.length || !b.length) return 0;
+  const setB = new Set(b);
+  const matches = a.filter(w => setB.has(w)).length;
+  return matches / Math.max(a.length, b.length);
+}
+
+/**
  * Heuristic: planning is valuable when the conversation is long enough
- * that context pollution becomes a concern.
+ * that context pollution becomes a concern, when the topic changes
+ * dramatically, or when repeated failures suggest a fresh approach is needed.
  *
  * @param {number} conversationLength - number of messages in this.conversation
  * @param {string} userPrompt - the new user message
+ * @param {Object} [opts] - additional context
+ * @param {number} [opts.recentErrors] - number of recent error-fix cycles
+ * @param {string} [opts.previousPrompt] - the previous user prompt for topic change detection
  * @returns {boolean}
  */
-export function shouldPlan(conversationLength, userPrompt) {
-  // Short conversations don't need planning — context is clean
-  if (conversationLength < 10) return false;
+export function shouldPlan(conversationLength, userPrompt, opts = {}) {
+  const { recentErrors = 0, previousPrompt = "" } = opts;
 
   const trimmed = userPrompt.trim();
 
@@ -77,6 +106,21 @@ export function shouldPlan(conversationLength, userPrompt) {
   // Simple affirmatives / negatives
   const simple = ["yes", "no", "ok", "ㅇㅇ", "ㄴㄴ", "네", "아니요", "응", "ㅇ", "ㄴ"];
   if (simple.includes(trimmed.toLowerCase())) return false;
+
+  // Improvement #4a: repeated failures → plan regardless of conversation length
+  if (recentErrors >= 3 && conversationLength >= 6) return true;
+
+  // Short conversations don't need planning — context is clean
+  if (conversationLength < 10) return false;
+
+  // Improvement #4b: topic change detection — plan if the new prompt diverges significantly
+  if (previousPrompt && conversationLength >= 6) {
+    const prevKeywords = extractTopicKeywords(previousPrompt);
+    const newKeywords = extractTopicKeywords(trimmed);
+    if (newKeywords.length >= 2 && keywordOverlap(newKeywords, prevKeywords) < 0.2) {
+      return true;
+    }
+  }
 
   return true;
 }

@@ -678,7 +678,14 @@ async function toolCheckBrowserErrors(input, broadcast, errorCollector) {
     }
   }
 
-  if (!parts.length) return "No browser errors detected. Setup succeeded and render loop is running.";
+  if (!parts.length) {
+    // Improvement #8: store success pattern when scene runs without errors
+    try {
+      const scene = await storage.readJson("scene.json");
+      if (scene?.script?.render) storeSuccessPattern(scene);
+    } catch { /* ignore */ }
+    return "No browser errors detected. Setup succeeded and render loop is running.";
+  }
   return parts.join("\n\n");
 }
 
@@ -873,6 +880,68 @@ async function toolDebugSubagent(input, broadcast, debugSubagentRunner) {
   } catch (err) {
     return `Debug sub-agent failed: ${err.message || String(err)}`;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Improvement #8: Success pattern extraction and storage
+// ---------------------------------------------------------------------------
+
+const TECHNIQUE_PATTERNS = [
+  [/createPingPong|ping.?pong/i, "ping-pong FBO"],
+  [/beginComputePass|computePipeline/i, "compute shader"],
+  [/createOrbitCamera|orbit/i, "3D orbit camera"],
+  [/noise\.|simplex|perlin/i, "noise functions"],
+  [/raymarching|rayMarch|sdf/i, "raymarching/SDF"],
+  [/createVerletSystem|verlet/i, "verlet physics"],
+  [/bloom|glow/i, "bloom/glow"],
+  [/createRenderTarget|framebuffer|FBO/i, "render targets"],
+  [/createMesh|geometry/i, "3D mesh"],
+  [/texImage2D.*video|video.*texture/i, "video texture"],
+  [/ctx\.audio|analyser|fft/i, "audio reactive"],
+  [/mediapipe|pose|hand.*track/i, "body tracking"],
+  [/particle/i, "particles"],
+  [/instanc/i, "instancing"],
+];
+
+function extractPatternMetadata(scene) {
+  const scripts = [scene.script?.setup || "", scene.script?.render || "", scene.script?.cleanup || ""];
+  const combined = scripts.join("\n");
+  const techniques = [];
+  for (const [re, name] of TECHNIQUE_PATTERNS) {
+    if (re.test(combined)) techniques.push(name);
+  }
+  return {
+    backend: scene.backendTarget || "auto",
+    techniques,
+    uniforms: scene.uniforms ? Object.keys(scene.uniforms) : [],
+    scriptSize: combined.length,
+    timestamp: Date.now(),
+  };
+}
+
+/**
+ * Store a successful scene pattern for future reference.
+ * Called after check_browser_errors confirms no errors.
+ */
+async function storeSuccessPattern(scene) {
+  try {
+    const pattern = extractPatternMetadata(scene);
+    if (!pattern.techniques.length) return; // no interesting patterns to store
+
+    let patterns = [];
+    try {
+      const existing = await storage.readTextFile(".workspace/success_patterns.json");
+      patterns = JSON.parse(existing);
+    } catch { /* empty */ }
+
+    // Keep at most 20 patterns, dedup by techniques signature
+    const sig = pattern.techniques.sort().join(",");
+    patterns = patterns.filter(p => (p.techniques || []).sort().join(",") !== sig);
+    patterns.push(pattern);
+    if (patterns.length > 20) patterns = patterns.slice(-20);
+
+    await storage.writeTextFile(".workspace/success_patterns.json", JSON.stringify(patterns, null, 2));
+  } catch { /* non-critical, ignore */ }
 }
 
 // ---------------------------------------------------------------------------

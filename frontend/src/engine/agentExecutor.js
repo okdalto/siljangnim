@@ -182,17 +182,84 @@ function compactMessages(messages) {
     }
   }
 
-  // Progressively trim old turns
+  // Improvement #3: smart progressive trim — preserve landmarks, summarize failed cycles
+  const { lastSuccessWriteIdx, lastErrorIdx } = findLandmarks(messages);
+  const landmarkIndices = new Set([0, lastSuccessWriteIdx, lastErrorIdx].filter(i => i >= 0));
+
   let keepRecent = 6;
   while (messages.length > 4) {
     const est = JSON.stringify(messages).length / 4;
     if (est <= SAFE_TOKENS) break;
-    const kept = [messages[0], ...messages.slice(-keepRecent)];
+
+    const recentStart = Math.max(0, messages.length - keepRecent);
+    const keepSet = new Set();
+    keepSet.add(0);
+    for (const idx of landmarkIndices) {
+      if (idx >= recentStart) continue;
+      keepSet.add(idx);
+    }
+    for (let i = recentStart; i < messages.length; i++) keepSet.add(i);
+
+    const kept = [];
+    let i = 0;
+    while (i < messages.length) {
+      if (keepSet.has(i)) {
+        kept.push(messages[i]);
+        i++;
+      } else {
+        const rangeStart = i;
+        while (i < messages.length && !keepSet.has(i)) i++;
+        const summary = _summarizeFailedCycle(messages, rangeStart, i - 1);
+        if (summary) {
+          kept.push({ role: "user", content: summary });
+        }
+      }
+    }
+
     if (kept.length >= messages.length) break;
     messages.length = 0;
     messages.push(...kept);
     keepRecent = Math.max(2, keepRecent - 2);
   }
+}
+
+/** Identify landmark messages that should be preserved during compaction. */
+function findLandmarks(messages) {
+  let lastSuccessWriteIdx = -1;
+  let lastErrorIdx = -1;
+  for (let i = 0; i < messages.length; i++) {
+    const content = messages[i].content;
+    if (!Array.isArray(content)) continue;
+    for (const block of content) {
+      if (typeof block !== "object" || block.type !== "tool_result") continue;
+      const text = typeof block.content === "string" ? block.content : "";
+      if (text.startsWith("ok — scene saved")) lastSuccessWriteIdx = i;
+      if (text.includes("Script errors") || text.includes("FAILED")) lastErrorIdx = i;
+    }
+  }
+  return { lastSuccessWriteIdx, lastErrorIdx };
+}
+
+/** Summarize a range of failed write→error cycles into a compact message. */
+function _summarizeFailedCycle(messages, startIdx, endIdx) {
+  const parts = [];
+  for (let i = startIdx; i <= endIdx && i < messages.length; i++) {
+    const content = messages[i].content;
+    if (!Array.isArray(content)) continue;
+    for (const block of content) {
+      if (block?.type === "tool_use" && (block.name === "write_scene" || block.name === "write_file")) {
+        parts.push(`Wrote scene (${block.name})`);
+      }
+      if (block?.type === "tool_result") {
+        const text = typeof block.content === "string" ? block.content : "";
+        if (text.includes("Script errors") || text.includes("Error")) {
+          const firstLine = text.split("\n").find(l => l.trim().startsWith("-") || l.includes("error")) || text.slice(0, 100);
+          parts.push(`Error: ${firstLine.trim().slice(0, 150)}`);
+        }
+      }
+    }
+  }
+  return parts.length ? `[COMPACTED] Failed attempt: ${parts.join(" → ")}` : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -324,6 +391,20 @@ async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarge
     prompt += `\n\n## WORKSPACE ASSETS\nThe following assets are loaded in the workspace:\n${assetLines.join("\n")}\nUse \`ctx.uploads["filename"]\` to reference them in scripts.`;
   }
 
+  // Improvement #8: inject success patterns for reference
+  try {
+    const { readTextFile } = await import("./storage.js");
+    const raw = await readTextFile(".workspace/success_patterns.json");
+    const patterns = JSON.parse(raw);
+    if (Array.isArray(patterns) && patterns.length > 0) {
+      const recent = patterns.slice(-5);
+      const lines = recent.map(p =>
+        `- [${p.backend}] ${p.techniques.join(", ")} (${Math.round(p.scriptSize / 1000)}KB)`
+      );
+      prompt += `\n\n## PREVIOUS SUCCESSFUL PATTERNS\nThese techniques have worked in this workspace:\n${lines.join("\n")}\nConsider reusing these patterns when applicable.`;
+    }
+  } catch { /* no patterns yet, fine */ }
+
   // Detect user language and enforce matching response language.
   // Placed at the end of the system prompt for maximum adherence.
   if (userPrompt) {
@@ -370,7 +451,7 @@ export async function runAgent({
   }
 
   const systemPrompt = await buildAugmentedSystemPrompt(
-    buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType()),
+    buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType(), { backendTarget }),
     { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages },
   );
 
@@ -810,6 +891,42 @@ async function _runAgentLoop({
           content: `WARNING: You have called the same tool ${loopResult.count} times. If you are stuck in a loop, try a different approach or respond to the user with what you have.`,
         });
       }
+
+      // Improvement #1: error loop detection (same error, different code)
+      const errorLoopResult = detectErrorLoop(recentErrors, {
+        warnThreshold: 2,
+        breakThreshold: 4,
+      });
+      if (errorLoopResult.action === "break") {
+        log("System", `Error loop detected (${errorLoopResult.count}x same pattern) — stopping`, "warning");
+        messages.push({
+          role: "user",
+          content: `SYSTEM: You keep hitting the same error pattern ${errorLoopResult.count} times: "${errorLoopResult.pattern}". STOP and explain the issue to the user instead of retrying.`,
+        });
+        break;
+      }
+      if (errorLoopResult.action === "warn") {
+        messages.push({
+          role: "user",
+          content: `SYSTEM: You are repeating the same error pattern: "${errorLoopResult.pattern}". Try a fundamentally different approach.`,
+        });
+      }
+
+      // Improvement #2: auto-recommend debug subagent after 3 error-fix cycles
+      if (errorFixCycles >= 3) {
+        messages.push({
+          role: "user",
+          content: "SYSTEM: You have attempted to fix errors 3+ times without success. You MUST now call debug_with_subagent to get a fresh analysis of the root cause. Pass the error messages and what you've tried so far as error_context.",
+        });
+        errorFixCycles = 0; // reset to avoid spamming
+      }
+
+      // Improvement #10: check for injected setup errors between tool calls
+      if (injectedMessages.length) {
+        const combined = injectedMessages.splice(0).join("\n\n");
+        log("System", "Injecting immediate error feedback", "info");
+        messages.push({ role: "user", content: combined });
+      }
     }
   } catch (err) {
     if (err.name === "AbortError") {
@@ -827,11 +944,9 @@ async function _runAgentLoop({
 // ---------------------------------------------------------------------------
 
 const DEBUG_SUBAGENT_MAX_TURNS = 10;
-const DEBUG_SUBAGENT_MODEL = "claude-sonnet-4-6";
-
-/** Tools available to the debug sub-agent (read-only + diagnostics). */
+/** Tools available to the debug sub-agent (read-only + diagnostics + vision). */
 const DEBUG_TOOLS_NAMES = new Set([
-  "read_file", "list_files", "list_uploaded_files", "search_code", "check_browser_errors",
+  "read_file", "list_files", "list_uploaded_files", "search_code", "check_browser_errors", "capture_viewport",
 ]);
 const DEBUG_TOOLS = TOOLS.filter((t) => DEBUG_TOOLS_NAMES.has(t.name));
 
@@ -877,19 +992,41 @@ export async function runDebugSubagent({
   provider = "anthropic",
   providerConfig = {},
 }) {
-  const modelName = providerConfig.model || DEBUG_SUBAGENT_MODEL;
+  // Use lightweight model for debug sub-agent (haiku for Anthropic, etc.)
+  const { getSmallModel } = await import("./llmClient.js");
+  const modelName = providerConfig.model || getSmallModel(provider) || "claude-haiku-4-5-20251001";
   const isAnthropic = provider === "anthropic";
-  const useThinking = isAnthropic && (modelName.includes("opus") || modelName.includes("sonnet"));
-  const maxTokens = providerConfig.max_tokens || (useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX);
+  const useThinking = false; // lightweight model — no extended thinking
+  const maxTokens = providerConfig.max_tokens || MODEL_COMPLEX_MAX;
+  const visionEnabled = isVisionCapable(provider, modelName, providerConfig);
+
+  // Auto-include current scene.json state for context
+  let sceneContext = "";
+  try {
+    const storage = await import("./storage.js");
+    const sceneJson = await storage.readJson("scene.json");
+    if (sceneJson) {
+      const summary = {};
+      if (sceneJson.script?.setup) summary.setup = sceneJson.script.setup.slice(0, 500);
+      if (sceneJson.script?.render) summary.render = sceneJson.script.render.slice(0, 1000);
+      if (sceneJson.script?.cleanup) summary.cleanup = sceneJson.script.cleanup.slice(0, 300);
+      if (sceneJson.uniforms) summary.uniforms = Object.keys(sceneJson.uniforms);
+      if (sceneJson.backendTarget) summary.backendTarget = sceneJson.backendTarget;
+      sceneContext = `\n\n--- Current scene.json (summary) ---\n${JSON.stringify(summary, null, 2)}`;
+    }
+  } catch { /* storage unavailable */ }
 
   const messages = [
-    { role: "user", content: errorContext },
+    { role: "user", content: errorContext + sceneContext },
   ];
+
+  // Filter tools based on vision capability
+  const debugTools = visionEnabled ? DEBUG_TOOLS : DEBUG_TOOLS.filter(t => t.name !== "capture_viewport");
 
   let lastText = "";
   let turns = 0;
 
-  log("Debug Agent", "Starting debug sub-agent analysis...", "info");
+  log("Debug Agent", `Starting debug sub-agent (${modelName}${visionEnabled ? ", vision" : ""})...`, "info");
   onStatus?.("thinking", "Debug sub-agent analyzing...");
 
   try {
@@ -907,7 +1044,7 @@ export async function runDebugSubagent({
           maxTokens,
           system: DEBUG_SYSTEM_PROMPT,
           messages,
-          tools: DEBUG_TOOLS,
+          tools: debugTools,
           signal,
           callbacks: {
             onThinkingDelta() {},
@@ -957,27 +1094,42 @@ export async function runDebugSubagent({
       for (const block of toolBlocks) {
         if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
-        let resultStr;
+        let result;
         let isError = false;
         try {
           if (!DEBUG_TOOLS_NAMES.has(block.name)) {
-            resultStr = `Error: tool '${block.name}' is not available to the debug sub-agent.`;
+            result = `Error: tool '${block.name}' is not available to the debug sub-agent.`;
             isError = true;
           } else {
-            resultStr = await handleTool(block.name, block.input, broadcast, {
+            result = await handleTool(block.name, block.input, broadcast, {
               errorCollector,
+              engineRef: errorCollector._engineRef,
             });
           }
         } catch (e) {
-          resultStr = `Error: ${e.message}`;
+          result = `Error: ${e.message}`;
           isError = true;
         }
 
-        const tr = {
-          type: "tool_result",
-          tool_use_id: block.id,
-          content: resultStr || "(empty result)",
-        };
+        // Handle image results from capture_viewport
+        let tr;
+        if (result && typeof result === "object" && result.__type === "image" && visionEnabled) {
+          tr = {
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: [
+              { type: "text", text: result.text || "Viewport capture:" },
+              { type: "image", source: { type: "base64", media_type: result.media_type, data: result.data } },
+            ],
+          };
+        } else {
+          const resultStr = typeof result === "string" ? result : JSON.stringify(result);
+          tr = {
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: resultStr || "(empty result)",
+          };
+        }
         if (isError) tr.is_error = true;
         toolResults.push(tr);
       }
@@ -1079,8 +1231,17 @@ export async function runWithPlan({
   provider = "anthropic",
   providerConfig = {},
 }) {
-  // Check if planning is warranted
-  if (!shouldPlan(messages.length, userPrompt)) {
+  // Improvement #4: pass richer context to shouldPlan
+  const recentErrorCount = messages.slice(-10).filter(m => {
+    if (!Array.isArray(m.content)) return false;
+    return m.content.some(b => b?.type === "tool_result" &&
+      typeof b.content === "string" &&
+      (b.content.includes("Script errors") || b.content.includes("FAILED")));
+  }).length;
+  const previousPrompt = messages.filter(m => m.role === "user" && typeof m.content === "string")
+    .slice(-2, -1)[0]?.content || "";
+
+  if (!shouldPlan(messages.length, userPrompt, { recentErrors: recentErrorCount, previousPrompt })) {
     return runAgent({
       apiKey, userPrompt, log, broadcast, onText, onStatus,
       files, messages, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
@@ -1109,7 +1270,7 @@ export async function runWithPlan({
   onStatus?.("thinking", "Rebuilding execution context...");
 
   const baseSystemPrompt = await buildAugmentedSystemPrompt(
-    buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType()),
+    buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType(), { backendTarget }),
     { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages },
   );
 

@@ -106,6 +106,15 @@ export default class AgentEngine {
         if (detail && typeof detail.setupReady === "boolean") {
           this._setupReady = detail.setupReady;
         }
+        // Improvement #10: push setup errors immediately to agent via injectedMessages
+        if (detail && detail.setupReady === false && this.errors.length) {
+          const errorSummary = this.errors.slice(0, 5).join("\n");
+          if (this._injectedMessages) {
+            this._injectedMessages.push(
+              `[IMMEDIATE ERROR] Scene setup() FAILED with errors:\n${errorSummary}\nFix the setup code before proceeding.`
+            );
+          }
+        }
         if (this._sceneLoadResolve) { this._sceneLoadResolve(); this._sceneLoadResolve = null; }
       },
       /** Wait for the viewport to finish loading the scene (if pending). */
@@ -462,6 +471,9 @@ const HANDLERS = {
     try {
       sessionStorage.setItem("siljangnim:interruptedPrompt", JSON.stringify({ userPrompt, timestamp: Date.now() }));
     } catch { /* ignore */ }
+
+    // Improvement #10: link errorCollector to injectedMessages for push-based errors
+    this.errorCollector._injectedMessages = this.injectedMessages;
 
     // Run agent asynchronously (with planning when conversation is long)
     (async () => {
