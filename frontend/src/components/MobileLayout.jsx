@@ -7,29 +7,26 @@ import CustomPanelNode from "../nodes/CustomPanelNode.jsx";
 import MobilePiP from "./MobilePiP.jsx";
 import MobileChatInput from "./MobileChatInput.jsx";
 import MobileSection from "./MobileSection.jsx";
+import { useProjectContext } from "../contexts/ProjectContext.js";
+import { useChatContext } from "../contexts/ChatContext.js";
 
 export default function MobileLayout({
   // Viewport
-  sceneJSON, engineRef, paused, onShaderError,
-  // Chat
-  messages, onSend, isProcessing, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer,
-  // Debug
-  debugLogs,
-  // Projects
-  projectList, activeProject, onProjectLoad, onProjectDelete, onProjectRename, onProjectFork,
-  onProjectImport, onDeleteWorkspaceFile, workspaceFilesVersion,
+  onShaderError,
+  // Workspace
+  onDeleteWorkspaceFile, workspaceFilesVersion,
   // Custom panels
   customPanels, onPanelClose, onUniformChange,
   keyframeManagerRef, onKeyframesChange, onDurationChange, onLoopChange,
   onOpenKeyframeEditor, duration, loop,
+  engineRef,
 }) {
-  const viewportData = { sceneJSON, engineRef, paused, onError: onShaderError };
-  const chatData = {
-    messages, onSend, isProcessing, agentStatus,
-    onNewChat, onCancel, pendingQuestion, onAnswer,
-    hideInput: true,
-  };
-  const debugData = { logs: debugLogs };
+  const { projectList, activeProject, onProjectLoad, onProjectDelete, onProjectRename, onProjectFork, onProjectImport } = useProjectContext();
+  const { onSend, isProcessing, pendingQuestion, onAnswer, onCancel } = useChatContext();
+
+  const viewportData = { onError: onShaderError };
+  const chatData = { hideInput: true };
+  const debugData = {};
   const projectData = {
     projects: projectList,
     activeProject,

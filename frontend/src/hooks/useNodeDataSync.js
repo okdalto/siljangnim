@@ -123,8 +123,8 @@ function updateNodeData(setNodes, nodeId, dataMapper) {
 }
 
 export default function useNodeDataSync({
-  setNodes, chat, sceneJSON, paused, uiConfig,
-  handleUniformChange, project, handleDeleteWorkspaceFile,
+  setNodes, chat, sceneJSON, uiConfig,
+  handleUniformChange, handleDeleteWorkspaceFile,
   workspaceFilesVersion, handleShaderError,
   panels, handlePanelClose, mergeControlDefaults,
   kf, duration, loop, engineRef, pendingLayoutsRef,
@@ -136,11 +136,8 @@ export default function useNodeDataSync({
   assetNodes,
   onAssetUpload,
   onAssetDelete,
-  onPromptSuggestion,
   // AI Debugger props
   debugger: dbg,
-  // Safe mode
-  safeModeActive,
   // Prompt mode
   promptMode,
   // Project tree (branch UX)
@@ -151,8 +148,6 @@ export default function useNodeDataSync({
   // Overwrite mode
   overwriteMode,
   onToggleOverwrite,
-  // Backend target
-  backendTarget,
   // Per-node UI state ref (collapsed, fixedResolution)
   nodeUiStateRef,
   // Scene references from version tree
@@ -176,18 +171,10 @@ export default function useNodeDataSync({
   const onSwitchToNodeRef = useRef(onSwitchToNode);
   onSwitchToNodeRef.current = onSwitchToNode;
 
-  // --- Chat node sync ---
+  // --- Chat node sync (core chat values come from ChatContext) ---
   useEffect(() => {
     updateNodeData(setNodes, "chat", () => ({
-      messages: chat.messages,
-      onSend: chat.handleSend,
       onRetryInterrupted: chat.handleRetryInterrupted,
-      isProcessing: chat.isProcessing,
-      agentStatus: chat.agentStatus,
-      onNewChat: chat.handleNewChat,
-      onCancel: chat.handleCancel,
-      pendingQuestion: chat.pendingQuestion,
-      onAnswer: chat.handleAnswer,
       activeNodeTitle: activeNodeTitle || null,
       promptMode: promptMode || "hybrid",
       treeNodes: treeNodes || [],
@@ -203,22 +190,15 @@ export default function useNodeDataSync({
       onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.chat = v; },
     }));
   }, [
-    setNodes, chat.messages, chat.handleSend, chat.isProcessing, chat.agentStatus,
-    chat.handleNewChat, chat.handleCancel, chat.pendingQuestion, chat.handleAnswer, activeNodeTitle, promptMode,
+    setNodes, activeNodeTitle, promptMode,
     treeNodes, activeTreeNodeId, overwriteMode, onToggleOverwrite, sceneReferences, onRemoveReference,
   ]);
 
-  // --- Viewport node sync ---
-  // When safe_mode is active, pass null sceneJSON to block script execution
+  // --- Viewport node sync (scene values come from SceneContext / EngineContext) ---
   const VIEWPORT_HEADER_HEIGHT = 36; // px — header bar height
   useEffect(() => {
     updateNodeData(setNodes, "viewport", () => ({
-      sceneJSON: safeModeActive ? null : sceneJSON,
-      engineRef,
-      paused,
-      backendTarget,
       onError: handleShaderErrorRef.current,
-      safeModeActive,
       initialCollapsed: nodeUiStateRef?.current?.collapsed?.viewport,
       onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.viewport = v; },
       initialFixedResolution: nodeUiStateRef?.current?.viewportFixedResolution,
@@ -234,7 +214,7 @@ export default function useNodeDataSync({
         );
       },
     }));
-  }, [setNodes, sceneJSON, paused, safeModeActive, backendTarget]);
+  }, [setNodes]);
 
   // Refs for debugger callbacks
   const runDiagnosisRef = useRef(dbg?.runDiagnosis);
@@ -242,22 +222,20 @@ export default function useNodeDataSync({
   const applyPatchRef = useRef(dbg?.applyPatch);
   applyPatchRef.current = dbg?.applyPatch;
 
-  // --- Debug log node sync ---
+  // --- Debug log node sync (debugLogs + backendName come from contexts) ---
   useEffect(() => {
     updateNodeData(setNodes, "debugLog", () => ({
-      logs: chat.debugLogs,
       compileLogs: dbg?.compileLogs || [],
       validationLogs: dbg?.validationLogs || [],
       diagnosis: dbg?.diagnosis || null,
       patches: dbg?.patches || [],
       simpleExplanation: dbg?.simpleExplanation || null,
-      backendName: backendTarget === "webgpu" ? "WebGPU" : (backendTarget === "webgl2" ? "WebGL2" : (engineRef?.current?.backendName || "WebGL2")),
       onApplyPatch: (patch) => applyPatchRef.current?.(patch),
       onRunDiagnosis: () => runDiagnosisRef.current?.(),
       initialCollapsed: nodeUiStateRef?.current?.collapsed?.debugLog,
       onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.debugLog = v; },
     }));
-  }, [setNodes, chat.debugLogs, dbg?.compileLogs, dbg?.validationLogs, dbg?.diagnosis, dbg?.patches, dbg?.simpleExplanation, backendTarget]);
+  }, [setNodes, dbg?.compileLogs, dbg?.validationLogs, dbg?.diagnosis, dbg?.patches, dbg?.simpleExplanation]);
 
   // Track newly created panel nodes so we can scroll to them after render
   const newPanelRef = useRef(null);

@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { memo, useContext, useEffect, useRef, useState, useCallback } from "react";
 import { NodeResizer } from "@xyflow/react";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 import DebugAIDiagnosis from "../components/DebugAIDiagnosis.jsx";
+import { useCollapsedState } from "../hooks/useCollapsedState.js";
+import { useChatContext } from "../contexts/ChatContext.js";
+import SceneContext from "../contexts/SceneContext.js";
+import EngineContext from "../contexts/EngineContext.js";
 
 const AGENT_COLORS = {
   "Art Director": "text-purple-400",
@@ -168,35 +172,23 @@ function CopyLogsButton({ activeTab, logs, compileLogs, validationLogs, diagnosi
   );
 }
 
-export default function DebugLogNode({ data, standalone = false, hideHeader = false }) {
-  const [collapsed, setCollapsedRaw] = useState(() => data.initialCollapsed ?? false);
-  const setCollapsed = useCallback((v) => {
-    setCollapsedRaw((prev) => {
-      const next = typeof v === "function" ? v(prev) : v;
-      data.onCollapsedChange?.(next);
-      return next;
-    });
-  }, [data.onCollapsedChange]);
-  // Sync collapsed state when project is restored
-  const prevInitCollapsed = useRef(data.initialCollapsed);
-  useEffect(() => {
-    if (data.initialCollapsed !== prevInitCollapsed.current) {
-      prevInitCollapsed.current = data.initialCollapsed;
-      setCollapsedRaw(data.initialCollapsed ?? false);
-    }
-  }, [data.initialCollapsed]);
+function DebugLogNode({ data, standalone = false, hideHeader = false }) {
+  const chatCtx = useChatContext();
+  const sceneCtx = useContext(SceneContext);
+  const engineRef = useContext(EngineContext);
+  const [collapsed, setCollapsed] = useCollapsedState(data.initialCollapsed, data.onCollapsedChange);
   const [activeTab, setActiveTab] = useState("logs");
   const {
-    logs = [],
     compileLogs = [],
     validationLogs = [],
     diagnosis = null,
     patches = [],
     simpleExplanation = null,
-    backendName = "WebGL2",
     onApplyPatch,
     onRunDiagnosis,
   } = data;
+  const logs = data.logs ?? chatCtx?.debugLogs ?? [];
+  const backendName = sceneCtx?.backendTarget === "webgpu" ? "WebGPU" : (sceneCtx?.backendTarget === "webgl2" ? "WebGL2" : (engineRef?.current?.backendName || "WebGL2"));
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -310,3 +302,5 @@ export default function DebugLogNode({ data, standalone = false, hideHeader = fa
     </div>
   );
 }
+
+export default memo(DebugLogNode);

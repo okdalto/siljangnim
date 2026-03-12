@@ -1,20 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import useClickOutside from "../hooks/useClickOutside.js";
-
-const FORMATS = ["MP4", "WebM", "PNG"];
-const FPS_PRESETS = [24, 30, 60];
-const QUALITIES = ["Low", "Med", "High", "Ultra"];
-const MODES = ["Realtime", "Offline"];
-
-const QUALITY_MULTIPLIER = { Low: 4, Med: 8, High: 12, Ultra: 20 };
-
-const RESOLUTION_PRESETS = [
-  { label: "Canvas", w: 0, h: 0 },
-  { label: "1920×1080", w: 1920, h: 1080 },
-  { label: "1280×720", w: 1280, h: 720 },
-  { label: "960×540", w: 960, h: 540 },
-  { label: "640×360", w: 640, h: 360 },
-];
+import { FORMATS, FPS_PRESETS, QUALITIES, MODES, RESOLUTION_PRESETS } from "../constants/recording.js";
+import useRecordSettings from "./recording/useRecordSettings.js";
 
 function formatFileSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -62,60 +49,9 @@ export default function RecordMenu({
   const [open, setOpen] = useState(false);
   const popoverRef = useRef(null);
 
-  // Settings state (persists across open/close within session)
-  const [format, setFormat] = useState("WebM");
-  const [fps, setFps] = useState(30);
-  const [customFps, setCustomFps] = useState(false);
-  const [fpsInput, setFpsInput] = useState("30");
-  const [quality, setQuality] = useState("High");
-  const [mode, setMode] = useState("Realtime");
-  const [resolution, setResolution] = useState("Canvas");
-  const [customRes, setCustomRes] = useState(false);
-  const [customW, setCustomW] = useState("");
-  const [customH, setCustomH] = useState("");
-  const [alpha, setAlpha] = useState(false);
-  const [recDurationMode, setRecDurationMode] = useState("scene"); // "scene" | "custom"
-  const [customDuration, setCustomDuration] = useState("");
+  const settings = useRecordSettings({ canvasWidth, canvasHeight, sceneDuration });
 
   useClickOutside(popoverRef, open, () => setOpen(false));
-
-  // Constraint: PNG → force Offline
-  const handleFormatChange = useCallback(
-    (f) => {
-      setFormat(f);
-      if (f === "PNG") setMode("Offline");
-      if (f !== "PNG" && f !== "WebM") setAlpha(false);
-    },
-    []
-  );
-
-  const handleModeChange = useCallback(
-    (m) => {
-      setMode(m);
-    },
-    []
-  );
-
-  const handleFpsPreset = useCallback((f) => {
-    setFps(f);
-    setCustomFps(false);
-    setFpsInput(String(f));
-  }, []);
-
-  const commitCustomFps = useCallback(() => {
-    const v = parseInt(fpsInput, 10);
-    if (!isNaN(v) && v > 0) {
-      setFps(v);
-    } else {
-      setFpsInput(String(fps));
-    }
-    setCustomFps(false);
-  }, [fpsInput, fps]);
-
-  const handleResolutionChange = useCallback((label) => {
-    setResolution(label);
-    setCustomRes(false);
-  }, []);
 
   const handleRecordClick = useCallback(
     (e) => {
@@ -130,51 +66,9 @@ export default function RecordMenu({
   );
 
   const handleStart = useCallback(() => {
-    // Resolve resolution
-    let w = canvasWidth;
-    let h = canvasHeight;
-    if (customRes) {
-      const cw = parseInt(customW, 10);
-      const ch = parseInt(customH, 10);
-      if (cw > 0 && ch > 0) {
-        w = cw;
-        h = ch;
-      }
-    } else {
-      const preset = RESOLUTION_PRESETS.find((p) => p.label === resolution);
-      if (preset && preset.w > 0) {
-        w = preset.w;
-        h = preset.h;
-      }
-    }
-
-    const pixels = w * h;
-    const bitrate = pixels * QUALITY_MULTIPLIER[quality];
-
-    // Resolve recording duration
-    let parsedDuration;
-    if (mode === "Offline") {
-      if (recDurationMode === "custom") {
-        const v = parseFloat(customDuration);
-        parsedDuration = !isNaN(v) && v > 0 ? v : undefined;
-      } else {
-        // "scene" — use sceneDuration if valid
-        parsedDuration = sceneDuration > 0 ? sceneDuration : undefined;
-      }
-    }
-
-    onStart({
-      format: format.toLowerCase(),
-      fps,
-      quality,
-      bitrate,
-      offline: mode === "Offline",
-      resolution: { width: w, height: h },
-      alpha: (format === "PNG" || format === "WebM") && alpha,
-      duration: parsedDuration,
-    });
+    onStart(settings.buildRecordOptions());
     setOpen(false);
-  }, [format, fps, quality, mode, resolution, customRes, customW, customH, canvasWidth, canvasHeight, onStart, alpha, recDurationMode, customDuration, sceneDuration]);
+  }, [onStart, settings]);
 
   return (
     <div ref={popoverRef} className="relative">
@@ -211,7 +105,6 @@ export default function RecordMenu({
               .padStart(2, "0")}
           </span>
         )}
-        {/* Progress indicator during offline recording */}
         {recording && progress && (
           <span className="text-xs font-mono min-w-[60px]" style={{ color: "var(--chrome-text-secondary)" }}>
             {progress.percent.toFixed(0)}%
@@ -246,24 +139,24 @@ export default function RecordMenu({
           {/* Format */}
           <div className="mb-2">
             <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>Format</div>
-            <BtnGroup items={FORMATS} value={format} onChange={handleFormatChange} />
+            <BtnGroup items={FORMATS} value={settings.format} onChange={settings.handleFormatChange} />
           </div>
 
           {/* FPS */}
           <div className="mb-2">
             <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>FPS</div>
-            {customFps ? (
+            {settings.customFps ? (
               <input
                 type="text"
                 autoFocus
-                value={fpsInput}
-                onChange={(e) => setFpsInput(e.target.value)}
-                onBlur={commitCustomFps}
+                value={settings.fpsInput}
+                onChange={(e) => settings.setFpsInput(e.target.value)}
+                onBlur={settings.commitCustomFps}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") e.target.blur();
                   if (e.key === "Escape") {
-                    setCustomFps(false);
-                    setFpsInput(String(fps));
+                    settings.setCustomFps(false);
+                    settings.setFpsInput(String(settings.fps));
                   }
                 }}
                 className="w-16 text-xs text-center rounded px-1 py-1 outline-none focus:border-blue-500"
@@ -274,10 +167,10 @@ export default function RecordMenu({
                 {FPS_PRESETS.map((f) => (
                   <button
                     key={f}
-                    onClick={() => handleFpsPreset(f)}
+                    onClick={() => settings.handleFpsPreset(f)}
                     className="text-xs px-2 py-1 rounded transition-colors"
                     style={
-                      fps === f && !customFps
+                      settings.fps === f && !settings.customFps
                         ? { background: "var(--accent)", color: "var(--accent-text)" }
                         : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
                     }
@@ -287,35 +180,35 @@ export default function RecordMenu({
                 ))}
                 <button
                   onClick={() => {
-                    setCustomFps(true);
-                    setFpsInput(String(fps));
+                    settings.setCustomFps(true);
+                    settings.setFpsInput(String(settings.fps));
                   }}
                   className="text-xs px-2 py-1 rounded transition-colors"
                   style={
-                    !FPS_PRESETS.includes(fps)
+                    !FPS_PRESETS.includes(settings.fps)
                       ? { background: "var(--accent)", color: "var(--accent-text)" }
                       : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
                   }
                 >
-                  {!FPS_PRESETS.includes(fps) ? fps : "..."}
+                  {!FPS_PRESETS.includes(settings.fps) ? settings.fps : "..."}
                 </button>
               </div>
             )}
           </div>
 
-          {/* Quality (hidden for PNG — lossless) */}
-          {format !== "PNG" && (
+          {/* Quality */}
+          {settings.format !== "PNG" && (
             <div className="mb-2">
               <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>Quality</div>
-              <BtnGroup items={QUALITIES} value={quality} onChange={setQuality} />
+              <BtnGroup items={QUALITIES} value={settings.quality} onChange={settings.setQuality} />
             </div>
           )}
 
           {/* Mode */}
           <div className="mb-2">
             <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>Mode</div>
-            <BtnGroup items={MODES} value={mode} onChange={handleModeChange} disabled={format === "PNG"} />
-            {format === "PNG" && (
+            <BtnGroup items={MODES} value={settings.mode} onChange={settings.handleModeChange} disabled={settings.format === "PNG"} />
+            {settings.format === "PNG" && (
               <div className="mt-1 text-xs" style={{ color: "var(--chrome-text-muted)" }}>
                 PNG requires offline mode for frame-accurate capture
               </div>
@@ -323,15 +216,15 @@ export default function RecordMenu({
           </div>
 
           {/* Duration (Offline only) */}
-          {mode === "Offline" && (
+          {settings.mode === "Offline" && (
             <div className="mb-2">
               <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>Duration</div>
               <div className="flex gap-0.5 items-center">
                 <button
-                  onClick={() => setRecDurationMode("scene")}
+                  onClick={() => settings.setRecDurationMode("scene")}
                   className="text-xs px-2 py-1 rounded transition-colors"
                   style={
-                    recDurationMode === "scene"
+                    settings.recDurationMode === "scene"
                       ? { background: "var(--accent)", color: "var(--accent-text)" }
                       : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
                   }
@@ -340,24 +233,24 @@ export default function RecordMenu({
                 </button>
                 <button
                   onClick={() => {
-                    setRecDurationMode("custom");
-                    if (!customDuration) setCustomDuration(String(sceneDuration > 0 ? sceneDuration : 10));
+                    settings.setRecDurationMode("custom");
+                    if (!settings.customDuration) settings.setCustomDuration(String(sceneDuration > 0 ? sceneDuration : 10));
                   }}
                   className="text-xs px-2 py-1 rounded transition-colors"
                   style={
-                    recDurationMode === "custom"
+                    settings.recDurationMode === "custom"
                       ? { background: "var(--accent)", color: "var(--accent-text)" }
                       : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
                   }
                 >
                   Custom
                 </button>
-                {recDurationMode === "custom" && (
+                {settings.recDurationMode === "custom" && (
                   <input
                     type="text"
                     autoFocus
-                    value={customDuration}
-                    onChange={(e) => setCustomDuration(e.target.value)}
+                    value={settings.customDuration}
+                    onChange={(e) => settings.setCustomDuration(e.target.value)}
                     placeholder="sec"
                     className="w-14 text-xs text-center rounded px-1 py-1 outline-none focus:border-blue-500"
                     style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--input-text)" }}
@@ -367,14 +260,14 @@ export default function RecordMenu({
             </div>
           )}
 
-          {/* Alpha (PNG + WebM) */}
-          {(format === "PNG" || format === "WebM") && (
+          {/* Alpha */}
+          {(settings.format === "PNG" || settings.format === "WebM") && (
             <div className="mb-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={alpha}
-                  onChange={(e) => setAlpha(e.target.checked)}
+                  checked={settings.alpha}
+                  onChange={(e) => settings.setAlpha(e.target.checked)}
                   className="accent-blue-600"
                 />
                 <span style={{ color: "var(--chrome-text-secondary)" }}>Transparent background (alpha)</span>
@@ -385,28 +278,28 @@ export default function RecordMenu({
           {/* Resolution */}
           <div className="mb-3">
             <div className="mb-1" style={{ color: "var(--chrome-text-muted)" }}>Resolution</div>
-            {customRes ? (
+            {settings.customRes ? (
               <div className="flex items-center gap-1">
                 <input
                   type="text"
                   autoFocus
                   placeholder="W"
-                  value={customW}
-                  onChange={(e) => setCustomW(e.target.value)}
+                  value={settings.customW}
+                  onChange={(e) => settings.setCustomW(e.target.value)}
                   className="w-16 text-xs text-center rounded px-1 py-1 outline-none focus:border-blue-500"
                   style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--input-text)" }}
                 />
-                <span style={{ color: "var(--chrome-text-muted)" }}>×</span>
+                <span style={{ color: "var(--chrome-text-muted)" }}>{"\u00D7"}</span>
                 <input
                   type="text"
                   placeholder="H"
-                  value={customH}
-                  onChange={(e) => setCustomH(e.target.value)}
+                  value={settings.customH}
+                  onChange={(e) => settings.setCustomH(e.target.value)}
                   className="w-16 text-xs text-center rounded px-1 py-1 outline-none focus:border-blue-500"
                   style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--input-text)" }}
                 />
                 <button
-                  onClick={() => setCustomRes(false)}
+                  onClick={() => settings.setCustomRes(false)}
                   className="text-xs px-1.5 py-1 rounded"
                   style={{ background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }}
                 >
@@ -418,24 +311,24 @@ export default function RecordMenu({
                 {RESOLUTION_PRESETS.map((p) => (
                   <button
                     key={p.label}
-                    onClick={() => handleResolutionChange(p.label)}
+                    onClick={() => settings.handleResolutionChange(p.label)}
                     className="text-xs px-2 py-1 rounded transition-colors"
                     style={
-                      resolution === p.label && !customRes
+                      settings.resolution === p.label && !settings.customRes
                         ? { background: "var(--accent)", color: "var(--accent-text)" }
                         : { background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }
                     }
                   >
                     {p.label === "Canvas"
-                      ? `Canvas (${canvasWidth}×${canvasHeight})`
+                      ? `Canvas (${canvasWidth}\u00D7${canvasHeight})`
                       : p.label}
                   </button>
                 ))}
                 <button
                   onClick={() => {
-                    setCustomRes(true);
-                    setCustomW(String(canvasWidth));
-                    setCustomH(String(canvasHeight));
+                    settings.setCustomRes(true);
+                    settings.setCustomW(String(canvasWidth));
+                    settings.setCustomH(String(canvasHeight));
                   }}
                   className="text-xs px-2 py-1 rounded transition-colors"
                   style={{ background: "var(--input-bg)", color: "var(--chrome-text-secondary)" }}

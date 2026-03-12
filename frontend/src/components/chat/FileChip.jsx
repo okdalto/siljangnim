@@ -1,4 +1,6 @@
-export default function FileChip({ file, onRemove }) {
+import { memo } from "react";
+
+function FileChip({ file, onRemove }) {
   const isImage = file.mime_type?.startsWith("image/");
   return (
     <div className="flex items-center gap-1.5 bg-zinc-700 rounded px-2 py-1 text-xs text-zinc-300 max-w-[180px]">
@@ -23,3 +25,5 @@ export default function FileChip({ file, onRemove }) {
     </div>
   );
 }
+
+export default memo(FileChip);

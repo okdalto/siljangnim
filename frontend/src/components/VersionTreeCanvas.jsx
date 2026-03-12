@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { readNodeThumbnailUrl } from "../engine/storage.js";
 
 // ---------------------------------------------------------------------------
@@ -256,7 +256,7 @@ function TreeEdges({ roots, childrenMap, positions }) {
 // Main canvas component
 // ---------------------------------------------------------------------------
 
-export default function VersionTreeCanvas({
+function VersionTreeCanvas({
   treeNodes,
   activeNodeId,
   projectName,
@@ -658,3 +658,5 @@ export default function VersionTreeCanvas({
     </div>
   );
 }
+
+export default memo(VersionTreeCanvas);

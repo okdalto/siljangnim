@@ -3,6 +3,7 @@ import ProjectTreeContextMenu from "./ProjectTreeContextMenu.jsx";
 import ProjectListItem from "./ProjectListItem.jsx";
 import GitHubAuthButton from "./GitHubAuthButton.jsx";
 import VersionTreeCanvas from "./VersionTreeCanvas.jsx";
+import { useProjectContext } from "../contexts/ProjectContext.js";
 
 export default function ProjectTreeSidebar({
   isOpen,
@@ -25,20 +26,12 @@ export default function ProjectTreeSidebar({
   onStartCompare,
   onSelectCompareTarget,
   onCancelCompare,
-  // Project management
-  projectList,
-  activeProject,
-  onProjectLoad,
-  onProjectDelete,
-  onProjectRename,
-  onProjectFork,
-  onProjectImport,
   // GitHub
   github,
   onGitHubSave,
   onGitHubLoad,
-  onExportZip,
 }) {
+  const { projectList, activeProject, onProjectLoad, onProjectDelete, onProjectRename, onProjectFork, onProjectImport } = useProjectContext();
   const [contextMenu, setContextMenu] = useState(null);
   const [projectsExpanded, setProjectsExpanded] = useState(false);
   const importInputRef = useRef(null);
