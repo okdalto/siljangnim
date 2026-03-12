@@ -224,17 +224,55 @@ export default class GLEngine {
     this._fpsCounter = { frames: 0, lastTime: performance.now() };
 
     // Handle context loss
+    this._contextLost = false;
     canvas.addEventListener("webglcontextlost", (e) => {
       e.preventDefault();
+      this._contextLost = true;
       this._scriptCtx = null; // prevent hot-reload after context restore
       this.stop();
+      console.warn("[GLEngine] WebGL context lost");
+      const msg = "WebGL context lost. Attempting recovery...";
+      this.onError?.(new Error(msg));
     });
     canvas.addEventListener("webglcontextrestored", () => {
+      console.log("[GLEngine] WebGL context restored");
+      this._contextLost = false;
+      // Re-acquire GL and extensions
+      this.gl = canvas.getContext("webgl2", { alpha: false, antialias: true, preserveDrawingBuffer: true });
+      if (this.gl) {
+        this._extColorBufferFloat = this.gl.getExtension("EXT_color_buffer_float");
+        this._extFloatLinear = this.gl.getExtension("OES_texture_float_linear");
+      }
       if (this._scene) {
         this.loadScene(this._scene);
         this.start();
       }
     });
+  }
+
+  /**
+   * Attempt to recover from a lost WebGL context by forcing a re-creation.
+   * This is a last resort — the browser may not allow immediate recovery.
+   */
+  _tryRecoverContext() {
+    if (!this.gl?.isContextLost?.()) return; // not actually lost
+    this._contextLost = true;
+    console.warn("[GLEngine] Attempting GL context recovery...");
+    // Try to get a fresh context — some browsers allow this after losing one
+    const newGl = this.canvas.getContext("webgl2", { alpha: false, antialias: true, preserveDrawingBuffer: true });
+    if (newGl && !newGl.isContextLost()) {
+      console.log("[GLEngine] GL context recovered successfully");
+      this.gl = newGl;
+      this._contextLost = false;
+      this._extColorBufferFloat = newGl.getExtension("EXT_color_buffer_float");
+      this._extFloatLinear = newGl.getExtension("OES_texture_float_linear");
+    } else {
+      // Can't recover inline — notify the user
+      const msg = "WebGL context lost and could not be recovered. Please refresh the page.";
+      console.error("[GLEngine]", msg);
+      this.onError?.(new Error(msg));
+      window.dispatchEvent(new ErrorEvent("error", { message: msg, error: new Error(msg) }));
+    }
   }
 
   /**
@@ -309,14 +347,41 @@ export default class GLEngine {
    */
   async switchBackend(preferBackend) {
     if (this._backendOptions.preferBackend === preferBackend) return;
-    // Dispose old backend
-    if (this._backend) {
-      this._backend.dispose();
-      this._backend = null;
-      this._backendReady = false;
-    }
+    // Save old backend in case we need to restore on failure
+    const oldBackend = this._backend;
+    const oldOptions = { ...this._backendOptions };
+    this._backend = null;
+    this._backendReady = false;
     this._backendOptions = { ...this._backendOptions, preferBackend };
-    await this.initBackend();
+
+    try {
+      await this.initBackend();
+      // Success — dispose the old backend now
+      if (oldBackend && oldBackend !== this._backend) {
+        try { oldBackend.dispose(); } catch { /* best effort */ }
+      }
+    } catch (err) {
+      console.error("[GLEngine] switchBackend failed, restoring previous backend:", err.message);
+      // Restore old backend
+      if (this._backend) {
+        try { this._backend.dispose(); } catch { /* best effort */ }
+      }
+      this._backend = oldBackend;
+      this._backendOptions = oldOptions;
+      this._backendReady = !!oldBackend;
+      // Verify GL context is still alive
+      if (this.gl?.isContextLost?.()) {
+        console.error("[GLEngine] GL context lost during backend switch — attempting recovery");
+        this._tryRecoverContext();
+      }
+      throw err;
+    }
+
+    // Verify GL context survived the switch
+    if (this.gl?.isContextLost?.()) {
+      console.warn("[GLEngine] GL context lost after backend switch — attempting recovery");
+      this._tryRecoverContext();
+    }
   }
 
   /** Get the active backend (or null if not initialized). */
@@ -2112,6 +2177,14 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
 
     // Run setup (async)
     let setupOk = true;
+    // Guard: if GL context was lost (e.g. after a failed backend switch), bail early
+    if (this._contextLost || this.gl?.isContextLost?.()) {
+      console.error("[GLEngine] GL context is lost before setup — cannot proceed.");
+      const err = new Error("WebGL context lost. Please refresh the page or try again.");
+      this.onError?.(err);
+      window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
+      return;
+    }
     if (this._scriptSetupFn) {
       try {
         await this._scriptSetupFn(ctx);
