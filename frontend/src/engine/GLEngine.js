@@ -2372,7 +2372,8 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     let setupOk = true;
     // Guard: if GL context was lost (e.g. after a failed backend switch), bail early
     // Skip this check for WebGPU scenes — GL being lost/null is expected.
-    if (!isWebGPU && (this._contextLost || this.gl?.isContextLost?.())) {
+    const isWebGPUScene = this._backend?.backendType === BackendType.WEBGPU;
+    if (!isWebGPUScene && (this._contextLost || this.gl?.isContextLost?.())) {
       console.error("[GLEngine] GL context is lost before setup — cannot proceed.");
       const err = new Error("WebGL context lost. Please refresh the page or try again.");
       this.onError?.(err);
