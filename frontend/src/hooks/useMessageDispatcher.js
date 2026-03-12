@@ -177,13 +177,16 @@ export default function useMessageDispatcher(params) {
         // Auto-create project (if untitled) then create tree node.
         // Both run in the same async block to avoid race conditions —
         // node creation must use the final project name, not the stale one.
+        // Guard: prevent duplicate autoCreateProject from concurrent chat_done
+        // events (e.g. agent error → auto-fix → second chat_done).
         (async () => {
           const activeProj = project.activeProject;
           const activeName = storage.getActiveProjectName();
           const isNewProject = !activeProj || activeName === "_untitled";
           let projName = activeName;
 
-          if (isNewProject) {
+          if (isNewProject && !project._creatingProject) {
+            project._creatingProject = true;
             const history = getMessagesRef?.current?.() || [];
             let autoName = "Untitled Project";
             for (let i = history.length - 1; i >= 0; i--) {
@@ -205,11 +208,15 @@ export default function useMessageDispatcher(params) {
               // Use the newly created project name for node creation below
               projName = storage.getActiveProjectName();
 
-              // Background: generate AI project name and rename (non-blocking)
+              // Background: generate AI project name and rename (non-blocking).
+              // Track the original display_name so we can skip if user already renamed.
+              const originalDisplayName = manifest.display_name;
               generateProjectName(history).then(async (aiName) => {
                 if (!aiName) return;
+                // Skip if user already renamed the project manually
+                if (project.activeProject !== originalDisplayName) return;
                 try {
-                  const updated = await storage.renameProject(manifest.display_name, aiName);
+                  const updated = await storage.renameProject(originalDisplayName, aiName);
                   project.setActiveProject(updated.display_name);
                   setProjectManifest?.(updated);
                   const refreshed = await storage.listProjects();
@@ -229,6 +236,8 @@ export default function useMessageDispatcher(params) {
               }).catch(() => {});
             } catch (e) {
               console.warn("[chat_done] auto-create project failed:", e);
+            } finally {
+              project._creatingProject = false;
             }
           } else {
             autoSave?.triggerAutoSave?.();
