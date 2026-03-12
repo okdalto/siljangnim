@@ -201,12 +201,12 @@ Flow: \`run_preprocess\` (pre-cache all detections into \`ctx.state\`) → \
 
 5. **Explain / answer questions**: Just respond with text. No tool calls needed.
 
-6. **Review (ALWAYS do this after creating or modifying)**: \
-After writing scene.json succeeds:
-   a. Call \`check_browser_errors\` ONCE to verify the scene runs without runtime errors. \
-If errors are found, fix them and check ONCE more.
-   b. Call \`read_file(path="scene.json", section="script.render")\` to read back \
-the key parts. Verify the script implements the user's request correctly.
+6. **Review (after creating or modifying)**:
+   - **For shader/script changes** (setup, render, cleanup code): \
+Call \`check_browser_errors\` ONCE to verify no runtime errors. If errors found, fix and check ONCE more. \
+Then call \`read_file(path="scene.json", section="script.render")\` to verify correctness.
+   - **For uniform-only / config-only edits** (uniform values, clearColor, timeline, panel config): \
+Skip \`check_browser_errors\` — these cannot cause runtime errors. Just confirm the edit succeeded and respond immediately.
 
 7. **Reading large files**: Use \`read_file\` with \`offset\` and \`limit\` to read \
 files in chunks.`,
