@@ -124,6 +124,18 @@ const TOOL_TIMEOUT_OVERRIDES = {
   run_debug_diagnosis: 60_000,
 };
 
+// Cross-turn cache settings
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_MAX_SIZE = 100;
+
+// Parallel tool execution classification
+const WRITE_TOOLS = new Set([
+  "write_scene", "edit_scene", "write_file",
+  "open_panel", "close_panel", "delete_asset", "clear_viewport",
+]);
+const BLOCKING_TOOLS = new Set(["ask_user", "start_recording", "run_preprocess"]);
+const SCENE_DEPENDENT = new Set(["check_browser_errors", "capture_viewport"]);
+
 function withToolTimeout(promise, ms, name) {
   return new Promise((resolve, reject) => {
     const t = setTimeout(() => reject(new Error(`Tool "${name}" timed out after ${ms / 1000}s`)), ms);
@@ -159,10 +171,11 @@ function stripThinking(messages) {
   }
 }
 
-function compactMessages(messages) {
+async function compactMessages(messages, { apiKey, provider, providerConfig, log } = {}) {
   const RESULT_TRUNC = 4000;
   const SAFE_TOKENS = 120000;
 
+  // Phase 1: Synchronous truncation (fast)
   stripThinking(messages);
 
   for (const msg of messages) {
@@ -176,16 +189,12 @@ function compactMessages(messages) {
 
     for (const block of content) {
       if (typeof block !== "object") continue;
-      // tool_use inputs are NOT truncated — the model needs to see its own
-      // previous tool calls accurately to avoid cascading corruption.
-      // Only tool results (which can be very large read_file outputs etc.) are trimmed.
       if (block.type === "tool_result") {
         if (typeof block.content === "string") {
           if (block.content.length > RESULT_TRUNC) {
             block.content = block.content.slice(0, RESULT_TRUNC) + "...(truncated)";
           }
         } else if (Array.isArray(block.content)) {
-          // Strip image blocks during compaction — they're large and already consumed
           block.content = block.content
             .filter((b) => b.type !== "image")
             .map((b) => {
@@ -194,7 +203,6 @@ function compactMessages(messages) {
               }
               return b;
             });
-          // If only text remains, simplify to string
           if (block.content.length === 1 && block.content[0].type === "text") {
             block.content = block.content[0].text;
           } else if (block.content.length === 0) {
@@ -205,7 +213,13 @@ function compactMessages(messages) {
     }
   }
 
-  // Improvement #3: smart progressive trim — preserve landmarks, summarize failed cycles
+  // Phase 2: LLM summarization (if still over threshold and API key available)
+  const estAfterTrunc = JSON.stringify(messages).length / 4;
+  if (estAfterTrunc > SAFE_TOKENS && apiKey) {
+    await _llmSummarize(messages, { apiKey, provider, providerConfig, log });
+  }
+
+  // Phase 3: Progressive trim (fallback)
   const { lastSuccessWriteIdx, lastErrorIdx } = findLandmarks(messages);
   const landmarkIndices = new Set([0, lastSuccessWriteIdx, lastErrorIdx].filter(i => i >= 0));
 
@@ -223,19 +237,14 @@ function compactMessages(messages) {
     }
     for (let i = recentStart; i < messages.length; i++) keepSet.add(i);
 
-    // Ensure tool_use/tool_result pairs are never separated.
-    // If an assistant message with tool_use is kept, its next user message
-    // (containing tool_results) must also be kept, and vice versa.
     for (let j = 0; j < messages.length; j++) {
       if (!keepSet.has(j)) continue;
       const msg = messages[j];
       const blocks = Array.isArray(msg.content) ? msg.content : [];
       if (msg.role === "assistant" && blocks.some((b) => b.type === "tool_use")) {
-        // Keep the following tool_result message
         if (j + 1 < messages.length) keepSet.add(j + 1);
       }
       if (msg.role === "user" && blocks.some((b) => b.type === "tool_result")) {
-        // Keep the preceding assistant message with tool_use
         if (j - 1 >= 0) keepSet.add(j - 1);
       }
     }
@@ -260,6 +269,85 @@ function compactMessages(messages) {
     messages.length = 0;
     messages.push(...kept);
     keepRecent = Math.max(2, keepRecent - 2);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// LLM-based conversation summarization
+// ---------------------------------------------------------------------------
+
+const SUMMARIZER_SYSTEM =
+  "You are summarizing a conversation between a user and an AI creative coding assistant. " +
+  "The assistant creates WebGL/WebGPU visual scenes. Preserve:\n" +
+  "- User's creative intent and specific requests\n" +
+  "- Key decisions and approaches taken\n" +
+  "- What worked (successful scene writes) and what failed (errors encountered)\n" +
+  "- Current scene state (what's rendered now)\n" +
+  "- Any user preferences or constraints mentioned\n" +
+  "Output a concise bullet-point summary in the same language as the conversation (usually Korean).";
+
+function _serializeForSummary(messages, maxChars) {
+  const lines = [];
+  for (const msg of messages) {
+    const role = msg.role === "user" ? "User" : "Assistant";
+    if (typeof msg.content === "string") {
+      lines.push(`[${role}]: ${msg.content.slice(0, 500)}`);
+    } else if (Array.isArray(msg.content)) {
+      for (const block of msg.content) {
+        if (block.type === "text") lines.push(`[${role}]: ${block.text.slice(0, 300)}`);
+        else if (block.type === "tool_use") lines.push(`[${role} tool]: ${block.name}(${JSON.stringify(block.input).slice(0, 200)})`);
+        else if (block.type === "tool_result") {
+          const text = typeof block.content === "string" ? block.content : JSON.stringify(block.content);
+          lines.push(`[Tool result${block.is_error ? " ERROR" : ""}]: ${text.slice(0, 300)}`);
+        }
+      }
+    }
+  }
+  let result = lines.join("\n");
+  if (result.length > maxChars) result = result.slice(0, maxChars) + "\n...(truncated)";
+  return result;
+}
+
+async function _llmSummarize(messages, { apiKey, provider, providerConfig, log }) {
+  const keepRecent = 6;
+  const recentStart = Math.max(0, messages.length - keepRecent);
+
+  // Messages to summarize: everything between the first message and recent messages
+  const toSummarize = messages.slice(1, recentStart);
+  if (toSummarize.length < 4) return; // too few to bother
+
+  const serialized = _serializeForSummary(toSummarize, 8000);
+
+  try {
+    const { callLLM: callLLMForSummary, getSmallModel } = await import("./llmClient.js");
+    const model = getSmallModel?.(provider) || "claude-haiku-4-5-20251001";
+    const result = await callLLMForSummary({
+      provider,
+      apiKey,
+      baseUrl: providerConfig?.base_url,
+      model,
+      maxTokens: 1024,
+      system: SUMMARIZER_SYSTEM,
+      messages: [{ role: "user", content: serialized }],
+      tools: [],
+    });
+
+    const summary = result.contentBlocks?.find(b => b.type === "text")?.text;
+    if (!summary) return; // failed — Phase 3 fallback handles it
+
+    // Replace summarized range with a compact summary message pair
+    const kept = [
+      messages[0], // first message preserved
+      { role: "user", content: `[CONVERSATION SUMMARY]\n${summary}` },
+      { role: "assistant", content: [{ type: "text", text: "Understood. I have the context from the summary above." }] },
+      ...messages.slice(recentStart), // recent messages preserved
+    ];
+    messages.length = 0;
+    messages.push(...kept);
+    if (log) log("System", `Conversation summarized (${toSummarize.length} messages → summary)`, "info");
+  } catch (e) {
+    if (log) log("System", `LLM summarization failed: ${e.message} — falling back to truncation`, "info");
+    // Phase 3 will handle the rest
   }
 }
 
@@ -455,8 +543,8 @@ async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarge
       const matches = findTechniques(userPrompt);
       if (matches.length > 0) {
         const top3 = matches.slice(0, 3);
-        const hints = top3.map(t => `- **${t.name}** (${t.category}): ${t.description?.slice(0, 100) || t.summary?.slice(0, 100) || ""}`).join("\n");
-        prompt += `\n\n## SUGGESTED TECHNIQUES\nBased on the user prompt, these techniques from the knowledge base may be relevant:\n${hints}\nConsider using their patterns as a starting point if applicable.`;
+        const hints = top3.map(t => `- **${t.name}** (id: \`${t.id}\`, ${t.category}): ${t.description?.slice(0, 100) || t.summary?.slice(0, 100) || ""}`).join("\n");
+        prompt += `\n\n## SUGGESTED TECHNIQUES\nBased on the user prompt, these techniques from the knowledge base may be relevant:\n${hints}\nYou can load any of these instantly with \`use_template(template_id="...")\` and then customize with \`edit_scene\`. This is faster and more reliable than writing from scratch.`;
       }
     } catch { /* technique matching is non-critical */ }
   }
@@ -525,6 +613,8 @@ export async function runAgent({
   log,
   broadcast,
   onText,
+  onTextDelta,
+  onTextFinalize,
   onStatus,
   files,
   messages,
@@ -540,6 +630,7 @@ export async function runAgent({
   modelOverride,
   provider = "anthropic",
   providerConfig = {},
+  toolResultCache,
 }) {
   log("System", `Starting agent for: "${userPrompt}"`, "info");
   if (files?.length) {
@@ -568,6 +659,8 @@ export async function runAgent({
     log,
     broadcast,
     onText,
+    onTextDelta,
+    onTextFinalize,
     onStatus,
     errorCollector,
     userAnswerPromise,
@@ -578,7 +671,155 @@ export async function runAgent({
     modelOverride,
     provider,
     providerConfig,
+    toolResultCache,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Parallel tool execution helpers
+// ---------------------------------------------------------------------------
+
+function _classifyToolGroups(toolBlocks) {
+  const groups = [];
+  let currentParallel = [];
+
+  const flushParallel = () => {
+    if (currentParallel.length) {
+      groups.push({ parallel: true, blocks: currentParallel });
+      currentParallel = [];
+    }
+  };
+
+  for (const block of toolBlocks) {
+    if (WRITE_TOOLS.has(block.name) || BLOCKING_TOOLS.has(block.name) || SCENE_DEPENDENT.has(block.name)) {
+      flushParallel();
+      groups.push({ parallel: false, blocks: [block] });
+    } else {
+      currentParallel.push(block);
+    }
+  }
+  flushParallel();
+  return groups;
+}
+
+async function _executeOneTool(block, ctx) {
+  const {
+    toolCache, broadcast, errorCollector, userAnswerPromise, preprocessPromise,
+    recordingDonePromise, log, onStatus, signal, visionEnabled, READ_ONLY_TOOLS,
+    apiKey, provider, providerConfig,
+  } = ctx;
+
+  // Handle parse errors
+  if (block._parseError) {
+    log("System", `Skipped ${block.name}: JSON parse error`, "warning");
+    return {
+      toolResult: {
+        type: "tool_result",
+        tool_use_id: block.id,
+        content: `Error: ${block._parseError} Please retry this tool call with complete arguments.`,
+        is_error: true,
+      },
+    };
+  }
+
+  onStatus?.("thinking", `Running ${block.name}...`);
+
+  let result;
+  let isError = false;
+  try {
+    const isReadOnly = READ_ONLY_TOOLS.has(block.name);
+    const cacheKey = isReadOnly ? `${block.name}|${JSON.stringify(block.input)}` : null;
+
+    if (cacheKey && toolCache.has(cacheKey)) {
+      const entry = toolCache.get(cacheKey);
+      if (Date.now() - entry.ts < CACHE_TTL) {
+        result = entry.result;
+        log("System", `Cache hit: ${block.name}`, "info");
+      } else {
+        toolCache.delete(cacheKey);
+      }
+    }
+    if (result === undefined) {
+      const timeout = TOOL_TIMEOUT_OVERRIDES[block.name] || TOOL_TIMEOUT;
+      result = await withToolTimeout(handleTool(block.name, block.input, broadcast, {
+        errorCollector,
+        userAnswerPromise,
+        preprocessPromise,
+        recordingDonePromise,
+        engineRef: errorCollector.getEngineRef(),
+        debugSubagentRunner: (errorContext) => runDebugSubagent({
+          apiKey, errorContext, log, broadcast, onStatus,
+          errorCollector, signal, provider, providerConfig,
+        }),
+      }), timeout, block.name);
+      // Cache read-only results with TTL
+      if (cacheKey) {
+        if (toolCache.size >= CACHE_MAX_SIZE) {
+          const oldest = [...toolCache.entries()].sort((a, b) => a[1].ts - b[1].ts)[0];
+          if (oldest) toolCache.delete(oldest[0]);
+        }
+        toolCache.set(cacheKey, { result, ts: Date.now() });
+      }
+      // Invalidate cache on write operations
+      if (block.name === "write_scene" || block.name === "edit_scene" || block.name === "write_file") {
+        toolCache.clear();
+      }
+    }
+    if (typeof result === "string" && result.startsWith("Error")) isError = true;
+  } catch (e) {
+    result = `Error executing tool '${block.name}': ${e.message}`;
+    isError = true;
+    log("System", result, "error");
+  }
+
+  // Track error patterns from check_browser_errors
+  let errorInfo = null;
+  let errorCleared = false;
+  if (block.name === "check_browser_errors" && typeof result === "string") {
+    if (result.includes("Script errors") || result.includes("FAILED")) {
+      const lines = result.split("\n").filter(l => l.trim().startsWith("-") || l.trim().match(/^\d+\./));
+      if (lines.length) errorInfo = { pattern: normalizeError(lines[0]) };
+    } else if (result.includes("No browser errors detected")) {
+      errorCleared = true;
+    }
+  }
+
+  // Build tool result
+  let tr;
+  if (result && typeof result === "object" && result.__type === "image" && visionEnabled) {
+    tr = {
+      type: "tool_result",
+      tool_use_id: block.id,
+      content: [
+        { type: "text", text: `Viewport capture (${result.width}×${result.height})` },
+        {
+          type: "image",
+          source: { type: "base64", media_type: result.media_type, data: result.base64 },
+        },
+      ],
+    };
+  } else {
+    const resultStr = (typeof result === "object" && result.__type === "image")
+      ? `Viewport captured (${result.width}×${result.height}) but vision is not available for this model. The scene is rendering.`
+      : (typeof result === "string" ? result : JSON.stringify(result));
+    tr = {
+      type: "tool_result",
+      tool_use_id: block.id,
+      content: resultStr || "(empty result)",
+    };
+  }
+  if (isError) tr.is_error = true;
+
+  // Status preview
+  const previewStr = typeof result === "string" ? result : (result?.__type === "image" ? "[viewport screenshot]" : "");
+  const preview = (previewStr || "").slice(0, 120);
+  onStatus?.("thinking", isError ? `${block.name} → Error: ${preview}` : `${block.name} → ${preview}`);
+
+  // Loop detection signature
+  const inputKey = JSON.stringify(block.input, Object.keys(block.input).sort());
+  const sig = `${block.name}|${hashCode(inputKey)}`;
+
+  return { toolResult: tr, sig, errorInfo, errorCleared };
 }
 
 /**
@@ -591,6 +832,8 @@ async function _runAgentLoop({
   log,
   broadcast,
   onText,
+  onTextDelta,
+  onTextFinalize,
   onStatus,
   errorCollector,
   userAnswerPromise,
@@ -601,6 +844,7 @@ async function _runAgentLoop({
   modelOverride,
   provider = "anthropic",
   providerConfig = {},
+  toolResultCache,
 }) {
   const modelName = modelOverride || (providerConfig.model || MODEL_COMPLEX);
   const isAnthropic = provider === "anthropic";
@@ -621,7 +865,7 @@ async function _runAgentLoop({
   const recentErrors = [];       // Improvement #1: error pattern tracking
   let errorFixCycles = 0;        // Improvement #2: debug subagent auto-trigger
   const READ_ONLY_TOOLS = new Set(["read_file", "list_files", "list_uploaded_files", "search_code"]);
-  const toolCache = new Map();   // Improvement #5: per-turn read-only tool cache
+  const toolCache = toolResultCache || new Map(); // Cross-turn cache (or fallback per-loop)
 
   // Incremental byte tracking for token estimation (avoids full JSON.stringify each turn)
   const _enc = new TextEncoder();
@@ -656,7 +900,7 @@ async function _runAgentLoop({
       if (estTokens > compactThreshold) {
         log("System", `Estimated ~${Math.round(estTokens)} tokens — compacting...`, "info");
         onStatus?.("thinking", "대화 내용 정리 중...");
-        compactMessages(messages);
+        await compactMessages(messages, { apiKey, provider, providerConfig, log });
         // Recompute after compaction
         runningBytes = byteLen(messages);
         lastMsgCount = messages.length;
@@ -700,7 +944,7 @@ async function _runAgentLoop({
               onStatus?.("thinking", thinkingBuffer);
             },
             onTextDelta(chunk) {
-              // Text deltas are accumulated; final text handled below
+              onTextDelta?.(chunk);
             },
             onToolUseStart(name) {
               onStatus?.("tool_use", name);
@@ -709,6 +953,9 @@ async function _runAgentLoop({
               if (type === "thinking") {
                 thinkingBuffer = "";
                 log("Agent", data, "thinking");
+              }
+              if (type === "text") {
+                onTextFinalize?.();
               }
             },
           },
@@ -734,7 +981,7 @@ async function _runAgentLoop({
           compactRetries++;
           log("System", decision.message, "info");
           onStatus?.("thinking", "대화 내용 정리 중...");
-          compactMessages(messages);
+          await compactMessages(messages, { apiKey, provider, providerConfig, log });
           continue;
         }
 
@@ -767,7 +1014,8 @@ async function _runAgentLoop({
         if (block.type === "text" && block.text?.trim()) {
           lastText = block.text;
           log("Agent", block.text, "info");
-          onText?.(block.text);
+          // If streaming via onTextDelta, text was already sent incrementally
+          if (!onTextDelta) onText?.(block.text);
         } else if (block.type === "tool_use") {
           const inputStr = JSON.stringify(block.input);
           const preview = inputStr.length > 200 ? inputStr.slice(0, 200) + "..." : inputStr;
@@ -867,7 +1115,7 @@ async function _runAgentLoop({
           }
           log("System", "Token limit — compacting...", "info");
           onStatus?.("thinking", "대화 내용 정리 중...");
-          compactMessages(messages);
+          await compactMessages(messages, { apiKey, provider, providerConfig, log });
         }
         messages.push({
           role: "user",
@@ -890,121 +1138,48 @@ async function _runAgentLoop({
         break;
       }
 
-      // --- Execute tool calls ---
+      // --- Execute tool calls (with parallel execution for read-only tools) ---
       const toolBlocks = contentBlocks.filter((b) => b.type === "tool_use");
-      const toolResults = [];
 
-      for (const block of toolBlocks) {
+      const toolCtx = {
+        toolCache, broadcast, errorCollector, userAnswerPromise, preprocessPromise,
+        recordingDonePromise, log, onStatus, signal, visionEnabled, READ_ONLY_TOOLS,
+        apiKey, provider, providerConfig,
+      };
+
+      const groups = _classifyToolGroups(toolBlocks);
+      const allResults = [];
+
+      for (const group of groups) {
         if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
-        if (block._parseError) {
-          toolResults.push({
-            type: "tool_result",
-            tool_use_id: block.id,
-            content: `Error: ${block._parseError} Please retry this tool call with complete arguments.`,
-            is_error: true,
-          });
-          log("System", `Skipped ${block.name}: JSON parse error`, "warning");
-          continue;
-        }
-
-        onStatus?.("thinking", `Running ${block.name}...`);
-
-        let result;
-        let isError = false;
-        try {
-          // Improvement #5: cache read-only tool results within a turn
-          const isReadOnly = READ_ONLY_TOOLS.has(block.name);
-          const cacheKey = isReadOnly ? `${block.name}|${JSON.stringify(block.input)}` : null;
-
-          if (cacheKey && toolCache.has(cacheKey)) {
-            result = toolCache.get(cacheKey);
-            log("System", `Cache hit: ${block.name}`, "info");
-          } else {
-            const timeout = TOOL_TIMEOUT_OVERRIDES[block.name] || TOOL_TIMEOUT;
-            result = await withToolTimeout(handleTool(block.name, block.input, broadcast, {
-              errorCollector,
-              userAnswerPromise,
-              preprocessPromise,
-              recordingDonePromise,
-              engineRef: errorCollector.getEngineRef(),
-              debugSubagentRunner: (errorContext) => runDebugSubagent({
-                apiKey, errorContext, log, broadcast, onStatus,
-                errorCollector, signal, provider, providerConfig,
-              }),
-            }), timeout, block.name);
-            // Cache read-only results
-            if (cacheKey) toolCache.set(cacheKey, result);
-            // Invalidate cache on write operations
-            if (block.name === "write_scene" || block.name === "write_file") {
-              toolCache.clear();
-            }
-          }
-          if (typeof result === "string" && result.startsWith("Error")) isError = true;
-        } catch (e) {
-          result = `Error executing tool '${block.name}': ${e.message}`;
-          isError = true;
-          log("System", result, "error");
-        }
-
-        // Improvement #1 + #2: track error patterns from check_browser_errors
-        // Track per-call (not per-line) to avoid a single multi-error result
-        // instantly triggering the loop detector.
-        if (block.name === "check_browser_errors" && typeof result === "string") {
-          if (result.includes("Script errors") || result.includes("FAILED")) {
-            // Use the first error line as the representative pattern for this call
-            const lines = result.split("\n").filter(l => l.trim().startsWith("-") || l.trim().match(/^\d+\./));
-            if (lines.length) recentErrors.push(normalizeError(lines[0]));
-            errorFixCycles++;
-          } else if (result.includes("No browser errors detected")) {
-            // Success — clear error history so past errors don't trigger false loop detection
-            recentErrors.length = 0;
-            errorFixCycles = 0;
-          }
-        }
-
-        // Build tool result — handle image results from capture_viewport
-        let tr;
-        if (result && typeof result === "object" && result.__type === "image" && visionEnabled) {
-          // Image result: build content array with text + image blocks
-          tr = {
-            type: "tool_result",
-            tool_use_id: block.id,
-            content: [
-              { type: "text", text: `Viewport capture (${result.width}×${result.height})` },
-              {
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: result.media_type,
-                  data: result.base64,
-                },
-              },
-            ],
-          };
+        if (group.parallel && group.blocks.length > 1) {
+          onStatus?.("thinking", `Running ${group.blocks.length} tools in parallel...`);
+          const results = await Promise.all(
+            group.blocks.map(block => _executeOneTool(block, toolCtx))
+          );
+          allResults.push(...results);
         } else {
-          // String result (normal case)
-          const resultStr = (typeof result === "object" && result.__type === "image")
-            ? `Viewport captured (${result.width}×${result.height}) but vision is not available for this model. The scene is rendering.`
-            : (typeof result === "string" ? result : JSON.stringify(result));
-          tr = {
-            type: "tool_result",
-            tool_use_id: block.id,
-            content: resultStr || "(empty result)",
-          };
+          for (const block of group.blocks) {
+            if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+            const result = await _executeOneTool(block, toolCtx);
+            allResults.push(result);
+          }
         }
-        if (isError) tr.is_error = true;
-        toolResults.push(tr);
+      }
 
-        // Status preview
-        const previewStr = typeof result === "string" ? result : (result?.__type === "image" ? "[viewport screenshot]" : "");
-        const preview = (previewStr || "").slice(0, 120);
-        onStatus?.("thinking", isError ? `${block.name} → Error: ${preview}` : `${block.name} → ${preview}`);
-
-        // Loop detection
-        const inputKey = JSON.stringify(block.input, Object.keys(block.input).sort());
-        const sig = `${block.name}|${hashCode(inputKey)}`;
-        recentToolSigs.push(sig);
+      // Collect results
+      const toolResults = allResults.map(r => r.toolResult);
+      for (const r of allResults) {
+        if (r.sig) recentToolSigs.push(r.sig);
+        if (r.errorInfo) {
+          recentErrors.push(r.errorInfo.pattern);
+          errorFixCycles++;
+        }
+        if (r.errorCleared) {
+          recentErrors.length = 0;
+          errorFixCycles = 0;
+        }
       }
 
       // Append tool results as user message
@@ -1396,6 +1571,8 @@ export async function runWithPlan({
   log,
   broadcast,
   onText,
+  onTextDelta,
+  onTextFinalize,
   onStatus,
   files,
   messages, // original conversation (mutated)
@@ -1412,6 +1589,7 @@ export async function runWithPlan({
   modelOverride,
   provider = "anthropic",
   providerConfig = {},
+  toolResultCache,
 }) {
   // Improvement #4: pass richer context to shouldPlan
   const recentErrorCount = messages.slice(-10).filter(m => {
@@ -1432,10 +1610,10 @@ export async function runWithPlan({
 
   if (!shouldPlan(messages.length, userPrompt, { recentErrors: recentErrorCount, previousPrompt, recentPlanExecuted })) {
     return runAgent({
-      apiKey, userPrompt, log, broadcast, onText, onStatus,
+      apiKey, userPrompt, log, broadcast, onText, onTextDelta, onTextFinalize, onStatus,
       files, messages, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
-      provider, providerConfig,
+      provider, providerConfig, toolResultCache,
     });
   }
 
@@ -1448,10 +1626,10 @@ export async function runWithPlan({
   if (!plan) {
     // Fallback: direct execution
     return runAgent({
-      apiKey, userPrompt, log, broadcast, onText, onStatus,
+      apiKey, userPrompt, log, broadcast, onText, onTextDelta, onTextFinalize, onStatus,
       files, messages, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
-      provider, providerConfig,
+      provider, providerConfig, toolResultCache,
     });
   }
 
@@ -1484,6 +1662,8 @@ export async function runWithPlan({
     log,
     broadcast,
     onText,
+    onTextDelta,
+    onTextFinalize,
     onStatus,
     errorCollector,
     userAnswerPromise,
@@ -1494,6 +1674,7 @@ export async function runWithPlan({
     modelOverride,
     provider,
     providerConfig,
+    toolResultCache,
   });
 
   // Sync final assistant response back to the original conversation

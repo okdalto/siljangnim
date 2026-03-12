@@ -704,4 +704,91 @@ When generating or modifying scenes:
 - For complex scenes, build incrementally: start with a minimal working pipeline, then add features one at a time. Do NOT write all shaders and pipelines in a single attempt.
 - Test each pipeline separately before combining them.`,
   },
+  {
+    id: "glsl_snippets",
+    core: false,
+    keywords: [
+      "sdf", "distance field", "color space", "hsv", "easing", "palette",
+      "색공간", "이징", "signed distance", "smooth union", "remap",
+    ],
+    content: `\
+### ctx.utils.glsl — GLSL snippet library
+
+Pre-built GLSL function strings to inject into fragment shaders. Same pattern as \`ctx.utils.noise\`.
+
+| Constant | Provides |
+|----------|----------|
+| \`ctx.utils.glsl.SDF_OPS\` | opUnion, opSubtraction, opIntersection, opSmoothUnion/Sub/Inter |
+| \`ctx.utils.glsl.SDF_SHAPES\` | sdSphere, sdBox, sdTorus, sdPlane, sdCylinder |
+| \`ctx.utils.glsl.COLOR_SPACE\` | rgb2hsv, hsv2rgb, srgbToLinear, linearToSrgb |
+| \`ctx.utils.glsl.EASING\` | easeIn/Out/InOut Quad·Cubic·Elastic·Bounce |
+| \`ctx.utils.glsl.MATH\` | remap, smootherstep, rot2, palette (Inigo Quilez) |
+
+Usage — concatenate needed snippets into your shader source:
+\`\`\`js
+const frag = '#version 300 es\\nprecision highp float;\\n'
+  + ctx.utils.glsl.SDF_SHAPES + ctx.utils.glsl.SDF_OPS + ctx.utils.glsl.MATH
+  + 'uniform float u_time; uniform vec2 u_resolution; out vec4 fragColor;\\n'
+  + 'void main() {\\n'
+  + '  vec2 uv = (gl_FragCoord.xy - 0.5*u_resolution) / u_resolution.y;\\n'
+  + '  float d = opSmoothUnion(sdSphere(vec3(uv,0), 0.3), sdBox(vec3(uv,0), vec3(0.2)), 0.1);\\n'
+  + '  vec3 col = palette(d + u_time, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0,0.33,0.67));\\n'
+  + '  fragColor = vec4(col, 1.0);\\n'
+  + '}';
+\`\`\``,
+  },
+  {
+    id: "fullscreen_effect",
+    core: false,
+    keywords: [
+      "fullscreen", "effect", "post-process", "chain", "풀스크린", "이펙트",
+      "후처리", "post process", "multi-pass", "멀티패스",
+    ],
+    content: `\
+### ctx.utils.createFullscreenEffect(fragSrc, defaultUniforms?)
+
+One-line fullscreen shader effect. Handles program creation, quad geometry, VAO, and uniform binding automatically.
+
+Returns: \`{ prog, uniforms, draw(overrides?), drawToTarget(rt, overrides?), dispose() }\`
+
+- \`draw()\` auto-binds \`u_time\`, \`u_resolution\`, \`u_mouse\` if present in the shader
+- Pass custom uniform values via overrides: \`draw({ u_custom: 2.0 })\`
+
+\`\`\`js
+// setup:
+const fragSrc = '#version 300 es\\nprecision highp float;\\n'
+  + 'uniform float u_time; uniform vec2 u_resolution; out vec4 fragColor;\\n'
+  + 'void main() { vec2 uv = gl_FragCoord.xy / u_resolution; fragColor = vec4(uv, sin(u_time)*0.5+0.5, 1.0); }';
+ctx.state.fx = ctx.utils.createFullscreenEffect(fragSrc);
+
+// render:
+ctx.state.fx.draw({ u_custom: 2.0 });
+
+// cleanup:
+ctx.state.fx.dispose();
+\`\`\`
+
+### ctx.utils.createPostProcessChain(effects[])
+
+Multi-pass post-processing chain using internal ping-pong FBOs.
+
+Each effect: \`{ fragSrc: string, uniforms?: object }\`
+
+The chain's shaders should sample from \`u_texture\` or \`u_input\` (texture unit 0).
+
+\`\`\`js
+// setup:
+ctx.state.chain = ctx.utils.createPostProcessChain([
+  { fragSrc: bloomFrag },
+  { fragSrc: chromaticFrag },
+  { fragSrc: crtFrag },
+]);
+
+// render (after rendering your scene to a render target):
+ctx.state.chain.drawToScreen(sceneRenderTarget.texture);
+
+// cleanup:
+ctx.state.chain.dispose();
+\`\`\``,
+  },
 ];

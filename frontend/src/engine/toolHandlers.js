@@ -919,6 +919,62 @@ async function toolDebugSubagent(input, broadcast, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// use_template — load a pre-built scene template from the technique catalog
+// ---------------------------------------------------------------------------
+
+async function toolUseTemplate(input, broadcast) {
+  const templateId = input.template_id;
+  if (!templateId) return "Error: 'template_id' is required.";
+
+  let getTechniqueById;
+  try {
+    const mod = await import("./techniqueKnowledgeBase.js");
+    getTechniqueById = mod.getTechniqueById;
+  } catch (e) {
+    return `Error: failed to load technique catalog: ${e.message}`;
+  }
+
+  const technique = getTechniqueById(templateId);
+  if (!technique) return `Error: template '${templateId}' not found in the technique catalog.`;
+  if (!technique.template) return `Error: template '${templateId}' has no template code.`;
+
+  const tmpl = technique.template;
+  const scene = {
+    version: 1,
+    render_mode: "script",
+    script: {},
+  };
+  if (tmpl.setup) scene.script.setup = tmpl.setup;
+  if (tmpl.render) scene.script.render = tmpl.render;
+  if (tmpl.cleanup) scene.script.cleanup = tmpl.cleanup;
+  if (tmpl.uniforms) scene.uniforms = tmpl.uniforms;
+  if (tmpl.clearColor) scene.clearColor = tmpl.clearColor;
+  if (tmpl.backendTarget) scene.backendTarget = tmpl.backendTarget;
+
+  if (!scene.script.render) return `Error: template '${templateId}' is missing a render function.`;
+
+  normalizeScriptStrings(scene);
+  const errors = validateSceneJson(scene);
+  if (errors.length) return "Template validation errors:\n" + errors.map((e) => `  - ${e}`).join("\n");
+
+  await storage.writeJson("scene.json", scene);
+  broadcast({ type: "scene_update", scene_json: scene });
+  if (scene.backendTarget) {
+    broadcast({ type: "set_backend_target", backendTarget: scene.backendTarget });
+  }
+
+  // Build response with template info
+  const uniformList = scene.uniforms
+    ? Object.entries(scene.uniforms).map(([k, v]) => `  - ${k}: ${v.type} = ${JSON.stringify(v.value)}`).join("\n")
+    : "  (none)";
+  return `ok — template "${technique.name}" loaded and broadcast.\n` +
+    `Description: ${technique.description}\n` +
+    `Category: ${technique.category}\n` +
+    `Uniforms:\n${uniformList}\n` +
+    `You can now customize it with edit_scene.`;
+}
+
+// ---------------------------------------------------------------------------
 // edit_scene — surgical text-level edits within scene script sections
 // ---------------------------------------------------------------------------
 
@@ -1087,6 +1143,7 @@ const TOOL_HANDLERS = {
   capture_viewport: toolCaptureViewport,
   clear_viewport: toolClearViewport,
   debug_with_subagent: toolDebugSubagent,
+  use_template: toolUseTemplate,
 };
 
 /**
@@ -1103,7 +1160,7 @@ export async function handleTool(name, inputData, broadcast, context = {}) {
   if (!handler) return `Unknown tool: ${name}`;
 
   // Mark pending scene load so check_browser_errors waits for it
-  if ((name === "write_scene" || name === "edit_scene" || (name === "write_file" && (inputData.path === "scene.json"))) && context.errorCollector) {
+  if ((name === "write_scene" || name === "edit_scene" || name === "use_template" || (name === "write_file" && (inputData.path === "scene.json"))) && context.errorCollector) {
     context.errorCollector.expectSceneLoad();
   }
 
