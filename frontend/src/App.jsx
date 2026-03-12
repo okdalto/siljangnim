@@ -108,6 +108,7 @@ export default function App() {
   const [paused, setPaused] = useState(false);
   const [duration, setDuration] = useState(30);
   const [loop, setLoop] = useState(true);
+  const [fps, setFps] = useState(30);
   const [canvasSize, setCanvasSize] = useState({ width: 670, height: 480 });
 
   // Backend target (per-project override: auto / webgl / webgpu)
@@ -294,6 +295,7 @@ export default function App() {
       keyframes: kf.getKeyframeTracks(),
       duration,
       loop,
+      fps,
       node_layouts: getNodeLayouts(),
       assets: assetNodes.serialize(),
       ui_state: {
@@ -304,7 +306,7 @@ export default function App() {
         viewportFixedResolution: nodeUiStateRef.current.viewportFixedResolution,
       },
     };
-  }, [duration, loop, kf.getKeyframeTracks, getNodeLayouts, assetNodes.serialize]);
+  }, [duration, loop, fps, kf.getKeyframeTracks, getNodeLayouts, assetNodes.serialize]);
 
   // Pending node layouts to apply once after project load
   const pendingLayoutsRef = useRef(null);
@@ -462,7 +464,7 @@ export default function App() {
 
   // Debounced + immediate workspace-state sync to backend
   const { wsStateTimerRef, sendWorkspaceState, sendWorkspaceStateNow, kfMountedRef, durationLoopMountedRef } =
-    useWorkspaceStateSync({ sendRef, getWorkspaceState, kf, duration, loop, autoSave, initSettledRef, onLayoutCommitRef });
+    useWorkspaceStateSync({ sendRef, getWorkspaceState, kf, duration, loop, fps, autoSave, initSettledRef, onLayoutCommitRef });
 
   // Buffers for thinking content from agent_status (fallback if agent_log misses it)
   const buffersRef = useRef({ thinkingBuffer: "", thinkingLogReceived: false });
@@ -474,7 +476,7 @@ export default function App() {
   // Handle incoming WebSocket messages (extracted hook)
   const handleMessage = useMessageDispatcher({
     chat, apiKey, project, panels, kf, assetNodes,
-    setSceneJSON, setUiConfig, setDuration, setLoop,
+    setSceneJSON, setUiConfig, setDuration, setLoop, setFps,
     setWorkspaceFilesVersion, dirtyRef, setPaused,
     recorderFnsRef, pendingLayoutsRef, setNodes,
     resetUniformHistoryRef, initSettledRef,
@@ -579,6 +581,7 @@ export default function App() {
     kf.resetKeyframes();
     setDuration(settings.defaultDuration);
     setLoop(settings.defaultLoop);
+    setFps(30);
     dirtyRef.current = false;
     send({ type: "new_project" });
   }, [send, chat.clearAll, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, settings.defaultDuration, settings.defaultLoop]);
@@ -871,6 +874,8 @@ export default function App() {
           onDurationChange={setDuration}
           loop={loop}
           onLoopChange={setLoop}
+          fps={fps}
+          onFpsChange={setFps}
           recording={recording}
           recordingTime={recordingTime}
           onStartRecord={handleStartRecord}

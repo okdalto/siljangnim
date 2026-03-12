@@ -282,6 +282,7 @@ const TOOLS = [
         uniforms: { type: "object", description: 'Uniform definitions, e.g. {"u_speed": {"type": "float", "value": 1.0}}' },
         clearColor: { type: "array", items: { type: "number" }, description: "[r,g,b,a] clear color (0-1). Default: [0,0,0,1]" },
         backendTarget: { type: "string", enum: ["auto", "webgl", "webgpu", "hybrid"], description: 'Backend target. "auto"/"webgl": WebGL2 only. "webgpu": full WebGPU (WGSL). "hybrid": WebGPU compute + WebGL2 rendering (use ctx.renderer for compute, ctx.gl for rendering).' },
+        dry_run: { type: "boolean", description: "If true, validate code (JS syntax + shader compilation) without loading the scene. Returns validation report." },
       },
       required: ["render"],
     },
@@ -317,8 +318,9 @@ const TOOLS = [
   {
     name: "set_timeline",
     description:
-      "Set timeline properties: duration (seconds) and/or loop (true/false). " +
-      "Use this to match timeline duration to video length or adjust playback behavior.",
+      "Set timeline properties: duration (seconds), loop (true/false), and/or fps (frames per second). " +
+      "Use this to match timeline duration to video length or adjust playback behavior. " +
+      "FPS affects frame stepping, frame display, and recording frame rate.",
     input_schema: {
       type: "object",
       properties: {
@@ -329,6 +331,10 @@ const TOOLS = [
         loop: {
           type: "boolean",
           description: "Whether the timeline loops.",
+        },
+        fps: {
+          type: "number",
+          description: "Frames per second (1-240). Affects frame stepping, display, and recording.",
         },
       },
     },

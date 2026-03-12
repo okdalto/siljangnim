@@ -14,9 +14,10 @@ export function handleViewportCleared(msg, deps) {
 }
 
 export function handleSetTimeline(msg, deps) {
-  const { setDuration, setLoop, dirtyRef, autoSave } = deps;
+  const { setDuration, setLoop, setFps, dirtyRef, autoSave } = deps;
   if (typeof msg.duration === "number") setDuration(msg.duration);
   if (typeof msg.loop === "boolean") setLoop(msg.loop);
+  if (typeof msg.fps === "number") setFps(msg.fps);
   dirtyRef.current = true;
   autoSave?.triggerAutoSave?.();
 }
