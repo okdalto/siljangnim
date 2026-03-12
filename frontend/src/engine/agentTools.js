@@ -37,7 +37,10 @@ const TOOLS = [
       "Use 'content' for full file replacement or 'edits' for partial modifications. " +
       "scene.json writes are validated and broadcast. " +
       "IMPORTANT: Workspace JSON files support ONLY dot-path edits. " +
-      "Text files (.workspace/*) support ONLY text search-replace edits.",
+      "Text files (.workspace/*) support ONLY text search-replace edits. " +
+      "For scene.json: prefer write_scene for full creation/replacement (easier, no escaping). " +
+      "Use this tool with edits for targeted modifications to specific sections (e.g., changing just the render function). " +
+      "NEVER use write_file(path='scene.json', content=...) for full replacement — use write_scene instead.",
     input_schema: {
       type: "object",
       properties: {
@@ -217,7 +220,9 @@ const TOOLS = [
     name: "write_scene",
     description:
       "Create or fully replace scene.json. Pass raw JS code directly as " +
-      "separate parameters — NO JSON escaping needed.",
+      "separate parameters — NO JSON escaping needed. " +
+      "USE THIS for: creating new scenes, full rewrites, or when changing multiple sections at once. " +
+      "For targeted modifications to a single section, prefer write_file with dot-path edits instead.",
     input_schema: {
       type: "object",
       properties: {
@@ -359,6 +364,27 @@ const TOOLS = [
         },
       },
       required: ["filename"],
+    },
+  },
+  {
+    name: "capture_viewport",
+    description:
+      "Capture a screenshot of the current viewport canvas and return it as an image. " +
+      "Use this to visually inspect what is currently rendered — check colors, layout, " +
+      "artifacts, or verify that your scene looks correct. " +
+      "The image is returned as a JPEG snapshot of the current frame.",
+    input_schema: {
+      type: "object",
+      properties: {
+        width: {
+          type: "number",
+          description: "Capture width in pixels (default: current canvas width, max 1024). Downscaled if larger.",
+        },
+        height: {
+          type: "number",
+          description: "Capture height in pixels (default: current canvas height, max 1024). Downscaled if larger.",
+        },
+      },
     },
   },
   {

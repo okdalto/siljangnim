@@ -8,7 +8,60 @@
 
 import { callLLM } from "./llmClient.js";
 import { classifyApiError } from "./agentErrorHandler.js";
-import { detectToolLoop } from "./agentLoopDetector.js";
+import { detectToolLoop, detectErrorLoop, normalizeError } from "./agentLoopDetector.js";
+
+// ---------------------------------------------------------------------------
+// Vision model capability detection
+// ---------------------------------------------------------------------------
+
+/**
+ * Known vision-capable model patterns per provider.
+ * Models matching these patterns support image input in tool results.
+ */
+const VISION_MODELS = {
+  anthropic: [
+    // All Claude 3+ models support vision
+    /claude-3/, /claude-sonnet/, /claude-opus/, /claude-haiku/,
+  ],
+  openai: [
+    // GPT-4o, GPT-4.1, GPT-4 Turbo, GPT-5, o-series — all support vision
+    /gpt-4o/, /gpt-4\.1/, /gpt-4-turbo/, /gpt-4-vision/, /gpt-5/,
+    /^o1/, /^o3/, /^o4/,
+  ],
+  gemini: [
+    // All Gemini 1.5+, 2.x, 3.x are natively multimodal
+    /gemini-1\.5/, /gemini-2/, /gemini-3/, /gemini-pro-vision/,
+  ],
+  glm: [
+    // GLM-4V, 4.5V, 4.6V, 4.1V series
+    /glm-4v/, /glm-4\.5v/, /glm-4\.6v/, /glm-4\.1v/,
+  ],
+  custom: [],
+};
+
+/**
+ * Check if a given provider + model combination supports vision (image input).
+ * For "custom" providers, falls back to providerConfig.vision flag.
+ */
+function isVisionCapable(provider, model, providerConfig = {}) {
+  // Explicit override from provider config (useful for custom providers)
+  if (providerConfig.vision === true) return true;
+  if (providerConfig.vision === false) return false;
+
+  const patterns = VISION_MODELS[provider] || [];
+  if (!model) return false;
+  const lower = model.toLowerCase();
+  return patterns.some((re) => re.test(lower));
+}
+
+/**
+ * Filter tools based on model capabilities.
+ * Removes capture_viewport for non-vision models.
+ */
+function filterToolsForModel(tools, provider, model, providerConfig = {}) {
+  if (isVisionCapable(provider, model, providerConfig)) return tools;
+  return tools.filter((t) => t.name !== "capture_viewport");
+}
 
 /** Detect platform type for prompt section filtering. */
 function detectPlatformType() {
@@ -103,9 +156,27 @@ function compactMessages(messages) {
       // tool_use inputs are NOT truncated — the model needs to see its own
       // previous tool calls accurately to avoid cascading corruption.
       // Only tool results (which can be very large read_file outputs etc.) are trimmed.
-      if (block.type === "tool_result" && typeof block.content === "string") {
-        if (block.content.length > RESULT_TRUNC) {
-          block.content = block.content.slice(0, RESULT_TRUNC) + "...(truncated)";
+      if (block.type === "tool_result") {
+        if (typeof block.content === "string") {
+          if (block.content.length > RESULT_TRUNC) {
+            block.content = block.content.slice(0, RESULT_TRUNC) + "...(truncated)";
+          }
+        } else if (Array.isArray(block.content)) {
+          // Strip image blocks during compaction — they're large and already consumed
+          block.content = block.content
+            .filter((b) => b.type !== "image")
+            .map((b) => {
+              if (b.type === "text" && b.text?.length > RESULT_TRUNC) {
+                return { ...b, text: b.text.slice(0, RESULT_TRUNC) + "...(truncated)" };
+              }
+              return b;
+            });
+          // If only text remains, simplify to string
+          if (block.content.length === 1 && block.content[0].type === "text") {
+            block.content = block.content[0].text;
+          } else if (block.content.length === 0) {
+            block.content = "(image result — compacted)";
+          }
         }
       }
     }
@@ -356,13 +427,21 @@ async function _runAgentLoop({
   const useThinking = isAnthropic && (modelName.includes("opus") || modelName.includes("sonnet"));
   const maxTokens = providerConfig.max_tokens || (useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX);
 
-  log("System", `Model: ${modelName}`, "info");
+  // Filter tools based on vision capability
+  const availableTools = filterToolsForModel(TOOLS, provider, modelName, providerConfig);
+  const visionEnabled = isVisionCapable(provider, modelName, providerConfig);
+
+  log("System", `Model: ${modelName}${visionEnabled ? " (vision)" : ""}`, "info");
 
   let lastText = "";
   let turns = 0;
   let compactRetries = 0;
   let overloadRetries = 0;
   const recentToolSigs = [];
+  const recentErrors = [];       // Improvement #1: error pattern tracking
+  let errorFixCycles = 0;        // Improvement #2: debug subagent auto-trigger
+  const READ_ONLY_TOOLS = new Set(["read_file", "list_files", "list_uploaded_files", "search_code"]);
+  const toolCache = new Map();   // Improvement #5: per-turn read-only tool cache
 
   // Incremental byte tracking for token estimation (avoids full JSON.stringify each turn)
   let runningBytes = new Blob([JSON.stringify(messages)]).size;
@@ -424,7 +503,7 @@ async function _runAgentLoop({
           maxTokens,
           system: systemPrompt,
           messages,
-          tools: TOOLS,
+          tools: availableTools,
           signal,
           callbacks: {
             onThinkingDelta(chunk) {
@@ -617,36 +696,89 @@ async function _runAgentLoop({
 
         onStatus?.("thinking", `Running ${block.name}...`);
 
-        let resultStr;
+        let result;
         let isError = false;
         try {
-          resultStr = await handleTool(block.name, block.input, broadcast, {
-            errorCollector,
-            userAnswerPromise,
-            preprocessPromise,
-            recordingDonePromise,
-            debugSubagentRunner: (errorContext) => runDebugSubagent({
-              apiKey, errorContext, log, broadcast, onStatus,
-              errorCollector, signal, provider, providerConfig,
-            }),
-          });
-          if (resultStr?.startsWith("Error")) isError = true;
+          // Improvement #5: cache read-only tool results within a turn
+          const isReadOnly = READ_ONLY_TOOLS.has(block.name);
+          const cacheKey = isReadOnly ? `${block.name}|${JSON.stringify(block.input)}` : null;
+
+          if (cacheKey && toolCache.has(cacheKey)) {
+            result = toolCache.get(cacheKey);
+            log("System", `Cache hit: ${block.name}`, "info");
+          } else {
+            result = await handleTool(block.name, block.input, broadcast, {
+              errorCollector,
+              userAnswerPromise,
+              preprocessPromise,
+              recordingDonePromise,
+              engineRef: errorCollector._engineRef,
+              debugSubagentRunner: (errorContext) => runDebugSubagent({
+                apiKey, errorContext, log, broadcast, onStatus,
+                errorCollector, signal, provider, providerConfig,
+              }),
+            });
+            // Cache read-only results
+            if (cacheKey) toolCache.set(cacheKey, result);
+            // Invalidate cache on write operations
+            if (block.name === "write_scene" || block.name === "write_file") {
+              toolCache.clear();
+            }
+          }
+          if (typeof result === "string" && result.startsWith("Error")) isError = true;
         } catch (e) {
-          resultStr = `Error executing tool '${block.name}': ${e.message}`;
+          result = `Error executing tool '${block.name}': ${e.message}`;
           isError = true;
-          log("System", resultStr, "error");
+          log("System", result, "error");
         }
 
-        const tr = {
-          type: "tool_result",
-          tool_use_id: block.id,
-          content: resultStr || "(empty result)",
-        };
+        // Improvement #1 + #2: track error patterns from check_browser_errors
+        if (block.name === "check_browser_errors" && typeof result === "string") {
+          if (result.includes("Script errors") || result.includes("FAILED")) {
+            const lines = result.split("\n").filter(l => l.trim().startsWith("-") || l.trim().match(/^\d+\./));
+            for (const line of lines) recentErrors.push(normalizeError(line));
+            errorFixCycles++;
+          } else if (result.includes("No browser errors detected")) {
+            errorFixCycles = 0;
+          }
+        }
+
+        // Build tool result — handle image results from capture_viewport
+        let tr;
+        if (result && typeof result === "object" && result.__type === "image" && visionEnabled) {
+          // Image result: build content array with text + image blocks
+          tr = {
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: [
+              { type: "text", text: `Viewport capture (${result.width}×${result.height})` },
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: result.media_type,
+                  data: result.base64,
+                },
+              },
+            ],
+          };
+        } else {
+          // String result (normal case)
+          const resultStr = (typeof result === "object" && result.__type === "image")
+            ? `Viewport captured (${result.width}×${result.height}) but vision is not available for this model. The scene is rendering.`
+            : (typeof result === "string" ? result : JSON.stringify(result));
+          tr = {
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: resultStr || "(empty result)",
+          };
+        }
         if (isError) tr.is_error = true;
         toolResults.push(tr);
 
         // Status preview
-        const preview = (resultStr || "").slice(0, 120);
+        const previewStr = typeof result === "string" ? result : (result?.__type === "image" ? "[viewport screenshot]" : "");
+        const preview = (previewStr || "").slice(0, 120);
         onStatus?.("thinking", isError ? `${block.name} → Error: ${preview}` : `${block.name} → ${preview}`);
 
         // Loop detection

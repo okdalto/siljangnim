@@ -1,5 +1,6 @@
 /**
- * Tool loop detection — detects when the agent is stuck calling the same tool.
+ * Tool loop detection — detects when the agent is stuck calling the same tool
+ * or repeatedly hitting the same error pattern.
  */
 
 /**
@@ -23,3 +24,56 @@ export function detectToolLoop(recentSigs, thresholds) {
   }
   return { action: "none", count: maxCount };
 }
+
+// ---------------------------------------------------------------------------
+// Error loop detection — catches "same error, different code" cycles
+// ---------------------------------------------------------------------------
+
+/**
+ * Normalize an error message for pattern comparison.
+ * Strips line numbers, variable names, and addresses so that
+ * semantically identical errors produce the same key.
+ */
+function normalizeError(msg) {
+  return msg
+    .replace(/at line \d+/g, "at line *")
+    .replace(/:\d+:\d+/g, ":*:*")
+    .replace(/'[^']+'/g, "'*'")
+    .replace(/"[^"]+"/g, '"*"')
+    .replace(/\b0x[0-9a-fA-F]+\b/g, "0x*")
+    .replace(/\b\d{3,}\b/g, "*")
+    .trim();
+}
+
+/**
+ * Detect if the agent is stuck hitting the same error repeatedly.
+ *
+ * @param {string[]} recentErrors — normalized error patterns (last N)
+ * @param {{ warnThreshold: number, breakThreshold: number }} thresholds
+ * @returns {{ action: "none"|"warn"|"break", count: number, pattern: string }}
+ */
+export function detectErrorLoop(recentErrors, thresholds) {
+  if (recentErrors.length < thresholds.warnThreshold) {
+    return { action: "none", count: 0, pattern: "" };
+  }
+
+  const last8 = recentErrors.slice(-8);
+  const counts = {};
+  for (const e of last8) counts[e] = (counts[e] || 0) + 1;
+
+  let maxPattern = "";
+  let maxCount = 0;
+  for (const [pattern, count] of Object.entries(counts)) {
+    if (count > maxCount) { maxCount = count; maxPattern = pattern; }
+  }
+
+  if (maxCount >= thresholds.breakThreshold) {
+    return { action: "break", count: maxCount, pattern: maxPattern };
+  }
+  if (maxCount >= thresholds.warnThreshold) {
+    return { action: "warn", count: maxCount, pattern: maxPattern };
+  }
+  return { action: "none", count: maxCount, pattern: maxPattern };
+}
+
+export { normalizeError };

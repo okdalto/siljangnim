@@ -109,11 +109,47 @@ function toOpenAIMessages(system, messages) {
       if (Array.isArray(msg.content)) {
         const toolResults = msg.content.filter(b => b.type === "tool_result");
         if (toolResults.length > 0) {
+          // OpenAI tool messages only accept string content.
+          // If there are image blocks, extract them and inject as a
+          // follow-up user message (the standard workaround).
+          const pendingImages = [];
           for (const tr of toolResults) {
+            if (Array.isArray(tr.content)) {
+              // Extract text for tool result, collect images separately
+              const textParts = [];
+              for (const block of tr.content) {
+                if (block.type === "text") {
+                  textParts.push(block.text);
+                } else if (block.type === "image" && block.source?.type === "base64") {
+                  pendingImages.push({
+                    type: "image_url",
+                    image_url: {
+                      url: `data:${block.source.media_type};base64,${block.source.data}`,
+                    },
+                  });
+                }
+              }
+              result.push({
+                role: "tool",
+                tool_call_id: tr.tool_use_id,
+                content: textParts.join("\n") || "ok",
+              });
+            } else {
+              result.push({
+                role: "tool",
+                tool_call_id: tr.tool_use_id,
+                content: typeof tr.content === "string" ? tr.content : JSON.stringify(tr.content),
+              });
+            }
+          }
+          // Inject images as a follow-up user message
+          if (pendingImages.length > 0) {
             result.push({
-              role: "tool",
-              tool_call_id: tr.tool_use_id,
-              content: typeof tr.content === "string" ? tr.content : JSON.stringify(tr.content),
+              role: "user",
+              content: [
+                { type: "text", text: "Here is the viewport screenshot from the tool result:" },
+                ...pendingImages,
+              ],
             });
           }
           continue;
@@ -387,12 +423,40 @@ function toGeminiContents(messages) {
       if (msg.role === "user") {
         const toolResults = msg.content.filter(b => b.type === "tool_result");
         if (toolResults.length > 0) {
-          const trParts = toolResults.map(tr => ({
-            functionResponse: {
-              name: tr.tool_use_id,
-              response: { result: typeof tr.content === "string" ? tr.content : JSON.stringify(tr.content) },
-            },
-          }));
+          const trParts = [];
+          for (const tr of toolResults) {
+            // Handle image content blocks for vision-capable Gemini models
+            if (Array.isArray(tr.content)) {
+              // Extract text and image parts, then wrap in functionResponse
+              let textContent = "";
+              for (const block of tr.content) {
+                if (block.type === "text") {
+                  textContent += block.text;
+                } else if (block.type === "image" && block.source?.type === "base64") {
+                  // Gemini supports inline_data for images
+                  trParts.push({
+                    inline_data: {
+                      mime_type: block.source.media_type,
+                      data: block.source.data,
+                    },
+                  });
+                }
+              }
+              trParts.push({
+                functionResponse: {
+                  name: tr.tool_use_id,
+                  response: { result: textContent || "ok" },
+                },
+              });
+            } else {
+              trParts.push({
+                functionResponse: {
+                  name: tr.tool_use_id,
+                  response: { result: typeof tr.content === "string" ? tr.content : JSON.stringify(tr.content) },
+                },
+              });
+            }
+          }
           contents.push({ role: "user", parts: trParts });
           continue;
         }

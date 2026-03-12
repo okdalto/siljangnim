@@ -185,7 +185,7 @@ async function toolWriteScene(input, broadcast) {
   if (scene.backendTarget) {
     broadcast({ type: "set_backend_target", backendTarget: scene.backendTarget });
   }
-  return "ok — scene saved and broadcast. Use check_browser_errors to verify it loaded without errors.";
+  return "ok — scene saved and broadcast. Errors will be reported automatically if setup fails. You may still call check_browser_errors for runtime verification.";
 }
 
 async function toolWriteFile(input, broadcast) {
@@ -577,6 +577,55 @@ async function toolStopRecording(input, broadcast) {
  * The agentEngine collects errors from console_error messages and provides
  * them through the errorCollector interface.
  */
+// ---------------------------------------------------------------------------
+// Structured error parsing
+// ---------------------------------------------------------------------------
+
+function parseError(errorMsg) {
+  const parsed = { raw: errorMsg, type: "unknown", summary: "" };
+
+  // WebGPU validation errors
+  const gpuMatch = errorMsg.match(/\[WebGPU (\w+)\] (.+)/);
+  if (gpuMatch) {
+    parsed.type = "webgpu_validation";
+    parsed.summary = `[webgpu_${gpuMatch[1]}] ${gpuMatch[2].slice(0, 120)}`;
+    return parsed;
+  }
+
+  // WGSL shader compilation errors
+  const wgslMatch = errorMsg.match(/(?:Shader|WGSL).*?(?:error|Error).*?:(\d+):(\d+).*?(?:error:\s*)?(.+)/s);
+  if (wgslMatch) {
+    parsed.type = "wgsl_compilation";
+    parsed.summary = `[wgsl] Line ${wgslMatch[1]}:${wgslMatch[2]}: ${wgslMatch[3].split("\n")[0].trim()}`;
+    return parsed;
+  }
+
+  // GLSL shader compilation errors (e.g., "ERROR: 0:45: 'fragColor' : undeclared identifier")
+  const glslMatch = errorMsg.match(/ERROR:\s*(\d+):(\d+):\s*(.+)/);
+  if (glslMatch) {
+    parsed.type = "shader_compilation";
+    parsed.summary = `[glsl] Line ${glslMatch[2]}: ${glslMatch[3].trim()}`;
+    return parsed;
+  }
+
+  // Standard JS errors: TypeError, ReferenceError, SyntaxError
+  const jsMatch = errorMsg.match(/(TypeError|ReferenceError|SyntaxError):\s*(.+?)(?:\n|$)/);
+  if (jsMatch) {
+    parsed.type = jsMatch[1].toLowerCase();
+    const locMatch = errorMsg.match(/at (\w+) .*?:(\d+):(\d+)/);
+    if (locMatch) {
+      parsed.summary = `[${parsed.type}] '${jsMatch[2].trim()}' at ${locMatch[1]}:${locMatch[2]}`;
+    } else {
+      parsed.summary = `[${parsed.type}] ${jsMatch[2].trim()}`;
+    }
+    return parsed;
+  }
+
+  // Fallback: first meaningful line
+  parsed.summary = errorMsg.split("\n")[0].slice(0, 120);
+  return parsed;
+}
+
 async function toolCheckBrowserErrors(input, broadcast, errorCollector) {
   // Wait up to 3 seconds for errors to arrive (waits for scene load first)
   const errors = await errorCollector.waitForErrors(3000);
@@ -612,13 +661,20 @@ async function toolCheckBrowserErrors(input, broadcast, errorCollector) {
   }
 
   if (errors.length) {
-    const engine = errors.filter((e) => e.startsWith("[engine]"));
-    const script = errors.filter((e) => !e.startsWith("[engine]"));
-    if (script.length) {
-      parts.push("Script errors (fix these in scene.json):\n" + script.map((e) => `  - ${e}`).join("\n"));
+    const engineErrs = errors.filter((e) => e.startsWith("[engine]"));
+    const scriptErrs = errors.filter((e) => !e.startsWith("[engine]"));
+
+    if (scriptErrs.length) {
+      // Provide structured summary first, then raw errors
+      const parsed = scriptErrs.map(parseError);
+      const summaryLines = parsed.map((p, i) => `  ${i + 1}. ${p.summary}`);
+      parts.push(
+        `Script errors (${scriptErrs.length}) — structured summary:\n${summaryLines.join("\n")}\n\n` +
+        `Raw errors:\n${scriptErrs.map((e) => `  - ${e}`).join("\n")}`
+      );
     }
-    if (engine.length) {
-      parts.push("Engine/infrastructure errors (NOT caused by your script — do NOT try to fix these):\n" + engine.map((e) => `  - ${e}`).join("\n"));
+    if (engineErrs.length) {
+      parts.push("Engine/infrastructure errors (NOT caused by your script — do NOT try to fix these):\n" + engineErrs.map((e) => `  - ${e}`).join("\n"));
     }
   }
 
@@ -756,6 +812,56 @@ async function toolUnzipAsset(input, broadcast) {
   }
 }
 
+/**
+ * Capture viewport tool — returns base64 JPEG image data.
+ * Returns an object with { image: base64string } instead of a plain string,
+ * so the executor can build image content blocks for vision-capable models.
+ */
+async function toolCaptureViewport(input, broadcast, engineRef) {
+  const engine = engineRef?.current;
+  if (!engine?.canvas) {
+    return "Error: No viewport canvas available. Make sure a scene is loaded.";
+  }
+
+  const canvas = engine.canvas;
+
+  // For WebGPU, we need the visible (blit target) canvas
+  // which is the main canvas — toDataURL works on it after auto-blit
+  try {
+    const maxDim = 1024;
+    let w = Math.min(input.width || canvas.width, maxDim);
+    let h = Math.min(input.height || canvas.height, maxDim);
+
+    // If canvas is larger than requested, downscale via offscreen canvas
+    let dataUrl;
+    if (w < canvas.width || h < canvas.height) {
+      // Maintain aspect ratio if only one dimension specified
+      if (!input.width && !input.height) {
+        const scale = Math.min(maxDim / canvas.width, maxDim / canvas.height, 1);
+        w = Math.round(canvas.width * scale);
+        h = Math.round(canvas.height * scale);
+      }
+      const offscreen = document.createElement("canvas");
+      offscreen.width = w;
+      offscreen.height = h;
+      const octx = offscreen.getContext("2d");
+      octx.drawImage(canvas, 0, 0, w, h);
+      dataUrl = offscreen.toDataURL("image/jpeg", 0.8);
+    } else {
+      dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+    }
+
+    // Strip the data:image/jpeg;base64, prefix
+    const base64 = dataUrl.split(",")[1];
+    if (!base64) return "Error: Failed to capture canvas — empty image data.";
+
+    // Return structured result — the executor will handle this specially
+    return { __type: "image", media_type: "image/jpeg", base64, width: w, height: h };
+  } catch (err) {
+    return `Error capturing viewport: ${err.message}`;
+  }
+}
+
 async function toolDebugSubagent(input, broadcast, debugSubagentRunner) {
   const errorContext = input.error_context;
   if (!errorContext) return "Error: 'error_context' is required.";
@@ -791,6 +897,7 @@ const TOOL_HANDLERS = {
   run_preprocess: toolRunPreprocess,
   web_fetch: toolWebFetch,
   unzip_asset: toolUnzipAsset,
+  capture_viewport: toolCaptureViewport,
   debug_with_subagent: toolDebugSubagent,
 };
 
@@ -823,6 +930,9 @@ export async function handleTool(name, inputData, broadcast, context = {}) {
   }
   if (name === "run_preprocess") {
     return handler(inputData, broadcast, context.preprocessPromise);
+  }
+  if (name === "capture_viewport") {
+    return handler(inputData, broadcast, context.engineRef);
   }
   if (name === "debug_with_subagent") {
     return handler(inputData, broadcast, context.debugSubagentRunner);
