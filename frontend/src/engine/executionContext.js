@@ -58,6 +58,35 @@ const PLANNER_MAX_TOKENS = 2048;
 // ---------------------------------------------------------------------------
 
 /**
+ * Detect simple edit requests that don't benefit from planning.
+ * Uniform tweaks, parameter changes, small config edits, color changes, etc.
+ */
+const SIMPLE_EDIT_PATTERNS = [
+  // Uniform / parameter changes
+  /(?:uniform|파라미터|매개변수|변수|값|value)\s*.*(?:바꿔|바꾸|변경|수정|set|change|update|adjust)/i,
+  /(?:바꿔|바꾸|변경|수정|set|change|update|adjust)\s*.*(?:uniform|파라미터|매개변수|변수|값|value)/i,
+  // Specific value assignments
+  /(?:u_\w+|speed|color|size|scale|opacity|alpha|radius|intensity|frequency|amplitude)\s*(?:를|을|을|로|=|to|→)\s*[\d.]+/i,
+  /[\d.]+\s*(?:로|으로)\s*(?:바꿔|바꾸|변경|수정|설정|해줘|해)/i,
+  // Color changes
+  /(?:색|색상|color|배경|background)\s*.*(?:바꿔|바꾸|변경|수정|change)/i,
+  /(?:바꿔|바꾸|변경|수정|change)\s*.*(?:색|색상|color|배경|background)/i,
+  // Simple toggle/on-off
+  /(?:켜|꺼|끄|활성|비활성|enable|disable|toggle|on|off)\s*(?:줘|해|해줘)?$/i,
+  // Speed/size quick adjustments
+  /(?:더\s*(?:빠르|느리|크|작|밝|어두)|(?:fast|slow|big|small|bright|dark)er)/i,
+  // Short imperative edits (Korean)
+  /^.{0,30}(?:해줘|해\s*$|바꿔|바꾸자|수정해|고쳐|변경해)/,
+];
+
+export function isSimpleEditRequest(text) {
+  const t = text.trim();
+  // Very long prompts are unlikely to be simple edits
+  if (t.length > 120) return false;
+  return SIMPLE_EDIT_PATTERNS.some(re => re.test(t));
+}
+
+/**
  * Extract simple topic keywords from text (words > 3 chars, lowercased).
  */
 function extractTopicKeywords(text) {
@@ -112,6 +141,9 @@ export function shouldPlan(conversationLength, userPrompt, opts = {}) {
 
   // Short conversations don't need planning — context is clean
   if (conversationLength < 10) return false;
+
+  // Simple edit requests — uniform tweaks, parameter changes, small config edits
+  if (isSimpleEditRequest(trimmed)) return false;
 
   // Improvement #4b: topic change detection — plan if the new prompt diverges significantly
   if (previousPrompt && conversationLength >= 6) {

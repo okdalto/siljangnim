@@ -98,6 +98,7 @@ import TOOLS from "./agentTools.js";
 import { handleTool } from "./toolHandlers.js";
 import {
   shouldPlan,
+  isSimpleEditRequest,
   buildPlannerMessages,
   parsePlan,
   buildExecutionContext,
@@ -489,8 +490,11 @@ export async function runAgent({
     log("System", `Files attached: ${files.map((f) => f.name).join(", ")}`, "info");
   }
 
+  const lightweight = isSimpleEditRequest(userPrompt);
+  if (lightweight) log("System", "Simple edit detected — using lightweight prompt", "info");
+
   const systemPrompt = await buildAugmentedSystemPrompt(
-    buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType(), { backendTarget }),
+    buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType(), { backendTarget, lightweight }),
     { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages },
   );
 

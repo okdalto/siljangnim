@@ -63,6 +63,12 @@ export function buildSystemPrompt(userPrompt = "", hasFiles = false, platform = 
   const prompt = userPrompt.toLowerCase();
   const backendTarget = opts.backendTarget || "auto";
 
+  // Lightweight mode: core sections only (for simple edits like uniform tweaks)
+  if (opts.lightweight) {
+    const sections = PROMPT_SECTIONS.filter((s) => s.core);
+    return sections.map((s) => s.content).join("\n\n") + "\n";
+  }
+
   const sections = PROMPT_SECTIONS.filter((s) => {
     // Core sections always included
     if (s.core) return true;
