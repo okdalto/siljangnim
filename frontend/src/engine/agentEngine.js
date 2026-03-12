@@ -425,6 +425,7 @@ const HANDLERS = {
     this.autoFixCount = 0;
     if (!this.apiKey) {
       this.broadcast({ type: "api_key_required" });
+      this.broadcast({ type: "chat_done" });
       return;
     }
 
@@ -437,6 +438,8 @@ const HANDLERS = {
         this.injectedMessages.push(userPrompt);
         this.chatHistory.push({ role: "user", text: userPrompt });
         this.broadcast({ type: "message_injected" });
+      } else {
+        this.broadcast({ type: "chat_done" });
       }
       return;
     }
@@ -457,6 +460,7 @@ const HANDLERS = {
             type: "agent_log", agent: "System",
             message: `Upload failed: ${e.message}`, level: "error",
           });
+          this.broadcast({ type: "chat_done" });
           return;
         }
       }
