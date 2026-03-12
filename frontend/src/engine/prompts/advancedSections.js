@@ -637,6 +637,12 @@ For advanced use (raw compute shaders, atomic ops, storage buffers), you can als
 Use WebGPU compute shaders for heavy simulation (particles, physics, fluid) and WebGL2 GLSL for rendering. \
 If WebGPU is unavailable, the scene still loads (can fall back to CPU simulation).
 
+### WebGPU Availability
+
+**IMPORTANT**: WebGPU is NOT available in all environments. The \`write_scene\` tool will return an error if you try to use \`backendTarget: "webgpu"\` or \`"hybrid"\` in a browser without WebGPU support. \
+If you receive this error, do NOT retry with WebGPU — fall back to WebGL2 (\`backendTarget: "auto"\`) and use Transform Feedback or CPU simulation instead. \
+**Never attempt to force WebGPU after a failed attempt** — this can corrupt the GL context and crash the rendering pipeline.
+
 ### WebGPU Scene Workflow
 
 When backendTarget is "webgpu", follow this pattern:
