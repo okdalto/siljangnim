@@ -2,6 +2,25 @@ import { useState, useEffect } from "react";
 
 const SECURITY_CONSENT_KEY = "siljangnim:securityConsent";
 
+const PROVIDER_LINKS = {
+  anthropic: "https://console.anthropic.com/settings/keys",
+  openai: "https://platform.openai.com/api-keys",
+  gemini: "https://aistudio.google.com/apikey",
+  glm: "https://open.bigmodel.cn/usercenter/apikeys",
+};
+
+function getKoreanError(error) {
+  if (!error) return null;
+  const e = error.toLowerCase();
+  if (e.includes("401") || e.includes("403") || e.includes("unauthorized") || e.includes("invalid"))
+    return "API 키가 올바르지 않습니다. 키를 다시 확인해 주세요.";
+  if (e.includes("429") || e.includes("rate"))
+    return "API 사용량 한도에 도달했습니다. 잠시 후 다시 시도해 주세요.";
+  if (e.includes("network") || e.includes("fetch") || e.includes("econnrefused"))
+    return "서버에 연결할 수 없습니다. 네트워크를 확인해 주세요.";
+  return error;
+}
+
 const PROVIDERS = [
   { id: "anthropic", label: "Claude", placeholder: "sk-ant-api03-..." },
   { id: "openai", label: "OpenAI", placeholder: "sk-..." },
@@ -77,10 +96,10 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
         )}
         <div>
           <h2 className="text-lg font-semibold" style={{ color: "var(--chrome-text)" }}>
-            AI Provider Setup
+            AI 프로바이더 설정
           </h2>
           <p className="text-sm mt-1" style={{ color: "var(--chrome-text-secondary)" }}>
-            Choose a provider and enter your API key to get started.
+            프로바이더를 선택하고 API 키를 입력하세요
           </p>
         </div>
 
@@ -211,18 +230,24 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
             className={inputCls}
             style={inputStyle}
           />
+          {PROVIDER_LINKS[provider] && !providerHasKey && (
+            <a href={PROVIDER_LINKS[provider]} target="_blank" rel="noopener noreferrer"
+               className="text-xs hover:underline" style={{ color: "var(--accent)" }}>
+              API 키 발급받기 →
+            </a>
+          )}
           {providerHasKey && (
             <p className="text-xs" style={{ color: "var(--chrome-text-muted)" }}>
-              Key saved. Leave empty to keep current key, or enter a new one to replace it.
+              키가 저장되어 있습니다. 현재 키를 유지하려면 비워두세요.
             </p>
           )}
           {provider === "custom" && !providerHasKey && (
             <p className="text-xs text-zinc-500">
-              Leave empty if your server doesn't require authentication.
+              인증이 필요하지 않으면 비워두세요.
             </p>
           )}
           {error && (
-            <p className="text-sm text-red-400 max-h-20 overflow-y-auto break-words">{error}</p>
+            <p className="text-sm text-red-400 max-h-20 overflow-y-auto break-words">{getKoreanError(error)}</p>
           )}
         </div>
 
@@ -233,14 +258,11 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
             style={{ background: "rgba(234, 179, 8, 0.08)", border: "1px solid rgba(234, 179, 8, 0.25)" }}
           >
             <p className="text-xs font-medium" style={{ color: "#eab308" }}>
-              Security Notice
+              보안 안내
             </p>
-            <ul className="text-[11px] space-y-1" style={{ color: "var(--chrome-text-secondary)" }}>
-              <li>Your API key is stored in your browser's sessionStorage and sent to our proxy server to forward to the AI provider.</li>
-              <li>We do not log or store your key on the server, but it is transmitted over the network.</li>
-              <li>Anyone with access to this browser's dev tools can read the stored key.</li>
-              <li>Use a key with spending limits and rotate it regularly.</li>
-            </ul>
+            <p className="text-[11px] leading-relaxed" style={{ color: "var(--chrome-text-secondary)" }}>
+              API 키는 브라우저 세션 저장소에 보관되며, AI 제공자에게 전달하기 위해 서버를 통해 전송됩니다. 지출 한도가 설정된 키를 사용하고 주기적으로 교체하는 것을 권장합니다.
+            </p>
             <label className="flex items-start gap-2 cursor-pointer pt-1">
               <input
                 type="checkbox"
@@ -249,7 +271,7 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
                 className="mt-0.5 accent-indigo-500"
               />
               <span className="text-xs" style={{ color: "var(--chrome-text-secondary)" }}>
-                I understand the risks and agree to proceed.
+                위 내용을 이해하고 동의합니다
               </span>
             </label>
           </div>
@@ -260,7 +282,7 @@ export default function ApiKeyModal({ onSubmit, error, loading, onClose, savedCo
           disabled={isSubmitDisabled}
           className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white text-sm font-medium px-4 py-3 rounded-lg transition-colors"
         >
-          {loading ? "Validating..." : (providerHasKey && !key.trim()) ? "Switch Provider" : "Connect"}
+          {loading ? "확인 중..." : (providerHasKey && !key.trim()) ? "프로바이더 전환" : "연결"}
         </button>
       </form>
     </div>

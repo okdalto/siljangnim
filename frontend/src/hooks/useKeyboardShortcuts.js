@@ -17,6 +17,7 @@ export default function useKeyboardShortcuts({
   layoutHistoryRef,
   kf,
   panels,
+  onToggleShortcutsHelp,
 }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -71,6 +72,13 @@ export default function useKeyboardShortcuts({
         return;
       }
 
+      // ? key — toggle shortcuts help
+      if (e.key === "?" && !e.ctrlKey && !e.metaKey && !isFormField) {
+        e.preventDefault();
+        onToggleShortcutsHelp?.();
+        return;
+      }
+
       // Skip remaining shortcuts if in a form field
       if (isFormField) return;
 
@@ -103,6 +111,6 @@ export default function useKeyboardShortcuts({
   }, [
     setPaused, toggleSidebar, undo, redo, undoUniform, redoUniform,
     kf.undoKeyframes, kf.redoKeyframes, kf.isEditorOpen,
-    panels.undoPanelClose, panels.redoPanelClose,
+    panels.undoPanelClose, panels.redoPanelClose, onToggleShortcutsHelp,
   ]);
 }

@@ -40,6 +40,7 @@ export default class AgentEngine {
     // Background / page-refresh resume: save last prompt context for retry
     this._lastPromptContext = null;
     this._backgroundRetryPending = false;
+    this._backgroundRetryCount = 0;
 
     // Restore interrupted prompt from sessionStorage (survives page refresh)
     try {
@@ -49,20 +50,22 @@ export default class AgentEngine {
     if (!this._interruptedPrompt) this._interruptedPrompt = null;
 
     // Listen for visibility change to auto-retry interrupted agent calls
+    this._onVisibilityChange = () => {
+      if (document.visibilityState === "visible" && this._backgroundRetryPending) {
+        this._backgroundRetryPending = false;
+        this._retryLastPrompt();
+      }
+    };
     if (typeof document !== "undefined") {
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && this._backgroundRetryPending) {
-          this._backgroundRetryPending = false;
-          this._retryLastPrompt();
-        }
-      });
+      document.addEventListener("visibilitychange", this._onVisibilityChange);
     }
 
     // Listen for viewport scene load completion
+    this._onSceneLoaded = (e) => {
+      this.errorCollector.ackSceneLoad(e.detail);
+    };
     if (typeof window !== "undefined") {
-      window.addEventListener("siljangnim:scene_loaded", (e) => {
-        this.errorCollector.ackSceneLoad(e.detail);
-      });
+      window.addEventListener("siljangnim:scene_loaded", this._onSceneLoaded);
     }
 
     // Backend target (auto / webgl / webgpu)
@@ -86,6 +89,21 @@ export default class AgentEngine {
       _sceneLoadResolve: null,
       _sceneLoaded: true, // starts as true (no pending load)
       _setupReady: null,  // tracks whether the last scene's setup() succeeded
+      _injectedMessages: null,
+      // --- Public accessors ---
+      setEngineRef(ref) { this._engineRef = ref; },
+      getEngineRef() { return this._engineRef; },
+      isSetupReady() { return this._setupReady; },
+      setInjectedMessages(msgs) { this._injectedMessages = msgs; },
+      drainLateErrors() {
+        return this.errors.splice(0);
+      },
+      getValidationErrors() {
+        const engine = this._engineRef?.current;
+        const renderer = engine?._backend;
+        if (!renderer?.consumeValidationErrors) return [];
+        return renderer.consumeValidationErrors();
+      },
       push(msg) {
         this.errors.push(msg);
         if (this._resolve) { this._resolve(); this._resolve = null; }
@@ -158,6 +176,7 @@ export default class AgentEngine {
   _clearInterruptedPrompt() {
     this._lastPromptContext = null;
     this._interruptedPrompt = null;
+    this._backgroundRetryCount = 0;
     try { sessionStorage.removeItem("siljangnim:interruptedPrompt"); } catch { /* ignore */ }
   }
 
@@ -166,9 +185,20 @@ export default class AgentEngine {
     const ctx = this._lastPromptContext;
     if (!ctx || this.agentBusy) return;
 
+    this._backgroundRetryCount++;
+    if (this._backgroundRetryCount > 3) {
+      this.broadcast({
+        type: "agent_log", agent: "System",
+        message: "자동 재시도 횟수(3회)를 초과했습니다. 직접 다시 시도해 주세요.",
+        level: "warning",
+      });
+      this._clearInterruptedPrompt();
+      return;
+    }
+
     this.broadcast({
       type: "agent_log", agent: "System",
-      message: "Resuming interrupted request...", level: "info",
+      message: `Resuming interrupted request... (attempt ${this._backgroundRetryCount}/3)`, level: "info",
     });
 
     // Re-run the prompt handler with the saved context
@@ -178,6 +208,16 @@ export default class AgentEngine {
       files: ctx.files,
       _isRetry: true,
     });
+  }
+
+  /** Clean up event listeners and resources. */
+  dispose() {
+    if (typeof document !== "undefined" && this._onVisibilityChange) {
+      document.removeEventListener("visibilitychange", this._onVisibilityChange);
+    }
+    if (typeof window !== "undefined" && this._onSceneLoaded) {
+      window.removeEventListener("siljangnim:scene_loaded", this._onSceneLoaded);
+    }
   }
 
   /** Create a promise that resolves when the user answers a question. */
@@ -247,6 +287,16 @@ function makeCallbacks(engine) {
     engine.broadcast({ type: "agent_status", status: statusType, detail });
   };
   return { log, onText, onStatus };
+}
+
+async function _projectAction(engine, operation, errorType) {
+  try {
+    await operation();
+    const projects = await storage.listProjects();
+    engine.broadcast({ type: "project_list", projects });
+  } catch (e) {
+    engine.broadcast({ type: errorType, error: e.message });
+  }
 }
 
 function drainPendingErrors(engine) {
@@ -473,7 +523,7 @@ const HANDLERS = {
     } catch { /* ignore */ }
 
     // Improvement #10: link errorCollector to injectedMessages for push-based errors
-    this.errorCollector._injectedMessages = this.injectedMessages;
+    this.errorCollector.setInjectedMessages(this.injectedMessages);
 
     // Run agent asynchronously (with planning when conversation is long)
     (async () => {
@@ -718,33 +768,15 @@ const HANDLERS = {
   },
 
   async project_rename(msg) {
-    try {
-      await storage.renameProject(msg.name || "", msg.newDisplayName || "");
-      const projects = await storage.listProjects();
-      this.broadcast({ type: "project_list", projects });
-    } catch (e) {
-      this.broadcast({ type: "project_rename_error", error: e.message });
-    }
+    await _projectAction(this, () => storage.renameProject(msg.name || "", msg.newDisplayName || ""), "project_rename_error");
   },
 
   async project_fork(msg) {
-    try {
-      await storage.forkProject(msg.name || "", msg.newDisplayName || "");
-      const projects = await storage.listProjects();
-      this.broadcast({ type: "project_list", projects });
-    } catch (e) {
-      this.broadcast({ type: "project_fork_error", error: e.message });
-    }
+    await _projectAction(this, () => storage.forkProject(msg.name || "", msg.newDisplayName || ""), "project_fork_error");
   },
 
   async project_delete(msg) {
-    try {
-      await storage.deleteProject(msg.name || "");
-      const projects = await storage.listProjects();
-      this.broadcast({ type: "project_list", projects });
-    } catch (e) {
-      this.broadcast({ type: "project_delete_error", error: e.message });
-    }
+    await _projectAction(this, () => storage.deleteProject(msg.name || ""), "project_delete_error");
   },
 
   async close_panel(msg) {

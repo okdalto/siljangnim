@@ -525,7 +525,9 @@ async function _runAgentLoop({
   const toolCache = new Map();   // Improvement #5: per-turn read-only tool cache
 
   // Incremental byte tracking for token estimation (avoids full JSON.stringify each turn)
-  let runningBytes = new Blob([JSON.stringify(messages)]).size;
+  const _enc = new TextEncoder();
+  const byteLen = (v) => _enc.encode(JSON.stringify(v)).length;
+  let runningBytes = byteLen(messages);
   let lastMsgCount = messages.length;
 
   try {
@@ -538,14 +540,14 @@ async function _runAgentLoop({
       // Incrementally update byte estimate for newly pushed messages
       if (messages.length > lastMsgCount) {
         for (let i = lastMsgCount; i < messages.length; i++) {
-          runningBytes += new Blob([JSON.stringify(messages[i])]).size;
+          runningBytes += byteLen(messages[i]);
         }
         lastMsgCount = messages.length;
       }
 
       // Safety: full recomputation every 5 turns to prevent drift
       if (turns % 5 === 0) {
-        runningBytes = new Blob([JSON.stringify(messages)]).size;
+        runningBytes = byteLen(messages);
         lastMsgCount = messages.length;
       }
 
@@ -554,10 +556,10 @@ async function _runAgentLoop({
       const compactThreshold = 150000;
       if (estTokens > compactThreshold) {
         log("System", `Estimated ~${Math.round(estTokens)} tokens — compacting...`, "info");
-        onStatus?.("thinking", "Compacting conversation...");
+        onStatus?.("thinking", "대화 내용 정리 중...");
         compactMessages(messages);
         // Recompute after compaction
-        runningBytes = new Blob([JSON.stringify(messages)]).size;
+        runningBytes = byteLen(messages);
         lastMsgCount = messages.length;
       }
 
@@ -568,7 +570,7 @@ async function _runAgentLoop({
       if (cleaned.length !== messages.length) {
         messages.length = 0;
         messages.push(...cleaned);
-        runningBytes = new Blob([JSON.stringify(messages)]).size;
+        runningBytes = byteLen(messages);
         lastMsgCount = messages.length;
       }
 
@@ -625,7 +627,7 @@ async function _runAgentLoop({
         if (decision.action === "compact") {
           compactRetries++;
           log("System", decision.message, "info");
-          onStatus?.("thinking", "Compacting conversation...");
+          onStatus?.("thinking", "대화 내용 정리 중...");
           compactMessages(messages);
           continue;
         }
@@ -633,7 +635,7 @@ async function _runAgentLoop({
         if (decision.action === "retry") {
           overloadRetries++;
           log("System", decision.message, "info");
-          onStatus?.("thinking", decision.message);
+          onStatus?.("thinking", decision.userMessage || decision.message);
           if (document.hidden) await waitForVisible(signal);
           await sleep(decision.delay * 1000, signal);
           continue;
@@ -708,7 +710,7 @@ async function _runAgentLoop({
         if (hasText && !hasToolUse) {
           // Got partial text, ask to continue
           log("System", `Stream dropped mid-response — continuing (${overloadRetries}/${MAX_OVERLOAD_RETRIES})...`, "info");
-          onStatus?.("thinking", "Connection lost, continuing...");
+          onStatus?.("thinking", "연결이 끊어졌습니다. 계속 진행합니다...");
           if (document.hidden) await waitForVisible(signal);
           await sleep(Math.min(2 ** overloadRetries, 10) * 1000, signal);
           messages.push({
@@ -720,7 +722,7 @@ async function _runAgentLoop({
         // No useful content — remove the incomplete assistant message and retry
         messages.pop(); // remove the incomplete assistant message
         log("System", `Stream dropped — retrying (${overloadRetries}/${MAX_OVERLOAD_RETRIES})...`, "info");
-        onStatus?.("thinking", "Connection lost, retrying...");
+        onStatus?.("thinking", "연결이 끊어졌습니다. 재시도합니다...");
         if (document.hidden) await waitForVisible(signal);
         await sleep(Math.min(2 ** overloadRetries, 10) * 1000, signal);
         continue;
@@ -744,7 +746,7 @@ async function _runAgentLoop({
             break;
           }
           log("System", "Token limit — compacting...", "info");
-          onStatus?.("thinking", "Compacting conversation...");
+          onStatus?.("thinking", "대화 내용 정리 중...");
           compactMessages(messages);
         }
         messages.push({
@@ -793,7 +795,7 @@ async function _runAgentLoop({
               userAnswerPromise,
               preprocessPromise,
               recordingDonePromise,
-              engineRef: errorCollector._engineRef,
+              engineRef: errorCollector.getEngineRef(),
               debugSubagentRunner: (errorContext) => runDebugSubagent({
                 apiKey, errorContext, log, broadcast, onStatus,
                 errorCollector, signal, provider, providerConfig,
@@ -1027,7 +1029,7 @@ export async function runDebugSubagent({
   let turns = 0;
 
   log("Debug Agent", `Starting debug sub-agent (${modelName}${visionEnabled ? ", vision" : ""})...`, "info");
-  onStatus?.("thinking", "Debug sub-agent analyzing...");
+  onStatus?.("thinking", "디버그 분석 중...");
 
   try {
     while (turns < DEBUG_SUBAGENT_MAX_TURNS) {
@@ -1103,7 +1105,7 @@ export async function runDebugSubagent({
           } else {
             result = await handleTool(block.name, block.input, broadcast, {
               errorCollector,
-              engineRef: errorCollector._engineRef,
+              engineRef: errorCollector.getEngineRef(),
             });
           }
         } catch (e) {
@@ -1145,7 +1147,7 @@ export async function runDebugSubagent({
   }
 
   log("Debug Agent", lastText || "No diagnosis produced", "info");
-  onStatus?.("thinking", "Debug analysis complete");
+  onStatus?.("thinking", "디버그 분석 완료");
   return lastText || "Debug sub-agent could not produce a diagnosis.";
 }
 
@@ -1160,7 +1162,7 @@ export async function runDebugSubagent({
  * @returns {Object|null} Parsed plan, or null if planning fails
  */
 async function runPlanner({ apiKey, userPrompt, conversation, currentState, log, onStatus, signal, provider = "anthropic", providerConfig = {} }) {
-  onStatus?.("thinking", "Planning execution...");
+  onStatus?.("thinking", "작업 계획 중...");
   log("System", "Running planner for execution context rebuild", "info");
 
   const plannerMessages = buildPlannerMessages(userPrompt, conversation, currentState);
@@ -1267,7 +1269,7 @@ export async function runWithPlan({
   }
 
   // --- Phase 2: Rebuild execution context ---
-  onStatus?.("thinking", "Rebuilding execution context...");
+  onStatus?.("thinking", "실행 컨텍스트 구성 중...");
 
   const baseSystemPrompt = await buildAugmentedSystemPrompt(
     buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType(), { backendTarget }),

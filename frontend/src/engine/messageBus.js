@@ -24,7 +24,17 @@ export default class MessageBus {
 
   /** Send a message from React → AgentEngine (replaces ws.send). */
   send(data) {
-    const msg = typeof data === "string" ? JSON.parse(data) : data;
+    let msg;
+    if (typeof data === "string") {
+      try {
+        msg = JSON.parse(data);
+      } catch (e) {
+        console.error("[MessageBus] Failed to parse message:", e);
+        return;
+      }
+    } else {
+      msg = data;
+    }
     if (this._engine) {
       // Use microtask to avoid synchronous re-entry
       Promise.resolve().then(() => this._engine.handleMessage(msg));
