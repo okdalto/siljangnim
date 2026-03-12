@@ -41,6 +41,8 @@ import ToastContainer from "./components/Toast.jsx";
 import EngineContext from "./contexts/EngineContext.js";
 import SettingsContext from "./contexts/SettingsContext.js";
 import SceneContext from "./contexts/SceneContext.js";
+import ProjectContext from "./contexts/ProjectContext.js";
+import ChatContext from "./contexts/ChatContext.js";
 import { nodeTypes, initialNodes } from "./config/nodeConfig.js";
 import useAssetNodes from "./hooks/useAssetNodes.js";
 import { showToast } from "./hooks/useToast.js";
@@ -60,12 +62,11 @@ import GitHubLoadDialog from "./components/GitHubLoadDialog.jsx";
 import useVersionCompare from "./hooks/useVersionCompare.js";
 import useGitHub from "./hooks/useGitHub.js";
 import { isSafeMode } from "./engine/portableSchema.js";
-import { API_BASE } from "./constants/api.js";
+import { API_BASE, BROWSER_ONLY } from "./constants/api.js";
+import { PROVIDER_MODEL_IDS } from "./constants/models.js";
 import { nextUndoSeq } from "./utils/undoSeq.js";
 
 const UNIFORM_HISTORY_LIMIT = 100;
-
-const BROWSER_ONLY = import.meta.env.VITE_MODE === "browser";
 
 const WS_URL = import.meta.env.DEV
   ? `ws://${window.location.hostname}:8000/ws`
@@ -233,13 +234,7 @@ export default function App() {
   const currentProvider = apiKey.savedConfig?.provider;
   useEffect(() => {
     if (!currentProvider) return;
-    const PROVIDER_MODELS = {
-      anthropic: ["claude-sonnet-4-6", "claude-opus-4-6", "claude-haiku-4-5-20251001"],
-      openai: ["gpt-4o", "gpt-4o-mini", "o3"],
-      gemini: ["gemini-2.5-pro", "gemini-2.0-flash"],
-      glm: ["glm-4-plus"],
-    };
-    const models = PROVIDER_MODELS[currentProvider];
+    const models = PROVIDER_MODEL_IDS[currentProvider];
     if (models && !models.includes(selectedModel)) {
       handleModelChange(models[0]);
     }
@@ -746,8 +741,8 @@ export default function App() {
 
   // Sync data into nodes (extracted hook)
   useNodeDataSync({
-    setNodes, chat, sceneJSON, paused, uiConfig,
-    handleUniformChange, project, handleDeleteWorkspaceFile,
+    setNodes, chat, sceneJSON, uiConfig,
+    handleUniformChange, handleDeleteWorkspaceFile,
     workspaceFilesVersion, handleShaderError,
     panels, handlePanelClose, mergeControlDefaults,
     kf, duration, loop, engineRef, pendingLayoutsRef,
@@ -758,9 +753,7 @@ export default function App() {
     assetNodes,
     onAssetUpload: handleAssetUpload,
     onAssetDelete: handleAssetDelete,
-    onPromptSuggestion: (text) => chat.handleSend(text),
     onClearReferences: handleClearReferences,
-    safeModeActive,
     promptMode: promptModeHook.promptMode,
     treeNodes: tree.treeNodes,
     activeTreeNodeId: tree.activeNodeId,
@@ -768,7 +761,6 @@ export default function App() {
     onSwitchToNode: handleSwitchToNodeFromChat,
     overwriteMode,
     onToggleOverwrite: handleToggleOverwrite,
-    backendTarget,
     nodeUiStateRef,
     sceneReferences,
     onRemoveReference: handleRemoveReference,
@@ -778,10 +770,35 @@ export default function App() {
     sceneJSON, uiConfig, paused, duration, loop, backendTarget, safeModeActive,
   }), [sceneJSON, uiConfig, paused, duration, loop, backendTarget, safeModeActive]);
 
+  const projectCtxValue = useMemo(() => ({
+    projectList: project.projectList,
+    activeProject: project.activeProject,
+    onProjectLoad: project.handleProjectLoad,
+    onProjectDelete: project.handleProjectDelete,
+    onProjectRename: project.handleProjectRename,
+    onProjectFork: project.handleProjectFork,
+    onProjectImport: project.handleProjectImport,
+  }), [project.projectList, project.activeProject, project.handleProjectLoad, project.handleProjectDelete, project.handleProjectRename, project.handleProjectFork, project.handleProjectImport]);
+
+  const chatCtxValue = useMemo(() => ({
+    messages: chat.messages,
+    isProcessing: chat.isProcessing,
+    agentStatus: chat.agentStatus,
+    pendingQuestion: chat.pendingQuestion,
+    debugLogs: chat.debugLogs,
+    onSend: chat.handleSend,
+    onNewChat: chat.handleNewChat,
+    onCancel: chat.handleCancel,
+    onAnswer: chat.handleAnswer,
+    addLog: chat.addLog,
+  }), [chat.messages, chat.isProcessing, chat.agentStatus, chat.pendingQuestion, chat.debugLogs, chat.handleSend, chat.handleNewChat, chat.handleCancel, chat.handleAnswer, chat.addLog]);
+
   return (
     <SettingsContext.Provider value={settingsCtx}>
     <EngineContext.Provider value={engineRef}>
     <SceneContext.Provider value={sceneCtxValue}>
+    <ProjectContext.Provider value={projectCtxValue}>
+    <ChatContext.Provider value={chatCtxValue}>
       <div className={`w-screen h-screen ${isMobile ? "pt-10 pb-20" : "pt-10 pb-10"}`}>
         <Toolbar
           onNewProject={handleNewProject}
@@ -832,13 +849,6 @@ export default function App() {
             onStartCompare={handleStartCompare}
             onSelectCompareTarget={handleSelectCompareTarget}
             onCancelCompare={compare.cancelCompare}
-            projectList={project.projectList}
-            activeProject={project.activeProject}
-            onProjectLoad={project.handleProjectLoad}
-            onProjectDelete={project.handleProjectDelete}
-            onProjectRename={project.handleProjectRename}
-            onProjectFork={project.handleProjectFork}
-            onProjectImport={project.handleProjectImport}
             github={github}
             onGitHubSave={() => setShowGitHubSave(true)}
             onGitHubLoad={() => setShowGitHubLoad(true)}
@@ -935,26 +945,8 @@ export default function App() {
 
         {isMobile ? (
           <MobileLayout
-            sceneJSON={sceneJSON}
-            engineRef={engineRef}
-            paused={paused}
             onShaderError={handleShaderError}
-            messages={chat.messages}
-            onSend={chat.handleSend}
-            isProcessing={chat.isProcessing}
-            agentStatus={chat.agentStatus}
-            onNewChat={chat.handleNewChat}
-            onCancel={chat.handleCancel}
-            pendingQuestion={chat.pendingQuestion}
-            onAnswer={chat.handleAnswer}
-            debugLogs={chat.debugLogs}
-            projectList={project.projectList}
-            activeProject={project.activeProject}
-            onProjectLoad={project.handleProjectLoad}
-            onProjectDelete={project.handleProjectDelete}
-            onProjectRename={project.handleProjectRename}
-            onProjectFork={project.handleProjectFork}
-            onProjectImport={project.handleProjectImport}
+            engineRef={engineRef}
             onDeleteWorkspaceFile={handleDeleteWorkspaceFile}
             workspaceFilesVersion={workspaceFilesVersion}
             customPanels={panels.customPanels}
@@ -1006,6 +998,8 @@ export default function App() {
         />
       )}
     <ToastContainer />
+    </ChatContext.Provider>
+    </ProjectContext.Provider>
     </SceneContext.Provider>
     </EngineContext.Provider>
     </SettingsContext.Provider>

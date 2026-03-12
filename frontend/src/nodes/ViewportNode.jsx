@@ -1,333 +1,49 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useContext, useRef, useState } from "react";
 import { NodeResizer } from "@xyflow/react";
-import GLEngine from "../engine/GLEngine.js";
 import ResolutionSelector from "../components/viewport/ResolutionSelector.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 import MissingAssetsBar from "../components/MissingAssetsBar.jsx";
+import { useCollapsedState } from "../hooks/useCollapsedState.js";
+import useEngineInit from "./viewport/useEngineInit.js";
+import useSceneLoader from "./viewport/useSceneLoader.js";
+import useCanvasResize from "./viewport/useCanvasResize.js";
+import useViewportInput from "./viewport/useViewportInput.js";
+import SceneContext from "../contexts/SceneContext.js";
+import EngineContext from "../contexts/EngineContext.js";
 
-export default function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
-  const { sceneJSON, engineRef, onError, paused, safeModeActive, backendTarget } = data;
+function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
+  const { sceneJSON, paused, backendTarget, safeModeActive } = useContext(SceneContext);
+  const parentEngineRef = useContext(EngineContext);
+  const { onError } = data;
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
-  const engineInternalRef = useRef(null);
-  const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
-  const [fps, setFps] = useState(0);
-  const [resolution, setResolution] = useState([0, 0]);
-  const [fixedResolution, setFixedResolutionRaw] = useState(() => data.initialFixedResolution ?? null);
-  const setFixedResolution = useCallback((v) => {
-    setFixedResolutionRaw((prev) => {
-      const next = typeof v === "function" ? v(prev) : v;
-      data.onFixedResolutionChange?.(next);
-      return next;
-    });
-  }, [data.onFixedResolutionChange]);
-  const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [missingAssets, setMissingAssets] = useState([]);
-  const [collapsed, setCollapsedRaw] = useState(() => data.initialCollapsed ?? false);
-  const setCollapsed = useCallback((v) => {
-    setCollapsedRaw((prev) => {
-      const next = typeof v === "function" ? v(prev) : v;
-      data.onCollapsedChange?.(next);
-      return next;
+  const [collapsed, setCollapsed] = useCollapsedState(data.initialCollapsed, data.onCollapsedChange);
+
+  // Engine lifecycle
+  const { engineRef, fps, backendName, error, setError, missingAssets, setMissingAssets } =
+    useEngineInit(canvasRef, { backendTarget: data.backendTarget, onError });
+
+  // Scene loading + pause + backend switching
+  useSceneLoader(engineRef, { sceneJSON, paused, backendTarget, parentEngineRef, setError });
+
+  // Canvas resize (fixed vs auto)
+  const { resolution, fixedResolution, setFixedResolution } =
+    useCanvasResize(engineRef, containerRef, {
+      initialFixedResolution: data.initialFixedResolution,
+      onFixedResolutionChange: data.onFixedResolutionChange,
     });
-  }, [data.onCollapsedChange]);
-  // Sync collapsed state when project is restored
-  const prevInitCollapsed = useRef(data.initialCollapsed);
-  useEffect(() => {
-    if (data.initialCollapsed !== prevInitCollapsed.current) {
-      prevInitCollapsed.current = data.initialCollapsed;
-      setCollapsedRaw(data.initialCollapsed ?? false);
-    }
-  }, [data.initialCollapsed]);
-  // Sync fixedResolution when project is restored
-  const prevInitFixedRes = useRef(data.initialFixedResolution);
-  useEffect(() => {
-    if (data.initialFixedResolution !== prevInitFixedRes.current) {
-      prevInitFixedRes.current = data.initialFixedResolution;
-      setFixedResolutionRaw(data.initialFixedResolution ?? null);
-    }
-  }, [data.initialFixedResolution]);
-  const [backendName, setBackendName] = useState("WebGL2");
+
+  // Input handlers
+  const {
+    handleMouseMove, handleMouseDown, handleMouseUp,
+    handleMouseEnter, handleMouseLeave,
+    handleTouchStart, handleTouchMove, handleTouchEnd,
+    handleKeyDown, handleKeyUp, handleBlur,
+    toggleFullscreen,
+  } = useViewportInput(engineRef, canvasRef, containerRef);
 
   useStopWheelPropagation(containerRef);
-
-  // Initialize engine on mount
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    try {
-      const prefer = data.backendTarget === "webgpu" ? "webgpu" : "webgl2";
-      const engine = new GLEngine(canvas, { preferBackend: prefer });
-      engine.onError = (err) => {
-        console.error("[ViewportNode] GLEngine error:", err);
-        setError(err.message || String(err));
-        onErrorRef.current?.(err);
-      };
-      engine.onFPS = setFps;
-      engine.onBackendReady = (type) => {
-        setBackendName(type === "webgpu" ? "WebGPU" : "WebGL2");
-      };
-      engine.onMissingAssets = (list) => {
-        setMissingAssets(list);
-      };
-      engineInternalRef.current = engine;
-
-      // Initialize backend abstraction (async, non-blocking)
-      engine.initBackend().catch((err) => {
-        console.warn("[ViewportNode] Backend init warning:", err.message);
-      });
-
-      engine.start();
-      console.log("[ViewportNode] Engine started");
-
-      return () => {
-        engine.dispose();
-        engineInternalRef.current = null;
-      };
-    } catch (err) {
-      console.error("[ViewportNode] Failed to create engine:", err);
-      setError(err.message || "WebGL2 not supported");
-    }
-  }, []);
-
-  // Switch backend when backendTarget changes at runtime
-  useEffect(() => {
-    const engine = engineInternalRef.current;
-    if (!engine || !backendTarget) return;
-    const prefer = backendTarget === "webgpu" ? "webgpu" : "webgl2";
-    engine.switchBackend(prefer).catch((err) => {
-      console.warn("[ViewportNode] Backend switch warning:", err.message);
-    });
-  }, [backendTarget]);
-
-  // Keep App's engineRef in sync (it may arrive as null on first render then update)
-  useEffect(() => {
-    if (engineRef && engineInternalRef.current) {
-      engineRef.current = engineInternalRef.current;
-    }
-    return () => {
-      if (engineRef) engineRef.current = null;
-    };
-  }, [engineRef]);
-
-  // Load scene when sceneJSON changes
-  useEffect(() => {
-    const engine = engineInternalRef.current;
-    if (!engine) return;
-    if (!sceneJSON) {
-      // Clear canvas when scene is removed (e.g. new project)
-      const gl = engine.gl;
-      if (gl) {
-        gl.clearColor(0, 0, 0, 1);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      }
-      // Run cleanup of previous scene and reset script functions
-      engine.loadScene({ mode: "shader", script: {} });
-      return;
-    }
-    console.log("[ViewportNode] Loading scene:", sceneJSON.mode || "unknown");
-    setError(null);
-
-    // If scene requests a different backend, switch before loading.
-    // Also await any pending backend init (switchBackend may return early
-    // if the preference is already set but init is still in progress).
-    const wantBackend = sceneJSON.backendTarget === "webgpu" ? "webgpu" : "webgl2";
-    const switchPromise = engine.switchBackend(wantBackend).catch((err) => {
-      console.warn("[ViewportNode] Backend switch warning:", err?.message);
-    });
-
-    const readyPromise = switchPromise.then(() => {
-      // Ensure backend init is complete before loading scene
-      if (engine._backendPromise) return engine._backendPromise.catch(() => {});
-    });
-
-    readyPromise.then(() => {
-        engine.loadScene(sceneJSON);
-        // Wait for async setup to complete before dispatching scene_loaded
-        // (setup may be waiting for WebGPU backend init, blob URL loading, etc.)
-        // Timeout after 10s to prevent indefinite hang
-        return Promise.race([
-          engine._setupPromise,
-          new Promise((_, reject) => setTimeout(() => reject(new Error("Scene setup timed out (10s)")), 10000)),
-        ]);
-      })
-      .then(() => {
-        // Notify agent error collector that the scene has loaded,
-        // including setup status so check_browser_errors can diagnose white screens
-        window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded", {
-          detail: { setupReady: engine._setupReady },
-        }));
-      })
-      .catch((err) => {
-        console.error("[ViewportNode] loadScene error:", err);
-        setError(err.message || String(err));
-        // Still ack scene load so error checker doesn't hang
-        window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded", {
-          detail: { setupReady: false, error: err.message },
-        }));
-      });
-  }, [sceneJSON]);
-
-  // Handle pause/resume
-  useEffect(() => {
-    const engine = engineInternalRef.current;
-    if (engine) engine.setPaused(!!paused);
-  }, [paused]);
-
-  // Apply fixed resolution or revert to auto
-  const fixedResRef = useRef(fixedResolution);
-  fixedResRef.current = fixedResolution;
-
-  useEffect(() => {
-    const engine = engineInternalRef.current;
-    const container = containerRef.current;
-    if (!engine) return;
-    if (fixedResolution) {
-      engine.resize(fixedResolution[0], fixedResolution[1]);
-      setResolution(fixedResolution);
-    } else if (container) {
-      // Back to auto — read current container size
-      const rect = container.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        const rw = Math.floor(rect.width * dpr);
-        const rh = Math.floor(rect.height * dpr);
-        engine.resize(rw, rh);
-        setResolution([rw, rh]);
-      }
-    }
-  }, [fixedResolution]);
-
-  // Resize observer (stable — never recreated)
-  useEffect(() => {
-    const container = containerRef.current;
-    const engine = engineInternalRef.current;
-    if (!container || !engine) return;
-
-    const observer = new ResizeObserver((entries) => {
-      if (fixedResRef.current) return; // skip in fixed mode
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        if (width > 0 && height > 0) {
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          const rw = Math.floor(width * dpr);
-          const rh = Math.floor(height * dpr);
-          engine.resize(rw, rh);
-          setResolution([rw, rh]);
-        }
-      }
-    });
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, []);
-
-  // Shared coordinate helper – converts a client-space event to [0,1] canvas-space.
-  const getCanvasCoords = useCallback((clientX, clientY) => {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return null;
-    return [(clientX - rect.left) / rect.width, (clientY - rect.top) / rect.height];
-  }, []);
-
-  // Mouse tracking
-  const handleMouseMove = useCallback((e) => {
-    const engine = engineInternalRef.current;
-    if (!engine) return;
-    const coords = getCanvasCoords(e.clientX, e.clientY);
-    if (!coords) return;
-    engine.updateMouse(coords[0], coords[1], e.buttons > 0);
-    // Ensure hover is set (mouseEnter may have been missed if mouse was already over)
-    if (!engine._mouseHover) engine.updateMouseHover(true);
-  }, [getCanvasCoords]);
-
-  const handleMouseDown = useCallback((e) => {
-    const engine = engineInternalRef.current;
-    if (!engine) return;
-    const coords = getCanvasCoords(e.clientX, e.clientY);
-    if (!coords) return;
-    engine.updateMouse(coords[0], coords[1], true);
-    containerRef.current?.focus();
-  }, [getCanvasCoords]);
-
-  const handleMouseUp = useCallback((e) => {
-    const engine = engineInternalRef.current;
-    if (!engine) return;
-    const coords = getCanvasCoords(e.clientX, e.clientY);
-    if (!coords) return;
-    engine.updateMouse(coords[0], coords[1], false);
-  }, [getCanvasCoords]);
-
-  const handleMouseEnter = useCallback(() => {
-    engineInternalRef.current?.updateMouseHover(true);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    engineInternalRef.current?.updateMouseHover(false);
-  }, []);
-
-  // Touch tracking (maps to mouse input)
-  const handleTouchStart = useCallback((e) => {
-    const engine = engineInternalRef.current;
-    if (!engine || !e.touches.length) return;
-    const touch = e.touches[0];
-    const coords = getCanvasCoords(touch.clientX, touch.clientY);
-    if (!coords) return;
-    engine.updateMouse(coords[0], coords[1], true);
-    e.preventDefault();
-  }, [getCanvasCoords]);
-
-  const handleTouchMove = useCallback((e) => {
-    const engine = engineInternalRef.current;
-    if (!engine || !e.touches.length) return;
-    const touch = e.touches[0];
-    const coords = getCanvasCoords(touch.clientX, touch.clientY);
-    if (!coords) return;
-    engine.updateMouse(coords[0], coords[1], true);
-    e.preventDefault();
-  }, [getCanvasCoords]);
-
-  const handleTouchEnd = useCallback((e) => {
-    const engine = engineInternalRef.current;
-    if (!engine) return;
-    // Use last known position, set pressed to false
-    engine.updateMouse(engine._mouse[0], engine._mouse[1], false);
-    e.preventDefault();
-  }, []);
-
-  const handleKeyDown = useCallback((e) => {
-    const engine = engineInternalRef.current;
-    if (!engine) return;
-    e.stopPropagation();
-    e.preventDefault();
-    engine.updateKey(e.code, true);
-  }, []);
-
-  const handleKeyUp = useCallback((e) => {
-    const engine = engineInternalRef.current;
-    if (!engine) return;
-    e.stopPropagation();
-    e.preventDefault();
-    engine.updateKey(e.code, false);
-  }, []);
-
-  const handleBlur = useCallback(() => {
-    const engine = engineInternalRef.current;
-    if (!engine) return;
-    engine.releaseAllKeys();
-  }, []);
-
-  // Fullscreen toggle — only the canvas container, no UI chrome
-  const toggleFullscreen = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    } else {
-      el.requestFullscreen();
-    }
-  }, []);
 
   const canvasContent = (
     <div
@@ -357,7 +73,7 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
           missingAssets={missingAssets}
           onAssetsReplaced={() => {
             setMissingAssets([]);
-            const engine = engineInternalRef.current;
+            const engine = engineRef.current;
             if (engine && data.sceneJSON) {
               engine.loadScene(data.sceneJSON);
             }
@@ -407,7 +123,6 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
   if (standalone) {
     return (
       <div className="w-full h-full flex flex-col" style={{ background: "var(--node-bg)" }}>
-        {/* Mini info bar */}
         {!hideHeader && (
         <div className="flex items-center justify-between px-3 py-1 text-[10px] tabular-nums shrink-0" style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}>
           <span className="font-semibold text-xs">Viewport</span>
@@ -435,7 +150,6 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
         className={`node-container w-full ${collapsed ? "h-auto" : "h-full"} rounded-xl overflow-hidden shadow-2xl flex flex-col`}
         style={{ background: "var(--node-bg)", border: "1px solid var(--node-border)" }}
       >
-        {/* Header */}
         <div
           className="px-4 py-2 text-sm font-semibold cursor-grab shrink-0 flex items-center justify-between leading-5"
           style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
@@ -481,3 +195,5 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
     </>
   );
 }
+
+export default memo(ViewportNode);

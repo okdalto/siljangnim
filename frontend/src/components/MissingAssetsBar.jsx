@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { memo, useState, useRef, useCallback } from "react";
 import { saveUpload } from "../engine/storage.js";
 
 /**
@@ -9,7 +9,7 @@ import { saveUpload } from "../engine/storage.js";
  * @param {Array<{filename: string, category?: string, mime_type?: string, file_size?: number}>} props.missingAssets
  * @param {() => void} props.onAssetsReplaced - called after all replacements to trigger scene reload
  */
-export default function MissingAssetsBar({ missingAssets, onAssetsReplaced }) {
+function MissingAssetsBar({ missingAssets, onAssetsReplaced }) {
   const [expanded, setExpanded] = useState(false);
   const [replaced, setReplaced] = useState(new Set());
   const fileInputRef = useRef(null);
@@ -148,3 +148,5 @@ export default function MissingAssetsBar({ missingAssets, onAssetsReplaced }) {
     </div>
   );
 }
+
+export default memo(MissingAssetsBar);

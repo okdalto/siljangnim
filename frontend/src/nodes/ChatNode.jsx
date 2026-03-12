@@ -1,30 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { memo, useState, useEffect, useRef, useCallback } from "react";
 import { NodeResizer } from "@xyflow/react";
 import FileChip from "../components/chat/FileChip.jsx";
 import MarkdownMessage from "../components/chat/MarkdownMessage.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 import BranchSelector from "../components/BranchSelector.jsx";
-
-const TOOL_LABELS = {
-  write_scene: "씬 작성 중...",
-  read_file: "파일 읽는 중...",
-  write_file: "파일 저장 중...",
-  check_browser_errors: "에러 확인 중...",
-  open_panel: "컨트롤 패널 생성 중...",
-  close_panel: "패널 닫는 중...",
-  capture_viewport: "화면 캡처 중...",
-  search_code: "코드 검색 중...",
-  enable_audio: "오디오 설정 중...",
-  disable_audio: "오디오 해제 중...",
-  enable_mediapipe: "카메라 설정 중...",
-  disable_mediapipe: "카메라 해제 중...",
-  run_debug_diagnosis: "디버그 분석 중...",
-  ask_user: "질문 준비 중...",
-  list_files: "파일 목록 조회 중...",
-  list_uploaded_files: "업로드 파일 조회 중...",
-  start_recording: "녹화 시작 중...",
-  debug_eval: "코드 실행 중...",
-};
+import { useCollapsedState } from "../hooks/useCollapsedState.js";
+import { TOOL_LABELS } from "../constants/toolLabels.js";
+import { useChatContext } from "../contexts/ChatContext.js";
 
 function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
@@ -38,27 +20,35 @@ function readFileAsBase64(file) {
   });
 }
 
-export default function ChatNode({ data, standalone = false, hideHeader = false }) {
-  const [collapsed, setCollapsedRaw] = useState(() => data.initialCollapsed ?? false);
-  const setCollapsed = useCallback((v) => {
-    setCollapsedRaw((prev) => {
-      const next = typeof v === "function" ? v(prev) : v;
-      data.onCollapsedChange?.(next);
-      return next;
-    });
-  }, [data.onCollapsedChange]);
-  // Sync collapsed state when project is restored
-  const prevInitCollapsed = useRef(data.initialCollapsed);
-  useEffect(() => {
-    if (data.initialCollapsed !== prevInitCollapsed.current) {
-      prevInitCollapsed.current = data.initialCollapsed;
-      setCollapsedRaw(data.initialCollapsed ?? false);
-    }
-  }, [data.initialCollapsed]);
+function ChatNode({ data, standalone = false, hideHeader = false }) {
+  const chatCtx = useChatContext();
+  const [collapsed, setCollapsed] = useCollapsedState(data.initialCollapsed, data.onCollapsedChange);
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const { messages = [], onSend, onRetryInterrupted, isProcessing = false, agentStatus, onNewChat, onCancel, pendingQuestion, onAnswer, hideInput = false, activeNodeTitle = null, promptMode = "hybrid", treeNodes = [], activeTreeNodeId = null, onBranchFromNode, onSwitchToNode, overwriteMode = false, onToggleOverwrite, sceneReferences = [], onRemoveReference, onClearReferences } = data;
+  const {
+    messages = chatCtx?.messages ?? [],
+    onSend = chatCtx?.onSend,
+    onRetryInterrupted,
+    isProcessing = chatCtx?.isProcessing ?? false,
+    agentStatus = chatCtx?.agentStatus,
+    onNewChat = chatCtx?.onNewChat,
+    onCancel = chatCtx?.onCancel,
+    pendingQuestion = chatCtx?.pendingQuestion,
+    onAnswer = chatCtx?.onAnswer,
+    hideInput = false,
+    activeNodeTitle = null,
+    promptMode = "hybrid",
+    treeNodes = [],
+    activeTreeNodeId = null,
+    onBranchFromNode,
+    onSwitchToNode,
+    overwriteMode = false,
+    onToggleOverwrite,
+    sceneReferences = [],
+    onRemoveReference,
+    onClearReferences,
+  } = data;
   const messagesRef = useRef(null);
   const fileInputRef = useRef(null);
   const thinkingRef = useRef(null);
@@ -434,3 +424,5 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
     </div>
   );
 }
+
+export default memo(ChatNode);

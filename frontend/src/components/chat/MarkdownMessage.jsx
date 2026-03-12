@@ -1,3 +1,4 @@
+import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 
 const markdownComponents = {
@@ -24,6 +25,8 @@ const markdownComponents = {
   hr: () => <hr className="border-zinc-700 my-2" />,
 };
 
-export default function MarkdownMessage({ text }) {
+function MarkdownMessage({ text }) {
   return <ReactMarkdown components={markdownComponents}>{text}</ReactMarkdown>;
 }
+
+export default memo(MarkdownMessage);

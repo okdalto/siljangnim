@@ -222,6 +222,23 @@ function compactMessages(messages) {
     }
     for (let i = recentStart; i < messages.length; i++) keepSet.add(i);
 
+    // Ensure tool_use/tool_result pairs are never separated.
+    // If an assistant message with tool_use is kept, its next user message
+    // (containing tool_results) must also be kept, and vice versa.
+    for (let j = 0; j < messages.length; j++) {
+      if (!keepSet.has(j)) continue;
+      const msg = messages[j];
+      const blocks = Array.isArray(msg.content) ? msg.content : [];
+      if (msg.role === "assistant" && blocks.some((b) => b.type === "tool_use")) {
+        // Keep the following tool_result message
+        if (j + 1 < messages.length) keepSet.add(j + 1);
+      }
+      if (msg.role === "user" && blocks.some((b) => b.type === "tool_result")) {
+        // Keep the preceding assistant message with tool_use
+        if (j - 1 >= 0) keepSet.add(j - 1);
+      }
+    }
+
     const kept = [];
     let i = 0;
     while (i < messages.length) {
