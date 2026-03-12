@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { loadJson } from "../utils/localStorage.js";
 
 export default function useChat(sendRef) {
@@ -7,6 +7,10 @@ export default function useChat(sendRef) {
   const [agentStatus, setAgentStatus] = useState(null);
   const [pendingQuestion, setPendingQuestion] = useState(null);
   const [debugLogs, setDebugLogs] = useState(() => loadJson("siljangnim:debugLogs", []));
+
+  // Streaming text delta buffering with RAF throttle
+  const streamBufferRef = useRef("");
+  const rafRef = useRef(null);
 
   // Persist to localStorage
   useEffect(() => {
@@ -65,6 +69,49 @@ export default function useChat(sendRef) {
     setMessages((prev) => [...prev, { role: "assistant", text }]);
   }, []);
 
+  const addAssistantTextDelta = useCallback((chunk) => {
+    streamBufferRef.current += chunk;
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(() => {
+        const buffered = streamBufferRef.current;
+        streamBufferRef.current = "";
+        rafRef.current = null;
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === "assistant" && last.streaming) {
+            const updated = [...prev];
+            updated[updated.length - 1] = { ...last, text: (last.text || "") + buffered };
+            return updated;
+          }
+          return [...prev, { role: "assistant", text: buffered, streaming: true }];
+        });
+      });
+    }
+  }, []);
+
+  const finalizeAssistantText = useCallback(() => {
+    // Flush any remaining buffered text
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    const remaining = streamBufferRef.current;
+    streamBufferRef.current = "";
+    setMessages((prev) => {
+      const last = prev[prev.length - 1];
+      if (last?.role === "assistant" && last.streaming) {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          ...last,
+          text: (last.text || "") + remaining,
+          streaming: false,
+        };
+        return updated;
+      }
+      return prev;
+    });
+  }, []);
+
   const addLog = useCallback((entry) => {
     setDebugLogs((prev) => [...prev, entry]);
   }, []);
@@ -118,6 +165,8 @@ export default function useChat(sendRef) {
     handleAnswer,
     handleCancel,
     addAssistantText,
+    addAssistantTextDelta,
+    finalizeAssistantText,
     addSystemMessage,
     addInterruptedMessage,
     handleRetryInterrupted,

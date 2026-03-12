@@ -244,7 +244,10 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
             {msg.role === "user" ? (
               msg.text
             ) : (
-              <MarkdownMessage text={msg.text} />
+              <>
+                <MarkdownMessage text={msg.text} />
+                {msg.streaming && <span className="inline-block w-2 h-4 ml-0.5 bg-current animate-pulse align-text-bottom" />}
+              </>
             )}
             {msg.interrupted && msg.interruptedPrompt && (
               <button
