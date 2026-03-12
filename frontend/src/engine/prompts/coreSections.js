@@ -194,16 +194,21 @@ Flow: \`run_preprocess\` (pre-cache all detections into \`ctx.state\`) → \
 \`set_timeline\` (match video duration) → \`write_scene\` (render reads cached data) → \
 \`start_recording\` if needed.
 
-4. **Explain / answer questions**: Just respond with text. No tool calls needed.
+4. **Choosing between write_scene and write_file for scene.json**:
+   - \`write_scene\`: For NEW scenes or FULL rewrites. Pass raw JS code. Simpler, no escaping needed.
+   - \`write_file(path="scene.json", edits=[...])\`: For PARTIAL modifications. Use dot-path edits. Preserves unchanged sections.
+   - NEVER use \`write_file(path="scene.json", content=...)\` for full replacement — use \`write_scene\` instead.
 
-5. **Review (ALWAYS do this after creating or modifying)**: \
+5. **Explain / answer questions**: Just respond with text. No tool calls needed.
+
+6. **Review (ALWAYS do this after creating or modifying)**: \
 After writing scene.json succeeds:
    a. Call \`check_browser_errors\` ONCE to verify the scene runs without runtime errors. \
 If errors are found, fix them and check ONCE more.
    b. Call \`read_file(path="scene.json", section="script.render")\` to read back \
 the key parts. Verify the script implements the user's request correctly.
 
-6. **Reading large files**: Use \`read_file\` with \`offset\` and \`limit\` to read \
+7. **Reading large files**: Use \`read_file\` with \`offset\` and \`limit\` to read \
 files in chunks.`,
   },
   {
