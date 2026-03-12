@@ -271,7 +271,8 @@ const TOOLS = [
       "Create or fully replace scene.json. Pass raw JS code directly as " +
       "separate parameters — NO JSON escaping needed. " +
       "USE THIS for: creating new scenes, full rewrites, or when changing multiple sections at once. " +
-      "For targeted modifications to a single section, prefer write_file with dot-path edits instead.",
+      "For targeted modifications (fixing a bug, changing a value, adding a few lines), " +
+      "use edit_scene instead — it's much faster and uses fewer tokens.",
     input_schema: {
       type: "object",
       properties: {
@@ -434,6 +435,38 @@ const TOOLS = [
           description: "Capture height in pixels (default: current canvas height, max 1024). Downscaled if larger.",
         },
       },
+    },
+  },
+  {
+    name: "use_template",
+    description:
+      "Load a tested, pre-built scene template from the technique catalog. " +
+      "Templates are production-ready code that renders immediately — much faster and more " +
+      "reliable than writing from scratch. Use this as a starting point, then customize with " +
+      "edit_scene for the user's specific needs.",
+    input_schema: {
+      type: "object",
+      properties: {
+        template_id: {
+          type: "string",
+          enum: [
+            "raymarch_fog",
+            "volumetric_cloud",
+            "reaction_diffusion",
+            "metaball",
+            "fluid_distortion",
+            "bloom",
+            "chromatic_aberration",
+            "crt_scanline",
+            "sdf_basics",
+            "audio_reactive_pulse",
+            "particle_burst",
+            "orbit_camera_template",
+          ],
+          description: "The ID of the technique template to load.",
+        },
+      },
+      required: ["template_id"],
     },
   },
   {

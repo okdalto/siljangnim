@@ -26,6 +26,7 @@ import * as quat from "./quat.js";
 import { createPingPong } from "./pingPong.js";
 import { createOrbitCamera } from "./orbitCamera.js";
 import * as noise from "./noise.js";
+import * as glsl from "./glslSnippets.js";
 import { createVerletSystem } from "./verletPhysics.js";
 import VideoFrameExtractor from "./VideoFrameExtractor.js";
 import { selectBackend, getBackendDisplayName, BackendType } from "./gpu/index.js";
@@ -746,7 +747,183 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
         createPingPong: (w, h, opts) => createPingPong(this.gl, w, h, opts),
         createOrbitCamera,
         noise,
+        glsl,
         createVerletSystem,
+
+        /**
+         * Create a fullscreen effect from a fragment shader source.
+         * Handles program creation, quad geometry, VAO, uniform binding.
+         * @param {string} fragSrc - Fragment shader source (GLSL #version 300 es)
+         * @param {object} [defaultUniforms] - Default uniform values
+         * @returns {{ prog, uniforms, draw(overrides?), drawToTarget(rt, overrides?), dispose() }}
+         */
+        createFullscreenEffect: (fragSrc, defaultUniforms = {}) => {
+          const g = this.gl;
+          const prog = createProgram(g, DEFAULT_QUAD_VERTEX_SHADER, fragSrc);
+          const quadGeom = createQuadGeometry();
+
+          // Build VAO
+          const vao = g.createVertexArray();
+          g.bindVertexArray(vao);
+          const buf = g.createBuffer();
+          g.bindBuffer(g.ARRAY_BUFFER, buf);
+          g.bufferData(g.ARRAY_BUFFER, quadGeom.positions, g.STATIC_DRAW);
+          const posLoc = g.getAttribLocation(prog, "a_position");
+          if (posLoc >= 0) {
+            g.enableVertexAttribArray(posLoc);
+            g.vertexAttribPointer(posLoc, quadGeom.dimension || 2, g.FLOAT, false, 0, 0);
+          }
+          g.bindVertexArray(null);
+
+          // Auto-discover uniforms
+          const uCount = g.getProgramParameter(prog, g.ACTIVE_UNIFORMS);
+          const uniforms = {};
+          for (let i = 0; i < uCount; i++) {
+            const info = g.getActiveUniform(prog, i);
+            if (!info) continue;
+            const name = info.name.replace(/\[0\]$/, "");
+            const loc = g.getUniformLocation(prog, name);
+            if (!loc) continue;
+            uniforms[name] = { location: loc, type: info.type, set: uniformSetter(g, info.type, loc) };
+          }
+
+          const _applyUniforms = (overrides) => {
+            const merged = { ...defaultUniforms, ...overrides };
+            for (const [key, val] of Object.entries(merged)) {
+              if (uniforms[key]) {
+                if (Array.isArray(val)) uniforms[key].set(...val);
+                else uniforms[key].set(val);
+              }
+            }
+          };
+
+          const _draw = (overrides, targetFBO) => {
+            if (targetFBO) {
+              g.bindFramebuffer(g.FRAMEBUFFER, targetFBO.framebuffer || targetFBO);
+            }
+            g.useProgram(prog);
+            // Auto-bind built-in uniforms
+            if (uniforms.u_time) uniforms.u_time.set(ctx.time ?? 0);
+            if (uniforms.u_resolution) uniforms.u_resolution.set(ctx.resolution?.[0] ?? g.canvas.width, ctx.resolution?.[1] ?? g.canvas.height);
+            if (uniforms.u_mouse && ctx.mouse) uniforms.u_mouse.set(...ctx.mouse);
+            _applyUniforms(overrides);
+            g.bindVertexArray(vao);
+            g.drawArrays(g.TRIANGLES, 0, quadGeom.vertexCount);
+            g.bindVertexArray(null);
+            if (targetFBO) {
+              g.bindFramebuffer(g.FRAMEBUFFER, null);
+            }
+          };
+
+          return {
+            prog,
+            uniforms,
+            draw: (overrides) => _draw(overrides, null),
+            drawToTarget: (rt, overrides) => _draw(overrides, rt),
+            dispose: () => {
+              g.deleteProgram(prog);
+              g.deleteVertexArray(vao);
+              g.deleteBuffer(buf);
+            },
+          };
+        },
+
+        /**
+         * Create a multi-pass post-process chain from an array of effects.
+         * Uses ping-pong FBOs internally.
+         * @param {Array<{fragSrc: string, uniforms?: object}>} effects
+         * @returns {{ drawToScreen(inputTexture), dispose() }}
+         */
+        createPostProcessChain: (effects) => {
+          const g = this.gl;
+          const w = g.canvas.width;
+          const h = g.canvas.height;
+          const pp = createPingPong(g, w, h, { filter: g.LINEAR });
+
+          // Build an effect pipeline from fragment sources
+          const fxPipeline = effects.map((fx) => {
+            const prog = createProgram(g, DEFAULT_QUAD_VERTEX_SHADER, fx.fragSrc);
+            const quadGeom = createQuadGeometry();
+            const vao = g.createVertexArray();
+            g.bindVertexArray(vao);
+            const buf = g.createBuffer();
+            g.bindBuffer(g.ARRAY_BUFFER, buf);
+            g.bufferData(g.ARRAY_BUFFER, quadGeom.positions, g.STATIC_DRAW);
+            const posLoc = g.getAttribLocation(prog, "a_position");
+            if (posLoc >= 0) {
+              g.enableVertexAttribArray(posLoc);
+              g.vertexAttribPointer(posLoc, quadGeom.dimension || 2, g.FLOAT, false, 0, 0);
+            }
+            g.bindVertexArray(null);
+
+            // Get uniforms
+            const uCount = g.getProgramParameter(prog, g.ACTIVE_UNIFORMS);
+            const uniforms = {};
+            for (let i = 0; i < uCount; i++) {
+              const info = g.getActiveUniform(prog, i);
+              if (!info) continue;
+              const name = info.name.replace(/\[0\]$/, "");
+              const loc = g.getUniformLocation(prog, name);
+              if (!loc) continue;
+              uniforms[name] = { location: loc, type: info.type, set: uniformSetter(g, info.type, loc) };
+            }
+
+            return { prog, vao, buf, uniforms, vertexCount: quadGeom.vertexCount, defaults: fx.uniforms || {} };
+          });
+
+          return {
+            drawToScreen: (inputTexture) => {
+              let currentInput = inputTexture;
+              for (let i = 0; i < fxPipeline.length; i++) {
+                const fx = fxPipeline[i];
+                const isLast = i === fxPipeline.length - 1;
+
+                if (!isLast) {
+                  g.bindFramebuffer(g.FRAMEBUFFER, pp.write().framebuffer);
+                } else {
+                  g.bindFramebuffer(g.FRAMEBUFFER, null);
+                }
+                g.viewport(0, 0, isLast ? g.canvas.width : w, isLast ? g.canvas.height : h);
+                g.useProgram(fx.prog);
+
+                // Bind input texture
+                g.activeTexture(g.TEXTURE0);
+                g.bindTexture(g.TEXTURE_2D, currentInput);
+                if (fx.uniforms.u_texture) fx.uniforms.u_texture.set(0);
+                if (fx.uniforms.u_input) fx.uniforms.u_input.set(0);
+
+                // Auto-bind built-ins
+                if (fx.uniforms.u_time) fx.uniforms.u_time.set(ctx.time ?? 0);
+                if (fx.uniforms.u_resolution) fx.uniforms.u_resolution.set(ctx.resolution?.[0] ?? g.canvas.width, ctx.resolution?.[1] ?? g.canvas.height);
+
+                // Apply effect-specific defaults
+                for (const [key, val] of Object.entries(fx.defaults)) {
+                  if (fx.uniforms[key]) {
+                    if (Array.isArray(val)) fx.uniforms[key].set(...val);
+                    else fx.uniforms[key].set(val);
+                  }
+                }
+
+                g.bindVertexArray(fx.vao);
+                g.drawArrays(g.TRIANGLES, 0, fx.vertexCount);
+                g.bindVertexArray(null);
+
+                if (!isLast) {
+                  currentInput = pp.write().texture;
+                  pp.swap();
+                }
+              }
+            },
+            dispose: () => {
+              for (const fx of fxPipeline) {
+                g.deleteProgram(fx.prog);
+                g.deleteVertexArray(fx.vao);
+                g.deleteBuffer(fx.buf);
+              }
+              pp.dispose();
+            },
+          };
+        },
 
         createRenderTarget: (width, height, options = {}) => {
           const g = this.gl;

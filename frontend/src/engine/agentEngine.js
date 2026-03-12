@@ -34,6 +34,9 @@ export default class AgentEngine {
     this.MAX_AUTO_FIX = 3;
     this.injectedMessages = [];
 
+    // Cross-turn tool result cache
+    this._toolResultCache = new Map();
+
     // Prompt mode enhancement
     this._promptModeAddition = "";
 
@@ -289,10 +292,21 @@ function makeCallbacks(engine) {
     engine.chatHistory.push({ role: "assistant", text });
     engine.broadcast({ type: "assistant_text", text });
   };
+  const onTextDelta = (chunk) => {
+    engine._streamingTextBuffer = (engine._streamingTextBuffer || "") + chunk;
+    engine.broadcast({ type: "assistant_text_delta", chunk });
+  };
+  const onTextFinalize = () => {
+    if (engine._streamingTextBuffer) {
+      engine.chatHistory.push({ role: "assistant", text: engine._streamingTextBuffer });
+      engine._streamingTextBuffer = "";
+    }
+    engine.broadcast({ type: "assistant_text_finalize" });
+  };
   const onStatus = (statusType, detail) => {
     engine.broadcast({ type: "agent_status", status: statusType, detail });
   };
-  return { log, onText, onStatus };
+  return { log, onText, onTextDelta, onTextFinalize, onStatus };
 }
 
 async function _projectAction(engine, operation, errorType) {
@@ -332,7 +346,7 @@ async function triggerAutoFix(errorMessage, engine) {
     level: "info",
   });
 
-  const { log, onText, onStatus } = makeCallbacks(engine);
+  const { log, onText, onTextDelta, onTextFinalize, onStatus } = makeCallbacks(engine);
   const abortController = new AbortController();
   engine.abortController = abortController;
 
@@ -343,6 +357,8 @@ async function triggerAutoFix(errorMessage, engine) {
       log,
       broadcast: (msg) => engine.broadcast(msg),
       onText,
+      onTextDelta,
+      onTextFinalize,
       onStatus,
       files: [],
       messages: engine.conversation,
@@ -354,6 +370,7 @@ async function triggerAutoFix(errorMessage, engine) {
       backendTarget: engine._backendTarget,
       provider: engine.provider,
       providerConfig: engine.providerConfig,
+      toolResultCache: engine._toolResultCache,
     });
     engine.broadcast({ type: "chat_done" });
   } catch (err) {
@@ -500,7 +517,7 @@ const HANDLERS = {
       });
     }
 
-    const { log, onText, onStatus } = makeCallbacks(this);
+    const { log, onText, onTextDelta, onTextFinalize, onStatus } = makeCallbacks(this);
     this.agentBusy = true;
     const abortController = new AbortController();
     this.abortController = abortController;
@@ -544,6 +561,8 @@ const HANDLERS = {
           log,
           broadcast: (m) => this.broadcast(m),
           onText,
+          onTextDelta,
+          onTextFinalize,
           onStatus,
           files: savedFiles.length ? savedFiles : undefined,
           messages: this.conversation,
@@ -560,6 +579,7 @@ const HANDLERS = {
           modelOverride: this._selectedModel,
           provider: this.provider,
           providerConfig: this.providerConfig,
+          toolResultCache: this._toolResultCache,
         });
         this._clearInterruptedPrompt();
         this.broadcast({ type: "chat_done" });
@@ -712,6 +732,7 @@ const HANDLERS = {
     }
     this._clearInterruptedPrompt();
     this._backgroundRetryPending = false;
+    this._toolResultCache.clear();
     this.chatHistory.length = 0;
     this.conversation.length = 0;
     this.broadcast({
@@ -723,6 +744,7 @@ const HANDLERS = {
   async new_project(msg) {
     // Auto-save is handled by useAutoSave hook; no need to save here
     this._clearInterruptedPrompt();
+    this._toolResultCache.clear();
     this.chatHistory.length = 0;
     this.conversation.length = 0;
 
@@ -761,6 +783,7 @@ const HANDLERS = {
     this._clearInterruptedPrompt();
     try {
       const result = await storage.loadProject(msg.name || "");
+      this._toolResultCache.clear();
       this.chatHistory.length = 0;
       this.chatHistory.push(...result.chat_history);
       // Reset conversation for the new project
@@ -826,6 +849,7 @@ const HANDLERS = {
 
   async set_backend_target(msg) {
     this._backendTarget = msg.backendTarget || "auto";
+    this._toolResultCache.clear();
   },
 
   async trust_project(msg) {

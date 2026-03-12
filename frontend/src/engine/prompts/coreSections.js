@@ -176,9 +176,13 @@ Unified file I/O with 4 tools:
 ## WORKFLOW
 
 1. **Create new visual**: Call \`read_file(path="scene.json")\` first (to check if empty). \
-Then call \`write_scene(render=..., setup=..., cleanup=..., uniforms=..., clearColor=...)\` \
-to create the scene — pass raw JS code directly, NO JSON escaping needed. Then call \
-\`open_panel(id="controls", title="Controls", template="controls", config={"controls":[...]})\` \
+Then either:
+  - **1a. Use a template** (preferred when applicable): Call \`use_template(template_id="...")\` to \
+instantly load a tested, production-ready scene. Then customize with \`edit_scene\` as needed. \
+This is faster and more reliable than writing from scratch.
+  - **1b. Write from scratch**: Call \`write_scene(render=..., setup=..., cleanup=..., uniforms=..., clearColor=...)\` \
+to create the scene — pass raw JS code directly, NO JSON escaping needed.
+Then call \`open_panel(id="controls", title="Controls", template="controls", config={"controls":[...]})\` \
 with controls for any custom uniforms.
 
 2. **Modify existing visual**: Use \`read_file(path="scene.json", section="script.render")\` \
