@@ -285,6 +285,10 @@ async function compactMessages(messages, { apiKey, provider, providerConfig, log
     messages.push(...kept);
     keepRecent = Math.max(2, keepRecent - 2);
   }
+
+  // Final safety pass: compaction may have placed summary strings next to
+  // assistant messages with tool_use blocks — fix any orphans.
+  sanitizeOrphanedToolUse(messages);
 }
 
 // ---------------------------------------------------------------------------
@@ -447,6 +451,20 @@ function sanitizeOrphanedToolUse(messages, log) {
         });
       }
       if (log) log("System", `Patched ${missingIds.length} orphaned tool_use(s) at message ${i}`, "info");
+    } else if (nextMsg?.role === "user" && !Array.isArray(nextMsg.content)) {
+      // Next user message has string content (e.g. from compaction summary) — no tool_results.
+      // Convert to array content and inject synthetic tool_results.
+      const textContent = nextMsg.content || "";
+      nextMsg.content = [
+        { type: "text", text: textContent },
+        ...toolUseIds.map(id => ({
+          type: "tool_result",
+          tool_use_id: id,
+          content: "Error: tool call was interrupted by a connection error. Please retry if needed.",
+          is_error: true,
+        })),
+      ];
+      if (log) log("System", `Patched ${toolUseIds.length} orphaned tool_use(s) at message ${i} (string content converted)`, "info");
     } else if (!nextMsg || nextMsg.role !== "user") {
       // No user message follows — inject a synthetic one with all tool_results
       const syntheticResults = toolUseIds.map(id => ({

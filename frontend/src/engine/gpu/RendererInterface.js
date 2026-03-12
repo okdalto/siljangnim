@@ -155,14 +155,14 @@ export class RendererInterface {
 
   /**
    * Create a render pipeline.
-   * @param {{ vertex: { module, entryPoint?, buffers? }, fragment: { module, entryPoint?, targets? }, primitive?: { topology? }, depthStencil?: object, label?: string }} desc
+   * @param {{ vertex: { module, entryPoint?, buffers? }, fragment: { module, entryPoint?, targets? }, primitive?: { topology? }, depthStencil?: object, layout?: GPUPipelineLayoutHandle, label?: string }} desc
    * @returns {GPURenderPipelineHandle}
    */
   createRenderPipeline(desc) { throw new Error("Not implemented: createRenderPipeline"); }
 
   /**
    * Create a compute pipeline (WebGPU only — throws on WebGL).
-   * @param {{ module, entryPoint?, label?: string }} desc
+   * @param {{ module, entryPoint?, constants?: object, layout?: GPUPipelineLayoutHandle, label?: string }} desc
    * @returns {GPUComputePipelineHandle}
    */
   createComputePipeline(desc) { throw new Error("Not implemented: createComputePipeline"); }

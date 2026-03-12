@@ -349,9 +349,16 @@ export class WebGPUBackend extends RendererInterface {
     };
     if (fragment.constants) fragmentDesc.constants = fragment.constants;
 
+    let gpuLayout = "auto";
+    if (desc.layout && desc.layout !== "explicit") {
+      gpuLayout = desc.layout._native || desc.layout;
+    } else if (desc.layout === "explicit") {
+      gpuLayout = undefined;
+    }
+
     const pipelineDesc = {
       label,
-      layout: desc.layout === "explicit" ? undefined : "auto",
+      layout: gpuLayout,
       vertex: vertexDesc,
       fragment: fragmentDesc,
       primitive: {
@@ -396,10 +403,21 @@ export class WebGPUBackend extends RendererInterface {
     };
     if (constants) computeDesc.constants = constants;
 
+    // Determine pipeline layout:
+    // - desc.layout is a handle from createPipelineLayout → use its _native
+    // - desc.layout === "explicit" → undefined (legacy, unused)
+    // - otherwise → "auto"
+    let gpuLayout = "auto";
+    if (desc.layout && desc.layout !== "explicit") {
+      gpuLayout = desc.layout._native || desc.layout;
+    } else if (desc.layout === "explicit") {
+      gpuLayout = undefined;
+    }
+
     try {
       const pipeline = this.device.createComputePipeline({
         label,
-        layout: desc.layout === "explicit" ? undefined : "auto",
+        layout: gpuLayout,
         compute: computeDesc,
       });
       return { _id: nextId(), _native: pipeline, label };
