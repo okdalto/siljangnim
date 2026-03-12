@@ -18,7 +18,7 @@ export const initialNodes = [
     type: "chat",
     position: { x: 50, y: 550 },
     style: { width: 670, height: 380 },
-    data: { messages: [], onSend: () => { } },
+    data: {},
   },
   {
     id: "viewport",
