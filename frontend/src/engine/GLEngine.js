@@ -829,20 +829,31 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
          * @param {string} path - File path (e.g. '.workspace/simulation.js')
          * @returns {Promise<object>} - The module's exports
          */
-        loadModule: async (path) => {
-          // Check in-memory cache first
-          if (!ctx._moduleCache) ctx._moduleCache = {};
-          if (ctx._moduleCache[path]) return ctx._moduleCache[path];
+        loadModule: async (path, { reload = false } = {}) => {
+          // Module cache lives on the engine instance, not ctx,
+          // so it doesn't leak into IndexedDB state serialization.
+          if (!this._moduleCache) this._moduleCache = {};
+          if (!reload && this._moduleCache[path]) return this._moduleCache[path];
 
-          const code = await readTextFile(path);
+          let code;
+          try {
+            code = await readTextFile(path);
+          } catch (err) {
+            throw new Error(`loadModule: file not found: ${path}`);
+          }
+
           const moduleObj = { exports: {} };
-          // Execute with ctx, module, and exports in scope
-          const fn = new Function("ctx", "module", "exports", code);
-          fn(ctx, moduleObj, moduleObj.exports);
-          // If module.exports was replaced (module.exports = {...}), use that.
-          // Otherwise use the accumulated exports object.
+          try {
+            // Wrap as async IIFE so modules can use await internally
+            const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+            const fn = new AsyncFunction("ctx", "module", "exports", code);
+            await fn(ctx, moduleObj, moduleObj.exports);
+          } catch (err) {
+            throw new Error(`loadModule: error in ${path}: ${err.message}`);
+          }
+
           const result = moduleObj.exports;
-          ctx._moduleCache[path] = result;
+          this._moduleCache[path] = result;
           return result;
         },
 
@@ -2003,6 +2014,7 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     this._scriptSetupFn = null;
     this._scriptRenderFn = null;
     this._scriptCleanupFn = null;
+    this._moduleCache = null; // Clear module cache on scene dispose
 
     for (const mgr of this._managers) {
       mgr?.deleteTextures?.(gl);
