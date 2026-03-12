@@ -10,7 +10,8 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
     const engine = engineRef.current;
     if (!engine || !backendTarget) return;
     const prefer = (backendTarget === "webgpu" || backendTarget === "hybrid") ? "webgpu" : "webgl2";
-    engine.switchBackend(prefer).catch((err) => {
+    const hybrid = backendTarget === "hybrid";
+    engine.switchBackend(prefer, { hybrid }).catch((err) => {
       console.warn("[ViewportNode] Backend switch warning:", err.message);
     });
   }, [backendTarget]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -42,7 +43,8 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
     setError(null);
 
     const wantBackend = (sceneJSON.backendTarget === "webgpu" || sceneJSON.backendTarget === "hybrid") ? "webgpu" : "webgl2";
-    const switchPromise = engine.switchBackend(wantBackend).catch((err) => {
+    const isHybrid = sceneJSON.backendTarget === "hybrid";
+    const switchPromise = engine.switchBackend(wantBackend, { hybrid: isHybrid }).catch((err) => {
       console.warn("[ViewportNode] Backend switch warning:", err?.message);
     });
 
