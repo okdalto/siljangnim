@@ -871,12 +871,17 @@ async function _runAgentLoop({
         }
 
         // Improvement #1 + #2: track error patterns from check_browser_errors
+        // Track per-call (not per-line) to avoid a single multi-error result
+        // instantly triggering the loop detector.
         if (block.name === "check_browser_errors" && typeof result === "string") {
           if (result.includes("Script errors") || result.includes("FAILED")) {
+            // Use the first error line as the representative pattern for this call
             const lines = result.split("\n").filter(l => l.trim().startsWith("-") || l.trim().match(/^\d+\./));
-            for (const line of lines) recentErrors.push(normalizeError(line));
+            if (lines.length) recentErrors.push(normalizeError(lines[0]));
             errorFixCycles++;
           } else if (result.includes("No browser errors detected")) {
+            // Success — clear error history so past errors don't trigger false loop detection
+            recentErrors.length = 0;
             errorFixCycles = 0;
           }
         }
