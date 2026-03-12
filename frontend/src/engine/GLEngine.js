@@ -409,6 +409,12 @@ export default class GLEngine {
       this._restoreGLFromWebGPU();
     }
 
+    // If switching TO WebGPU, release WebGL2 BEFORE WebGPU init
+    // to avoid dual GPU contexts competing for resources
+    if (!wasWebGPU && preferBackend === "webgpu" && this.gl && !this.gl.isContextLost()) {
+      this._releaseGLForWebGPU();
+    }
+
     try {
       await this.initBackend();
       // Success — dispose the old backend now
@@ -2110,7 +2116,7 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
 
   _disposeScene() {
     const gl = this.gl;
-    if (!gl) return;
+    const glAlive = gl && !gl.isContextLost();
 
     // Clean up script mode
     if (this._scriptCleanupFn && this._scriptCtx) {
@@ -2133,12 +2139,12 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     this._individualBlobUrls.clear();
 
     // Auto-destroy GL/GPU objects left in ctx.state by scripts that didn't clean up
-    if (this._scriptCtx?.state) {
+    if (glAlive && this._scriptCtx?.state) {
       this._autoDestroyGLObjects(gl, this._scriptCtx.state);
     }
 
     // Restore original drawArrays (remove validation wrapper)
-    if (this.gl) {
+    if (glAlive) {
       delete this.gl.drawArrays;
       delete this.gl.drawArraysInstanced;
     }
@@ -2149,8 +2155,10 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     this._scriptCleanupFn = null;
     this._moduleCache = null; // Clear module cache on scene dispose
 
-    for (const mgr of this._managers) {
-      mgr?.deleteTextures?.(gl);
+    if (glAlive) {
+      for (const mgr of this._managers) {
+        mgr?.deleteTextures?.(gl);
+      }
     }
     for (const mgr of this._managers) {
       mgr?.reset?.();
@@ -2158,9 +2166,9 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     this._disposeReadbackCache();
 
     // Reset WebGL global state to defaults so the next project starts clean.
-    // Without this, state left by the previous project (depth test, blend mode,
-    // bound textures/buffers/framebuffers, etc.) corrupts the new project.
-    this._resetGLState(gl);
+    if (glAlive) {
+      this._resetGLState(gl);
+    }
 
     this._customUniforms = {};
     this._keyboardBindings = {};
