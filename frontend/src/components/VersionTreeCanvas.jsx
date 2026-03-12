@@ -359,7 +359,7 @@ export default function VersionTreeCanvas({
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
       // F key: toggle fit-all ↔ active node focus
-      if (e.key === "f" || e.key === "F") {
+      if (e.code === "KeyF") {
         e.preventDefault();
         setFitAll((prev) => {
           if (!prev) {
