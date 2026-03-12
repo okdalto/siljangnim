@@ -137,6 +137,11 @@ function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
           <div className="flex items-center gap-2">
             <span style={{ color: "var(--chrome-text-muted)" }}>{fps} FPS</span>
             <span className={`px-1.5 py-px rounded-full ${backendName === "WebGPU" ? "bg-emerald-900 text-emerald-400" : "bg-indigo-900 text-indigo-400"}`}>{backendName}</span>
+            <button onClick={reloadScene} className="p-2 -m-1 transition-colors" style={{ color: "var(--chrome-text-secondary)" }} title="Reload scene">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+            </button>
             <button onClick={toggleFullscreen} className="p-2 -m-1 transition-colors" style={{ color: "var(--chrome-text-secondary)" }} title="Fullscreen">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" />
@@ -181,6 +186,16 @@ function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
             <span className={`px-1.5 py-px rounded-full ${backendName === "WebGPU" ? "bg-emerald-900 text-emerald-400" : "bg-indigo-900 text-indigo-400"}`}>
               {backendName}
             </span>
+            <button
+              onClick={reloadScene}
+              className="transition-colors nodrag"
+              style={{ color: "var(--chrome-text-secondary)" }}
+              title="Reload scene"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+            </button>
             <button
               onClick={toggleFullscreen}
               className="transition-colors nodrag"
