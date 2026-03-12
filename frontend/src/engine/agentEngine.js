@@ -106,16 +106,22 @@ export default class AgentEngine {
       },
       push(msg) {
         this.errors.push(msg);
+        if (this.errors.length > 100) this.errors.shift();
         if (this._resolve) { this._resolve(); this._resolve = null; }
       },
       /** Called when write_scene broadcasts — marks a pending scene load. */
+      _sceneLoadVersion: 0,
       expectSceneLoad() {
         // Clear previous timer if re-entered (multiple write_scene calls in sequence)
         clearTimeout(this._sceneLoadTimer);
+        this._sceneLoadVersion++;
+        const ver = this._sceneLoadVersion;
         this._sceneLoaded = false;
         this._setupReady = null; // unknown until scene loads
         // Auto-resolve after 5s if viewport never acks (safety net)
-        this._sceneLoadTimer = setTimeout(() => this.ackSceneLoad(), 5000);
+        this._sceneLoadTimer = setTimeout(() => {
+          if (this._sceneLoadVersion === ver) this.ackSceneLoad();
+        }, 5000);
       },
       /** Called when viewport finishes loadScene(). */
       ackSceneLoad(detail) {
