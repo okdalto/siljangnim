@@ -192,7 +192,13 @@ async function toolWriteScene(input, broadcast) {
 
   if (input.uniforms) scene.uniforms = input.uniforms;
   if (input.clearColor) scene.clearColor = input.clearColor;
-  if (input.backendTarget) scene.backendTarget = input.backendTarget;
+  if (input.backendTarget) {
+    // Pre-check WebGPU availability before attempting a backend switch
+    if ((input.backendTarget === "webgpu" || input.backendTarget === "hybrid") && typeof navigator !== "undefined" && !navigator.gpu) {
+      return `Error: backendTarget "${input.backendTarget}" requires WebGPU, but this browser does not support WebGPU (navigator.gpu is not available). Use backendTarget "auto" (WebGL2) instead, or implement the simulation on CPU / Transform Feedback.`;
+    }
+    scene.backendTarget = input.backendTarget;
+  }
 
   normalizeScriptStrings(scene);
   const errors = validateSceneJson(scene);
@@ -949,7 +955,12 @@ async function toolUseTemplate(input, broadcast) {
   if (tmpl.cleanup) scene.script.cleanup = tmpl.cleanup;
   if (tmpl.uniforms) scene.uniforms = tmpl.uniforms;
   if (tmpl.clearColor) scene.clearColor = tmpl.clearColor;
-  if (tmpl.backendTarget) scene.backendTarget = tmpl.backendTarget;
+  if (tmpl.backendTarget) {
+    if ((tmpl.backendTarget === "webgpu" || tmpl.backendTarget === "hybrid") && typeof navigator !== "undefined" && !navigator.gpu) {
+      return `Error: template '${templateId}' requires WebGPU (backendTarget: "${tmpl.backendTarget}"), but this browser does not support WebGPU. Use a WebGL2-based template instead.`;
+    }
+    scene.backendTarget = tmpl.backendTarget;
+  }
 
   if (!scene.script.render) return `Error: template '${templateId}' is missing a render function.`;
 
