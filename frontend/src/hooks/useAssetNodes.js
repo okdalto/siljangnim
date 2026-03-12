@@ -5,6 +5,7 @@ import {
   buildTechInfo,
   ASSET_CATEGORY,
 } from "../engine/assetDescriptor.js";
+import { guessMimeType } from "../utils/mimeUtils.js";
 
 function buildAISummaryPrompt(category, filename, techInfo, metadata) {
   const parts = [`Asset: "${filename}" (${category})`];
@@ -159,7 +160,7 @@ export default function useAssetNodes() {
       const next = new Map(prev);
       for (const f of savedFiles) {
         const id = `asset_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-        const mime = f.mime_type || f.mimeType || "application/octet-stream";
+        const mime = f.mime_type || f.mimeType || guessMimeType(f.name);
         const descriptor = createAssetDescriptor(id, f.name, {
           mimeType: mime,
           fileSize: f.size || 0,
@@ -333,7 +334,9 @@ export default function useAssetNodes() {
           ) {
             try {
               const entry = await storageModule.readUpload(desc.filename);
-              const url = URL.createObjectURL(new Blob([entry.data], { type: desc.mimeType }));
+              const mime = desc.mimeType && desc.mimeType !== "application/octet-stream"
+                ? desc.mimeType : (entry.mimeType || guessMimeType(desc.filename));
+              const url = URL.createObjectURL(new Blob([entry.data], { type: mime }));
               updates.set(id, { previewUrl: url, processingStatus: "ready" });
             } catch {
               updates.set(id, { processingStatus: "missing" });
