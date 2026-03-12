@@ -8,7 +8,7 @@
 
 import { callLLM } from "./llmClient.js";
 import { classifyApiError } from "./agentErrorHandler.js";
-import { detectToolLoop, detectErrorLoop, normalizeError } from "./agentLoopDetector.js";
+import { detectToolLoop, detectErrorLoop, normalizeError, isUnrecoverableError } from "./agentLoopDetector.js";
 
 // ---------------------------------------------------------------------------
 // Vision model capability detection
@@ -779,13 +779,24 @@ async function _executeOneTool(block, ctx) {
     log("System", result, "error");
   }
 
-  // Track error patterns from check_browser_errors
+  // Check for unrecoverable errors in any tool result (context loss, etc.)
   let errorInfo = null;
   let errorCleared = false;
-  if (block.name === "check_browser_errors" && typeof result === "string") {
+  if (isError && typeof result === "string") {
+    const { unrecoverable, reason } = isUnrecoverableError(result);
+    if (unrecoverable) {
+      errorInfo = { pattern: normalizeError(result.split("\n")[0]), unrecoverable, reason };
+    }
+  }
+  // Track error patterns from check_browser_errors
+  if (!errorInfo && block.name === "check_browser_errors" && typeof result === "string") {
     if (result.includes("Script errors") || result.includes("FAILED")) {
       const lines = result.split("\n").filter(l => l.trim().startsWith("-") || l.trim().match(/^\d+\./));
-      if (lines.length) errorInfo = { pattern: normalizeError(lines[0]) };
+      if (lines.length) {
+        const pattern = normalizeError(lines[0]);
+        const { unrecoverable, reason } = isUnrecoverableError(result);
+        errorInfo = { pattern, unrecoverable, reason };
+      }
     } else if (result.includes("No browser errors detected")) {
       errorCleared = true;
     }
@@ -1191,6 +1202,38 @@ async function _runAgentLoop({
 
       // Append tool results as user message
       messages.push({ role: "user", content: toolResults });
+
+      // --- Unrecoverable error detection (immediate stop) ---
+      const unrecoverable = allResults.find(r => r.errorInfo?.unrecoverable);
+      if (unrecoverable) {
+        const reason = unrecoverable.errorInfo.reason;
+        log("System", `Unrecoverable error detected — stopping agent: ${reason}`, "warning");
+        messages.push({
+          role: "user",
+          content: `SYSTEM: This is an UNRECOVERABLE ENVIRONMENT ERROR that cannot be fixed by editing code: "${reason}". DO NOT attempt to fix this by modifying the scene code — it will fail no matter what code you write. Instead, explain to the user what happened and suggest they refresh the page or switch backends. Respond in the user's language.`,
+        });
+        try {
+          const finalResult = await callLLM({
+            provider,
+            apiKey,
+            baseUrl: providerConfig.base_url,
+            model: modelName,
+            maxTokens: 1024,
+            system: systemPrompt,
+            messages,
+            tools: [],
+            signal,
+          });
+          const finalBlocks = (finalResult.contentBlocks || []).filter(b => b.type !== "thinking");
+          for (const block of finalBlocks) {
+            if (block.type === "text" && block.text?.trim()) {
+              onText?.(block.text);
+              lastText = block.text;
+            }
+          }
+        } catch { /* best effort */ }
+        break;
+      }
 
       // --- Loop detection ---
       const loopResult = detectToolLoop(recentToolSigs, {
