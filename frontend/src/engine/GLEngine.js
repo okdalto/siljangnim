@@ -976,6 +976,30 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
           return result;
         },
 
+        /**
+         * Load a raw text file from .workspace/ storage (IndexedDB).
+         * Unlike loadModule, this does NOT execute the content — it returns
+         * the raw string. Use for WGSL shaders, GLSL snippets, CSV data, etc.
+         *
+         * @param {string} path - File path (e.g. '.workspace/compute.wgsl')
+         * @param {{ reload?: boolean }} opts - Pass {reload: true} to bypass cache
+         * @returns {Promise<string>} - The file content as a string
+         */
+        loadText: async (path, { reload = false } = {}) => {
+          if (!this._textCache) this._textCache = {};
+          if (!reload && this._textCache[path]) return this._textCache[path];
+
+          let text;
+          try {
+            text = await readTextFile(path);
+          } catch (err) {
+            throw new Error(`loadText: file not found: ${path}`);
+          }
+
+          this._textCache[path] = text;
+          return text;
+        },
+
         // --- New utility modules ---
         mat4,
         quat,
@@ -2154,6 +2178,7 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     this._scriptRenderFn = null;
     this._scriptCleanupFn = null;
     this._moduleCache = null; // Clear module cache on scene dispose
+    this._textCache = null; // Clear text cache on scene dispose
 
     if (glAlive) {
       for (const mgr of this._managers) {
