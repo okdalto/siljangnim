@@ -316,6 +316,17 @@ export default function App() {
 
   // Overwrite mode: update current node in-place instead of creating a new child
   const [overwriteMode, setOverwriteMode] = useState(false);
+
+  // Welcome onboarding modal
+  const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem("siljangnim:hasCompletedOnboarding"));
+  const handleWelcomeComplete = useCallback(() => {
+    localStorage.setItem("siljangnim:hasCompletedOnboarding", "true");
+    setShowWelcome(false);
+  }, []);
+
+  // Keyboard shortcuts help
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const toggleShortcuts = useCallback(() => setShowShortcuts((v) => !v), []);
   const overwriteModeRef = useRef(false);
   overwriteModeRef.current = overwriteMode;
 
@@ -451,6 +462,7 @@ export default function App() {
     layoutHistoryRef,
     kf,
     panels,
+    onToggleShortcutsHelp: toggleShortcuts,
   });
 
   // Debounced + immediate workspace-state sync to backend
@@ -859,7 +871,9 @@ export default function App() {
           completionInfo={recCompletionInfo}
         />
 
-        {apiKey.apiKeyRequired && (
+        {showWelcome && <WelcomeModal onComplete={handleWelcomeComplete} />}
+
+        {!showWelcome && apiKey.apiKeyRequired && (
           <ApiKeyModal
             onSubmit={apiKey.handleApiKeySubmit}
             error={apiKey.apiKeyError}
@@ -868,6 +882,8 @@ export default function App() {
             savedConfig={apiKey.savedConfig}
           />
         )}
+
+        {showShortcuts && <KeyboardShortcutsHelp onClose={() => setShowShortcuts(false)} />}
 
         {showGitHubSave && github.isAuthenticated && (
           <GitHubSaveDialog

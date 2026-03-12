@@ -148,7 +148,11 @@ export default function ViewportNode({ id, data, standalone = false, hideHeader 
         engine.loadScene(sceneJSON);
         // Wait for async setup to complete before dispatching scene_loaded
         // (setup may be waiting for WebGPU backend init, blob URL loading, etc.)
-        return engine._setupPromise;
+        // Timeout after 10s to prevent indefinite hang
+        return Promise.race([
+          engine._setupPromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Scene setup timed out (10s)")), 10000)),
+        ]);
       })
       .then(() => {
         // Notify agent error collector that the scene has loaded,
