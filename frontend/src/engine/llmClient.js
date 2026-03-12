@@ -262,22 +262,13 @@ async function callOpenAICompatible({
 }
 
 /**
- * Parse OpenAI-format SSE stream and normalize to Anthropic-like content blocks.
+ * Shared SSE line reader — handles chunked reads, timeout, and JSON parsing.
  */
-async function parseOpenAISSEStream(body, callbacks) {
+async function readSSELines(body, onChunk) {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
-
-  const contentBlocks = [];
-  let textChunks = [];
-  let hasText = false;
-  // Track tool calls by index
-  const toolCallMap = new Map();
-  let stopReason = "stream_incomplete";
-
   const STREAM_READ_TIMEOUT = 120_000;
-
   try {
     while (true) {
       const readPromise = reader.read();
@@ -306,57 +297,66 @@ async function parseOpenAISSEStream(body, callbacks) {
         if (!line.startsWith("data: ")) continue;
         const data = line.slice(6).trim();
         if (!data || data === "[DONE]") continue;
-
         let chunk;
-        try {
-          chunk = JSON.parse(data);
-        } catch {
-          continue;
-        }
-
-        const choice = chunk.choices?.[0];
-        if (!choice) continue;
-
-        const delta = choice.delta;
-        if (!delta) continue;
-
-        // Text content
-        if (delta.content) {
-          if (!hasText) {
-            hasText = true;
-            callbacks.onContentBlockStart?.("text");
-          }
-          textChunks.push(delta.content);
-          callbacks.onTextDelta?.(delta.content);
-        }
-
-        // Tool calls
-        if (delta.tool_calls) {
-          for (const tc of delta.tool_calls) {
-            const idx = tc.index ?? 0;
-            if (!toolCallMap.has(idx)) {
-              toolCallMap.set(idx, { id: tc.id || "", name: tc.function?.name || "", arguments: "" });
-              if (tc.function?.name) callbacks.onToolUseStart?.(tc.function.name);
-            }
-            const existing = toolCallMap.get(idx);
-            if (tc.id) existing.id = tc.id;
-            if (tc.function?.name) existing.name = tc.function.name;
-            if (tc.function?.arguments) existing.arguments += tc.function.arguments;
-          }
-        }
-
-        // Stop reason
-        if (choice.finish_reason) {
-          if (choice.finish_reason === "stop") stopReason = "end_turn";
-          else if (choice.finish_reason === "tool_calls") stopReason = "tool_use";
-          else if (choice.finish_reason === "length") stopReason = "max_tokens";
-          else stopReason = choice.finish_reason;
-        }
+        try { chunk = JSON.parse(data); } catch { continue; }
+        onChunk(chunk);
       }
     }
   } finally {
     reader.releaseLock();
   }
+}
+
+/**
+ * Parse OpenAI-format SSE stream and normalize to Anthropic-like content blocks.
+ */
+async function parseOpenAISSEStream(body, callbacks) {
+  const contentBlocks = [];
+  let textChunks = [];
+  let hasText = false;
+  const toolCallMap = new Map();
+  let stopReason = "stream_incomplete";
+
+  await readSSELines(body, (chunk) => {
+    const choice = chunk.choices?.[0];
+    if (!choice) return;
+
+    const delta = choice.delta;
+    if (!delta) return;
+
+    // Text content
+    if (delta.content) {
+      if (!hasText) {
+        hasText = true;
+        callbacks.onContentBlockStart?.("text");
+      }
+      textChunks.push(delta.content);
+      callbacks.onTextDelta?.(delta.content);
+    }
+
+    // Tool calls
+    if (delta.tool_calls) {
+      for (const tc of delta.tool_calls) {
+        const idx = tc.index ?? 0;
+        if (!toolCallMap.has(idx)) {
+          toolCallMap.set(idx, { id: tc.id || "", name: tc.function?.name || "", arguments: "" });
+          if (tc.function?.name) callbacks.onToolUseStart?.(tc.function.name);
+        }
+        const existing = toolCallMap.get(idx);
+        if (tc.id) existing.id = tc.id;
+        if (tc.function?.name) existing.name = tc.function.name;
+        if (tc.function?.arguments) existing.arguments += tc.function.arguments;
+      }
+    }
+
+    // Stop reason
+    if (choice.finish_reason) {
+      if (choice.finish_reason === "stop") stopReason = "end_turn";
+      else if (choice.finish_reason === "tool_calls") stopReason = "tool_use";
+      else if (choice.finish_reason === "length") stopReason = "max_tokens";
+      else stopReason = choice.finish_reason;
+    }
+  });
 
   // Flush text
   if (textChunks.length > 0) {
@@ -541,96 +541,51 @@ async function callGemini({
  * Parse Gemini SSE stream and normalize to Anthropic-like content blocks.
  */
 async function parseGeminiSSEStream(body, callbacks) {
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-
   const contentBlocks = [];
   let textChunks = [];
   let hasText = false;
   let stopReason = "stream_incomplete";
 
-  const STREAM_READ_TIMEOUT = 120_000;
+  await readSSELines(body, (chunk) => {
+    const candidates = chunk.candidates;
+    if (!candidates?.length) return;
 
-  try {
-    while (true) {
-      const readPromise = reader.read();
-      let timer;
-      const timeoutPromise = new Promise((_, reject) => {
-        timer = setTimeout(() => {
-          const err = new Error("Stream read timeout");
-          err.status = 0;
-          reject(err);
-        }, STREAM_READ_TIMEOUT);
-      });
-      let result;
-      try {
-        result = await Promise.race([readPromise, timeoutPromise]);
-      } finally {
-        clearTimeout(timer);
+    const candidate = candidates[0];
+    const parts = candidate.content?.parts || [];
+
+    for (const part of parts) {
+      if (part.text) {
+        if (!hasText) {
+          hasText = true;
+          callbacks.onContentBlockStart?.("text");
+        }
+        textChunks.push(part.text);
+        callbacks.onTextDelta?.(part.text);
       }
-      const { done, value } = result;
-      if (done) break;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        const data = line.slice(6).trim();
-        if (!data || data === "[DONE]") continue;
-
-        let chunk;
-        try {
-          chunk = JSON.parse(data);
-        } catch {
-          continue;
-        }
-
-        const candidates = chunk.candidates;
-        if (!candidates?.length) continue;
-
-        const candidate = candidates[0];
-        const parts = candidate.content?.parts || [];
-
-        for (const part of parts) {
-          if (part.text) {
-            if (!hasText) {
-              hasText = true;
-              callbacks.onContentBlockStart?.("text");
-            }
-            textChunks.push(part.text);
-            callbacks.onTextDelta?.(part.text);
-          }
-
-          if (part.functionCall) {
-            const fc = part.functionCall;
-            callbacks.onToolUseStart?.(fc.name);
-            const toolBlock = {
-              type: "tool_use",
-              id: `gemini_${crypto.randomUUID().slice(0, 8)}`,
-              name: fc.name,
-              input: fc.args || {},
-            };
-            contentBlocks.push(toolBlock);
-            callbacks.onContentBlockStop?.("tool_use", toolBlock);
-          }
-        }
-
-        // Check finish reason
-        if (candidate.finishReason) {
-          if (candidate.finishReason === "STOP") stopReason = "end_turn";
-          else if (candidate.finishReason === "MAX_TOKENS") stopReason = "max_tokens";
-          else stopReason = "end_turn";
-        }
+      if (part.functionCall) {
+        const fc = part.functionCall;
+        callbacks.onToolUseStart?.(fc.name);
+        const toolBlock = {
+          type: "tool_use",
+          id: `gemini_${crypto.randomUUID().slice(0, 8)}`,
+          name: fc.name,
+          input: fc.args || {},
+        };
+        contentBlocks.push(toolBlock);
+        callbacks.onContentBlockStop?.("tool_use", toolBlock);
       }
     }
-  } finally {
-    reader.releaseLock();
-  }
 
-  // Flush text
+    // Check finish reason
+    if (candidate.finishReason) {
+      if (candidate.finishReason === "STOP") stopReason = "end_turn";
+      else if (candidate.finishReason === "MAX_TOKENS") stopReason = "max_tokens";
+      else stopReason = "end_turn";
+    }
+  });
+
+  // Flush text (unshift — Gemini puts text before tool blocks)
   if (textChunks.length > 0) {
     const fullText = textChunks.join("");
     contentBlocks.unshift({ type: "text", text: fullText });

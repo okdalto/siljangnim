@@ -5,6 +5,27 @@ import MarkdownMessage from "../components/chat/MarkdownMessage.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
 import BranchSelector from "../components/BranchSelector.jsx";
 
+const TOOL_LABELS = {
+  write_scene: "씬 작성 중...",
+  read_file: "파일 읽는 중...",
+  write_file: "파일 저장 중...",
+  check_browser_errors: "에러 확인 중...",
+  open_panel: "컨트롤 패널 생성 중...",
+  close_panel: "패널 닫는 중...",
+  capture_viewport: "화면 캡처 중...",
+  search_code: "코드 검색 중...",
+  enable_audio: "오디오 설정 중...",
+  disable_audio: "오디오 해제 중...",
+  enable_mediapipe: "카메라 설정 중...",
+  disable_mediapipe: "카메라 해제 중...",
+  run_debug_diagnosis: "디버그 분석 중...",
+  ask_user: "질문 준비 중...",
+  list_files: "파일 목록 조회 중...",
+  list_uploaded_files: "업로드 파일 조회 중...",
+  start_recording: "녹화 시작 중...",
+  debug_eval: "코드 실행 중...",
+};
+
 function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -41,6 +62,14 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
   const messagesRef = useRef(null);
   const fileInputRef = useRef(null);
   const thinkingRef = useRef(null);
+
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (!isProcessing) { setElapsed(0); return; }
+    const start = Date.now();
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [isProcessing]);
 
   useEffect(() => {
     // Scroll within the messages container only (not the page)
@@ -246,14 +275,17 @@ export default function ChatNode({ data, standalone = false, hideHeader = false 
               </span>
               <span className="italic text-sm">
                 {agentStatus?.status === "tool_use"
-                  ? `Calling ${agentStatus.detail}...`
+                  ? (TOOL_LABELS[agentStatus.detail] || "처리 중...")
                   : agentStatus?.status === "thinking"
-                  ? "Thinking..."
-                  : "Thinking"}
+                  ? "생각하는 중..."
+                  : "생각하는 중"}
               </span>
+              {elapsed > 2 && (
+                <span className="text-[10px] opacity-60">{elapsed}초</span>
+              )}
             </div>
-            {agentStatus?.detail && (
-              <p ref={thinkingRef} className="mt-1.5 text-xs italic leading-relaxed max-h-32 overflow-y-auto whitespace-pre-wrap break-words" style={{ color: "var(--chrome-text-muted)" }}>
+            {agentStatus?.detail && agentStatus?.status !== "tool_use" && (
+              <p ref={thinkingRef} className="mt-1.5 text-xs italic leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap break-words" style={{ color: "var(--chrome-text-muted)" }}>
                 {agentStatus.detail}
               </p>
             )}

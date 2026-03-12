@@ -90,6 +90,21 @@ function deleteNested(obj, path) {
 }
 
 // ---------------------------------------------------------------------------
+// Panel persist helper
+// ---------------------------------------------------------------------------
+
+async function updatePanelStorage(panelId, data) {
+  let panels = {};
+  try { panels = await storage.readJson("panels.json"); } catch { /* empty */ }
+  if (data === null) {
+    delete panels[panelId];
+  } else {
+    panels[panelId] = data;
+  }
+  await storage.writeJson("panels.json", panels);
+}
+
+// ---------------------------------------------------------------------------
 // Tool implementations
 // ---------------------------------------------------------------------------
 
@@ -477,11 +492,7 @@ async function toolOpenPanel(input, broadcast) {
     };
     broadcast(panelData);
 
-    // Persist to panels.json
-    let panels = {};
-    try { panels = await storage.readJson("panels.json"); } catch { /* empty */ }
-    panels[panelId] = { title, controls, width, height };
-    await storage.writeJson("panels.json", panels);
+    await updatePanelStorage(panelId, { title, controls, width, height });
     return `ok — native controls panel '${panelId}' opened.`;
   }
 
@@ -510,10 +521,7 @@ async function toolOpenPanel(input, broadcast) {
     };
     broadcast(panelMsg);
 
-    let panels = {};
-    try { panels = await storage.readJson("panels.json"); } catch { /* empty */ }
-    panels[panelId] = { title, url, width, height };
-    await storage.writeJson("panels.json", panels);
+    await updatePanelStorage(panelId, { title, url, width, height });
     return `ok — URL panel '${panelId}' opened.`;
   }
 
@@ -528,10 +536,7 @@ async function toolOpenPanel(input, broadcast) {
   };
   broadcast(panelMsg);
 
-  let panels = {};
-  try { panels = await storage.readJson("panels.json"); } catch { /* empty */ }
-  panels[panelId] = { title, html: html || "", width, height };
-  await storage.writeJson("panels.json", panels);
+  await updatePanelStorage(panelId, { title, html: html || "", width, height });
   return `ok — panel '${panelId}' opened.`;
 }
 
@@ -539,17 +544,11 @@ async function toolClosePanel(input, broadcast) {
   const panelId = input.id || "";
   if (!panelId) return "Error: 'id' is required.";
   broadcast({ type: "close_panel", id: panelId });
-  try {
-    const panels = await storage.readJson("panels.json");
-    if (panelId in panels) {
-      delete panels[panelId];
-      await storage.writeJson("panels.json", panels);
-    }
-  } catch { /* ignore */ }
+  try { await updatePanelStorage(panelId, null); } catch { /* ignore */ }
   return `ok — panel '${panelId}' closed.`;
 }
 
-async function toolStartRecording(input, broadcast, recordingDonePromise) {
+async function toolStartRecording(input, broadcast, ctx) {
   const resetTimeline = input.resetTimeline !== false;
   const msg = { type: "start_recording" };
   if (input.duration != null) msg.duration = input.duration;
@@ -559,8 +558,8 @@ async function toolStartRecording(input, broadcast, recordingDonePromise) {
   const durationStr = input.duration ? ` for ${input.duration}s` : "";
 
   // If duration is specified and we have a promise factory, wait for recording to finish
-  if (input.duration != null && recordingDonePromise) {
-    const promise = recordingDonePromise();
+  if (input.duration != null && ctx.recordingDonePromise) {
+    const promise = ctx.recordingDonePromise();
     await promise;
     return `ok — recording finished (${input.duration}s)${resetTimeline ? " (timeline was reset to 0)" : ""}.`;
   }
@@ -626,15 +625,16 @@ function parseError(errorMsg) {
   return parsed;
 }
 
-async function toolCheckBrowserErrors(input, broadcast, errorCollector) {
+async function toolCheckBrowserErrors(input, broadcast, ctx) {
+  const errorCollector = ctx.errorCollector;
   // Wait up to 3 seconds for errors to arrive (waits for scene load first)
   const errors = await errorCollector.waitForErrors(3000);
 
   // Second short wait to catch late-arriving WebGPU validation errors
   // (GPU shader compilation and pipeline creation are async)
-  if (!errors.length || errorCollector._setupReady === false) {
+  if (!errors.length || !errorCollector.isSetupReady()) {
     await new Promise((r) => setTimeout(r, 800));
-    const late = errorCollector.errors.splice(0);
+    const late = errorCollector.drainLateErrors();
     for (const e of late) {
       if (!errors.includes(e)) errors.push(e);
     }
@@ -643,20 +643,16 @@ async function toolCheckBrowserErrors(input, broadcast, errorCollector) {
   // Also consume any pending WebGPU validation errors from the renderer
   // (these are captured by the uncapturederror handler but may not have
   // been forwarded to console.error yet, e.g. during render loop)
-  const engine = errorCollector._engineRef?.current;
-  const renderer = engine?._backend;
-  if (renderer?.consumeValidationErrors) {
-    const gpuErrors = renderer.consumeValidationErrors();
-    for (const e of gpuErrors) {
-      const msg = `[WebGPU ${e.type}] ${e.message}`;
-      if (!errors.includes(msg)) errors.push(msg);
-    }
+  const gpuErrors = errorCollector.getValidationErrors();
+  for (const e of gpuErrors) {
+    const msg = `[WebGPU ${e.type}] ${e.message}`;
+    if (!errors.includes(msg)) errors.push(msg);
   }
 
   const parts = [];
 
   // Report setup status — helps diagnose white screens with "no errors"
-  if (errorCollector._setupReady === false) {
+  if (!errorCollector.isSetupReady()) {
     parts.push("⚠ Scene setup() FAILED — the render loop is NOT running. Check the errors below or verify your setup code.");
   }
 
@@ -692,7 +688,7 @@ async function toolCheckBrowserErrors(input, broadcast, errorCollector) {
 /**
  * Ask user tool — returns a promise that resolves when the user answers.
  */
-async function toolAskUser(input, broadcast, userAnswerPromise) {
+async function toolAskUser(input, broadcast, ctx) {
   const question = input.question || "";
   const options = input.options || [];
 
@@ -703,11 +699,11 @@ async function toolAskUser(input, broadcast, userAnswerPromise) {
   });
 
   // Wait for user response
-  const answer = await userAnswerPromise();
+  const answer = await ctx.userAnswerPromise();
   return `The user answered: ${answer}`;
 }
 
-async function toolRunPreprocess(input, broadcast, preprocessPromise) {
+async function toolRunPreprocess(input, broadcast, ctx) {
   const code = input.code;
   if (!code) return "Error: 'code' parameter is required.";
 
@@ -716,7 +712,7 @@ async function toolRunPreprocess(input, broadcast, preprocessPromise) {
 
   // Wait for result from the engine
   try {
-    const result = await preprocessPromise();
+    const result = await ctx.preprocessPromise();
     if (result === undefined || result === null) return "ok — preprocess completed (no return value).";
     try {
       return JSON.stringify(result, null, 2);
@@ -824,8 +820,8 @@ async function toolUnzipAsset(input, broadcast) {
  * Returns an object with { image: base64string } instead of a plain string,
  * so the executor can build image content blocks for vision-capable models.
  */
-async function toolCaptureViewport(input, broadcast, engineRef) {
-  const engine = engineRef?.current;
+async function toolCaptureViewport(input, broadcast, ctx) {
+  const engine = ctx.engineRef?.current;
   if (!engine?.canvas) {
     return "Error: No viewport canvas available. Make sure a scene is loaded.";
   }
@@ -869,7 +865,24 @@ async function toolCaptureViewport(input, broadcast, engineRef) {
   }
 }
 
-async function toolDebugSubagent(input, broadcast, debugSubagentRunner) {
+async function toolClearViewport(input, broadcast, ctx) {
+  const engine = ctx.engineRef?.current;
+  if (!engine) {
+    return "Error: No viewport engine available.";
+  }
+  engine._disposeScene();
+  // Clear canvas to black
+  const gl = engine.gl;
+  if (gl) {
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+  }
+  broadcast({ type: "viewport_cleared" });
+  return "ok — viewport cleared. All GPU resources released, canvas is black. Call write_scene to render a new scene.";
+}
+
+async function toolDebugSubagent(input, broadcast, ctx) {
+  const debugSubagentRunner = ctx.debugSubagentRunner;
   const errorContext = input.error_context;
   if (!errorContext) return "Error: 'error_context' is required.";
   if (!debugSubagentRunner) return "Error: debug sub-agent is not available in this context.";
@@ -967,6 +980,7 @@ const TOOL_HANDLERS = {
   web_fetch: toolWebFetch,
   unzip_asset: toolUnzipAsset,
   capture_viewport: toolCaptureViewport,
+  clear_viewport: toolClearViewport,
   debug_with_subagent: toolDebugSubagent,
 };
 
@@ -988,23 +1002,5 @@ export async function handleTool(name, inputData, broadcast, context = {}) {
     context.errorCollector.expectSceneLoad();
   }
 
-  if (name === "check_browser_errors") {
-    return handler(inputData, broadcast, context.errorCollector);
-  }
-  if (name === "ask_user") {
-    return handler(inputData, broadcast, context.userAnswerPromise);
-  }
-  if (name === "start_recording") {
-    return handler(inputData, broadcast, context.recordingDonePromise);
-  }
-  if (name === "run_preprocess") {
-    return handler(inputData, broadcast, context.preprocessPromise);
-  }
-  if (name === "capture_viewport") {
-    return handler(inputData, broadcast, context.engineRef);
-  }
-  if (name === "debug_with_subagent") {
-    return handler(inputData, broadcast, context.debugSubagentRunner);
-  }
-  return handler(inputData, broadcast);
+  return handler(inputData, broadcast, context);
 }

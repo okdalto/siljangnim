@@ -228,12 +228,14 @@ export default function useMessageDispatcher(params) {
                       const { renameNode } = await import("../engine/projectTree.js");
                       await renameNode(activeNodeId2, aiName);
                       pt2.loadTree?.(updated.display_name);
-                    } catch {}
+                    } catch (e) {
+                      console.warn("[chat_done] AI rename tree node failed:", e);
+                    }
                   }
                 } catch (e) {
                   console.warn("[chat_done] AI rename failed:", e);
                 }
-              }).catch(() => {});
+              }).catch((e) => { console.warn("[chat_done] generateProjectName failed:", e); });
             } catch (e) {
               console.warn("[chat_done] auto-create project failed:", e);
             } finally {
@@ -275,16 +277,16 @@ export default function useMessageDispatcher(params) {
                 title,
                 prompt: lastMsg?.text || lastMsg?.content || null,
               });
-              if (node) updateNodeMetadata(node.id, currentState, { generateTitle: !skipAITitle, onTitleUpdated: reloadTree }).catch(() => {});
+              if (node) updateNodeMetadata(node.id, currentState, { generateTitle: !skipAITitle, onTitleUpdated: reloadTree }).catch((e) => { console.warn("[chat_done] updateNodeMetadata failed:", e); });
             } else {
               const node = await pt.createNodeAfterPrompt(projName, currentState, {
                 title,
                 type: "prompt_node",
                 prompt: lastMsg?.text || lastMsg?.content || null,
               });
-              if (node) updateNodeMetadata(node.id, currentState, { generateTitle: !skipAITitle, onTitleUpdated: reloadTree }).catch(() => {});
+              if (node) updateNodeMetadata(node.id, currentState, { generateTitle: !skipAITitle, onTitleUpdated: reloadTree }).catch((e) => { console.warn("[chat_done] updateNodeMetadata failed:", e); });
             }
-          } catch { /* non-critical */ }
+          } catch (e) { console.warn("[chat_done] tree node creation failed:", e); }
         })();
         break;
       }
@@ -300,6 +302,12 @@ export default function useMessageDispatcher(params) {
         if (msg.scene_json) setSceneJSON(msg.scene_json);
         if (msg.ui_config) setUiConfig(msg.ui_config);
         setWorkspaceFilesVersion((v) => v + 1);
+        dirtyRef.current = true;
+        autoSave?.triggerAutoSave?.();
+        break;
+
+      case "viewport_cleared":
+        setSceneJSON(null);
         dirtyRef.current = true;
         autoSave?.triggerAutoSave?.();
         break;
@@ -436,7 +444,7 @@ export default function useMessageDispatcher(params) {
             ptAsset.createNodeAfterPrompt(assetProjName, assetState, {
               title: `Upload: ${fileNames.slice(0, 50)}`,
               type: "asset_node",
-            }).catch(() => { /* non-critical */ });
+            }).catch((e) => { console.warn("[files_uploaded] tree node creation failed:", e); });
           }
         }
         break;
@@ -487,7 +495,7 @@ export default function useMessageDispatcher(params) {
           ptRepair.createNodeAfterPrompt(repairProjName, repairState, {
             title: msg.title || "Auto-fix",
             type: "agent_repair_node",
-          }).catch(() => { /* non-critical */ });
+          }).catch((e) => { console.warn("[debugger_repair] tree node creation failed:", e); });
         }
         break;
       }

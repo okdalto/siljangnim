@@ -37,11 +37,13 @@ export default function useAutoSave({ captureThumbnailRef, getMessagesRef, setPr
         // Refresh project list
         const projects = await listProjects();
         setProjectList(projects);
+        setSaveStatus("saved");
       } catch (e) {
         console.warn("[useAutoSave] auto-save failed:", e);
+        setSaveStatus("error");
+        setTimeout(() => setSaveStatus(s => s === "error" ? "saved" : s), 5000);
       } finally {
         savingRef.current = false;
-        setSaveStatus("saved");
       }
     }, DEBOUNCE_MS);
   }, [captureThumbnailRef, getMessagesRef, setProjectList]);

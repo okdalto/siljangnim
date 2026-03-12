@@ -199,6 +199,9 @@ export default class GLEngine {
       this._micManager,
     ];
 
+    // Blob URL tracking for memory leak prevention
+    this._individualBlobUrls = new Set();
+
     // Script mode
     this._scriptCtx = null;
     this._scriptSetupFn = null;
@@ -1697,6 +1700,11 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
         try { URL.revokeObjectURL(url); } catch { /* ignore */ }
       }
     }
+    // Revoke individually tracked blob URLs
+    for (const url of this._individualBlobUrls) {
+      try { URL.revokeObjectURL(url); } catch { /* ignore */ }
+    }
+    this._individualBlobUrls.clear();
 
     // Auto-destroy GL/GPU objects left in ctx.state by scripts that didn't clean up
     if (this._scriptCtx?.state) {
@@ -2060,7 +2068,9 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
 
   /** Load an uploaded file from IndexedDB and return a blob URL. */
   async _getUploadBlobUrl(filename) {
-    return getUploadBlobUrl(filename);
+    const url = await getUploadBlobUrl(filename);
+    if (url) this._individualBlobUrls.add(url);
+    return url;
   }
 
   /**

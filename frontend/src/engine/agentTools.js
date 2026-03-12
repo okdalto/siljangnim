@@ -388,6 +388,19 @@ const TOOLS = [
     },
   },
   {
+    name: "clear_viewport",
+    description:
+      "Clear the viewport canvas completely — dispose the current scene, release all GPU " +
+      "resources (buffers, textures, programs, framebuffers, pipelines), and reset the GL/WebGPU " +
+      "state to defaults. The canvas will be cleared to black. Use this when you need a clean " +
+      "slate before writing a new scene, or to recover from a broken render state. " +
+      "After calling this, the viewport will be empty — you must call write_scene to render again.",
+    input_schema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
     name: "debug_with_subagent",
     description:
       "Spawn a debug sub-agent to analyze complex errors. The sub-agent has its own " +
