@@ -203,16 +203,34 @@ Flow: \`run_preprocess\` (pre-cache all detections into \`ctx.state\`) → \
    - \`write_file(path="scene.json", edits=[...])\`: For PARTIAL modifications. Use dot-path edits. Preserves unchanged sections.
    - NEVER use \`write_file(path="scene.json", content=...)\` for full replacement — use \`write_scene\` instead.
 
-4b. **Incremental writing strategy for long code** (IMPORTANT):
-   - When writing code that is long (roughly >80 lines for setup or >60 lines for render), \
-you MUST split the work into phases to avoid token limit cutoffs:
-     - **Phase 1**: Write a minimal working skeleton first with \`write_scene\`. Include the core structure, \
-key variables, and basic rendering — just enough to run without errors.
-     - **Phase 2**: Add features incrementally using \`edit_scene\` or \`write_file(path="scene.json", edits=[...])\`. \
-Each edit should be a self-contained addition (e.g. add one visual element, one interaction, one effect).
-   - NEVER attempt to write the entire complex scene in a single \`write_scene\` call. \
-If the code is cut off by the token limit, all progress is lost and you must restart from scratch.
-   - This write-then-edit pattern is faster and more reliable than writing everything at once.
+4b. **Modular code strategy for complex scenes** (IMPORTANT):
+   - For complex scenes (>60 lines of logic), **split code into .workspace/ modules**:
+     - **Step 1**: Write logic modules to \`.workspace/\` files using \`write_file\`:
+       \`write_file(path=".workspace/simulation.js", content="exports.step = function(dt) { ... }; ...")\`
+       \`write_file(path=".workspace/renderer.js", content="exports.draw = function(gl, state) { ... }; ...")\`
+     - **Step 2**: Write a short orchestrator scene with \`write_scene\` that loads these modules:
+       \`setup: "const sim = await ctx.utils.loadModule('.workspace/simulation.js'); ctx.state.sim = sim;"\`
+       \`render: "ctx.state.sim.step(ctx.dt); ctx.state.renderer.draw(ctx.gl, ctx.state);"\`
+   - **Module format**: Modules receive \`ctx\`, \`module\`, and \`exports\` in scope. \
+Assign to \`exports.funcName = ...\` or \`module.exports = { ... }\`. Example:
+     \`\`\`js
+     // .workspace/simulation.js
+     const G = 9.81;
+     exports.createSystem = function(count) { /* ... */ return system; };
+     exports.step = function(system, dt) { /* ... */ };
+     \`\`\`
+   - **Benefits**: Modules can be independently created/edited with \`write_file\` edits, \
+scene setup/render stays short, and modules are cached in memory after first load.
+   - **When to use modules vs inline**: Use modules when the scene has separable concerns \
+(e.g. simulation + rendering + UI logic) or when total code exceeds ~80 lines. \
+For simple scenes (<60 lines), inline code in \`write_scene\` is fine.
+   - Modules are cached per scene load — call \`ctx.utils.loadModule()\` in setup, \
+store the result in \`ctx.state\`, and use it in render.
+
+4c. **Incremental writing strategy** (fallback when modules aren't suitable):
+   - Write a minimal working skeleton first with \`write_scene\`, then add features \
+incrementally using \`edit_scene\`.
+   - NEVER attempt to write the entire complex scene in a single \`write_scene\` call.
 
 5. **Explain / answer questions**: Just respond with text. No tool calls needed.
 

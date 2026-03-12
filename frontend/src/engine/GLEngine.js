@@ -9,7 +9,7 @@
  * for backward compatibility with existing scenes.
  */
 
-import { getAllUploadBlobUrls, getUploadBlobUrl, readJson, writeJson, getProjectManifest } from "./storage.js";
+import { getAllUploadBlobUrls, getUploadBlobUrl, readJson, writeJson, readTextFile, getProjectManifest } from "./storage.js";
 import { createProgram, compileShader, DEFAULT_QUAD_VERTEX_SHADER, DEFAULT_3D_VERTEX_SHADER } from "./shaderUtils.js";
 import { createQuadGeometry, createBoxGeometry, createSphereGeometry, createPlaneGeometry } from "./geometries.js";
 import { uniformSetter, GEOMETRY_CREATORS } from "./uniformSetters.js";
@@ -819,6 +819,31 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
             uniforms[name] = { location: loc, type: info.type, set: setter };
           }
           return uniforms;
+        },
+
+        /**
+         * Load a JS module from .workspace/ files (IndexedDB).
+         * The module code is executed with `ctx` available. It should assign
+         * properties to `module.exports` or return an object.
+         *
+         * @param {string} path - File path (e.g. '.workspace/simulation.js')
+         * @returns {Promise<object>} - The module's exports
+         */
+        loadModule: async (path) => {
+          // Check in-memory cache first
+          if (!ctx._moduleCache) ctx._moduleCache = {};
+          if (ctx._moduleCache[path]) return ctx._moduleCache[path];
+
+          const code = await readTextFile(path);
+          const moduleObj = { exports: {} };
+          // Execute with ctx, module, and exports in scope
+          const fn = new Function("ctx", "module", "exports", code);
+          fn(ctx, moduleObj, moduleObj.exports);
+          // If module.exports was replaced (module.exports = {...}), use that.
+          // Otherwise use the accumulated exports object.
+          const result = moduleObj.exports;
+          ctx._moduleCache[path] = result;
+          return result;
         },
 
         // --- New utility modules ---
