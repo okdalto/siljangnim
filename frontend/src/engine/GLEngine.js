@@ -2086,32 +2086,28 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     }
 
     // Check if scene requested WebGPU but got WebGL2
-    if (this._scene?.backendTarget === "webgpu" && this._backend?.backendType !== "webgpu") {
-      const msg = "Scene requires WebGPU backend but WebGPU is not available. " +
-        (navigator.gpu ? "WebGPU adapter/device request failed." : "This browser does not support WebGPU.");
+    // "hybrid" mode is allowed — it uses WebGPU for compute but WebGL2 for rendering
+    const wantedBackend = this._scene?.backendTarget;
+    const needsWebGPU = wantedBackend === "webgpu" || wantedBackend === "hybrid";
+    if (needsWebGPU && this._backend?.backendType !== "webgpu") {
+      const msg = wantedBackend === "hybrid"
+        ? "Hybrid mode requires WebGPU for compute shaders but WebGPU is not available. " +
+          (navigator.gpu ? "WebGPU adapter/device request failed." : "This browser does not support WebGPU.")
+        : "Scene requires WebGPU backend but WebGPU is not available. " +
+          (navigator.gpu ? "WebGPU adapter/device request failed." : "This browser does not support WebGPU.");
       console.error("[GLEngine]", msg);
       this.onError?.(new Error(msg));
       window.dispatchEvent(new ErrorEvent("error", { message: msg, error: new Error(msg) }));
-    }
-
-    // Check for backend mismatch: scene wants WebGPU but got WebGL2 (fallback)
-    const wantedBackend = this._scene?.backendTarget;
-    if (wantedBackend === "webgpu" && ctx.backendType !== "webgpu") {
-      const err = new Error(
-        "WebGPU backend requested but not available. " +
-        "Fell back to WebGL2. Check that your browser supports WebGPU " +
-        "(Chrome 113+, Edge 113+, or enable chrome://flags/#enable-unsafe-webgpu)."
-      );
-      console.error("[GLEngine]", err.message);
-      this.onError?.(err);
-      window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
-      this._setupReady = false;
-      if (this.gl) {
-        const g = this.gl;
-        g.clearColor(0.15, 0.05, 0.05, 1);
-        g.clear(g.COLOR_BUFFER_BIT);
+      // For pure WebGPU scenes, this is fatal. For hybrid, fall back to CPU-only.
+      if (wantedBackend === "webgpu") {
+        this._setupReady = false;
+        if (this.gl) {
+          const g = this.gl;
+          g.clearColor(0.15, 0.05, 0.05, 1);
+          g.clear(g.COLOR_BUFFER_BIT);
+        }
+        return;
       }
-      return;
     }
 
     // Run setup (async)

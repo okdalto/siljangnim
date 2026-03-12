@@ -19,7 +19,7 @@ export default function useEngineInit(canvasRef, { backendTarget, onError }) {
     if (!canvas) return;
 
     try {
-      const prefer = backendTarget === "webgpu" ? "webgpu" : "webgl2";
+      const prefer = (backendTarget === "webgpu" || backendTarget === "hybrid") ? "webgpu" : "webgl2";
       const engine = new GLEngine(canvas, { preferBackend: prefer });
       engine.onError = (err) => {
         console.error("[ViewportNode] GLEngine error:", err);
@@ -28,7 +28,10 @@ export default function useEngineInit(canvasRef, { backendTarget, onError }) {
       };
       engine.onFPS = setFps;
       engine.onBackendReady = (type) => {
-        setBackendName(type === "webgpu" ? "WebGPU" : "WebGL2");
+        setBackendName(
+          backendTarget === "hybrid" ? "Hybrid (WebGL2+WebGPU)" :
+          type === "webgpu" ? "WebGPU" : "WebGL2"
+        );
       };
       engine.onMissingAssets = (list) => {
         setMissingAssets(list);
