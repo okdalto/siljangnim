@@ -29,7 +29,7 @@ import * as noise from "./noise.js";
 import * as glsl from "./glslSnippets.js";
 import { createVerletSystem } from "./verletPhysics.js";
 import VideoFrameExtractor from "./VideoFrameExtractor.js";
-import { selectBackend, getBackendDisplayName, BackendType } from "./gpu/index.js";
+import { selectBackend, getBackendDisplayName, BackendType, WebGPUBackend } from "./gpu/index.js";
 import * as shaderTarget from "./gpu/shaderTarget.js";
 import { RenderGraph } from "./gpu/renderGraph.js";
 import { transpileGLSL, transpileFragmentGLSL, transpileVertexGLSL } from "./gpu/glslToWgsl.js";
@@ -330,7 +330,6 @@ export default class GLEngine {
         // The primary display path uses a Canvas 2D overlay to avoid
         // dual GPU contexts (WebGL2 + WebGPU) competing for resources.
         try {
-          const { WebGPUBackend } = await import("./gpu/WebGPUBackend.js");
           const offscreen = new OffscreenCanvas(this.canvas.width, this.canvas.height);
           const gpuBackend = new WebGPUBackend();
           await gpuBackend.init(offscreen, { alpha: false });
