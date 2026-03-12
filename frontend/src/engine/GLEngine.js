@@ -122,8 +122,8 @@ export default class GLEngine {
     // --- Legacy WebGL2 direct access ---
     // Defer WebGL2 context creation when WebGPU is preferred — avoids dual
     // GPU contexts competing for resources and causing context loss.
-    const wantsWebGPU = options.preferBackend === "webgpu" || options.forceBackend === "webgpu";
-    if (!wantsWebGPU) {
+    const wantsPureWebGPU = (options.preferBackend === "webgpu" || options.forceBackend === "webgpu") && !options.hybrid;
+    if (!wantsPureWebGPU) {
       this._initGL();
     } else {
       this.gl = null;
@@ -335,9 +335,14 @@ export default class GLEngine {
           await gpuBackend.init(offscreen, { alpha: false });
           this._backend = gpuBackend;
 
-          // Release WebGL2 context to free GPU resources — WebGPU scenes
-          // don't need it, and dual contexts cause GPU pressure / context loss.
-          this._releaseGLForWebGPU();
+          // Release WebGL2 context to free GPU resources — pure WebGPU scenes
+          // don't need it. Hybrid mode keeps WebGL2 alive for rendering.
+          if (!this._backendOptions.hybrid) {
+            this._releaseGLForWebGPU();
+          } else if (!this.gl) {
+            // Hybrid needs GL — initialize if not already done
+            this._initGL();
+          }
         } catch (err) {
           const failMsg = `WebGPU initialization failed: ${err.message}`;
           console.error("[GLEngine]", failMsg);
@@ -392,8 +397,9 @@ export default class GLEngine {
    * Switch backend at runtime (e.g. when backendTarget changes).
    * Disposes the old backend and initializes the new one.
    */
-  async switchBackend(preferBackend) {
-    if (this._backendOptions.preferBackend === preferBackend) return;
+  async switchBackend(preferBackend, { hybrid = false } = {}) {
+    if (this._backendOptions.preferBackend === preferBackend && this._backendOptions.hybrid === hybrid) return;
+    this._backendOptions.hybrid = hybrid;
     // Save old backend in case we need to restore on failure
     const oldBackend = this._backend;
     const oldOptions = { ...this._backendOptions };

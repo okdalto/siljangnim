@@ -477,6 +477,9 @@ export class WebGPUBackend extends RendererInterface {
     if (layout) {
       bindGroupLayout = layout._native || layout;
     } else if (pipeline) {
+      if (!pipeline._native) {
+        throw new Error(`createBindGroup: pipeline handle is invalid (destroyed or not a valid handle). Got: ${JSON.stringify(pipeline)}`);
+      }
       bindGroupLayout = pipeline._native.getBindGroupLayout(groupIndex);
     } else {
       throw new Error("createBindGroup requires either 'layout' or 'pipeline' to derive bind group layout");
