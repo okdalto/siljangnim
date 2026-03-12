@@ -9,6 +9,7 @@
 import { callLLM } from "./llmClient.js";
 import { classifyApiError } from "./agentErrorHandler.js";
 import { detectToolLoop, detectErrorLoop, normalizeError, isUnrecoverableError } from "./agentLoopDetector.js";
+import * as storage from "./storage.js";
 
 // ---------------------------------------------------------------------------
 // Vision model capability detection
@@ -102,6 +103,7 @@ import {
   buildPlannerMessages,
   parsePlan,
   buildExecutionContext,
+  buildResumeContext,
   PLANNER_SYSTEM,
   PLANNER_MODEL,
   PLANNER_MAX_TOKENS,
@@ -135,6 +137,19 @@ const WRITE_TOOLS = new Set([
 ]);
 const BLOCKING_TOOLS = new Set(["ask_user", "start_recording", "run_preprocess"]);
 const SCENE_DEPENDENT = new Set(["check_browser_errors", "capture_viewport"]);
+
+// ---------------------------------------------------------------------------
+// Checkpoint helpers (fire-and-forget, never block the agent loop)
+// ---------------------------------------------------------------------------
+
+function _saveCheckpoint(data) {
+  const cp = { v: 1, ts: Date.now(), ...data };
+  storage.writeJson("agent_checkpoint.json", cp).catch(() => {});
+}
+
+function _clearCheckpoint() {
+  storage.deleteFile("agent_checkpoint.json").catch(() => {});
+}
 
 function withToolTimeout(promise, ms, name) {
   return new Promise((resolve, reject) => {
@@ -679,6 +694,7 @@ export async function runAgent({
     provider,
     providerConfig,
     toolResultCache,
+    _cpUserPrompt: userPrompt,
   });
 }
 
@@ -837,7 +853,7 @@ async function _executeOneTool(block, ctx) {
   const inputKey = JSON.stringify(block.input, Object.keys(block.input).sort());
   const sig = `${block.name}|${hashCode(inputKey)}`;
 
-  return { toolResult: tr, sig, errorInfo, errorCleared };
+  return { toolResult: tr, toolName: block.name, sig, errorInfo, errorCleared };
 }
 
 /**
@@ -863,6 +879,8 @@ async function _runAgentLoop({
   provider = "anthropic",
   providerConfig = {},
   toolResultCache,
+  _cpUserPrompt = "",
+  _cpCompletedSteps = [],
 }) {
   const modelName = modelOverride || (providerConfig.model || MODEL_COMPLEX);
   const isAnthropic = provider === "anthropic";
@@ -1138,7 +1156,7 @@ async function _runAgentLoop({
         messages.push({
           role: "user",
           content: hasAnyToolUse
-            ? "Your tool call was cut off by the token limit and the input was lost. Please retry the tool call with SHORTER code. If the code is very long, split it into phases: write the first working part, verify it, then add the next part incrementally using write_file edits."
+            ? "SYSTEM: Your tool call was cut off by the token limit. MANDATORY STRATEGY: Use write_scene for a MINIMAL skeleton (< 60 lines with basic structure + rendering). Then use edit_scene to add features ONE AT A TIME. Each edit_scene must be followed by check_browser_errors. Do NOT attempt to write the full scene in one call again."
             : "You were cut off due to token limit. Continue from where you stopped — do NOT restart or repeat previous content.",
         });
         continue;
@@ -1197,6 +1215,20 @@ async function _runAgentLoop({
         if (r.errorCleared) {
           recentErrors.length = 0;
           errorFixCycles = 0;
+        }
+      }
+
+      // Checkpoint: save after successful write_scene / edit_scene
+      for (const r of allResults) {
+        if (r.toolResult && !r.toolResult.is_error &&
+            (r.toolName === "write_scene" || r.toolName === "edit_scene")) {
+          _saveCheckpoint({
+            userPrompt: _cpUserPrompt,
+            completedSteps: _cpCompletedSteps,
+            lastTool: { name: r.toolName, ok: true, turn: turns },
+            sceneWritten: true,
+          });
+          break; // one checkpoint per turn is enough
         }
       }
 
@@ -1342,6 +1374,9 @@ async function _runAgentLoop({
       throw err;
     }
   }
+
+  // Agent loop completed — clear checkpoint
+  _clearCheckpoint();
 
   return { chatText: lastText };
 }
@@ -1640,7 +1675,40 @@ export async function runWithPlan({
   provider = "anthropic",
   providerConfig = {},
   toolResultCache,
+  resumeContext = null,
 }) {
+  // --- Checkpoint resume: if we have a checkpoint with a written scene, resume from it ---
+  if (resumeContext && resumeContext.checkpoint?.sceneWritten) {
+    log("System", "Resuming from checkpoint — rebuilding context", "info");
+    onStatus?.("thinking", "이전 작업에서 이어서 진행합니다...");
+
+    const baseSystemPrompt = await buildAugmentedSystemPrompt(
+      buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType(), { backendTarget }),
+      { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages },
+    );
+
+    const { systemPrompt: resumeSystemPrompt, messages: resumeMessages } =
+      buildResumeContext(resumeContext.checkpoint, resumeContext.currentScene, baseSystemPrompt);
+
+    // Push user prompt to original conversation for history
+    messages.push({ role: "user", content: userPrompt });
+
+    const result = await _runAgentLoop({
+      apiKey,
+      systemPrompt: resumeSystemPrompt,
+      messages: resumeMessages,
+      log, broadcast, onText, onTextDelta, onTextFinalize, onStatus,
+      errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
+      signal, injectedMessages, modelOverride, provider, providerConfig, toolResultCache,
+      _cpUserPrompt: userPrompt,
+      _cpCompletedSteps: resumeContext.checkpoint.completedSteps || [],
+    });
+
+    const lastAssistant = resumeMessages.filter(m => m.role === "assistant").pop();
+    if (lastAssistant) messages.push(lastAssistant);
+    return result;
+  }
+
   // Improvement #4: pass richer context to shouldPlan
   const recentErrorCount = messages.slice(-10).filter(m => {
     if (!Array.isArray(m.content)) return false;
@@ -1704,6 +1772,15 @@ export async function runWithPlan({
 
   log("System", "Execution context rebuilt — running generator", "info");
 
+  // Save plan checkpoint at plan start
+  _saveCheckpoint({
+    userPrompt,
+    plan,
+    completedSteps: [],
+    lastTool: null,
+    sceneWritten: false,
+  });
+
   // Run the generator loop using the fresh execution context
   const result = await _runAgentLoop({
     apiKey,
@@ -1725,6 +1802,8 @@ export async function runWithPlan({
     provider,
     providerConfig,
     toolResultCache,
+    _cpUserPrompt: userPrompt,
+    _cpCompletedSteps: [],
   });
 
   // Sync final assistant response back to the original conversation
