@@ -185,61 +185,69 @@ export default function useMessageDispatcher(params) {
           const isNewProject = !activeProj || activeName === "_untitled";
           let projName = activeName;
 
-          if (isNewProject && !project._creatingProject) {
-            project._creatingProject = true;
-            const history = getMessagesRef?.current?.() || [];
-            let autoName = "Untitled Project";
-            for (let i = history.length - 1; i >= 0; i--) {
-              if (history[i]?.role === "user") {
-                const txt = (history[i].text || history[i].content || "").trim();
-                if (txt) {
-                  autoName = txt.replace(/^#+\s*/gm, "").split("\n")[0].trim().slice(0, 60) || autoName;
-                }
-                break;
-              }
-            }
-            try {
-              const manifest = await storage.autoCreateProject(autoName, history);
-              project.setActiveProject(manifest.display_name);
-              setProjectManifest?.(manifest);
-              const projects = await storage.listProjects();
-              project.setProjectList(projects);
-              autoSave?.triggerAutoSave?.();
-              // Use the newly created project name for node creation below
+          if (isNewProject) {
+            // Use Promise lock to prevent duplicate project creation from concurrent chat_done events
+            if (project._creatingProjectPromise) {
+              await project._creatingProjectPromise;
               projName = storage.getActiveProjectName();
-
-              // Background: generate AI project name and rename (non-blocking).
-              // Track the original display_name so we can skip if user already renamed.
-              const originalDisplayName = manifest.display_name;
-              generateProjectName(history).then(async (aiName) => {
-                if (!aiName) return;
-                // Skip if user already renamed the project manually
-                if (project.activeProject !== originalDisplayName) return;
-                try {
-                  const updated = await storage.renameProject(originalDisplayName, aiName);
-                  project.setActiveProject(updated.display_name);
-                  setProjectManifest?.(updated);
-                  const refreshed = await storage.listProjects();
-                  project.setProjectList(refreshed);
-                  const pt2 = projectTreeRef?.current;
-                  const activeNodeId2 = pt2?.activeNodeId;
-                  if (activeNodeId2) {
-                    try {
-                      const { renameNode } = await import("../engine/projectTree.js");
-                      await renameNode(activeNodeId2, aiName);
-                      pt2.loadTree?.(updated.display_name);
-                    } catch (e) {
-                      console.warn("[chat_done] AI rename tree node failed:", e);
-                    }
+            } else {
+              let resolve;
+              project._creatingProjectPromise = new Promise((r) => { resolve = r; });
+              const history = getMessagesRef?.current?.() || [];
+              let autoName = "Untitled Project";
+              for (let i = history.length - 1; i >= 0; i--) {
+                if (history[i]?.role === "user") {
+                  const txt = (history[i].text || history[i].content || "").trim();
+                  if (txt) {
+                    autoName = txt.replace(/^#+\s*/gm, "").split("\n")[0].trim().slice(0, 60) || autoName;
                   }
-                } catch (e) {
-                  console.warn("[chat_done] AI rename failed:", e);
+                  break;
                 }
-              }).catch((e) => { console.warn("[chat_done] generateProjectName failed:", e); });
-            } catch (e) {
-              console.warn("[chat_done] auto-create project failed:", e);
-            } finally {
-              project._creatingProject = false;
+              }
+              try {
+                const manifest = await storage.autoCreateProject(autoName, history);
+                project.setActiveProject(manifest.display_name);
+                setProjectManifest?.(manifest);
+                const projects = await storage.listProjects();
+                project.setProjectList(projects);
+                autoSave?.triggerAutoSave?.();
+                // Use the newly created project name for node creation below
+                projName = storage.getActiveProjectName();
+
+                // Background: generate AI project name and rename (non-blocking).
+                // Track the original display_name so we can skip if user already renamed.
+                const originalDisplayName = manifest.display_name;
+                generateProjectName(history).then(async (aiName) => {
+                  if (!aiName) return;
+                  // Skip if user already renamed the project manually
+                  if (project.activeProject !== originalDisplayName) return;
+                  try {
+                    const updated = await storage.renameProject(originalDisplayName, aiName);
+                    project.setActiveProject(updated.display_name);
+                    setProjectManifest?.(updated);
+                    const refreshed = await storage.listProjects();
+                    project.setProjectList(refreshed);
+                    const pt2 = projectTreeRef?.current;
+                    const activeNodeId2 = pt2?.activeNodeId;
+                    if (activeNodeId2) {
+                      try {
+                        const { renameNode } = await import("../engine/projectTree.js");
+                        await renameNode(activeNodeId2, aiName);
+                        pt2.loadTree?.(updated.display_name);
+                      } catch (e) {
+                        console.warn("[chat_done] AI rename tree node failed:", e);
+                      }
+                    }
+                  } catch (e) {
+                    console.warn("[chat_done] AI rename failed:", e);
+                  }
+                }).catch((e) => { console.warn("[chat_done] generateProjectName failed:", e); });
+              } catch (e) {
+                console.warn("[chat_done] auto-create project failed:", e);
+              } finally {
+                resolve();
+                project._creatingProjectPromise = null;
+              }
             }
           } else {
             autoSave?.triggerAutoSave?.();

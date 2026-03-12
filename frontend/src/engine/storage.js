@@ -157,6 +157,27 @@ function idbReq(req) {
   });
 }
 
+/** Batch read: get multiple keys from a single readonly transaction. */
+async function batchGet(storeName, keys) {
+  if (!keys.length) return [];
+  const store = await tx(storeName);
+  return Promise.all(keys.map((k) => idbReq(store.get(k))));
+}
+
+/** Batch write: put multiple key/value pairs in a single readwrite transaction. */
+async function batchPut(storeName, entries) {
+  if (!entries.length) return;
+  const store = await tx(storeName, "readwrite");
+  await Promise.all(entries.map(([key, value]) => idbReq(store.put(value, key))));
+}
+
+/** Batch delete: remove multiple keys in a single readwrite transaction. */
+async function batchDelete(storeName, keys) {
+  if (!keys.length) return;
+  const store = await tx(storeName, "readwrite");
+  await Promise.all(keys.map((k) => idbReq(store.delete(k))));
+}
+
 // ---------------------------------------------------------------------------
 // File key helpers
 // ---------------------------------------------------------------------------
@@ -375,7 +396,7 @@ export async function saveProject(name, chatHistory, description = "", thumbnail
     targetName = `${sanitized}_${counter}`;
   }
 
-  // Copy files from current project to new target
+  // Copy files from current project to new target (batched transactions)
   if (targetName !== currentName) {
     const filesStore = await tx(STORE_FILES);
     const allKeys = await idbReq(filesStore.getAllKeys());
@@ -383,10 +404,10 @@ export async function saveProject(name, chatHistory, description = "", thumbnail
     const dstPrefix = `${targetName}/`;
     const keysToMove = allKeys.filter((k) => k.startsWith(srcPrefix));
 
-    for (const key of keysToMove) {
-      const data = await idbReq((await tx(STORE_FILES)).get(key));
-      const newKey = dstPrefix + key.slice(srcPrefix.length);
-      await idbReq((await tx(STORE_FILES, "readwrite")).put(data, newKey));
+    if (keysToMove.length) {
+      const values = await batchGet(STORE_FILES, keysToMove);
+      const entries = keysToMove.map((key, i) => [dstPrefix + key.slice(srcPrefix.length), values[i]]);
+      await batchPut(STORE_FILES, entries);
     }
 
     // Copy blobs
@@ -395,20 +416,17 @@ export async function saveProject(name, chatHistory, description = "", thumbnail
     const blobSrcPrefix = `${currentName}/`;
     const blobDstPrefix = `${targetName}/`;
     const blobKeysToMove = allBlobKeys.filter((k) => k.startsWith(blobSrcPrefix));
-    for (const key of blobKeysToMove) {
-      const data = await idbReq((await tx(STORE_BLOBS)).get(key));
-      const newKey = blobDstPrefix + key.slice(blobSrcPrefix.length);
-      await idbReq((await tx(STORE_BLOBS, "readwrite")).put(data, newKey));
+
+    if (blobKeysToMove.length) {
+      const blobValues = await batchGet(STORE_BLOBS, blobKeysToMove);
+      const blobEntries = blobKeysToMove.map((key, i) => [blobDstPrefix + key.slice(blobSrcPrefix.length), blobValues[i]]);
+      await batchPut(STORE_BLOBS, blobEntries);
     }
 
     // For first save from _untitled, remove old _untitled files
     if (currentName === DEFAULT_PROJECT) {
-      for (const key of keysToMove) {
-        await idbReq((await tx(STORE_FILES, "readwrite")).delete(key));
-      }
-      for (const key of blobKeysToMove) {
-        await idbReq((await tx(STORE_BLOBS, "readwrite")).delete(key));
-      }
+      await batchDelete(STORE_FILES, keysToMove);
+      await batchDelete(STORE_BLOBS, blobKeysToMove);
     }
   }
 
