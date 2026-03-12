@@ -1,4 +1,4 @@
-import { memo, useContext, useRef, useState } from "react";
+import { memo, useCallback, useContext, useRef, useState } from "react";
 import { NodeResizer } from "@xyflow/react";
 import ResolutionSelector from "../components/viewport/ResolutionSelector.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
@@ -44,6 +44,14 @@ function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
   } = useViewportInput(engineRef, canvasRef, containerRef);
 
   useStopWheelPropagation(containerRef);
+
+  const reloadScene = useCallback(() => {
+    const engine = engineRef.current;
+    if (engine && sceneJSON) {
+      setError(null);
+      engine.loadScene(sceneJSON);
+    }
+  }, [engineRef, sceneJSON, setError]);
 
   const canvasContent = (
     <div

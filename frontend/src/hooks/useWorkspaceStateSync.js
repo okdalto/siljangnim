@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
  * Manages debounced workspace-state sends to the backend.
  * Also fires workspace-state updates when keyframes or duration/loop change.
  */
-export default function useWorkspaceStateSync({ sendRef, getWorkspaceState, kf, duration, loop, autoSave, initSettledRef, onLayoutCommitRef }) {
+export default function useWorkspaceStateSync({ sendRef, getWorkspaceState, kf, duration, loop, fps, autoSave, initSettledRef, onLayoutCommitRef }) {
   const wsStateTimerRef = useRef(null);
 
   const sendWorkspaceState = useCallback(() => {
@@ -45,7 +45,7 @@ export default function useWorkspaceStateSync({ sendRef, getWorkspaceState, kf, 
     }
     sendWsRef.current();
     autoSave.triggerAutoSave();
-  }, [duration, loop, autoSave.triggerAutoSave]);
+  }, [duration, loop, fps, autoSave.triggerAutoSave]);
 
   // Save workspace state when node layout changes (drag/resize end)
   onLayoutCommitRef.current = () => {

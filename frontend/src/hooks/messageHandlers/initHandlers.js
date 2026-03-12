@@ -31,12 +31,13 @@ export function handleProjectLoaded(msg, deps) {
 }
 
 export function handleWorkspaceStateUpdate(msg, deps) {
-  const { kf, kfMountedRef, durationLoopMountedRef, setDuration, setLoop } = deps;
+  const { kf, kfMountedRef, durationLoopMountedRef, setDuration, setLoop, setFps } = deps;
   kfMountedRef.current = false;
   durationLoopMountedRef.current = false;
   if (msg.workspace_state) {
     kf.restoreKeyframes(msg.workspace_state.keyframes);
     if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
     if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
+    if (typeof msg.workspace_state.fps === "number") setFps(msg.workspace_state.fps);
   }
 }

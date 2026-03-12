@@ -255,6 +255,11 @@ When the scene targets WebGPU backend:
 - Texture sampling: textureSample(t, s, uv)
 - No implicit type conversions — explicit cast with f32(), i32(), etc.
 
+**CRITICAL: \`textureSample()\` requires uniform control flow.**
+It CANNOT be called after \`if/return\`, inside conditional branches that depend on texture reads, or in loops with early exits.
+- Use \`textureSampleLevel(t, s, uv, 0.0)\` instead — works in ANY control flow
+- Use \`textureLoad(t, coords, mip)\` for integer-coordinate sampling (no sampler needed)
+
 ### WGSL Types
 
 **Scalars**: f32, i32, u32, bool
@@ -332,7 +337,7 @@ Core methods:
 | \`createBindGroup({ pipeline, groupIndex?, entries: [{binding, resource}] })\` | Create bind group. Pass \`pipeline\` to auto-derive layout (recommended). \`groupIndex\` defaults to 0 |
 | \`createBindGroupLayout({ entries })\` | Create explicit bind group layout (use native WebGPU entry format) |
 | \`createPipelineLayout({ bindGroupLayouts })\` | Create pipeline layout from bind group layouts |
-| \`createRenderTarget({ width, height, format?, depth? })\` | Create offscreen FBO |
+| \`createRenderTarget({ width, height, format?, depth? })\` | Create offscreen FBO → \`{ texture, width, height }\`. Use \`rt.texture\` (not \`rt\` itself) when passing to bind groups: \`{ type: "texture", texture: rt.texture }\`. Pass whole \`rt\` as \`target\` in \`beginRenderPass\` colorAttachments |
 | \`beginFrame()\` | Start frame → returns encoder |
 | \`endFrame(encoder)\` | Submit commands |
 | \`beginRenderPass(encoder, { colorAttachments, depthAttachment? })\` | Begin render pass |
@@ -371,6 +376,38 @@ Core methods:
 | \`"texture"\` | \`{ texture }\` | Texture binding |
 | \`"sampler"\` | \`{ sampler }\` | Sampler binding |
 | \`"storage-texture"\` | \`{ texture }\` | Read-write texture binding |
+
+### Multi-Pass Render-to-Texture Pattern
+
+\`\`\`js
+// === Multi-pass render-to-texture pattern ===
+// Step 1: Create render target
+const rt = r.createRenderTarget({ width: w, height: h, format: "rgba8unorm", depth: true });
+
+// Step 2: Render to texture
+const enc = r.beginFrame();
+const rp = r.beginRenderPass(enc, {
+  colorAttachments: [{ target: rt, clearColor: [0,0,0,1] }],
+});
+r.setPipeline(rp, scenePipeline);
+r.setBindGroup(rp, 0, sceneBindGroup);
+r.draw(rp, vertexCount);
+r.endRenderPass(rp);
+
+// Step 3: Sample from texture in next pass
+const blitBG = r.createBindGroup({
+  pipeline: blitPipeline, entries: [
+    { binding: 0, resource: { type: "texture", texture: rt.texture } },  // ← rt.texture, NOT rt
+    { binding: 1, resource: { type: "sampler", sampler: mySampler } },
+  ],
+});
+const rp2 = r.beginRenderPass(enc, { colorAttachments: [{ clearColor: [0,0,0,1] }] });
+r.setPipeline(rp2, blitPipeline);
+r.setBindGroup(rp2, 0, blitBG);
+r.draw(rp2, 6);
+r.endRenderPass(rp2);
+r.endFrame(enc);
+\`\`\`
 
 ### WebGPU Compute Simulation Example (Particle System)
 
@@ -600,7 +637,10 @@ Use \`ctx.shaderTarget\` to write shaders that work on both backends:
 - Check project metadata for backendTarget (auto/webgl/webgpu)
 - When target is "webgpu", generate WGSL shaders and use \`ctx.renderer\`
 - When target is "auto" or "webgl", generate GLSL and use \`ctx.gl\` (default)
-- The shaderTarget system supports dual output (GLSL+WGSL) via dualFragment()`,
+- The shaderTarget system supports dual output (GLSL+WGSL) via dualFragment()
+
+**Complex WGSL (>30 lines)**: ALWAYS write to \`.workspace/\` files and load with \`ctx.utils.loadText()\`.
+Inline WGSL in write_scene becomes a single JSON string line — WGSL parsers may fail on extremely long lines.`,
   },
   {
     id: "gpu_simulation",

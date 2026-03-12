@@ -417,12 +417,16 @@ function _summarizeFailedCycle(messages, startIdx, endIdx) {
  * Scan conversation history and fix orphaned tool_use blocks.
  * An orphaned tool_use is an assistant message containing tool_use blocks
  * that are NOT followed by a user message with matching tool_result blocks.
- * This can happen after stream drops or max_tokens interruptions.
+ * This can happen after stream drops, max_tokens interruptions, or compaction.
  *
- * Fix strategy: inject synthetic tool_result with an error message so the
- * conversation remains valid for the next API call.
+ * Strategy: two-phase approach.
+ *   Phase 1: Collect all tool_use ids per assistant message and check if the
+ *            immediately following user message has matching tool_results.
+ *   Phase 2: Build the fixed messages array in one pass (no splice mid-iteration).
  */
 function sanitizeOrphanedToolUse(messages, log) {
+  // Phase 1: identify all orphaned tool_use ids per assistant message index
+  const fixes = []; // { assistantIdx, missingIds[] }
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
     if (msg.role !== "assistant" || !Array.isArray(msg.content)) continue;
@@ -432,50 +436,80 @@ function sanitizeOrphanedToolUse(messages, log) {
       .map(b => b.id);
     if (!toolUseIds.length) continue;
 
-    // Check if the next user message has matching tool_results
     const nextMsg = messages[i + 1];
-    if (nextMsg?.role === "user" && Array.isArray(nextMsg.content)) {
+    if (nextMsg?.role === "user") {
+      // Next message is user — check which tool_results are present
+      const blocks = Array.isArray(nextMsg.content) ? nextMsg.content : [];
       const resultIds = new Set(
-        nextMsg.content.filter(b => b.type === "tool_result").map(b => b.tool_use_id)
+        blocks.filter(b => b.type === "tool_result").map(b => b.tool_use_id)
       );
       const missingIds = toolUseIds.filter(id => !resultIds.has(id));
-      if (!missingIds.length) continue;
-
-      // Inject missing tool_results into the existing user message
-      for (const id of missingIds) {
-        nextMsg.content.push({
-          type: "tool_result",
-          tool_use_id: id,
-          content: "Error: tool call was interrupted by a connection error. Please retry if needed.",
-          is_error: true,
-        });
+      if (missingIds.length) {
+        fixes.push({ assistantIdx: i, missingIds, patchNext: true });
       }
-      if (log) log("System", `Patched ${missingIds.length} orphaned tool_use(s) at message ${i}`, "info");
-    } else if (nextMsg?.role === "user" && !Array.isArray(nextMsg.content)) {
-      // Next user message has string content (e.g. from compaction summary) — no tool_results.
-      // Convert to array content and inject synthetic tool_results.
-      const textContent = nextMsg.content || "";
-      nextMsg.content = [
-        { type: "text", text: textContent },
-        ...toolUseIds.map(id => ({
-          type: "tool_result",
-          tool_use_id: id,
-          content: "Error: tool call was interrupted by a connection error. Please retry if needed.",
-          is_error: true,
-        })),
-      ];
-      if (log) log("System", `Patched ${toolUseIds.length} orphaned tool_use(s) at message ${i} (string content converted)`, "info");
-    } else if (!nextMsg || nextMsg.role !== "user") {
-      // No user message follows — inject a synthetic one with all tool_results
-      const syntheticResults = toolUseIds.map(id => ({
-        type: "tool_result",
-        tool_use_id: id,
-        content: "Error: tool call was interrupted by a connection error. Please retry if needed.",
-        is_error: true,
-      }));
-      messages.splice(i + 1, 0, { role: "user", content: syntheticResults });
-      if (log) log("System", `Injected synthetic tool_results for ${toolUseIds.length} orphaned tool_use(s) at message ${i}`, "info");
+    } else {
+      // Next message is not user (another assistant, or end of array)
+      fixes.push({ assistantIdx: i, missingIds: toolUseIds, patchNext: false });
     }
+  }
+
+  if (!fixes.length) return;
+
+  // Phase 2: apply fixes (build new array to avoid splice index issues)
+  const needsInsert = new Set(); // indices where we need to INSERT a synthetic user message AFTER
+  const needsPatch = new Map();  // index → missingIds to inject into existing user message
+
+  for (const fix of fixes) {
+    if (fix.patchNext) {
+      // Patch the existing user message at assistantIdx + 1
+      const existingIds = needsPatch.get(fix.assistantIdx + 1) || [];
+      needsPatch.set(fix.assistantIdx + 1, [...existingIds, ...fix.missingIds]);
+    } else {
+      needsInsert.add(fix.assistantIdx);
+      needsPatch.set(`insert_${fix.assistantIdx}`, fix.missingIds);
+    }
+  }
+
+  const makeSyntheticResults = (ids) => ids.map(id => ({
+    type: "tool_result",
+    tool_use_id: id,
+    content: "Error: tool call was interrupted by a connection error. Please retry if needed.",
+    is_error: true,
+  }));
+
+  // Build new messages array
+  const result = [];
+  let totalPatched = 0;
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+
+    // Patch existing user message with missing tool_results
+    if (needsPatch.has(i) && msg.role === "user") {
+      const ids = needsPatch.get(i);
+      if (!Array.isArray(msg.content)) {
+        // Convert string content to array
+        msg.content = [{ type: "text", text: msg.content || "" }];
+      }
+      msg.content.push(...makeSyntheticResults(ids));
+      totalPatched += ids.length;
+    }
+
+    result.push(msg);
+
+    // Insert synthetic user message after this assistant message
+    if (needsInsert.has(i)) {
+      const ids = needsPatch.get(`insert_${i}`);
+      if (ids?.length) {
+        result.push({ role: "user", content: makeSyntheticResults(ids) });
+        totalPatched += ids.length;
+      }
+    }
+  }
+
+  if (totalPatched > 0) {
+    messages.length = 0;
+    messages.push(...result);
+    if (log) log("System", `Sanitized ${totalPatched} orphaned tool_use(s) across ${fixes.length} message(s)`, "info");
   }
 }
 
@@ -1380,12 +1414,27 @@ async function _runAgentLoop({
       }
 
       // Improvement #2: auto-recommend debug subagent after 3 error-fix cycles
-      if (errorFixCycles >= 3) {
+      if (errorFixCycles >= 5) {
+        log("System", "Consecutive error threshold exceeded — forcing strategy reset", "warning");
         messages.push({
           role: "user",
-          content: "SYSTEM: You have attempted to fix errors 3+ times without success. You MUST now call debug_with_subagent to get a fresh analysis of the root cause. Pass the error messages and what you've tried so far as error_context.",
+          content: "SYSTEM OVERRIDE: 5+ consecutive errors across different patterns. " +
+            "You MUST call clear_viewport now and start from a MINIMAL working scene. " +
+            "Write the simplest possible version first (< 30 lines), verify with check_browser_errors, " +
+            "then add features one at a time. Do NOT attempt the full implementation again.",
         });
-        errorFixCycles = 0; // reset to avoid spamming
+        errorFixCycles = 0;
+      } else if (errorFixCycles >= 3) {
+        messages.push({
+          role: "user",
+          content: "SYSTEM: You have attempted to fix errors 3+ times without success. " +
+            "STOP and simplify your approach: " +
+            "(1) Revert to the last WORKING state (use write_scene with minimal code). " +
+            "(2) Add ONE small feature at a time. " +
+            "(3) check_browser_errors after EACH addition. " +
+            "If the errors involve render targets, shaders, or pipelines — test each piece in isolation before combining. " +
+            "Alternatively, call debug_with_subagent for a fresh root cause analysis.",
+        });
       }
 
       // Improvement #10: check for injected setup errors between tool calls

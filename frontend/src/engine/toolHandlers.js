@@ -181,7 +181,113 @@ async function toolReadFile(input, broadcast) {
   return `Error: '${relPath}' — only workspace files and uploads are accessible in browser mode.`;
 }
 
-async function toolWriteScene(input, broadcast) {
+/**
+ * Extract inline shader strings from JS code (best-effort regex).
+ * Looks for template literals or string literals containing shader signatures.
+ */
+function _extractInlineShaders(jsCode) {
+  const shaders = [];
+  // Match template literals (backtick strings) that are long enough to be shaders
+  const templateRe = /`([^`]{20,})`/gs;
+  let m;
+  while ((m = templateRe.exec(jsCode)) !== null) {
+    const content = m[1];
+    if (/#version\s+300\s+es/.test(content) || /precision\s+(highp|mediump|lowp)\s+float/.test(content)) {
+      shaders.push({ source: content, type: "glsl" });
+    } else if (/@(?:vertex|fragment|compute|group)/.test(content)) {
+      shaders.push({ source: content, type: "wgsl" });
+    }
+  }
+  return shaders;
+}
+
+/**
+ * Dry-run validation: check JS syntax + shader compilation without loading the scene.
+ */
+async function _dryRunValidate(scene, context) {
+  const errors = [];
+  const checks = [];
+
+  // 1. JS syntax check via new Function()
+  for (const key of ["setup", "render", "cleanup"]) {
+    if (scene.script[key]) {
+      try {
+        new Function("ctx", scene.script[key]);
+        checks.push(`${key} syntax`);
+      } catch (e) {
+        errors.push(`[${key}] SyntaxError: ${e.message}`);
+      }
+    }
+  }
+
+  // 2. Extract inline shaders from all script code
+  const allCode = ["setup", "render", "cleanup"]
+    .map((k) => scene.script[k] || "")
+    .join("\n");
+  const shaders = _extractInlineShaders(allCode);
+  const glslShaders = shaders.filter((s) => s.type === "glsl");
+  const wgslShaders = shaders.filter((s) => s.type === "wgsl");
+
+  // 3. GLSL compilation check
+  const gl = context?.engineRef?.current?.gl;
+  if (gl && glslShaders.length > 0) {
+    for (let i = 0; i < glslShaders.length; i++) {
+      const src = glslShaders[i].source;
+      const isVert = /gl_Position/.test(src);
+      const type = isVert ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER;
+      const shader = gl.createShader(type);
+      try {
+        gl.shaderSource(shader, src);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          const log = gl.getShaderInfoLog(shader) || "unknown error";
+          errors.push(`[glsl#${i}] ${log.trim()}`);
+        } else {
+          checks.push(`glsl#${i}`);
+        }
+      } finally {
+        gl.deleteShader(shader);
+      }
+    }
+  }
+
+  // 4. WGSL compilation check
+  const device = context?.engineRef?.current?._backend?.device;
+  if (device && wgslShaders.length > 0) {
+    for (let i = 0; i < wgslShaders.length; i++) {
+      try {
+        const mod = device.createShaderModule({ code: wgslShaders[i].source });
+        if (mod.getCompilationInfo) {
+          const info = await mod.getCompilationInfo();
+          const errs = info.messages.filter((msg) => msg.type === "error");
+          if (errs.length) {
+            for (const e of errs) {
+              errors.push(`[wgsl#${i}] L${e.lineNum}: ${e.message}`);
+            }
+          } else {
+            checks.push(`wgsl#${i}`);
+          }
+        } else {
+          checks.push(`wgsl#${i}`);
+        }
+      } catch (e) {
+        errors.push(`[wgsl#${i}] ${e.message}`);
+      }
+    }
+  }
+
+  // 5. Build report
+  if (errors.length === 0) {
+    const passed = checks.length ? checks.join(", ") : "schema";
+    return `dry_run ok — validation passed (${passed} ✓).`;
+  }
+  return (
+    `dry_run FAILED — ${errors.length} error(s):\n` +
+    errors.map((e) => `  - ${e}`).join("\n")
+  );
+}
+
+async function toolWriteScene(input, broadcast, context) {
   const scene = { version: 1, render_mode: "script", script: {} };
 
   for (const key of ["setup", "render", "cleanup"]) {
@@ -203,6 +309,11 @@ async function toolWriteScene(input, broadcast) {
   normalizeScriptStrings(scene);
   const errors = validateSceneJson(scene);
   if (errors.length) return "Validation errors:\n" + errors.map((e) => `  - ${e}`).join("\n");
+
+  // Dry-run mode: validate only, do NOT save or broadcast
+  if (input.dry_run) {
+    return _dryRunValidate(scene, context);
+  }
 
   await storage.writeJson("scene.json", scene);
   broadcast({ type: "scene_update", scene_json: scene });
@@ -793,11 +904,17 @@ async function toolSetTimeline(input, broadcast) {
   const updates = {};
   if (input.duration != null) updates.duration = Number(input.duration);
   if (input.loop != null) updates.loop = Boolean(input.loop);
-  if (Object.keys(updates).length === 0) return "Error: provide at least one of 'duration' or 'loop'.";
+  if (input.fps != null) {
+    const f = Number(input.fps);
+    if (f >= 1 && f <= 240) updates.fps = Math.round(f);
+    else return "Error: fps must be between 1 and 240.";
+  }
+  if (Object.keys(updates).length === 0) return "Error: provide at least one of 'duration', 'loop', or 'fps'.";
   broadcast({ type: "set_timeline", ...updates });
   const parts = [];
   if (updates.duration != null) parts.push(`duration=${updates.duration}s`);
   if (updates.loop != null) parts.push(`loop=${updates.loop}`);
+  if (updates.fps != null) parts.push(`fps=${updates.fps}`);
   return `ok — timeline updated: ${parts.join(", ")}.`;
 }
 
@@ -1172,7 +1289,10 @@ export async function handleTool(name, inputData, broadcast, context = {}) {
 
   // Mark pending scene load so check_browser_errors waits for it
   if ((name === "write_scene" || name === "edit_scene" || name === "use_template" || (name === "write_file" && (inputData.path === "scene.json"))) && context.errorCollector) {
-    context.errorCollector.expectSceneLoad();
+    // Skip scene load expectation for dry_run — no scene is actually loaded
+    if (!(name === "write_scene" && inputData.dry_run)) {
+      context.errorCollector.expectSceneLoad();
+    }
   }
 
   return handler(inputData, broadcast, context);

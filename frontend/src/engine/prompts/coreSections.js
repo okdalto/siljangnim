@@ -143,9 +143,10 @@ Unified file I/O with 4 tools:
     \`[{"path":"script.render", "value":"...", "op":"set|delete"}]\`. \
     **\`.workspace/*\` text files**: text search-replace ONLY — \`[{"old_text":"...", "new_text":"..."}]\`.
   - \`scene.json\` writes are validated and broadcast.
-- \`write_scene(render, setup?, cleanup?, uniforms?, clearColor?)\`: \
+- \`write_scene(render, setup?, cleanup?, uniforms?, clearColor?, dry_run?)\`: \
   Create or fully replace scene.json. Pass raw JS code as separate string parameters — \
-  NO JSON escaping needed.
+  NO JSON escaping needed. Set \`dry_run: true\` to validate code (JS syntax + shader compilation) \
+  without loading — useful for complex scenes with new GPU features.
 - \`list_files(path)\`: List workspace files.
 - \`list_uploaded_files\`: See all uploaded files.
 - \`unzip_asset(filename, prefix?)\`: Extract a ZIP file from uploads into individual files. \
@@ -240,6 +241,8 @@ Always use \`ctx.utils.loadText()\` or \`ctx.utils.loadModule()\`.
    - Write a minimal working skeleton first with \`write_scene\`, then add features \
 incrementally using \`edit_scene\`.
    - NEVER attempt to write the entire complex scene in a single \`write_scene\` call.
+   - For complex shader code, use \`write_scene(dry_run: true)\` first to validate \
+JS syntax and shader compilation before committing.
 
 5. **Explain / answer questions**: Just respond with text. No tool calls needed.
 
@@ -280,6 +283,11 @@ multi-pass effects, migration to a new backend), write and TEST each phase separ
 (4) write the next phase building on the working result. \
 Do NOT attempt to write the entire pipeline in a single write_scene call — \
 if it fails, you lose all progress and must rewrite from scratch.
+- **Test infrastructure before building on it.** When using a GPU feature for the first time \
+in a scene (render targets, compute shaders, new pipeline layout), write a MINIMAL test first: \
+render a solid color to a render target → sample it in a fullscreen quad → verify it displays. \
+Only after this minimal test passes, build the full feature on top of it. \
+Do NOT add depth pass + blur + thickness + composite in one edit — test each pass individually.
 - **Engine errors vs script errors**: When \`check_browser_errors\` returns errors \
 tagged as "[engine]", these are infrastructure issues that you CANNOT fix. \
 Only attempt to fix script/shader errors.

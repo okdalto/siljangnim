@@ -1,22 +1,34 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import RecordMenu from "./RecordMenu.jsx";
 
-const FRAME_FPS = 30; // assumed frame rate for step operations
-
-export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange, recording, recordingTime, onStartRecord, onStopRecord, canvasWidth, canvasHeight, progress, completionInfo }) {
+export default function Timeline({ paused, onTogglePause, onPause, engineRef, duration, onDurationChange, loop, onLoopChange, fps, onFpsChange, recording, recordingTime, onStartRecord, onStopRecord, canvasWidth, canvasHeight, progress, completionInfo }) {
   const progressRef = useRef(null);
   const timeDisplayRef = useRef(null);
   const barRef = useRef(null);
   const scrubbing = useRef(false);
   const [durationInput, setDurationInput] = useState(String(duration));
+  const [fpsInput, setFpsInput] = useState(String(fps));
+  const [frameMode, setFrameMode] = useState(false); // false = time (sec), true = frames
 
-  // Sync input when prop changes externally
-  useEffect(() => {
-    setDurationInput(String(duration));
-  }, [duration]);
+  // Sync inputs when props change externally
+  useEffect(() => { setDurationInput(String(duration)); }, [duration]);
+  useEffect(() => { setFpsInput(String(fps)); }, [fps]);
+
+  const currentFps = fps || 30;
+
+  // Format time display
+  const formatTime = useCallback((t) => {
+    if (frameMode) {
+      const frame = Math.round(t * currentFps);
+      const totalFrames = duration > 0 ? Math.round(duration * currentFps) : "\u221E";
+      return `${frame}f / ${totalFrames}f`;
+    }
+    const cur = Math.max(0, t).toFixed(2);
+    const dur = duration > 0 ? duration.toFixed(2) : "\u221E";
+    return `${cur} / ${dur}`;
+  }, [frameMode, currentFps, duration]);
 
   // Own rAF loop — polls engine.getCurrentTime() directly.
-  // This avoids the timing issue where engineRef.current is null at mount.
   useEffect(() => {
     let rafId;
     const tick = () => {
@@ -41,14 +53,12 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
         }
       }
       if (timeDisplayRef.current) {
-        const cur = Math.max(0, t).toFixed(2);
-        const dur = duration > 0 ? duration.toFixed(2) : "\u221E";
-        timeDisplayRef.current.textContent = `${cur} / ${dur}`;
+        timeDisplayRef.current.textContent = formatTime(t);
       }
     };
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [engineRef, duration, loop, onPause]);
+  }, [engineRef, duration, loop, onPause, formatTime]);
 
   // Scrub helpers
   const calcTime = useCallback(
@@ -57,9 +67,15 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
       if (!bar || duration <= 0) return 0;
       const rect = bar.getBoundingClientRect();
       const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      if (frameMode) {
+        // Snap to frame boundaries
+        const totalFrames = Math.round(duration * currentFps);
+        const frame = Math.round(ratio * totalFrames);
+        return frame / currentFps;
+      }
       return ratio * duration;
     },
-    [duration]
+    [duration, frameMode, currentFps]
   );
 
   const onPointerDown = useCallback(
@@ -73,10 +89,10 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
         progressRef.current.style.width = `${(t / duration) * 100}%`;
       }
       if (timeDisplayRef.current) {
-        timeDisplayRef.current.textContent = `${t.toFixed(2)} / ${duration.toFixed(2)}`;
+        timeDisplayRef.current.textContent = formatTime(t);
       }
     },
-    [duration, calcTime, engineRef]
+    [duration, calcTime, engineRef, formatTime]
   );
 
   const onPointerMove = useCallback(
@@ -88,10 +104,10 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
         progressRef.current.style.width = `${(t / duration) * 100}%`;
       }
       if (timeDisplayRef.current) {
-        timeDisplayRef.current.textContent = `${t.toFixed(2)} / ${duration.toFixed(2)}`;
+        timeDisplayRef.current.textContent = formatTime(t);
       }
     },
-    [duration, calcTime, engineRef]
+    [duration, calcTime, engineRef, formatTime]
   );
 
   const onPointerUp = useCallback(() => {
@@ -107,6 +123,15 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
     }
   }, [durationInput, duration, onDurationChange]);
 
+  const commitFps = useCallback(() => {
+    const v = parseInt(fpsInput, 10);
+    if (!isNaN(v) && v >= 1 && v <= 240) {
+      onFpsChange(v);
+    } else {
+      setFpsInput(String(fps));
+    }
+  }, [fpsInput, fps, onFpsChange]);
+
   // Frame step: pause if playing, then seek ±1 frame
   const stepFrame = useCallback((dir) => {
     const engine = engineRef.current;
@@ -115,18 +140,18 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
       engine.setPaused(true);
       onPause?.();
     }
-    const frameDur = 1 / FRAME_FPS;
+    const frameDur = 1 / currentFps;
     const t = Math.max(0, engine.getCurrentTime() + dir * frameDur);
-    engine.seekTo(duration > 0 ? Math.min(t, duration) : t);
+    const clamped = duration > 0 ? Math.min(t, duration) : t;
+    engine.seekTo(clamped);
     // Force UI sync
     if (progressRef.current && duration > 0) {
-      progressRef.current.style.width = `${Math.min(100, (t / duration) * 100)}%`;
+      progressRef.current.style.width = `${Math.min(100, (clamped / duration) * 100)}%`;
     }
     if (timeDisplayRef.current) {
-      const dur = duration > 0 ? duration.toFixed(2) : "\u221E";
-      timeDisplayRef.current.textContent = `${Math.max(0, t).toFixed(2)} / ${dur}`;
+      timeDisplayRef.current.textContent = formatTime(clamped);
     }
-  }, [engineRef, duration, onPause]);
+  }, [engineRef, duration, onPause, currentFps, formatTime]);
 
   // Render current frame (pause + trigger re-render)
   const renderCurrentFrame = useCallback(() => {
@@ -252,18 +277,34 @@ export default function Timeline({ paused, onTogglePause, onPause, engineRef, du
         <div
           ref={progressRef}
           className="h-full bg-blue-500 rounded-full pointer-events-none"
-          style={{ width: duration > 0 ? "0%" : "0%" }}
+          style={{ width: "0%" }}
         />
       </div>
 
-      {/* Time display */}
-      <span
+      {/* Time/Frame display — click to toggle mode */}
+      <button
         ref={timeDisplayRef}
-        className="text-xs font-mono whitespace-nowrap min-w-[100px] text-right"
-        style={{ color: "var(--chrome-text-secondary)" }}
+        onClick={() => setFrameMode((v) => !v)}
+        className="text-xs font-mono whitespace-nowrap min-w-[100px] text-right cursor-pointer hover:opacity-80 transition-opacity"
+        style={{ color: "var(--chrome-text-secondary)", background: "none", border: "none" }}
+        title={frameMode ? "Switch to time (seconds)" : "Switch to frames"}
       >
-        0.00 / {duration > 0 ? duration.toFixed(2) : "\u221E"}
-      </span>
+        {formatTime(0)}
+      </button>
+
+      {/* FPS input */}
+      <div className="flex items-center gap-1">
+        <span className="text-xs" style={{ color: "var(--chrome-text-muted)" }}>fps</span>
+        <input
+          type="text"
+          value={fpsInput}
+          onChange={(e) => setFpsInput(e.target.value)}
+          onBlur={commitFps}
+          onKeyDown={(e) => { if (e.key === "Enter") e.target.blur(); }}
+          className="w-8 text-xs text-center rounded px-1 py-0.5 outline-none focus:border-blue-500"
+          style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--input-text)" }}
+        />
+      </div>
 
       {/* Duration input */}
       <div className="flex items-center gap-1">
