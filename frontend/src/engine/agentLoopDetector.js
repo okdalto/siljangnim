@@ -78,4 +78,40 @@ export function detectErrorLoop(recentErrors, thresholds) {
   return { action: "none", count: maxCount, pattern: maxPattern };
 }
 
+// ---------------------------------------------------------------------------
+// Unrecoverable error detection — errors that cannot be fixed by editing code
+// ---------------------------------------------------------------------------
+
+const UNRECOVERABLE_PATTERNS = [
+  /context.*(lost|is lost)/i,
+  /please refresh the page/i,
+  /createShader returned null/i,
+  /Shader compile failed:.*null/i,
+  /Shader compile error:\s*null/i,
+  /WebGL context/i,
+  /context creation failed/i,
+  /GPU device lost/i,
+  /device was destroyed/i,
+];
+
+/**
+ * Check if an error message indicates an unrecoverable environment issue
+ * (not a code bug). These errors cannot be fixed by editing scene code.
+ *
+ * @param {string} errorMsg — raw error message
+ * @returns {{ unrecoverable: boolean, reason: string }}
+ */
+export function isUnrecoverableError(errorMsg) {
+  if (!errorMsg) return { unrecoverable: false, reason: "" };
+  for (const pattern of UNRECOVERABLE_PATTERNS) {
+    if (pattern.test(errorMsg)) {
+      return {
+        unrecoverable: true,
+        reason: errorMsg.slice(0, 200),
+      };
+    }
+  }
+  return { unrecoverable: false, reason: "" };
+}
+
 export { normalizeError };
