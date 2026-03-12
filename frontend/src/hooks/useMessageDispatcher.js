@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { handleInit, handleProjectLoaded, handleWorkspaceStateUpdate } from "./messageHandlers/initHandlers.js";
-import { handleAssistantText, handleChatDone, handleAgentStatus, handleAgentLog, handleAgentQuestion, handleMessageInjected } from "./messageHandlers/chatHandlers.js";
+import { handleAssistantText, handleAssistantTextDelta, handleAssistantTextFinalize, handleChatDone, handleAgentStatus, handleAgentLog, handleAgentQuestion, handleMessageInjected } from "./messageHandlers/chatHandlers.js";
 import { handleSceneUpdate, handleViewportCleared, handleSetTimeline, handleSceneUpdated } from "./messageHandlers/sceneHandlers.js";
 import { handleProjectList, handleProjectSaved, handleProjectTrusted, handleProjectError } from "./messageHandlers/projectHandlers.js";
 import { handleOpenPanel, handleClosePanel } from "./messageHandlers/panelHandlers.js";
@@ -13,6 +13,8 @@ const HANDLERS = {
   project_loaded: handleProjectLoaded,
   workspace_state_update: handleWorkspaceStateUpdate,
   assistant_text: handleAssistantText,
+  assistant_text_delta: handleAssistantTextDelta,
+  assistant_text_finalize: handleAssistantTextFinalize,
   chat_done: handleChatDone,
   agent_status: handleAgentStatus,
   agent_log: handleAgentLog,

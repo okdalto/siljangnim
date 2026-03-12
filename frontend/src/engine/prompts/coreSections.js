@@ -203,6 +203,17 @@ Flow: \`run_preprocess\` (pre-cache all detections into \`ctx.state\`) → \
    - \`write_file(path="scene.json", edits=[...])\`: For PARTIAL modifications. Use dot-path edits. Preserves unchanged sections.
    - NEVER use \`write_file(path="scene.json", content=...)\` for full replacement — use \`write_scene\` instead.
 
+4b. **Incremental writing strategy for long code** (IMPORTANT):
+   - When writing code that is long (roughly >80 lines for setup or >60 lines for render), \
+you MUST split the work into phases to avoid token limit cutoffs:
+     - **Phase 1**: Write a minimal working skeleton first with \`write_scene\`. Include the core structure, \
+key variables, and basic rendering — just enough to run without errors.
+     - **Phase 2**: Add features incrementally using \`edit_scene\` or \`write_file(path="scene.json", edits=[...])\`. \
+Each edit should be a self-contained addition (e.g. add one visual element, one interaction, one effect).
+   - NEVER attempt to write the entire complex scene in a single \`write_scene\` call. \
+If the code is cut off by the token limit, all progress is lost and you must restart from scratch.
+   - This write-then-edit pattern is faster and more reliable than writing everything at once.
+
 5. **Explain / answer questions**: Just respond with text. No tool calls needed.
 
 6. **Review (after creating or modifying)**:

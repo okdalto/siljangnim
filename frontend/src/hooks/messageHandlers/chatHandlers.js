@@ -7,12 +7,24 @@ export function handleAssistantText(msg, deps) {
   deps.autoSave?.triggerAutoSave?.();
 }
 
+export function handleAssistantTextDelta(msg, deps) {
+  deps.chat.addAssistantTextDelta(msg.chunk);
+}
+
+export function handleAssistantTextFinalize(msg, deps) {
+  deps.chat.finalizeAssistantText();
+  deps.autoSave?.triggerAutoSave?.();
+}
+
 export function handleChatDone(msg, deps) {
   const {
     chat, project, setWorkspaceFilesVersion, dirtyRef,
     setProjectManifest, projectTreeRef, overwriteModeRef, autoSave,
   } = deps;
   const { thinkingBufferRef, thinkingLogReceivedRef, getSceneJSONRef, getUiConfigRef, getWorkspaceStateRef, getPanelsRef, getMessagesRef, getDebugLogsRef } = unpackBufferRefs(deps);
+
+  // Safety: finalize any lingering streaming text
+  chat.finalizeAssistantText();
 
   if (thinkingBufferRef.current && !thinkingLogReceivedRef.current) {
     chat.addLog({ agent: "Agent", message: thinkingBufferRef.current, level: "thinking" });
