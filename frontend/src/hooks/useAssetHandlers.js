@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import * as storageApi from "../engine/storage.js";
+import { guessMimeType } from "../utils/mimeUtils.js";
 
 /**
  * Handles asset upload and deletion, including notification to chat and agent engine.
@@ -9,8 +10,9 @@ export default function useAssetHandlers({ assetNodes, chat, sendRef, BROWSER_ON
     const saved = [];
     for (const file of files) {
       const buf = await file.arrayBuffer();
-      await storageApi.saveUpload(file.name, buf, file.type);
-      saved.push({ name: file.name, mimeType: file.type, size: file.size });
+      const mime = file.type || guessMimeType(file.name);
+      await storageApi.saveUpload(file.name, buf, mime);
+      saved.push({ name: file.name, mimeType: mime, size: file.size });
     }
     if (saved.length > 0) {
       assetNodes.createAssetsFromUpload(saved);
