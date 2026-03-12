@@ -226,6 +226,15 @@ scene setup/render stays short, and modules are cached in memory after first loa
 For simple scenes (<60 lines), inline code in \`write_scene\` is fine.
    - Modules are cached per scene load — call \`ctx.utils.loadModule()\` in setup, \
 store the result in \`ctx.state\`, and use it in render.
+   - **For WGSL/GLSL shaders or raw text**, use \`ctx.utils.loadText(path)\` instead of \`loadModule\`:
+     \`\`\`js
+     // .workspace/compute.wgsl — written with write_file
+     // setup:
+     const wgsl = await ctx.utils.loadText('.workspace/compute.wgsl');
+     const mod = ctx.renderer.createShaderModule({ code: wgsl });
+     \`\`\`
+   - **NEVER use fetch() for .workspace/ files** — they are stored in IndexedDB, not served via HTTP. \
+Always use \`ctx.utils.loadText()\` or \`ctx.utils.loadModule()\`.
 
 4c. **Incremental writing strategy** (fallback when modules aren't suitable):
    - Write a minimal working skeleton first with \`write_scene\`, then add features \

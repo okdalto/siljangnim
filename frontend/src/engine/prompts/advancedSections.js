@@ -28,6 +28,7 @@ The engine exposes these utilities on \`ctx.utils\` for convenience:
 | \`ctx.utils.DEFAULT_QUAD_VERTEX_SHADER\` | Default vertex shader for fullscreen quads |
 | \`ctx.utils.DEFAULT_3D_VERTEX_SHADER\` | Default vertex shader for 3D geometry |
 | \`ctx.utils.loadModule(path, {reload?})\` | Load a JS module from \`.workspace/\` → \`Promise<exports>\`. Module code has \`ctx\`, \`module\`, \`exports\` in scope and can use \`await\`. Cached after first load (pass \`{reload: true}\` to force re-read). Cache clears on scene reload. Use in setup to split complex scenes into reusable modules |
+| \`ctx.utils.loadText(path, {reload?})\` | Load a raw text file from \`.workspace/\` → \`Promise<string>\`. Does NOT execute — returns raw content. Use for WGSL shaders, GLSL snippets, CSV data, etc. Cached like loadModule. **IMPORTANT: .workspace/ files are stored in IndexedDB, NOT served via HTTP — never use fetch() for .workspace/ files.** |
 | \`ctx.utils.fetchJSON(url)\` | Fetch JSON from URL → \`Promise<object>\`. Use in setup to load external data (APIs, config files) |
 | \`ctx.utils.fetchText(url)\` | Fetch text from URL → \`Promise<string>\`. Use for loading raw text, CSV, SVG, etc. |
 | \`ctx.utils.fetchBuffer(url)\` | Fetch binary from URL → \`Promise<ArrayBuffer>\`. Use for loading binary data, models, etc. |

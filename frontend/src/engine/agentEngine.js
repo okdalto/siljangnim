@@ -284,12 +284,22 @@ export default class AgentEngine {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Fire-and-forget save of engine.chatHistory to IndexedDB.
+ * This ensures chat history is persisted eagerly (not just via debounced auto-save),
+ * so page refreshes don't lose recent conversation context.
+ */
+function _persistChatHistory(engine) {
+  storage.writeJson("chat_history.json", engine.chatHistory).catch(() => {});
+}
+
 function makeCallbacks(engine) {
   const log = (agent, message, level) => {
     engine.broadcast({ type: "agent_log", agent, message, level });
   };
   const onText = (text) => {
     engine.chatHistory.push({ role: "assistant", text });
+    _persistChatHistory(engine);
     engine.broadcast({ type: "assistant_text", text });
   };
   const onTextDelta = (chunk) => {
@@ -300,6 +310,7 @@ function makeCallbacks(engine) {
     if (engine._streamingTextBuffer) {
       engine.chatHistory.push({ role: "assistant", text: engine._streamingTextBuffer });
       engine._streamingTextBuffer = "";
+      _persistChatHistory(engine);
     }
     engine.broadcast({ type: "assistant_text_finalize" });
   };
@@ -495,6 +506,7 @@ const HANDLERS = {
         historyEntry.files = savedFiles.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
       }
       this.chatHistory.push(historyEntry);
+      _persistChatHistory(this);
     }
 
     // If conversation context is empty but we have chat history (e.g. after page refresh),
@@ -958,14 +970,13 @@ const HANDLERS = {
         debugLogs = await storage.readJson("debug_logs.json");
       } catch { /* empty */ }
 
-      // Restore engine chat history so the agent has context for follow-up prompts
+      // Restore engine chat history so the agent has context for follow-up prompts.
+      // NOTE: We do NOT rebuild this.conversation here — it stays empty so that
+      // the summary injection at prompt-time (line ~502) triggers and provides
+      // a compact, framed context to the LLM instead of raw flat messages.
       if (Array.isArray(chatHistory) && chatHistory.length > 0) {
         this.chatHistory.length = 0;
         this.chatHistory.push(...chatHistory);
-        // Rebuild LLM conversation context from chat history
-        this.conversation = chatHistory
-          .filter((m) => m.role === "user" || m.role === "assistant")
-          .map((m) => ({ role: m.role, content: m.text || "" }));
       }
     }
 
