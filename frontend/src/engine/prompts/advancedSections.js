@@ -322,7 +322,7 @@ Core methods:
 |--------|-------------|
 | \`createShaderModule({ code, label? })\` | Create shader module from WGSL source |
 | \`createRenderPipeline({ vertex, fragment, primitive?, depthStencil? })\` | Create render pipeline |
-| \`createComputePipeline({ module, entryPoint?, constants?, label? })\` | Create compute pipeline. \`constants\`: pipeline-overridable constants object |
+| \`createComputePipeline({ module, entryPoint?, constants?, layout?, label? })\` | Create compute pipeline. \`constants\`: pipeline-overridable constants. \`layout\`: pass a handle from \`createPipelineLayout()\` to share bind group layout across pipelines (default: auto) |
 | \`createBuffer({ usage, size, data? })\` | Create GPU buffer. usage: string or array of strings — \`"vertex"\`, \`"index"\`, \`"uniform"\`, \`"storage"\`, \`"copy-src"\` |
 | \`writeBuffer(handle, data, offset?)\` | Update buffer data |
 | \`createTexture({ width, height, format?, usage? })\` | Create texture |
@@ -458,6 +458,58 @@ for (const h of [ctx.state.computeBG]) rr.destroyBindGroup(h);
 for (const h of [ctx.state.computeModule, ctx.state.renderModule]) rr.destroyShaderModule(h);
 \`\`\`
 
+### Multi-Pipeline Bind Group Rules (CRITICAL)
+
+**WebGPU auto-layout creates a DIFFERENT bind group layout per pipeline**, based on \
+which bindings each entry point actually references. Pipelines from the same WGSL module \
+but different entry points may have incompatible layouts if they use different subsets of bindings.
+
+**Problem**: A WGSL module with entry points \`clearGrid\` (uses bindings 0,2) and \`p2g\` \
+(uses bindings 0,1,2) will have DIFFERENT auto-derived layouts. A bind group created for \
+\`p2g\` CANNOT be used with \`clearGrid\` — WebGPU will throw a validation error.
+
+**Solution — use explicit shared layout**:
+\`\`\`js
+// 1. Create explicit bind group layout with ALL bindings used across all entry points
+const bgl = r.createBindGroupLayout({ entries: [
+  { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+  { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+  { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+]});
+const pipeLayout = r.createPipelineLayout({ bindGroupLayouts: [bgl] });
+
+// 2. Create ALL pipelines with the SAME explicit layout
+const clearGridPipe = r.createComputePipeline({ module: mod, entryPoint: 'clearGrid', layout: pipeLayout });
+const p2gPipe       = r.createComputePipeline({ module: mod, entryPoint: 'p2g',       layout: pipeLayout });
+const gridUpdatePipe= r.createComputePipeline({ module: mod, entryPoint: 'gridUpdate', layout: pipeLayout });
+
+// 3. Create ONE bind group with the explicit layout — works with ALL pipelines
+const bg = r.createBindGroup({ layout: bgl, entries: [
+  { binding: 0, resource: { type: 'uniform-buffer', buffer: paramBuf } },
+  { binding: 1, resource: { type: 'storage-buffer', buffer: particleBuf } },
+  { binding: 2, resource: { type: 'storage-buffer', buffer: gridBuf } },
+]});
+\`\`\`
+
+**Alternative — per-pipeline bind groups** (if you don't want explicit layout):
+\`\`\`js
+// Create separate bind groups from each pipeline's auto-derived layout.
+// IMPORTANT: each bind group must include ONLY the bindings that entry point actually uses.
+const clearGridBG = r.createBindGroup({ pipeline: clearGridPipe, entries: [
+  { binding: 0, resource: { type: 'uniform-buffer', buffer: paramBuf } },
+  { binding: 2, resource: { type: 'storage-buffer', buffer: gridBuf } },  // NO binding 1!
+]});
+const p2gBG = r.createBindGroup({ pipeline: p2gPipe, entries: [
+  { binding: 0, resource: { type: 'uniform-buffer', buffer: paramBuf } },
+  { binding: 1, resource: { type: 'storage-buffer', buffer: particleBuf } },
+  { binding: 2, resource: { type: 'storage-buffer', buffer: gridBuf } },
+]});
+// Then use clearGridBG with clearGridPipe, p2gBG with p2gPipe, etc.
+\`\`\`
+
+**Recommendation**: For multi-entry-point WGSL modules, ALWAYS use the explicit shared layout \
+approach. It's simpler, uses one bind group, and avoids layout mismatch errors entirely.
+
 ### Multi-Pipeline Pattern (Compute → Compute → Render)
 
 For complex simulations (MPM, SPH) that need multiple compute passes per frame:
@@ -467,19 +519,19 @@ const enc = r.beginFrame();
 // Pass 1: scatter particles to grid
 const p1 = r.beginComputePass(enc, {});
 r.setComputePipeline(p1, scatterPipeline);
-r.setBindGroup(p1, 0, scatterBG);
+r.setBindGroup(p1, 0, sharedBG); // shared bind group (explicit layout)
 r.dispatch(p1, Math.ceil(numParticles / 64));
 r.endComputePass(p1);
 // Pass 2: grid update
 const p2 = r.beginComputePass(enc, {});
 r.setComputePipeline(p2, gridPipeline);
-r.setBindGroup(p2, 0, gridBG);
+r.setBindGroup(p2, 0, sharedBG);
 r.dispatch(p2, Math.ceil(gridSize / 64));
 r.endComputePass(p2);
 // Pass 3: gather from grid back to particles
 const p3 = r.beginComputePass(enc, {});
 r.setComputePipeline(p3, gatherPipeline);
-r.setBindGroup(p3, 0, gatherBG);
+r.setBindGroup(p3, 0, sharedBG);
 r.dispatch(p3, Math.ceil(numParticles / 64));
 r.endComputePass(p3);
 // Pass 4: render
