@@ -624,7 +624,7 @@ higher-quality results than blank generation. Combine multiple techniques \
     id: "per_project_backend",
     core: false,
     platforms: ["web-desktop"],
-    keywords: ["backend", "webgpu", "webgl", "target", "gpu"],
+    keywords: ["backend", "webgpu", "webgl", "target", "gpu", "hybrid", "compute"],
     content: `\
 ### Per-Project Backend Handling
 
@@ -633,6 +633,9 @@ Each project may specify a \`backendTarget\` in its scene metadata:
 - \`"webgl"\`: Force WebGL2. Same as auto.
 - \`"webgpu"\`: Force WebGPU + WGSL. **Use \`ctx.renderer\` (RendererInterface)** for the abstraction API. \
 For advanced use (raw compute shaders, atomic ops, storage buffers), you can also access the raw \`GPUDevice\` via \`ctx.renderer.getNativeContext()\`.
+- \`"hybrid"\`: **WebGPU compute + WebGL2 rendering.** Both \`ctx.renderer\` (WebGPU) and \`ctx.gl\` (WebGL2) are available. \
+Use WebGPU compute shaders for heavy simulation (particles, physics, fluid) and WebGL2 GLSL for rendering. \
+If WebGPU is unavailable, the scene still loads (can fall back to CPU simulation).
 
 ### WebGPU Scene Workflow
 
@@ -682,17 +685,21 @@ Raw device access bypasses error tracking and may cause silent failures.
 
 When generating or modifying scenes:
 1. Read the current backendTarget from scene metadata.
-2. If target is "webgpu", use \`ctx.renderer\` for compute shaders and/or WGSL render pipelines.
-3. If target is "auto" or absent, default to WebGL2/GLSL with \`ctx.gl\`.
-4. When the user explicitly requests WebGPU or compute shaders, include \`backendTarget: "webgpu"\` in the \`write_scene\` call.
-5. Never mix GLSL and WGSL in the same shader program — pick one based on the backend.
-6. The engine auto-blits WebGPU output to the visible canvas after each render frame.
-7. **CRITICAL**: Always include \`backendTarget\` in \`write_scene\` for WebGPU scenes. Without it, the engine defaults to WebGL2 and \`ctx.renderer\` will not have a WebGPU device.
+2. If target is "webgpu", use \`ctx.renderer\` for ALL rendering (WGSL) and compute.
+3. If target is "hybrid", use \`ctx.renderer\` for compute + \`ctx.gl\` for rendering (GLSL). \
+This is ideal when you need GPU-accelerated simulation but want to keep WebGL2 rendering.
+4. If target is "auto" or absent, default to WebGL2/GLSL with \`ctx.gl\`.
+5. When the user requests GPU-accelerated simulation with WebGL2 rendering, use \`backendTarget: "hybrid"\`.
+6. When the user requests full WebGPU (compute + rendering in WGSL), use \`backendTarget: "webgpu"\`.
+7. Never mix GLSL and WGSL in the same shader program — pick one based on the backend.
+8. The engine auto-blits WebGPU output to the visible canvas after each render frame (webgpu mode only).
+9. **CRITICAL**: Always include \`backendTarget\` in \`write_scene\` for WebGPU/hybrid scenes. Without it, the engine defaults to WebGL2 and \`ctx.renderer\` will not have a WebGPU device.
 
 ### Hybrid Mode: WebGPU Compute + WebGL2 Rendering
 
-When \`backendTarget\` is \`"webgpu"\`, **both \`ctx.renderer\` (WebGPU) and \`ctx.gl\` (WebGL2) are available simultaneously**. \
-The WebGPU backend runs on a separate OffscreenCanvas; the main canvas retains its WebGL2 context.
+Set \`backendTarget: "hybrid"\` to enable this mode. **Both \`ctx.renderer\` (WebGPU) and \`ctx.gl\` (WebGL2) are available simultaneously.** \
+The WebGPU backend runs on a separate OffscreenCanvas; the main canvas retains its WebGL2 context. \
+Unlike \`"webgpu"\` mode, if WebGPU is unavailable the scene still loads (graceful degradation to CPU-only).
 
 This enables a powerful hybrid pattern: **GPU compute simulation via WebGPU + high-quality rendering via WebGL2 GLSL**.
 

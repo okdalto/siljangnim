@@ -9,7 +9,7 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
   useEffect(() => {
     const engine = engineRef.current;
     if (!engine || !backendTarget) return;
-    const prefer = backendTarget === "webgpu" ? "webgpu" : "webgl2";
+    const prefer = (backendTarget === "webgpu" || backendTarget === "hybrid") ? "webgpu" : "webgl2";
     engine.switchBackend(prefer).catch((err) => {
       console.warn("[ViewportNode] Backend switch warning:", err.message);
     });
@@ -41,7 +41,7 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
     console.log("[ViewportNode] Loading scene:", sceneJSON.mode || "unknown");
     setError(null);
 
-    const wantBackend = sceneJSON.backendTarget === "webgpu" ? "webgpu" : "webgl2";
+    const wantBackend = (sceneJSON.backendTarget === "webgpu" || sceneJSON.backendTarget === "hybrid") ? "webgpu" : "webgl2";
     const switchPromise = engine.switchBackend(wantBackend).catch((err) => {
       console.warn("[ViewportNode] Backend switch warning:", err?.message);
     });
