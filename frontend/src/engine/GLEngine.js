@@ -225,9 +225,15 @@ export default class GLEngine {
 
     // Handle context loss
     this._contextLost = false;
+    this._glDeliberatelyLost = false;
     canvas.addEventListener("webglcontextlost", (e) => {
       e.preventDefault();
       this._contextLost = true;
+      // If we deliberately lost the context for WebGPU, don't treat as error
+      if (this._glDeliberatelyLost) {
+        console.log("[GLEngine] WebGL context released for WebGPU (deliberate)");
+        return;
+      }
       this._scriptCtx = null; // prevent hot-reload after context restore
       this.stop();
       console.warn("[GLEngine] WebGL context lost");
@@ -300,13 +306,18 @@ export default class GLEngine {
         // WebGPU needs its own canvas context — create offscreen
         // For now, the abstraction backend is a secondary renderer
         // that can be used for compute and offscreen rendering.
-        // The primary display path remains the direct GL context.
+        // The primary display path uses a Canvas 2D overlay to avoid
+        // dual GPU contexts (WebGL2 + WebGPU) competing for resources.
         try {
           const { WebGPUBackend } = await import("./gpu/WebGPUBackend.js");
           const offscreen = new OffscreenCanvas(this.canvas.width, this.canvas.height);
           const gpuBackend = new WebGPUBackend();
           await gpuBackend.init(offscreen, { alpha: false });
           this._backend = gpuBackend;
+
+          // Release WebGL2 context to free GPU resources — WebGPU scenes
+          // don't need it, and dual contexts cause GPU pressure / context loss.
+          this._releaseGLForWebGPU();
         } catch (err) {
           const failMsg = `WebGPU initialization failed: ${err.message}`;
           console.error("[GLEngine]", failMsg);
@@ -362,10 +373,16 @@ export default class GLEngine {
     // Save old backend in case we need to restore on failure
     const oldBackend = this._backend;
     const oldOptions = { ...this._backendOptions };
+    const wasWebGPU = oldBackend?.backendType === BackendType.WEBGPU;
     this._backend = null;
     this._backendReady = false;
     this._backendOptions = { ...this._backendOptions, preferBackend };
     this._isSwitchingBackend = true;
+
+    // If switching FROM WebGPU, restore WebGL2 context first
+    if (wasWebGPU && preferBackend !== "webgpu") {
+      this._restoreGLFromWebGPU();
+    }
 
     try {
       await this.initBackend();
@@ -408,12 +425,86 @@ export default class GLEngine {
   }
 
   /**
-   * Auto-blit WebGPU OffscreenCanvas to the visible WebGL2 canvas after render.
-   * Called automatically by the render loop — agent code does NOT need to call
-   * ctx.utils.blitToCanvas() manually (though it still works if they do).
+   * Release the WebGL2 context when WebGPU is active.
+   * Creates a Canvas 2D overlay for display, freeing GPU resources
+   * that would otherwise be wasted on an unused WebGL2 context.
+   */
+  _releaseGLForWebGPU() {
+    // Deliberately lose the WebGL2 context to free GPU resources
+    if (this.gl) {
+      const loseExt = this.gl.getExtension("WEBGL_lose_context");
+      if (loseExt) loseExt.loseContext();
+      this._glDeliberatelyLost = true;
+    }
+
+    // Create a 2D overlay canvas for WebGPU display
+    if (!this._blitOverlay && this.canvas.parentNode) {
+      const overlay = document.createElement("canvas");
+      overlay.width = this.canvas.width;
+      overlay.height = this.canvas.height;
+      overlay.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;";
+      this.canvas.parentNode.appendChild(overlay);
+      this._blitOverlay = overlay;
+      this._blitOverlayCtx = overlay.getContext("2d");
+    }
+  }
+
+  /**
+   * Restore the WebGL2 context when switching back from WebGPU.
+   * Removes the Canvas 2D overlay and re-creates the GL context.
+   */
+  _restoreGLFromWebGPU() {
+    // Remove overlay canvas
+    if (this._blitOverlay) {
+      this._blitOverlay.remove();
+      this._blitOverlay = null;
+      this._blitOverlayCtx = null;
+    }
+
+    // Clean up WebGL blit resources (they were on the old lost context)
+    this._blitProgram = null;
+    this._blitTex = null;
+    this._blitVAO = null;
+
+    // Restore WebGL2 context
+    if (this._glDeliberatelyLost) {
+      const loseExt = this.gl?.getExtension?.("WEBGL_lose_context");
+      if (loseExt) {
+        try { loseExt.restoreContext(); } catch { /* ignore */ }
+      }
+      // If restoreContext didn't work, try fresh creation
+      if (!this.gl || this.gl.isContextLost()) {
+        this.gl = this.canvas.getContext("webgl2", { alpha: false, antialias: true, preserveDrawingBuffer: true });
+        if (this.gl) {
+          this._extColorBufferFloat = this.gl.getExtension("EXT_color_buffer_float");
+          this._extFloatLinear = this.gl.getExtension("OES_texture_float_linear");
+        }
+      }
+      this._glDeliberatelyLost = false;
+      this._contextLost = false;
+    }
+  }
+
+  /**
+   * Auto-blit WebGPU OffscreenCanvas to the visible canvas after render.
+   * Uses Canvas 2D overlay (no WebGL2 needed) when available,
+   * falls back to WebGL2 blit for backward compatibility.
    */
   _autoBlitIfWebGPU(ctx) {
     if (this._backend?.backendType === BackendType.WEBGPU && this._backend?.canvas) {
+      const src = this._backend.canvas;
+      // Prefer 2D overlay (avoids dual GPU context)
+      if (this._blitOverlayCtx) {
+        const overlay = this._blitOverlay;
+        // Sync size if needed
+        if (overlay.width !== src.width || overlay.height !== src.height) {
+          overlay.width = src.width;
+          overlay.height = src.height;
+        }
+        this._blitOverlayCtx.drawImage(src, 0, 0);
+        return;
+      }
+      // Fallback: WebGL2 blit (ctx.utils.blitToCanvas)
       ctx.utils.blitToCanvas();
     }
   }
@@ -464,7 +555,9 @@ export default class GLEngine {
    */
   async loadScene(sceneJSON) {
     const gl = this.gl;
-    if (!gl) return;
+    const isWebGPU = this._backend?.backendType === BackendType.WEBGPU;
+    // For WebGL2 scenes, gl is required. WebGPU scenes can work without it.
+    if (!gl && !isWebGPU) return;
 
     // --- HOT RELOAD: setup이 동일하면 render/cleanup만 교체 ---
     const newScript = sceneJSON.script || {};
@@ -1279,11 +1372,11 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     // --- GLSL→WGSL auto-transpilation for WebGPU backend ---
     // When the active backend is WebGPU, wrap shader-related utilities
     // so that AI-generated GLSL code is automatically transpiled to WGSL.
-    const isWebGPU = this._backend?.backendType === BackendType.WEBGPU ||
+    const isWebGPUBackend = this._backend?.backendType === BackendType.WEBGPU ||
       this._backendOptions?.forceBackend === "webgpu" ||
       this._backendOptions?.preferBackend === "webgpu";
 
-    if (isWebGPU) {
+    if (isWebGPUBackend) {
       // Expose transpiler utilities for direct use by AI-generated code
       ctx.utils.transpileGLSL = transpileGLSL;
       ctx.utils.transpileFragmentGLSL = transpileFragmentGLSL;
@@ -1491,11 +1584,20 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
 
   _renderFrame(time, dt) {
     const gl = this.gl;
-    if (!gl) return null;
+    const isWebGPU = this._backend?.backendType === BackendType.WEBGPU;
+
+    // For WebGL2 scenes, gl is required. For WebGPU, it may be deliberately lost.
+    if (!gl && !isWebGPU) return null;
+
     if (!this._scene || !this._scriptRenderFn || !this._scriptCtx || !this._setupReady) {
       // No active scene or setup not ready — clear to black so stale frames don't linger
-      gl.clearColor(0, 0, 0, 1);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      if (gl && !gl.isContextLost()) {
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      } else if (this._blitOverlayCtx) {
+        // Clear overlay for WebGPU
+        this._blitOverlayCtx.clearRect(0, 0, this._blitOverlay.width, this._blitOverlay.height);
+      }
       return null;
     }
 
@@ -1557,22 +1659,24 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     }
 
     // Update MIDI texture before script render (messages arrive via callbacks)
-    if (this._midiManager?.initialized) {
+    // Skip GL-based texture updates when WebGL2 is lost (WebGPU scenes)
+    const glAlive = gl && !gl.isContextLost();
+    if (glAlive && this._midiManager?.initialized) {
       this._midiManager.updateTextures(gl);
     }
 
     // Update OSC texture before script render
-    if (this._oscManager?.initialized) {
+    if (glAlive && this._oscManager?.initialized) {
       this._oscManager.updateTextures(gl);
     }
 
     // Update mic FFT data before script render
-    if (this._micManager?.initialized) {
+    if (glAlive && this._micManager?.initialized) {
       this._micManager.updateFrame(gl, ctx.isOffline);
     }
 
     // Update audio data before script render
-    if (this._audioManager) {
+    if (this._audioManager && glAlive) {
       this._audioManager.updateFrame(gl, time, ctx.isOffline);
       const am = this._audioManager;
       ctx.audio.isLoaded = am.isLoaded;
@@ -1919,6 +2023,15 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     if (width <= 0 || height <= 0) return;
     this.canvas.width = width;
     this.canvas.height = height;
+    // Sync overlay canvas and WebGPU OffscreenCanvas
+    if (this._blitOverlay) {
+      this._blitOverlay.width = width;
+      this._blitOverlay.height = height;
+    }
+    if (this._backend?.backendType === BackendType.WEBGPU && this._backend?.canvas) {
+      this._backend.canvas.width = width;
+      this._backend.canvas.height = height;
+    }
   }
 
   /**
@@ -2450,6 +2563,11 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       mgr?.dispose?.();
     }
     this._disposeReadbackCache();
+    if (this._blitOverlay) {
+      this._blitOverlay.remove();
+      this._blitOverlay = null;
+      this._blitOverlayCtx = null;
+    }
     if (this._backend) {
       this._backend.dispose();
       this._backend = null;
