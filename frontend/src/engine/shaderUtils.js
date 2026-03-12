@@ -35,7 +35,14 @@ void main() {
  * @returns {WebGLShader}
  */
 export function compileShader(gl, type, source) {
+  // Detect lost GL context early
+  if (gl.isContextLost?.()) {
+    throw new Error("Shader compile failed: WebGL context is lost. Please refresh the page.");
+  }
   const shader = gl.createShader(type);
+  if (!shader) {
+    throw new Error("Shader compile failed: gl.createShader returned null (context may be lost). Please refresh the page.");
+  }
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
