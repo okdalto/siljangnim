@@ -625,6 +625,10 @@ async function _runAgentLoop({
             userAnswerPromise,
             preprocessPromise,
             recordingDonePromise,
+            debugSubagentRunner: (errorContext) => runDebugSubagent({
+              apiKey, errorContext, log, broadcast, onStatus,
+              errorCollector, signal, provider, providerConfig,
+            }),
           });
           if (resultStr?.startsWith("Error")) isError = true;
         } catch (e) {
@@ -684,6 +688,181 @@ async function _runAgentLoop({
   }
 
   return { chatText: lastText };
+}
+
+// ---------------------------------------------------------------------------
+// Debug Sub-Agent
+// ---------------------------------------------------------------------------
+
+const DEBUG_SUBAGENT_MAX_TURNS = 10;
+const DEBUG_SUBAGENT_MODEL = "claude-sonnet-4-6";
+
+/** Tools available to the debug sub-agent (read-only + diagnostics). */
+const DEBUG_TOOLS_NAMES = new Set([
+  "read_file", "list_files", "list_uploaded_files", "search_code", "check_browser_errors",
+]);
+const DEBUG_TOOLS = TOOLS.filter((t) => DEBUG_TOOLS_NAMES.has(t.name));
+
+const DEBUG_SYSTEM_PROMPT = `You are a **debug specialist sub-agent** for a real-time WebGL/WebGPU visual creation tool called siljangnim.
+
+Your job: Analyze errors, diagnose root causes, and return a clear, actionable diagnosis.
+
+## Available tools
+- read_file: Read workspace files (scene.json sections, uploads, .workspace/ files)
+- list_files / list_uploaded_files: See what files exist
+- search_code: Grep for strings/patterns across all workspace code
+- check_browser_errors: Check for runtime errors in the browser
+
+## Your workflow
+1. Read the error information provided
+2. Use tools to inspect the relevant code (setup, render, cleanup sections)
+3. Search for related patterns if needed
+4. Produce a DIAGNOSIS with:
+   - **Root cause**: What exactly is wrong and why
+   - **Location**: Which section (setup/render/cleanup) and which line(s)
+   - **Fix**: Concrete code changes needed (show before→after)
+   - **Confidence**: high / medium / low
+
+## Rules
+- You are READ-ONLY. You cannot modify files — only analyze.
+- Be concise. The parent agent will apply your suggested fixes.
+- Focus on the most likely root cause, not every theoretical possibility.
+- If you need to see code, use read_file with section paths like "script.setup", "script.render".
+- Always respond in the same language as the error context / user prompt.`;
+
+/**
+ * Run a debug sub-agent with its own conversation context.
+ * Returns the final diagnosis text.
+ */
+export async function runDebugSubagent({
+  apiKey,
+  errorContext,
+  log,
+  broadcast,
+  onStatus,
+  errorCollector,
+  signal,
+  provider = "anthropic",
+  providerConfig = {},
+}) {
+  const modelName = providerConfig.model || DEBUG_SUBAGENT_MODEL;
+  const isAnthropic = provider === "anthropic";
+  const useThinking = isAnthropic && (modelName.includes("opus") || modelName.includes("sonnet"));
+  const maxTokens = providerConfig.max_tokens || (useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX);
+
+  const messages = [
+    { role: "user", content: errorContext },
+  ];
+
+  let lastText = "";
+  let turns = 0;
+
+  log("Debug Agent", "Starting debug sub-agent analysis...", "info");
+  onStatus?.("thinking", "Debug sub-agent analyzing...");
+
+  try {
+    while (turns < DEBUG_SUBAGENT_MAX_TURNS) {
+      turns++;
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+
+      let contentBlocks, stopReason;
+      try {
+        const result = await callLLM({
+          provider,
+          apiKey,
+          baseUrl: providerConfig.base_url,
+          model: modelName,
+          maxTokens,
+          system: DEBUG_SYSTEM_PROMPT,
+          messages,
+          tools: DEBUG_TOOLS,
+          signal,
+          callbacks: {
+            onThinkingDelta() {},
+            onTextDelta() {},
+            onToolUseStart(name) {
+              onStatus?.("thinking", `Debug agent: ${name}...`);
+            },
+            onContentBlockStop(type, data) {
+              if (type === "thinking") {
+                log("Debug Agent", data, "thinking");
+              }
+            },
+          },
+        });
+        contentBlocks = result.contentBlocks;
+        stopReason = result.stopReason;
+      } catch (err) {
+        if (err.name === "AbortError") throw err;
+        log("Debug Agent", `LLM error: ${err.message}`, "error");
+        return `Debug sub-agent failed: ${err.message}`;
+      }
+
+      if (!contentBlocks?.length) break;
+
+      // Process content blocks
+      for (const block of contentBlocks) {
+        if (block.type === "text" && block.text?.trim()) {
+          lastText = block.text;
+        } else if (block.type === "tool_use") {
+          log("Debug Agent", `Tool: ${block.name}`, "thinking");
+        }
+      }
+
+      // Store assistant message (strip thinking)
+      const storedBlocks = contentBlocks.filter(b => b.type !== "thinking");
+      messages.push({
+        role: "assistant",
+        content: storedBlocks.length ? storedBlocks : [{ type: "text", text: "(analyzing)" }],
+      });
+
+      if (stopReason !== "tool_use") break;
+
+      // Execute tool calls (read-only tools only)
+      const toolBlocks = contentBlocks.filter(b => b.type === "tool_use");
+      const toolResults = [];
+
+      for (const block of toolBlocks) {
+        if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+
+        let resultStr;
+        let isError = false;
+        try {
+          if (!DEBUG_TOOLS_NAMES.has(block.name)) {
+            resultStr = `Error: tool '${block.name}' is not available to the debug sub-agent.`;
+            isError = true;
+          } else {
+            resultStr = await handleTool(block.name, block.input, broadcast, {
+              errorCollector,
+            });
+          }
+        } catch (e) {
+          resultStr = `Error: ${e.message}`;
+          isError = true;
+        }
+
+        const tr = {
+          type: "tool_result",
+          tool_use_id: block.id,
+          content: resultStr || "(empty result)",
+        };
+        if (isError) tr.is_error = true;
+        toolResults.push(tr);
+      }
+
+      messages.push({ role: "user", content: toolResults });
+    }
+  } catch (err) {
+    if (err.name === "AbortError") {
+      log("Debug Agent", "Cancelled", "info");
+      return "Debug sub-agent was cancelled.";
+    }
+    return `Debug sub-agent error: ${err.message}`;
+  }
+
+  log("Debug Agent", lastText || "No diagnosis produced", "info");
+  onStatus?.("thinking", "Debug analysis complete");
+  return lastText || "Debug sub-agent could not produce a diagnosis.";
 }
 
 // ---------------------------------------------------------------------------
