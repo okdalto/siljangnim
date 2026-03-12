@@ -19,6 +19,10 @@ const WORKSPACE_FILES = new Set([
   "debug_logs.json",
 ]);
 
+const CHECK_ERRORS_WAIT_MS = 3000;
+const CHECK_ERRORS_LATE_WAIT_MS = 800;
+const CAPTURE_MAX_DIM = 1024;
+
 // ---------------------------------------------------------------------------
 // Scene JSON validation
 // ---------------------------------------------------------------------------
@@ -349,6 +353,10 @@ async function toolWriteFile(input, broadcast) {
           warnings.push(`Edit ${i}: old_text not found, skipped`);
           continue;
         }
+        const occurrences = fileText.split(oldText).length - 1;
+        if (occurrences > 1) {
+          warnings.push(`Edit ${i}: old_text found ${occurrences} times — only first replaced. Provide more context for unique match.`);
+        }
         fileText = fileText.replace(oldText, newText);
       } else {
         warnings.push(`Edit ${i}: text files require 'old_text' field`);
@@ -627,13 +635,13 @@ function parseError(errorMsg) {
 
 async function toolCheckBrowserErrors(input, broadcast, ctx) {
   const errorCollector = ctx.errorCollector;
-  // Wait up to 3 seconds for errors to arrive (waits for scene load first)
-  const errors = await errorCollector.waitForErrors(3000);
+  // Wait for errors to arrive (waits for scene load first)
+  const errors = await errorCollector.waitForErrors(CHECK_ERRORS_WAIT_MS);
 
   // Second short wait to catch late-arriving WebGPU validation errors
   // (GPU shader compilation and pipeline creation are async)
   if (!errors.length || !errorCollector.isSetupReady()) {
-    await new Promise((r) => setTimeout(r, 800));
+    await new Promise((r) => setTimeout(r, CHECK_ERRORS_LATE_WAIT_MS));
     const late = errorCollector.drainLateErrors();
     for (const e of late) {
       if (!errors.includes(e)) errors.push(e);
@@ -831,7 +839,7 @@ async function toolCaptureViewport(input, broadcast, ctx) {
   // For WebGPU, we need the visible (blit target) canvas
   // which is the main canvas — toDataURL works on it after auto-blit
   try {
-    const maxDim = 1024;
+    const maxDim = CAPTURE_MAX_DIM;
     let w = Math.min(input.width || canvas.width, maxDim);
     let h = Math.min(input.height || canvas.height, maxDim);
 

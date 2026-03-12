@@ -368,18 +368,22 @@ async function parseOpenAISSEStream(body, callbacks) {
   // Flush tool calls
   for (const [, tc] of toolCallMap) {
     let parsedInput = {};
+    let parseError = null;
     try {
       parsedInput = tc.arguments ? JSON.parse(tc.arguments) : {};
     } catch {
       console.warn(`[llmClient] Incomplete tool_use JSON for ${tc.name}: ${(tc.arguments || "").slice(0, 100)}...`);
       parsedInput = {};
+      parseError = `Tool "${tc.name}"의 인자 JSON이 불완전합니다 (스트림 절단).`;
     }
-    contentBlocks.push({
+    const block = {
       type: "tool_use",
       id: tc.id || `call_${crypto.randomUUID().slice(0, 8)}`,
       name: tc.name,
       input: parsedInput,
-    });
+    };
+    if (parseError) block._parseError = parseError;
+    contentBlocks.push(block);
     callbacks.onContentBlockStop?.("tool_use", { id: tc.id, name: tc.name, input: parsedInput });
   }
 

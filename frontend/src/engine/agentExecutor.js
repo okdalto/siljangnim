@@ -116,6 +116,28 @@ const MAX_OVERLOAD_RETRIES = 5;
 const LOOP_WARN_THRESHOLD = 3;
 const LOOP_BREAK_THRESHOLD = 5;
 
+const TOOL_TIMEOUT = 30_000;
+const TOOL_TIMEOUT_OVERRIDES = {
+  start_recording: 120_000,
+  ask_user: 300_000,
+  run_debug_diagnosis: 60_000,
+};
+
+function withToolTimeout(promise, ms, name) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`Tool "${name}" timed out after ${ms / 1000}s`)), ms);
+    promise.then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); });
+  });
+}
+
+function estimateBytesPerToken(messages) {
+  const sample = JSON.stringify(messages).slice(0, 6000);
+  let multibyte = 0, total = 0;
+  for (const ch of sample) { total++; if (ch.charCodeAt(0) > 127) multibyte++; }
+  // 3.0 (pure ASCII/code) ~ 4.5 (high Korean ratio)
+  return total > 0 ? 3.0 + (multibyte / total) * 1.5 : 3.0;
+}
+
 // Model configuration
 const MODEL_COMPLEX = "claude-sonnet-4-6";
 const MODEL_COMPLEX_MAX = 16384;
@@ -233,8 +255,8 @@ function findLandmarks(messages) {
     for (const block of content) {
       if (typeof block !== "object" || block.type !== "tool_result") continue;
       const text = typeof block.content === "string" ? block.content : "";
-      if (text.startsWith("ok — scene saved")) lastSuccessWriteIdx = i;
-      if (text.includes("Script errors") || text.includes("FAILED")) lastErrorIdx = i;
+      if (/^ok\s*[—–-]\s*(scene saved|.*applied to)/i.test(text)) lastSuccessWriteIdx = i;
+      if (/Script errors|FAILED|Validation errors/i.test(text) || block.is_error) lastErrorIdx = i;
     }
   }
   return { lastSuccessWriteIdx, lastErrorIdx };
@@ -551,8 +573,8 @@ async function _runAgentLoop({
         lastMsgCount = messages.length;
       }
 
-      // Pre-flight compaction (estimate ~3 bytes/token for mixed content including multibyte)
-      const estTokens = runningBytes / 3;
+      // Pre-flight compaction (adaptive bytes/token: 3.0 for ASCII, up to 4.5 for Korean-heavy)
+      const estTokens = runningBytes / estimateBytesPerToken(messages);
       const compactThreshold = 150000;
       if (estTokens > compactThreshold) {
         log("System", `Estimated ~${Math.round(estTokens)} tokens — compacting...`, "info");
@@ -777,6 +799,17 @@ async function _runAgentLoop({
       for (const block of toolBlocks) {
         if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
+        if (block._parseError) {
+          toolResults.push({
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: `Error: ${block._parseError} Please retry this tool call with complete arguments.`,
+            is_error: true,
+          });
+          log("System", `Skipped ${block.name}: JSON parse error`, "warning");
+          continue;
+        }
+
         onStatus?.("thinking", `Running ${block.name}...`);
 
         let result;
@@ -790,7 +823,8 @@ async function _runAgentLoop({
             result = toolCache.get(cacheKey);
             log("System", `Cache hit: ${block.name}`, "info");
           } else {
-            result = await handleTool(block.name, block.input, broadcast, {
+            const timeout = TOOL_TIMEOUT_OVERRIDES[block.name] || TOOL_TIMEOUT;
+            result = await withToolTimeout(handleTool(block.name, block.input, broadcast, {
               errorCollector,
               userAnswerPromise,
               preprocessPromise,
@@ -800,7 +834,7 @@ async function _runAgentLoop({
                 apiKey, errorContext, log, broadcast, onStatus,
                 errorCollector, signal, provider, providerConfig,
               }),
-            });
+            }), timeout, block.name);
             // Cache read-only results
             if (cacheKey) toolCache.set(cacheKey, result);
             // Invalidate cache on write operations
