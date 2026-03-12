@@ -74,8 +74,8 @@ function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
           onAssetsReplaced={() => {
             setMissingAssets([]);
             const engine = engineRef.current;
-            if (engine && data.sceneJSON) {
-              engine.loadScene(data.sceneJSON);
+            if (engine && sceneJSON) {
+              engine.loadScene(sceneJSON);
             }
           }}
         />
