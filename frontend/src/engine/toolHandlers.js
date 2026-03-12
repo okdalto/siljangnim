@@ -390,7 +390,9 @@ async function toolSearchCode(input, _broadcast) {
   const maxResults = Math.min(input.max_results || 50, 200);
 
   const results = [];
-  const searchRe = caseSensitive ? new RegExp(query, "g") : new RegExp(query, "gi");
+  // Escape regex special characters so literal strings like "clearColor(-1.0" work
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const searchRe = caseSensitive ? new RegExp(escaped, "g") : new RegExp(escaped, "gi");
 
   // Search through workspace JSON files (scene.json, etc.)
   for (const filename of WORKSPACE_FILES) {
