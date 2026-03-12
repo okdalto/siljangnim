@@ -63,10 +63,24 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
     return () => clearInterval(id);
   }, [isProcessing]);
 
+  // Track whether user has scrolled up (disable auto-scroll when they have)
+  const isNearBottomRef = useRef(true);
   useEffect(() => {
-    // Scroll within the messages container only (not the page)
     const container = messagesRef.current;
-    if (container) {
+    if (!container) return;
+    const onScroll = () => {
+      const threshold = 80; // px from bottom
+      isNearBottomRef.current =
+        container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    };
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => container.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    // Only auto-scroll if user is already near the bottom
+    const container = messagesRef.current;
+    if (container && isNearBottomRef.current) {
       container.scrollTop = container.scrollHeight;
     }
   }, [messages]);
