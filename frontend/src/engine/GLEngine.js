@@ -119,25 +119,16 @@ export default class GLEngine {
     this._backendPromise = null; // resolves when initBackend() completes
     this.onBackendReady = null; // callback(backendType)
 
-    // --- Legacy WebGL2 direct access (always available as fallback) ---
-    this.gl = canvas.getContext("webgl2", {
-      alpha: false,
-      antialias: true,
-      preserveDrawingBuffer: true,
-    });
-    if (!this.gl) {
-      throw new Error("WebGL2 not supported");
-    }
-
-    // Enable float textures for FBOs
-    this._extColorBufferFloat = this.gl.getExtension("EXT_color_buffer_float");
-    if (!this._extColorBufferFloat) {
-      console.warn("[GLEngine] EXT_color_buffer_float not available — float FBOs may fail");
-    }
-    // Enable linear filtering of 32-bit float textures
-    this._extFloatLinear = this.gl.getExtension("OES_texture_float_linear");
-    if (!this._extFloatLinear) {
-      console.warn("[GLEngine] OES_texture_float_linear not available — rgba32f will use NEAREST filtering");
+    // --- Legacy WebGL2 direct access ---
+    // Defer WebGL2 context creation when WebGPU is preferred — avoids dual
+    // GPU contexts competing for resources and causing context loss.
+    const wantsWebGPU = options.preferBackend === "webgpu" || options.forceBackend === "webgpu";
+    if (!wantsWebGPU) {
+      this._initGL();
+    } else {
+      this.gl = null;
+      this._extColorBufferFloat = null;
+      this._extFloatLinear = null;
     }
 
     // State
@@ -241,6 +232,11 @@ export default class GLEngine {
       this.onError?.(new Error(msg));
     });
     canvas.addEventListener("webglcontextrestored", () => {
+      // Don't restore if WebGPU is the active backend
+      if (this._backend?.backendType === BackendType.WEBGPU) {
+        console.log("[GLEngine] WebGL context restored event ignored (WebGPU active)");
+        return;
+      }
       console.log("[GLEngine] WebGL context restored");
       this._contextLost = false;
       // Re-acquire GL and extensions
@@ -257,10 +253,35 @@ export default class GLEngine {
   }
 
   /**
+   * Create the WebGL2 context and enable extensions.
+   * Called in constructor for WebGL2 scenes, or lazily when switching backends.
+   */
+  _initGL() {
+    this.gl = this.canvas.getContext("webgl2", {
+      alpha: false,
+      antialias: true,
+      preserveDrawingBuffer: true,
+    });
+    if (!this.gl) {
+      throw new Error("WebGL2 not supported");
+    }
+    this._extColorBufferFloat = this.gl.getExtension("EXT_color_buffer_float");
+    if (!this._extColorBufferFloat) {
+      console.warn("[GLEngine] EXT_color_buffer_float not available — float FBOs may fail");
+    }
+    this._extFloatLinear = this.gl.getExtension("OES_texture_float_linear");
+    if (!this._extFloatLinear) {
+      console.warn("[GLEngine] OES_texture_float_linear not available — rgba32f will use NEAREST filtering");
+    }
+  }
+
+  /**
    * Attempt to recover from a lost WebGL context by forcing a re-creation.
    * This is a last resort — the browser may not allow immediate recovery.
    */
   _tryRecoverContext() {
+    // Don't try to recover WebGL2 when WebGPU is the active backend
+    if (this._backend?.backendType === BackendType.WEBGPU) return;
     if (!this.gl?.isContextLost?.()) return; // not actually lost
     this._contextLost = true;
     console.warn("[GLEngine] Attempting GL context recovery...");
@@ -351,6 +372,10 @@ export default class GLEngine {
   }
 
   async _initWebGLBackend() {
+    // Ensure WebGL2 context exists (may have been deferred for WebGPU preference)
+    if (!this.gl || this.gl.isContextLost()) {
+      this._initGL();
+    }
     const { WebGLBackend } = await import("./gpu/WebGLBackend.js");
     const backend = new WebGLBackend();
     // Initialize wrapping the existing GL context
@@ -431,7 +456,7 @@ export default class GLEngine {
    */
   _releaseGLForWebGPU() {
     // Deliberately lose the WebGL2 context to free GPU resources
-    if (this.gl) {
+    if (this.gl && !this.gl.isContextLost()) {
       const loseExt = this.gl.getExtension("WEBGL_lose_context");
       if (loseExt) loseExt.loseContext();
       this._glDeliberatelyLost = true;
@@ -467,21 +492,14 @@ export default class GLEngine {
     this._blitVAO = null;
 
     // Restore WebGL2 context
-    if (this._glDeliberatelyLost) {
-      const loseExt = this.gl?.getExtension?.("WEBGL_lose_context");
-      if (loseExt) {
-        try { loseExt.restoreContext(); } catch { /* ignore */ }
-      }
-      // If restoreContext didn't work, try fresh creation
-      if (!this.gl || this.gl.isContextLost()) {
-        this.gl = this.canvas.getContext("webgl2", { alpha: false, antialias: true, preserveDrawingBuffer: true });
-        if (this.gl) {
-          this._extColorBufferFloat = this.gl.getExtension("EXT_color_buffer_float");
-          this._extFloatLinear = this.gl.getExtension("OES_texture_float_linear");
-        }
-      }
+    if (this._glDeliberatelyLost || !this.gl || this.gl.isContextLost()) {
       this._glDeliberatelyLost = false;
       this._contextLost = false;
+      try {
+        this._initGL();
+      } catch (e) {
+        console.error("[GLEngine] Failed to restore WebGL2:", e.message);
+      }
     }
   }
 
@@ -523,8 +541,10 @@ export default class GLEngine {
     this._disposeScene();
 
     // Lose old context
-    const loseExt = this.gl.getExtension("WEBGL_lose_context");
-    if (loseExt) loseExt.loseContext();
+    if (this.gl) {
+      const loseExt = this.gl.getExtension("WEBGL_lose_context");
+      if (loseExt) loseExt.loseContext();
+    }
 
     // Create new context
     this.gl = this.canvas.getContext("webgl2", {
