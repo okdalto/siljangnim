@@ -187,7 +187,7 @@ function DebugLogNode({ data, standalone = false, hideHeader = false }) {
     onApplyPatch,
     onRunDiagnosis,
   } = data;
-  const logs = data.logs ?? chatCtx?.debugLogs ?? [];
+  const logs = chatCtx?.debugLogs ?? data.logs ?? [];
   const backendName = sceneCtx?.backendTarget === "webgpu" ? "WebGPU" : (sceneCtx?.backendTarget === "webgl2" ? "WebGL2" : (engineRef?.current?.backendName || "WebGL2"));
   const scrollRef = useRef(null);
 

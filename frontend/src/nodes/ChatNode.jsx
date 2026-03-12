@@ -26,16 +26,18 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  // Core chat values: always prefer context (node data may hold stale values)
+  const messages = chatCtx?.messages ?? data.messages ?? [];
+  const onSend = chatCtx?.onSend ?? data.onSend;
+  const isProcessing = chatCtx?.isProcessing ?? data.isProcessing ?? false;
+  const agentStatus = chatCtx?.agentStatus ?? data.agentStatus;
+  const onNewChat = chatCtx?.onNewChat ?? data.onNewChat;
+  const onCancel = chatCtx?.onCancel ?? data.onCancel;
+  const pendingQuestion = chatCtx?.pendingQuestion ?? data.pendingQuestion;
+  const onAnswer = chatCtx?.onAnswer ?? data.onAnswer;
+  // Data-only values (not in context)
   const {
-    messages = chatCtx?.messages ?? [],
-    onSend = chatCtx?.onSend,
     onRetryInterrupted,
-    isProcessing = chatCtx?.isProcessing ?? false,
-    agentStatus = chatCtx?.agentStatus,
-    onNewChat = chatCtx?.onNewChat,
-    onCancel = chatCtx?.onCancel,
-    pendingQuestion = chatCtx?.pendingQuestion,
-    onAnswer = chatCtx?.onAnswer,
     hideInput = false,
     activeNodeTitle = null,
     promptMode = "hybrid",
