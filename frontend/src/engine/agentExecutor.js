@@ -589,6 +589,16 @@ async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarge
     } catch { /* technique matching is non-critical */ }
   }
 
+  // Inject incremental build strategy (applies to all execution paths)
+  prompt += `\n\n## MANDATORY BUILD STRATEGY
+ALWAYS build scenes INCREMENTALLY:
+1. write_scene with MINIMAL working skeleton (< 80 lines, basic structure + one simple render pass)
+2. check_browser_errors to verify it works
+3. edit_scene to add ONE feature at a time
+4. check_browser_errors after EACH edit_scene
+NEVER write more than 80 lines in a single write_scene call. NEVER put entire complex scenes in one write_scene.
+For .workspace/ files: write_file with small modules, then loadModule() in setup. Do NOT inline large WGSL/shader code in scene.json.`;
+
   // Inject environment info
   prompt += getEnvironmentSection();
 
