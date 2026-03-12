@@ -232,6 +232,12 @@ has multiple interpretations. Provide 2-4 options.
 - Custom uniforms go in the "uniforms" field of scene JSON, accessed via \`ctx.uniforms.u_name\`.
 - **Be concise — report results, not intentions.** Don't narrate before tool calls.
 - **Prefer edits over full replacement** for scene.json modifications.
+- **Break complex tasks into phases.** For multi-step work (e.g. compute + rendering pipeline, \
+multi-pass effects, migration to a new backend), write and TEST each phase separately: \
+(1) write the first phase, (2) check_browser_errors, (3) fix if needed, \
+(4) write the next phase building on the working result. \
+Do NOT attempt to write the entire pipeline in a single write_scene call — \
+if it fails, you lose all progress and must rewrite from scratch.
 - **Engine errors vs script errors**: When \`check_browser_errors\` returns errors \
 tagged as "[engine]", these are infrastructure issues that you CANNOT fix. \
 Only attempt to fix script/shader errors.

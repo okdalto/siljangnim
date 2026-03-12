@@ -40,7 +40,9 @@ const TOOLS = [
       "Text files (.workspace/*) support ONLY text search-replace edits. " +
       "For scene.json: prefer write_scene for full creation/replacement (easier, no escaping). " +
       "Use this tool with edits for targeted modifications to specific sections (e.g., changing just the render function). " +
-      "NEVER use write_file(path='scene.json', content=...) for full replacement — use write_scene instead.",
+      "NEVER use write_file(path='scene.json', content=...) for full replacement — use write_scene instead. " +
+      "TIP: For very large code, write helper functions to .workspace/helpers.js using append mode " +
+      "(multiple calls with append=true), then import from ctx.state in the scene.",
     input_schema: {
       type: "object",
       properties: {
@@ -51,6 +53,12 @@ const TOOLS = [
         content: {
           type: "string",
           description: "Complete file content for full replacement.",
+        },
+        append: {
+          type: "boolean",
+          description:
+            "If true, append 'content' to the existing file instead of replacing it. " +
+            "Useful for writing large code in multiple chunks. Only works with .workspace/* text files.",
         },
         edits: {
           type: "string",
@@ -214,6 +222,47 @@ const TOOLS = [
     input_schema: {
       type: "object",
       properties: {},
+    },
+  },
+  {
+    name: "edit_scene",
+    description:
+      "Make surgical text-level edits to scene.json script sections (setup, render, cleanup) " +
+      "without rewriting the entire section. Like a diff — specify the exact old text to find " +
+      "and the new text to replace it with. MUCH more efficient than write_scene for small changes. " +
+      "USE THIS for: fixing a bug in one line, renaming a variable, adding a few lines of code, " +
+      "tweaking a constant, or any targeted modification. " +
+      "USE write_scene instead for: creating new scenes or rewriting most of a section.",
+    input_schema: {
+      type: "object",
+      properties: {
+        edits: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              section: {
+                type: "string",
+                enum: ["setup", "render", "cleanup"],
+                description: "Which script section to edit.",
+              },
+              old_text: {
+                type: "string",
+                description:
+                  "Exact text to find in the section. Must be unique — include surrounding " +
+                  "context (a few lines) if the target text appears multiple times.",
+              },
+              new_text: {
+                type: "string",
+                description: "Replacement text. Use empty string to delete the old text.",
+              },
+            },
+            required: ["section", "old_text", "new_text"],
+          },
+          description: "Array of edits to apply. Each edit targets one section with old_text → new_text replacement.",
+        },
+      },
+      required: ["edits"],
     },
   },
   {
