@@ -744,14 +744,19 @@ async function _runAgentLoop({
       if (stopReason === "stream_incomplete") {
         overloadRetries++;
         if (overloadRetries > MAX_OVERLOAD_RETRIES) {
+          // Safety: strip orphaned tool_use blocks before giving up
+          const lastMsg = messages[messages.length - 1];
+          if (lastMsg?.role === "assistant" && Array.isArray(lastMsg.content) &&
+              lastMsg.content.some(b => b.type === "tool_use")) {
+            messages.pop();
+          }
           log("System", "Stream incomplete after max retries — using partial response", "warning");
           break;
         }
-        // If we got useful content (text), keep it and ask to continue
         const hasText = storedBlocks.some(b => b.type === "text" && b.text?.trim());
         const hasToolUse = storedBlocks.some(b => b.type === "tool_use");
         if (hasText && !hasToolUse) {
-          // Got partial text, ask to continue
+          // Got partial text only, ask to continue
           log("System", `Stream dropped mid-response — continuing (${overloadRetries}/${MAX_OVERLOAD_RETRIES})...`, "info");
           onStatus?.("thinking", "연결이 끊어졌습니다. 계속 진행합니다...");
           if (document.hidden) await waitForVisible(signal);
@@ -762,8 +767,9 @@ async function _runAgentLoop({
           });
           continue;
         }
-        // No useful content — remove the incomplete assistant message and retry
-        messages.pop(); // remove the incomplete assistant message
+        // Has tool_use or no useful content — remove the incomplete assistant message and retry
+        // (orphaned tool_use without tool_result will corrupt the conversation)
+        messages.pop();
         log("System", `Stream dropped — retrying (${overloadRetries}/${MAX_OVERLOAD_RETRIES})...`, "info");
         onStatus?.("thinking", "연결이 끊어졌습니다. 재시도합니다...");
         if (document.hidden) await waitForVisible(signal);
@@ -777,11 +783,14 @@ async function _runAgentLoop({
         const lastBlock = storedBlocks[storedBlocks.length - 1];
         const hasTruncatedTool = lastBlock?.type === "tool_use" &&
           Object.keys(lastBlock.input || {}).length === 0;
+        // Also check for any tool_use that would need a tool_result
+        const hasAnyToolUse = storedBlocks.some(b => b.type === "tool_use");
 
-        if (hasTruncatedTool) {
-          // Remove the incomplete assistant message — the empty tool_use is useless
+        if (hasTruncatedTool || hasAnyToolUse) {
+          // Remove the assistant message with tool_use — orphaned tool_use
+          // without tool_result will corrupt the conversation on next LLM call
           messages.pop();
-          log("System", `Tool call truncated by token limit — retrying with more budget...`, "warning");
+          log("System", `Tool call${hasTruncatedTool ? " truncated" : " cut off"} by token limit — retrying...`, "warning");
         } else {
           compactRetries++;
           if (compactRetries > MAX_COMPACT_RETRIES) {
@@ -794,7 +803,7 @@ async function _runAgentLoop({
         }
         messages.push({
           role: "user",
-          content: hasTruncatedTool
+          content: hasAnyToolUse
             ? "Your tool call was cut off by the token limit and the input was lost. Please retry the tool call, keeping the input concise. If the code is long, consider splitting it into smaller parts using write_file for the main code and write_scene to reference it."
             : "You were cut off due to token limit. Continue where you left off.",
         });
