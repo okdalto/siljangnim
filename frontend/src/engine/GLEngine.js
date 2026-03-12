@@ -1698,6 +1698,11 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       }
     }
 
+    // Auto-destroy GL/GPU objects left in ctx.state by scripts that didn't clean up
+    if (this._scriptCtx?.state) {
+      this._autoDestroyGLObjects(gl, this._scriptCtx.state);
+    }
+
     // Restore original drawArrays (remove validation wrapper)
     if (this.gl) {
       delete this.gl.drawArrays;
@@ -1717,9 +1722,110 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     }
     this._disposeReadbackCache();
 
+    // Reset WebGL global state to defaults so the next project starts clean.
+    // Without this, state left by the previous project (depth test, blend mode,
+    // bound textures/buffers/framebuffers, etc.) corrupts the new project.
+    this._resetGLState(gl);
+
     this._customUniforms = {};
     this._keyboardBindings = {};
     this._pressedKeys.clear();
+  }
+
+  /**
+   * Reset WebGL2 global state to defaults.
+   * Called between project switches to prevent state leakage.
+   */
+  _resetGLState(gl) {
+    // Unbind everything
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    gl.bindVertexArray(null);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    gl.useProgram(null);
+
+    // Unbind all texture units
+    const maxUnits = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+    for (let i = 0; i < Math.min(maxUnits, 16); i++) {
+      gl.activeTexture(gl.TEXTURE0 + i);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+      gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+      gl.bindTexture(gl.TEXTURE_3D, null);
+      gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+    }
+    gl.activeTexture(gl.TEXTURE0);
+
+    // Disable capabilities
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.BLEND);
+    gl.disable(gl.CULL_FACE);
+    gl.disable(gl.SCISSOR_TEST);
+    gl.disable(gl.STENCIL_TEST);
+    gl.disable(gl.DITHER);
+    gl.disable(gl.POLYGON_OFFSET_FILL);
+    gl.disable(gl.SAMPLE_ALPHA_TO_COVERAGE);
+    gl.disable(gl.SAMPLE_COVERAGE);
+    gl.disable(gl.RASTERIZER_DISCARD);
+
+    // Reset write masks
+    gl.depthMask(true);
+    gl.colorMask(true, true, true, true);
+    gl.stencilMask(0xFF);
+
+    // Reset functions
+    gl.depthFunc(gl.LESS);
+    gl.blendFunc(gl.ONE, gl.ZERO);
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.cullFace(gl.BACK);
+    gl.frontFace(gl.CCW);
+    gl.stencilFunc(gl.ALWAYS, 0, 0xFF);
+    gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+
+    // Reset viewport and clear
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clearDepth(1.0);
+    gl.clearStencil(0);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+
+    // Clear canvas
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+  }
+
+  /**
+   * Recursively walk an object and delete any WebGL resources found.
+   * Handles textures, buffers, programs, VAOs, framebuffers, renderbuffers, samplers.
+   * Prevents leaks when scripts don't implement cleanup properly.
+   */
+  _autoDestroyGLObjects(gl, obj, seen = new WeakSet()) {
+    if (!obj || typeof obj !== "object") return;
+    if (seen.has(obj)) return;
+    seen.add(obj);
+
+    if (obj instanceof WebGLTexture) { try { gl.deleteTexture(obj); } catch {} return; }
+    if (obj instanceof WebGLBuffer) { try { gl.deleteBuffer(obj); } catch {} return; }
+    if (obj instanceof WebGLProgram) { try { gl.deleteProgram(obj); } catch {} return; }
+    if (obj instanceof WebGLVertexArrayObject) { try { gl.deleteVertexArray(obj); } catch {} return; }
+    if (obj instanceof WebGLFramebuffer) { try { gl.deleteFramebuffer(obj); } catch {} return; }
+    if (obj instanceof WebGLRenderbuffer) { try { gl.deleteRenderbuffer(obj); } catch {} return; }
+    if (obj instanceof WebGLShader) { try { gl.deleteShader(obj); } catch {} return; }
+    if (obj instanceof WebGLSampler) { try { gl.deleteSampler(obj); } catch {} return; }
+
+    // Recurse into plain objects, arrays, and Maps
+    if (Array.isArray(obj)) {
+      for (const item of obj) this._autoDestroyGLObjects(gl, item, seen);
+    } else if (obj instanceof Map) {
+      for (const value of obj.values()) this._autoDestroyGLObjects(gl, value, seen);
+    } else {
+      for (const value of Object.values(obj)) {
+        if (value && typeof value === "object") {
+          this._autoDestroyGLObjects(gl, value, seen);
+        }
+      }
+    }
   }
 
   /** Pre-populate ctx.uploads with blob URLs for all uploaded files, then run setup. */
