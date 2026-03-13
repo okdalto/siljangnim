@@ -392,10 +392,6 @@ export default class GLEngine {
           // creating the WebGPU device. GPU drivers may kill the WebGL context
           // during WebGPU adapter/device init, and the webglcontextlost handler
           // needs to know this is expected — not an error to report.
-          if (!this._backendOptions.hybrid) {
-            this._glDeliberatelyLost = true;
-          }
-
           const offscreen = new OffscreenCanvas(this.canvas.width, this.canvas.height);
           const gpuBackend = new WebGPUBackend();
           await gpuBackend.init(offscreen, { alpha: false });
@@ -516,13 +512,9 @@ export default class GLEngine {
     // Reset GPU render error counter so the new backend starts fresh
     this._gpuRenderErrorCount = 0;
 
-    // For pure WebGPU switches, mark GL as deliberately lost EARLY — before
-    // any `await` boundaries. GPU drivers or browser GC can fire the
-    // webglcontextlost event at any microtask boundary, and the handler must
-    // already see this flag to avoid reporting it as an unrecoverable error.
-    if (preferBackend === "webgpu" && !hybrid) {
-      this._glDeliberatelyLost = true;
-    }
+    // Note: we no longer deliberately lose the GL context for WebGPU.
+    // The GL context stays alive but idle — this avoids unrecoverable
+    // context loss on browsers where restoreContext() doesn't work.
 
     // If switching FROM WebGPU (or to hybrid which needs GL), restore WebGL2
     if (wasWebGPU && (preferBackend !== "webgpu" || hybrid)) {
@@ -589,21 +581,14 @@ export default class GLEngine {
   }
 
   /**
-   * Release the WebGL2 context when WebGPU is active.
-   * Creates a Canvas 2D overlay for display, freeing GPU resources
-   * that would otherwise be wasted on an unused WebGL2 context.
+   * Prepare display for WebGPU mode.
+   * Creates a Canvas 2D overlay for blitting WebGPU output.
+   * The WebGL2 context is kept alive (idle) — deliberately losing it
+   * via loseContext() causes unrecoverable failures on some browsers/GPUs
+   * where restoreContext() is not supported. An idle GL context uses
+   * negligible GPU memory since scene resources are already disposed.
    */
   _releaseGLForWebGPU() {
-    // Deliberately lose the WebGL2 context to free GPU resources
-    if (this.gl && !this.gl.isContextLost()) {
-      // Set flag BEFORE loseContext() — the webglcontextlost event may fire
-      // synchronously during loseContext(), and the handler checks this flag
-      // to distinguish deliberate loss from unexpected GPU driver loss.
-      this._glDeliberatelyLost = true;
-      const loseExt = this._extLoseContext || this.gl.getExtension("WEBGL_lose_context");
-      if (loseExt) loseExt.loseContext();
-    }
-
     // Create a 2D overlay canvas for WebGPU display
     if (!this._blitOverlay && this.canvas.parentNode) {
       const overlay = document.createElement("canvas");
@@ -617,8 +602,9 @@ export default class GLEngine {
   }
 
   /**
-   * Restore the WebGL2 context when switching back from WebGPU.
-   * Removes the Canvas 2D overlay and re-creates the GL context.
+   * Restore WebGL2 rendering when switching back from WebGPU.
+   * Removes the Canvas 2D overlay. Since we no longer deliberately lose
+   * the GL context, the context should still be alive in most cases.
    */
   _restoreGLFromWebGPU() {
     // Remove overlay canvas
@@ -628,24 +614,23 @@ export default class GLEngine {
       this._blitOverlayCtx = null;
     }
 
-    // Clean up WebGL blit resources (they were on the old lost context)
+    // Clean up WebGL blit resources
     this._blitProgram = null;
     this._blitTex = null;
     this._blitVAO = null;
 
-    // Restore WebGL2 context
-    if (this._glDeliberatelyLost || !this.gl || this.gl.isContextLost()) {
-      this._glDeliberatelyLost = false;
-      this._contextLost = false;
+    // Clear stale flags
+    this._glDeliberatelyLost = false;
+    this._contextLost = false;
+
+    // If GL context was lost (e.g. GPU driver killed it during WebGPU init),
+    // try to re-create it.
+    if (!this.gl || this.gl.isContextLost?.()) {
       try {
         this._initGL();
       } catch (e) {
         console.error("[GLEngine] Failed to restore WebGL2:", e.message);
       }
-    } else {
-      // GL context is alive but flags may be stale from a previous WebGPU session
-      this._glDeliberatelyLost = false;
-      this._contextLost = false;
     }
   }
 
