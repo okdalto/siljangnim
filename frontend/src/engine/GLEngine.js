@@ -2444,23 +2444,42 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     const wantedBackend = this._scene?.backendTarget;
     const needsWebGPU = wantedBackend === "webgpu" || wantedBackend === "hybrid";
     if (needsWebGPU && this._backend?.backendType !== "webgpu") {
-      const msg = wantedBackend === "hybrid"
-        ? "Hybrid mode requires WebGPU for compute shaders but WebGPU is not available. " +
-          (navigator.gpu ? "WebGPU adapter/device request failed." : "This browser does not support WebGPU.")
-        : "Scene requires WebGPU backend but WebGPU is not available. " +
-          (navigator.gpu ? "WebGPU adapter/device request failed." : "This browser does not support WebGPU.");
-      console.error("[GLEngine]", msg);
-      this.onError?.(new Error(msg));
-      window.dispatchEvent(new ErrorEvent("error", { message: msg, error: new Error(msg) }));
-      // For pure WebGPU scenes, this is fatal. For hybrid, fall back to CPU-only.
-      if (wantedBackend === "webgpu") {
-        this._setupReady = false;
-        if (this.gl) {
-          const g = this.gl;
-          g.clearColor(0.15, 0.05, 0.05, 1);
-          g.clear(g.COLOR_BUFFER_BIT);
+      // Backend mismatch — try switching before giving up.
+      // This can happen after checkpoint restore or if switchBackend was never called.
+      if (navigator.gpu) {
+        console.warn("[GLEngine] Scene wants WebGPU but backend is WebGL2 — auto-switching");
+        try {
+          const isHybrid = wantedBackend === "hybrid";
+          await this.switchBackend("webgpu", { hybrid: isHybrid });
+          // Update ctx.renderer after successful switch
+          if (this._backend?.backendType === "webgpu") {
+            ctx.renderer = this._backend;
+            ctx.backendType = this._backend.backendType;
+          }
+        } catch (switchErr) {
+          console.error("[GLEngine] Auto backend switch failed:", switchErr.message);
         }
-        return;
+      }
+      // Re-check after switch attempt
+      if (this._backend?.backendType !== "webgpu") {
+        const msg = wantedBackend === "hybrid"
+          ? "Hybrid mode requires WebGPU for compute shaders but WebGPU is not available. " +
+            (navigator.gpu ? "WebGPU adapter/device request failed." : "This browser does not support WebGPU.")
+          : "Scene requires WebGPU backend but WebGPU is not available. " +
+            (navigator.gpu ? "WebGPU adapter/device request failed." : "This browser does not support WebGPU.");
+        console.error("[GLEngine]", msg);
+        this.onError?.(new Error(msg));
+        window.dispatchEvent(new ErrorEvent("error", { message: msg, error: new Error(msg) }));
+        // For pure WebGPU scenes, this is fatal. For hybrid, fall back to CPU-only.
+        if (wantedBackend === "webgpu") {
+          this._setupReady = false;
+          if (this.gl && !this.gl.isContextLost?.()) {
+            const g = this.gl;
+            g.clearColor(0.15, 0.05, 0.05, 1);
+            g.clear(g.COLOR_BUFFER_BIT);
+          }
+          return;
+        }
       }
     }
 
