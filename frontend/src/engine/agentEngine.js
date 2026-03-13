@@ -672,10 +672,23 @@ const HANDLERS = {
         if (isNetworkError && this._lastPromptContext) {
           console.warn("[AgentEngine] Network interrupted — will retry on visibility restore");
           this._backgroundRetryPending = true;
-          // Remove the last assistant placeholder if any incomplete response was pushed
-          if (this.chatHistory.length && this.chatHistory[this.chatHistory.length - 1].role === "assistant") {
+
+          // Flush any streaming text buffer so it isn't lost.
+          // onTextFinalize may not have been called if the stream was interrupted.
+          if (this._streamingTextBuffer) {
+            this.chatHistory.push({ role: "assistant", text: this._streamingTextBuffer });
+            this._streamingTextBuffer = "";
+            this.broadcast({ type: "assistant_text_finalize" });
+          }
+
+          // Only remove the last assistant message if it was truly empty/placeholder.
+          // If the agent already sent meaningful text, keep it so the user can see it.
+          const lastMsg = this.chatHistory.length ? this.chatHistory[this.chatHistory.length - 1] : null;
+          if (lastMsg?.role === "assistant" && (!lastMsg.text || lastMsg.text.trim() === "")) {
             this.chatHistory.pop();
           }
+
+          _persistChatHistory(this);
           this.broadcast({
             type: "agent_log", agent: "System",
             message: "연결이 끊어졌습니다. 앱으로 돌아오면 자동으로 재시도합니다.",
@@ -686,6 +699,14 @@ const HANDLERS = {
         }
 
         console.error("Agent error:", err);
+
+        // Flush any streaming text buffer so partial responses aren't lost
+        if (this._streamingTextBuffer) {
+          this.chatHistory.push({ role: "assistant", text: this._streamingTextBuffer });
+          this._streamingTextBuffer = "";
+          this.broadcast({ type: "assistant_text_finalize" });
+          _persistChatHistory(this);
+        }
 
         let userMsg = err.message;
         if (errStr.includes("timed out") || errStr.includes("timeout")) {
