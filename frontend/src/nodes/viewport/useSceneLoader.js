@@ -44,6 +44,17 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
 
     const wantBackend = (sceneJSON.backendTarget === "webgpu" || sceneJSON.backendTarget === "hybrid") ? "webgpu" : "webgl2";
     const isHybrid = sceneJSON.backendTarget === "hybrid";
+
+    // Dispose the old scene BEFORE switching backend to free GPU memory.
+    // Without this, old WebGL2 resources (FBOs, textures, shaders) coexist
+    // with the new WebGPU context during init, causing context loss.
+    const currentBackend = engine._backendOptions?.preferBackend || "webgl2";
+    const currentHybrid = !!engine._backendOptions?.hybrid;
+    const needsSwitch = currentBackend !== wantBackend || currentHybrid !== isHybrid;
+    if (needsSwitch) {
+      engine._disposeScene();
+    }
+
     const switchPromise = engine.switchBackend(wantBackend, { hybrid: isHybrid }).catch((err) => {
       console.warn("[ViewportNode] Backend switch warning:", err?.message);
     });

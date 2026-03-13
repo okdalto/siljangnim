@@ -340,8 +340,16 @@ export default class GLEngine {
           if (!this._backendOptions.hybrid) {
             this._releaseGLForWebGPU();
           } else {
-            // Hybrid needs GL — restore if lost (e.g. from a previous pure WebGPU switch)
+            // Hybrid needs GL — restore if lost (e.g. from a previous pure WebGPU switch
+            // or GPU driver killing GL when creating WebGPU device)
             if (this._glDeliberatelyLost || !this.gl || this.gl.isContextLost?.()) {
+              this._restoreGLFromWebGPU();
+            }
+            // GPU drivers may asynchronously lose GL after WebGPU device creation.
+            // Wait briefly and re-check; restore again if needed.
+            await new Promise(r => setTimeout(r, 100));
+            if (this.gl?.isContextLost?.()) {
+              console.warn("[GLEngine] GL context lost after WebGPU init (driver contention) — restoring for hybrid mode");
               this._restoreGLFromWebGPU();
             }
           }
@@ -2409,10 +2417,23 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
 
     // Run setup (async)
     let setupOk = true;
-    // Guard: if GL context was lost (e.g. after a failed backend switch), bail early
-    // Skip this check for WebGPU scenes — GL being lost/null is expected.
+    // Guard: if GL context was lost (e.g. after a failed backend switch), bail early.
+    // For pure WebGPU scenes, GL being lost/null is expected — skip check.
+    // For hybrid scenes, GL IS needed — attempt recovery before bailing.
     const isWebGPUScene = this._backend?.backendType === BackendType.WEBGPU;
-    if (!isWebGPUScene && (this._contextLost || this.gl?.isContextLost?.())) {
+    const isHybrid = this._backendOptions.hybrid;
+    if (isHybrid && (this._contextLost || this.gl?.isContextLost?.())) {
+      console.warn("[GLEngine] GL context lost before hybrid setup — attempting restore");
+      this._restoreGLFromWebGPU();
+      // If still lost after restore, bail
+      if (!this.gl || this.gl.isContextLost?.()) {
+        console.error("[GLEngine] GL context restore failed for hybrid mode — cannot proceed.");
+        const err = new Error("WebGL context lost in hybrid mode. GPU may not support dual contexts.");
+        this.onError?.(err);
+        window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
+        return;
+      }
+    } else if (!isWebGPUScene && (this._contextLost || this.gl?.isContextLost?.())) {
       console.error("[GLEngine] GL context is lost before setup — cannot proceed.");
       const err = new Error("WebGL context lost. Please refresh the page or try again.");
       this.onError?.(err);
