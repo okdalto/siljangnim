@@ -221,21 +221,13 @@ export default class GLEngine {
     canvas.addEventListener("webglcontextlost", (e) => {
       e.preventDefault(); // Tell browser we want to restore
       this._contextLost = true;
-      // If we deliberately lost the context for WebGPU, don't treat as error
-      if (this._glDeliberatelyLost) {
-        console.log("[GLEngine] WebGL context released for WebGPU (deliberate)");
-        return;
-      }
-      // If WebGPU is the active backend, GL loss is expected (GPU driver may
-      // asynchronously reclaim GL resources after WebGPU device creation).
-      if (this._backend?.backendType === BackendType.WEBGPU) {
-        console.log("[GLEngine] WebGL context lost while WebGPU active (expected)");
-        return;
-      }
-      // If we're in the middle of a backend switch, context loss is expected
-      // (the new backend may be taking over GPU resources).
-      if (this._isSwitchingBackend) {
-        console.log("[GLEngine] WebGL context lost during backend switch (expected)");
+      // Skip error handling if GL loss is expected due to WebGPU:
+      // - deliberate release, active WebGPU backend, mid-switch, or WebGPU preferred
+      if (this._glDeliberatelyLost ||
+          this._backend?.backendType === BackendType.WEBGPU ||
+          this._isSwitchingBackend ||
+          this._backendOptions?.preferBackend === "webgpu") {
+        console.log("[GLEngine] WebGL context lost (expected for WebGPU configuration)");
         return;
       }
       // Immediately release scene resources to free GPU memory,
@@ -309,6 +301,7 @@ export default class GLEngine {
     // or when the context was deliberately lost for WebGPU
     if (this._backend?.backendType === BackendType.WEBGPU) return;
     if (this._glDeliberatelyLost) return;
+    if (this._backendOptions?.preferBackend === "webgpu") return;
     if (!this.gl?.isContextLost?.()) return; // not actually lost
     this._contextLost = true;
     // Release scene resources to free GPU memory before recovery attempt
