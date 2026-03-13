@@ -329,8 +329,8 @@ Core methods:
 | \`createShaderModule({ code, label? })\` | Create shader module from WGSL source |
 | \`await createRenderPipeline({ vertex, fragment, primitive?, depthStencil? })\` | **async** — Create render pipeline. Returns shader compilation errors in the thrown Error if WGSL is invalid. \`depthStencil\` is OPTIONAL — only add it if you need depth testing. If you add \`depthStencil\`, you MUST also pass \`depthAttachment: { clearDepth: 1.0 }\` in \`beginRenderPass\` |
 | \`await createComputePipeline({ module, entryPoint?, constants?, layout?, label? })\` | **async** — Create compute pipeline. Returns shader compilation errors in the thrown Error if WGSL is invalid. \`constants\`: pipeline-overridable constants. \`layout\`: pass a handle from \`createPipelineLayout()\` to share bind group layout across pipelines (default: auto) |
-| \`createBuffer({ usage, size, data? })\` | Create GPU buffer. usage: string or array of strings — \`"vertex"\`, \`"index"\`, \`"uniform"\`, \`"storage"\`, \`"copy-src"\` |
-| \`writeBuffer(handle, data, offset?)\` | Update buffer data |
+| \`createBuffer({ usage, size, data? })\` | Create GPU buffer. usage: string or array of strings — \`"vertex"\`, \`"index"\`, \`"uniform"\`, \`"storage"\`, \`"copy-src"\`. **Size MUST be ≥ largest (offset + byteLength) you will ever writeBuffer to it.** Round up to 16-byte multiple for uniform buffers |
+| \`writeBuffer(handle, data, offset?)\` | Update buffer data. **offset + data.byteLength MUST be ≤ buffer size** — GPU will throw validation error otherwise. When writing at a non-zero offset, calculate total: e.g. offset=36, data=Float32Array(8)=32 bytes → needs buffer ≥ 68 bytes |
 | \`createTexture({ width, height, format?, usage? })\` | Create texture |
 | \`writeTexture(handle, source, options?)\` | Upload image/canvas to texture |
 | \`createSampler({ minFilter?, magFilter?, addressModeU?, addressModeV? })\` | Create sampler |
@@ -894,7 +894,14 @@ For moderate data sizes (< 1M floats) this is fast enough for 60fps.
 ### WebGPU Debugging Tips
 
 - When setup fails, always call \`check_browser_errors\` — it will show specific WebGPU validation errors.
-- Common WebGPU errors: WGSL syntax errors, struct alignment issues (vec3f needs 16-byte alignment in uniform buffers), bind group layout mismatches, buffer size too small.
+- Common WebGPU errors: WGSL syntax errors, struct alignment issues, bind group layout mismatches, buffer size too small.
+- **Buffer sizing rule**: When you \`writeBuffer(buf, data, offset)\`, the buffer must be at least \`offset + data.byteLength\` bytes. \
+**Always calculate the total bytes** your WGSL struct needs BEFORE calling \`createBuffer\`. \
+Count every field: u32/f32 = 4 bytes, vec2f = 8, vec3f = 12 (but 16-byte aligned in structs!), vec4f = 16, mat4x4f = 64. \
+Round the final size UP to the next multiple of 16 for uniform buffers.
+- **WGSL struct alignment**: \`vec3f\` fields in structs are 16-byte aligned (NOT 12). \
+A struct \`{ a: f32, b: vec3f }\` is 32 bytes, not 16. Use explicit \`f32\` fields instead of \`vec3f\` to avoid alignment surprises: \
+\`{ ax: f32, ay: f32, az: f32, _pad: f32 }\` is predictable and lets you \`writeBuffer\` with exact offsets.
 - For complex scenes, build incrementally: start with a minimal working pipeline, then add features one at a time. Do NOT write all shaders and pipelines in a single attempt.
 - Test each pipeline separately before combining them.`,
   },
