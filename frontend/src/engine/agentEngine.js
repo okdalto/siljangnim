@@ -135,36 +135,46 @@ export default class AgentEngine {
         }
         // Push setup errors immediately to agent via injectedMessages
         if (detail && detail.setupReady === false) {
-          // Collect errors from all sources:
-          // 1. Console errors (captured by App.jsx interceptors)
-          // 2. GPU validation errors (from WebGPU uncapturederror)
-          // 3. Error message passed in the scene_loaded event detail
-          const allErrors = [...this.errors.slice(0, 5)];
-          const gpuErrors = this.getValidationErrors();
-          for (const e of gpuErrors) {
-            const msg = `[WebGPU ${e.type}] ${e.message}`;
-            if (!allErrors.includes(msg)) allErrors.push(msg);
-          }
-          // Include the error from the scene_loaded event itself (e.g. backend switch failure)
-          if (detail.error && !allErrors.some((e) => e.includes(detail.error))) {
-            allErrors.unshift(detail.error);
-          }
-          if (allErrors.length && this._injectedMessages) {
-            const errorSummary = allErrors.slice(0, 8).join("\n");
-            this._injectedMessages.push(
-              `[IMMEDIATE ERROR] Scene setup() FAILED with errors:\n${errorSummary}\nFix the setup code before proceeding.`
-            );
-          } else if (this._injectedMessages) {
-            // Setup failed but no errors captured yet — still notify agent
-            this._injectedMessages.push(
-              `[IMMEDIATE ERROR] Scene setup() FAILED — no specific error messages were captured. ` +
-              `This does NOT mean WebGPU is unsupported — it means your setup code has a bug. ` +
-              `Common causes: WGSL shader syntax error, bind group layout mismatch, wrong buffer usage flags, missing pipeline entries. ` +
-              `DO NOT switch to CPU/WebGL2 — instead debug the issue: call check_browser_errors, use run_preprocess to test individual operations, or simplify the setup.`
-            );
-          }
+          this._injectSetupErrors(detail);
         }
         if (this._sceneLoadResolve) { this._sceneLoadResolve(); this._sceneLoadResolve = null; }
+      },
+      /** Collect and inject setup error messages to the agent. */
+      _injectSetupErrors(detail, retryCount = 0) {
+        // Collect errors from all sources:
+        // 1. Console errors (captured by App.jsx interceptors)
+        // 2. GPU validation errors (from WebGPU uncapturederror)
+        // 3. Error message passed in the scene_loaded event detail
+        const allErrors = [...this.errors.slice(0, 5)];
+        const gpuErrors = this.getValidationErrors();
+        for (const e of gpuErrors) {
+          const msg = `[WebGPU ${e.type}] ${e.message}`;
+          if (!allErrors.includes(msg)) allErrors.push(msg);
+        }
+        // Include the error from the scene_loaded event itself (e.g. backend switch failure)
+        if (detail.error && !allErrors.some((e) => e.includes(detail.error))) {
+          allErrors.unshift(detail.error);
+        }
+        if (allErrors.length && this._injectedMessages) {
+          const errorSummary = allErrors.slice(0, 8).join("\n");
+          this._injectedMessages.push(
+            `[IMMEDIATE ERROR] Scene setup() FAILED with errors:\n${errorSummary}\nFix the setup code before proceeding.`
+          );
+        } else if (retryCount < 2) {
+          // Async GPU errors may not have arrived yet — retry after a short delay
+          setTimeout(() => this._injectSetupErrors(detail, retryCount + 1), 300);
+        } else if (this._injectedMessages) {
+          // Setup failed but no errors captured after retries — give actionable guidance
+          this._injectedMessages.push(
+            `[IMMEDIATE ERROR] Scene setup() FAILED — no specific error messages were captured. ` +
+            `This does NOT mean WebGPU is unsupported — it means your setup code has a bug. ` +
+            `IMPORTANT: Call check_browser_errors RIGHT NOW to get the actual error. ` +
+            `Do NOT test individual pieces separately — the error is in how they are combined. ` +
+            `Common combined-code issues: wrong buffer size for the data written, ` +
+            `bind group entries not matching pipeline layout, render pass missing depth attachment ` +
+            `when pipeline expects one, or storage buffer not large enough.`
+          );
+        }
       },
       /** Wait for the viewport to finish loading the scene (if pending). */
       async waitForSceneLoad() {
