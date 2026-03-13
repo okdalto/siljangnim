@@ -12,6 +12,7 @@ import {
   FilterMode,
   AddressMode,
   PrimitiveTopology,
+  bytesPerPixel,
 } from "./RendererInterface.js";
 
 // ─── Format mappings ───────────────────────────────────────
@@ -138,6 +139,7 @@ export class WebGPUBackend extends RendererInterface {
         size: [canvas.width, canvas.height],
         format: "depth24plus",
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        label: "default-depth",
       });
     }
 
@@ -170,6 +172,7 @@ export class WebGPUBackend extends RendererInterface {
       size: [width, height],
       format: "depth24plus",
       usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      label: "default-depth",
     });
   }
 
@@ -245,11 +248,11 @@ export class WebGPUBackend extends RendererInterface {
 
   async writeTexture(handle, source, options = {}) {
     if (source instanceof Uint8Array || source instanceof Float32Array) {
-      const bytesPerPixel = source instanceof Float32Array ? 16 : 4;
+      const bpp = bytesPerPixel(gpuTextureFormat(handle.format));
       this.device.queue.writeTexture(
         { texture: handle._native },
         source,
-        { bytesPerRow: handle.width * bytesPerPixel, rowsPerImage: handle.height },
+        { bytesPerRow: handle.width * bpp, rowsPerImage: handle.height },
         [handle.width, handle.height],
       );
     } else if (source instanceof ImageBitmap) {
@@ -361,10 +364,8 @@ export class WebGPUBackend extends RendererInterface {
     if (fragment.constants) fragmentDesc.constants = fragment.constants;
 
     let gpuLayout = "auto";
-    if (desc.layout && desc.layout !== "explicit") {
+    if (desc.layout && desc.layout !== "auto") {
       gpuLayout = desc.layout._native || desc.layout;
-    } else if (desc.layout === "explicit") {
-      gpuLayout = undefined;
     }
 
     const pipelineDesc = {
@@ -381,7 +382,7 @@ export class WebGPUBackend extends RendererInterface {
 
     if (depthStencil) {
       pipelineDesc.depthStencil = {
-        format: "depth24plus",
+        format: depthStencil.format || "depth24plus",
         depthWriteEnabled: depthStencil.depthWriteEnabled ?? true,
         depthCompare: depthStencil.depthCompare || "less-equal",
       };
@@ -416,13 +417,10 @@ export class WebGPUBackend extends RendererInterface {
 
     // Determine pipeline layout:
     // - desc.layout is a handle from createPipelineLayout → use its _native
-    // - desc.layout === "explicit" → undefined (legacy, unused)
     // - otherwise → "auto"
     let gpuLayout = "auto";
-    if (desc.layout && desc.layout !== "explicit") {
+    if (desc.layout && desc.layout !== "auto") {
       gpuLayout = desc.layout._native || desc.layout;
-    } else if (desc.layout === "explicit") {
-      gpuLayout = undefined;
     }
 
     try {
@@ -522,7 +520,7 @@ export class WebGPUBackend extends RendererInterface {
   // ─── Render Target ─────────────────────────────────────
 
   createRenderTarget(desc) {
-    const { width, height, format = TextureFormat.RGBA8, depth = false, label } = desc;
+    const { width, height, format = TextureFormat.RGBA8, depth = false, depthFormat = "depth24plus", label } = desc;
 
     const texHandle = this.createTexture({
       width, height, format,
@@ -534,7 +532,7 @@ export class WebGPUBackend extends RendererInterface {
     if (depth) {
       depthTex = this.device.createTexture({
         size: [width, height],
-        format: "depth24plus",
+        format: depthFormat,
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
         label: label ? `${label}.depth` : undefined,
       });
@@ -594,13 +592,36 @@ export class WebGPUBackend extends RendererInterface {
     const passDesc = { colorAttachments: gpuColorAttachments, label };
 
     if (depthAttachment || colorAttachments[0]?.target?._depthTex) {
-      const depthTex = colorAttachments[0]?.target?._depthTex || this._depthTexture;
+      const target = colorAttachments[0]?.target;
+      const targetW = target?.width ?? this.canvas.width;
+      const targetH = target?.height ?? this.canvas.height;
+
+      let depthTex = target?._depthTex;
+      if (!depthTex) {
+        if (this._depthTexture &&
+            this._depthTexture.width === targetW &&
+            this._depthTexture.height === targetH) {
+          depthTex = this._depthTexture;
+        } else if (target) {
+          // Auto-create matching depth texture, cache on render target
+          depthTex = this.device.createTexture({
+            size: [targetW, targetH],
+            format: "depth24plus",
+            usage: GPUTextureUsage.RENDER_ATTACHMENT,
+            label: target.label ? `${target.label}.depth-auto` : "depth-auto",
+          });
+          target._depthTex = depthTex;
+        } else {
+          depthTex = this._depthTexture;
+        }
+      }
+
       if (depthTex) {
         passDesc.depthStencilAttachment = {
           view: depthTex.createView(),
           depthClearValue: depthAttachment?.clearDepth ?? 1.0,
-          depthLoadOp: "clear",
-          depthStoreOp: "store",
+          depthLoadOp: depthAttachment?.loadOp ?? "clear",
+          depthStoreOp: depthAttachment?.storeOp ?? "store",
         };
       }
     }
@@ -729,7 +750,12 @@ export class WebGPUBackend extends RendererInterface {
   // ─── Internal ──────────────────────────────────────────
 
   _getSupportedFeatures() {
-    const wanted = ["float32-filterable"];
+    const wanted = [
+      "float32-filterable",
+      "float32-blendable",
+      "bgra8unorm-storage",
+      "rg11b10ufloat-renderable",
+    ];
     return wanted.filter((f) => this._adapter.features.has(f));
   }
 }
