@@ -503,6 +503,8 @@ export default class GLEngine {
     this._backendReady = false;
     this._backendOptions = { ...this._backendOptions, preferBackend };
     this._isSwitchingBackend = true;
+    // Reset GPU render error counter so the new backend starts fresh
+    this._gpuRenderErrorCount = 0;
 
     // For pure WebGPU switches, mark GL as deliberately lost EARLY — before
     // any `await` boundaries. GPU drivers or browser GC can fire the
