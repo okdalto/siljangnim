@@ -394,6 +394,7 @@ export default class GLEngine {
             }
           }
         } catch (err) {
+          this._lastWebGPUError = err.message;
           const failMsg = `WebGPU initialization failed: ${err.message}`;
           console.error("[GLEngine]", failMsg);
           this.onError?.(new Error(failMsg));
@@ -449,6 +450,14 @@ export default class GLEngine {
    */
   async switchBackend(preferBackend, { hybrid = false } = {}) {
     if (this._backendOptions.preferBackend === preferBackend && this._backendOptions.hybrid === hybrid) return;
+
+    // Wait for any in-flight initBackend() to complete before starting a switch.
+    // Without this, two concurrent _initBackendInner() calls race and the
+    // first (WebGL2) can overwrite the backend set by the second (WebGPU).
+    if (this._backendPromise) {
+      try { await this._backendPromise; } catch { /* handled in initBackend */ }
+    }
+
     this._backendOptions.hybrid = hybrid;
     // Save old backend in case we need to restore on failure
     const oldBackend = this._backend;
@@ -2458,15 +2467,17 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
           }
         } catch (switchErr) {
           console.error("[GLEngine] Auto backend switch failed:", switchErr.message);
+          this._lastWebGPUError = switchErr.message;
         }
       }
       // Re-check after switch attempt
       if (this._backend?.backendType !== "webgpu") {
+        const reason = this._lastWebGPUError
+          ? `Reason: ${this._lastWebGPUError}`
+          : (navigator.gpu ? "WebGPU adapter/device request failed." : "This browser does not support WebGPU.");
         const msg = wantedBackend === "hybrid"
-          ? "Hybrid mode requires WebGPU for compute shaders but WebGPU is not available. " +
-            (navigator.gpu ? "WebGPU adapter/device request failed." : "This browser does not support WebGPU.")
-          : "Scene requires WebGPU backend but WebGPU is not available. " +
-            (navigator.gpu ? "WebGPU adapter/device request failed." : "This browser does not support WebGPU.");
+          ? `Hybrid mode requires WebGPU for compute shaders but WebGPU is not available. ${reason}`
+          : `Scene requires WebGPU backend but WebGPU is not available. ${reason}`;
         console.error("[GLEngine]", msg);
         this.onError?.(new Error(msg));
         window.dispatchEvent(new ErrorEvent("error", { message: msg, error: new Error(msg) }));
