@@ -449,8 +449,8 @@ function VersionTreeCanvas({
     return () => el.removeEventListener("keydown", handleKeyDown);
   }, [activeNodeId, nodesMap, childrenMap, roots, onDoubleClickNode, bounds, containerSize]);
 
-  // Mouse wheel zoom — dampen + zoom toward pointer position
-  const wheelAccRef = useRef(0);
+  // Wheel/trackpad handler — two-finger scroll = pan, pinch (ctrlKey) = zoom
+  const wheelAccRef = useRef({ dx: 0, dy: 0, zoom: 0 });
   const wheelPosRef = useRef({ x: 0, y: 0 });
   const wheelTimerRef = useRef(null);
   const zoomRef = useRef(zoom);
@@ -460,37 +460,57 @@ function VersionTreeCanvas({
 
   const handleWheel = useCallback((e) => {
     e.preventDefault();
-    wheelAccRef.current += e.deltaY;
-    // Track last pointer position relative to container
+    // Track pointer position relative to container
     const rect = containerRef.current?.getBoundingClientRect();
     if (rect) {
       wheelPosRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
+
+    if (e.ctrlKey) {
+      // Pinch-to-zoom (browser sends ctrlKey + deltaY for trackpad pinch)
+      wheelAccRef.current.zoom += e.deltaY;
+    } else {
+      // Two-finger scroll → pan
+      wheelAccRef.current.dx += e.deltaX;
+      wheelAccRef.current.dy += e.deltaY;
+    }
+
     if (wheelTimerRef.current) return;
     wheelTimerRef.current = requestAnimationFrame(() => {
       const acc = wheelAccRef.current;
-      wheelAccRef.current = 0;
+      const panDx = acc.dx;
+      const panDy = acc.dy;
+      const zoomAcc = acc.zoom;
+      acc.dx = 0;
+      acc.dy = 0;
+      acc.zoom = 0;
       wheelTimerRef.current = null;
-      const clamped = Math.max(-80, Math.min(80, acc));
-      const factor = 1 - clamped * 0.002;
-      const oldZoom = zoomRef.current;
-      const newZoom = Math.max(0.15, Math.min(3, oldZoom * factor));
-      if (newZoom === oldZoom) return;
 
-      // Adjust offset so the content point under the mouse stays fixed
-      const mx = wheelPosRef.current.x;
-      const my = wheelPosRef.current.y;
-      const sp = springPosRef.current;
-      // Content coordinate under the mouse: (mx - sp.x) / oldZoom
-      // After zoom it should still be at mx: sp.x' + cx * newZoom = mx
-      // => offset delta = mx - sp.x - (mx - sp.x) * (newZoom / oldZoom)
-      //                  = (mx - sp.x) * (1 - newZoom / oldZoom)
-      const ratio = newZoom / oldZoom;
-      const dx = (mx - sp.x) * (1 - ratio);
-      const dy = (my - sp.y) * (1 - ratio);
+      // Apply pan
+      if (panDx !== 0 || panDy !== 0) {
+        setDragOffset((prev) => ({
+          x: prev.x - panDx,
+          y: prev.y - panDy,
+        }));
+      }
 
-      setDragOffset((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
-      setZoom(newZoom);
+      // Apply zoom
+      if (zoomAcc !== 0) {
+        const clamped = Math.max(-80, Math.min(80, zoomAcc));
+        const factor = 1 - clamped * 0.002;
+        const oldZoom = zoomRef.current;
+        const newZoom = Math.max(0.15, Math.min(3, oldZoom * factor));
+        if (newZoom !== oldZoom) {
+          const mx = wheelPosRef.current.x;
+          const my = wheelPosRef.current.y;
+          const sp = springPosRef.current;
+          const ratio = newZoom / oldZoom;
+          const dx = (mx - sp.x) * (1 - ratio);
+          const dy = (my - sp.y) * (1 - ratio);
+          setDragOffset((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+          setZoom(newZoom);
+        }
+      }
     });
   }, []);
 
