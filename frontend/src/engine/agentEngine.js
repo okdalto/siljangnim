@@ -151,8 +151,9 @@ export default class AgentEngine {
             // Setup failed but no errors captured yet — still notify agent
             this._injectedMessages.push(
               `[IMMEDIATE ERROR] Scene setup() FAILED — no specific error messages were captured. ` +
-              `Common causes: WebGPU shader compilation error, bind group layout mismatch, buffer size mismatch, or ctx.renderer API misuse. ` +
-              `Call check_browser_errors for details, or simplify the setup to isolate the issue.`
+              `This does NOT mean WebGPU is unsupported — it means your setup code has a bug. ` +
+              `Common causes: WGSL shader syntax error, bind group layout mismatch, wrong buffer usage flags, missing pipeline entries. ` +
+              `DO NOT switch to CPU/WebGL2 — instead debug the issue: call check_browser_errors, use run_preprocess to test individual operations, or simplify the setup.`
             );
           }
         }
