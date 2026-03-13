@@ -278,6 +278,33 @@ export async function deleteUpload(filename) {
   await idbReq(store.delete(key));
 }
 
+// ---------------------------------------------------------------------------
+// Content-Addressable Storage (CAS) for asset deduplication
+// ---------------------------------------------------------------------------
+
+export async function computeSHA256(arrayBuffer) {
+  const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export async function saveCASBlob(hash, arrayBuffer, mimeType) {
+  const key = `${getActiveProjectName()}/_blobs/${hash}`;
+  const store = await tx(STORE_BLOBS, "readwrite");
+  const existing = await idbReq(store.count(key));
+  if (existing > 0) return; // dedup
+  await idbReq(
+    store.put({ data: arrayBuffer, mimeType, size: arrayBuffer.byteLength }, key)
+  );
+}
+
+export async function readCASBlob(hash) {
+  const key = `${getActiveProjectName()}/_blobs/${hash}`;
+  const store = await tx(STORE_BLOBS);
+  return idbReq(store.get(key)); // { data, mimeType, size } or undefined
+}
+
 /**
  * Get blob URLs for all uploaded files in the active project.
  * @returns {Promise<Map<string, string>>} Map of filename → blob URL
@@ -784,6 +811,9 @@ export async function newUntitledWorkspace() {
       blobTx.onerror = () => reject(blobTx.error);
     });
   }
+
+  // Clear version tree nodes for _untitled
+  await deleteProjectNodes(DEFAULT_PROJECT);
 
   setActiveProjectName(DEFAULT_PROJECT);
 }
