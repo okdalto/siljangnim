@@ -780,15 +780,39 @@ export default function App() {
     sceneJSON, uiConfig, paused, duration, loop, backendTarget, safeModeActive,
   }), [sceneJSON, uiConfig, paused, duration, loop, backendTarget, safeModeActive]);
 
+  const handleProjectDeleteAndReset = useCallback((name) => {
+    const isDeletingActive = project.activeProject === name;
+    project.handleProjectDelete(name);
+    if (isDeletingActive) {
+      // Reset to fresh workspace — same as handleNewProject
+      chat.clearAll();
+      resetUniformHistory();
+      setSceneJSON(null);
+      setUiConfig({ controls: [], inspectable_buffers: [] });
+      panels.restorePanels({});
+      assetNodes.restore({});
+      project.setActiveProject(null);
+      setProjectManifest(null);
+      setBackendTarget("auto");
+      kf.resetKeyframes();
+      setDuration(settings.defaultDuration);
+      setLoop(settings.defaultLoop);
+      setFps(30);
+      tree.loadTree(null);
+      dirtyRef.current = false;
+      send({ type: "new_project" });
+    }
+  }, [send, project.activeProject, project.handleProjectDelete, chat.clearAll, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, settings.defaultDuration, settings.defaultLoop, tree.loadTree]);
+
   const projectCtxValue = useMemo(() => ({
     projectList: project.projectList,
     activeProject: project.activeProject,
     onProjectLoad: project.handleProjectLoad,
-    onProjectDelete: project.handleProjectDelete,
+    onProjectDelete: handleProjectDeleteAndReset,
     onProjectRename: project.handleProjectRename,
     onProjectFork: project.handleProjectFork,
     onProjectImport: project.handleProjectImport,
-  }), [project.projectList, project.activeProject, project.handleProjectLoad, project.handleProjectDelete, project.handleProjectRename, project.handleProjectFork, project.handleProjectImport]);
+  }), [project.projectList, project.activeProject, project.handleProjectLoad, handleProjectDeleteAndReset, project.handleProjectRename, project.handleProjectFork, project.handleProjectImport]);
 
   const chatCtxValue = useMemo(() => ({
     messages: chat.messages,
