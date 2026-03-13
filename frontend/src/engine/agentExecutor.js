@@ -702,6 +702,7 @@ export async function runAgent({
   onStatus,
   files,
   messages,
+  currentState,
   errorCollector,
   userAnswerPromise,
   preprocessPromise,
@@ -729,10 +730,46 @@ export async function runAgent({
     { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages },
   );
 
-  // Build user message content
+  // Build user message content — inject current scene + workspace context
+  // so the agent knows what code is currently driving the scene
+  let contextPrefix = "";
+  if (currentState) {
+    const parts = [];
+    const scene = currentState.scene_json;
+    if (scene?.script) {
+      const scriptSummary = {};
+      if (scene.script.setup) scriptSummary.setup = scene.script.setup;
+      if (scene.script.render) scriptSummary.render = scene.script.render;
+      if (scene.script.cleanup) scriptSummary.cleanup = scene.script.cleanup;
+      if (scene.uniforms) scriptSummary.uniforms = Object.keys(scene.uniforms);
+      if (scene.backendTarget) scriptSummary.backendTarget = scene.backendTarget;
+      const sceneStr = JSON.stringify(scriptSummary, null, 2);
+      const truncated = sceneStr.length > 6000 ? sceneStr.slice(0, 6000) + "\n...(truncated)" : sceneStr;
+      parts.push(`[Current scene code]\n${truncated}`);
+    }
+    const wsFiles = currentState.workspaceFiles || {};
+    const wsEntries = Object.entries(wsFiles);
+    if (wsEntries.length > 0) {
+      let wsSection = "[Workspace files]";
+      let totalChars = 0;
+      const WS_BUDGET = 8000;
+      for (const [path, fileContent] of wsEntries) {
+        if (totalChars >= WS_BUDGET) break;
+        const remaining = WS_BUDGET - totalChars;
+        const trimmed = fileContent.length > remaining ? fileContent.slice(0, remaining) + "\n...(truncated)" : fileContent;
+        wsSection += `\n--- ${path} ---\n${trimmed}`;
+        totalChars += trimmed.length;
+      }
+      parts.push(wsSection);
+    }
+    if (parts.length > 0) {
+      contextPrefix = parts.join("\n\n") + "\n\n---\n\n";
+    }
+  }
+
   const content = files?.length
-    ? buildMultimodalContent(userPrompt, files)
-    : userPrompt;
+    ? buildMultimodalContent(contextPrefix + userPrompt, files)
+    : contextPrefix + userPrompt;
 
   messages.push({ role: "user", content });
 
@@ -1519,7 +1556,7 @@ export async function runDebugSubagent({
   const maxTokens = providerConfig.max_tokens || MODEL_COMPLEX_MAX;
   const visionEnabled = isVisionCapable(provider, modelName, providerConfig);
 
-  // Auto-include current scene.json state for context
+  // Auto-include current scene.json state + workspace files for context
   let sceneContext = "";
   try {
     const storage = await import("./storage.js");
@@ -1532,6 +1569,11 @@ export async function runDebugSubagent({
       if (sceneJson.uniforms) summary.uniforms = Object.keys(sceneJson.uniforms);
       if (sceneJson.backendTarget) summary.backendTarget = sceneJson.backendTarget;
       sceneContext = `\n\n--- Current scene.json (summary) ---\n${JSON.stringify(summary, null, 2)}`;
+    }
+    // Include workspace file names so debug agent knows what modules exist
+    const wsFiles = await storage.listFiles(".workspace/");
+    if (wsFiles.length > 0) {
+      sceneContext += `\n\n--- Workspace files ---\n${wsFiles.join(", ")}`;
     }
   } catch { /* storage unavailable */ }
 
@@ -1806,7 +1848,7 @@ export async function runWithPlan({
   if (!shouldPlan(messages.length, userPrompt, { recentErrors: recentErrorCount, previousPrompt, recentPlanExecuted })) {
     return runAgent({
       apiKey, userPrompt, log, broadcast, onText, onTextDelta, onTextFinalize, onStatus,
-      files, messages, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
+      files, messages, currentState, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
       provider, providerConfig, toolResultCache,
     });
@@ -1822,7 +1864,7 @@ export async function runWithPlan({
     // Fallback: direct execution
     return runAgent({
       apiKey, userPrompt, log, broadcast, onText, onTextDelta, onTextFinalize, onStatus,
-      files, messages, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
+      files, messages, currentState, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
       provider, providerConfig, toolResultCache,
     });

@@ -231,6 +231,12 @@ export function buildPlannerMessages(userPrompt, conversation, currentState) {
   if (currentState.panels && Object.keys(currentState.panels).length) {
     parts.push(`Panels: ${Object.keys(currentState.panels).join(", ")}`);
   }
+  // Include workspace file names so planner knows what code modules exist
+  const wsFiles = currentState.workspaceFiles || {};
+  const wsKeys = Object.keys(wsFiles);
+  if (wsKeys.length) {
+    parts.push(`Workspace files: ${wsKeys.join(", ")}`);
+  }
 
   messages.push({
     role: "user",
@@ -320,6 +326,27 @@ export function buildExecutionContext(plan, currentState, baseSystemPrompt) {
     // Truncate very large scenes to keep context manageable
     const truncated = sceneStr.length > 8000 ? sceneStr.slice(0, 8000) + "\n...(truncated)" : sceneStr;
     contextParts.push(`Current scene.json:\n\`\`\`json\n${truncated}\n\`\`\``);
+
+    // Include workspace files — shader modules, helper scripts, etc.
+    // that the scene's setup/render scripts reference
+    const wsFiles = currentState.workspaceFiles || {};
+    const wsEntries = Object.entries(wsFiles);
+    if (wsEntries.length > 0) {
+      let wsSection = "## Workspace files (code modules used by the scene)";
+      let totalChars = 0;
+      const WS_BUDGET = 12000; // total char budget for workspace files
+      for (const [path, content] of wsEntries) {
+        if (totalChars >= WS_BUDGET) {
+          wsSection += `\n\n... (${wsEntries.length - wsEntries.indexOf([path, content])} more files omitted)`;
+          break;
+        }
+        const remaining = WS_BUDGET - totalChars;
+        const trimmed = content.length > remaining ? content.slice(0, remaining) + "\n...(truncated)" : content;
+        wsSection += `\n\n### ${path}\n\`\`\`\n${trimmed}\n\`\`\``;
+        totalChars += trimmed.length;
+      }
+      contextParts.push(wsSection);
+    }
   }
 
   if (plan.relevant_state.needs_panels && currentState.panels) {

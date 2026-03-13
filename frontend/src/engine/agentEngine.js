@@ -133,12 +133,26 @@ export default class AgentEngine {
         if (detail && typeof detail.setupReady === "boolean") {
           this._setupReady = detail.setupReady;
         }
-        // Improvement #10: push setup errors immediately to agent via injectedMessages
-        if (detail && detail.setupReady === false && this.errors.length) {
-          const errorSummary = this.errors.slice(0, 5).join("\n");
-          if (this._injectedMessages) {
+        // Push setup errors immediately to agent via injectedMessages
+        if (detail && detail.setupReady === false) {
+          // Collect both console errors and GPU validation errors
+          const allErrors = [...this.errors.slice(0, 5)];
+          const gpuErrors = this.getValidationErrors();
+          for (const e of gpuErrors) {
+            const msg = `[WebGPU ${e.type}] ${e.message}`;
+            if (!allErrors.includes(msg)) allErrors.push(msg);
+          }
+          if (allErrors.length && this._injectedMessages) {
+            const errorSummary = allErrors.slice(0, 8).join("\n");
             this._injectedMessages.push(
               `[IMMEDIATE ERROR] Scene setup() FAILED with errors:\n${errorSummary}\nFix the setup code before proceeding.`
+            );
+          } else if (this._injectedMessages) {
+            // Setup failed but no errors captured yet — still notify agent
+            this._injectedMessages.push(
+              `[IMMEDIATE ERROR] Scene setup() FAILED — no specific error messages were captured. ` +
+              `Common causes: WebGPU shader compilation error, bind group layout mismatch, buffer size mismatch, or ctx.renderer API misuse. ` +
+              `Call check_browser_errors for details, or simplify the setup to isolate the issue.`
             );
           }
         }
@@ -260,7 +274,23 @@ export default class AgentEngine {
     try { ui_config = await storage.readJson("ui_config.json"); } catch { /* empty */ }
     try { panels = await storage.readJson("panels.json"); } catch { /* empty */ }
     const assets = this._getAssetContext?.() || [];
-    return { scene_json, ui_config, panels, assets };
+
+    // Read workspace files (.workspace/*) — these contain shader modules,
+    // helper scripts, and other code that the scene's setup/render scripts import.
+    const workspaceFiles = {};
+    try {
+      const fileList = await storage.listFiles(".workspace/");
+      for (const filePath of fileList) {
+        try {
+          const content = await storage.readTextFile(filePath);
+          if (content && content.length > 0) {
+            workspaceFiles[filePath] = content;
+          }
+        } catch { /* skip unreadable files */ }
+      }
+    } catch { /* no workspace files */ }
+
+    return { scene_json, ui_config, panels, assets, workspaceFiles };
   }
 
   /** Handle a message from React UI. */
@@ -361,6 +391,9 @@ async function triggerAutoFix(errorMessage, engine) {
   const abortController = new AbortController();
   engine.abortController = abortController;
 
+  // Gather current state so auto-fix agent knows what code is running
+  const currentState = await engine._getCurrentState();
+
   try {
     await runAgent({
       apiKey: engine.apiKey,
@@ -373,6 +406,7 @@ async function triggerAutoFix(errorMessage, engine) {
       onStatus,
       files: [],
       messages: engine.conversation,
+      currentState,
       errorCollector: engine.errorCollector,
       userAnswerPromise: () => engine.userAnswerPromise(),
       preprocessPromise: () => engine.preprocessPromise(),
