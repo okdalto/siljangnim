@@ -339,9 +339,11 @@ export default class GLEngine {
           // don't need it. Hybrid mode keeps WebGL2 alive for rendering.
           if (!this._backendOptions.hybrid) {
             this._releaseGLForWebGPU();
-          } else if (!this.gl) {
-            // Hybrid needs GL — initialize if not already done
-            this._initGL();
+          } else {
+            // Hybrid needs GL — restore if lost (e.g. from a previous pure WebGPU switch)
+            if (this._glDeliberatelyLost || !this.gl || this.gl.isContextLost?.()) {
+              this._restoreGLFromWebGPU();
+            }
           }
         } catch (err) {
           const failMsg = `WebGPU initialization failed: ${err.message}`;
@@ -409,8 +411,8 @@ export default class GLEngine {
     this._backendOptions = { ...this._backendOptions, preferBackend };
     this._isSwitchingBackend = true;
 
-    // If switching FROM WebGPU, restore WebGL2 context first
-    if (wasWebGPU && preferBackend !== "webgpu") {
+    // If switching FROM WebGPU (or to hybrid which needs GL), restore WebGL2
+    if (wasWebGPU && (preferBackend !== "webgpu" || hybrid)) {
       this._restoreGLFromWebGPU();
     }
 
