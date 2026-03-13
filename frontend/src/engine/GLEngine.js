@@ -596,6 +596,14 @@ export default class GLEngine {
           oldBackend.ready = false;
         }
       }
+      // Verify GL context survived the switch (skip for WebGPU — GL loss is expected).
+      // Done BEFORE finally{} so _isSwitchingBackend is still true, preventing
+      // the webglcontextlost listener from firing spurious errors during canvas replacement.
+      if (this.gl?.isContextLost?.() && this._backend?.backendType !== BackendType.WEBGPU) {
+        console.warn("[GLEngine] GL context lost after backend switch — replacing canvas");
+        try { this._initGL(); this._contextLost = false; this.onError?.(null); }
+        catch (e) { console.error("[GLEngine] GL recovery failed:", e.message); }
+      }
     } catch (err) {
       console.error("[GLEngine] switchBackend failed, restoring previous backend:", err.message);
       // Undo the deliberate-lost flag since switch failed — GL may need recovery
@@ -616,14 +624,6 @@ export default class GLEngine {
         catch (e2) { console.error("[GLEngine] GL recovery failed:", e2.message); }
       }
       throw err;
-      // Verify GL context survived the switch (skip for WebGPU — GL loss is expected).
-      // Done BEFORE finally{} so _isSwitchingBackend is still true, preventing
-      // the webglcontextlost listener from firing spurious errors during canvas replacement.
-      if (this.gl?.isContextLost?.() && this._backend?.backendType !== BackendType.WEBGPU) {
-        console.warn("[GLEngine] GL context lost after backend switch — replacing canvas");
-        try { this._initGL(); this._contextLost = false; this.onError?.(null); }
-        catch (e) { console.error("[GLEngine] GL recovery failed:", e.message); }
-      }
     } finally {
       this._isSwitchingBackend = false;
     }
