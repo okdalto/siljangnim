@@ -895,10 +895,15 @@ async function _executeOneTool(block, ctx) {
   }
 
   // Check for unrecoverable errors in any tool result (context loss, etc.)
+  // Pass the current scene's backendTarget so WebGL context loss is
+  // correctly treated as expected (not unrecoverable) for WebGPU scenes.
+  const currentBackendTarget =
+    errorCollector.getEngineRef()?.current?._scene?.backendTarget || backendTarget;
+  const unrecoverableOpts = { backendTarget: currentBackendTarget };
   let errorInfo = null;
   let errorCleared = false;
   if (isError && typeof result === "string") {
-    const { unrecoverable, reason } = isUnrecoverableError(result);
+    const { unrecoverable, reason } = isUnrecoverableError(result, unrecoverableOpts);
     if (unrecoverable) {
       errorInfo = { pattern: normalizeError(result.split("\n")[0]), unrecoverable, reason };
     }
@@ -909,7 +914,7 @@ async function _executeOneTool(block, ctx) {
       const lines = result.split("\n").filter(l => l.trim().startsWith("-") || l.trim().match(/^\d+\./));
       if (lines.length) {
         const pattern = normalizeError(lines[0]);
-        const { unrecoverable, reason } = isUnrecoverableError(result);
+        const { unrecoverable, reason } = isUnrecoverableError(result, unrecoverableOpts);
         errorInfo = { pattern, unrecoverable, reason };
       }
     } else if (result.includes("No browser errors detected")) {

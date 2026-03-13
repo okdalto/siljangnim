@@ -101,13 +101,21 @@ const UNRECOVERABLE_PATTERNS = [
  * @param {string} errorMsg — raw error message
  * @returns {{ unrecoverable: boolean, reason: string }}
  */
-export function isUnrecoverableError(errorMsg) {
+export function isUnrecoverableError(errorMsg, { backendTarget } = {}) {
   if (!errorMsg) return { unrecoverable: false, reason: "" };
   for (const pattern of UNRECOVERABLE_PATTERNS) {
     if (pattern.test(errorMsg)) {
+      // WebGL context loss is EXPECTED when the scene targets WebGPU — the
+      // GPU driver deliberately kills the WebGL context to free resources.
+      // Don't treat this as unrecoverable for WebGPU/hybrid scenes.
+      const isWebGLPattern = /WebGL context|context.*(lost|is lost)/i.test(errorMsg);
+      const isWebGPUScene = backendTarget === "webgpu" || backendTarget === "hybrid";
+      if (isWebGLPattern && isWebGPUScene) {
+        continue; // skip this pattern, try others
+      }
       return {
         unrecoverable: true,
-        reason: errorMsg.slice(0, 200),
+        reason: errorMsg.slice(0, 500),
       };
     }
   }
