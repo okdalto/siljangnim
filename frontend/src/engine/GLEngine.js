@@ -632,6 +632,10 @@ export default class GLEngine {
       } catch (e) {
         console.error("[GLEngine] Failed to restore WebGL2:", e.message);
       }
+    } else {
+      // GL context is alive but flags may be stale from a previous WebGPU session
+      this._glDeliberatelyLost = false;
+      this._contextLost = false;
     }
   }
 
@@ -2633,11 +2637,18 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
         return;
       }
     } else if (!isWebGPUScene && (this._contextLost || this.gl?.isContextLost?.())) {
-      console.error("[GLEngine] GL context is lost before setup — cannot proceed.");
-      const err = new Error("WebGL context lost. Please refresh the page or try again.");
-      this.onError?.(err);
-      window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
-      return;
+      // Attempt to restore GL before giving up — this can happen when switching
+      // back from WebGPU (e.g. new project after a WebGPU session).
+      console.warn("[GLEngine] GL context lost before setup — attempting restore");
+      this._restoreGLFromWebGPU();
+      if (!this.gl || this.gl.isContextLost?.()) {
+        console.error("[GLEngine] GL context restore failed — cannot proceed.");
+        const err = new Error("WebGL context lost. Please refresh the page or try again.");
+        this.onError?.(err);
+        window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
+        return;
+      }
+      console.log("[GLEngine] GL context restored successfully before setup");
     }
     if (this._scriptSetupFn) {
       try {
