@@ -229,6 +229,8 @@ export default class GLEngine {
   _setupCanvasListeners(canvas) {
     canvas.addEventListener("webglcontextlost", (e) => {
       e.preventDefault(); // Tell browser we want to restore
+      // Ignore events from a canvas that was already replaced
+      if (e.target !== this.canvas) return;
       this._contextLost = true;
       // Skip error handling if GL loss is expected due to WebGPU:
       // - deliberate release, active WebGPU backend, mid-switch, or WebGPU preferred
@@ -247,7 +249,9 @@ export default class GLEngine {
       const msg = "WebGL context lost. Attempting recovery...";
       this.onError?.(new Error(msg));
     });
-    canvas.addEventListener("webglcontextrestored", () => {
+    canvas.addEventListener("webglcontextrestored", (e) => {
+      // Ignore events from a canvas that was already replaced
+      if (e.target !== this.canvas) return;
       // Don't restore if WebGPU is the active backend
       if (this._backend?.backendType === BackendType.WEBGPU) {
         console.log("[GLEngine] WebGL context restored event ignored (WebGPU active)");
