@@ -769,6 +769,8 @@ export default class GLEngine {
     const generation = ++this._loadGeneration; // cancel any in-flight async setup
     this._scene = sceneJSON;
     this._lastErrorMessage = null; // reset error debounce for new scene
+    this._consecutiveRenderErrors = 0;
+    this._gpuErrorAccum = 0;
 
     // Restore persisted preprocess state from IndexedDB if not already in memory
     if (!this._preprocessState) {
@@ -1751,14 +1753,43 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
 
     try {
       this._renderFrame(time, dt);
+      this._consecutiveRenderErrors = 0;
     } catch (err) {
+      this._consecutiveRenderErrors = (this._consecutiveRenderErrors || 0) + 1;
       console.error("[GLEngine] Render error:", err);
       if (err.message !== this._lastErrorMessage) {
         this._lastErrorMessage = err.message;
         this.onError?.(err);
         window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
       }
+      // Stop rendering after too many consecutive errors to prevent GPU device destruction
+      if (this._consecutiveRenderErrors >= 10) {
+        this._setupReady = false;
+        console.error("[GLEngine] Too many consecutive render errors — halting render loop");
+      }
     }
+
+    // Check for accumulated WebGPU validation errors (these arrive async, not via throw)
+    if (this._backend?.consumeValidationErrors) {
+      const gpuErrs = this._backend.consumeValidationErrors();
+      if (gpuErrs.length > 0) {
+        this._gpuErrorAccum = (this._gpuErrorAccum || 0) + gpuErrs.length;
+        // Report first unique error
+        const firstErr = gpuErrs[0];
+        const msg = `[WebGPU ${firstErr.type}] ${firstErr.message}`;
+        if (msg !== this._lastErrorMessage) {
+          this._lastErrorMessage = msg;
+          this.onError?.(new Error(msg));
+          window.dispatchEvent(new ErrorEvent("error", { message: msg, error: new Error(msg) }));
+        }
+        // Stop rendering if validation errors are piling up (> 50 total)
+        if (this._gpuErrorAccum > 50) {
+          this._setupReady = false;
+          console.error("[GLEngine] Too many WebGPU validation errors (%d) — halting render loop", this._gpuErrorAccum);
+        }
+      }
+    }
+
     this._frameCount++;
 
     // FPS counter
@@ -1775,6 +1806,18 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
   _renderFrame(time, dt) {
     const gl = this.gl;
     const isWebGPU = this._backend?.backendType === BackendType.WEBGPU;
+
+    // Stop rendering if WebGPU device was lost/destroyed
+    if (isWebGPU && this._backend && !this._backend.ready) {
+      this._setupReady = false;
+      const msg = "WebGPU device was lost. Please reload the scene or refresh the page.";
+      if (msg !== this._lastErrorMessage) {
+        this._lastErrorMessage = msg;
+        this.onError?.(new Error(msg));
+        window.dispatchEvent(new ErrorEvent("error", { message: msg, error: new Error(msg) }));
+      }
+      return null;
+    }
 
     // For WebGL2 scenes, gl is required. For WebGPU, it may be deliberately lost.
     if (!gl && !isWebGPU) return null;
