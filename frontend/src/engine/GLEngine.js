@@ -306,7 +306,9 @@ export default class GLEngine {
    */
   async _tryRecoverContext() {
     // Don't try to recover WebGL2 when WebGPU is the active backend
+    // or when the context was deliberately lost for WebGPU
     if (this._backend?.backendType === BackendType.WEBGPU) return;
+    if (this._glDeliberatelyLost) return;
     if (!this.gl?.isContextLost?.()) return; // not actually lost
     this._contextLost = true;
     // Release scene resources to free GPU memory before recovery attempt
@@ -335,6 +337,13 @@ export default class GLEngine {
     if (restored) {
       // The webglcontextrestored handler already re-acquired GL and extensions
       console.log("[GLEngine] GL context recovery succeeded");
+      return;
+    }
+
+    // Re-check: backend may have switched to WebGPU during the wait above.
+    // In that case GL loss is expected and not an error.
+    if (this._backend?.backendType === BackendType.WEBGPU || this._glDeliberatelyLost) {
+      console.log("[GLEngine] GL recovery aborted — WebGPU is now active (context loss is expected)");
       return;
     }
 
