@@ -8,10 +8,23 @@ import * as projectTree from "../engine/projectTree.js";
  * Provides: treeNodes, activeNodeId, sidebar visibility,
  * node creation, restoration, branching, and deletion.
  */
+const ACTIVE_NODE_KEY = "siljangnim:activeNodeId";
+
 export default function useProjectTree(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages) {
   const [treeNodes, setTreeNodes] = useState([]);
-  const [activeNodeId, setActiveNodeId] = useState(null);
+  const [activeNodeId, _setActiveNodeId] = useState(
+    () => sessionStorage.getItem(ACTIVE_NODE_KEY) || null
+  );
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const setActiveNodeId = useCallback((valOrFn) => {
+    _setActiveNodeId((prev) => {
+      const next = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
+      if (next) sessionStorage.setItem(ACTIVE_NODE_KEY, next);
+      else sessionStorage.removeItem(ACTIVE_NODE_KEY);
+      return next;
+    });
+  }, []);
 
   // Ref to avoid stale closures
   const activeNodeIdRef = useRef(activeNodeId);
