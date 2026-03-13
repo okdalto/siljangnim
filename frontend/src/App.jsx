@@ -419,11 +419,10 @@ export default function App() {
   // as those change every scene update and cause tree flicker.
   useEffect(() => {
     if (project.activeProject === null) {
-      // New project or cleared — reset version tree immediately.
-      // Don't check getActiveProjectName() here because the backend
-      // hasn't processed "new_project" yet, so it would still return
-      // the old project name and reload the old tree.
-      tree.loadTree(null);
+      // New project or cleared — skip tree loading.
+      // Don't call loadTree(null) here because it would clear activeNodeId,
+      // which causes in-flight handleChatDone to create orphan root nodes
+      // instead of child nodes.
       return;
     }
     const projName = storageApi.getActiveProjectName();
