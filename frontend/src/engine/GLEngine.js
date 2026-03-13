@@ -246,6 +246,7 @@ export default class GLEngine {
       if (this.gl) {
         this._extColorBufferFloat = this.gl.getExtension("EXT_color_buffer_float");
         this._extFloatLinear = this.gl.getExtension("OES_texture_float_linear");
+        this._extLoseContext = this.gl.getExtension("WEBGL_lose_context");
       }
       if (this._scene) {
         this.loadScene(this._scene);
@@ -275,6 +276,9 @@ export default class GLEngine {
     if (!this._extFloatLinear) {
       console.warn("[GLEngine] OES_texture_float_linear not available — rgba32f will use NEAREST filtering");
     }
+    // Cache WEBGL_lose_context extension for recovery — getExtension() returns null
+    // when context is already lost, so we must acquire it while context is alive.
+    this._extLoseContext = this.gl.getExtension("WEBGL_lose_context");
   }
 
   /**
@@ -296,14 +300,16 @@ export default class GLEngine {
     this._disposeScene();
     console.warn("[GLEngine] Attempting GL context recovery...");
 
-    // Use WEBGL_lose_context extension to explicitly request restoration
-    const loseExt = this.gl.getExtension("WEBGL_lose_context");
+    // Use cached WEBGL_lose_context extension to request restoration.
+    // IMPORTANT: gl.getExtension() returns null when context is lost (per WebGL spec),
+    // so we must use the extension cached at context creation time.
+    const loseExt = this._extLoseContext;
     if (loseExt) {
       try {
         loseExt.restoreContext();
-        // Wait for the webglcontextrestored event (up to 3 seconds)
+        // Wait for the webglcontextrestored event (up to 5 seconds)
         await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error("Context restore timed out")), 3000);
+          const timeout = setTimeout(() => reject(new Error("Context restore timed out")), 5000);
           const handler = () => {
             clearTimeout(timeout);
             this.canvas.removeEventListener("webglcontextrestored", handler);
@@ -326,6 +332,7 @@ export default class GLEngine {
       this._contextLost = false;
       this._extColorBufferFloat = newGl.getExtension("EXT_color_buffer_float");
       this._extFloatLinear = newGl.getExtension("OES_texture_float_linear");
+      this._extLoseContext = newGl.getExtension("WEBGL_lose_context");
     } else {
       // Can't recover — notify the user
       const msg = "WebGL context lost and could not be recovered. Please refresh the page.";
@@ -518,7 +525,7 @@ export default class GLEngine {
   _releaseGLForWebGPU() {
     // Deliberately lose the WebGL2 context to free GPU resources
     if (this.gl && !this.gl.isContextLost()) {
-      const loseExt = this.gl.getExtension("WEBGL_lose_context");
+      const loseExt = this._extLoseContext || this.gl.getExtension("WEBGL_lose_context");
       if (loseExt) loseExt.loseContext();
       this._glDeliberatelyLost = true;
     }
