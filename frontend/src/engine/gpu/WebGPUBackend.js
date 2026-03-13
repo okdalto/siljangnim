@@ -117,8 +117,9 @@ export class WebGPUBackend extends RendererInterface {
       );
     });
 
-    // Handle device loss
+    // Handle device loss — only report if unexpected (not from dispose())
     this.device.lost.then((info) => {
+      if (this._disposing) return; // intentional destroy during dispose()
       this.pushValidationError("device-lost", `Device lost (${info.reason}): ${info.message}`);
       this.ready = false;
     });
@@ -148,6 +149,10 @@ export class WebGPUBackend extends RendererInterface {
   }
 
   dispose() {
+    this._disposing = true; // prevent device.lost handler from reporting expected destroy
+    // Clear pending validation errors — they're from the old device and shouldn't
+    // leak into the next scene's error collector.
+    this.validationErrors.length = 0;
     if (this._depthTexture) {
       this._depthTexture.destroy();
       this._depthTexture = null;

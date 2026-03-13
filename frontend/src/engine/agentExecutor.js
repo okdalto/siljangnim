@@ -905,9 +905,9 @@ async function _executeOneTool(block, ctx) {
   let errorInfo = null;
   let errorCleared = false;
   if (isError && typeof result === "string") {
-    const { unrecoverable, reason } = isUnrecoverableError(result, unrecoverableOpts);
-    if (unrecoverable) {
-      errorInfo = { pattern: normalizeError(result.split("\n")[0]), unrecoverable, reason };
+    const { unrecoverable, gpuRecoverable, reason } = isUnrecoverableError(result, unrecoverableOpts);
+    if (unrecoverable || gpuRecoverable) {
+      errorInfo = { pattern: normalizeError(result.split("\n")[0]), unrecoverable, gpuRecoverable: !!gpuRecoverable, reason };
     }
   }
   // Track error patterns from check_browser_errors
@@ -916,8 +916,8 @@ async function _executeOneTool(block, ctx) {
       const lines = result.split("\n").filter(l => l.trim().startsWith("-") || l.trim().match(/^\d+\./));
       if (lines.length) {
         const pattern = normalizeError(lines[0]);
-        const { unrecoverable, reason } = isUnrecoverableError(result, unrecoverableOpts);
-        errorInfo = { pattern, unrecoverable, reason };
+        const { unrecoverable, gpuRecoverable, reason } = isUnrecoverableError(result, unrecoverableOpts);
+        errorInfo = { pattern, unrecoverable, gpuRecoverable: !!gpuRecoverable, reason };
       }
     } else if (result.includes("No browser errors detected")) {
       errorCleared = true;
@@ -1295,17 +1295,40 @@ async function _runAgentLoop({
       for (const group of groups) {
         if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
-        if (group.parallel && group.blocks.length > 1) {
-          onStatus?.("thinking", `Running ${group.blocks.length} tools in parallel...`);
-          const results = await Promise.all(
-            group.blocks.map(block => _executeOneTool(block, toolCtx))
-          );
-          allResults.push(...results);
-        } else {
+        try {
+          if (group.parallel && group.blocks.length > 1) {
+            onStatus?.("thinking", `Running ${group.blocks.length} tools in parallel...`);
+            const results = await Promise.all(
+              group.blocks.map(block => _executeOneTool(block, toolCtx))
+            );
+            allResults.push(...results);
+          } else {
+            for (const block of group.blocks) {
+              if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+              const result = await _executeOneTool(block, toolCtx);
+              allResults.push(result);
+            }
+          }
+        } catch (toolGroupErr) {
+          if (toolGroupErr.name === "AbortError") throw toolGroupErr;
+          // Unexpected error during tool execution — convert to error results
+          // so the agent can see the error and continue instead of dying.
+          log("System", `Tool execution error (recovered): ${toolGroupErr.message}`, "error");
           for (const block of group.blocks) {
-            if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
-            const result = await _executeOneTool(block, toolCtx);
-            allResults.push(result);
+            if (!allResults.find(r => r.toolResult?.tool_use_id === block.id)) {
+              allResults.push({
+                toolResult: {
+                  type: "tool_result",
+                  tool_use_id: block.id,
+                  content: `Error: Unexpected error executing tool '${block.name}': ${toolGroupErr.message}`,
+                  is_error: true,
+                },
+                toolName: block.name,
+                sig: null,
+                errorInfo: { pattern: `unexpected_${block.name}`, unrecoverable: false },
+                errorCleared: false,
+              });
+            }
           }
         }
       }
@@ -1371,6 +1394,21 @@ async function _runAgentLoop({
           }
         } catch { /* best effort */ }
         break;
+      }
+
+      // --- GPU recoverable error detection (warn, do NOT stop) ---
+      const gpuRecoverable = allResults.find(r => r.errorInfo?.gpuRecoverable);
+      if (gpuRecoverable) {
+        const reason = gpuRecoverable.errorInfo.reason;
+        log("System", `GPU error detected (recoverable) — guiding agent: ${reason}`, "warning");
+        messages.push({
+          role: "user",
+          content: `SYSTEM WARNING: A GPU/context error occurred: "${reason}". ` +
+            "This is NOT a code bug — it's a GPU state issue from backend switching. " +
+            "To recover: (1) call clear_viewport to reset GPU state, " +
+            "(2) try a different backendTarget (e.g. 'auto' for WebGL2), " +
+            "(3) reload the scene. Do NOT give up — this is fixable. Continue working.",
+        });
       }
 
       // --- Loop detection ---
@@ -1492,7 +1530,11 @@ async function _runAgentLoop({
     if (err.name === "AbortError") {
       log("System", "Agent cancelled by user", "info");
     } else {
-      throw err;
+      // Non-abort errors should NOT kill the agent.
+      // Log the error and let the loop end gracefully so the user
+      // can continue the conversation instead of seeing a disconnect.
+      log("System", `Agent loop error (non-fatal): ${err.message}`, "error");
+      console.error("[AgentExecutor] Unexpected error in agent loop:", err);
     }
   }
 

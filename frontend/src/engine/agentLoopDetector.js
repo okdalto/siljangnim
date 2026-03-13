@@ -83,13 +83,19 @@ export function detectErrorLoop(recentErrors, thresholds) {
 // ---------------------------------------------------------------------------
 
 const UNRECOVERABLE_PATTERNS = [
-  /context.*(lost|is lost)/i,
-  /please refresh the page/i,
   /createShader returned null/i,
   /Shader compile failed:.*null/i,
   /Shader compile error:\s*null/i,
-  /WebGL context/i,
   /context creation failed/i,
+];
+
+// Patterns that indicate GPU/context issues — these are recoverable by
+// switching backends or reloading the scene, so the agent should NOT be killed.
+// Instead, the agent gets a strong warning and can decide to change approach.
+const GPU_RECOVERABLE_PATTERNS = [
+  /context.*(lost|is lost)/i,
+  /please refresh the page/i,
+  /WebGL context/i,
   /GPU device lost/i,
   /device was destroyed/i,
 ];
@@ -103,22 +109,32 @@ const UNRECOVERABLE_PATTERNS = [
  */
 export function isUnrecoverableError(errorMsg, { backendTarget } = {}) {
   if (!errorMsg) return { unrecoverable: false, reason: "" };
+
+  // True unrecoverable errors — shader compilation infrastructure is broken
   for (const pattern of UNRECOVERABLE_PATTERNS) {
     if (pattern.test(errorMsg)) {
-      // WebGL context loss is EXPECTED when the scene targets WebGPU — the
-      // GPU driver deliberately kills the WebGL context to free resources.
-      // Don't treat this as unrecoverable for WebGPU/hybrid scenes.
-      const isWebGLPattern = /WebGL context|context.*(lost|is lost)/i.test(errorMsg);
-      const isWebGPUScene = backendTarget === "webgpu" || backendTarget === "hybrid";
-      if (isWebGLPattern && isWebGPUScene) {
-        continue; // skip this pattern, try others
-      }
       return {
         unrecoverable: true,
         reason: errorMsg.slice(0, 500),
       };
     }
   }
+
+  // GPU/context errors — these are NOT unrecoverable.
+  // The agent can fix them by switching backends, reloading the scene,
+  // or using clear_viewport. Killing the agent here just frustrates the user.
+  // Instead, mark as a strong warning (gpuRecoverable) so the executor
+  // can inject guidance without stopping the agent.
+  for (const pattern of GPU_RECOVERABLE_PATTERNS) {
+    if (pattern.test(errorMsg)) {
+      return {
+        unrecoverable: false,
+        gpuRecoverable: true,
+        reason: errorMsg.slice(0, 500),
+      };
+    }
+  }
+
   return { unrecoverable: false, reason: "" };
 }
 
