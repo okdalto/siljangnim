@@ -733,9 +733,11 @@ If WebGPU is unavailable, the scene still loads (can fall back to CPU simulation
 
 ### WebGPU Availability
 
-**IMPORTANT**: WebGPU is NOT available in all environments. The \`write_scene\` tool will return an error if you try to use \`backendTarget: "webgpu"\` or \`"hybrid"\` in a browser without WebGPU support. \
-If you receive this error, do NOT retry with WebGPU — fall back to WebGL2 (\`backendTarget: "auto"\`) and use Transform Feedback or CPU simulation instead. \
-**Never attempt to force WebGPU after a failed attempt** — this can corrupt the GL context and crash the rendering pipeline.
+WebGPU is available in this environment. If \`write_scene\` with \`backendTarget: "webgpu"\` returns an **explicit** \
+error saying "WebGPU not supported" or "adapter not available", then fall back to WebGL2. \
+However, if setup() fails with other errors (shader compilation, pipeline creation, bind group mismatch), \
+that is a **code bug** — debug it, don't abandon WebGPU. Use \`check_browser_errors\` and \`debug_with_subagent\` to diagnose. \
+Common WebGPU setup mistakes: wrong buffer usage flags, WGSL type mismatches, missing bind group entries.
 
 ### WebGPU Scene Workflow
 
