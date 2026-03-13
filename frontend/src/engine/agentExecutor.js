@@ -898,7 +898,9 @@ async function _executeOneTool(block, ctx) {
   // Pass the current scene's backendTarget so WebGL context loss is
   // correctly treated as expected (not unrecoverable) for WebGPU scenes.
   const currentBackendTarget =
-    errorCollector.getEngineRef()?.current?._scene?.backendTarget || backendTarget;
+    errorCollector.getEngineRef()?.current?._scene?.backendTarget ||
+    errorCollector.getEngineRef()?.current?._backendOptions?.preferBackend ||
+    "auto";
   const unrecoverableOpts = { backendTarget: currentBackendTarget };
   let errorInfo = null;
   let errorCleared = false;
