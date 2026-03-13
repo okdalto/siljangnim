@@ -2100,9 +2100,9 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       this._blitOverlay.width = width;
       this._blitOverlay.height = height;
     }
-    if (this._backend?.backendType === BackendType.WEBGPU && this._backend?.canvas) {
-      this._backend.canvas.width = width;
-      this._backend.canvas.height = height;
+    if (this._backend?.backendType === BackendType.WEBGPU) {
+      // Delegate to backend.resize() which also recreates the depth texture
+      this._backend.resize(width, height);
     }
   }
 
@@ -2456,8 +2456,9 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     // These arrive asynchronously via the `uncapturederror` device event and may not
     // be caught by the try/catch above.
     if (this._backend?.consumeValidationErrors) {
-      // Brief yield to let queued GPU validation errors arrive
-      await new Promise((r) => setTimeout(r, 150));
+      // Yield to let queued GPU validation errors arrive.
+      // 500ms accommodates async shader compilation on slower GPUs.
+      await new Promise((r) => setTimeout(r, 500));
       if (generation !== this._loadGeneration) return;
       const gpuErrors = this._backend.consumeValidationErrors();
       if (gpuErrors.length > 0) {
