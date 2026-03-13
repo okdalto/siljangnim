@@ -972,10 +972,9 @@ async function toolCaptureViewport(input, broadcast, ctx) {
     return "Error: No viewport canvas available. Make sure a scene is loaded.";
   }
 
-  const canvas = engine.canvas;
-
-  // For WebGPU, we need the visible (blit target) canvas
-  // which is the main canvas — toDataURL works on it after auto-blit
+  // For WebGPU, the render output is on the 2D overlay canvas (or the
+  // offscreen backend canvas), not the main canvas which stays idle/black.
+  const canvas = engine._blitOverlay || engine.canvas;
   try {
     const maxDim = CAPTURE_MAX_DIM;
     let w = Math.min(input.width || canvas.width, maxDim);

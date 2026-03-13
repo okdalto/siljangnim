@@ -64,7 +64,7 @@ export default function HtmlControl({ ctrl, onUniformChange, engineRef, keyframe
           const engine = engineRef?.current;
           if (engine?.canvas) {
             try {
-              const dataUrl = engine.canvas.toDataURL("image/png");
+              const dataUrl = (engine._blitOverlay || engine.canvas).toDataURL("image/png");
               iframe.contentWindow.postMessage(
                 { type: "panel:captureResult", dataUrl },
                 window.location.origin

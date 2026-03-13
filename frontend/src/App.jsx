@@ -243,9 +243,12 @@ export default function App() {
   const kf = useKeyframes(engineRef);
 
   const captureThumbnail = useCallback(() => {
-    if (engineRef.current?.canvas) {
+    const engine = engineRef.current;
+    // WebGPU renders to an overlay canvas; main canvas is idle/black
+    const canvas = engine?._blitOverlay || engine?.canvas;
+    if (canvas) {
       try {
-        return engineRef.current.canvas.toDataURL("image/jpeg", 0.8);
+        return canvas.toDataURL("image/jpeg", 0.8);
       } catch { /* canvas may be tainted */ }
     }
     return null;
