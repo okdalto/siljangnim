@@ -135,12 +135,19 @@ export default class AgentEngine {
         }
         // Push setup errors immediately to agent via injectedMessages
         if (detail && detail.setupReady === false) {
-          // Collect both console errors and GPU validation errors
+          // Collect errors from all sources:
+          // 1. Console errors (captured by App.jsx interceptors)
+          // 2. GPU validation errors (from WebGPU uncapturederror)
+          // 3. Error message passed in the scene_loaded event detail
           const allErrors = [...this.errors.slice(0, 5)];
           const gpuErrors = this.getValidationErrors();
           for (const e of gpuErrors) {
             const msg = `[WebGPU ${e.type}] ${e.message}`;
             if (!allErrors.includes(msg)) allErrors.push(msg);
+          }
+          // Include the error from the scene_loaded event itself (e.g. backend switch failure)
+          if (detail.error && !allErrors.some((e) => e.includes(detail.error))) {
+            allErrors.unshift(detail.error);
           }
           if (allErrors.length && this._injectedMessages) {
             const errorSummary = allErrors.slice(0, 8).join("\n");

@@ -566,7 +566,13 @@ export default class GLEngine {
     // The GL context stays alive but idle — this avoids unrecoverable
     // context loss on browsers where restoreContext() doesn't work.
 
-    // If switching FROM WebGPU (or to hybrid which needs GL), restore WebGL2
+    // If switching FROM WebGPU to WebGL2, dispose the WebGPU device FIRST.
+    // GPU drivers kill WebGL contexts while a WebGPU device exists on the same page.
+    // We must release the device before attempting to create a fresh GL context.
+    if (wasWebGPU && preferBackend !== "webgpu") {
+      try { oldBackend.dispose(); } catch { /* best effort */ }
+    }
+    // Restore WebGL2 context (may replace canvas if GL is irrecoverably lost)
     if (wasWebGPU && (preferBackend !== "webgpu" || hybrid)) {
       this._restoreGLFromWebGPU();
     }
@@ -594,13 +600,15 @@ export default class GLEngine {
       console.error("[GLEngine] switchBackend failed, restoring previous backend:", err.message);
       // Undo the deliberate-lost flag since switch failed — GL may need recovery
       this._glDeliberatelyLost = false;
-      // Restore old backend
+      // Dispose the failed new backend
       if (this._backend) {
         try { this._backend.dispose(); } catch { /* best effort */ }
       }
-      this._backend = oldBackend;
+      // Restore old backend if it wasn't already disposed (WebGPU→WebGL2 disposes early)
+      const oldDisposed = wasWebGPU && preferBackend !== "webgpu";
+      this._backend = oldDisposed ? null : oldBackend;
       this._backendOptions = oldOptions;
-      this._backendReady = !!oldBackend;
+      this._backendReady = !oldDisposed && !!oldBackend;
       // Verify GL context is still alive — replace canvas if dead
       if (this.gl?.isContextLost?.()) {
         console.warn("[GLEngine] GL context lost during switch failure — replacing canvas");
@@ -608,15 +616,16 @@ export default class GLEngine {
         catch (e2) { console.error("[GLEngine] GL recovery failed:", e2.message); }
       }
       throw err;
+      // Verify GL context survived the switch (skip for WebGPU — GL loss is expected).
+      // Done BEFORE finally{} so _isSwitchingBackend is still true, preventing
+      // the webglcontextlost listener from firing spurious errors during canvas replacement.
+      if (this.gl?.isContextLost?.() && this._backend?.backendType !== BackendType.WEBGPU) {
+        console.warn("[GLEngine] GL context lost after backend switch — replacing canvas");
+        try { this._initGL(); this._contextLost = false; this.onError?.(null); }
+        catch (e) { console.error("[GLEngine] GL recovery failed:", e.message); }
+      }
     } finally {
       this._isSwitchingBackend = false;
-    }
-
-    // Verify GL context survived the switch (skip for WebGPU — GL loss is expected)
-    if (this.gl?.isContextLost?.() && this._backend?.backendType !== BackendType.WEBGPU) {
-      console.warn("[GLEngine] GL context lost after backend switch — replacing canvas");
-      try { this._initGL(); this._contextLost = false; this.onError?.(null); }
-      catch (e) { console.error("[GLEngine] GL recovery failed:", e.message); }
     }
     }; // end doSwitch
 
@@ -2660,6 +2669,7 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
         // For pure WebGPU scenes, this is fatal. For hybrid, fall back to CPU-only.
         if (wantedBackend === "webgpu") {
           this._setupReady = false;
+          this._lastSetupError = msg;
           if (this.gl && !this.gl.isContextLost?.()) {
             const g = this.gl;
             g.clearColor(0.15, 0.05, 0.05, 1);
@@ -2684,6 +2694,8 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       if (!this.gl || this.gl.isContextLost?.()) {
         console.error("[GLEngine] GL context restore failed for hybrid mode — cannot proceed.");
         const err = new Error("WebGL context lost in hybrid mode. GPU may not support dual contexts.");
+        this._lastSetupError = err.message;
+        this._setupReady = false;
         this.onError?.(err);
         window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
         return;
@@ -2696,17 +2708,21 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       if (!this.gl || this.gl.isContextLost?.()) {
         console.error("[GLEngine] GL context restore failed — cannot proceed.");
         const err = new Error("WebGL context lost. Please refresh the page or try again.");
+        this._lastSetupError = err.message;
+        this._setupReady = false;
         this.onError?.(err);
         window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
         return;
       }
       console.log("[GLEngine] GL context restored successfully before setup");
     }
+    this._lastSetupError = null;
     if (this._scriptSetupFn) {
       try {
         await this._scriptSetupFn(ctx);
       } catch (err) {
         setupOk = false;
+        this._lastSetupError = err.message || String(err);
         console.error("[GLEngine] Setup error:", err);
         this.onError?.(err);
         window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
@@ -2725,8 +2741,9 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       const gpuErrors = this._backend.consumeValidationErrors();
       if (gpuErrors.length > 0) {
         setupOk = false;
-        for (const e of gpuErrors) {
-          const msg = `[WebGPU ${e.type}] ${e.message}`;
+        const gpuMsgs = gpuErrors.map((e) => `[WebGPU ${e.type}] ${e.message}`);
+        this._lastSetupError = (this._lastSetupError ? this._lastSetupError + "\n" : "") + gpuMsgs.join("\n");
+        for (const msg of gpuMsgs) {
           console.error(msg);
           this.onError?.(new Error(msg));
           window.dispatchEvent(new ErrorEvent("error", { message: msg, error: new Error(msg) }));
