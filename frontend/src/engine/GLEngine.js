@@ -117,6 +117,7 @@ export default class GLEngine {
     this._backend = null;
     this._backendReady = false;
     this._backendPromise = null; // resolves when initBackend() completes
+    this._switchPromise = null;  // serializes concurrent switchBackend() calls
     this.onBackendReady = null; // callback(backendType)
 
     // --- Legacy WebGL2 direct access ---
@@ -229,6 +230,12 @@ export default class GLEngine {
       // asynchronously reclaim GL resources after WebGPU device creation).
       if (this._backend?.backendType === BackendType.WEBGPU) {
         console.log("[GLEngine] WebGL context lost while WebGPU active (expected)");
+        return;
+      }
+      // If we're in the middle of a backend switch, context loss is expected
+      // (the new backend may be taking over GPU resources).
+      if (this._isSwitchingBackend) {
+        console.log("[GLEngine] WebGL context lost during backend switch (expected)");
         return;
       }
       // Immediately release scene resources to free GPU memory,
@@ -468,6 +475,16 @@ export default class GLEngine {
   async switchBackend(preferBackend, { hybrid = false } = {}) {
     if (this._backendOptions.preferBackend === preferBackend && this._backendOptions.hybrid === hybrid) return;
 
+    // Serialize concurrent switchBackend calls. Without this, two React
+    // useEffects (backendTarget + sceneJSON) can both enter switchBackend
+    // before either updates _backendOptions, bypassing the early-return guard.
+    if (this._switchPromise) {
+      try { await this._switchPromise; } catch { /* handled below */ }
+      // Re-check after waiting — the previous switch may have already set the target
+      if (this._backendOptions.preferBackend === preferBackend && this._backendOptions.hybrid === hybrid) return;
+    }
+
+    const doSwitch = async () => {
     // Wait for any in-flight initBackend() to complete before starting a switch.
     // Without this, two concurrent _initBackendInner() calls race and the
     // first (WebGL2) can overwrite the backend set by the second (WebGPU).
@@ -484,6 +501,14 @@ export default class GLEngine {
     this._backendReady = false;
     this._backendOptions = { ...this._backendOptions, preferBackend };
     this._isSwitchingBackend = true;
+
+    // For pure WebGPU switches, mark GL as deliberately lost EARLY — before
+    // any `await` boundaries. GPU drivers or browser GC can fire the
+    // webglcontextlost event at any microtask boundary, and the handler must
+    // already see this flag to avoid reporting it as an unrecoverable error.
+    if (preferBackend === "webgpu" && !hybrid) {
+      this._glDeliberatelyLost = true;
+    }
 
     // If switching FROM WebGPU (or to hybrid which needs GL), restore WebGL2
     if (wasWebGPU && (preferBackend !== "webgpu" || hybrid)) {
@@ -511,6 +536,8 @@ export default class GLEngine {
       }
     } catch (err) {
       console.error("[GLEngine] switchBackend failed, restoring previous backend:", err.message);
+      // Undo the deliberate-lost flag since switch failed — GL may need recovery
+      this._glDeliberatelyLost = false;
       // Restore old backend
       if (this._backend) {
         try { this._backend.dispose(); } catch { /* best effort */ }
@@ -533,6 +560,10 @@ export default class GLEngine {
       console.warn("[GLEngine] GL context lost after backend switch — attempting recovery");
       this._tryRecoverContext();
     }
+    }; // end doSwitch
+
+    this._switchPromise = doSwitch().finally(() => { this._switchPromise = null; });
+    return this._switchPromise;
   }
 
   /** Get the active backend (or null if not initialized). */
