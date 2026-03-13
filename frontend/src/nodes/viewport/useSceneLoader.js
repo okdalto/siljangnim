@@ -76,7 +76,12 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
       })
       .then(() => {
         window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded", {
-          detail: { setupReady: engine._setupReady },
+          detail: {
+            setupReady: engine._setupReady,
+            // Pass last error so ackSceneLoad can include it even if
+            // console error collection missed it due to timing
+            error: engine._setupReady ? undefined : (engine._lastSetupError || undefined),
+          },
         }));
       })
       .catch((err) => {
