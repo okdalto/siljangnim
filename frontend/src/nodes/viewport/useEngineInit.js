@@ -22,6 +22,10 @@ export default function useEngineInit(canvasRef, { backendTarget, onError }) {
       const prefer = (backendTarget === "webgpu" || backendTarget === "hybrid") ? "webgpu" : "webgl2";
       const engine = new GLEngine(canvas, { preferBackend: prefer });
       engine.onError = (err) => {
+        if (!err) {
+          setError(null);
+          return;
+        }
         console.error("[ViewportNode] GLEngine error:", err);
         setError(err.message || String(err));
         onErrorRef.current?.(err);
