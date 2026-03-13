@@ -589,9 +589,10 @@ export default function App() {
     setDuration(settings.defaultDuration);
     setLoop(settings.defaultLoop);
     setFps(30);
+    tree.loadTree(null);
     dirtyRef.current = false;
     send({ type: "new_project" });
-  }, [send, chat.clearAll, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, settings.defaultDuration, settings.defaultLoop]);
+  }, [send, chat.clearAll, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, settings.defaultDuration, settings.defaultLoop, tree.loadTree]);
 
   // Trust a safe-mode project
   const handleTrustProject = useCallback(() => {
