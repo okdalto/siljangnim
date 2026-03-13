@@ -306,28 +306,29 @@ export default class GLEngine {
     this._disposeScene();
     console.warn("[GLEngine] Attempting GL context recovery...");
 
-    // Use cached WEBGL_lose_context extension to request restoration.
-    // IMPORTANT: gl.getExtension() returns null when context is lost (per WebGL spec),
-    // so we must use the extension cached at context creation time.
+    // Strategy: request restoration, then wait for browser's webglcontextrestored event.
+    // restoreContext() only works for simulated loss (loseContext()), but we call it
+    // best-effort regardless. For real GPU driver crashes, the browser may auto-restore
+    // on its own — we just need to wait for the event either way.
     const loseExt = this._extLoseContext;
     if (loseExt) {
-      try {
-        loseExt.restoreContext();
-        // Wait for the webglcontextrestored event (up to 5 seconds)
-        await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error("Context restore timed out")), 5000);
-          const handler = () => {
-            clearTimeout(timeout);
-            this.canvas.removeEventListener("webglcontextrestored", handler);
-            resolve();
-          };
-          this.canvas.addEventListener("webglcontextrestored", handler, { once: true });
-        });
-        console.log("[GLEngine] GL context recovery succeeded via WEBGL_lose_context");
-        return;
-      } catch (err) {
-        console.warn("[GLEngine] WEBGL_lose_context.restoreContext() failed:", err.message);
-      }
+      try { loseExt.restoreContext(); } catch { /* expected for real context loss */ }
+    }
+
+    // Wait for webglcontextrestored event (browser handles both simulated and real losses)
+    const restored = await new Promise((resolve) => {
+      const timeout = setTimeout(() => resolve(false), 8000);
+      const handler = () => {
+        clearTimeout(timeout);
+        resolve(true);
+      };
+      this.canvas.addEventListener("webglcontextrestored", handler, { once: true });
+    });
+
+    if (restored) {
+      // The webglcontextrestored handler already re-acquired GL and extensions
+      console.log("[GLEngine] GL context recovery succeeded");
+      return;
     }
 
     // Fallback: try to get a fresh context directly
@@ -527,8 +528,8 @@ export default class GLEngine {
       this._isSwitchingBackend = false;
     }
 
-    // Verify GL context survived the switch
-    if (this.gl?.isContextLost?.()) {
+    // Verify GL context survived the switch (skip for WebGPU — GL loss is expected)
+    if (this.gl?.isContextLost?.() && this._backend?.backendType !== BackendType.WEBGPU) {
       console.warn("[GLEngine] GL context lost after backend switch — attempting recovery");
       this._tryRecoverContext();
     }
@@ -674,11 +675,11 @@ export default class GLEngine {
     const isWebGPU = this._backend?.backendType === BackendType.WEBGPU;
     const isHybrid = this._backendOptions?.hybrid;
 
-    // If GL context is lost and we need it, try to recover before giving up
+    // If GL context is lost and we need it, bail and let the browser auto-restore.
+    // The webglcontextrestored handler will reload the scene automatically.
     if (!isWebGPU && gl?.isContextLost?.()) {
-      console.warn("[GLEngine] GL context lost at loadScene — attempting recovery");
-      await this._tryRecoverContext();
-      gl = this.gl; // re-read after potential recovery
+      console.warn("[GLEngine] GL context lost at loadScene — waiting for browser auto-restore");
+      return;
     }
 
     // For WebGL2 scenes, gl is required. WebGPU scenes can work without it.
