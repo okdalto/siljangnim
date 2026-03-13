@@ -62,6 +62,28 @@ export const PrimitiveTopology = {
   POINTS: "point-list",
 };
 
+/** Map a GPUTextureFormat string to its bytes-per-pixel count. */
+export function bytesPerPixel(format) {
+  switch (format) {
+    case "r8unorm": case "r8snorm": case "r8uint": case "r8sint":
+      return 1;
+    case "rg8unorm": case "rg8snorm": case "rg8uint": case "rg8sint":
+      return 2;
+    case "rgba8unorm": case "rgba8snorm": case "rgba8uint": case "rgba8sint":
+    case "bgra8unorm":
+    case "r32float": case "r32uint": case "r32sint":
+    case "rg16float": case "rg16uint": case "rg16sint":
+      return 4;
+    case "rg32float": case "rg32uint": case "rg32sint":
+    case "rgba16float": case "rgba16uint": case "rgba16sint":
+      return 8;
+    case "rgba32float": case "rgba32uint": case "rgba32sint":
+      return 16;
+    default:
+      return 4;
+  }
+}
+
 /**
  * Abstract renderer interface.
  * Methods throw if not overridden — forces implementation in subclass.
