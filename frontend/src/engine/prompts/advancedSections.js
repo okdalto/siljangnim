@@ -327,8 +327,8 @@ Core methods:
 | Method | Description |
 |--------|-------------|
 | \`createShaderModule({ code, label? })\` | Create shader module from WGSL source |
-| \`createRenderPipeline({ vertex, fragment, primitive?, depthStencil? })\` | Create render pipeline. \`depthStencil\` is OPTIONAL — only add it if you need depth testing. If you add \`depthStencil\`, you MUST also pass \`depthAttachment: { clearDepth: 1.0 }\` in \`beginRenderPass\` |
-| \`createComputePipeline({ module, entryPoint?, constants?, layout?, label? })\` | Create compute pipeline. \`constants\`: pipeline-overridable constants. \`layout\`: pass a handle from \`createPipelineLayout()\` to share bind group layout across pipelines (default: auto) |
+| \`await createRenderPipeline({ vertex, fragment, primitive?, depthStencil? })\` | **async** — Create render pipeline. Returns shader compilation errors in the thrown Error if WGSL is invalid. \`depthStencil\` is OPTIONAL — only add it if you need depth testing. If you add \`depthStencil\`, you MUST also pass \`depthAttachment: { clearDepth: 1.0 }\` in \`beginRenderPass\` |
+| \`await createComputePipeline({ module, entryPoint?, constants?, layout?, label? })\` | **async** — Create compute pipeline. Returns shader compilation errors in the thrown Error if WGSL is invalid. \`constants\`: pipeline-overridable constants. \`layout\`: pass a handle from \`createPipelineLayout()\` to share bind group layout across pipelines (default: auto) |
 | \`createBuffer({ usage, size, data? })\` | Create GPU buffer. usage: string or array of strings — \`"vertex"\`, \`"index"\`, \`"uniform"\`, \`"storage"\`, \`"copy-src"\` |
 | \`writeBuffer(handle, data, offset?)\` | Update buffer data |
 | \`createTexture({ width, height, format?, usage? })\` | Create texture |
@@ -445,7 +445,7 @@ const computeModule = r.createShaderModule({ code: \`
     particles[id.x] = p;
   }
 \` });
-const computePipeline = r.createComputePipeline({ module: computeModule, entryPoint: "main" });
+const computePipeline = await r.createComputePipeline({ module: computeModule, entryPoint: "main" });
 const computeBG = r.createBindGroup({ pipeline: computePipeline, groupIndex: 0, entries: [
   { binding: 0, resource: { type: "uniform-buffer", buffer: uniformBuf } },
   { binding: 1, resource: { type: "storage-buffer", buffer: particleBuf } },
@@ -460,7 +460,7 @@ const renderModule = r.createShaderModule({ code: \`
     return vec4f(1.0, 0.6, 0.2, 1.0);
   }
 \` });
-const renderPipeline = r.createRenderPipeline({
+const renderPipeline = await r.createRenderPipeline({
   vertex: { module: renderModule, entryPoint: "vs",
     buffers: [{ arrayStride: 16, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x4" }] }]
   },
@@ -517,9 +517,9 @@ const bgl = r.createBindGroupLayout({ entries: [
 const pipeLayout = r.createPipelineLayout({ bindGroupLayouts: [bgl] });
 
 // 2. Create ALL pipelines with the SAME explicit layout
-const clearGridPipe = r.createComputePipeline({ module: mod, entryPoint: 'clearGrid', layout: pipeLayout });
-const p2gPipe       = r.createComputePipeline({ module: mod, entryPoint: 'p2g',       layout: pipeLayout });
-const gridUpdatePipe= r.createComputePipeline({ module: mod, entryPoint: 'gridUpdate', layout: pipeLayout });
+const clearGridPipe = await r.createComputePipeline({ module: mod, entryPoint: 'clearGrid', layout: pipeLayout });
+const p2gPipe       = await r.createComputePipeline({ module: mod, entryPoint: 'p2g',       layout: pipeLayout });
+const gridUpdatePipe= await r.createComputePipeline({ module: mod, entryPoint: 'gridUpdate', layout: pipeLayout });
 
 // 3. Create ONE bind group with the explicit layout — works with ALL pipelines
 const bg = r.createBindGroup({ layout: bgl, entries: [
@@ -602,7 +602,7 @@ const shader = r.createShaderModule({ code: \`
     return vec4f(uv, sin(u.time)*0.5+0.5, 1.0);
   }
 \` });
-const pipeline = r.createRenderPipeline({ vertex: { module: shader, entryPoint: "vs" }, fragment: { module: shader, entryPoint: "fs" } });
+const pipeline = await r.createRenderPipeline({ vertex: { module: shader, entryPoint: "vs" }, fragment: { module: shader, entryPoint: "fs" } });
 const ubuf = r.createBuffer({ usage: ["uniform"], size: 16 });
 const bindGroup = r.createBindGroup({ pipeline, groupIndex: 0, entries: [
   { binding: 0, resource: { type: "uniform-buffer", buffer: ubuf } },
@@ -817,7 +817,7 @@ const gl = ctx.gl;       // WebGL2 — both available!
 
 // 1. Create compute resources on WebGPU
 const computeModule = r.createShaderModule({ code: computeWGSL });
-const computePipeline = r.createComputePipeline({ module: computeModule, entryPoint: "main" });
+const computePipeline = await r.createComputePipeline({ module: computeModule, entryPoint: "main" });
 // IMPORTANT: include "copy-src" in usage for CPU readback
 const particleBuf = r.createBuffer({ usage: ["storage", "copy-src"], data: initData });
 const computeBG = r.createBindGroup({ pipeline: computePipeline, entries: [

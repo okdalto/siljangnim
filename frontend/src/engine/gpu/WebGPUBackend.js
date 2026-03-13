@@ -333,7 +333,7 @@ export class WebGPUBackend extends RendererInterface {
 
   // ─── Pipeline ──────────────────────────────────────────
 
-  createRenderPipeline(desc) {
+  async createRenderPipeline(desc) {
     const { vertex, fragment, primitive = {}, depthStencil, label } = desc;
 
     const vertexDesc = {
@@ -392,22 +392,27 @@ export class WebGPUBackend extends RendererInterface {
       const pipeline = this.device.createRenderPipeline(pipelineDesc);
       return { _id: nextId(), _native: pipeline, label };
     } catch (err) {
-      // Enrich error with shader compilation info if available
+      // Synchronously await shader compilation info to include in error message
+      const shaderErrors = [];
       const modules = [vertex.module, fragment.module];
       for (const mod of modules) {
         if (mod?._compilationPromise) {
-          mod._compilationPromise.then((errors) => {
-            if (errors.length > 0) {
-              this.pushValidationError("pipeline", `createRenderPipeline "${label || ""}" — shader errors:\n${errors.join("\n")}`);
-            }
-          });
+          try {
+            const errors = await mod._compilationPromise;
+            shaderErrors.push(...errors);
+          } catch { /* ignore */ }
         }
+      }
+      if (shaderErrors.length > 0) {
+        const detail = shaderErrors.join("\n");
+        this.pushValidationError("pipeline", `createRenderPipeline "${label || ""}" — shader errors:\n${detail}`);
+        throw new Error(`createRenderPipeline "${label || ""}" failed: ${err.message}\nShader errors:\n${detail}`);
       }
       throw new Error(`createRenderPipeline "${label || ""}" failed: ${err.message}`);
     }
   }
 
-  createComputePipeline(desc) {
+  async createComputePipeline(desc) {
     const { module, entryPoint = "main", constants, label } = desc;
     const computeDesc = {
       module: module._native,
@@ -431,13 +436,17 @@ export class WebGPUBackend extends RendererInterface {
       });
       return { _id: nextId(), _native: pipeline, label };
     } catch (err) {
-      // Enrich error with shader compilation info if available
+      // Synchronously await shader compilation info to include in error message
+      let shaderErrors = [];
       if (module._compilationPromise) {
-        module._compilationPromise.then((errors) => {
-          if (errors.length > 0) {
-            this.pushValidationError("pipeline", `createComputePipeline "${label || ""}" failed — shader errors:\n${errors.join("\n")}`);
-          }
-        });
+        try {
+          shaderErrors = await module._compilationPromise;
+        } catch { /* ignore */ }
+      }
+      if (shaderErrors.length > 0) {
+        const detail = shaderErrors.join("\n");
+        this.pushValidationError("pipeline", `createComputePipeline "${label || ""}" failed — shader errors:\n${detail}`);
+        throw new Error(`createComputePipeline "${label || ""}" failed: ${err.message}\nShader errors:\n${detail}`);
       }
       throw new Error(`createComputePipeline "${label || ""}" failed: ${err.message}`);
     }
@@ -562,13 +571,22 @@ export class WebGPUBackend extends RendererInterface {
   beginRenderPass(encoder, desc) {
     const { colorAttachments = [], depthAttachment, label } = desc;
 
+    // Track the actual framebuffer texture size for depth matching.
+    // getCurrentTexture() returns a texture at the canvas's current pixel size,
+    // which may differ from canvas.width/height if a resize happened mid-frame.
+    let framebufferW = this.canvas.width;
+    let framebufferH = this.canvas.height;
+
     const gpuColorAttachments = colorAttachments.map((ca) => {
       let view;
       if (ca.target && ca.target.texture?._native) {
         view = ca.target.texture._native.createView();
       } else {
         // Default framebuffer — current swap chain texture
-        view = this.context.getCurrentTexture().createView();
+        const tex = this.context.getCurrentTexture();
+        framebufferW = tex.width;
+        framebufferH = tex.height;
+        view = tex.createView();
       }
       const c = ca.clearColor || [0, 0, 0, 1];
       return {
@@ -581,8 +599,11 @@ export class WebGPUBackend extends RendererInterface {
 
     // If no color attachments specified, default to screen
     if (gpuColorAttachments.length === 0) {
+      const tex = this.context.getCurrentTexture();
+      framebufferW = tex.width;
+      framebufferH = tex.height;
       gpuColorAttachments.push({
-        view: this.context.getCurrentTexture().createView(),
+        view: tex.createView(),
         clearValue: { r: 0, g: 0, b: 0, a: 1 },
         loadOp: "clear",
         storeOp: "store",
@@ -593,8 +614,9 @@ export class WebGPUBackend extends RendererInterface {
 
     if (depthAttachment || colorAttachments[0]?.target?._depthTex) {
       const target = colorAttachments[0]?.target;
-      const targetW = target?.width ?? this.canvas.width;
-      const targetH = target?.height ?? this.canvas.height;
+      // Use the actual color texture size for depth matching, not canvas.width/height
+      const targetW = target?.width ?? framebufferW;
+      const targetH = target?.height ?? framebufferH;
 
       let depthTex = target?._depthTex;
       if (!depthTex) {
@@ -612,6 +634,17 @@ export class WebGPUBackend extends RendererInterface {
           });
           target._depthTex = depthTex;
         } else {
+          // Default screen render — recreate depth if size mismatched
+          if (this._depthTexture &&
+              (this._depthTexture.width !== targetW || this._depthTexture.height !== targetH)) {
+            this._depthTexture.destroy();
+            this._depthTexture = this.device.createTexture({
+              size: [targetW, targetH],
+              format: "depth24plus",
+              usage: GPUTextureUsage.RENDER_ATTACHMENT,
+              label: "default-depth",
+            });
+          }
           depthTex = this._depthTexture;
         }
       }
