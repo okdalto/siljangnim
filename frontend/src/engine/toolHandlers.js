@@ -1017,6 +1017,26 @@ async function toolClearViewport(input, broadcast, ctx) {
     return "Error: No viewport engine available.";
   }
   engine._disposeScene();
+  // Reset GPU render error counter so new scenes start fresh
+  engine._gpuRenderErrorCount = 0;
+
+  // If WebGPU device was lost (e.g. from accumulated validation errors),
+  // dispose the backend and re-initialize to get a fresh GPU device.
+  const backend = engine._backend;
+  if (backend?.backendType === "webgpu" && !backend.ready) {
+    console.warn("[clear_viewport] WebGPU device lost — reinitializing backend");
+    try {
+      backend.dispose();
+    } catch { /* best effort */ }
+    engine._backend = null;
+    engine._backendReady = false;
+    try {
+      await engine.initBackend();
+    } catch (e) {
+      console.error("[clear_viewport] Backend reinit failed:", e.message);
+    }
+  }
+
   // Clear canvas to black (only if context is alive)
   const gl = engine.gl;
   if (gl && !gl.isContextLost?.()) {
