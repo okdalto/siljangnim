@@ -1,7 +1,7 @@
 import { restoreWorkspaceState } from "./helpers.js";
 
 export function handleInit(msg, deps) {
-  const { chat, apiKey, project, setProjectManifest } = deps;
+  const { chat, apiKey, project, setProjectManifest, setWorkspaceFilesVersion } = deps;
   if (msg.api_config) apiKey.setSavedConfig(msg.api_config);
   if (msg.projects) project.setProjectList(msg.projects);
   if (msg.active_project) {
@@ -13,6 +13,7 @@ export function handleInit(msg, deps) {
   }
   chat.setProcessing(!!msg.is_processing);
   restoreWorkspaceState(msg, deps);
+  setWorkspaceFilesVersion((v) => v + 1);
   if (msg.interrupted_prompt) {
     chat.addInterruptedMessage(msg.interrupted_prompt.userPrompt || "");
   }
