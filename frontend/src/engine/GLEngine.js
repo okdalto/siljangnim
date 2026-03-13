@@ -218,16 +218,18 @@ export default class GLEngine {
     this._contextLost = false;
     this._glDeliberatelyLost = false;
     canvas.addEventListener("webglcontextlost", (e) => {
-      e.preventDefault();
+      e.preventDefault(); // Tell browser we want to restore
       this._contextLost = true;
       // If we deliberately lost the context for WebGPU, don't treat as error
       if (this._glDeliberatelyLost) {
         console.log("[GLEngine] WebGL context released for WebGPU (deliberate)");
         return;
       }
-      this._scriptCtx = null; // prevent hot-reload after context restore
+      // Immediately release scene resources to free GPU memory,
+      // giving the browser better chances of restoring the context.
+      this._disposeScene();
       this.stop();
-      console.warn("[GLEngine] WebGL context lost");
+      console.warn("[GLEngine] WebGL context lost — scene disposed, awaiting restore");
       const msg = "WebGL context lost. Attempting recovery...";
       this.onError?.(new Error(msg));
     });
@@ -239,7 +241,7 @@ export default class GLEngine {
       }
       console.log("[GLEngine] WebGL context restored");
       this._contextLost = false;
-      // Re-acquire GL and extensions
+      // Re-acquire GL and extensions from the restored context
       this.gl = canvas.getContext("webgl2", { alpha: false, antialias: true, preserveDrawingBuffer: true });
       if (this.gl) {
         this._extColorBufferFloat = this.gl.getExtension("EXT_color_buffer_float");
@@ -279,22 +281,53 @@ export default class GLEngine {
    * Attempt to recover from a lost WebGL context by forcing a re-creation.
    * This is a last resort — the browser may not allow immediate recovery.
    */
-  _tryRecoverContext() {
+  /**
+   * Attempt to recover from a lost WebGL context.
+   * Uses WEBGL_lose_context.restoreContext() to request browser restoration,
+   * then waits for the webglcontextrestored event.
+   * Returns a promise that resolves when recovery succeeds or rejects on failure.
+   */
+  async _tryRecoverContext() {
     // Don't try to recover WebGL2 when WebGPU is the active backend
     if (this._backend?.backendType === BackendType.WEBGPU) return;
     if (!this.gl?.isContextLost?.()) return; // not actually lost
     this._contextLost = true;
+    // Release scene resources to free GPU memory before recovery attempt
+    this._disposeScene();
     console.warn("[GLEngine] Attempting GL context recovery...");
-    // Try to get a fresh context — some browsers allow this after losing one
+
+    // Use WEBGL_lose_context extension to explicitly request restoration
+    const loseExt = this.gl.getExtension("WEBGL_lose_context");
+    if (loseExt) {
+      try {
+        loseExt.restoreContext();
+        // Wait for the webglcontextrestored event (up to 3 seconds)
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error("Context restore timed out")), 3000);
+          const handler = () => {
+            clearTimeout(timeout);
+            this.canvas.removeEventListener("webglcontextrestored", handler);
+            resolve();
+          };
+          this.canvas.addEventListener("webglcontextrestored", handler, { once: true });
+        });
+        console.log("[GLEngine] GL context recovery succeeded via WEBGL_lose_context");
+        return;
+      } catch (err) {
+        console.warn("[GLEngine] WEBGL_lose_context.restoreContext() failed:", err.message);
+      }
+    }
+
+    // Fallback: try to get a fresh context directly
     const newGl = this.canvas.getContext("webgl2", { alpha: false, antialias: true, preserveDrawingBuffer: true });
     if (newGl && !newGl.isContextLost()) {
-      console.log("[GLEngine] GL context recovered successfully");
+      console.log("[GLEngine] GL context recovered via direct getContext");
       this.gl = newGl;
       this._contextLost = false;
       this._extColorBufferFloat = newGl.getExtension("EXT_color_buffer_float");
       this._extFloatLinear = newGl.getExtension("OES_texture_float_linear");
     } else {
-      // Can't recover inline — notify the user
+      // Can't recover — notify the user
       const msg = "WebGL context lost and could not be recovered. Please refresh the page.";
       console.error("[GLEngine]", msg);
       this.onError?.(new Error(msg));
@@ -602,8 +635,17 @@ export default class GLEngine {
    * Load a scene JSON and set up script execution.
    */
   async loadScene(sceneJSON) {
-    const gl = this.gl;
+    let gl = this.gl;
     const isWebGPU = this._backend?.backendType === BackendType.WEBGPU;
+    const isHybrid = this._backendOptions?.hybrid;
+
+    // If GL context is lost and we need it, try to recover before giving up
+    if (!isWebGPU && gl?.isContextLost?.()) {
+      console.warn("[GLEngine] GL context lost at loadScene — attempting recovery");
+      await this._tryRecoverContext();
+      gl = this.gl; // re-read after potential recovery
+    }
+
     // For WebGL2 scenes, gl is required. WebGPU scenes can work without it.
     if (!gl && !isWebGPU) return;
 
