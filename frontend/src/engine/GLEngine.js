@@ -422,9 +422,18 @@ export default class GLEngine {
 
     try {
       await this.initBackend();
-      // Success — dispose the old backend now
+      // Success — dispose the old backend now.
+      // In hybrid mode, skip disposing the old WebGLBackend because its
+      // dispose() calls WEBGL_lose_context.loseContext(), which would kill
+      // the shared WebGL2 context that hybrid mode still needs for rendering.
       if (oldBackend && oldBackend !== this._backend) {
-        try { oldBackend.dispose(); } catch { /* best effort */ }
+        const isHybridKeepGL = hybrid && oldBackend.backendType === "webgl2";
+        if (!isHybridKeepGL) {
+          try { oldBackend.dispose(); } catch { /* best effort */ }
+        } else {
+          // Just drop the reference — GL context stays alive for hybrid rendering
+          oldBackend.ready = false;
+        }
       }
     } catch (err) {
       console.error("[GLEngine] switchBackend failed, restoring previous backend:", err.message);
