@@ -1017,11 +1017,15 @@ async function toolClearViewport(input, broadcast, ctx) {
     return "Error: No viewport engine available.";
   }
   engine._disposeScene();
-  // Clear canvas to black
+  // Clear canvas to black (only if context is alive)
   const gl = engine.gl;
-  if (gl) {
+  if (gl && !gl.isContextLost?.()) {
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+  }
+  // If context was lost, attempt recovery so subsequent write_scene can succeed
+  if (engine._contextLost || gl?.isContextLost?.()) {
+    await engine._tryRecoverContext();
   }
   broadcast({ type: "viewport_cleared" });
   return "ok — viewport cleared. All GPU resources released, canvas is black. Call write_scene to render a new scene.";
