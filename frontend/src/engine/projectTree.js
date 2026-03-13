@@ -19,9 +19,9 @@ const MAX_PATCH_CHAIN = 15;     // force checkpoint if chain exceeds this
 // Snapshot helpers
 // ---------------------------------------------------------------------------
 
-function buildSnapshot(sceneJson, uiConfig, workspaceState, panels, chatHistory, debugLogs) {
-  return {
-    version: 1,
+function buildSnapshot(sceneJson, uiConfig, workspaceState, panels, chatHistory, debugLogs, workspaceFiles, assetManifest) {
+  const snap = {
+    version: 2,
     scene_json: sceneJson || {},
     ui_config: uiConfig || {},
     workspace_state: workspaceState || {},
@@ -29,6 +29,38 @@ function buildSnapshot(sceneJson, uiConfig, workspaceState, panels, chatHistory,
     chat_history: chatHistory || [],
     debug_logs: debugLogs || [],
   };
+  if (workspaceFiles != null) snap.workspace_files = workspaceFiles;
+  if (assetManifest != null) snap.asset_manifest = assetManifest;
+  return snap;
+}
+
+// ---------------------------------------------------------------------------
+// Workspace / asset capture helpers
+// ---------------------------------------------------------------------------
+
+async function captureWorkspaceFiles() {
+  const files = await storage.listFiles(".workspace/");
+  const result = {};
+  for (const path of files) {
+    try {
+      result[path] = await storage.readTextFile(path);
+    } catch { /* skip */ }
+  }
+  return result;
+}
+
+async function captureAssetManifest() {
+  const filenames = await storage.listUploads();
+  const manifest = {};
+  for (const filename of filenames) {
+    try {
+      const { data, mimeType } = await storage.readUpload(filename);
+      const hash = await storage.computeSHA256(data);
+      manifest[filename] = { hash, mimeType };
+      await storage.saveCASBlob(hash, data, mimeType);
+    } catch { /* skip */ }
+  }
+  return manifest;
 }
 
 // ---------------------------------------------------------------------------
@@ -127,13 +159,17 @@ export async function ensureRootNode(projectName, currentState) {
 
   // Create root checkpoint
   const nodeId = crypto.randomUUID();
+  const workspaceFiles = await captureWorkspaceFiles();
+  const assetManifest = await captureAssetManifest();
   const snapshot = buildSnapshot(
     currentState.scene_json,
     currentState.ui_config,
     currentState.workspace_state,
     currentState.panels,
     currentState.chat_history,
-    currentState.debug_logs
+    currentState.debug_logs,
+    workspaceFiles,
+    assetManifest
   );
 
   const snapshotKey = `_snapshots/${nodeId}.json`;
@@ -178,13 +214,17 @@ export async function createNodeAfterPrompt(projectName, parentNodeId, currentSt
     thumbnailDataUrl = null,
   } = opts;
 
+  const workspaceFiles = await captureWorkspaceFiles();
+  const assetManifest = await captureAssetManifest();
   const currentSnapshot = buildSnapshot(
     currentState.scene_json,
     currentState.ui_config,
     currentState.workspace_state,
     currentState.panels,
     currentState.chat_history,
-    currentState.debug_logs
+    currentState.debug_logs,
+    workspaceFiles,
+    assetManifest
   );
 
   // Determine if this should be a checkpoint
@@ -255,13 +295,17 @@ export async function overwriteNode(nodeId, projectName, currentState, opts = {}
   const node = await storage.readNode(nodeId);
   if (!node) throw new Error(`Node not found: ${nodeId}`);
 
+  const workspaceFiles = await captureWorkspaceFiles();
+  const assetManifest = await captureAssetManifest();
   const snapshot = buildSnapshot(
     currentState.scene_json,
     currentState.ui_config,
     currentState.workspace_state,
     currentState.panels,
     currentState.chat_history,
-    currentState.debug_logs
+    currentState.debug_logs,
+    workspaceFiles,
+    assetManifest
   );
 
   // Always store as checkpoint when overwriting
@@ -413,6 +457,41 @@ async function reconstructFromChain(chain) {
 export async function reconstructScene(nodeId, projectName) {
   const chain = await walkToCheckpoint(nodeId);
   return reconstructFromChain(chain);
+}
+
+// ---------------------------------------------------------------------------
+// Workspace / asset sync (restore-time)
+// ---------------------------------------------------------------------------
+
+export async function syncWorkspaceFiles(snapshotFiles) {
+  if (!snapshotFiles) return; // v1 snapshot — backwards compat
+  const currentFiles = await storage.listFiles(".workspace/");
+  // Delete files not in snapshot
+  for (const path of currentFiles) {
+    if (!(path in snapshotFiles)) await storage.deleteFile(path);
+  }
+  // Add/update files from snapshot
+  for (const [path, content] of Object.entries(snapshotFiles)) {
+    await storage.writeTextFile(path, content);
+  }
+}
+
+export async function syncAssetManifest(snapshotManifest) {
+  if (!snapshotManifest) return; // v1 snapshot — backwards compat
+  const currentUploads = await storage.listUploads();
+  // Delete uploads not in manifest
+  for (const filename of currentUploads) {
+    if (!(filename in snapshotManifest)) await storage.deleteUpload(filename);
+  }
+  // Restore uploads from CAS
+  for (const [filename, { hash, mimeType }] of Object.entries(snapshotManifest)) {
+    const blob = await storage.readCASBlob(hash);
+    if (blob) {
+      await storage.saveUpload(filename, blob.data, mimeType);
+    } else {
+      console.warn(`[projectTree] CAS blob missing for ${filename} (hash: ${hash})`);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

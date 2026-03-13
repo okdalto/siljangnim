@@ -418,6 +418,14 @@ export default function App() {
   // NOTE: Only depend on activeProject — do NOT depend on getWorkspaceState/debugLogs
   // as those change every scene update and cause tree flicker.
   useEffect(() => {
+    if (project.activeProject === null) {
+      // New project or cleared — reset version tree immediately.
+      // Don't check getActiveProjectName() here because the backend
+      // hasn't processed "new_project" yet, so it would still return
+      // the old project name and reload the old tree.
+      tree.loadTree(null);
+      return;
+    }
     const projName = storageApi.getActiveProjectName();
     if (projName) {
       // Ensure root node exists for any project (including _untitled)

@@ -90,6 +90,9 @@ export default function useProjectTree(sendRef, captureThumbnail, getWorkspaceSt
    */
   const restoreNode = useCallback(async (nodeId, projectName) => {
     const state = await projectTree.reconstructScene(nodeId, projectName);
+    // Sync workspace files and assets to match the node's snapshot
+    await projectTree.syncWorkspaceFiles(state.workspace_files);
+    await projectTree.syncAssetManifest(state.asset_manifest);
     setActiveNodeId(nodeId);
     return state;
   }, []);
