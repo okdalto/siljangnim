@@ -218,6 +218,15 @@ export default class GLEngine {
     // Handle context loss
     this._contextLost = false;
     this._glDeliberatelyLost = false;
+    this.onCanvasReplaced = null; // callback(newCanvas) — for React ref updates
+    this._setupCanvasListeners(canvas);
+  }
+
+  /**
+   * Set up webglcontextlost/restored event listeners on a canvas.
+   * Called from constructor and from _initGL when replacing a dead canvas.
+   */
+  _setupCanvasListeners(canvas) {
     canvas.addEventListener("webglcontextlost", (e) => {
       e.preventDefault(); // Tell browser we want to restore
       this._contextLost = true;
@@ -249,7 +258,7 @@ export default class GLEngine {
       // Clear any "context lost" error message shown to the user
       this.onError?.(null);
       // Re-acquire GL and extensions from the restored context
-      this.gl = canvas.getContext("webgl2", { alpha: false, antialias: true, preserveDrawingBuffer: true });
+      this.gl = this.canvas.getContext("webgl2", { alpha: false, antialias: true, preserveDrawingBuffer: true });
       if (this.gl) {
         this._extColorBufferFloat = this.gl.getExtension("EXT_color_buffer_float");
         this._extFloatLinear = this.gl.getExtension("OES_texture_float_linear");
@@ -267,25 +276,58 @@ export default class GLEngine {
    * Called in constructor for WebGL2 scenes, or lazily when switching backends.
    */
   _initGL() {
-    this.gl = this.canvas.getContext("webgl2", {
+    let gl = this.canvas.getContext("webgl2", {
       alpha: false,
       antialias: true,
       preserveDrawingBuffer: true,
     });
-    if (!this.gl) {
+
+    // If the canvas has a permanently lost context (e.g. GPU driver killed it
+    // during WebGPU init), getContext returns the same lost context.
+    // Fix: replace the canvas with a fresh DOM element.
+    if (gl && gl.isContextLost?.()) {
+      console.warn("[GLEngine] Canvas has permanently lost GL context — replacing canvas element");
+      const oldCanvas = this.canvas;
+      const newCanvas = document.createElement("canvas");
+      newCanvas.width = oldCanvas.width;
+      newCanvas.height = oldCanvas.height;
+      newCanvas.className = oldCanvas.className;
+      newCanvas.style.cssText = oldCanvas.style.cssText;
+      // Copy data attributes
+      for (const attr of oldCanvas.attributes) {
+        if (attr.name !== "width" && attr.name !== "height" && attr.name !== "class" && attr.name !== "style") {
+          newCanvas.setAttribute(attr.name, attr.value);
+        }
+      }
+      if (oldCanvas.parentNode) {
+        oldCanvas.parentNode.replaceChild(newCanvas, oldCanvas);
+      }
+      this.canvas = newCanvas;
+      this._setupCanvasListeners(newCanvas);
+      // Notify React so it can update canvasRef
+      this.onCanvasReplaced?.(newCanvas);
+      gl = newCanvas.getContext("webgl2", {
+        alpha: false,
+        antialias: true,
+        preserveDrawingBuffer: true,
+      });
+    }
+
+    if (!gl) {
       throw new Error("WebGL2 not supported");
     }
-    this._extColorBufferFloat = this.gl.getExtension("EXT_color_buffer_float");
+    this.gl = gl;
+    this._extColorBufferFloat = gl.getExtension("EXT_color_buffer_float");
     if (!this._extColorBufferFloat) {
       console.warn("[GLEngine] EXT_color_buffer_float not available — float FBOs may fail");
     }
-    this._extFloatLinear = this.gl.getExtension("OES_texture_float_linear");
+    this._extFloatLinear = gl.getExtension("OES_texture_float_linear");
     if (!this._extFloatLinear) {
       console.warn("[GLEngine] OES_texture_float_linear not available — rgba32f will use NEAREST filtering");
     }
     // Cache WEBGL_lose_context extension for recovery — getExtension() returns null
     // when context is already lost, so we must acquire it while context is alive.
-    this._extLoseContext = this.gl.getExtension("WEBGL_lose_context");
+    this._extLoseContext = gl.getExtension("WEBGL_lose_context");
   }
 
   /**
@@ -319,9 +361,10 @@ export default class GLEngine {
       try { loseExt.restoreContext(); } catch { /* expected for real context loss */ }
     }
 
-    // Wait for webglcontextrestored event (browser handles both simulated and real losses)
+    // Wait for webglcontextrestored event (browser handles both simulated and real losses).
+    // Short timeout — if restoreContext() doesn't work, fall through to canvas replacement.
     const restored = await new Promise((resolve) => {
-      const timeout = setTimeout(() => resolve(false), 8000);
+      const timeout = setTimeout(() => resolve(false), 2000);
       const handler = () => {
         clearTimeout(timeout);
         resolve(true);
@@ -342,17 +385,20 @@ export default class GLEngine {
       return;
     }
 
-    // Fallback: try to get a fresh context directly
-    const newGl = this.canvas.getContext("webgl2", { alpha: false, antialias: true, preserveDrawingBuffer: true });
-    if (newGl && !newGl.isContextLost()) {
-      console.log("[GLEngine] GL context recovered via direct getContext");
-      this.gl = newGl;
+    // Fallback: replace the canvas element entirely to get a fresh GL context.
+    // On some browsers/GPUs, getContext("webgl2") on a canvas with a lost
+    // context returns the same dead context. A new canvas element works.
+    try {
+      this._initGL(); // will detect lost context and replace canvas if needed
       this._contextLost = false;
-      this._extColorBufferFloat = newGl.getExtension("EXT_color_buffer_float");
-      this._extFloatLinear = newGl.getExtension("OES_texture_float_linear");
-      this._extLoseContext = newGl.getExtension("WEBGL_lose_context");
-    } else {
-      // Can't recover — notify the user
+      console.log("[GLEngine] GL context recovered via canvas replacement");
+      // Clear error and reload scene
+      this.onError?.(null);
+      if (this._scene) {
+        this.loadScene(this._scene);
+        this.start();
+      }
+    } catch (e) {
       const msg = "WebGL context lost and could not be recovered. Please refresh the page.";
       console.error("[GLEngine]", msg);
       this.onError?.(new Error(msg));
@@ -551,10 +597,11 @@ export default class GLEngine {
       this._backend = oldBackend;
       this._backendOptions = oldOptions;
       this._backendReady = !!oldBackend;
-      // Verify GL context is still alive
+      // Verify GL context is still alive — replace canvas if dead
       if (this.gl?.isContextLost?.()) {
-        console.error("[GLEngine] GL context lost during backend switch — attempting recovery");
-        this._tryRecoverContext();
+        console.warn("[GLEngine] GL context lost during switch failure — replacing canvas");
+        try { this._initGL(); this._contextLost = false; this.onError?.(null); }
+        catch (e2) { console.error("[GLEngine] GL recovery failed:", e2.message); }
       }
       throw err;
     } finally {
@@ -563,8 +610,9 @@ export default class GLEngine {
 
     // Verify GL context survived the switch (skip for WebGPU — GL loss is expected)
     if (this.gl?.isContextLost?.() && this._backend?.backendType !== BackendType.WEBGPU) {
-      console.warn("[GLEngine] GL context lost after backend switch — attempting recovery");
-      this._tryRecoverContext();
+      console.warn("[GLEngine] GL context lost after backend switch — replacing canvas");
+      try { this._initGL(); this._contextLost = false; this.onError?.(null); }
+      catch (e) { console.error("[GLEngine] GL recovery failed:", e.message); }
     }
     }; // end doSwitch
 
