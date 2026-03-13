@@ -298,8 +298,17 @@ export class RendererInterface {
     if (this.validationErrors.length > this.maxValidationErrors) {
       this.validationErrors.shift();
     }
-    // Log to console so agent error collector picks it up
-    console.error(`[WebGPU ${type}] ${message}`);
+    // Rate-limit console logging to prevent flooding from per-frame errors.
+    // Only log if it's been >200ms since the last log or this is a new message.
+    const now = performance.now();
+    const shouldLog = !this._lastValidationLogTime ||
+      (now - this._lastValidationLogTime > 200) ||
+      message !== this._lastValidationMessage;
+    if (shouldLog) {
+      console.error(`[WebGPU ${type}] ${message}`);
+      this._lastValidationLogTime = now;
+      this._lastValidationMessage = message;
+    }
     // Dispatch custom event for Debug Panel
     window.dispatchEvent(new CustomEvent("gpu-validation-error", { detail: entry }));
   }

@@ -1926,6 +1926,28 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
       ctx.audio.volume = am.volume;
     }
 
+    // Check for accumulated WebGPU validation errors from previous frames.
+    // If errors keep occurring (e.g. invalid bind group every frame), stop
+    // the scene to prevent error flooding that kills the GPU device.
+    if (this._backend?.consumeValidationErrors) {
+      const gpuErrors = this._backend.consumeValidationErrors();
+      if (gpuErrors.length > 0) {
+        this._gpuRenderErrorCount = (this._gpuRenderErrorCount || 0) + 1;
+        if (this._gpuRenderErrorCount >= 3) {
+          // 3 consecutive frames with GPU errors — scene is broken, stop rendering
+          console.error("[GLEngine] Repeated GPU validation errors during render — stopping scene");
+          const firstError = gpuErrors[0];
+          const msg = `GPU validation error during render: ${firstError.message}`;
+          this._setupReady = false;
+          this.onError?.(new Error(msg));
+          window.dispatchEvent(new ErrorEvent("error", { message: msg, error: new Error(msg) }));
+          return null;
+        }
+      } else {
+        this._gpuRenderErrorCount = 0;
+      }
+    }
+
     try {
       const p = this._scriptRenderFn(ctx);
       if (p && typeof p.catch === "function") {
