@@ -370,6 +370,14 @@ export default class GLEngine {
         // The primary display path uses a Canvas 2D overlay to avoid
         // dual GPU contexts (WebGL2 + WebGPU) competing for resources.
         try {
+          // For pure WebGPU (non-hybrid), mark GL as "deliberately lost" BEFORE
+          // creating the WebGPU device. GPU drivers may kill the WebGL context
+          // during WebGPU adapter/device init, and the webglcontextlost handler
+          // needs to know this is expected — not an error to report.
+          if (!this._backendOptions.hybrid) {
+            this._glDeliberatelyLost = true;
+          }
+
           const offscreen = new OffscreenCanvas(this.canvas.width, this.canvas.height);
           const gpuBackend = new WebGPUBackend();
           await gpuBackend.init(offscreen, { alpha: false });
@@ -394,6 +402,8 @@ export default class GLEngine {
             }
           }
         } catch (err) {
+          // WebGPU init failed — undo the deliberate-lost flag so GL can recover
+          this._glDeliberatelyLost = false;
           this._lastWebGPUError = err.message;
           const failMsg = `WebGPU initialization failed: ${err.message}`;
           console.error("[GLEngine]", failMsg);
@@ -534,9 +544,12 @@ export default class GLEngine {
   _releaseGLForWebGPU() {
     // Deliberately lose the WebGL2 context to free GPU resources
     if (this.gl && !this.gl.isContextLost()) {
+      // Set flag BEFORE loseContext() — the webglcontextlost event may fire
+      // synchronously during loseContext(), and the handler checks this flag
+      // to distinguish deliberate loss from unexpected GPU driver loss.
+      this._glDeliberatelyLost = true;
       const loseExt = this._extLoseContext || this.gl.getExtension("WEBGL_lose_context");
       if (loseExt) loseExt.loseContext();
-      this._glDeliberatelyLost = true;
     }
 
     // Create a 2D overlay canvas for WebGPU display
