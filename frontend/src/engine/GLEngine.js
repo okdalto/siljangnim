@@ -225,6 +225,12 @@ export default class GLEngine {
         console.log("[GLEngine] WebGL context released for WebGPU (deliberate)");
         return;
       }
+      // If WebGPU is the active backend, GL loss is expected (GPU driver may
+      // asynchronously reclaim GL resources after WebGPU device creation).
+      if (this._backend?.backendType === BackendType.WEBGPU) {
+        console.log("[GLEngine] WebGL context lost while WebGPU active (expected)");
+        return;
+      }
       // Immediately release scene resources to free GPU memory,
       // giving the browser better chances of restoring the context.
       this._disposeScene();
