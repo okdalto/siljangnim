@@ -701,6 +701,10 @@ export default class GLEngine {
    * falls back to WebGL2 blit for backward compatibility.
    */
   _autoBlitIfWebGPU(ctx) {
+    // In hybrid mode, WebGL2 renders directly to the visible canvas.
+    // The WebGPU offscreen canvas only has compute output (no render pass),
+    // so blitting it would overwrite the WebGL2 rendering with a black frame.
+    if (this._backendOptions?.hybrid) return;
     if (this._backend?.backendType === BackendType.WEBGPU && this._backend?.canvas) {
       const src = this._backend.canvas;
       // Prefer 2D overlay (avoids dual GPU context)
@@ -711,7 +715,17 @@ export default class GLEngine {
           overlay.width = src.width;
           overlay.height = src.height;
         }
-        this._blitOverlayCtx.drawImage(src, 0, 0);
+        // Use transferToImageBitmap() for reliable blit from WebGPU OffscreenCanvas.
+        // Direct drawImage(OffscreenCanvas) may produce black frames in some browsers
+        // when the source has a WebGPU context with alphaMode: "opaque".
+        try {
+          const bmp = src.transferToImageBitmap();
+          this._blitOverlayCtx.drawImage(bmp, 0, 0);
+          bmp.close();
+        } catch {
+          // Fallback to direct drawImage if transferToImageBitmap is unavailable
+          this._blitOverlayCtx.drawImage(src, 0, 0);
+        }
         return;
       }
       // Fallback: WebGL2 blit (ctx.utils.blitToCanvas)
@@ -2014,6 +2028,13 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
         p.then(() => {
           // Auto-blit WebGPU OffscreenCanvas to visible canvas after async render
           this._autoBlitIfWebGPU(ctx);
+          // In hybrid mode, async render runs WebGL2 draw calls inside a Promise
+          // (e.g. after await readStorageBuffer()). These draws happen outside the
+          // rAF callback, so the compositor may not pick them up automatically.
+          // Force flush to ensure the GL commands are submitted for display.
+          if (this._backendOptions?.hybrid && this.gl && !this.gl.isContextLost?.()) {
+            this.gl.flush();
+          }
         }).catch((err) => {
           console.error("[GLEngine] Script render error (async):", err);
           if (err.message !== this._lastErrorMessage) {
