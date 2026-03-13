@@ -55,8 +55,12 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
       engine._disposeScene();
     }
 
+    let switchFailed = false;
     const switchPromise = engine.switchBackend(wantBackend, { hybrid: isHybrid }).catch((err) => {
-      console.warn("[ViewportNode] Backend switch warning:", err?.message);
+      console.warn("[ViewportNode] Backend switch failed:", err?.message);
+      switchFailed = true;
+      // Don't swallow — propagate error so loadScene is skipped
+      throw err;
     });
 
     const readyPromise = switchPromise.then(() => {
