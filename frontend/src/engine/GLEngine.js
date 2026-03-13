@@ -246,6 +246,8 @@ export default class GLEngine {
       }
       console.log("[GLEngine] WebGL context restored");
       this._contextLost = false;
+      // Clear any "context lost" error message shown to the user
+      this.onError?.(null);
       // Re-acquire GL and extensions from the restored context
       this.gl = canvas.getContext("webgl2", { alpha: false, antialias: true, preserveDrawingBuffer: true });
       if (this.gl) {
@@ -477,13 +479,21 @@ export default class GLEngine {
   async switchBackend(preferBackend, { hybrid = false } = {}) {
     if (this._backendOptions.preferBackend === preferBackend && this._backendOptions.hybrid === hybrid) return;
 
+    // Set switching flag IMMEDIATELY (before any await) so that the
+    // webglcontextlost handler sees it and doesn't report a false error.
+    // GPU drivers can fire context-lost at any microtask boundary.
+    this._isSwitchingBackend = true;
+
     // Serialize concurrent switchBackend calls. Without this, two React
     // useEffects (backendTarget + sceneJSON) can both enter switchBackend
     // before either updates _backendOptions, bypassing the early-return guard.
     if (this._switchPromise) {
       try { await this._switchPromise; } catch { /* handled below */ }
       // Re-check after waiting — the previous switch may have already set the target
-      if (this._backendOptions.preferBackend === preferBackend && this._backendOptions.hybrid === hybrid) return;
+      if (this._backendOptions.preferBackend === preferBackend && this._backendOptions.hybrid === hybrid) {
+        this._isSwitchingBackend = false;
+        return;
+      }
     }
 
     const doSwitch = async () => {
@@ -714,11 +724,16 @@ export default class GLEngine {
     const isWebGPU = this._backend?.backendType === BackendType.WEBGPU;
     const isHybrid = this._backendOptions?.hybrid;
 
-    // If GL context is lost and we need it, bail and let the browser auto-restore.
-    // The webglcontextrestored handler will reload the scene automatically.
+    // If GL context is lost and we need it, try to restore before giving up.
     if (!isWebGPU && gl?.isContextLost?.()) {
-      console.warn("[GLEngine] GL context lost at loadScene — waiting for browser auto-restore");
-      return;
+      console.warn("[GLEngine] GL context lost at loadScene — attempting restore");
+      this._restoreGLFromWebGPU();
+      gl = this.gl; // re-read after restore attempt
+      if (!gl || gl.isContextLost?.()) {
+        console.warn("[GLEngine] GL still lost after restore — waiting for browser auto-restore");
+        return;
+      }
+      console.log("[GLEngine] GL context restored at loadScene entry");
     }
 
     // For WebGL2 scenes, gl is required. WebGPU scenes can work without it.
