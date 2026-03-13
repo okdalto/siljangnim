@@ -40,6 +40,11 @@ export default function useEngineInit(canvasRef, { backendTarget, onError }) {
       engine.onMissingAssets = (list) => {
         setMissingAssets(list);
       };
+      // When GL context is irrecoverably lost, the engine replaces the canvas
+      // DOM element. Update React's ref so mouse/resize hooks use the new canvas.
+      engine.onCanvasReplaced = (newCanvas) => {
+        canvasRef.current = newCanvas;
+      };
       engineRef.current = engine;
 
       engine.initBackend().catch((err) => {
