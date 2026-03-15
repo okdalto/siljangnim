@@ -72,7 +72,12 @@ export default function useChat(sendRef) {
   const addAssistantTextDelta = useCallback((chunk) => {
     streamBufferRef.current += chunk;
     if (!rafRef.current) {
-      rafRef.current = requestAnimationFrame(() => {
+      // Use setTimeout instead of requestAnimationFrame so updates still
+      // fire when the tab is hidden. RAF callbacks are suspended by browsers
+      // when the tab is not visible, causing chat messages to vanish until
+      // the user returns. setTimeout(0) is throttled to ~1s in background
+      // tabs but still runs — good enough for text streaming.
+      rafRef.current = setTimeout(() => {
         const buffered = streamBufferRef.current;
         streamBufferRef.current = "";
         rafRef.current = null;
@@ -85,14 +90,14 @@ export default function useChat(sendRef) {
           }
           return [...prev, { role: "assistant", text: buffered, streaming: true }];
         });
-      });
+      }, 16);
     }
   }, []);
 
   const finalizeAssistantText = useCallback(() => {
     // Flush any remaining buffered text
     if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
+      clearTimeout(rafRef.current);
       rafRef.current = null;
     }
     const remaining = streamBufferRef.current;
