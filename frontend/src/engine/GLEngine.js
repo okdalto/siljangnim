@@ -763,14 +763,7 @@ export default class GLEngine {
         this.onError?.(err);
         window.dispatchEvent(new ErrorEvent("error", { message: err.message, error: err }));
       }
-      // Merge new uniform defaults (only if not already set)
-      if (sceneJSON.uniforms) {
-        for (const [name, def] of Object.entries(sceneJSON.uniforms)) {
-          if (def?.value !== undefined && !(name in this._customUniforms)) {
-            this._customUniforms[name] = def.value;
-          }
-        }
-      }
+      this._syncHotReloadUniforms(this._scene, sceneJSON);
       return;
     }
 
@@ -2417,6 +2410,29 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
 
   _resetGLState(gl) {
     resetGLState(gl);
+  }
+
+  _syncHotReloadUniforms(prevScene, nextScene) {
+    const prevUniforms = prevScene?.uniforms || {};
+    const nextUniforms = nextScene?.uniforms || {};
+
+    for (const name of Object.keys(this._customUniforms)) {
+      if (!(name in nextUniforms)) {
+        delete this._customUniforms[name];
+      }
+    }
+
+    for (const [name, def] of Object.entries(nextUniforms)) {
+      if (!def || def.value === undefined) continue;
+
+      const prevDefault = prevUniforms[name]?.value;
+      const currentValue = this._customUniforms[name];
+      const hadCurrentValue = Object.prototype.hasOwnProperty.call(this._customUniforms, name);
+
+      if (!hadCurrentValue || currentValue === prevDefault) {
+        this._customUniforms[name] = def.value;
+      }
+    }
   }
 
   /**

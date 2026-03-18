@@ -125,7 +125,7 @@ function updateNodeData(setNodes, nodeId, dataMapper) {
 export default function useNodeDataSync({
   setNodes, chat, sceneJSON, uiConfig,
   handleUniformChange, handleDeleteWorkspaceFile,
-  workspaceFilesVersion, handleShaderError,
+  workspaceFilesVersion, handleShaderError, onViewportStateChange,
   panels, handlePanelClose, mergeControlDefaults,
   kf, duration, loop, engineRef, pendingLayoutsRef,
   setDuration, setLoop,
@@ -160,6 +160,8 @@ export default function useNodeDataSync({
   handleUniformChangeRef.current = handleUniformChange;
   const handleShaderErrorRef = useRef(handleShaderError);
   handleShaderErrorRef.current = handleShaderError;
+  const onViewportStateChangeRef = useRef(onViewportStateChange);
+  onViewportStateChangeRef.current = onViewportStateChange;
   const handlePanelCloseRef = useRef(handlePanelClose);
   handlePanelCloseRef.current = handlePanelClose;
   const mergeControlDefaultsRef = useRef(mergeControlDefaults);
@@ -199,6 +201,7 @@ export default function useNodeDataSync({
   useEffect(() => {
     updateNodeData(setNodes, "viewport", () => ({
       onError: handleShaderErrorRef.current,
+      onViewportStateChange: (...args) => onViewportStateChangeRef.current?.(...args),
       initialCollapsed: nodeUiStateRef?.current?.collapsed?.viewport,
       onCollapsedChange: (v) => { if (nodeUiStateRef?.current) nodeUiStateRef.current.collapsed.viewport = v; },
       initialFixedResolution: nodeUiStateRef?.current?.viewportFixedResolution,

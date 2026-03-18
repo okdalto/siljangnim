@@ -701,6 +701,12 @@ export default function App() {
     startRecording(settings);
   }, [startRecording]);
 
+  const handleViewportStateChange = useCallback((state) => {
+    if (BROWSER_ONLY && _agentEngine) {
+      _agentEngine.errorCollector.setViewportState(state);
+    }
+  }, []);
+
   const handleShaderError = useCallback((err) => {
     const message = err.message || String(err);
     chat.addLog({ agent: "WebGL", message, level: "error" });
@@ -790,7 +796,7 @@ export default function App() {
   useNodeDataSync({
     setNodes, chat, sceneJSON, uiConfig,
     handleUniformChange, handleDeleteWorkspaceFile,
-    workspaceFilesVersion, handleShaderError,
+    workspaceFilesVersion, handleShaderError, onViewportStateChange: handleViewportStateChange,
     panels, handlePanelClose, mergeControlDefaults,
     kf, duration, loop, engineRef, pendingLayoutsRef,
     setDuration, setLoop,

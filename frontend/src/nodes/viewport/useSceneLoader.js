@@ -1,10 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Loads sceneJSON into engine, handling backend switching + scene_loaded events.
  * Also syncs pause state, backend target, and the parent engineRef.
  */
-export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTarget, parentEngineRef, setError }) {
+export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTarget, parentEngineRef, setError, onError }) {
+  const loadRequestRef = useRef(0);
+
   // Switch backend when backendTarget changes at runtime
   useEffect(() => {
     const engine = engineRef.current;
@@ -29,6 +31,10 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
   // Load scene when sceneJSON changes
   useEffect(() => {
     const engine = engineRef.current;
+    const requestId = ++loadRequestRef.current;
+    let cancelled = false;
+    const isStale = () => cancelled || loadRequestRef.current !== requestId || engineRef.current !== engine;
+
     if (!engine) return;
     if (!sceneJSON) {
       const gl = engine.gl;
@@ -37,7 +43,9 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       }
       engine.loadScene({ mode: "shader", script: {} });
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
     console.log("[ViewportNode] Loading scene:", sceneJSON.mode || "unknown");
     setError(null);
@@ -55,10 +63,9 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
       engine._disposeScene();
     }
 
-    let switchFailed = false;
     const switchPromise = engine.switchBackend(wantBackend, { hybrid: isHybrid }).catch((err) => {
+      if (isStale()) return;
       console.warn("[ViewportNode] Backend switch failed:", err?.message);
-      switchFailed = true;
       // Don't swallow — propagate error so loadScene is skipped
       throw err;
     });
@@ -68,6 +75,7 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
     });
 
     readyPromise.then(() => {
+        if (isStale()) return;
         engine.loadScene(sceneJSON);
         return Promise.race([
           engine._setupPromise,
@@ -75,6 +83,7 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
         ]);
       })
       .then(() => {
+        if (isStale()) return;
         // Ensure at least one frame renders even when paused,
         // so the canvas isn't black after a page refresh.
         if (engine._paused) engine._needsPausedRender = true;
@@ -89,12 +98,18 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
         }));
       })
       .catch((err) => {
+        if (isStale()) return;
         console.error("[ViewportNode] loadScene error:", err);
         setError(err.message || String(err));
+        onError?.(err);
         window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded", {
           detail: { setupReady: false, error: err.message },
         }));
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [sceneJSON]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle pause/resume
