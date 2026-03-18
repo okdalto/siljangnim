@@ -77,7 +77,7 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
 
     readyPromise.then(() => {
         if (isStale()) return;
-        engine.loadScene(sceneJSON);
+        engine.loadScene(sceneJSON, { forceReload: true });
         return Promise.race([
           engine._setupPromise,
           new Promise((_, reject) => setTimeout(() => reject(new Error("Scene setup timed out (10s)")), 10000)),
