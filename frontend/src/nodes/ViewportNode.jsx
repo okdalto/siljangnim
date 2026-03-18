@@ -46,14 +46,15 @@ function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
   useStopWheelPropagation(containerRef);
 
   useEffect(() => {
+    const hasScene = !!sceneJSON;
     const missingAssetLabels = missingAssets.map((asset) =>
       asset?.path || asset?.filename || asset?.name || asset?.id || String(asset)
     );
     onViewportStateChange?.({
-      error: error || null,
+      error: hasScene ? (error || null) : null,
       safeModeActive: !!safeModeActive,
-      missingAssets: missingAssetLabels,
-      hasScene: !!sceneJSON,
+      missingAssets: hasScene ? missingAssetLabels : [],
+      hasScene,
       backendName: backendName || null,
     });
   }, [onViewportStateChange, error, safeModeActive, missingAssets, sceneJSON, backendName]);
