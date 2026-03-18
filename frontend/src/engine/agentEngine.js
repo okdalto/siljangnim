@@ -496,6 +496,13 @@ const HANDLERS = {
         provider,
         config: { provider, ...providerConfig },
       });
+
+      // Retry the pending prompt that triggered the api_key_required flow
+      if (this._pendingPrompt) {
+        const pending = this._pendingPrompt;
+        this._pendingPrompt = null;
+        await HANDLERS.prompt.call(this, pending);
+      }
     } else {
       this.broadcast({ type: "api_key_invalid", error });
     }
@@ -504,6 +511,7 @@ const HANDLERS = {
   async prompt(msg) {
     this.autoFixCount = 0;
     if (!this.apiKey) {
+      this._pendingPrompt = msg;
       this.broadcast({ type: "api_key_required" });
       this.broadcast({ type: "chat_done" });
       return;
