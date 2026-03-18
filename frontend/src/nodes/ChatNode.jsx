@@ -20,13 +20,195 @@ function readFileAsBase64(file) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function MessageBubble({ msg, onRetryInterrupted }) {
+  return (
+    <div
+      className={`px-3 py-2 rounded-lg max-w-[90%] ${
+        msg.role === "user" ? "ml-auto" : msg.role === "system" ? "mx-auto text-center" : ""
+      }`}
+      style={
+        msg.role === "user"
+          ? { background: "var(--accent)", color: "var(--accent-text)" }
+          : msg.role === "system"
+          ? { background: "transparent", color: "var(--chrome-text-muted)", fontSize: "11px", fontStyle: "italic" }
+          : { background: "var(--chrome-bg-elevated)", color: "var(--chrome-text)" }
+      }
+    >
+      {msg.role === "user" && msg.files?.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-1.5">
+          {msg.files.map((f, j) => (
+            <FileChip key={j} file={f} />
+          ))}
+        </div>
+      )}
+      {msg.role === "user" && msg.sceneReferences?.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-1.5">
+          {msg.sceneReferences.map((ref) => (
+            <span
+              key={ref.nodeId}
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium"
+              style={{ background: "rgba(255,255,255,0.15)", color: "inherit" }}
+            >
+              <svg className="w-3 h-3 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
+              </svg>
+              {ref.title}
+            </span>
+          ))}
+        </div>
+      )}
+      {msg.role === "user" ? (
+        msg.text
+      ) : (
+        <>
+          <MarkdownMessage text={msg.text} />
+          {msg.streaming && <span className="inline-block w-2 h-4 ml-0.5 bg-current animate-pulse align-text-bottom" />}
+        </>
+      )}
+      {msg.interrupted && msg.interruptedPrompt && (
+        <button
+          className="mt-1.5 px-2.5 py-1 rounded text-xs font-medium"
+          style={{ background: "var(--accent)", color: "var(--accent-text)" }}
+          onClick={() => onRetryInterrupted?.(msg.interruptedPrompt)}
+        >
+          다시 시도
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ProcessingIndicator({ agentStatus, elapsed, thinkingRef }) {
+  return (
+    <div className="px-3 py-2 rounded-lg max-w-[90%]" style={{ background: "var(--chrome-bg-elevated)", color: "var(--chrome-text-muted)" }}>
+      <div className="flex items-center gap-1.5">
+        <span className="flex gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:0ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:150ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:300ms]" />
+        </span>
+        <span className="italic text-sm">
+          {agentStatus?.status === "tool_use"
+            ? (TOOL_LABELS[agentStatus.detail] || "처리 중...")
+            : agentStatus?.status === "thinking"
+            ? "생각하는 중..."
+            : "생각하는 중"}
+        </span>
+        {elapsed > 2 && (
+          <span className="text-[10px] opacity-60">{elapsed}초</span>
+        )}
+      </div>
+      {agentStatus?.detail && agentStatus?.status !== "tool_use" && (
+        <p ref={thinkingRef} className="mt-1.5 text-xs italic leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap break-words" style={{ color: "var(--chrome-text-muted)" }}>
+          {agentStatus.detail}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PendingQuestion({ pendingQuestion, onAnswer }) {
+  return (
+    <div className="px-3 py-2 rounded-lg max-w-[90%] space-y-2" style={{ background: "var(--chrome-bg-elevated)", color: "var(--chrome-text)" }}>
+      <p className="text-sm font-medium">{pendingQuestion.question}</p>
+      <div className="flex flex-col gap-1.5">
+        {pendingQuestion.options.map((opt, i) => (
+          <button
+            key={i}
+            onClick={() => onAnswer?.(opt.label)}
+            className="text-left px-3 py-2 rounded-lg hover:bg-indigo-600 transition-colors text-sm"
+            style={{ background: "var(--input-bg)" }}
+          >
+            <span className="font-medium text-zinc-100">{opt.label}</span>
+            {opt.description && (
+              <span className="block text-xs text-zinc-400 mt-0.5">{opt.description}</span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function InputForm({ input, setInput, attachedFiles, isProcessing, pendingQuestion, onCancel, fileInputRef, handleFileInputChange, handleSubmit }) {
+  return (
+    <form onSubmit={handleSubmit} className="p-2 flex gap-2 nodrag" style={{ borderTop: "1px solid var(--node-border)" }}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={handleFileInputChange}
+      />
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={isProcessing && !pendingQuestion}
+        className="text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-1"
+        title="Attach files"
+      >
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+        </svg>
+      </button>
+      <textarea
+        value={input}
+        ref={(el) => {
+          if (el) {
+            el.style.height = "auto";
+            el.style.height = Math.min(el.scrollHeight, 120) + "px";
+          }
+        }}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          e.stopPropagation();
+          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+            e.preventDefault();
+            if (input.trim() || attachedFiles.length > 0) {
+              e.target.form.requestSubmit();
+            }
+          }
+        }}
+        placeholder={pendingQuestion ? "Type your answer..." : isProcessing ? "Type to send while agent is working..." : "Type a prompt... (Shift+Enter for newline)"}
+        rows={1}
+        className="flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+        style={{ background: "var(--input-bg)", color: "var(--input-text)", maxHeight: "120px", overflowY: "auto" }}
+      />
+      <button
+        type="submit"
+        disabled={!input.trim() && (!attachedFiles.length || isProcessing)}
+        className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
+      >
+        Send
+      </button>
+      {isProcessing && !pendingQuestion && (
+        <button
+          type="button"
+          onClick={onCancel}
+          className="bg-red-600 hover:bg-red-500 text-white text-sm px-4 py-2 rounded-lg transition-colors"
+        >
+          Stop
+        </button>
+      )}
+    </form>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main ChatNode
+// ---------------------------------------------------------------------------
+
 function ChatNode({ data, standalone = false, hideHeader = false }) {
   const chatCtx = useChatContext();
   const [collapsed, setCollapsed] = useCollapsedState(data.initialCollapsed, data.onCollapsedChange);
   const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  // Core chat values: always prefer context (node data may hold stale values)
   const messages = chatCtx?.messages ?? data.messages ?? [];
   const onSend = chatCtx?.onSend ?? data.onSend;
   const isProcessing = chatCtx?.isProcessing ?? data.isProcessing ?? false;
@@ -35,7 +217,6 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
   const onCancel = chatCtx?.onCancel ?? data.onCancel;
   const pendingQuestion = chatCtx?.pendingQuestion ?? data.pendingQuestion;
   const onAnswer = chatCtx?.onAnswer ?? data.onAnswer;
-  // Data-only values (not in context)
   const {
     onRetryInterrupted,
     hideInput = false,
@@ -63,13 +244,12 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
     return () => clearInterval(id);
   }, [isProcessing]);
 
-  // Track whether user has scrolled up (disable auto-scroll when they have)
   const isNearBottomRef = useRef(true);
   useEffect(() => {
     const container = messagesRef.current;
     if (!container) return;
     const onScroll = () => {
-      const threshold = 80; // px from bottom
+      const threshold = 80;
       isNearBottomRef.current =
         container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
     };
@@ -78,14 +258,12 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
   }, []);
 
   useEffect(() => {
-    // Only auto-scroll if user is already near the bottom
     const container = messagesRef.current;
     if (container && isNearBottomRef.current) {
       container.scrollTop = container.scrollHeight;
     }
   }, [messages]);
 
-  // Auto-scroll thinking detail to bottom as new content arrives
   useEffect(() => {
     if (thinkingRef.current) {
       thinkingRef.current.scrollTop = thinkingRef.current.scrollHeight;
@@ -104,7 +282,6 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
         size: file.size,
         data_b64: b64,
       };
-      // Create preview URL for images
       if (file.type?.startsWith("image/")) {
         entry.preview = URL.createObjectURL(file);
       }
@@ -140,7 +317,6 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
     if (e.target.files?.length) {
       processFiles(Array.from(e.target.files));
     }
-    // Reset so the same file can be selected again
     e.target.value = "";
   }, [processFiles]);
 
@@ -156,7 +332,6 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
     e.preventDefault();
     if (!input.trim() && attachedFiles.length === 0) return;
 
-    // If a question is pending, send answer instead of normal prompt
     if (pendingQuestion) {
       if (input.trim()) {
         onAnswer?.(input.trim());
@@ -165,7 +340,6 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
       return;
     }
 
-    // While processing, allow text-only injection (no files)
     if (isProcessing) {
       if (input.trim()) {
         onSend?.(input.trim());
@@ -180,10 +354,8 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
 
     onSend?.(input.trim(), files, sceneReferences.length > 0 ? sceneReferences : undefined);
     setInput("");
-    // Clean up preview URLs
     attachedFiles.forEach((f) => { if (f.preview) URL.revokeObjectURL(f.preview); });
     setAttachedFiles([]);
-    // Clear scene references after sending
     if (sceneReferences.length > 0) onClearReferences?.();
   };
 
@@ -196,7 +368,6 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
       onDrop={handleDrop}
     >
       {!standalone && <NodeResizer minWidth={280} minHeight={200} lineStyle={{ borderColor: "transparent" }} handleStyle={{ opacity: 0 }} />}
-      {/* Header */}
       {!(standalone && hideHeader) && (
       <div
         className={`px-4 py-2 text-sm font-semibold flex items-center justify-between ${standalone ? "" : "cursor-grab"}`}
@@ -216,7 +387,6 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
       )}
 
       {!collapsed && <>
-      {/* Drag overlay */}
       {isDragOver && (
         <div className="absolute inset-0 z-50 bg-indigo-600/20 border-2 border-dashed border-indigo-400 rounded-xl flex items-center justify-center pointer-events-none">
           <div className="text-indigo-300 text-sm font-medium flex items-center gap-2">
@@ -228,117 +398,19 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
         </div>
       )}
 
-      {/* Messages */}
       <div ref={messagesRef} className="flex-1 overflow-y-auto p-3 space-y-2 text-sm nowheel nodrag">
         {messages.length === 0 && (
           <p className="italic" style={{ color: "var(--chrome-text-muted)" }}>Describe what you want to create...</p>
         )}
         {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`px-3 py-2 rounded-lg max-w-[90%] ${
-              msg.role === "user" ? "ml-auto" : msg.role === "system" ? "mx-auto text-center" : ""
-            }`}
-            style={
-              msg.role === "user"
-                ? { background: "var(--accent)", color: "var(--accent-text)" }
-                : msg.role === "system"
-                ? { background: "transparent", color: "var(--chrome-text-muted)", fontSize: "11px", fontStyle: "italic" }
-                : { background: "var(--chrome-bg-elevated)", color: "var(--chrome-text)" }
-            }
-          >
-            {/* Show attached file chips on user messages */}
-            {msg.role === "user" && msg.files?.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-1.5">
-                {msg.files.map((f, j) => (
-                  <FileChip key={j} file={f} />
-                ))}
-              </div>
-            )}
-            {/* Show referenced scene chips on user messages */}
-            {msg.role === "user" && msg.sceneReferences?.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-1.5">
-                {msg.sceneReferences.map((ref) => (
-                  <span
-                    key={ref.nodeId}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium"
-                    style={{ background: "rgba(255,255,255,0.15)", color: "inherit" }}
-                  >
-                    <svg className="w-3 h-3 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
-                    </svg>
-                    {ref.title}
-                  </span>
-                ))}
-              </div>
-            )}
-            {msg.role === "user" ? (
-              msg.text
-            ) : (
-              <>
-                <MarkdownMessage text={msg.text} />
-                {msg.streaming && <span className="inline-block w-2 h-4 ml-0.5 bg-current animate-pulse align-text-bottom" />}
-              </>
-            )}
-            {msg.interrupted && msg.interruptedPrompt && (
-              <button
-                className="mt-1.5 px-2.5 py-1 rounded text-xs font-medium"
-                style={{ background: "var(--accent)", color: "var(--accent-text)" }}
-                onClick={() => onRetryInterrupted?.(msg.interruptedPrompt)}
-              >
-                다시 시도
-              </button>
-            )}
-          </div>
+          <MessageBubble key={i} msg={msg} onRetryInterrupted={onRetryInterrupted} />
         ))}
         {isProcessing && !pendingQuestion && (
-          <div className="px-3 py-2 rounded-lg max-w-[90%]" style={{ background: "var(--chrome-bg-elevated)", color: "var(--chrome-text-muted)" }}>
-            <div className="flex items-center gap-1.5">
-              <span className="flex gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:0ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:300ms]" />
-              </span>
-              <span className="italic text-sm">
-                {agentStatus?.status === "tool_use"
-                  ? (TOOL_LABELS[agentStatus.detail] || "처리 중...")
-                  : agentStatus?.status === "thinking"
-                  ? "생각하는 중..."
-                  : "생각하는 중"}
-              </span>
-              {elapsed > 2 && (
-                <span className="text-[10px] opacity-60">{elapsed}초</span>
-              )}
-            </div>
-            {agentStatus?.detail && agentStatus?.status !== "tool_use" && (
-              <p ref={thinkingRef} className="mt-1.5 text-xs italic leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap break-words" style={{ color: "var(--chrome-text-muted)" }}>
-                {agentStatus.detail}
-              </p>
-            )}
-          </div>
+          <ProcessingIndicator agentStatus={agentStatus} elapsed={elapsed} thinkingRef={thinkingRef} />
         )}
         {pendingQuestion && (
-          <div className="px-3 py-2 rounded-lg max-w-[90%] space-y-2" style={{ background: "var(--chrome-bg-elevated)", color: "var(--chrome-text)" }}>
-            <p className="text-sm font-medium">{pendingQuestion.question}</p>
-            <div className="flex flex-col gap-1.5">
-              {pendingQuestion.options.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => onAnswer?.(opt.label)}
-                  className="text-left px-3 py-2 rounded-lg hover:bg-indigo-600 transition-colors text-sm"
-                  style={{ background: "var(--input-bg)" }}
-                >
-                  <span className="font-medium text-zinc-100">{opt.label}</span>
-                  {opt.description && (
-                    <span className="block text-xs text-zinc-400 mt-0.5">{opt.description}</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
+          <PendingQuestion pendingQuestion={pendingQuestion} onAnswer={onAnswer} />
         )}
-        {/* Art/Hybrid iterative action chips */}
         {!isProcessing && !pendingQuestion && messages.length > 0 && messages[messages.length - 1].role === "assistant" && (promptMode === "art" || promptMode === "hybrid") && (
           <div className="flex flex-wrap gap-1 px-1 mt-1">
             {["Push further", "Make calmer", "More surreal", "Simplify", "Add motion"].map((label) => (
@@ -356,7 +428,6 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
         <div />
       </div>
 
-      {/* Attached files preview */}
       {!hideInput && attachedFiles.length > 0 && (
         <div className="px-2 pt-2 flex flex-wrap gap-1" style={{ borderTop: "1px solid var(--node-border)" }}>
           {attachedFiles.map((file, i) => (
@@ -365,7 +436,6 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
         </div>
       )}
 
-      {/* Scene references */}
       {!hideInput && sceneReferences.length > 0 && (
         <div className="px-2 py-1.5 flex flex-wrap gap-1 nodrag" style={{ borderTop: "1px solid var(--node-border)" }}>
           {sceneReferences.map((ref) => (
@@ -393,69 +463,18 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
         </div>
       )}
 
-      {/* Input */}
       {!hideInput && (
-      <form onSubmit={handleSubmit} className="p-2 flex gap-2 nodrag" style={{ borderTop: "1px solid var(--node-border)" }}>
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={handleFileInputChange}
+        <InputForm
+          input={input}
+          setInput={setInput}
+          attachedFiles={attachedFiles}
+          isProcessing={isProcessing}
+          pendingQuestion={pendingQuestion}
+          onCancel={onCancel}
+          fileInputRef={fileInputRef}
+          handleFileInputChange={handleFileInputChange}
+          handleSubmit={handleSubmit}
         />
-        {/* Attach button */}
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isProcessing && !pendingQuestion}
-          className="text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-1"
-          title="Attach files"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-          </svg>
-        </button>
-        <textarea
-          value={input}
-          ref={(el) => {
-            if (el) {
-              el.style.height = "auto";
-              el.style.height = Math.min(el.scrollHeight, 120) + "px";
-            }
-          }}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            e.stopPropagation();
-            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-              e.preventDefault();
-              if (input.trim() || attachedFiles.length > 0) {
-                e.target.form.requestSubmit();
-              }
-            }
-          }}
-          placeholder={pendingQuestion ? "Type your answer..." : isProcessing ? "Type to send while agent is working..." : "Type a prompt... (Shift+Enter for newline)"}
-          rows={1}
-          className="flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
-          style={{ background: "var(--input-bg)", color: "var(--input-text)", maxHeight: "120px", overflowY: "auto" }}
-        />
-        <button
-          type="submit"
-          disabled={!input.trim() && (!attachedFiles.length || isProcessing)}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
-        >
-          Send
-        </button>
-        {isProcessing && !pendingQuestion && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="bg-red-600 hover:bg-red-500 text-white text-sm px-4 py-2 rounded-lg transition-colors"
-          >
-            Stop
-          </button>
-        )}
-      </form>
       )}
       </>}
     </div>

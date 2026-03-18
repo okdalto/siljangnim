@@ -603,110 +603,64 @@ async function parseGeminiSSEStream(body, callbacks) {
 // Validation helpers
 // ---------------------------------------------------------------------------
 
-async function validateOpenAIKey(apiKey) {
-  try {
-    const response = await fetch(`${PROXY_URL}?target=openai`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        max_tokens: 1,
-        messages: [{ role: "user", content: "hi" }],
-      }),
-    });
-    if (response.ok) return { valid: true, error: null };
-    if (response.status === 401) return { valid: false, error: "Invalid API key" };
-    if (response.status === 400) return { valid: true, error: null };
-    const text = await response.text();
-    return { valid: false, error: `API error: ${response.status} ${text.slice(0, 200)}` };
-  } catch (err) {
-    return { valid: false, error: `Connection failed: ${err.message}` };
-  }
+function createValidator({ url, headers, body, successStatuses = [200], earlyCheck }) {
+  return async function validate(apiKey, config = {}) {
+    if (earlyCheck) {
+      const earlyError = earlyCheck(apiKey, config);
+      if (earlyError) return earlyError;
+    }
+    try {
+      const response = await fetch(url(apiKey, config), {
+        method: "POST",
+        headers: headers(apiKey, config),
+        body: JSON.stringify(body(apiKey, config)),
+      });
+      if (response.ok || successStatuses.includes(response.status)) return { valid: true, error: null };
+      if (response.status === 401 || response.status === 403) return { valid: false, error: "Invalid API key" };
+      const text = await response.text();
+      return { valid: false, error: `API error (${response.status}): ${text.slice(0, 200)}` };
+    } catch (err) {
+      return { valid: false, error: `Connection failed: ${err.message}` };
+    }
+  };
 }
 
-async function validateGeminiKey(apiKey) {
-  try {
-    const response = await fetch(`${PROXY_URL}?target=gemini`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "x-model": "gemini-2.0-flash",
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: "hi" }] }],
-        generationConfig: { maxOutputTokens: 1 },
-      }),
-    });
-    if (response.ok) return { valid: true, error: null };
-    if (response.status === 401 || response.status === 403) return { valid: false, error: "Invalid API key" };
-    if (response.status === 400) return { valid: true, error: null };
-    const text = await response.text();
-    return { valid: false, error: `API error: ${response.status} ${text.slice(0, 200)}` };
-  } catch (err) {
-    return { valid: false, error: `Connection failed: ${err.message}` };
-  }
-}
+const validateOpenAIKey = createValidator({
+  url: () => `${PROXY_URL}?target=openai`,
+  headers: (apiKey) => ({ "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` }),
+  body: () => ({ model: "gpt-4o-mini", max_tokens: 1, messages: [{ role: "user", content: "hi" }] }),
+  successStatuses: [200, 400],
+});
 
-async function validateGLMKey(apiKey, config = {}) {
-  try {
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    };
+const validateGeminiKey = createValidator({
+  url: () => `${PROXY_URL}?target=gemini`,
+  headers: (apiKey) => ({ "Content-Type": "application/json", "x-api-key": apiKey, "x-model": "gemini-2.0-flash" }),
+  body: () => ({ contents: [{ parts: [{ text: "hi" }] }], generationConfig: { maxOutputTokens: 1 } }),
+  successStatuses: [200, 400],
+});
+
+const validateGLMKey = createValidator({
+  url: () => `${PROXY_URL}?target=glm`,
+  headers: (apiKey, config) => {
     const endpoint = config.endpoint || "open.bigmodel.cn";
-    const baseUrl = `https://${endpoint}/api/paas/v4`;
-    headers["x-base-url"] = baseUrl;
+    return { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}`, "x-base-url": `https://${endpoint}/api/paas/v4` };
+  },
+  body: () => ({ model: "glm-4-flash", max_tokens: 1, messages: [{ role: "user", content: "hi" }] }),
+  successStatuses: [200, 400],
+});
 
-    const response = await fetch(`${PROXY_URL}?target=glm`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        model: "glm-4-flash",
-        max_tokens: 1,
-        messages: [{ role: "user", content: "hi" }],
-      }),
-    });
-    if (response.ok) return { valid: true, error: null };
-    if (response.status === 401) return { valid: false, error: "Invalid API key" };
-    if (response.status === 400) return { valid: true, error: null };
-    const text = await response.text();
-    return { valid: false, error: `API error: ${response.status} ${text.slice(0, 200)}` };
-  } catch (err) {
-    return { valid: false, error: `Connection failed: ${err.message}` };
-  }
-}
-
-async function validateCustom(apiKey, config = {}) {
-  try {
-    const baseUrl = config.base_url;
-    if (!baseUrl) return { valid: false, error: "Base URL is required" };
+const validateCustom = createValidator({
+  url: () => `${PROXY_URL}?target=custom`,
+  headers: (apiKey, config) => {
+    const h = { "Content-Type": "application/json", "x-base-url": config.base_url };
+    if (apiKey) h.Authorization = `Bearer ${apiKey}`;
+    return h;
+  },
+  body: (_, config) => ({ model: config.model, max_tokens: 1, messages: [{ role: "user", content: "hi" }] }),
+  successStatuses: [200, 400],
+  earlyCheck: (apiKey, config) => {
+    if (!config.base_url) return { valid: false, error: "Base URL is required" };
     if (!config.model) return { valid: false, error: "Model name is required" };
-
-    const headers = {
-      "Content-Type": "application/json",
-      "x-base-url": baseUrl,
-    };
-    if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
-
-    const response = await fetch(`${PROXY_URL}?target=custom`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        model: config.model,
-        max_tokens: 1,
-        messages: [{ role: "user", content: "hi" }],
-      }),
-    });
-    if (response.ok) return { valid: true, error: null };
-    if (response.status === 401) return { valid: false, error: "Invalid API key" };
-    if (response.status === 400) return { valid: true, error: null };
-    const text = await response.text();
-    return { valid: false, error: `API error: ${response.status} ${text.slice(0, 200)}` };
-  } catch (err) {
-    return { valid: false, error: `Connection failed: ${err.message}` };
-  }
-}
+    return null;
+  },
+});

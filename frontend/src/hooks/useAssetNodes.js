@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import {
   createAssetDescriptor,
   categoryFromFilename,
@@ -6,6 +6,7 @@ import {
   ASSET_CATEGORY,
 } from "../engine/assetDescriptor.js";
 import { guessMimeType } from "../utils/mimeUtils.js";
+import { useSyncRef } from "./useSyncRef.js";
 
 function buildAISummaryPrompt(category, filename, techInfo, metadata) {
   const parts = [`Asset: "${filename}" (${category})`];
@@ -26,8 +27,7 @@ function buildAISummaryPrompt(category, filename, techInfo, metadata) {
 export default function useAssetNodes() {
   const [assets, setAssets] = useState(() => new Map());
   const [selectedAssetId, setSelectedAssetId] = useState(null);
-  const assetsRef = useRef(assets);
-  assetsRef.current = assets;
+  const assetsRef = useSyncRef(assets);
 
   // ---- Create asset from uploaded file ----
 
