@@ -130,6 +130,9 @@ export default function useRecorder(engineRef) {
     const recorder = recorderRef.current;
     if (recorder && recorder.state !== "inactive") {
       recorder.stop();
+    } else {
+      // No active recorder or finalizer — force-clear recording state
+      setRecording(false);
     }
   }, []);
 
@@ -138,6 +141,10 @@ export default function useRecorder(engineRef) {
       const engine = engineRef.current;
       const canvas = engine?.canvas;
       if (!canvas) return;
+
+      // In WebGPU mode the visible content is drawn to a 2D overlay canvas,
+      // not the main (idle) WebGL2 canvas. Use that for capture.
+      const recordCanvas = engine.getRecordCanvas?.() ?? canvas;
 
       offlineRef.current = offline;
       offlineAbortRef.current = false;
@@ -209,8 +216,9 @@ export default function useRecorder(engineRef) {
       };
 
       // Shared context for all strategies
+      // Strategies capture from recordCanvas (which is the 2D overlay in WebGPU mode).
       const ctx = {
-        engine, canvas, fps, duration, format, alpha,
+        engine, canvas: recordCanvas, fps, duration, format, alpha,
         videoBitsPerSecond, mimeType, hasAudio, audioStream, audioBuffer,
         setRecording, setElapsedTime, setProgress, setCompletionInfo,
         downloadBlob, discardRef,

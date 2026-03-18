@@ -573,12 +573,7 @@ export default function App() {
     handleTreeDeleteNode,
   } = useTreeActions({ tree, compare, handleMessage, project, chat, agentEngine: _agentEngine, getState });
 
-  const handleNewProject = useCallback(() => {
-    if (_agentEngine?.abortController) {
-      showToast("에이전트가 실행 중입니다. 완료 후 새 프로젝트를 만들어 주세요.", "warn");
-      return;
-    }
-    // No unsaved-changes dialog — auto-save ensures everything is persisted
+  const resetToFreshWorkspace = useCallback(() => {
     chat.clearAll();
     resetUniformHistory();
     setSceneJSON(null);
@@ -595,7 +590,17 @@ export default function App() {
     tree.loadTree(null);
     dirtyRef.current = false;
     send({ type: "new_project" });
-  }, [send, chat.clearAll, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, settings.defaultDuration, settings.defaultLoop, tree.loadTree]);
+  }, [send, chat.clearAll, resetUniformHistory, panels.restorePanels,
+      kf.resetKeyframes, project.setActiveProject, settings.defaultDuration,
+      settings.defaultLoop, tree.loadTree]);
+
+  const handleNewProject = useCallback(() => {
+    if (_agentEngine?.abortController) {
+      showToast("에이전트가 실행 중입니다. 완료 후 새 프로젝트를 만들어 주세요.", "warn");
+      return;
+    }
+    resetToFreshWorkspace();
+  }, [resetToFreshWorkspace]);
 
   // Trust a safe-mode project
   const handleTrustProject = useCallback(() => {
@@ -788,25 +793,9 @@ export default function App() {
     const isDeletingActive = project.activeProject === name;
     project.handleProjectDelete(name);
     if (isDeletingActive) {
-      // Reset to fresh workspace — same as handleNewProject
-      chat.clearAll();
-      resetUniformHistory();
-      setSceneJSON(null);
-      setUiConfig({ controls: [], inspectable_buffers: [] });
-      panels.restorePanels({});
-      assetNodes.restore({});
-      project.setActiveProject(null);
-      setProjectManifest(null);
-      setBackendTarget("auto");
-      kf.resetKeyframes();
-      setDuration(settings.defaultDuration);
-      setLoop(settings.defaultLoop);
-      setFps(30);
-      tree.loadTree(null);
-      dirtyRef.current = false;
-      send({ type: "new_project" });
+      resetToFreshWorkspace();
     }
-  }, [send, project.activeProject, project.handleProjectDelete, chat.clearAll, resetUniformHistory, panels.restorePanels, kf.resetKeyframes, project.setActiveProject, settings.defaultDuration, settings.defaultLoop, tree.loadTree]);
+  }, [project.activeProject, project.handleProjectDelete, resetToFreshWorkspace]);
 
   const projectCtxValue = useMemo(() => ({
     projectList: project.projectList,

@@ -4,6 +4,95 @@ import { getNodeEdges, findEdgeSnap, findSizeMatch } from "../utils/snapAlgorith
 const DEFAULT_SNAP_THRESHOLD = 8;
 
 /**
+ * Apply drag snap logic for a single axis ("x" or "y").
+ * Returns { offset, guides } and mutates lock[axis] for hysteresis.
+ */
+function applyDragSnapAxis(axis, lock, movingNode, movingEdges, otherEdges, dragging, startInfo, SNAP_THRESHOLD, SNAP_EXIT_THRESHOLD) {
+  const pos = dragging.position[axis];
+  const escaped = axis === "x" ? startInfo.escapedX : startInfo.escapedY;
+  const otherAxis = axis === "x" ? "y" : "x";
+
+  if (lock[axis] !== null && Math.abs(pos - lock[axis]) <= SNAP_EXIT_THRESHOLD) {
+    const offset = lock[axis] - pos;
+    const lockedPos = { ...dragging.position, [axis]: lock[axis] };
+    const lockedEdges = getNodeEdges({ ...movingNode, position: lockedPos });
+    const guides = findEdgeSnap(lockedEdges, otherEdges, axis, undefined, SNAP_THRESHOLD).guides;
+    return { offset, guides };
+  }
+
+  lock[axis] = null;
+  const snap = findEdgeSnap(movingEdges, otherEdges, axis, undefined, SNAP_THRESHOLD);
+  const snappedVal = pos + snap.offset;
+  if (snap.snapped && !escaped && Math.abs(snappedVal - startInfo[axis]) < 2) {
+    return { offset: 0, guides: [] };
+  }
+  if (snap.snapped) lock[axis] = snappedVal;
+  return { offset: snap.offset, guides: snap.guides };
+}
+
+/**
+ * Apply resize snap logic for a single dimension ("x" for width, "y" for height).
+ * Returns { finalSize, finalPos, guides } and mutates resizeLockRef entry.
+ */
+function applyResizeSnapAxis(axis, resizingEdges, otherEdges, rawSize, rawPos, edge, resizeLockRef, resizingId, rawWidth, rawHeight, rawPosX, rawPosY, locked, lockObj, SNAP_THRESHOLD, SNAP_EXIT_THRESHOLD) {
+  if (locked) {
+    const sizeKey = axis === "x" ? "lockedWidth" : "lockedHeight";
+    const posKey = axis === "x" ? "lockedPosX" : "lockedPosY";
+    const otherAxis = axis === "x" ? "y" : "x";
+    const lockedEdges = getNodeEdges({
+      measured: null,
+      position: { x: axis === "x" ? lockObj[posKey] : rawPosX, y: axis === "y" ? lockObj[posKey] : rawPosY },
+      width: axis === "x" ? lockObj[sizeKey] : rawWidth,
+      height: axis === "y" ? lockObj[sizeKey] : rawHeight,
+    });
+    const snap = findEdgeSnap(lockedEdges, otherEdges, axis, edge, SNAP_THRESHOLD);
+    return { finalSize: lockObj[sizeKey], finalPos: lockObj[posKey], guides: snap.snapped ? snap.guides : [] };
+  }
+
+  const snap = findEdgeSnap(resizingEdges, otherEdges, axis, edge, SNAP_THRESHOLD);
+  const sizeMatch = findSizeMatch(resizingEdges, otherEdges, SNAP_THRESHOLD);
+  const sizeSnapKey = axis === "x" ? "widthSnap" : "heightSnap";
+  const isStart = (axis === "x" && edge === "left") || (axis === "y" && edge === "top");
+
+  let snapSize = rawSize;
+  let snapPos = rawPos;
+  const guides = [];
+
+  if (snap.snapped) {
+    if (isStart) {
+      snapPos = rawPos + snap.offset;
+      snapSize = rawSize - snap.offset;
+    } else {
+      snapSize = rawSize + snap.offset;
+    }
+    guides.push(...snap.guides);
+  }
+  if (sizeMatch[sizeSnapKey] !== null) {
+    const delta = sizeMatch[sizeSnapKey] - snapSize;
+    if (isStart) snapPos -= delta;
+    snapSize = sizeMatch[sizeSnapKey];
+  }
+
+  if (snapSize !== rawSize) {
+    const sizeKey = axis === "x" ? "lockedWidth" : "lockedHeight";
+    const posKey = axis === "x" ? "lockedPosX" : "lockedPosY";
+    const targetKey = axis === "x" ? "widthTarget" : "heightTarget";
+    if (!resizeLockRef.current[resizingId]) {
+      resizeLockRef.current[resizingId] = {
+        lockedWidth: rawWidth, lockedHeight: rawHeight,
+        lockedPosX: rawPosX, lockedPosY: rawPosY,
+        widthTarget: null, heightTarget: null,
+      };
+    }
+    resizeLockRef.current[resizingId][sizeKey] = snapSize;
+    resizeLockRef.current[resizingId][posKey] = snapPos;
+    resizeLockRef.current[resizingId][targetKey] = snapSize;
+  }
+
+  return { finalSize: snapSize, finalPos: snapPos, guides };
+}
+
+/**
  * @param {Array} nodes - Current nodes array
  * @param {Function} originalOnNodesChange - Raw onNodesChange from useNodesState
  * @param {Function} setNodes - Node state setter
@@ -169,56 +258,13 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes, 
 
         const lock = dragSnapLock.current[dragging.id] || { x: null, y: null };
 
-        // X-axis snap with hysteresis
-        let xOffset = 0;
-        let xGuides = [];
-        if (lock.x !== null && Math.abs(dragging.position.x - lock.x) <= SNAP_EXIT_THRESHOLD) {
-          xOffset = lock.x - dragging.position.x;
-          // Show guides at locked position
-          const lockedEdges = getNodeEdges({ ...movingNode, position: { x: lock.x, y: dragging.position.y } });
-          xGuides = findEdgeSnap(lockedEdges, otherEdges, "x", undefined, SNAP_THRESHOLD).guides;
-        } else {
-          lock.x = null;
-          const xSnap = findEdgeSnap(movingEdges, otherEdges, "x", undefined, SNAP_THRESHOLD);
-          const snappedX = dragging.position.x + xSnap.offset;
-          // Suppress snap that would pull back to start position (overlap escape)
-          if (xSnap.snapped && !startInfo.escapedX && Math.abs(snappedX - startInfo.x) < 2) {
-            // Don't snap — let the node escape from overlap
-          } else {
-            xOffset = xSnap.offset;
-            xGuides = xSnap.guides;
-            if (xSnap.snapped) {
-              lock.x = snappedX;
-            }
-          }
-        }
-
-        // Y-axis snap with hysteresis
-        let yOffset = 0;
-        let yGuides = [];
-        if (lock.y !== null && Math.abs(dragging.position.y - lock.y) <= SNAP_EXIT_THRESHOLD) {
-          yOffset = lock.y - dragging.position.y;
-          // Show guides at locked position
-          const lockedEdges = getNodeEdges({ ...movingNode, position: { x: dragging.position.x, y: lock.y } });
-          yGuides = findEdgeSnap(lockedEdges, otherEdges, "y", undefined, SNAP_THRESHOLD).guides;
-        } else {
-          lock.y = null;
-          const ySnap = findEdgeSnap(movingEdges, otherEdges, "y", undefined, SNAP_THRESHOLD);
-          const snappedY = dragging.position.y + ySnap.offset;
-          // Suppress snap that would pull back to start position (overlap escape)
-          if (ySnap.snapped && !startInfo.escapedY && Math.abs(snappedY - startInfo.y) < 2) {
-            // Don't snap — let the node escape from overlap
-          } else {
-            yOffset = ySnap.offset;
-            yGuides = ySnap.guides;
-            if (ySnap.snapped) {
-              lock.y = snappedY;
-            }
-          }
-        }
+        const xResult = applyDragSnapAxis("x", lock, movingNode, movingEdges, otherEdges, dragging, startInfo, SNAP_THRESHOLD, SNAP_EXIT_THRESHOLD);
+        const yResult = applyDragSnapAxis("y", lock, movingNode, movingEdges, otherEdges, dragging, startInfo, SNAP_THRESHOLD, SNAP_EXIT_THRESHOLD);
+        const xOffset = xResult.offset;
+        const yOffset = yResult.offset;
 
         dragSnapLock.current[dragging.id] = lock;
-        setGuides([...xGuides, ...yGuides]);
+        setGuides([...xResult.guides, ...yResult.guides]);
 
         const snappedPos = {
           x: dragging.position.x + xOffset,
@@ -329,117 +375,16 @@ export default function useNodeSnapping(nodes, originalOnNodesChange, setNodes, 
           .filter((n) => n.id !== resizing.id)
           .map(getNodeEdges);
 
-        let finalWidth = widthLocked ? lock.lockedWidth : rawWidth;
-        let finalHeight = heightLocked ? lock.lockedHeight : rawHeight;
-        let finalPosX = widthLocked ? lock.lockedPosX : rawPosX;
-        let finalPosY = heightLocked ? lock.lockedPosY : rawPosY;
-        let allGuides = [];
+        const allGuides = [];
 
-        // --- X-axis (width) snapping ---
-        if (!widthLocked) {
-          const xSnap = findEdgeSnap(resizingEdges, otherEdges, "x", xEdge, SNAP_THRESHOLD);
-          const sizeMatch = findSizeMatch(resizingEdges, otherEdges, SNAP_THRESHOLD);
+        const xRes = applyResizeSnapAxis("x", resizingEdges, otherEdges, rawWidth, rawPosX, xEdge, resizeLock, resizing.id, rawWidth, rawHeight, rawPosX, rawPosY, widthLocked, lock, SNAP_THRESHOLD, SNAP_EXIT_THRESHOLD);
+        const yRes = applyResizeSnapAxis("y", resizingEdges, otherEdges, rawHeight, rawPosY, yEdge, resizeLock, resizing.id, rawWidth, rawHeight, rawPosX, rawPosY, heightLocked, lock, SNAP_THRESHOLD, SNAP_EXIT_THRESHOLD);
 
-          let snapWidth = rawWidth;
-          let snapPosX = rawPosX;
-
-          if (xSnap.snapped) {
-            if (xEdge === "right") {
-              snapWidth = rawWidth + xSnap.offset;
-            } else {
-              // left edge: position moves, width adjusts inversely
-              snapPosX = rawPosX + xSnap.offset;
-              snapWidth = rawWidth - xSnap.offset;
-            }
-            allGuides.push(...xSnap.guides);
-          }
-          if (sizeMatch.widthSnap !== null) {
-            const widthDelta = sizeMatch.widthSnap - snapWidth;
-            if (xEdge === "left") {
-              snapPosX -= widthDelta;
-            }
-            snapWidth = sizeMatch.widthSnap;
-          }
-
-          finalWidth = snapWidth;
-          finalPosX = snapPosX;
-
-          if (finalWidth !== rawWidth) {
-            if (!resizeLock.current[resizing.id]) {
-              resizeLock.current[resizing.id] = {
-                lockedWidth: rawWidth, lockedHeight: rawHeight,
-                lockedPosX: rawPosX, lockedPosY: rawPosY,
-                widthTarget: null, heightTarget: null,
-              };
-            }
-            resizeLock.current[resizing.id].lockedWidth = finalWidth;
-            resizeLock.current[resizing.id].lockedPosX = finalPosX;
-            resizeLock.current[resizing.id].widthTarget = finalWidth;
-          }
-        } else {
-          // Show guides while width-locked
-          const lockedEdges = getNodeEdges({
-            measured: null,
-            position: { x: finalPosX, y: rawPosY },
-            width: finalWidth,
-            height: rawHeight,
-          });
-          const xSnap = findEdgeSnap(lockedEdges, otherEdges, "x", xEdge, SNAP_THRESHOLD);
-          if (xSnap.snapped) allGuides.push(...xSnap.guides);
-        }
-
-        // --- Y-axis (height) snapping ---
-        if (!heightLocked) {
-          const ySnap = findEdgeSnap(resizingEdges, otherEdges, "y", yEdge, SNAP_THRESHOLD);
-          const sizeMatch = findSizeMatch(resizingEdges, otherEdges, SNAP_THRESHOLD);
-
-          let snapHeight = rawHeight;
-          let snapPosY = rawPosY;
-
-          if (ySnap.snapped) {
-            if (yEdge === "bottom") {
-              snapHeight = rawHeight + ySnap.offset;
-            } else {
-              // top edge: position moves, height adjusts inversely
-              snapPosY = rawPosY + ySnap.offset;
-              snapHeight = rawHeight - ySnap.offset;
-            }
-            allGuides.push(...ySnap.guides);
-          }
-          if (sizeMatch.heightSnap !== null) {
-            const heightDelta = sizeMatch.heightSnap - snapHeight;
-            if (yEdge === "top") {
-              snapPosY -= heightDelta;
-            }
-            snapHeight = sizeMatch.heightSnap;
-          }
-
-          finalHeight = snapHeight;
-          finalPosY = snapPosY;
-
-          if (finalHeight !== rawHeight) {
-            if (!resizeLock.current[resizing.id]) {
-              resizeLock.current[resizing.id] = {
-                lockedWidth: rawWidth, lockedHeight: rawHeight,
-                lockedPosX: rawPosX, lockedPosY: rawPosY,
-                widthTarget: null, heightTarget: null,
-              };
-            }
-            resizeLock.current[resizing.id].lockedHeight = finalHeight;
-            resizeLock.current[resizing.id].lockedPosY = finalPosY;
-            resizeLock.current[resizing.id].heightTarget = finalHeight;
-          }
-        } else {
-          // Show guides while height-locked
-          const lockedEdges = getNodeEdges({
-            measured: null,
-            position: { x: rawPosX, y: finalPosY },
-            width: rawWidth,
-            height: finalHeight,
-          });
-          const ySnap = findEdgeSnap(lockedEdges, otherEdges, "y", yEdge, SNAP_THRESHOLD);
-          if (ySnap.snapped) allGuides.push(...ySnap.guides);
-        }
+        const finalWidth = xRes.finalSize;
+        const finalPosX = xRes.finalPos;
+        const finalHeight = yRes.finalSize;
+        const finalPosY = yRes.finalPos;
+        allGuides.push(...xRes.guides, ...yRes.guides);
 
         setGuides(allGuides);
 
