@@ -63,7 +63,7 @@ function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
     const engine = engineRef.current;
     if (engine && sceneJSON) {
       setError(null);
-      engine.loadScene(sceneJSON);
+      engine.loadScene(sceneJSON, { forceReload: true });
     }
   }, [engineRef, sceneJSON, setError]);
 
@@ -97,7 +97,7 @@ function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
             setMissingAssets([]);
             const engine = engineRef.current;
             if (engine && sceneJSON) {
-              engine.loadScene(sceneJSON);
+              engine.loadScene(sceneJSON, { forceReload: true });
             }
           }}
         />
