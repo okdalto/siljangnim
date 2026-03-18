@@ -272,6 +272,7 @@ export default class AgentEngine {
       type: "prompt",
       text: ctx.userPrompt,
       files: ctx.files,
+      sceneReferences: ctx.sceneReferences,
       _isRetry: true,
     });
   }
@@ -364,6 +365,65 @@ export default class AgentEngine {
  */
 function _persistChatHistory(engine) {
   storage.writeJson("chat_history.json", engine.chatHistory).catch(() => {});
+}
+
+async function _savePromptFiles(engine, rawFiles = []) {
+  const savedFiles = [];
+  for (const f of rawFiles) {
+    const raw = f.data_b64 || f.data || "";
+    const bytes = base64ToUint8Array(raw);
+    await storage.saveUpload(f.name, bytes.buffer, f.mime_type);
+    savedFiles.push({ name: f.name, mime_type: f.mime_type, size: f.size || bytes.length });
+  }
+  return savedFiles;
+}
+
+function _buildSceneReferencePromptAddition(sceneReferences = []) {
+  if (!sceneReferences.length) return "";
+  const refSections = sceneReferences.map((ref) => {
+    const json = typeof ref.sceneJson === "string" ? ref.sceneJson : JSON.stringify(ref.sceneJson, null, 2);
+    const truncated = json.length > 12000 ? json.slice(0, 12000) + "\n... (truncated)" : json;
+    return `### Referenced Scene: "${ref.title}" (node ${ref.nodeId})\n\`\`\`json\n${truncated}\n\`\`\``;
+  }).join("\n\n");
+  return `\n\n## REFERENCED SCENES\nThe user has referenced the following previous scene(s) from the version tree. Use them as context — the user may want to reuse, combine, or compare elements from these scenes.\n\n${refSections}`;
+}
+
+function _dedupeFiles(files = []) {
+  const seen = new Set();
+  return files.filter((file) => {
+    const key = `${file?.name || ""}:${file?.mime_type || ""}:${file?.size ?? ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function _consumeInjectedPromptQueue(engine) {
+  if (!engine.injectedMessages.length) return null;
+
+  const entries = engine.injectedMessages.splice(0);
+  const textParts = [];
+  const files = [];
+  const sceneReferences = [];
+
+  for (const entry of entries) {
+    if (!entry) continue;
+    if (typeof entry === "string") {
+      if (entry.trim()) textParts.push(entry.trim());
+      continue;
+    }
+    if (entry.text?.trim()) textParts.push(entry.text.trim());
+    if (Array.isArray(entry.files)) files.push(...entry.files);
+    if (Array.isArray(entry.sceneReferences)) sceneReferences.push(...entry.sceneReferences);
+  }
+
+  if (!textParts.length && !files.length && !sceneReferences.length) return null;
+
+  return {
+    userPrompt: textParts.join("\n\n"),
+    files: _dedupeFiles(files),
+    sceneReferences,
+  };
 }
 
 function _releasePendingInteractions(engine) {
@@ -589,11 +649,37 @@ const HANDLERS = {
     const userPrompt = msg.text || "";
     const isRetry = !!msg._isRetry;
     const sceneReferences = msg.sceneReferences || [];
+    const hasPromptPayload = !!userPrompt.trim() || !!msg.files?.length || sceneReferences.length > 0;
 
     if (this.agentBusy) {
-      if (userPrompt.trim()) {
-        this.injectedMessages.push(userPrompt);
-        this.chatHistory.push({ role: "user", text: userPrompt });
+      if (hasPromptPayload) {
+        let savedFiles = [];
+        try {
+          savedFiles = await _savePromptFiles(this, msg.files || []);
+        } catch (e) {
+          this.broadcast({
+            type: "agent_log", agent: "System",
+            message: `Upload failed: ${e.message}`, level: "error",
+          });
+          return;
+        }
+
+        if (savedFiles.length) {
+          this.broadcast({ type: "files_uploaded", files: savedFiles });
+        }
+
+        this.injectedMessages.push({
+          kind: "user_followup",
+          text: userPrompt,
+          files: savedFiles,
+          sceneReferences,
+        });
+
+        const historyEntry = { role: "user", text: userPrompt };
+        if (savedFiles.length) {
+          historyEntry.files = savedFiles.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
+        }
+        this.chatHistory.push(historyEntry);
         _persistChatHistory(this);
         this.broadcast({ type: "message_injected" });
       } else {
@@ -603,29 +689,24 @@ const HANDLERS = {
     }
 
     // Process uploaded files (skip on retry — files already saved)
-    const rawFiles = isRetry ? [] : (msg.files || []);
-    const savedFiles = [];
-    if (rawFiles.length) {
-      for (const f of rawFiles) {
-        try {
-          // f is { name, data_b64 (base64), mime_type, size }
-          const raw = f.data_b64 || f.data || "";
-          const bytes = base64ToUint8Array(raw);
-          await storage.saveUpload(f.name, bytes.buffer, f.mime_type);
-          savedFiles.push({ name: f.name, mime_type: f.mime_type, size: f.size || bytes.length });
-        } catch (e) {
-          this.broadcast({
-            type: "agent_log", agent: "System",
-            message: `Upload failed: ${e.message}`, level: "error",
-          });
-          this.broadcast({ type: "chat_done" });
-          return;
-        }
+    let savedFiles = [];
+    if (isRetry) {
+      savedFiles = msg.files || [];
+    } else {
+      try {
+        savedFiles = await _savePromptFiles(this, msg.files || []);
+      } catch (e) {
+        this.broadcast({
+          type: "agent_log", agent: "System",
+          message: `Upload failed: ${e.message}`, level: "error",
+        });
+        this.broadcast({ type: "chat_done" });
+        return;
       }
     }
 
     // Notify asset system about uploaded files
-    if (savedFiles.length) {
+    if (!isRetry && savedFiles.length) {
       this.broadcast({ type: "files_uploaded", files: savedFiles });
     }
 
@@ -664,81 +745,101 @@ const HANDLERS = {
     const abortController = new AbortController();
     this.abortController = abortController;
 
-    // Gather current workspace state for plan-based execution
-    const currentState = await this._getCurrentState();
-
-    // Auto-sync backendTarget from current scene.json if still "auto"
-    // (fixes desync when scene was saved with backendTarget by a previous agent session)
-    if (this._backendTarget === "auto" && currentState.scene_json?.backendTarget) {
-      this._backendTarget = currentState.scene_json.backendTarget;
-    }
-
-    // Build system prompt addition with referenced scenes
-    let promptAddition = this._promptModeAddition || "";
-    if (sceneReferences.length > 0) {
-      const refSections = sceneReferences.map((ref) => {
-        const json = typeof ref.sceneJson === "string" ? ref.sceneJson : JSON.stringify(ref.sceneJson, null, 2);
-        // Truncate very long scenes to avoid blowing context
-        const truncated = json.length > 12000 ? json.slice(0, 12000) + "\n... (truncated)" : json;
-        return `### Referenced Scene: "${ref.title}" (node ${ref.nodeId})\n\`\`\`json\n${truncated}\n\`\`\``;
-      }).join("\n\n");
-      promptAddition += `\n\n## REFERENCED SCENES\nThe user has referenced the following previous scene(s) from the version tree. Use them as context — the user may want to reuse, combine, or compare elements from these scenes.\n\n${refSections}`;
-    }
-
-    // Save context for mobile background retry + page refresh recovery
-    this._lastPromptContext = { userPrompt, files: savedFiles.length ? savedFiles : undefined };
-    try {
-      sessionStorage.setItem("siljangnim:interruptedPrompt", JSON.stringify({ userPrompt, timestamp: Date.now() }));
-    } catch { /* ignore */ }
-
     // Improvement #10: link errorCollector to injectedMessages for push-based errors
     this.errorCollector.setInjectedMessages(this.injectedMessages);
 
-    // Detect checkpoint for resume (crash recovery)
-    let resumeContext = null;
-    try {
-      const checkpoint = await storage.readJson("agent_checkpoint.json");
-      if (checkpoint && checkpoint.sceneWritten && checkpoint.userPrompt) {
-        const currentScene = await storage.readJson("scene.json").catch(() => null);
-        if (currentScene) {
-          resumeContext = { checkpoint, currentScene };
-          log("System", "이전 작업 체크포인트를 감지했습니다 — 이어서 진행합니다", "info");
-        }
-      }
-    } catch { /* no checkpoint — normal flow */ }
-
     // Run agent asynchronously (with planning when conversation is long)
     (async () => {
+      let firstRun = true;
+      let completedNormally = false;
+      let pendingPrompt = {
+        userPrompt,
+        files: savedFiles.length ? savedFiles : undefined,
+        sceneReferences,
+      };
       try {
         const _glEngine = this._engineRef?.current;
-        await runWithPlan({
-          apiKey: this.apiKey,
-          userPrompt,
-          log,
-          broadcast: (m) => this.broadcast(m),
-          onText,
-          onTextDelta,
-          onTextFinalize,
-          onStatus,
-          files: savedFiles.length ? savedFiles : undefined,
-          messages: this.conversation,
-          currentState,
-          errorCollector: this.errorCollector,
-          userAnswerPromise: () => this.userAnswerPromise(),
-          preprocessPromise: () => this.preprocessPromise(),
-          recordingDonePromise: () => this.recordingDonePromise(),
-          signal: abortController.signal,
-          injectedMessages: this.injectedMessages,
-          systemPromptAddition: promptAddition,
-          assetContext: this._getAssetContext?.() || [],
-          backendTarget: this._backendTarget,
-          modelOverride: this._selectedModel,
-          provider: this.provider,
-          providerConfig: this.providerConfig,
-          toolResultCache: this._toolResultCache,
-          canvasSize: _glEngine?.canvas ? { canvasWidth: _glEngine.canvas.width, canvasHeight: _glEngine.canvas.height } : undefined,
-          resumeContext,
-        });
+        const initialCurrentState = await this._getCurrentState();
+
+        let resumeContext = null;
+        try {
+          const checkpoint = await storage.readJson("agent_checkpoint.json");
+          if (checkpoint && checkpoint.sceneWritten && checkpoint.userPrompt) {
+            const currentScene = await storage.readJson("scene.json").catch(() => null);
+            if (currentScene) {
+              resumeContext = { checkpoint, currentScene };
+              log("System", "이전 작업 체크포인트를 감지했습니다 — 이어서 진행합니다", "info");
+            }
+          }
+        } catch { /* no checkpoint — normal flow */ }
+
+        while (pendingPrompt) {
+          const currentState = firstRun ? initialCurrentState : await this._getCurrentState();
+          firstRun = false;
+
+          if (this._backendTarget === "auto" && currentState.scene_json?.backendTarget) {
+            this._backendTarget = currentState.scene_json.backendTarget;
+          }
+
+          const promptAddition =
+            (this._promptModeAddition || "") +
+            _buildSceneReferencePromptAddition(pendingPrompt.sceneReferences || []);
+
+          this._lastPromptContext = {
+            userPrompt: pendingPrompt.userPrompt,
+            files: pendingPrompt.files?.length ? pendingPrompt.files : undefined,
+            sceneReferences: pendingPrompt.sceneReferences?.length ? pendingPrompt.sceneReferences : undefined,
+          };
+          try {
+            sessionStorage.setItem(
+              "siljangnim:interruptedPrompt",
+              JSON.stringify({
+                userPrompt: pendingPrompt.userPrompt,
+                sceneReferences: pendingPrompt.sceneReferences?.map((ref) => ({
+                  nodeId: ref.nodeId,
+                  title: ref.title,
+                })) || [],
+                timestamp: Date.now(),
+              })
+            );
+          } catch { /* ignore */ }
+
+          await runWithPlan({
+            apiKey: this.apiKey,
+            userPrompt: pendingPrompt.userPrompt,
+            log,
+            broadcast: (m) => this.broadcast(m),
+            onText,
+            onTextDelta,
+            onTextFinalize,
+            onStatus,
+            files: pendingPrompt.files,
+            messages: this.conversation,
+            currentState,
+            errorCollector: this.errorCollector,
+            userAnswerPromise: () => this.userAnswerPromise(),
+            preprocessPromise: () => this.preprocessPromise(),
+            recordingDonePromise: () => this.recordingDonePromise(),
+            signal: abortController.signal,
+            injectedMessages: this.injectedMessages,
+            systemPromptAddition: promptAddition,
+            assetContext: this._getAssetContext?.() || [],
+            backendTarget: this._backendTarget,
+            modelOverride: this._selectedModel,
+            provider: this.provider,
+            providerConfig: this.providerConfig,
+            toolResultCache: this._toolResultCache,
+            canvasSize: _glEngine?.canvas ? { canvasWidth: _glEngine.canvas.width, canvasHeight: _glEngine.canvas.height } : undefined,
+            resumeContext,
+          });
+
+          resumeContext = null;
+          pendingPrompt = _consumeInjectedPromptQueue(this);
+          if (pendingPrompt) {
+            log("System", "Queued follow-up detected — continuing with the next request", "info");
+          }
+        }
+        completedNormally = true;
         this._clearInterruptedPrompt();
         this.broadcast({ type: "chat_done" });
       } catch (err) {
@@ -813,9 +914,23 @@ const HANDLERS = {
         this.broadcast({ type: "assistant_text", text: `Error: ${userMsg}` });
         this.broadcast({ type: "chat_done" });
       } finally {
+        const trailingPrompt = completedNormally ? _consumeInjectedPromptQueue(this) : null;
+        this.errorCollector.setInjectedMessages(null);
         this.abortController = null;
         this.agentBusy = false;
         this.injectedMessages.length = 0;
+        if (trailingPrompt) {
+          setTimeout(() => {
+            this.handleMessage({
+              type: "prompt",
+              text: trailingPrompt.userPrompt,
+              files: trailingPrompt.files,
+              sceneReferences: trailingPrompt.sceneReferences,
+              _isRetry: true,
+            });
+          }, 0);
+          return;
+        }
         drainPendingErrors(this);
       }
     })();

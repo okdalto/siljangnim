@@ -95,6 +95,8 @@ function ProcessingIndicator({ agentStatus, elapsed, thinkingRef }) {
         <span className="italic text-sm">
           {agentStatus?.status === "tool_use"
             ? (TOOL_LABELS[agentStatus.detail] || "처리 중...")
+            : agentStatus?.status === "responding"
+            ? "답변 작성 중..."
             : agentStatus?.status === "thinking"
             ? "생각하는 중..."
             : "생각하는 중"}
@@ -103,7 +105,7 @@ function ProcessingIndicator({ agentStatus, elapsed, thinkingRef }) {
           <span className="text-[10px] opacity-60">{elapsed}초</span>
         )}
       </div>
-      {agentStatus?.detail && agentStatus?.status !== "tool_use" && (
+      {agentStatus?.detail && agentStatus?.status === "thinking" && (
         <p ref={thinkingRef} className="mt-1.5 text-xs italic leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap break-words" style={{ color: "var(--chrome-text-muted)" }}>
           {agentStatus.detail}
         </p>
