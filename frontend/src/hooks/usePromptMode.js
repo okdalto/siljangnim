@@ -1,4 +1,9 @@
-import { useCallback, useState, useRef } from "react";
+import { useCallback, useState } from "react";
+import {
+  buildModeSystemPrompt,
+  generateArtMetadata,
+  interpretPrompt as interpretPromptMode,
+} from "../engine/promptMode.js";
 
 /**
  * Hook managing prompt mode state (Technical / Hybrid / Art).
@@ -9,16 +14,6 @@ export default function usePromptMode() {
     return localStorage.getItem("siljangnim:promptMode") || "hybrid";
   });
   const [lastMetadata, setLastMetadata] = useState(null);
-  const interpreterRef = useRef(null);
-
-  // Lazy load the prompt mode engine
-  const getInterpreter = useCallback(async () => {
-    if (!interpreterRef.current) {
-      const mod = await import("../engine/promptMode.js");
-      interpreterRef.current = mod;
-    }
-    return interpreterRef.current;
-  }, []);
 
   const changeMode = useCallback((mode) => {
     setPromptMode(mode);
@@ -30,20 +25,18 @@ export default function usePromptMode() {
    * Returns interpretation object with technical + art direction layers.
    */
   const interpretPrompt = useCallback(async (userPrompt) => {
-    const mod = await getInterpreter();
-    const interpretation = mod.interpretPrompt(userPrompt, promptMode);
-    const metadata = mod.generateArtMetadata(interpretation);
+    const interpretation = interpretPromptMode(userPrompt, promptMode);
+    const metadata = generateArtMetadata(interpretation);
     setLastMetadata(metadata);
     return interpretation;
-  }, [promptMode, getInterpreter]);
+  }, [promptMode]);
 
   /**
    * Build additional system prompt text based on interpretation.
    */
   const buildModePrompt = useCallback(async (interpretation) => {
-    const mod = await getInterpreter();
-    return mod.buildModeSystemPrompt(interpretation);
-  }, [getInterpreter]);
+    return buildModeSystemPrompt(interpretation);
+  }, []);
 
   return {
     promptMode,

@@ -638,13 +638,13 @@ export async function generateProjectName(chatHistory) {
     if (!userPrompt && !assistantResponse) return null;
 
     const text = await callSmallLLM({
-      system: "Summarize what the user asked for in a very short phrase (under 30 chars). Output ONLY the summary — no quotes, no explanation, no markdown. Write in the same language as the user. Focus on WHAT the user requested, not a creative interpretation.",
-      userContent: `User request: ${userPrompt || "(no prompt)"}`,
-      maxTokens: 30,
+      system: "Extract the core topic from the user's request as a 2-5 word label. No quotes, no explanation. Same language as user.",
+      userContent: userPrompt || "(no prompt)",
+      maxTokens: 12,
     });
 
     if (text && text.length > 0) {
-      return text.replace(/^["']|["']$/g, "").slice(0, 30);
+      return text.replace(/^["']|["']$/g, "").slice(0, 20);
     }
     return null;
   } catch {

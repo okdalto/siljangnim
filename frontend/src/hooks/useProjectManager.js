@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { API_BASE } from "../constants/api.js";
 import { getActiveProjectName, importProjectZip } from "../engine/storage.js";
 
-export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages, agentEngine) {
+export default function useProjectManager(sendRef, agentEngine) {
   const [projectList, setProjectList] = useState([]);
   const [activeProject, setActiveProject] = useState(null);
 

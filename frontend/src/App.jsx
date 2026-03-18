@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -47,24 +47,39 @@ import { nodeTypes, initialNodes } from "./config/nodeConfig.js";
 import useAssetNodes from "./hooks/useAssetNodes.js";
 import { showToast } from "./hooks/useToast.js";
 import ApiKeyModal from "./components/ApiKeyModal.jsx";
-import WelcomeModal from "./components/WelcomeModal.jsx";
-import KeyboardShortcutsHelp from "./components/KeyboardShortcutsHelp.jsx";
 import MobileLayout from "./components/MobileLayout.jsx";
 import Toolbar from "./components/Toolbar.jsx";
 import Timeline from "./components/Timeline.jsx";
 import SnapGuides from "./components/SnapGuides.jsx";
 import KeyframeEditor from "./components/KeyframeEditor.jsx";
 import ProjectTreeSidebar from "./components/ProjectTreeSidebar.jsx";
-import VersionComparePanel from "./components/VersionComparePanel.jsx";
 import SafeModeBanner from "./components/SafeModeBanner.jsx";
-import GitHubSaveDialog from "./components/GitHubSaveDialog.jsx";
-import GitHubLoadDialog from "./components/GitHubLoadDialog.jsx";
 import useVersionCompare from "./hooks/useVersionCompare.js";
 import useGitHub from "./hooks/useGitHub.js";
-import { isSafeMode } from "./engine/portableSchema.js";
+import {
+  buildProvenanceGitHub,
+  isSafeMode,
+  migrateV1toV2,
+  validateManifest,
+} from "./engine/portableSchema.js";
+import {
+  checkForkStatus,
+  forkRepo,
+  loadProjectFromRepo,
+} from "./engine/github.js";
+import {
+  buildModeSystemPrompt,
+  interpretPrompt as interpretPromptMode,
+} from "./engine/promptMode.js";
 import { API_BASE, BROWSER_ONLY } from "./constants/api.js";
 import { PROVIDER_MODEL_IDS } from "./constants/models.js";
 import { nextUndoSeq } from "./utils/undoSeq.js";
+
+const WelcomeModal = lazy(() => import("./components/WelcomeModal.jsx"));
+const KeyboardShortcutsHelp = lazy(() => import("./components/KeyboardShortcutsHelp.jsx"));
+const VersionComparePanel = lazy(() => import("./components/VersionComparePanel.jsx"));
+const GitHubSaveDialog = lazy(() => import("./components/GitHubSaveDialog.jsx"));
+const GitHubLoadDialog = lazy(() => import("./components/GitHubLoadDialog.jsx"));
 
 const UNIFORM_HISTORY_LIMIT = 100;
 
@@ -78,6 +93,23 @@ if (BROWSER_ONLY) {
   _messageBus = new MessageBus();
   _agentEngine = new AgentEngine(_messageBus);
   _messageBus.setEngine(_agentEngine);
+}
+
+function LazyOverlayFallback() {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: "rgba(0,0,0,0.18)" }}
+    >
+      <div
+        className="w-6 h-6 rounded-full animate-spin"
+        style={{
+          border: "2px solid rgba(255,255,255,0.25)",
+          borderTopColor: "rgba(255,255,255,0.9)",
+        }}
+      />
+    </div>
+  );
 }
 
 export default function App() {
@@ -330,7 +362,7 @@ export default function App() {
   const overwriteModeRef = useRef(false);
   overwriteModeRef.current = overwriteMode;
 
-  const project = useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages, _agentEngine);
+  const project = useProjectManager(sendRef, _agentEngine);
 
   // Auto-save (Figma-style)
   const captureThumbnailRef = useRef(captureThumbnail);
@@ -512,11 +544,9 @@ export default function App() {
   useEffect(() => {
     if (prevModeRef.current === promptModeHook.promptMode) return;
     prevModeRef.current = promptModeHook.promptMode;
-    import("./engine/promptMode.js").then((mod) => {
-      const interp = mod.interpretPrompt("", promptModeHook.promptMode);
-      const addition = mod.buildModeSystemPrompt(interp);
-      sendRef.current?.({ type: "set_prompt_mode_addition", addition: addition || "" });
-    }).catch(() => {});
+    const interp = interpretPromptMode("", promptModeHook.promptMode);
+    const addition = buildModeSystemPrompt(interp);
+    sendRef.current?.({ type: "set_prompt_mode_addition", addition: addition || "" });
   }, [promptModeHook.promptMode]);
 
   // In browser-only mode, request initial state on mount
@@ -615,7 +645,6 @@ export default function App() {
     if (!owner || !repo) return;
     try {
       chat.addLog({ agent: "GitHub", message: `Forking ${owner}/${repo}...`, level: "info" });
-      const { forkRepo, checkForkStatus, loadProjectFromRepo } = await import("./engine/github.js");
       const fork = await forkRepo(github.token, owner, repo);
       // Wait for fork to be ready
       await checkForkStatus(github.token, github.user.login, repo);
@@ -626,7 +655,6 @@ export default function App() {
       const result = await loadProjectFromRepo(github.token, github.user.login, repo, path);
 
       // Import with forked_from set
-      const { migrateV1toV2, validateManifest, buildProvenanceGitHub } = await import("./engine/portableSchema.js");
       let manifest = result.manifest || migrateV1toV2({ name: repo });
       manifest = validateManifest(manifest);
       manifest.provenance = buildProvenanceGitHub(repo, github.user.login, result.commitSha, path);
@@ -789,19 +817,15 @@ export default function App() {
     sceneJSON, uiConfig, paused, duration, loop, backendTarget, safeModeActive,
   }), [sceneJSON, uiConfig, paused, duration, loop, backendTarget, safeModeActive]);
 
-  const handleProjectDeleteAndReset = useCallback((name) => {
-    project.handleProjectDelete(name);
-  }, [project.handleProjectDelete]);
-
   const projectCtxValue = useMemo(() => ({
     projectList: project.projectList,
     activeProject: project.activeProject,
     onProjectLoad: project.handleProjectLoad,
-    onProjectDelete: handleProjectDeleteAndReset,
+    onProjectDelete: project.handleProjectDelete,
     onProjectRename: project.handleProjectRename,
     onProjectFork: project.handleProjectFork,
     onProjectImport: project.handleProjectImport,
-  }), [project.projectList, project.activeProject, project.handleProjectLoad, handleProjectDeleteAndReset, project.handleProjectRename, project.handleProjectFork, project.handleProjectImport]);
+  }), [project.projectList, project.activeProject, project.handleProjectLoad, project.handleProjectDelete, project.handleProjectRename, project.handleProjectFork, project.handleProjectImport]);
 
   const chatCtxValue = useMemo(() => ({
     messages: chat.messages,
@@ -906,7 +930,11 @@ export default function App() {
           completionInfo={recCompletionInfo}
         />
 
-        {showWelcome && <WelcomeModal onComplete={handleWelcomeComplete} />}
+        {showWelcome && (
+          <Suspense fallback={<LazyOverlayFallback />}>
+            <WelcomeModal onComplete={handleWelcomeComplete} />
+          </Suspense>
+        )}
 
         {!showWelcome && apiKey.apiKeyRequired && (
           <ApiKeyModal
@@ -918,32 +946,40 @@ export default function App() {
           />
         )}
 
-        {showShortcuts && <KeyboardShortcutsHelp onClose={() => setShowShortcuts(false)} />}
+        {showShortcuts && (
+          <Suspense fallback={<LazyOverlayFallback />}>
+            <KeyboardShortcutsHelp onClose={() => setShowShortcuts(false)} />
+          </Suspense>
+        )}
 
         {showGitHubSave && github.isAuthenticated && (
-          <GitHubSaveDialog
-            token={github.token}
-            user={github.user}
-            projectName={project.activeProject || "untitled"}
-            captureThumbnail={captureThumbnail}
-            onClose={() => setShowGitHubSave(false)}
-            onSaved={({ owner, repo, path }) => {
-              setShowGitHubSave(false);
-              chat.addLog({ agent: "GitHub", message: `Pushed to ${owner}/${repo}${path ? `/${path}` : ""}`, level: "info" });
-            }}
-          />
+          <Suspense fallback={<LazyOverlayFallback />}>
+            <GitHubSaveDialog
+              token={github.token}
+              user={github.user}
+              projectName={project.activeProject || "untitled"}
+              captureThumbnail={captureThumbnail}
+              onClose={() => setShowGitHubSave(false)}
+              onSaved={({ owner, repo, path }) => {
+                setShowGitHubSave(false);
+                chat.addLog({ agent: "GitHub", message: `Pushed to ${owner}/${repo}${path ? `/${path}` : ""}`, level: "info" });
+              }}
+            />
+          </Suspense>
         )}
 
         {showGitHubLoad && (
-          <GitHubLoadDialog
-            token={github.token}
-            isAuthenticated={github.isAuthenticated}
-            onClose={() => setShowGitHubLoad(false)}
-            onImported={(meta) => {
-              setShowGitHubLoad(false);
-              sendRef.current?.({ type: "project_load", name: meta.name });
-            }}
-          />
+          <Suspense fallback={<LazyOverlayFallback />}>
+            <GitHubLoadDialog
+              token={github.token}
+              isAuthenticated={github.isAuthenticated}
+              onClose={() => setShowGitHubLoad(false)}
+              onImported={(meta) => {
+                setShowGitHubLoad(false);
+                sendRef.current?.({ type: "project_load", name: meta.name });
+              }}
+            />
+          </Suspense>
         )}
 
         {kf.keyframeEditorTarget && (
@@ -961,11 +997,13 @@ export default function App() {
         )}
 
         {(compare.isComparing || compare.compareLoading) && (
-          <VersionComparePanel
-            result={compare.compareResult}
-            loading={compare.compareLoading}
-            onClose={compare.cancelCompare}
-          />
+          <Suspense fallback={<LazyOverlayFallback />}>
+            <VersionComparePanel
+              result={compare.compareResult}
+              loading={compare.compareLoading}
+              onClose={compare.cancelCompare}
+            />
+          </Suspense>
         )}
 
         {isMobile ? (

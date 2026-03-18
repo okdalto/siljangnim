@@ -1,4 +1,4 @@
-import { updateNodeMetadata, generateProjectName } from "../../engine/projectTree.js";
+import { generateProjectName, renameNode, updateNodeMetadata } from "../../engine/projectTree.js";
 import * as storage from "../../engine/storage.js";
 import { unpackBufferRefs } from "./helpers.js";
 
@@ -84,7 +84,6 @@ export function handleChatDone(msg, deps) {
               const activeNodeId2 = pt2?.activeNodeId;
               if (activeNodeId2) {
                 try {
-                  const { renameNode } = await import("../../engine/projectTree.js");
                   await renameNode(activeNodeId2, aiName);
                   pt2.loadTree?.(updated.display_name);
                 } catch (e) {
