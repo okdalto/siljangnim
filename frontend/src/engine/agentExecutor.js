@@ -91,7 +91,7 @@ const WRITE_TOOLS = new Set([
   "open_panel", "close_panel", "delete_asset", "clear_viewport",
 ]);
 const BLOCKING_TOOLS = new Set(["ask_user", "start_recording", "run_preprocess"]);
-const SCENE_DEPENDENT = new Set(["check_browser_errors", "capture_viewport"]);
+const SCENE_DEPENDENT = new Set(["check_browser_errors", "inspect_viewport_state", "capture_viewport"]);
 
 // ---------------------------------------------------------------------------
 // Checkpoint helpers (fire-and-forget, never block the agent loop)
@@ -1163,7 +1163,8 @@ async function _runAgentLoop({
 const DEBUG_SUBAGENT_MAX_TURNS = 10;
 /** Tools available to the debug sub-agent (read-only + diagnostics + vision). */
 const DEBUG_TOOLS_NAMES = new Set([
-  "read_file", "list_files", "list_uploaded_files", "search_code", "check_browser_errors", "capture_viewport",
+  "read_file", "list_files", "list_uploaded_files", "search_code",
+  "check_browser_errors", "inspect_viewport_state", "capture_viewport",
 ]);
 const DEBUG_TOOLS = TOOLS.filter((t) => DEBUG_TOOLS_NAMES.has(t.name));
 
@@ -1176,6 +1177,7 @@ Your job: Analyze errors, diagnose root causes, and return a clear, actionable d
 - list_files / list_uploaded_files: See what files exist
 - search_code: Grep for strings/patterns across all workspace code
 - check_browser_errors: Check for runtime errors in the browser
+- inspect_viewport_state: Read visible viewport UI overlays such as the red error box
 
 ## Your workflow
 1. Read the error information provided

@@ -1,4 +1,4 @@
-import { memo, useCallback, useContext, useRef, useState } from "react";
+import { memo, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { NodeResizer } from "@xyflow/react";
 import ResolutionSelector from "../components/viewport/ResolutionSelector.jsx";
 import useStopWheelPropagation from "../hooks/useStopWheelPropagation.js";
@@ -14,7 +14,7 @@ import EngineContext from "../contexts/EngineContext.js";
 function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
   const { sceneJSON, paused, backendTarget, safeModeActive } = useContext(SceneContext);
   const parentEngineRef = useContext(EngineContext);
-  const { onError } = data;
+  const { onError, onViewportStateChange } = data;
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [copied, setCopied] = useState(false);
@@ -25,7 +25,7 @@ function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
     useEngineInit(canvasRef, { backendTarget: data.backendTarget, onError });
 
   // Scene loading + pause + backend switching
-  useSceneLoader(engineRef, { sceneJSON, paused, backendTarget, parentEngineRef, setError });
+  useSceneLoader(engineRef, { sceneJSON, paused, backendTarget, parentEngineRef, setError, onError });
 
   // Canvas resize (fixed vs auto)
   const { resolution, fixedResolution, setFixedResolution } =
@@ -44,6 +44,19 @@ function ViewportNode({ id, data, standalone = false, hideHeader = false }) {
   } = useViewportInput(engineRef, canvasRef, containerRef);
 
   useStopWheelPropagation(containerRef);
+
+  useEffect(() => {
+    const missingAssetLabels = missingAssets.map((asset) =>
+      asset?.path || asset?.filename || asset?.name || asset?.id || String(asset)
+    );
+    onViewportStateChange?.({
+      error: error || null,
+      safeModeActive: !!safeModeActive,
+      missingAssets: missingAssetLabels,
+      hasScene: !!sceneJSON,
+      backendName: backendName || null,
+    });
+  }, [onViewportStateChange, error, safeModeActive, missingAssets, sceneJSON, backendName]);
 
   const reloadScene = useCallback(() => {
     const engine = engineRef.current;

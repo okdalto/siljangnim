@@ -12,6 +12,31 @@ import { storeSuccessPattern } from "./sceneTools.js";
 const CHECK_ERRORS_WAIT_MS = 3000;
 const CHECK_ERRORS_LATE_WAIT_MS = 800;
 
+function formatViewportState(viewportState, { includeNeutral = false } = {}) {
+  if (!viewportState) return "";
+
+  const parts = [];
+  if (viewportState.error) {
+    parts.push(`Viewport error overlay is visible RIGHT NOW:\n  - ${viewportState.error}`);
+  }
+  if (viewportState.safeModeActive) {
+    parts.push("Viewport is currently in Safe Mode. Scene scripts are blocked until the project is trusted.");
+  }
+  if (viewportState.missingAssets?.length) {
+    parts.push(
+      "Missing assets overlay is visible:\n" +
+      viewportState.missingAssets.map((asset) => `  - ${asset}`).join("\n")
+    );
+  }
+  if (includeNeutral && !viewportState.error && !viewportState.safeModeActive && !viewportState.missingAssets?.length) {
+    parts.push(viewportState.hasScene
+      ? "Viewport has a loaded scene and no visible UI overlay errors."
+      : "Viewport currently has no scene loaded.");
+  }
+
+  return parts.join("\n\n");
+}
+
 // ---------------------------------------------------------------------------
 // Structured error parsing
 // ---------------------------------------------------------------------------
@@ -69,6 +94,7 @@ export async function toolCheckBrowserErrors(input, broadcast, ctx) {
   const errorCollector = ctx.errorCollector;
   // Wait for errors to arrive (waits for scene load first)
   const errors = await errorCollector.waitForErrors(CHECK_ERRORS_WAIT_MS);
+  const viewportState = errorCollector.getViewportState?.() || null;
 
   // Second short wait to catch late-arriving WebGPU validation errors
   // (GPU shader compilation and pipeline creation are async)
@@ -90,6 +116,10 @@ export async function toolCheckBrowserErrors(input, broadcast, ctx) {
   }
 
   const parts = [];
+  const viewportSummary = formatViewportState(viewportState);
+  if (viewportSummary) {
+    parts.push(`Viewport UI state:\n${viewportSummary}`);
+  }
 
   // Report setup status — helps diagnose white screens with "no errors"
   if (!errorCollector.isSetupReady()) {
@@ -123,6 +153,17 @@ export async function toolCheckBrowserErrors(input, broadcast, ctx) {
     return "No browser errors detected. Setup succeeded and render loop is running.";
   }
   return parts.join("\n\n");
+}
+
+export async function toolInspectViewportState(input, broadcast, ctx) {
+  const viewportState = ctx.errorCollector?.getViewportState?.() || null;
+  if (!viewportState) {
+    return "Viewport state is unavailable in this context.";
+  }
+
+  const details = formatViewportState(viewportState, { includeNeutral: true });
+  const backendLine = viewportState.backendName ? `\nBackend: ${viewportState.backendName}` : "";
+  return `${details}${backendLine}`;
 }
 
 export async function toolDebugSubagent(input, broadcast, ctx) {

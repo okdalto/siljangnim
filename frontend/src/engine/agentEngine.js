@@ -88,6 +88,13 @@ export default class AgentEngine {
       errors: [],
       _resolve: null,
       _engineRef: null, // React ref to GLEngine for accessing renderer validation errors
+      _viewportState: {
+        error: null,
+        safeModeActive: false,
+        missingAssets: [],
+        hasScene: false,
+        backendName: null,
+      },
       // Scene load acknowledgement — resolves when viewport finishes loading
       _sceneLoadResolve: null,
       _sceneLoaded: true, // starts as true (no pending load)
@@ -96,6 +103,23 @@ export default class AgentEngine {
       // --- Public accessors ---
       setEngineRef(ref) { this._engineRef = ref; },
       getEngineRef() { return this._engineRef; },
+      setViewportState(state = {}) {
+        this._viewportState = {
+          ...this._viewportState,
+          ...state,
+          missingAssets: Array.isArray(state.missingAssets)
+            ? state.missingAssets.slice(0, 20)
+            : this._viewportState.missingAssets,
+        };
+      },
+      getViewportState() {
+        return this._viewportState
+          ? {
+              ...this._viewportState,
+              missingAssets: [...(this._viewportState.missingAssets || [])],
+            }
+          : null;
+      },
       isSetupReady() { return this._setupReady; },
       setInjectedMessages(msgs) { this._injectedMessages = msgs; },
       drainLateErrors() {

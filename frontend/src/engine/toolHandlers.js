@@ -7,7 +7,7 @@ import { toolWriteScene, toolEditScene, toolClearViewport, toolUseTemplate } fro
 import { toolReadFile, toolWriteFile, toolListFiles, toolListUploadedFiles, toolDeleteAsset, toolSearchCode, toolUnzipAsset } from "./tools/fileTools.js";
 import { toolStartRecording, toolStopRecording, toolCaptureViewport, toolSetTimeline } from "./tools/mediaTools.js";
 import { toolOpenPanel, toolClosePanel, toolAskUser } from "./tools/uiTools.js";
-import { toolCheckBrowserErrors, toolDebugSubagent, toolRunPreprocess, toolWebFetch } from "./tools/debugTools.js";
+import { toolCheckBrowserErrors, toolDebugSubagent, toolInspectViewportState, toolRunPreprocess, toolWebFetch } from "./tools/debugTools.js";
 
 // ---------------------------------------------------------------------------
 // Dispatch table
@@ -26,6 +26,7 @@ const TOOL_HANDLERS = {
   start_recording: toolStartRecording,
   stop_recording: toolStopRecording,
   check_browser_errors: toolCheckBrowserErrors,
+  inspect_viewport_state: toolInspectViewportState,
   ask_user: toolAskUser,
   delete_asset: toolDeleteAsset,
   set_timeline: toolSetTimeline,

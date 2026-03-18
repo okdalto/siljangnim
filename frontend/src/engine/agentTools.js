@@ -225,6 +225,17 @@ const TOOLS = [
     },
   },
   {
+    name: "inspect_viewport_state",
+    description:
+      "Read the current viewport UI state directly. Returns whether a visible error overlay, " +
+      "safe-mode banner, or missing-assets overlay is currently shown. Use this when the user " +
+      "can see a viewport error but the canvas screenshot alone may miss it.",
+    input_schema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
     name: "edit_scene",
     description:
       "Make surgical text-level edits to scene.json script sections (setup, render, cleanup) " +
