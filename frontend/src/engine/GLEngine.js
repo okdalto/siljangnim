@@ -29,7 +29,7 @@ import * as noise from "./noise.js";
 import * as glsl from "./glslSnippets.js";
 import { createVerletSystem } from "./verletPhysics.js";
 import VideoFrameExtractor from "./VideoFrameExtractor.js";
-import { selectBackend, getBackendDisplayName, BackendType, WebGPUBackend } from "./gpu/index.js";
+import { selectBackend, getBackendDisplayName, BackendType, WebGLBackend, WebGPUBackend } from "./gpu/index.js";
 import * as shaderTarget from "./gpu/shaderTarget.js";
 import { RenderGraph } from "./gpu/renderGraph.js";
 import { transpileGLSL, transpileFragmentGLSL, transpileVertexGLSL } from "./gpu/glslToWgsl.js";
@@ -443,7 +443,6 @@ export default class GLEngine {
     if (!this.gl || this.gl.isContextLost()) {
       this._initGL();
     }
-    const { WebGLBackend } = await import("./gpu/WebGLBackend.js");
     const backend = new WebGLBackend();
     // Initialize wrapping the existing GL context
     backend.canvas = this.canvas;

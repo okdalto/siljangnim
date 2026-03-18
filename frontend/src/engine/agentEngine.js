@@ -341,6 +341,22 @@ function _persistChatHistory(engine) {
   storage.writeJson("chat_history.json", engine.chatHistory).catch(() => {});
 }
 
+function _releasePendingInteractions(engine) {
+  if (engine._userAnswerResolve) {
+    engine._userAnswerResolve("(cancelled)");
+    engine._userAnswerResolve = null;
+  }
+  if (engine._preprocessReject) {
+    engine._preprocessReject(new Error("cancelled"));
+    engine._preprocessResolve = null;
+    engine._preprocessReject = null;
+  }
+  if (engine._recordingDoneResolve) {
+    engine._recordingDoneResolve();
+    engine._recordingDoneResolve = null;
+  }
+}
+
 function makeCallbacks(engine) {
   const log = (agent, message, level) => {
     engine.broadcast({ type: "agent_log", agent, message, level });
@@ -553,6 +569,7 @@ const HANDLERS = {
       if (userPrompt.trim()) {
         this.injectedMessages.push(userPrompt);
         this.chatHistory.push({ role: "user", text: userPrompt });
+        _persistChatHistory(this);
         this.broadcast({ type: "message_injected" });
       } else {
         this.broadcast({ type: "chat_done" });
@@ -863,6 +880,7 @@ const HANDLERS = {
   async new_chat(msg) {
     // Abort any in-progress agent call
     if (this.abortController) {
+      _releasePendingInteractions(this);
       this.abortController.abort();
       this.abortController = null;
       this.agentBusy = false;
@@ -1004,19 +1022,7 @@ const HANDLERS = {
 
   async cancel_agent(msg) {
     if (this.abortController) {
-      if (this._userAnswerResolve) {
-        this._userAnswerResolve("(cancelled)");
-        this._userAnswerResolve = null;
-      }
-      if (this._preprocessReject) {
-        this._preprocessReject(new Error("cancelled"));
-        this._preprocessResolve = null;
-        this._preprocessReject = null;
-      }
-      if (this._recordingDoneResolve) {
-        this._recordingDoneResolve();
-        this._recordingDoneResolve = null;
-      }
+      _releasePendingInteractions(this);
       // Abort first — the finally block in the prompt handler will clear the controller
       this.abortController.abort();
       // Do NOT clear abortController here; the async handler's finally block handles cleanup

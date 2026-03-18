@@ -12,6 +12,7 @@ import { detectToolLoop, detectErrorLoop, normalizeError, isUnrecoverableError }
 import { isVisionCapable, filterToolsForModel, estimateBytesPerToken } from "./modelCapabilities.js";
 import { compactMessages } from "./agentMessageCompactor.js";
 import { sanitizeOrphanedToolUse } from "./sanitizeMessages.js";
+import { advancedSections } from "./prompts/advancedSections.js";
 import * as storage from "./storage.js";
 
 /** Detect platform type for prompt section filtering. */
@@ -105,6 +106,16 @@ function _clearCheckpoint() {
   storage.deleteFile("agent_checkpoint.json").catch(() => {});
 }
 
+function describeAttachedFiles(files = []) {
+  if (!files.length) return "";
+  return files.map(
+    (f) =>
+      `[Uploaded file: ${f.name} (${f.size ?? "unknown"} bytes, ${f.mime_type || "unknown type"}) — ` +
+      `use read_file tool with path='uploads/${f.name}' to read its contents. ` +
+      `The file is accessible at /api/uploads/${f.name}]`
+  ).join("\n");
+}
+
 function withToolTimeout(promise, ms, name) {
   return new Promise((resolve, reject) => {
     const t = setTimeout(() => reject(new Error(`Tool "${name}" timed out after ${ms / 1000}s`)), ms);
@@ -124,14 +135,9 @@ const MODEL_THINKING_MAX = 32000; // with explicit budget: ~10k thinking + ~22k 
 // ---------------------------------------------------------------------------
 
 function buildMultimodalContent(userPrompt, files) {
-  const descs = files.map(
-    (f) =>
-      `[Uploaded file: ${f.name} (${f.size} bytes, ${f.mime_type}) — ` +
-      `use read_file tool with path='uploads/${f.name}' to read its contents. ` +
-      `The file is accessible at /api/uploads/${f.name}]`
-  );
+  const descText = describeAttachedFiles(files);
   let text = userPrompt || "The user uploaded these files.";
-  if (descs.length) text += "\n\n" + descs.join("\n");
+  if (descText) text += "\n\n" + descText;
   return [{ type: "text", text }];
 }
 
@@ -203,7 +209,6 @@ async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarge
     // Force-include WebGPU-related sections when backend needs WebGPU
     if (isPureWebGPU || isHybrid) {
       try {
-        const { advancedSections } = await import("./prompts/advancedSections.js");
         const webgpuSectionIds = new Set(isHybrid
           ? ["per_project_backend"]  // hybrid doesn't need wgsl_rules for rendering
           : ["wgsl_rules", "per_project_backend"]);
@@ -490,7 +495,7 @@ async function _executeOneTool(block, ctx) {
         toolCache.set(cacheKey, { result, ts: Date.now() });
       }
       // Invalidate cache on write operations
-      if (block.name === "write_scene" || block.name === "edit_scene" || block.name === "write_file") {
+      if (WRITE_TOOLS.has(block.name)) {
         toolCache.clear();
       }
     }
@@ -1206,9 +1211,7 @@ export async function runDebugSubagent({
 }) {
   // Use lightweight model for debug sub-agent (haiku for Anthropic, etc.)
   const { getSmallModel } = await import("./llmClient.js");
-  const modelName = providerConfig.model || getSmallModel(provider) || "claude-haiku-4-5-20251001";
-  const isAnthropic = provider === "anthropic";
-  const useThinking = false; // lightweight model — no extended thinking
+  const modelName = getSmallModel(provider) || providerConfig.model || "claude-haiku-4-5-20251001";
   const maxTokens = providerConfig.max_tokens || MODEL_COMPLEX_MAX;
   const visionEnabled = isVisionCapable(provider, modelName, providerConfig);
 
@@ -1335,8 +1338,8 @@ export async function runDebugSubagent({
             type: "tool_result",
             tool_use_id: block.id,
             content: [
-              { type: "text", text: result.text || "Viewport capture:" },
-              { type: "image", source: { type: "base64", media_type: result.media_type, data: result.data } },
+              { type: "text", text: result.text || `Viewport capture (${result.width}×${result.height})` },
+              { type: "image", source: { type: "base64", media_type: result.media_type, data: result.base64 } },
             ],
           };
         } else {
@@ -1376,11 +1379,11 @@ export async function runDebugSubagent({
  *
  * @returns {Object|null} Parsed plan, or null if planning fails
  */
-async function runPlanner({ apiKey, userPrompt, conversation, currentState, log, onStatus, signal, provider = "anthropic", providerConfig = {} }) {
+async function runPlanner({ apiKey, userPrompt, conversation, currentState, files = [], log, onStatus, signal, provider = "anthropic", providerConfig = {} }) {
   onStatus?.("thinking", "작업 계획 중...");
   log("System", "Running planner for execution context rebuild", "info");
 
-  const plannerMessages = buildPlannerMessages(userPrompt, conversation, currentState);
+  const plannerMessages = buildPlannerMessages(userPrompt, conversation, currentState, files);
 
   try {
     const { getSmallModel } = await import("./llmClient.js");
@@ -1513,7 +1516,7 @@ export async function runWithPlan({
 
   // --- Phase 1: Plan ---
   const plan = await runPlanner({
-    apiKey, userPrompt, conversation: messages, currentState,
+    apiKey, userPrompt, conversation: messages, currentState, files,
     log, onStatus, signal, provider, providerConfig,
   });
 
@@ -1536,7 +1539,7 @@ export async function runWithPlan({
   );
 
   const { systemPrompt: execSystemPrompt, messages: execMessages } =
-    buildExecutionContext(plan, currentState, baseSystemPrompt);
+    buildExecutionContext(plan, currentState, baseSystemPrompt, files);
 
   // --- Phase 3: Run generator with rebuilt context ---
   // We still append user message to the ORIGINAL conversation for history,

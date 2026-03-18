@@ -10,9 +10,10 @@
 
 import {
   MANIFEST_FILENAME,
-  validateManifest,
-  buildProvenanceZip,
   createProjectManifest,
+  buildProvenanceZip,
+  migrateV1toV2,
+  validateManifest,
 } from "./portableSchema.js";
 
 import * as storageApi from "./storage.js";
@@ -808,7 +809,6 @@ export async function importProjectFromZip(zipFile, options = {}) {
 
   // Migrate v1 -> v2 if needed
   if (!meta.schema_version || meta.schema_version < 2) {
-    const { migrateV1toV2 } = await import("./portableSchema.js");
     meta = migrateV1toV2(meta);
   }
   meta = validateManifest(meta);

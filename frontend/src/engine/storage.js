@@ -179,6 +179,22 @@ async function batchDelete(storeName, keys) {
   await Promise.all(keys.map((k) => idbReq(store.delete(k))));
 }
 
+async function deleteEntriesWithPrefix(storeName, prefix) {
+  const store = await tx(storeName);
+  const allKeys = await idbReq(store.getAllKeys());
+  const keys = allKeys.filter((key) => key.startsWith(prefix));
+  if (!keys.length) return;
+
+  const db = await openDB();
+  const transaction = db.transaction(storeName, "readwrite");
+  const objectStore = transaction.objectStore(storeName);
+  for (const key of keys) objectStore.delete(key);
+  await new Promise((resolve, reject) => {
+    transaction.oncomplete = resolve;
+    transaction.onerror = () => reject(transaction.error);
+  });
+}
+
 // ---------------------------------------------------------------------------
 // File key helpers
 // ---------------------------------------------------------------------------
@@ -601,34 +617,10 @@ export async function deleteProject(name) {
   await idbReq(metaStore.delete(sanitized));
 
   // Delete all files in a single transaction
-  const filesStore = await tx(STORE_FILES);
-  const allKeys = await idbReq(filesStore.getAllKeys());
-  const fileKeys = allKeys.filter((k) => k.startsWith(prefix));
-  if (fileKeys.length) {
-    const db = await openDB();
-    const fileTx = db.transaction(STORE_FILES, "readwrite");
-    const ws = fileTx.objectStore(STORE_FILES);
-    for (const key of fileKeys) ws.delete(key);
-    await new Promise((resolve, reject) => {
-      fileTx.oncomplete = resolve;
-      fileTx.onerror = () => reject(fileTx.error);
-    });
-  }
+  await deleteEntriesWithPrefix(STORE_FILES, prefix);
 
   // Delete all blobs in a single transaction
-  const blobStore = await tx(STORE_BLOBS);
-  const allBlobKeys = await idbReq(blobStore.getAllKeys());
-  const blobKeys = allBlobKeys.filter((k) => k.startsWith(prefix));
-  if (blobKeys.length) {
-    const db = await openDB();
-    const blobTx = db.transaction(STORE_BLOBS, "readwrite");
-    const bs = blobTx.objectStore(STORE_BLOBS);
-    for (const key of blobKeys) bs.delete(key);
-    await new Promise((resolve, reject) => {
-      blobTx.oncomplete = resolve;
-      blobTx.onerror = () => reject(blobTx.error);
-    });
-  }
+  await deleteEntriesWithPrefix(STORE_BLOBS, prefix);
 
   // Delete all project nodes
   await deleteProjectNodes(sanitized);
@@ -793,35 +785,12 @@ export async function forkProject(srcName, newDisplayName) {
 
 export async function newUntitledWorkspace() {
   const prefix = `${DEFAULT_PROJECT}/`;
-  const db = await openDB();
 
   // Clear all _untitled files in a single transaction
-  const filesStore = await tx(STORE_FILES);
-  const allKeys = await idbReq(filesStore.getAllKeys());
-  const fileKeys = allKeys.filter((k) => k.startsWith(prefix));
-  if (fileKeys.length) {
-    const fileTx = db.transaction(STORE_FILES, "readwrite");
-    const ws = fileTx.objectStore(STORE_FILES);
-    for (const key of fileKeys) ws.delete(key);
-    await new Promise((resolve, reject) => {
-      fileTx.oncomplete = resolve;
-      fileTx.onerror = () => reject(fileTx.error);
-    });
-  }
+  await deleteEntriesWithPrefix(STORE_FILES, prefix);
 
   // Clear all _untitled blobs in a single transaction
-  const blobStore = await tx(STORE_BLOBS);
-  const allBlobKeys = await idbReq(blobStore.getAllKeys());
-  const blobKeys = allBlobKeys.filter((k) => k.startsWith(prefix));
-  if (blobKeys.length) {
-    const blobTx = db.transaction(STORE_BLOBS, "readwrite");
-    const bs = blobTx.objectStore(STORE_BLOBS);
-    for (const key of blobKeys) bs.delete(key);
-    await new Promise((resolve, reject) => {
-      blobTx.oncomplete = resolve;
-      blobTx.onerror = () => reject(blobTx.error);
-    });
-  }
+  await deleteEntriesWithPrefix(STORE_BLOBS, prefix);
 
   // Clear version tree nodes for _untitled
   await deleteProjectNodes(DEFAULT_PROJECT);

@@ -58,6 +58,17 @@ Guidelines:
 const PLANNER_MODEL = "claude-haiku-4-5-20251001";
 const PLANNER_MAX_TOKENS = 2048;
 
+function describeAttachedFiles(files = []) {
+  if (!files.length) return "";
+  return files
+    .map(
+      (f) =>
+        `- ${f.name} (${f.size ?? "unknown"} bytes, ${f.mime_type || "unknown type"}) — ` +
+        `read via uploads/${f.name}`
+    )
+    .join("\n");
+}
+
 // ---------------------------------------------------------------------------
 // Should we use planning?
 // ---------------------------------------------------------------------------
@@ -198,7 +209,7 @@ export function shouldPlan(conversationLength, userPrompt, opts = {}) {
  * Build the messages array for the planner call.
  * Includes a condensed conversation summary + current state + new request.
  */
-export function buildPlannerMessages(userPrompt, conversation, currentState) {
+export function buildPlannerMessages(userPrompt, conversation, currentState, files = []) {
   const messages = [];
 
   // Include recent conversation exchanges (condensed)
@@ -236,6 +247,9 @@ export function buildPlannerMessages(userPrompt, conversation, currentState) {
   const wsKeys = Object.keys(wsFiles);
   if (wsKeys.length) {
     parts.push(`Workspace files: ${wsKeys.join(", ")}`);
+  }
+  if (files.length) {
+    parts.push(`Attached files:\n${describeAttachedFiles(files)}`);
   }
 
   messages.push({
@@ -284,7 +298,7 @@ export function parsePlan(text) {
  * @param {string} baseSystemPrompt - the normal full system prompt
  * @returns {{ systemPrompt: string, messages: Array }}
  */
-export function buildExecutionContext(plan, currentState, baseSystemPrompt) {
+export function buildExecutionContext(plan, currentState, baseSystemPrompt, files = []) {
   // ---- Enhanced system prompt with plan ----
   let systemPrompt = baseSystemPrompt;
 
@@ -361,6 +375,9 @@ export function buildExecutionContext(plan, currentState, baseSystemPrompt) {
       (a) => `- "${a.semanticName}" (${a.filename}, ${a.category}${a.processingStatus !== "ready" ? `, ${a.processingStatus}` : ""})`
     );
     contextParts.push(`Workspace assets:\n${assetLines.join("\n")}`);
+  }
+  if (files.length) {
+    contextParts.push(`Attached files for this request:\n${describeAttachedFiles(files)}`);
   }
 
   const userContent = contextParts.length
