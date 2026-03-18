@@ -29,6 +29,7 @@ import {
   trustManifest,
 } from "./portableSchema.js";
 import { base64ToUint8Array } from "../utils/base64Utils.js";
+import { asyncOr } from "../utils/asyncOr.js";
 
 const DB_NAME = "siljangnim";
 const DB_VERSION = 2;
@@ -543,15 +544,17 @@ export async function loadProject(name) {
   let chatHistory = [];
   let debugLogs = [];
 
-  try { sceneJson = await readJson("scene.json"); } catch { /* empty */ }
-  try { uiConfig = await readJson("ui_config.json"); } catch { /* empty */ }
-  try { workspaceState = await readJson("workspace_state.json"); } catch { /* empty */ }
-  try { panels = await readJson("panels.json"); } catch { /* empty */ }
-  try {
-    const fs = await tx(STORE_FILES);
-    chatHistory = (await idbReq(fs.get(`${sanitized}/chat_history.json`))) || [];
-  } catch { /* empty */ }
-  try { debugLogs = await readJson("debug_logs.json"); } catch { /* empty */ }
+  [sceneJson, uiConfig, workspaceState, panels, chatHistory, debugLogs] = await Promise.all([
+    asyncOr(() => readJson("scene.json"), sceneJson),
+    asyncOr(() => readJson("ui_config.json"), uiConfig),
+    asyncOr(() => readJson("workspace_state.json"), workspaceState),
+    asyncOr(() => readJson("panels.json"), panels),
+    asyncOr(async () => {
+      const fs = await tx(STORE_FILES);
+      return (await idbReq(fs.get(`${sanitized}/chat_history.json`))) || [];
+    }, chatHistory),
+    asyncOr(() => readJson("debug_logs.json"), debugLogs),
+  ]);
 
   // Fallback: create default controls panel if none exists
   if (!panels || Object.keys(panels).length === 0) {
@@ -637,17 +640,23 @@ export async function deleteProject(name) {
 
 export async function renameProject(oldName, newDisplayName) {
   const sanitized = sanitizeName(oldName);
-  const store = await tx(STORE_PROJECTS);
+
+  // Use a single readwrite transaction to prevent race conditions with autoSave.
+  // IDB serializes readwrite transactions on the same store, so this guarantees
+  // that no other write (e.g. autoSave) can interleave between our read and write.
+  const db = await openDB();
+  const transaction = db.transaction(STORE_PROJECTS, "readwrite");
+  const store = transaction.objectStore(STORE_PROJECTS);
+
   let meta = await idbReq(store.get(sanitized));
   let actualKey = sanitized;
 
   // Fallback: if sanitized key doesn't match (display_name diverged from key),
   // search all projects by display_name
   if (!meta) {
-    const allStore = await tx(STORE_PROJECTS);
-    const allKeys = await idbReq(allStore.getAllKeys());
+    const allKeys = await idbReq(store.getAllKeys());
     for (const key of allKeys) {
-      const candidate = await idbReq((await tx(STORE_PROJECTS)).get(key));
+      const candidate = await idbReq(store.get(key));
       if (candidate && candidate.display_name === oldName) {
         meta = candidate;
         actualKey = key;
@@ -660,8 +669,7 @@ export async function renameProject(oldName, newDisplayName) {
   meta.display_name = newDisplayName.trim() || meta.display_name;
   meta.updated_at = new Date().toISOString();
 
-  const ws = await tx(STORE_PROJECTS, "readwrite");
-  await idbReq(ws.put(meta, actualKey));
+  await idbReq(store.put(meta, actualKey));
   return meta;
 }
 
@@ -1399,20 +1407,13 @@ export async function autoSaveCurrentProject(chatHistory, thumbnailB64 = null) {
     return null;
   }
 
-  const store = await tx(STORE_PROJECTS);
-  const existing = await idbReq(store.get(currentName));
-  if (!existing) return null;
-
-  const now = new Date().toISOString();
-
-  // Update chat_history
+  // Update chat_history and thumbnail first (different stores, no conflict)
   if (chatHistory) {
     const chatStore = await tx(STORE_FILES, "readwrite");
     await idbReq(chatStore.put(chatHistory, `${currentName}/chat_history.json`));
   }
 
-  // Update thumbnail
-  let hasThumbnail = existing.has_thumbnail || false;
+  let hasThumbnail = false;
   if (thumbnailB64) {
     try {
       const bytes = base64ToUint8Array(thumbnailB64);
@@ -1427,11 +1428,18 @@ export async function autoSaveCurrentProject(chatHistory, thumbnailB64 = null) {
     } catch { /* ignore */ }
   }
 
-  // Update manifest
-  existing.updated_at = now;
-  existing.has_thumbnail = hasThumbnail;
+  // Read-modify-write project meta in a single readwrite transaction to prevent
+  // race conditions with renameProject (which also does read-modify-write).
+  const db = await openDB();
+  const projTx = db.transaction(STORE_PROJECTS, "readwrite");
+  const metaStore = projTx.objectStore(STORE_PROJECTS);
+  const existing = await idbReq(metaStore.get(currentName));
+  if (!existing) return null;
 
-  const metaStore = await tx(STORE_PROJECTS, "readwrite");
+  const now = new Date().toISOString();
+  existing.updated_at = now;
+  existing.has_thumbnail = hasThumbnail || existing.has_thumbnail || false;
+
   await idbReq(metaStore.put(existing, currentName));
 
   // Update manifest in files store

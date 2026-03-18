@@ -19,18 +19,18 @@ const MAX_PATCH_CHAIN = 15;     // force checkpoint if chain exceeds this
 // Snapshot helpers
 // ---------------------------------------------------------------------------
 
-function buildSnapshot(sceneJson, uiConfig, workspaceState, panels, chatHistory, debugLogs, workspaceFiles, assetManifest) {
+function buildSnapshot({ scene_json, ui_config, workspace_state, panels, chat_history, debug_logs, workspace_files, asset_manifest } = {}) {
   const snap = {
     version: 2,
-    scene_json: sceneJson || {},
-    ui_config: uiConfig || {},
-    workspace_state: workspaceState || {},
+    scene_json: scene_json || {},
+    ui_config: ui_config || {},
+    workspace_state: workspace_state || {},
     panels: panels || {},
-    chat_history: chatHistory || [],
-    debug_logs: debugLogs || [],
+    chat_history: chat_history || [],
+    debug_logs: debug_logs || [],
   };
-  if (workspaceFiles != null) snap.workspace_files = workspaceFiles;
-  if (assetManifest != null) snap.asset_manifest = assetManifest;
+  if (workspace_files != null) snap.workspace_files = workspace_files;
+  if (asset_manifest != null) snap.asset_manifest = asset_manifest;
   return snap;
 }
 
@@ -61,6 +61,12 @@ async function captureAssetManifest() {
     } catch { /* skip */ }
   }
   return manifest;
+}
+
+async function captureAndBuildSnapshot(currentState) {
+  const workspace_files = await captureWorkspaceFiles();
+  const asset_manifest = await captureAssetManifest();
+  return buildSnapshot({ ...currentState, workspace_files, asset_manifest });
 }
 
 // ---------------------------------------------------------------------------
@@ -149,7 +155,7 @@ export async function ensureRootNode(projectName, currentState) {
       } catch {
         // If reconstruction fails, create empty snapshot
         const snapshotRef = `_snapshots/${fallback.id}.json`;
-        await storage.writeFile(snapshotRef, buildSnapshot({}, {}, {}, {}, [], []));
+        await storage.writeFile(snapshotRef, buildSnapshot({}));
         fallback.snapshotRef = snapshotRef;
       }
     }
@@ -159,18 +165,7 @@ export async function ensureRootNode(projectName, currentState) {
 
   // Create root checkpoint
   const nodeId = crypto.randomUUID();
-  const workspaceFiles = await captureWorkspaceFiles();
-  const assetManifest = await captureAssetManifest();
-  const snapshot = buildSnapshot(
-    currentState.scene_json,
-    currentState.ui_config,
-    currentState.workspace_state,
-    currentState.panels,
-    currentState.chat_history,
-    currentState.debug_logs,
-    workspaceFiles,
-    assetManifest
-  );
+  const snapshot = await captureAndBuildSnapshot(currentState);
 
   const snapshotKey = `_snapshots/${nodeId}.json`;
   await storage.writeFile(snapshotKey, snapshot);
@@ -214,18 +209,7 @@ export async function createNodeAfterPrompt(projectName, parentNodeId, currentSt
     thumbnailDataUrl = null,
   } = opts;
 
-  const workspaceFiles = await captureWorkspaceFiles();
-  const assetManifest = await captureAssetManifest();
-  const currentSnapshot = buildSnapshot(
-    currentState.scene_json,
-    currentState.ui_config,
-    currentState.workspace_state,
-    currentState.panels,
-    currentState.chat_history,
-    currentState.debug_logs,
-    workspaceFiles,
-    assetManifest
-  );
+  const currentSnapshot = await captureAndBuildSnapshot(currentState);
 
   // Determine if this should be a checkpoint
   const count = await nodeCount(projectName);
@@ -295,18 +279,7 @@ export async function overwriteNode(nodeId, projectName, currentState, opts = {}
   const node = await storage.readNode(nodeId);
   if (!node) throw new Error(`Node not found: ${nodeId}`);
 
-  const workspaceFiles = await captureWorkspaceFiles();
-  const assetManifest = await captureAssetManifest();
-  const snapshot = buildSnapshot(
-    currentState.scene_json,
-    currentState.ui_config,
-    currentState.workspace_state,
-    currentState.panels,
-    currentState.chat_history,
-    currentState.debug_logs,
-    workspaceFiles,
-    assetManifest
-  );
+  const snapshot = await captureAndBuildSnapshot(currentState);
 
   // Always store as checkpoint when overwriting
   const snapshotRef = `_snapshots/${nodeId}.json`;
@@ -400,13 +373,13 @@ export async function toggleNodeTag(nodeId, tag) {
  */
 async function reconstructFromChain(chain) {
   if (chain.length === 0) {
-    return buildSnapshot({}, {}, {}, {}, [], []);
+    return buildSnapshot({});
   }
 
   const checkpoint = chain[0];
   if (!checkpoint.isCheckpoint || !checkpoint.snapshotRef) {
     console.warn(`[projectTree] Chain root is not a checkpoint: ${checkpoint.id}, returning empty state`);
-    return buildSnapshot({}, {}, {}, {}, [], []);
+    return buildSnapshot({});
   }
 
   let state;
@@ -414,11 +387,11 @@ async function reconstructFromChain(chain) {
     state = await storage.readFile(checkpoint.snapshotRef);
   } catch (err) {
     console.warn(`[projectTree] Failed to read snapshot for ${checkpoint.id}: ${err.message}`);
-    return buildSnapshot({}, {}, {}, {}, [], []);
+    return buildSnapshot({});
   }
   if (!state) {
     console.warn(`[projectTree] Snapshot is null for ${checkpoint.id}`);
-    return buildSnapshot({}, {}, {}, {}, [], []);
+    return buildSnapshot({});
   }
 
   // Apply patches in order
@@ -604,47 +577,47 @@ export async function updateNodeMetadata(nodeId, state, opts = {}) {
   }
 }
 
+function extractLastExchange(chatHistory) {
+  let userPrompt = null, assistantResponse = null;
+  for (let i = chatHistory.length - 1; i >= 0; i--) {
+    if (!assistantResponse && chatHistory[i]?.role === "assistant")
+      assistantResponse = (chatHistory[i].text || chatHistory[i].content || "").slice(0, 300);
+    if (!userPrompt && chatHistory[i]?.role === "user")
+      userPrompt = (chatHistory[i].text || chatHistory[i].content || "").slice(0, 300);
+    if (userPrompt && assistantResponse) break;
+  }
+  return { userPrompt, assistantResponse };
+}
+
+async function callSmallLLM({ system, userContent, maxTokens }) {
+  const apiKey = sessionStorage.getItem("siljangnim:apiKey") || "";
+  if (!apiKey) return null;
+  const provider = sessionStorage.getItem("siljangnim:provider") || "anthropic";
+  let providerConfig = {};
+  try { providerConfig = JSON.parse(sessionStorage.getItem("siljangnim:providerConfig") || "{}"); } catch {}
+  const { callLLM, getSmallModel } = await import("./llmClient.js");
+  const model = getSmallModel(provider) || providerConfig.model || "claude-haiku-4-5-20251001";
+  const result = await callLLM({
+    provider, apiKey, baseUrl: providerConfig.base_url, model, maxTokens, system,
+    messages: [{ role: "user", content: userContent }], tools: [],
+  });
+  return result.contentBlocks?.find(b => b.type === "text")?.text?.trim() || null;
+}
+
 /**
  * Use AI to generate a concise title summarizing the prompt interaction.
  */
 async function generateAITitle(node, chatHistory) {
   try {
-    const apiKey = sessionStorage.getItem("siljangnim:apiKey") || "";
-    if (!apiKey) return;
-
-    const provider = sessionStorage.getItem("siljangnim:provider") || "anthropic";
-    let providerConfig = {};
-    try { providerConfig = JSON.parse(sessionStorage.getItem("siljangnim:providerConfig") || "{}"); } catch { /* ignore */ }
-
-    // Extract the last user prompt and assistant response
-    let userPrompt = null;
-    let assistantResponse = null;
-    for (let i = chatHistory.length - 1; i >= 0; i--) {
-      if (!assistantResponse && chatHistory[i]?.role === "assistant") {
-        assistantResponse = (chatHistory[i].text || chatHistory[i].content || "").slice(0, 300);
-      }
-      if (!userPrompt && chatHistory[i]?.role === "user") {
-        userPrompt = (chatHistory[i].text || chatHistory[i].content || "").slice(0, 300);
-      }
-      if (userPrompt && assistantResponse) break;
-    }
-
+    const { userPrompt, assistantResponse } = extractLastExchange(chatHistory);
     if (!userPrompt && !assistantResponse) return;
 
-    const { callLLM, getSmallModel } = await import("./llmClient.js");
-    const model = getSmallModel(provider) || providerConfig.model || "claude-haiku-4-5-20251001";
-    const result = await callLLM({
-      provider,
-      apiKey,
-      baseUrl: providerConfig.base_url,
-      model,
-      maxTokens: 40,
+    const titleText = await callSmallLLM({
       system: "Generate a very short title (under 40 chars, no quotes) summarizing what was done in this creative coding interaction. Write in the same language as the user prompt. Be specific about the visual/technical change, not generic.",
-      messages: [{ role: "user", content: `User asked: ${userPrompt || "(no prompt)"}\nAssistant did: ${assistantResponse || "(no response)"}` }],
-      tools: [],
+      userContent: `User asked: ${userPrompt || "(no prompt)"}\nAssistant did: ${assistantResponse || "(no response)"}`,
+      maxTokens: 40,
     });
 
-    const titleText = result.contentBlocks?.find(b => b.type === "text")?.text?.trim();
     if (titleText && titleText.length > 0) {
       const cleanTitle = titleText.replace(/^["']|["']$/g, "").slice(0, 60);
       node.title = cleanTitle;
@@ -661,41 +634,15 @@ async function generateAITitle(node, chatHistory) {
  */
 export async function generateProjectName(chatHistory) {
   try {
-    const apiKey = sessionStorage.getItem("siljangnim:apiKey") || "";
-    if (!apiKey) return null;
-
-    const provider = sessionStorage.getItem("siljangnim:provider") || "anthropic";
-    let providerConfig = {};
-    try { providerConfig = JSON.parse(sessionStorage.getItem("siljangnim:providerConfig") || "{}"); } catch { /* ignore */ }
-
-    let userPrompt = null;
-    let assistantResponse = null;
-    for (let i = chatHistory.length - 1; i >= 0; i--) {
-      if (!assistantResponse && chatHistory[i]?.role === "assistant") {
-        assistantResponse = (chatHistory[i].text || chatHistory[i].content || "").slice(0, 300);
-      }
-      if (!userPrompt && chatHistory[i]?.role === "user") {
-        userPrompt = (chatHistory[i].text || chatHistory[i].content || "").slice(0, 300);
-      }
-      if (userPrompt && assistantResponse) break;
-    }
-
+    const { userPrompt, assistantResponse } = extractLastExchange(chatHistory);
     if (!userPrompt && !assistantResponse) return null;
 
-    const { callLLM, getSmallModel } = await import("./llmClient.js");
-    const model = getSmallModel(provider) || providerConfig.model || "claude-haiku-4-5-20251001";
-    const result = await callLLM({
-      provider,
-      apiKey,
-      baseUrl: providerConfig.base_url,
-      model,
+    const text = await callSmallLLM({
+      system: "Summarize what the user asked for in a very short phrase (under 30 chars). Output ONLY the summary — no quotes, no explanation, no markdown. Write in the same language as the user. Focus on WHAT the user requested, not a creative interpretation.",
+      userContent: `User request: ${userPrompt || "(no prompt)"}`,
       maxTokens: 30,
-      system: "You are a project naming tool. Output ONLY a short project name (under 30 chars). No quotes, no explanation, no apologies, no markdown. Just the name. Write in the same language as the user.",
-      messages: [{ role: "user", content: `Name this project based on the conversation:\nUser asked: ${userPrompt || "(no prompt)"}\nAssistant did: ${assistantResponse || "(no response)"}` }],
-      tools: [],
     });
 
-    const text = result.contentBlocks?.find(b => b.type === "text")?.text?.trim();
     if (text && text.length > 0) {
       return text.replace(/^["']|["']$/g, "").slice(0, 30);
     }

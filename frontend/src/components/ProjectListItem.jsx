@@ -66,7 +66,7 @@ function ProjectListItem({ project: p, isActive, onLoad, onDelete, onRename, onF
   const handleCommitRename = () => {
     const trimmed = editName.trim();
     if (trimmed && trimmed !== (p.display_name || p.name)) {
-      onRename?.(p.name, trimmed);
+      onRename?.(p.display_name || p.name, trimmed);
     }
     setEditing(false);
   };
