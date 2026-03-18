@@ -790,12 +790,8 @@ export default function App() {
   }), [sceneJSON, uiConfig, paused, duration, loop, backendTarget, safeModeActive]);
 
   const handleProjectDeleteAndReset = useCallback((name) => {
-    const isDeletingActive = project.activeProject === name;
     project.handleProjectDelete(name);
-    if (isDeletingActive) {
-      resetToFreshWorkspace();
-    }
-  }, [project.activeProject, project.handleProjectDelete, resetToFreshWorkspace]);
+  }, [project.handleProjectDelete]);
 
   const projectCtxValue = useMemo(() => ({
     projectList: project.projectList,
