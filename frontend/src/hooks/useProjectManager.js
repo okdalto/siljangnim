@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { API_BASE } from "../constants/api.js";
-import { importProjectZip } from "../engine/storage.js";
+import { getActiveProjectName, importProjectZip } from "../engine/storage.js";
 
 export default function useProjectManager(sendRef, captureThumbnail, getWorkspaceState, getDebugLogs, getMessages, agentEngine) {
   const [projectList, setProjectList] = useState([]);
@@ -17,8 +17,9 @@ export default function useProjectManager(sendRef, captureThumbnail, getWorkspac
 
   const handleProjectDelete = useCallback(
     (name) => {
+      const isDeletingActive = getActiveProjectName() === name;
       sendRef.current?.({ type: "project_delete", name });
-      setActiveProject((prev) => (prev === name ? null : prev));
+      if (isDeletingActive) setActiveProject(null);
     },
     [sendRef]
   );

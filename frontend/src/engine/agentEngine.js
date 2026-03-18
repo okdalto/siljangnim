@@ -378,6 +378,32 @@ async function _projectAction(engine, operation, errorType) {
   }
 }
 
+async function _resetToFreshUntitled(engine, { clearWorkspace = true } = {}) {
+  engine._clearInterruptedPrompt();
+  engine._toolResultCache.clear();
+  engine.chatHistory.length = 0;
+  engine.conversation.length = 0;
+  storage.deleteFile("agent_checkpoint.json").catch(() => {});
+
+  if (clearWorkspace) {
+    await storage.newUntitledWorkspace();
+  }
+  await storage.writeJson("scene.json", DEFAULT_SCENE_JSON);
+  await storage.writeJson("ui_config.json", DEFAULT_UI_CONFIG);
+  await storage.writeJson("panels.json", {});
+
+  const projects = await storage.listProjects();
+  engine.broadcast({
+    type: "init",
+    scene_json: DEFAULT_SCENE_JSON,
+    ui_config: DEFAULT_UI_CONFIG,
+    projects,
+    workspace_state: {},
+    panels: {},
+    debug_logs: [],
+  });
+}
+
 function drainPendingErrors(engine) {
   if (engine.pendingErrors.length && engine.autoFixCount < engine.MAX_AUTO_FIX) {
     const nextErr = engine.pendingErrors.shift();
@@ -852,28 +878,7 @@ const HANDLERS = {
 
   async new_project(msg) {
     // Auto-save is handled by useAutoSave hook; no need to save here
-    this._clearInterruptedPrompt();
-    this._toolResultCache.clear();
-    this.chatHistory.length = 0;
-    this.conversation.length = 0;
-    // Clear agent checkpoint
-    storage.deleteFile("agent_checkpoint.json").catch(() => {});
-
-    await storage.newUntitledWorkspace();
-    await storage.writeJson("scene.json", DEFAULT_SCENE_JSON);
-    await storage.writeJson("ui_config.json", DEFAULT_UI_CONFIG);
-    await storage.writeJson("panels.json", {});
-
-    const projects = await storage.listProjects();
-    this.broadcast({
-      type: "init",
-      scene_json: DEFAULT_SCENE_JSON,
-      ui_config: DEFAULT_UI_CONFIG,
-      projects,
-      workspace_state: {},
-      panels: {},
-      debug_logs: [],
-    });
+    await _resetToFreshUntitled(this);
   },
 
   async project_save(msg) {
@@ -920,7 +925,17 @@ const HANDLERS = {
   },
 
   async project_delete(msg) {
-    await _projectAction(this, () => storage.deleteProject(msg.name || ""), "project_delete_error");
+    try {
+      const { deletedActive } = await storage.deleteProject(msg.name || "");
+      if (deletedActive) {
+        await _resetToFreshUntitled(this, { clearWorkspace: false });
+        return;
+      }
+      const projects = await storage.listProjects();
+      this.broadcast({ type: "project_list", projects });
+    } catch (e) {
+      this.broadcast({ type: "project_delete_error", error: e.message });
+    }
   },
 
   async close_panel(msg) {

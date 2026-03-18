@@ -594,6 +594,7 @@ export async function deleteProject(name) {
   const sanitized = sanitizeName(name);
   const currentName = getActiveProjectName();
   const prefix = `${sanitized}/`;
+  const deletedActive = currentName === sanitized;
 
   // Delete project meta
   const metaStore = await tx(STORE_PROJECTS, "readwrite");
@@ -633,9 +634,11 @@ export async function deleteProject(name) {
   await deleteProjectNodes(sanitized);
 
   // If deleted project was active, switch to _untitled
-  if (currentName === sanitized) {
+  if (deletedActive) {
     await newUntitledWorkspace();
   }
+
+  return { deletedActive };
 }
 
 export async function renameProject(oldName, newDisplayName) {
