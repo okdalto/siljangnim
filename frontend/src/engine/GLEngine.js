@@ -140,6 +140,7 @@ export default class GLEngine {
     this._scriptCleanupFn = null;
     this._setupReady = false; // true after async setup() completes
     this._loadGeneration = 0; // incremented on each loadScene to cancel stale async setups
+    this._loopRestartPromise = null;
 
     // Timeline
     this._duration = 0;      // 0 = infinite (no loop)
@@ -716,7 +717,8 @@ export default class GLEngine {
   /**
    * Load a scene JSON and set up script execution.
    */
-  async loadScene(sceneJSON) {
+  async loadScene(sceneJSON, options = {}) {
+    const { forceReload = false } = options;
     let gl = this.gl;
     const isWebGPU = this._backend?.backendType === BackendType.WEBGPU;
     const isHybrid = this._backendOptions?.hybrid;
@@ -740,6 +742,7 @@ export default class GLEngine {
     const newScript = sceneJSON.script || {};
     const prevScript = this._scene?.script || {};
     if (
+      !forceReload &&
       this._scriptCtx &&
       newScript.setup === prevScript.setup &&
       newScript.setup !== undefined
@@ -1711,6 +1714,28 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     this._loop = loop;
   }
 
+  _shouldRestartOnLoop() {
+    if (!this._scene || this._scene.preserveStateOnLoop === true) return false;
+    const state = this._scriptCtx?.state;
+    return !!(state && Object.keys(state).length > 0);
+  }
+
+  _restartSceneForLoop() {
+    if (this._loopRestartPromise || !this._scene) return this._loopRestartPromise || Promise.resolve();
+
+    const scene = this._scene;
+    this._loopRestartPromise = this.loadScene(scene, { forceReload: true })
+      .catch((err) => {
+        console.error("[GLEngine] Loop restart failed:", err);
+        this.onError?.(err);
+      })
+      .finally(() => {
+        this._loopRestartPromise = null;
+      });
+
+    return this._loopRestartPromise;
+  }
+
   _renderLoop() {
     if (!this._running) return;
     this._rafId = requestAnimationFrame(() => this._renderLoop());
@@ -1746,6 +1771,10 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     if (this._duration > 0 && time >= this._duration) {
       if (this._loop) {
         this.seekTo(0);
+        if (this._shouldRestartOnLoop()) {
+          this._restartSceneForLoop();
+          return;
+        }
         time = this.getCurrentTime();
       } else {
         this.seekTo(this._duration);
