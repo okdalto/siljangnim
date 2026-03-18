@@ -75,6 +75,10 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
         ]);
       })
       .then(() => {
+        // Ensure at least one frame renders even when paused,
+        // so the canvas isn't black after a page refresh.
+        if (engine._paused) engine._needsPausedRender = true;
+
         window.dispatchEvent(new CustomEvent("siljangnim:scene_loaded", {
           detail: {
             setupReady: engine._setupReady,
