@@ -439,6 +439,7 @@ async function triggerAutoFix(errorMessage, engine) {
   const currentState = await engine._getCurrentState();
 
   try {
+    const glEngine = engine._engineRef?.current;
     await runAgent({
       apiKey: engine.apiKey,
       userPrompt: prompt,
@@ -460,6 +461,7 @@ async function triggerAutoFix(errorMessage, engine) {
       provider: engine.provider,
       providerConfig: engine.providerConfig,
       toolResultCache: engine._toolResultCache,
+      canvasSize: glEngine?.canvas ? { canvasWidth: glEngine.canvas.width, canvasHeight: glEngine.canvas.height } : undefined,
     });
     engine.broadcast({ type: "chat_done" });
   } catch (err) {
@@ -666,6 +668,7 @@ const HANDLERS = {
     // Run agent asynchronously (with planning when conversation is long)
     (async () => {
       try {
+        const _glEngine = this._engineRef?.current;
         await runWithPlan({
           apiKey: this.apiKey,
           userPrompt,
@@ -691,6 +694,7 @@ const HANDLERS = {
           provider: this.provider,
           providerConfig: this.providerConfig,
           toolResultCache: this._toolResultCache,
+          canvasSize: _glEngine?.canvas ? { canvasWidth: _glEngine.canvas.width, canvasHeight: _glEngine.canvas.height } : undefined,
           resumeContext,
         });
         this._clearInterruptedPrompt();

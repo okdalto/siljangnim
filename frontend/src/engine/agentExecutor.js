@@ -22,7 +22,7 @@ function detectPlatformType() {
 }
 
 /** Build a markdown section describing the client environment. */
-function getEnvironmentSection() {
+function getEnvironmentSection({ canvasWidth, canvasHeight } = {}) {
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
   const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
   const isIOS = /iPhone|iPad|iPod/i.test(ua);
@@ -36,10 +36,14 @@ function getEnvironmentSection() {
   const screenH = typeof screen !== "undefined" ? screen.height : 0;
   const dpr = typeof devicePixelRatio !== "undefined" ? devicePixelRatio : 1;
 
+  const canvasLine = canvasWidth && canvasHeight
+    ? `\n- **Canvas**: ${canvasWidth}×${canvasHeight} px (actual rendering resolution)`
+    : "";
+
   return `\n\n## CLIENT ENVIRONMENT
 - **Platform**: ${platform}${isMobile ? " (mobile)" : " (desktop)"}
 - **Touch support**: ${hasTouch ? "yes" : "no"}${hasTouch ? " — use ctx.mouse for touch input (touch maps to mouse)" : ""}
-- **Screen**: ${screenW}×${screenH} @ ${dpr}x DPR
+- **Screen**: ${screenW}×${screenH} @ ${dpr}x DPR${canvasLine}
 - **Note**: ${isMobile
     ? "This is a mobile device. Prefer touch-friendly interactions (drag, swipe, tap). Avoid hover-dependent effects. Keep performance in mind — use simpler shaders when possible."
     : "Desktop environment with mouse and keyboard. ctx.mouse and ctx.keys are available."}`;
@@ -158,7 +162,7 @@ function buildMultimodalContent(userPrompt, files) {
  * Build an augmented system prompt by injecting backend target, technique hints,
  * environment info, and asset context into a base system prompt.
  */
-async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarget, assetContext = [], systemPromptAddition = "", conversationHistory = [] } = {}) {
+async function buildAugmentedSystemPrompt(basePrompt, { userPrompt, backendTarget, assetContext = [], systemPromptAddition = "", conversationHistory = [], canvasSize } = {}) {
   let prompt = basePrompt;
 
   if (systemPromptAddition) {
@@ -236,7 +240,7 @@ NEVER write more than 80 lines in a single write_scene call. NEVER put entire co
 For .workspace/ files: write_file with small modules, then loadModule() in setup. Do NOT inline large WGSL/shader code in scene.json.`;
 
   // Inject environment info
-  prompt += getEnvironmentSection();
+  prompt += getEnvironmentSection(canvasSize);
 
   // Inject asset context if available
   if (assetContext.length > 0) {
@@ -318,6 +322,7 @@ export async function runAgent({
   provider = "anthropic",
   providerConfig = {},
   toolResultCache,
+  canvasSize,
 }) {
   log("System", `Starting agent for: "${userPrompt}"`, "info");
   if (files?.length) {
@@ -329,7 +334,7 @@ export async function runAgent({
 
   const systemPrompt = await buildAugmentedSystemPrompt(
     buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType(), { backendTarget, lightweight }),
-    { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages },
+    { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages, canvasSize },
   );
 
   // Build user message content — inject current scene + workspace context
@@ -1445,6 +1450,7 @@ export async function runWithPlan({
   provider = "anthropic",
   providerConfig = {},
   toolResultCache,
+  canvasSize,
   resumeContext = null,
 }) {
   // --- Checkpoint resume: if we have a checkpoint with a written scene, resume from it ---
@@ -1454,7 +1460,7 @@ export async function runWithPlan({
 
     const baseSystemPrompt = await buildAugmentedSystemPrompt(
       buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType(), { backendTarget }),
-      { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages },
+      { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages, canvasSize },
     );
 
     const { systemPrompt: resumeSystemPrompt, messages: resumeMessages } =
@@ -1501,7 +1507,7 @@ export async function runWithPlan({
       apiKey, userPrompt, log, broadcast, onText, onTextDelta, onTextFinalize, onStatus,
       files, messages, currentState, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
-      provider, providerConfig, toolResultCache,
+      provider, providerConfig, toolResultCache, canvasSize,
     });
   }
 
@@ -1517,7 +1523,7 @@ export async function runWithPlan({
       apiKey, userPrompt, log, broadcast, onText, onTextDelta, onTextFinalize, onStatus,
       files, messages, currentState, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
       signal, injectedMessages, systemPromptAddition, assetContext, backendTarget, modelOverride,
-      provider, providerConfig, toolResultCache,
+      provider, providerConfig, toolResultCache, canvasSize,
     });
   }
 
@@ -1526,7 +1532,7 @@ export async function runWithPlan({
 
   const baseSystemPrompt = await buildAugmentedSystemPrompt(
     buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType(), { backendTarget }),
-    { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages },
+    { userPrompt, backendTarget, assetContext, systemPromptAddition, conversationHistory: messages, canvasSize },
   );
 
   const { systemPrompt: execSystemPrompt, messages: execMessages } =
