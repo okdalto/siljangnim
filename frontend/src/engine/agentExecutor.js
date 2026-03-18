@@ -141,6 +141,38 @@ function buildMultimodalContent(userPrompt, files) {
   return [{ type: "text", text }];
 }
 
+function formatInjectedSceneReferences(sceneReferences = []) {
+  if (!sceneReferences.length) return "";
+  const sections = sceneReferences.map((ref) => {
+    const json = typeof ref.sceneJson === "string" ? ref.sceneJson : JSON.stringify(ref.sceneJson, null, 2);
+    const truncated = json.length > 12000 ? json.slice(0, 12000) + "\n... (truncated)" : json;
+    return `### Referenced Scene: "${ref.title}" (node ${ref.nodeId})\n\`\`\`json\n${truncated}\n\`\`\``;
+  }).join("\n\n");
+  return `## REFERENCED SCENES\n${sections}`;
+}
+
+function flushInjectedMessages(injectedMessages = []) {
+  const pending = injectedMessages.splice(0);
+  return pending.map((entry) => {
+    if (!entry) return null;
+    if (typeof entry === "string") {
+      return { role: "user", content: entry };
+    }
+
+    const baseText = entry.text?.trim()
+      || (entry.files?.length
+        ? "The user attached additional files while you were working."
+        : "The user sent additional context while you were working.");
+    const sceneRefSection = formatInjectedSceneReferences(entry.sceneReferences || []);
+    const text = [
+      entry.kind === "user_followup" ? "[User follow-up during execution]\n" + baseText : baseText,
+      sceneRefSection,
+    ].filter(Boolean).join("\n\n");
+    const content = entry.files?.length ? buildMultimodalContent(text, entry.files) : text;
+    return { role: "user", content };
+  }).filter(Boolean);
+}
+
 // ---------------------------------------------------------------------------
 // Main agent loop
 // ---------------------------------------------------------------------------
@@ -630,6 +662,8 @@ async function _runAgentLoop({
   try {
     while (turns < MAX_TURNS) {
       turns++;
+      const streamedToolLogs = new Set();
+      let streamedVisibleText = false;
 
       // Check cancellation
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
@@ -695,12 +729,18 @@ async function _runAgentLoop({
           callbacks: {
             onThinkingDelta(chunk) {
               thinkingBuffer += chunk;
-              onStatus?.("thinking", thinkingBuffer);
+              if (!streamedVisibleText) {
+                onStatus?.("thinking", thinkingBuffer);
+              }
             },
             onTextDelta(chunk) {
+              streamedVisibleText = true;
+              onStatus?.("responding", "답변 작성 중...");
               onTextDelta?.(chunk);
             },
             onToolUseStart(name) {
+              streamedToolLogs.add(name);
+              log("Agent", `Tool: ${name}`, "thinking");
               onStatus?.("tool_use", name);
             },
             onContentBlockStop(type, data) {
@@ -767,13 +807,14 @@ async function _runAgentLoop({
       for (const block of contentBlocks) {
         if (block.type === "text" && block.text?.trim()) {
           lastText = block.text;
+          onStatus?.("responding", "답변 작성 중...");
           log("Agent", block.text, "info");
           // If streaming via onTextDelta, text was already sent incrementally
           if (!onTextDelta) onText?.(block.text);
         } else if (block.type === "tool_use") {
-          const inputStr = JSON.stringify(block.input);
-          const preview = inputStr.length > 200 ? inputStr.slice(0, 200) + "..." : inputStr;
-          log("Agent", `Tool: ${block.name}(${preview})`, "thinking");
+          if (!streamedToolLogs.has(block.name)) {
+            log("Agent", `Tool: ${block.name}`, "thinking");
+          }
           onStatus?.("tool_use", block.name);
         }
       }
@@ -884,10 +925,12 @@ async function _runAgentLoop({
       if (stopReason !== "tool_use") {
         // Check for injected messages
         if (injectedMessages.length) {
-          const combined = injectedMessages.splice(0).join("\n\n");
           log("System", "Injecting user message", "info");
-          messages.push({ role: "user", content: `[User message]: ${combined}` });
-          continue;
+          const queuedMessages = flushInjectedMessages(injectedMessages);
+          if (queuedMessages.length) {
+            messages.push(...queuedMessages);
+            continue;
+          }
         }
         break;
       }
@@ -1133,9 +1176,11 @@ async function _runAgentLoop({
 
       // Improvement #10: check for injected setup errors between tool calls
       if (injectedMessages.length) {
-        const combined = injectedMessages.splice(0).join("\n\n");
         log("System", "Injecting immediate error feedback", "info");
-        messages.push({ role: "user", content: combined });
+        const queuedMessages = flushInjectedMessages(injectedMessages);
+        if (queuedMessages.length) {
+          messages.push(...queuedMessages);
+        }
       }
     }
   } catch (err) {

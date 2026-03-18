@@ -26,9 +26,6 @@ export function handleChatDone(msg, deps) {
   // Safety: finalize any lingering streaming text
   chat.finalizeAssistantText();
 
-  if (thinkingBufferRef.current && !thinkingLogReceivedRef.current) {
-    chat.addLog({ agent: "Agent", message: thinkingBufferRef.current, level: "thinking" });
-  }
   thinkingBufferRef.current = "";
   thinkingLogReceivedRef.current = false;
   chat.setProcessing(false);
@@ -155,6 +152,8 @@ export function handleAgentStatus(msg, deps) {
   chat.setAgentStatus({ status: msg.status, detail: msg.detail });
   if (msg.status === "thinking" && msg.detail) {
     thinkingBufferRef.current = msg.detail;
+  } else {
+    thinkingBufferRef.current = "";
   }
 }
 
