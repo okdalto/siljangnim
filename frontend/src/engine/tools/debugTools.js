@@ -95,10 +95,11 @@ export async function toolCheckBrowserErrors(input, broadcast, ctx) {
   // Wait for errors to arrive (waits for scene load first)
   const errors = await errorCollector.waitForErrors(CHECK_ERRORS_WAIT_MS);
   const viewportState = errorCollector.getViewportState?.() || null;
+  const setupStatus = errorCollector.isSetupReady();
 
   // Second short wait to catch late-arriving WebGPU validation errors
   // (GPU shader compilation and pipeline creation are async)
-  if (!errors.length || !errorCollector.isSetupReady()) {
+  if (!errors.length || setupStatus !== true) {
     await new Promise((r) => setTimeout(r, CHECK_ERRORS_LATE_WAIT_MS));
     const late = errorCollector.drainLateErrors();
     for (const e of late) {
@@ -122,8 +123,10 @@ export async function toolCheckBrowserErrors(input, broadcast, ctx) {
   }
 
   // Report setup status — helps diagnose white screens with "no errors"
-  if (!errorCollector.isSetupReady()) {
+  if (setupStatus === false) {
     parts.push("⚠ Scene setup() FAILED — the render loop is NOT running. Check the errors below or verify your setup code.");
+  } else if (setupStatus === null && viewportState?.hasScene) {
+    parts.push("⚠ Scene setup status is still pending or unknown. Recent errors may still be arriving.");
   }
 
   if (errors.length) {

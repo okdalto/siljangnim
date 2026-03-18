@@ -37,6 +37,7 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
 
     if (!engine) return;
     if (!sceneJSON) {
+      setError(null);
       const gl = engine.gl;
       if (gl && !gl.isContextLost()) {
         gl.clearColor(0, 0, 0, 1);

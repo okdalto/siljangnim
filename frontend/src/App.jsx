@@ -218,16 +218,17 @@ export default function App() {
   useEffect(() => {
     if (!BROWSER_ONLY || !_agentEngine) return;
     const collector = _agentEngine.errorCollector;
+    const shouldCapture = () => _agentEngine.agentBusy || collector.isSceneLoadPending?.();
 
     const onError = (event) => {
       const msg = event.message || event.error?.message || String(event.error || "Unknown error");
-      if (_agentEngine.agentBusy) collector.push(msg);
+      if (shouldCapture()) collector.push(msg);
     };
 
     const onRejection = (event) => {
       const reason = event.reason;
       const msg = reason instanceof Error ? reason.message : String(reason || "Unhandled promise rejection");
-      if (_agentEngine.agentBusy) collector.push(msg);
+      if (shouldCapture()) collector.push(msg);
     };
 
     // Intercept console.warn/error to capture canvas and library warnings
@@ -235,7 +236,7 @@ export default function App() {
     const origError = console.error;
     console.warn = (...args) => {
       origWarn.apply(console, args);
-      if (_agentEngine.agentBusy) {
+      if (shouldCapture()) {
         const msg = args.map((a) => (typeof a === "string" ? a : String(a))).join(" ");
         // Only capture meaningful warnings (skip noisy browser internals)
         if (msg.includes("Error") || msg.includes("error") || msg.includes("Cannot") ||
@@ -247,7 +248,7 @@ export default function App() {
     };
     console.error = (...args) => {
       origError.apply(console, args);
-      if (_agentEngine.agentBusy) {
+      if (shouldCapture()) {
         const msg = args.map((a) => (a instanceof Error ? a.message : typeof a === "string" ? a : String(a))).join(" ");
         collector.push(msg.slice(0, 500));
       }

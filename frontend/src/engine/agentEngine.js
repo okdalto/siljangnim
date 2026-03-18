@@ -121,6 +121,7 @@ export default class AgentEngine {
           : null;
       },
       isSetupReady() { return this._setupReady; },
+      isSceneLoadPending() { return !this._sceneLoaded; },
       setInjectedMessages(msgs) { this._injectedMessages = msgs; },
       drainLateErrors() {
         return this.errors.splice(0);
