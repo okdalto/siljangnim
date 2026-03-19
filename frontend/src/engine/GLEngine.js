@@ -1375,8 +1375,18 @@ void main(){fragColor=texture(u_tex,v_uv);}`;
     };
     // Audio API (methods delegate to AudioManager, properties updated per frame)
     this._audioManager.reset();
-    ctx.audioContext = this._audioManager.getAudioContext();
-    ctx.audioDestination = this._audioManager.getRecordingDestination();
+    Object.defineProperties(ctx, {
+      audioContext: {
+        configurable: true,
+        enumerable: true,
+        get: () => this._audioManager.getAudioContext(),
+      },
+      audioDestination: {
+        configurable: true,
+        enumerable: true,
+        get: () => this._audioManager.getRecordingDestination(),
+      },
+    });
     ctx.audio = {
       load: (url) => this._audioManager.load(url),
       play: (offset) => this._audioManager.play(offset),

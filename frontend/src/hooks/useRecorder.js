@@ -198,19 +198,12 @@ export default function useRecorder(engineRef) {
         hasAudio = channels > 0;
       }
       const disableRealtimeMp4Audio = !offline && format === "mp4" && hasAudio;
-      const disableOfflineWebmAudio = offline && format === "webm" && hasAudio;
-      const effectiveHasAudio = disableRealtimeMp4Audio ? false : hasAudio;
-      const normalizedHasAudio = disableOfflineWebmAudio ? false : effectiveHasAudio;
+      const normalizedHasAudio = disableRealtimeMp4Audio ? false : hasAudio;
       const recordingWarning = disableRealtimeMp4Audio
         ? "Realtime MP4 recording exports video only. Use realtime WebM or offline MP4/WebM for audio."
-        : disableOfflineWebmAudio
-          ? "Offline WebM recording currently exports video only. Use offline MP4 or realtime WebM for audio."
           : null;
       if (disableRealtimeMp4Audio) {
         console.warn("[Recorder] Realtime MP4 audio is disabled because the browser WebCodecs AAC path is unstable for live audio.");
-      }
-      if (disableOfflineWebmAudio) {
-        console.warn("[Recorder] Offline WebM audio is disabled because the WebCodecs Opus/WebM mux path is unstable.");
       }
 
 
