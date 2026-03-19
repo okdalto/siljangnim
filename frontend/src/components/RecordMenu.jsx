@@ -70,6 +70,9 @@ export default function RecordMenu({
     setOpen(false);
   }, [onStart, settings]);
 
+  const realtimeMp4NoAudio =
+    settings.mode === "Realtime" && settings.format === "MP4";
+
   return (
     <div ref={popoverRef} className="relative">
       {/* Record button */}
@@ -117,16 +120,23 @@ export default function RecordMenu({
       {/* Completion toast */}
       {completionInfo && !recording && (
         <div
-          className="absolute bottom-full left-0 mb-1 px-2 py-1 rounded text-xs whitespace-nowrap shadow-lg"
+          className="absolute bottom-full left-0 mb-1 px-2 py-1 rounded text-xs shadow-lg max-w-72"
           style={{
             background: completionInfo.success ? "var(--chrome-bg-elevated)" : "#7f1d1d",
             border: "1px solid var(--chrome-border)",
             color: completionInfo.success ? "var(--chrome-text)" : "#fca5a5",
           }}
         >
-          {completionInfo.success
-            ? `${formatFileSize(completionInfo.fileSize)} in ${completionInfo.timeTaken}s`
-            : `Error: ${completionInfo.error}`}
+          <div>
+            {completionInfo.success
+              ? `${formatFileSize(completionInfo.fileSize)} in ${completionInfo.timeTaken}s`
+              : `Error: ${completionInfo.error}`}
+          </div>
+          {completionInfo.warning && (
+            <div className="mt-1 whitespace-normal" style={{ color: "var(--chrome-text-muted)" }}>
+              {completionInfo.warning}
+            </div>
+          )}
         </div>
       )}
 
@@ -211,6 +221,19 @@ export default function RecordMenu({
             {settings.format === "PNG" && (
               <div className="mt-1 text-xs" style={{ color: "var(--chrome-text-muted)" }}>
                 PNG requires offline mode for frame-accurate capture
+              </div>
+            )}
+            {realtimeMp4NoAudio && (
+              <div
+                className="mt-2 rounded px-2 py-1.5 text-xs"
+                style={{
+                  background: "rgba(245, 158, 11, 0.12)",
+                  border: "1px solid rgba(245, 158, 11, 0.35)",
+                  color: "#fbbf24",
+                }}
+              >
+                Realtime MP4 currently exports video only.
+                Use Realtime WebM or Offline MP4/WebM if you need audio.
               </div>
             )}
           </div>
