@@ -5,7 +5,7 @@
 
 import { toolWriteScene, toolEditScene, toolClearViewport, toolUseTemplate } from "./tools/sceneTools.js";
 import { toolReadFile, toolWriteFile, toolListFiles, toolListUploadedFiles, toolDeleteAsset, toolSearchCode, toolUnzipAsset } from "./tools/fileTools.js";
-import { toolStartRecording, toolStopRecording, toolCaptureViewport, toolSetTimeline } from "./tools/mediaTools.js";
+import { toolStartRecording, toolStopRecording, toolGenerateWav, toolCaptureViewport, toolSetTimeline } from "./tools/mediaTools.js";
 import { toolOpenPanel, toolClosePanel, toolAskUser } from "./tools/uiTools.js";
 import { toolCheckBrowserErrors, toolDebugSubagent, toolInspectViewportState, toolRunPreprocess, toolWebFetch } from "./tools/debugTools.js";
 
@@ -25,6 +25,7 @@ const TOOL_HANDLERS = {
   close_panel: toolClosePanel,
   start_recording: toolStartRecording,
   stop_recording: toolStopRecording,
+  generate_wav: toolGenerateWav,
   check_browser_errors: toolCheckBrowserErrors,
   inspect_viewport_state: toolInspectViewportState,
   ask_user: toolAskUser,

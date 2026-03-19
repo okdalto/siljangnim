@@ -88,7 +88,7 @@ const CACHE_MAX_SIZE = 100;
 // Parallel tool execution classification
 const WRITE_TOOLS = new Set([
   "write_scene", "edit_scene", "write_file",
-  "open_panel", "close_panel", "delete_asset", "clear_viewport",
+  "open_panel", "close_panel", "delete_asset", "clear_viewport", "generate_wav",
 ]);
 const BLOCKING_TOOLS = new Set(["ask_user", "start_recording", "run_preprocess"]);
 const SCENE_DEPENDENT = new Set(["check_browser_errors", "inspect_viewport_state", "capture_viewport"]);

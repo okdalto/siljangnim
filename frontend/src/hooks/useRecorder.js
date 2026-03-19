@@ -174,16 +174,17 @@ export default function useRecorder(engineRef) {
       canvas.addEventListener("webglcontextlost", handleContextLost);
       contextLostHandlerRef.current = handleContextLost;
 
-      // Audio — only include if an actual audio file is loaded
+      // Audio — include either decoded file playback or a live procedural graph.
       const audioManager = engine._audioManager;
       const audioLoaded = audioManager?.isLoaded ?? false;
+      const hasLiveAudioGraph = !!audioManager?._audioContext;
       const audioStream =
-        !offline && audioLoaded && audioManager
+        !offline && audioManager && (audioLoaded || hasLiveAudioGraph)
           ? audioManager.getAudioStream()
           : null;
       const audioBuffer =
         offline && audioLoaded && audioManager
-          ? (audioManager._buffer ?? null)
+          ? audioManager.getAudioBuffer?.() ?? audioManager._buffer ?? null
           : null;
       let hasAudio = false;
       if (offline) {

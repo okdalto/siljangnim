@@ -214,6 +214,101 @@ const TOOLS = [
     },
   },
   {
+    name: "generate_wav",
+    description:
+      "Generate a synthetic WAV audio file and save it into uploads. " +
+      "Useful for creating tones, short melodies, beeps, pads, or rhythm stabs that can be loaded with ctx.audio.load('/api/uploads/filename.wav'). " +
+      "This creates a real audio asset the scene can use in both real-time and offline recording workflows.",
+    input_schema: {
+      type: "object",
+      properties: {
+        filename: {
+          type: "string",
+          description: "Output filename. '.wav' is added automatically if omitted.",
+        },
+        duration: {
+          type: "number",
+          description: "Total audio duration in seconds. Required. Max 60.",
+        },
+        sample_rate: {
+          type: "number",
+          description: "Sample rate in Hz (8000-96000, default 44100).",
+        },
+        channels: {
+          type: "number",
+          enum: [1, 2],
+          description: "1 = mono, 2 = stereo. Default 1.",
+        },
+        waveform: {
+          type: "string",
+          enum: ["sine", "square", "saw", "triangle", "noise"],
+          description: "Default waveform for notes. Default sine.",
+        },
+        frequency: {
+          type: "number",
+          description: "Default frequency in Hz when notes are not specified. Default 440.",
+        },
+        volume: {
+          type: "number",
+          description: "Default note volume 0-1. Default 0.35.",
+        },
+        pan: {
+          type: "number",
+          description: "Stereo pan -1 (left) to 1 (right). Used for the default note and for notes without their own pan.",
+        },
+        attack: {
+          type: "number",
+          description: "Default attack time in seconds.",
+        },
+        decay: {
+          type: "number",
+          description: "Default decay time in seconds.",
+        },
+        sustain: {
+          type: "number",
+          description: "Default sustain level 0-1.",
+        },
+        release: {
+          type: "number",
+          description: "Default release time in seconds.",
+        },
+        normalize: {
+          type: "boolean",
+          description: "If true (default), reduce gain automatically to avoid clipping.",
+        },
+        notes: {
+          type: "array",
+          description:
+            "Optional note list. If omitted, a single note spanning the whole duration is generated. " +
+            "Each note can use frequency, midi, or note name like C4 / F#3.",
+          items: {
+            type: "object",
+            properties: {
+              start: { type: "number", description: "Start time in seconds." },
+              duration: { type: "number", description: "Note length in seconds." },
+              frequency: { type: "number", description: "Frequency in Hz." },
+              midi: { type: "number", description: "MIDI note number (e.g. 69 = A4)." },
+              note: { type: "string", description: "Note name like C4, D#5, Bb3." },
+              waveform: {
+                type: "string",
+                enum: ["sine", "square", "saw", "triangle", "noise"],
+                description: "Per-note waveform override.",
+              },
+              volume: { type: "number", description: "Per-note volume 0-1." },
+              pan: { type: "number", description: "Per-note stereo pan -1 to 1." },
+              attack: { type: "number", description: "Per-note attack time." },
+              decay: { type: "number", description: "Per-note decay time." },
+              sustain: { type: "number", description: "Per-note sustain level 0-1." },
+              release: { type: "number", description: "Per-note release time." },
+            },
+            required: ["start", "duration"],
+          },
+        },
+      },
+      required: ["duration"],
+    },
+  },
+  {
     name: "check_browser_errors",
     description:
       "Wait ~2 seconds for the browser to render and report any runtime errors, " +
