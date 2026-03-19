@@ -36,6 +36,7 @@ export default class AudioManager {
 
     // Volume
     this.volume = 1;
+    this._hasScriptAudioUsage = false;
   }
 
   // ---- Computed properties ----
@@ -171,7 +172,12 @@ export default class AudioManager {
    */
   getRecordingDestination() {
     this._ensureContext();
+    this._hasScriptAudioUsage = true;
     return this._scriptGain;
+  }
+
+  get hasScriptAudioUsage() {
+    return this._hasScriptAudioUsage;
   }
 
   /**
@@ -261,6 +267,7 @@ export default class AudioManager {
     this._stopSource();
     this._playing = false;
     this._buffer = null;
+    this._hasScriptAudioUsage = false;
     this._startOffset = 0;
     this.bass = 0;
     this.mid = 0;

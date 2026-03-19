@@ -178,17 +178,21 @@ export default function useRecorder(engineRef) {
       const audioManager = engine._audioManager;
       const audioLoaded = audioManager?.isLoaded ?? false;
       const hasLiveAudioGraph = !!audioManager?._audioContext;
+      const needsOfflineAudioBounce = !!(offline && hasLiveAudioGraph && audioManager?.hasScriptAudioUsage);
       const audioStream =
-        !offline && audioManager && (audioLoaded || hasLiveAudioGraph)
+        ((!offline && audioManager && (audioLoaded || hasLiveAudioGraph)) ||
+          (offline && needsOfflineAudioBounce))
           ? audioManager.getAudioStream()
           : null;
       const audioBuffer =
-        offline && audioLoaded && audioManager
+        offline && audioLoaded && audioManager && !needsOfflineAudioBounce
           ? audioManager.getAudioBuffer?.() ?? audioManager._buffer ?? null
           : null;
       let hasAudio = false;
       if (offline) {
-        hasAudio = audioBuffer !== null && audioBuffer.numberOfChannels > 0;
+        hasAudio =
+          (audioBuffer !== null && audioBuffer.numberOfChannels > 0) ||
+          !!(audioStream && audioStream.getAudioTracks().length > 0);
       } else if (audioStream && audioStream.getAudioTracks().length > 0) {
         const channels = audioStream.getAudioTracks()[0].getSettings().channelCount || 0;
         hasAudio = channels > 0;
