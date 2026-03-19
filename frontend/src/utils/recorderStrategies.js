@@ -191,6 +191,27 @@ function computeProgress(currentTime, endTime, renderStartTime, fps) {
   return { percent, eta, currentFrame, totalFrames };
 }
 
+function getSafeAudioBufferInfo(audioBuffer) {
+  if (!audioBuffer) return null;
+  const sampleRate = Math.round(Number(audioBuffer.sampleRate) || 0);
+  const numberOfChannels = Math.round(Number(audioBuffer.numberOfChannels) || 0);
+  if (!Number.isFinite(sampleRate) || sampleRate < 8000) return null;
+  if (!Number.isFinite(numberOfChannels) || numberOfChannels < 1 || numberOfChannels > 32) return null;
+  return { sampleRate, numberOfChannels };
+}
+
+function getSafeTrackAudioInfo(audioTrack) {
+  if (!audioTrack) return null;
+  const settings = audioTrack.getSettings?.() || {};
+  const sampleRate = Math.round(Number(settings.sampleRate) || 48000);
+  let numberOfChannels = Math.round(Number(settings.channelCount) || 0);
+  if (!Number.isFinite(sampleRate) || sampleRate < 8000) return null;
+  if (!Number.isFinite(numberOfChannels) || numberOfChannels < 1 || numberOfChannels > 32) {
+    numberOfChannels = 2;
+  }
+  return { sampleRate, numberOfChannels };
+}
+
 export async function startOfflinePng(ctx) {
   const {
     engine, canvas, fps, duration, alpha,
@@ -366,13 +387,13 @@ export async function startOfflineWebCodecs(ctx) {
 
   // Audio track in muxer
   let audioEncoder = null;
-  const useAudio = hasAudio && offlineAudioBuffer && typeof AudioEncoder !== "undefined"
-    && offlineAudioBuffer.numberOfChannels > 0;
+  const offlineAudioInfo = getSafeAudioBufferInfo(offlineAudioBuffer);
+  const useAudio = hasAudio && offlineAudioInfo && typeof AudioEncoder !== "undefined";
   if (useAudio) {
     muxerOpts.audio = {
       codec: audioCodecMuxer,
-      sampleRate: offlineAudioBuffer.sampleRate,
-      numberOfChannels: offlineAudioBuffer.numberOfChannels,
+      sampleRate: offlineAudioInfo.sampleRate,
+      numberOfChannels: offlineAudioInfo.numberOfChannels,
     };
   }
 
@@ -386,8 +407,8 @@ export async function startOfflineWebCodecs(ctx) {
     });
     audioEncoder.configure({
       codec: audioCodecEncoder,
-      sampleRate: offlineAudioBuffer.sampleRate,
-      numberOfChannels: offlineAudioBuffer.numberOfChannels,
+      sampleRate: offlineAudioInfo.sampleRate,
+      numberOfChannels: offlineAudioInfo.numberOfChannels,
       bitrate: 128000,
     });
   }
@@ -656,11 +677,13 @@ export function startRealtimeMp4(ctx) {
   let audioReader = null;
   if (hasAudio && audioStream) {
     const audioTrack = audioStream.getAudioTracks()[0];
-    const audioSettings = audioTrack.getSettings();
-    const sampleRate = audioSettings.sampleRate || 48000;
-    const numberOfChannels = audioSettings.channelCount || 0;
-    if (numberOfChannels > 0) {
-      muxerOpts.audio = { codec: "aac", sampleRate, numberOfChannels };
+    const audioInfo = getSafeTrackAudioInfo(audioTrack);
+    if (audioInfo) {
+      muxerOpts.audio = {
+        codec: "aac",
+        sampleRate: audioInfo.sampleRate,
+        numberOfChannels: audioInfo.numberOfChannels,
+      };
     }
   }
 
@@ -668,19 +691,17 @@ export function startRealtimeMp4(ctx) {
 
   if (hasAudio && audioStream && muxerOpts.audio) {
     const audioTrack = audioStream.getAudioTracks()[0];
-    const audioSettings = audioTrack.getSettings();
-    const sampleRate = audioSettings.sampleRate || 48000;
-    const numberOfChannels = audioSettings.channelCount || 0;
+    const audioInfo = getSafeTrackAudioInfo(audioTrack);
 
-    if (numberOfChannels > 0) {
+    if (audioInfo) {
       audioEncoder = new AudioEncoder({
         output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
         error: (e) => console.error("AudioEncoder error:", e),
       });
       audioEncoder.configure({
         codec: "aac",
-        sampleRate,
-        numberOfChannels,
+        sampleRate: audioInfo.sampleRate,
+        numberOfChannels: audioInfo.numberOfChannels,
         bitrate: 128000,
       });
 
