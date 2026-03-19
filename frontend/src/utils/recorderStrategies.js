@@ -670,6 +670,7 @@ export function startRealtimeMp4(ctx) {
   const {
     canvas, fps, duration, videoBitsPerSecond,
     hasAudio, audioStream,
+    recordingWarning,
     setRecording, setElapsedTime, setCompletionInfo, downloadBlob,
     rafRef, finalizeRef, startTimeRef, autoStopRef,
     restoreOnRealtimeStop,
@@ -813,6 +814,7 @@ export function startRealtimeMp4(ctx) {
         const blob = new Blob([target.buffer], { type: "video/mp4" });
         downloadBlob(blob, `recording_${Date.now()}.mp4`);
         const warning =
+          recordingWarning ||
           audioDisabledReason ||
           (muxerOpts.audio && audioChunksEncoded === 0
             ? "MP4 audio capture was skipped because the browser produced invalid live audio frames."
