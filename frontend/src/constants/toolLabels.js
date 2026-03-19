@@ -16,5 +16,6 @@ export const TOOL_LABELS = {
   list_files: "파일 목록 조회 중...",
   list_uploaded_files: "업로드 파일 조회 중...",
   start_recording: "녹화 시작 중...",
+  generate_wav: "오디오 생성 중...",
   debug_eval: "코드 실행 중...",
 };
