@@ -369,6 +369,12 @@ export async function startOfflineWebCodecs(ctx) {
       : engine._duration > 0
         ? engine._duration
         : 30;
+  const totalFrames = Math.round(endTime * fps);
+  const renderStartTime = performance.now();
+
+  setElapsedTime(0);
+  setProgress({ percent: 0, eta: 0, currentFrame: 0, totalFrames });
+  setRecording(true);
 
   let offlineAudioBuffer = audioBuffer;
   if (hasAudio && !offlineAudioBuffer && audioStream) {
@@ -447,10 +453,6 @@ export async function startOfflineWebCodecs(ctx) {
 
   let currentTime = 0;
   let frameCount = 0;
-
-  const renderStartTime = performance.now();
-  setElapsedTime(0);
-  setRecording(true);
 
   const BATCH = 6;
   const MAX_QUEUE = 10;
