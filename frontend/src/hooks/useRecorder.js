@@ -233,16 +233,38 @@ export default function useRecorder(engineRef) {
         stopRecording, updateElapsed,
       };
 
+      const handleStartFailure = (error) => {
+        console.error("Recording start failed:", error);
+        setProgress(null);
+        setRecording(false);
+        setCompletionInfo({
+          success: false,
+          error: error?.message || "Recording failed to start",
+        });
+        restoreEngine();
+      };
+
+      const runStrategy = (startFn) => {
+        try {
+          const result = startFn(ctx);
+          if (result && typeof result.then === "function") {
+            result.catch(handleStartFailure);
+          }
+        } catch (error) {
+          handleStartFailure(error);
+        }
+      };
+
       if (offline && format === "png") {
-        startOfflinePng(ctx);
+        runStrategy(startOfflinePng);
       } else if (offline && (format === "mp4" || format === "webm") && typeof VideoEncoder !== "undefined") {
-        startOfflineWebCodecs(ctx);
+        runStrategy(startOfflineWebCodecs);
       } else if (offline) {
-        startOfflineFallback(ctx);
+        runStrategy(startOfflineFallback);
       } else if (!offline && format === "mp4" && typeof VideoEncoder !== "undefined") {
-        startRealtimeMp4(ctx);
+        runStrategy(startRealtimeMp4);
       } else {
-        startRealtimeWebm(ctx);
+        runStrategy(startRealtimeWebm);
       }
     },
     [engineRef, updateElapsed, stopRecording, downloadBlob, restoreEngine, setCompletionInfo]
