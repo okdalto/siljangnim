@@ -28,6 +28,16 @@ function avcCodecForResolution(w, h) {
   return "avc1.640033";                        // High L5.1 — 4K+
 }
 
+function getSafeVideoBitrate(codec, width, height, fps, requestedBitrate) {
+  const requested = Math.max(2_000_000, Math.round(Number(requestedBitrate) || 0));
+  const pixels = Math.max(1, width * height);
+  const frameRate = Math.max(1, Math.round(Number(fps) || 30));
+  const bitsPerPixelFrame = codec === "avc" ? 0.08 : 0.06;
+  const hardCap = codec === "avc" ? 32_000_000 : 24_000_000;
+  const dynamicCap = Math.max(4_000_000, Math.round(pixels * frameRate * bitsPerPixelFrame));
+  return Math.min(requested, dynamicCap, hardCap);
+}
+
 // ---- Offline scheduling helpers ----
 // setTimeout(0) instead of rAF avoids 60fps cap and background-tab throttling.
 
@@ -204,11 +214,9 @@ function getSafeTrackAudioInfo(audioTrack) {
   if (!audioTrack) return null;
   const settings = audioTrack.getSettings?.() || {};
   const sampleRate = Math.round(Number(settings.sampleRate) || 48000);
-  let numberOfChannels = Math.round(Number(settings.channelCount) || 0);
+  const numberOfChannels = Math.round(Number(settings.channelCount) || 0);
   if (!Number.isFinite(sampleRate) || sampleRate < 8000) return null;
-  if (!Number.isFinite(numberOfChannels) || numberOfChannels < 1 || numberOfChannels > 32) {
-    numberOfChannels = 2;
-  }
+  if (!Number.isFinite(numberOfChannels) || numberOfChannels < 1 || numberOfChannels > 32) return null;
   return { sampleRate, numberOfChannels };
 }
 
@@ -346,6 +354,13 @@ export async function startOfflineWebCodecs(ctx) {
       };
 
   const { MuxerClass, TargetClass, muxerVideoCodec, encoderCodec, blobType, fileExt, muxerExtraOpts, audioCodecMuxer, audioCodecEncoder } = configs;
+  const safeVideoBitrate = getSafeVideoBitrate(
+    muxerVideoCodec === "avc" ? "avc" : "vp9",
+    canvas.width,
+    canvas.height,
+    fps,
+    videoBitsPerSecond,
+  );
 
   const dt = 1 / fps;
   const endTime =
@@ -425,7 +440,7 @@ export async function startOfflineWebCodecs(ctx) {
     codec: encoderCodec,
     width: canvas.width,
     height: canvas.height,
-    bitrate: videoBitsPerSecond,
+    bitrate: safeVideoBitrate,
     framerate: fps,
     ...(isWebm && alpha ? { alpha: "keep" } : {}),
   });
@@ -675,6 +690,10 @@ export function startRealtimeMp4(ctx) {
   // Audio setup
   let audioEncoder = null;
   let audioReader = null;
+  let audioChunksEncoded = 0;
+  let audioChunksSkipped = 0;
+  let audioDisabledReason = null;
+  const safeVideoBitrate = getSafeVideoBitrate("avc", canvas.width, canvas.height, fps, videoBitsPerSecond);
   if (hasAudio && audioStream) {
     const audioTrack = audioStream.getAudioTracks()[0];
     const audioInfo = getSafeTrackAudioInfo(audioTrack);
@@ -696,7 +715,10 @@ export function startRealtimeMp4(ctx) {
     if (audioInfo) {
       audioEncoder = new AudioEncoder({
         output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
-        error: (e) => console.error("AudioEncoder error:", e),
+        error: (e) => {
+          audioDisabledReason = e?.message || "Audio encoding failed";
+          console.error("AudioEncoder error:", e);
+        },
       });
       audioEncoder.configure({
         codec: "aac",
@@ -714,7 +736,24 @@ export function startRealtimeMp4(ctx) {
             while (true) {
               const { value, done } = await audioReader.read();
               if (done) break;
+              const frameChannels = Math.round(Number(value?.numberOfChannels) || 0);
+              const frameCount = Math.round(Number(value?.numberOfFrames) || 0);
+              const frameRate = Math.round(Number(value?.sampleRate) || 0);
+              if (frameChannels < 1 || frameChannels > 32 || frameCount < 1 || frameRate < 8000) {
+                audioChunksSkipped += 1;
+                if (!audioDisabledReason) {
+                  audioDisabledReason = "Live audio frames reported invalid metadata for MP4 capture.";
+                  console.warn("[RealtimeRec] Skipping invalid audio frame for MP4 capture.", {
+                    frameChannels,
+                    frameCount,
+                    frameRate,
+                  });
+                }
+                value.close();
+                continue;
+              }
               audioEncoder.encode(value);
+              audioChunksEncoded += 1;
               value.close();
             }
           } catch (_) {
@@ -722,6 +761,9 @@ export function startRealtimeMp4(ctx) {
           }
         })();
       }
+    } else {
+      audioDisabledReason = "Live audio track metadata is incomplete for MP4 capture.";
+      console.warn("[RealtimeRec] MP4 audio disabled because track settings are incomplete.");
     }
   }
 
@@ -737,7 +779,7 @@ export function startRealtimeMp4(ctx) {
     codec: avcCodecForResolution(canvas.width, canvas.height),
     width: canvas.width,
     height: canvas.height,
-    bitrate: videoBitsPerSecond,
+    bitrate: safeVideoBitrate,
     framerate: fps,
   });
 
@@ -770,7 +812,18 @@ export function startRealtimeMp4(ctx) {
         muxer.finalize();
         const blob = new Blob([target.buffer], { type: "video/mp4" });
         downloadBlob(blob, `recording_${Date.now()}.mp4`);
-        setCompletionInfo({ success: true, fileSize: blob.size, timeTaken });
+        const warning =
+          audioDisabledReason ||
+          (muxerOpts.audio && audioChunksEncoded === 0
+            ? "MP4 audio capture was skipped because the browser produced invalid live audio frames."
+            : null);
+        if (audioChunksSkipped > 0) {
+          console.warn("[RealtimeRec] Some MP4 audio frames were skipped during capture.", {
+            audioChunksEncoded,
+            audioChunksSkipped,
+          });
+        }
+        setCompletionInfo({ success: true, fileSize: blob.size, timeTaken, warning });
       }
     } catch (e) {
       console.error("Realtime MP4 finalize error:", e);
