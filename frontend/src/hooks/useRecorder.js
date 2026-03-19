@@ -197,10 +197,18 @@ export default function useRecorder(engineRef) {
         const channels = audioStream.getAudioTracks()[0].getSettings().channelCount || 0;
         hasAudio = channels > 0;
       }
+      const disableRealtimeMp4Audio = !offline && format === "mp4" && hasAudio;
+      const effectiveHasAudio = disableRealtimeMp4Audio ? false : hasAudio;
+      const recordingWarning = disableRealtimeMp4Audio
+        ? "Realtime MP4 recording exports video only. Use realtime WebM or offline MP4/WebM for audio."
+        : null;
+      if (disableRealtimeMp4Audio) {
+        console.warn("[Recorder] Realtime MP4 audio is disabled because the browser WebCodecs AAC path is unstable for live audio.");
+      }
 
 
       // Codec selection (for MediaRecorder paths)
-      const codecCandidates = hasAudio
+      const codecCandidates = effectiveHasAudio
         ? ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp9", "video/webm"]
         : ["video/webm;codecs=vp9", "video/webm"];
       const mimeType =
@@ -224,7 +232,7 @@ export default function useRecorder(engineRef) {
       // Strategies capture from recordCanvas (which is the 2D overlay in WebGPU mode).
       const ctx = {
         engine, canvas: recordCanvas, fps, duration, format, alpha,
-        videoBitsPerSecond, mimeType, hasAudio, audioStream, audioBuffer,
+        videoBitsPerSecond, mimeType, hasAudio: effectiveHasAudio, audioStream, audioBuffer, recordingWarning,
         setRecording, setElapsedTime, setProgress, setCompletionInfo,
         downloadBlob, discardRef,
         rafRef, finalizeRef, offlineAbortRef, alphaRef, filenameRef,
