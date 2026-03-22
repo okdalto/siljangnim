@@ -207,6 +207,7 @@ export async function createNodeAfterPrompt(projectName, parentNodeId, currentSt
     prompt = null,
     type = "prompt_node",
     thumbnailDataUrl = null,
+    skipIfUnchanged = false,
   } = opts;
 
   const currentSnapshot = await captureAndBuildSnapshot(currentState);
@@ -233,6 +234,7 @@ export async function createNodeAfterPrompt(projectName, parentNodeId, currentSt
     const ops = diff(parentSnapshot, currentSnapshot);
 
     if (ops.length === 0) {
+      if (skipIfUnchanged) return null; // no changes — skip node creation
       // No changes — still create node but as checkpoint for simplicity
       snapshotRef = `_snapshots/${nodeId}.json`;
       await storage.writeFile(snapshotRef, currentSnapshot);

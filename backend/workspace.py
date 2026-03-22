@@ -13,6 +13,7 @@ import logging
 import mimetypes
 import shutil
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -168,6 +169,32 @@ def _safe_path(filename: str) -> Path:
 
 
 # ---------------------------------------------------------------------------
+# Optimistic locking — in-memory revision tracking
+# ---------------------------------------------------------------------------
+
+_revisions: dict[str, int] = {}
+
+
+class RevisionConflictError(Exception):
+    """Raised when a CAS write detects a revision mismatch."""
+    def __init__(self, filename: str, expected: int, actual: int):
+        super().__init__(f"Revision conflict on \"{filename}\": expected {expected}, current {actual}")
+        self.filename = filename
+        self.expected = expected
+        self.actual = actual
+
+
+def _get_rev(filename: str) -> int:
+    return _revisions.get(filename, 0)
+
+
+def _bump_rev(filename: str) -> int:
+    rev = _revisions.get(filename, 0) + 1
+    _revisions[filename] = rev
+    return rev
+
+
+# ---------------------------------------------------------------------------
 # File I/O
 # ---------------------------------------------------------------------------
 
@@ -229,13 +256,33 @@ def delete_file(filename: str) -> None:
 
 
 def write_json(filename: str, data: dict) -> Path:
-    """Write a dict as JSON to the workspace."""
+    """Write a dict as JSON to the workspace (unconditional, bumps rev)."""
+    _bump_rev(filename)
     return write_file(filename, json.dumps(data, indent=2))
 
 
 def read_json(filename: str) -> dict:
     """Read a JSON file from the workspace."""
     return json.loads(read_file(filename))
+
+
+def read_json_with_rev(filename: str) -> tuple[dict, int]:
+    """Read a JSON file and return (data, revision) for optimistic locking."""
+    data = read_json(filename)
+    return data, _get_rev(filename)
+
+
+def write_json_cas(filename: str, data: dict, expected_rev: int | None = None) -> int:
+    """Compare-and-swap write: only succeeds if current rev matches expected_rev.
+
+    Returns the new revision number. Raises RevisionConflictError on mismatch.
+    """
+    current_rev = _get_rev(filename)
+    if expected_rev is not None and expected_rev != current_rev:
+        raise RevisionConflictError(filename, expected_rev, current_rev)
+    new_rev = _bump_rev(filename)
+    write_file(filename, json.dumps(data, indent=2))
+    return new_rev
 
 
 def read_json_safe(filename: str, default=None):

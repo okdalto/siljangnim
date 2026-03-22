@@ -793,6 +793,10 @@ const HANDLERS = {
     const abortController = new AbortController();
     s.abortController = abortController;
 
+    // Capture the active version tree node at prompt start so that concurrent
+    // agents fork from the correct parent instead of chaining linearly.
+    const capturedParentNodeId = sessionStorage.getItem("siljangnim:activeNodeId") || null;
+
     // Improvement #10: link errorCollector to injectedMessages for push-based errors
     this.errorCollector.setInjectedMessages(s.injectedMessages);
 
@@ -899,12 +903,12 @@ const HANDLERS = {
         }
         completedNormally = true;
         this._clearInterruptedPrompt();
-        this.broadcast({ type: "chat_done", chatId });
+        this.broadcast({ type: "chat_done", chatId, parentNodeId: capturedParentNodeId });
       } catch (err) {
         // User-initiated cancel
         if (err.name === "AbortError") {
           this._clearInterruptedPrompt();
-          this.broadcast({ type: "chat_done", chatId });
+          this.broadcast({ type: "chat_done", chatId, parentNodeId: capturedParentNodeId });
           return;
         }
 
@@ -943,7 +947,7 @@ const HANDLERS = {
             message: "연결이 끊어졌습니다. 앱으로 돌아오면 자동으로 재시도합니다.",
             level: "warning", chatId,
           });
-          this.broadcast({ type: "chat_done", chatId });
+          this.broadcast({ type: "chat_done", chatId, parentNodeId: capturedParentNodeId });
           return;
         }
 
@@ -971,7 +975,7 @@ const HANDLERS = {
           message: `Agent error: ${err.message}`, level: "error", chatId,
         });
         this.broadcast({ type: "assistant_text", text: `Error: ${userMsg}`, chatId });
-        this.broadcast({ type: "chat_done", chatId });
+        this.broadcast({ type: "chat_done", chatId, parentNodeId: capturedParentNodeId });
       } finally {
         const trailingPrompt = completedNormally ? _consumeInjectedPromptQueue(s) : null;
         this.errorCollector.setInjectedMessages(null);

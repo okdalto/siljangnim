@@ -71,12 +71,15 @@ export default function useProjectTree(sendRef, captureThumbnail, getWorkspaceSt
    */
   const createNodeAfterPrompt = useCallback(async (projectName, currentState, opts = {}) => {
     if (!projectName) return null;
-    const parentId = activeNodeIdRef.current;
+    // Use explicitly provided parentNodeId (from concurrent agent capture)
+    // or fall back to the current active node.
+    const parentId = opts.parentNodeId || activeNodeIdRef.current;
     const thumbnail = captureThumbnail?.() || null;
     const node = await projectTree.createNodeAfterPrompt(
       projectName, parentId, currentState,
       { ...opts, thumbnailDataUrl: thumbnail }
     );
+    if (!node) return null; // skipped (no changes)
     setActiveNodeId(node.id);
     await loadTree(projectName);
     return node;

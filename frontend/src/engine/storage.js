@@ -208,6 +208,32 @@ function blobKey(filename) {
 }
 
 // ---------------------------------------------------------------------------
+// Optimistic locking — in-memory revision tracking
+// ---------------------------------------------------------------------------
+
+const _revisions = new Map();
+
+function _getRev(filename) {
+  return _revisions.get(filename) || 0;
+}
+
+function _bumpRev(filename) {
+  const next = (_revisions.get(filename) || 0) + 1;
+  _revisions.set(filename, next);
+  return next;
+}
+
+export class RevisionConflictError extends Error {
+  constructor(filename, expected, actual) {
+    super(`Revision conflict on "${filename}": expected ${expected}, current ${actual}`);
+    this.name = "RevisionConflictError";
+    this.filename = filename;
+    this.expected = expected;
+    this.actual = actual;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Workspace file I/O (JSON)
 // ---------------------------------------------------------------------------
 
@@ -218,9 +244,36 @@ export async function readJson(filename) {
   return data;
 }
 
+/**
+ * Read JSON and return { data, _rev } for optimistic locking.
+ */
+export async function readJsonWithRev(filename) {
+  const data = await readJson(filename);
+  return { data, _rev: _getRev(filename) };
+}
+
 export async function writeJson(filename, data) {
+  // Bump rev synchronously before async IDB write to prevent interleaving
+  _bumpRev(filename);
   const store = await tx(STORE_FILES, "readwrite");
   await idbReq(store.put(data, fileKey(filename)));
+}
+
+/**
+ * Compare-and-swap write: only succeeds if current rev matches expectedRev.
+ * Throws RevisionConflictError on mismatch.
+ * Returns the new revision number.
+ */
+export async function writeJsonCAS(filename, data, expectedRev) {
+  const currentRev = _getRev(filename);
+  if (expectedRev !== undefined && expectedRev !== currentRev) {
+    throw new RevisionConflictError(filename, expectedRev, currentRev);
+  }
+  // Bump rev synchronously before async IDB write
+  const newRev = _bumpRev(filename);
+  const store = await tx(STORE_FILES, "readwrite");
+  await idbReq(store.put(data, fileKey(filename)));
+  return newRev;
 }
 
 export async function readFile(filename) {

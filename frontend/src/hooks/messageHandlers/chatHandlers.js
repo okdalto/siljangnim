@@ -147,10 +147,14 @@ export function handleChatDone(msg, deps) {
         });
         if (node) updateNodeMetadata(node.id, currentState, { generateTitle: !skipAITitle, onTitleUpdated: reloadTree }).catch((e) => { console.warn("[chat_done] updateNodeMetadata failed:", e); });
       } else {
+        // Use the parentNodeId captured at prompt start so concurrent agents
+        // fork from the correct node instead of chaining linearly.
         const node = await pt.createNodeAfterPrompt(projName, currentState, {
           title,
           type: "prompt_node",
           prompt: lastMsg?.text || lastMsg?.content || null,
+          parentNodeId: msg.parentNodeId || undefined,
+          skipIfUnchanged: true,
         });
         if (node) updateNodeMetadata(node.id, currentState, { generateTitle: !skipAITitle, onTitleUpdated: reloadTree }).catch((e) => { console.warn("[chat_done] updateNodeMetadata failed:", e); });
       }
