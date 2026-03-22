@@ -1,6 +1,6 @@
 import { memo } from "react";
 
-function ChatTabBar({ tabs, activeTabId, tabOrder, onSwitch, onCreate, onClose }) {
+function ChatTabBar({ tabs, activeTabId, tabOrder, onSwitch, onCreate, onClose, onReset }) {
   return (
     <div className="flex items-center gap-0.5 overflow-x-auto" style={{ minWidth: 0 }}>
       {tabOrder.map((id) => {
@@ -11,7 +11,7 @@ function ChatTabBar({ tabs, activeTabId, tabOrder, onSwitch, onCreate, onClose }
           <button
             key={id}
             type="button"
-            onClick={() => onSwitch(id)}
+            onClick={() => isActive ? onReset?.(id) : onSwitch(id)}
             className={`group flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors whitespace-nowrap ${
               isActive
                 ? "text-zinc-100"

@@ -386,6 +386,7 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
             onSwitch={chatCtx.switchTab}
             onCreate={chatCtx.createTab}
             onClose={chatCtx.closeTab}
+            onReset={chatCtx.onNewChat}
           />
         ) : (
           <button
