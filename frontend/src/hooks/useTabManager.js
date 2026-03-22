@@ -106,7 +106,9 @@ function reducer(state, action) {
       const existing = state.tabs.get(chatId);
       if (!existing) return state;
       const tabs = new Map(state.tabs);
-      tabs.set(chatId, { ...existing, ...updates });
+      // Support functional updates for fields that need access to current state
+      const resolved = typeof updates === "function" ? updates(existing) : updates;
+      tabs.set(chatId, { ...existing, ...resolved });
       return { ...state, tabs };
     }
     case "SET_TAB_LABEL": {
@@ -115,6 +117,38 @@ function reducer(state, action) {
       const tabs = new Map(state.tabs);
       tabs.set(action.chatId, { ...existing, label: action.label });
       return { ...state, tabs };
+    }
+    case "APPEND_STREAM_DELTA": {
+      const { chatId, buffered } = action;
+      const existing = state.tabs.get(chatId);
+      if (!existing) return state;
+      const msgs = existing.messages;
+      const last = msgs[msgs.length - 1];
+      let newMessages;
+      if (last?.role === "assistant" && last.streaming) {
+        newMessages = [...msgs];
+        newMessages[newMessages.length - 1] = { ...last, text: (last.text || "") + buffered };
+      } else {
+        newMessages = [...msgs, { role: "assistant", text: buffered, streaming: true }];
+      }
+      const tabs = new Map(state.tabs);
+      tabs.set(chatId, { ...existing, messages: newMessages });
+      return { ...state, tabs };
+    }
+    case "FINALIZE_STREAM": {
+      const { chatId, remaining } = action;
+      const existing = state.tabs.get(chatId);
+      if (!existing) return state;
+      const msgs = existing.messages;
+      const last = msgs[msgs.length - 1];
+      if (last?.role === "assistant" && last.streaming) {
+        const newMessages = [...msgs];
+        newMessages[newMessages.length - 1] = { ...last, text: (last.text || "") + remaining, streaming: false };
+        const tabs = new Map(state.tabs);
+        tabs.set(chatId, { ...existing, messages: newMessages });
+        return { ...state, tabs };
+      }
+      return state;
     }
     default:
       return state;
@@ -206,18 +240,17 @@ export default function useTabManager(sendRef) {
     if (files?.length) msg.files = files.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
     if (sceneReferences?.length) msg.sceneReferences = sceneReferences.map((r) => ({ nodeId: r.nodeId, title: r.title }));
 
-    dispatch({ type: "UPDATE_TAB", chatId: activeTabId, updates: { isProcessing: true } });
     dispatch({
       type: "UPDATE_TAB",
       chatId: activeTabId,
-      updates: { messages: [...(activeTab?.messages || []), msg] },
+      updates: (tab) => ({ messages: [...tab.messages, msg], isProcessing: true }),
     });
 
     const wsMsg = { type: "prompt", text, chatId: activeTabId };
     if (files?.length) wsMsg.files = files;
     if (sceneReferences?.length) wsMsg.sceneReferences = sceneReferences;
     sendRef.current?.(wsMsg);
-  }, [sendRef, activeTabId, activeTab?.messages]);
+  }, [sendRef, activeTabId]);
 
   const handleNewChat = useCallback(() => {
     sendRef.current?.({ type: "cancel_agent", chatId: activeTabId });
@@ -233,13 +266,13 @@ export default function useTabManager(sendRef) {
     dispatch({
       type: "UPDATE_TAB",
       chatId: activeTabId,
-      updates: {
-        messages: [...(activeTab?.messages || []), { role: "user", text }],
+      updates: (tab) => ({
+        messages: [...tab.messages, { role: "user", text }],
         pendingQuestion: null,
-      },
+      }),
     });
     sendRef.current?.({ type: "user_answer", text, chatId: activeTabId });
-  }, [sendRef, activeTabId, activeTab?.messages]);
+  }, [sendRef, activeTabId]);
 
   const handleCancel = useCallback(() => {
     sendRef.current?.({ type: "cancel_agent", chatId: activeTabId });
@@ -249,10 +282,8 @@ export default function useTabManager(sendRef) {
 
   const addAssistantText = useCallback((text, chatId) => {
     const id = chatId || activeTabId;
-    const tab = tabs.get(id);
-    if (!tab) return;
-    dispatch({ type: "UPDATE_TAB", chatId: id, updates: { messages: [...tab.messages, { role: "assistant", text }] } });
-  }, [tabs, activeTabId]);
+    dispatch({ type: "UPDATE_TAB", chatId: id, updates: (tab) => ({ messages: [...tab.messages, { role: "assistant", text }] }) });
+  }, [activeTabId]);
 
   const addAssistantTextDelta = useCallback((chunk, chatId) => {
     const id = chatId || activeTabId;
@@ -266,21 +297,10 @@ export default function useTabManager(sendRef) {
         const buffered = entry.buffer;
         entry.buffer = "";
         entry.handle = null;
-        const tab = tabs.get(id);
-        if (!tab) return;
-        const msgs = tab.messages;
-        const last = msgs[msgs.length - 1];
-        let newMessages;
-        if (last?.role === "assistant" && last.streaming) {
-          newMessages = [...msgs];
-          newMessages[newMessages.length - 1] = { ...last, text: (last.text || "") + buffered };
-        } else {
-          newMessages = [...msgs, { role: "assistant", text: buffered, streaming: true }];
-        }
-        dispatch({ type: "UPDATE_TAB", chatId: id, updates: { messages: newMessages } });
+        dispatch({ type: "APPEND_STREAM_DELTA", chatId: id, buffered });
       }, 16);
     }
-  }, [tabs, activeTabId]);
+  }, [activeTabId]);
 
   const finalizeAssistantText = useCallback((chatId) => {
     const id = chatId || activeTabId;
@@ -291,73 +311,55 @@ export default function useTabManager(sendRef) {
       remaining = entry.buffer;
       entry.buffer = "";
     }
-    const tab = tabs.get(id);
-    if (!tab) return;
-    const msgs = tab.messages;
-    const last = msgs[msgs.length - 1];
-    if (last?.role === "assistant" && last.streaming) {
-      const newMessages = [...msgs];
-      newMessages[newMessages.length - 1] = { ...last, text: (last.text || "") + remaining, streaming: false };
-      dispatch({ type: "UPDATE_TAB", chatId: id, updates: { messages: newMessages } });
-    }
-  }, [tabs, activeTabId]);
+    dispatch({ type: "FINALIZE_STREAM", chatId: id, remaining });
+  }, [activeTabId]);
 
   const addLog = useCallback((entry, chatId) => {
     const id = chatId || activeTabId;
-    const tab = tabs.get(id);
-    if (!tab) return;
-    dispatch({ type: "UPDATE_TAB", chatId: id, updates: { debugLogs: [...tab.debugLogs, entry] } });
-  }, [tabs, activeTabId]);
+    dispatch({ type: "UPDATE_TAB", chatId: id, updates: (tab) => ({ debugLogs: [...tab.debugLogs, entry] }) });
+  }, [activeTabId]);
 
   const addSystemMessage = useCallback((text, chatId) => {
     const id = chatId || activeTabId;
-    const tab = tabs.get(id);
-    if (!tab) return;
-    dispatch({ type: "UPDATE_TAB", chatId: id, updates: { messages: [...tab.messages, { role: "system", text }] } });
-  }, [tabs, activeTabId]);
+    dispatch({ type: "UPDATE_TAB", chatId: id, updates: (tab) => ({ messages: [...tab.messages, { role: "system", text }] }) });
+  }, [activeTabId]);
 
   const addInterruptedMessage = useCallback((prompt, chatId) => {
     const id = chatId || activeTabId;
-    const tab = tabs.get(id);
-    if (!tab) return;
     dispatch({
       type: "UPDATE_TAB",
       chatId: id,
-      updates: {
+      updates: (tab) => ({
         messages: [...tab.messages, {
           role: "system",
           text: `이전 대화가 새로고침으로 중단되었습니다.`,
           interrupted: true,
           interruptedPrompt: prompt,
         }],
-      },
+      }),
     });
-  }, [tabs, activeTabId]);
+  }, [activeTabId]);
 
   const handleRetryInterrupted = useCallback((prompt) => {
-    const tab = tabs.get(activeTabId);
-    if (!tab) return;
     dispatch({
       type: "UPDATE_TAB",
       chatId: activeTabId,
-      updates: {
+      updates: (tab) => ({
         messages: tab.messages.filter((m) => !m.interrupted),
         isProcessing: true,
-      },
+      }),
     });
     sendRef.current?.({ type: "prompt", text: prompt, _isRetry: true, chatId: activeTabId });
-  }, [sendRef, tabs, activeTabId]);
+  }, [sendRef, activeTabId]);
 
   const addErrorLog = useCallback((text, chatId) => {
     const id = chatId || activeTabId;
-    const tab = tabs.get(id);
-    if (!tab) return;
     dispatch({
       type: "UPDATE_TAB",
       chatId: id,
-      updates: { debugLogs: [...tab.debugLogs, { agent: "System", message: text, level: "error" }] },
+      updates: (tab) => ({ debugLogs: [...tab.debugLogs, { agent: "System", message: text, level: "error" }] }),
     });
-  }, [tabs, activeTabId]);
+  }, [activeTabId]);
 
   const setProcessing = useCallback((val, chatId) => {
     const id = chatId || activeTabId;
@@ -381,9 +383,12 @@ export default function useTabManager(sendRef) {
 
   const setDebugLogs = useCallback((val, chatId) => {
     const id = chatId || activeTabId;
-    const logs = typeof val === "function" ? val(tabs.get(id)?.debugLogs || []) : val;
-    dispatch({ type: "UPDATE_TAB", chatId: id, updates: { debugLogs: logs } });
-  }, [tabs, activeTabId]);
+    if (typeof val === "function") {
+      dispatch({ type: "UPDATE_TAB", chatId: id, updates: (tab) => ({ debugLogs: val(tab.debugLogs || []) }) });
+    } else {
+      dispatch({ type: "UPDATE_TAB", chatId: id, updates: { debugLogs: val } });
+    }
+  }, [activeTabId]);
 
   const clearAll = useCallback((chatId) => {
     const id = chatId || activeTabId;

@@ -36,16 +36,16 @@ StatusCallback = Callable[[str, str], Awaitable[None]]  # (status_type, detail)
 # Conversation history: WebSocket ID → message list (persisted to disk)
 # ---------------------------------------------------------------------------
 
-_conversations: dict[int, list[dict]] = {}
+_conversations: dict[int | str, list[dict]] = {}
 
 # Per-session futures for ask_user tool — resolved when the user answers
-_user_answer_futures: dict[int, asyncio.Future] = {}
+_user_answer_futures: dict[int | str, asyncio.Future] = {}
 
 # Per-session browser errors collected during the agent's turn
-_browser_errors: dict[int, list[str]] = {}
+_browser_errors: dict[int | str, list[str]] = {}
 
 # Per-session events signalling that a browser error has arrived
-_browser_error_events: dict[int, asyncio.Event] = {}
+_browser_error_events: dict[int | str, asyncio.Event] = {}
 
 
 def _get_conversation_file() -> Path:
@@ -75,8 +75,13 @@ def load_conversations() -> None:
         conv_file = _get_conversation_file()
         if conv_file.exists():
             data = json.loads(conv_file.read_text(encoding="utf-8"))
-            # JSON keys are strings — convert back to int
-            _conversations = {int(k): v for k, v in data.items()}
+            # JSON keys are strings — try converting to int for legacy, keep strings for chatId
+            _conversations = {}
+            for k, v in data.items():
+                try:
+                    _conversations[int(k)] = v
+                except ValueError:
+                    _conversations[k] = v  # chatId string key
         else:
             _conversations = {}
     except (OSError, json.JSONDecodeError, ValueError):
@@ -1040,7 +1045,7 @@ def _drain_injected(queue: asyncio.Queue | None) -> list[str]:
 
 
 async def run_agent(
-    ws_id: int,
+    ws_id: int | str,
     user_prompt: str,
     log: LogCallback,
     broadcast: BroadcastCallback,
@@ -1681,7 +1686,7 @@ def get_debug_conversations(max_content_len: int = 200) -> dict[int, list[dict]]
     return {ws_id: _truncate(msgs) for ws_id, msgs in _conversations.items()}
 
 
-async def reset_agent(ws_id: int) -> None:
+async def reset_agent(ws_id: int | str) -> None:
     """Clear conversation history so the next query starts fresh."""
     _conversations.pop(ws_id, None)
     _save_conversations()
