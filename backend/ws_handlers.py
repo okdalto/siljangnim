@@ -62,6 +62,16 @@ def _classify_error(message: str) -> str:
 # ---------------------------------------------------------------------------
 
 @dataclass
+class ChatSession:
+    """Per-chatId session state."""
+    chat_history: list = field(default_factory=list)
+    agent_busy: bool = False
+    agent_task: asyncio.Task | None = None
+    auto_fix_count: int = 0
+    injected_messages: asyncio.Queue = field(default_factory=asyncio.Queue)
+
+
+@dataclass
 class WsContext:
     api_key: str | None = None
     chat_history: list = field(default_factory=list)
@@ -73,32 +83,45 @@ class WsContext:
     AGENT_WS_ID: int = 0
     MAX_AUTO_FIX: int = 3
     injected_messages: asyncio.Queue = field(default_factory=asyncio.Queue)
+    sessions: dict = field(default_factory=dict)  # chatId -> ChatSession
+
+
+def _get_session(ctx: WsContext, chat_id: str | None) -> ChatSession | None:
+    """Get or create a per-chatId session. Returns None if no chat_id."""
+    if not chat_id:
+        return None
+    if chat_id not in ctx.sessions:
+        ctx.sessions[chat_id] = ChatSession()
+    return ctx.sessions[chat_id]
 
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _make_callbacks(ctx: WsContext):
+def _make_callbacks(ctx: WsContext, chat_id: str | None = None):
     """Create the standard log/on_text/on_status callback triple."""
+    session = _get_session(ctx, chat_id)
+    chat_history = session.chat_history if session else ctx.chat_history
+
     async def log_callback(agent_name: str, message: str, level: str):
-        await ctx.manager.broadcast({
-            "type": "agent_log",
-            "agent": agent_name,
-            "message": message,
-            "level": level,
-        })
+        msg = {"type": "agent_log", "agent": agent_name, "message": message, "level": level}
+        if chat_id:
+            msg["chatId"] = chat_id
+        await ctx.manager.broadcast(msg)
 
     async def on_text(text: str):
-        ctx.chat_history.append({"role": "assistant", "text": text})
-        await ctx.manager.broadcast({"type": "assistant_text", "text": text})
+        chat_history.append({"role": "assistant", "text": text})
+        msg = {"type": "assistant_text", "text": text}
+        if chat_id:
+            msg["chatId"] = chat_id
+        await ctx.manager.broadcast(msg)
 
     async def on_status(status_type: str, detail: str):
-        await ctx.manager.broadcast({
-            "type": "agent_status",
-            "status": status_type,
-            "detail": detail,
-        })
+        msg = {"type": "agent_status", "status": status_type, "detail": detail}
+        if chat_id:
+            msg["chatId"] = chat_id
+        await ctx.manager.broadcast(msg)
 
     return log_callback, on_text, on_status
 
@@ -227,19 +250,37 @@ async def handle_set_api_key(ws, msg, ctx: WsContext):
 
 
 async def handle_prompt(ws, msg, ctx: WsContext):
-    ctx.auto_fix_count = 0  # reset auto-fix counter on manual input
+    chat_id = msg.get("chatId")
+    session = _get_session(ctx, chat_id)
+
+    # Use session-specific or legacy state
+    s_chat_history = session.chat_history if session else ctx.chat_history
+    s_agent_busy = session.agent_busy if session else ctx.agent_busy
+    s_injected = session.injected_messages if session else ctx.injected_messages
+
+    if session:
+        session.auto_fix_count = 0
+    else:
+        ctx.auto_fix_count = 0
+
     if not ctx.api_key:
-        await ws.send_text(json.dumps({"type": "api_key_required"}))
+        resp = {"type": "api_key_required"}
+        if chat_id:
+            resp["chatId"] = chat_id
+        await ws.send_text(json.dumps(resp))
         return
 
     user_prompt = msg.get("text", "")
 
-    if ctx.agent_busy:
+    if s_agent_busy:
         # Queue the message for injection at the next agent turn boundary
         if user_prompt.strip():
-            ctx.injected_messages.put_nowait(user_prompt)
-            ctx.chat_history.append({"role": "user", "text": user_prompt})
-            await ctx.manager.broadcast({"type": "message_injected"})
+            s_injected.put_nowait(user_prompt)
+            s_chat_history.append({"role": "user", "text": user_prompt})
+            resp = {"type": "message_injected"}
+            if chat_id:
+                resp["chatId"] = chat_id
+            await ctx.manager.broadcast(resp)
         return
 
     # Process uploaded files
@@ -274,11 +315,17 @@ async def handle_prompt(ws, msg, ctx: WsContext):
             {"name": f["name"], "mime_type": f["mime_type"], "size": f["size"]}
             for f in saved_files
         ]
-    ctx.chat_history.append(history_entry)
+    s_chat_history.append(history_entry)
 
-    log_callback, on_text, on_status = _make_callbacks(ctx)
+    # Use chat_id as ws_id for agent conversation keying
+    agent_ws_id = chat_id if chat_id else ctx.AGENT_WS_ID
 
-    ctx.agent_busy = True
+    log_callback, on_text, on_status = _make_callbacks(ctx, chat_id)
+
+    if session:
+        session.agent_busy = True
+    else:
+        ctx.agent_busy = True
 
     async def _run_agent_task(
         _user_prompt=user_prompt,
@@ -289,38 +336,40 @@ async def handle_prompt(ws, msg, ctx: WsContext):
     ):
         try:
             if _files:
-                await ctx.manager.broadcast({
-                    "type": "agent_log",
-                    "agent": "System",
-                    "message": f"Processing {len(_files)} uploaded file(s)...",
-                    "level": "info",
-                })
+                log_msg = {"type": "agent_log", "agent": "System", "message": f"Processing {len(_files)} uploaded file(s)...", "level": "info"}
+                if chat_id:
+                    log_msg["chatId"] = chat_id
+                await ctx.manager.broadcast(log_msg)
                 await _process_uploaded_files(_files, ctx.manager.broadcast)
-                await ctx.manager.broadcast({
-                    "type": "agent_log",
-                    "agent": "System",
-                    "message": "File processing complete",
-                    "level": "info",
-                })
+                log_msg2 = {"type": "agent_log", "agent": "System", "message": "File processing complete", "level": "info"}
+                if chat_id:
+                    log_msg2["chatId"] = chat_id
+                await ctx.manager.broadcast(log_msg2)
 
             await agents.run_agent(
-                ws_id=ctx.AGENT_WS_ID,
+                ws_id=agent_ws_id,
                 user_prompt=_user_prompt,
                 log=_log,
                 broadcast=ctx.manager.broadcast,
                 on_text=_on_text,
                 on_status=_on_status,
                 files=_files,
-                injected_queue=ctx.injected_messages,
+                injected_queue=s_injected,
             )
 
-            await ctx.manager.broadcast({"type": "chat_done"})
+            done_msg = {"type": "chat_done"}
+            if chat_id:
+                done_msg["chatId"] = chat_id
+            await ctx.manager.broadcast(done_msg)
 
         except asyncio.CancelledError:
             from agents.executor import _save_conversations
             _save_conversations()
             logger.info("Agent task cancelled by user")
-            await ctx.manager.broadcast({"type": "chat_done"})
+            done_msg = {"type": "chat_done"}
+            if chat_id:
+                done_msg["chatId"] = chat_id
+            await ctx.manager.broadcast(done_msg)
 
         except Exception as e:
             import traceback
@@ -337,34 +386,49 @@ async def handle_prompt(ws, msg, ctx: WsContext):
             else:
                 user_msg = str(e)
 
-            await ctx.manager.broadcast({
-                "type": "agent_log",
-                "agent": "System",
-                "message": f"Agent error: {e}",
-                "level": "error",
-            })
-            await ctx.manager.broadcast({
-                "type": "assistant_text",
-                "text": f"Error: {user_msg}",
-            })
-            await ctx.manager.broadcast({"type": "chat_done"})
+            err_msg = {"type": "agent_log", "agent": "System", "message": f"Agent error: {e}", "level": "error"}
+            if chat_id:
+                err_msg["chatId"] = chat_id
+            await ctx.manager.broadcast(err_msg)
+            text_msg = {"type": "assistant_text", "text": f"Error: {user_msg}"}
+            if chat_id:
+                text_msg["chatId"] = chat_id
+            await ctx.manager.broadcast(text_msg)
+            done_msg = {"type": "chat_done"}
+            if chat_id:
+                done_msg["chatId"] = chat_id
+            await ctx.manager.broadcast(done_msg)
         finally:
-            ctx.agent_task = None
-            ctx.agent_busy = False
-            # Drain any unconsumed injected messages
-            while not ctx.injected_messages.empty():
-                try:
-                    ctx.injected_messages.get_nowait()
-                except asyncio.QueueEmpty:
-                    break
+            if session:
+                session.agent_task = None
+                session.agent_busy = False
+                while not session.injected_messages.empty():
+                    try:
+                        session.injected_messages.get_nowait()
+                    except asyncio.QueueEmpty:
+                        break
+            else:
+                ctx.agent_task = None
+                ctx.agent_busy = False
+                while not ctx.injected_messages.empty():
+                    try:
+                        ctx.injected_messages.get_nowait()
+                    except asyncio.QueueEmpty:
+                        break
             _drain_pending_errors(ctx)
 
-    ctx.agent_task = asyncio.create_task(_run_agent_task())
+    task = asyncio.create_task(_run_agent_task())
+    if session:
+        session.agent_task = task
+    else:
+        ctx.agent_task = task
 
 
 async def handle_user_answer(ws, msg, ctx: WsContext):
     answer_text = msg.get("text", "")
-    future = agents._user_answer_futures.get(ctx.AGENT_WS_ID)
+    chat_id = msg.get("chatId")
+    ws_id = chat_id if chat_id else ctx.AGENT_WS_ID
+    future = agents._user_answer_futures.get(ws_id)
     if future and not future.done():
         future.set_result(answer_text)
 
@@ -427,14 +491,21 @@ async def handle_update_workspace_state(ws, msg, ctx: WsContext):
 
 
 async def handle_new_chat(ws, msg, ctx: WsContext):
-    ctx.chat_history.clear()
-    await agents.reset_agent(ctx.AGENT_WS_ID)
-    await ws.send_text(json.dumps({
-        "type": "agent_log",
-        "agent": "System",
-        "message": "Chat history cleared",
-        "level": "info",
-    }))
+    chat_id = msg.get("chatId")
+    session = _get_session(ctx, chat_id)
+    if session:
+        session.chat_history.clear()
+        if session.agent_task and not session.agent_task.done():
+            session.agent_task.cancel()
+        session.agent_busy = False
+    else:
+        ctx.chat_history.clear()
+    ws_id = chat_id if chat_id else ctx.AGENT_WS_ID
+    await agents.reset_agent(ws_id)
+    resp = {"type": "agent_log", "agent": "System", "message": "Chat history cleared", "level": "info"}
+    if chat_id:
+        resp["chatId"] = chat_id
+    await ws.send_text(json.dumps(resp))
 
 
 async def handle_new_project(ws, msg, ctx: WsContext):
@@ -561,13 +632,17 @@ async def handle_restore_panel(ws, msg, ctx: WsContext):
 
 async def handle_cancel_agent(ws, msg, ctx: WsContext):
     """Cancel the currently running agent task."""
-    if ctx.agent_task and not ctx.agent_task.done():
-        # Cancel the user_answer_future if pending (e.g. ask_user wait)
-        future = agents._user_answer_futures.get(ctx.AGENT_WS_ID)
+    chat_id = msg.get("chatId")
+    session = _get_session(ctx, chat_id) if chat_id else None
+    task = session.agent_task if session else ctx.agent_task
+    ws_id = chat_id if chat_id else ctx.AGENT_WS_ID
+
+    if task and not task.done():
+        future = agents._user_answer_futures.get(ws_id)
         if future and not future.done():
             future.cancel()
-        ctx.agent_task.cancel()
-        logger.info("Agent cancel requested by user")
+        task.cancel()
+        logger.info("Agent cancel requested by user (chatId=%s)", chat_id)
 
 
 async def handle_request_state(ws, msg, ctx: WsContext):

@@ -26,6 +26,11 @@ export default class AgentEngine {
     try {
       this.providerConfig = JSON.parse(sessionStorage.getItem("siljangnim:providerConfig") || "{}");
     } catch { this.providerConfig = {}; }
+
+    // Multi-session support: per-chatId state
+    this.sessions = new Map();
+
+    // Legacy single-session fields (for backward compat with code that doesn't pass chatId)
     this.chatHistory = [];
     this.agentBusy = false;
     this.abortController = null;
@@ -233,6 +238,32 @@ export default class AgentEngine {
     this._recordingDoneResolve = null;
   }
 
+  /** Get or create a per-chatId session. */
+  _getSession(chatId) {
+    if (!chatId) return null;
+    if (!this.sessions.has(chatId)) {
+      this.sessions.set(chatId, {
+        chatId,
+        chatHistory: [],
+        conversation: [],
+        agentBusy: false,
+        abortController: null,
+        autoFixCount: 0,
+        injectedMessages: [],
+        _toolResultCache: new Map(),
+        _streamingTextBuffer: "",
+        _lastPromptContext: null,
+        _backgroundRetryPending: false,
+        _backgroundRetryCount: 0,
+        _userAnswerResolve: null,
+        _preprocessResolve: null,
+        _preprocessReject: null,
+        _recordingDoneResolve: null,
+      });
+    }
+    return this.sessions.get(chatId);
+  }
+
   /** Dispatch a message from engine to React UI. */
   broadcast(msg) {
     this.bus.dispatch(msg);
@@ -363,8 +394,11 @@ export default class AgentEngine {
  * This ensures chat history is persisted eagerly (not just via debounced auto-save),
  * so page refreshes don't lose recent conversation context.
  */
-function _persistChatHistory(engine) {
-  storage.writeJson("chat_history.json", engine.chatHistory).catch(() => {});
+function _persistChatHistory(engine, chatId) {
+  const session = chatId ? engine._getSession(chatId) : null;
+  const history = session ? session.chatHistory : engine.chatHistory;
+  const filename = chatId ? `chat_history_${chatId}.json` : "chat_history.json";
+  storage.writeJson(filename, history).catch(() => {});
 }
 
 async function _savePromptFiles(engine, rawFiles = []) {
@@ -442,29 +476,37 @@ function _releasePendingInteractions(engine) {
   }
 }
 
-function makeCallbacks(engine) {
+function makeCallbacks(engine, chatId) {
+  const session = chatId ? engine._getSession(chatId) : null;
+  const chatHistory = session ? session.chatHistory : engine.chatHistory;
   const log = (agent, message, level) => {
-    engine.broadcast({ type: "agent_log", agent, message, level });
+    engine.broadcast({ type: "agent_log", agent, message, level, chatId });
   };
   const onText = (text) => {
-    engine.chatHistory.push({ role: "assistant", text });
-    _persistChatHistory(engine);
-    engine.broadcast({ type: "assistant_text", text });
+    chatHistory.push({ role: "assistant", text });
+    _persistChatHistory(engine, chatId);
+    engine.broadcast({ type: "assistant_text", text, chatId });
   };
   const onTextDelta = (chunk) => {
-    engine._streamingTextBuffer = (engine._streamingTextBuffer || "") + chunk;
-    engine.broadcast({ type: "assistant_text_delta", chunk });
+    if (session) {
+      session._streamingTextBuffer = (session._streamingTextBuffer || "") + chunk;
+    } else {
+      engine._streamingTextBuffer = (engine._streamingTextBuffer || "") + chunk;
+    }
+    engine.broadcast({ type: "assistant_text_delta", chunk, chatId });
   };
   const onTextFinalize = () => {
-    if (engine._streamingTextBuffer) {
-      engine.chatHistory.push({ role: "assistant", text: engine._streamingTextBuffer });
-      engine._streamingTextBuffer = "";
-      _persistChatHistory(engine);
+    const buf = session ? session._streamingTextBuffer : engine._streamingTextBuffer;
+    if (buf) {
+      chatHistory.push({ role: "assistant", text: buf });
+      if (session) session._streamingTextBuffer = "";
+      else engine._streamingTextBuffer = "";
+      _persistChatHistory(engine, chatId);
     }
-    engine.broadcast({ type: "assistant_text_finalize" });
+    engine.broadcast({ type: "assistant_text_finalize", chatId });
   };
   const onStatus = (statusType, detail) => {
-    engine.broadcast({ type: "agent_status", status: statusType, detail });
+    engine.broadcast({ type: "agent_status", status: statusType, detail, chatId });
   };
   return { log, onText, onTextDelta, onTextFinalize, onStatus };
 }
@@ -638,11 +680,14 @@ const HANDLERS = {
   },
 
   async prompt(msg) {
-    this.autoFixCount = 0;
+    const chatId = msg.chatId || null;
+    const s = chatId ? this._getSession(chatId) : this;
+
+    s.autoFixCount = 0;
     if (!this.apiKey) {
       this._pendingPrompt = msg;
-      this.broadcast({ type: "api_key_required" });
-      this.broadcast({ type: "chat_done" });
+      this.broadcast({ type: "api_key_required", chatId });
+      this.broadcast({ type: "chat_done", chatId });
       return;
     }
 
@@ -651,7 +696,7 @@ const HANDLERS = {
     const sceneReferences = msg.sceneReferences || [];
     const hasPromptPayload = !!userPrompt.trim() || !!msg.files?.length || sceneReferences.length > 0;
 
-    if (this.agentBusy) {
+    if (s.agentBusy) {
       if (hasPromptPayload) {
         let savedFiles = [];
         try {
@@ -659,7 +704,7 @@ const HANDLERS = {
         } catch (e) {
           this.broadcast({
             type: "agent_log", agent: "System",
-            message: `Upload failed: ${e.message}`, level: "error",
+            message: `Upload failed: ${e.message}`, level: "error", chatId,
           });
           return;
         }
@@ -668,7 +713,7 @@ const HANDLERS = {
           this.broadcast({ type: "files_uploaded", files: savedFiles });
         }
 
-        this.injectedMessages.push({
+        s.injectedMessages.push({
           kind: "user_followup",
           text: userPrompt,
           files: savedFiles,
@@ -679,11 +724,11 @@ const HANDLERS = {
         if (savedFiles.length) {
           historyEntry.files = savedFiles.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
         }
-        this.chatHistory.push(historyEntry);
-        _persistChatHistory(this);
-        this.broadcast({ type: "message_injected" });
+        s.chatHistory.push(historyEntry);
+        _persistChatHistory(this, chatId);
+        this.broadcast({ type: "message_injected", chatId });
       } else {
-        this.broadcast({ type: "chat_done" });
+        this.broadcast({ type: "chat_done", chatId });
       }
       return;
     }
@@ -698,9 +743,9 @@ const HANDLERS = {
       } catch (e) {
         this.broadcast({
           type: "agent_log", agent: "System",
-          message: `Upload failed: ${e.message}`, level: "error",
+          message: `Upload failed: ${e.message}`, level: "error", chatId,
         });
-        this.broadcast({ type: "chat_done" });
+        this.broadcast({ type: "chat_done", chatId });
         return;
       }
     }
@@ -716,37 +761,42 @@ const HANDLERS = {
       if (savedFiles.length) {
         historyEntry.files = savedFiles.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
       }
-      this.chatHistory.push(historyEntry);
-      _persistChatHistory(this);
+      s.chatHistory.push(historyEntry);
+      _persistChatHistory(this, chatId);
     }
+
+    // Resolve conversation array (session-scoped or legacy)
+    const conversation = chatId && s !== this ? s.conversation : this.conversation;
 
     // If conversation context is empty but we have chat history (e.g. after page refresh),
     // inject a summary of previous exchanges so the model knows the context.
-    if (this.conversation.length === 0 && this.chatHistory.length > 1) {
-      const prior = this.chatHistory.slice(0, -1); // exclude current message (just pushed)
+    if (conversation.length === 0 && s.chatHistory.length > 1) {
+      const prior = s.chatHistory.slice(0, -1); // exclude current message (just pushed)
       const summaryLines = prior.map((m) => {
         const role = m.role === "user" ? "User" : "Assistant";
         // Truncate long messages to keep token usage reasonable
         const text = (m.text || "").slice(0, 500);
         return `[${role}]: ${text}`;
       });
-      this.conversation.push({
+      conversation.push({
         role: "user",
         content: `[CONTEXT] The following is a summary of our previous conversation in this project. Use it as context for the current request:\n\n${summaryLines.join("\n\n")}`,
       });
-      this.conversation.push({
+      conversation.push({
         role: "assistant",
         content: "Understood. I have the context from our previous conversation. I'll continue from where we left off.",
       });
     }
 
-    const { log, onText, onTextDelta, onTextFinalize, onStatus } = makeCallbacks(this);
-    this.agentBusy = true;
+    const { log, onText, onTextDelta, onTextFinalize, onStatus } = makeCallbacks(this, chatId);
+    s.agentBusy = true;
     const abortController = new AbortController();
-    this.abortController = abortController;
+    s.abortController = abortController;
 
     // Improvement #10: link errorCollector to injectedMessages for push-based errors
-    this.errorCollector.setInjectedMessages(this.injectedMessages);
+    this.errorCollector.setInjectedMessages(s.injectedMessages);
+
+    const toolResultCache = chatId && s !== this ? s._toolResultCache : this._toolResultCache;
 
     // Run agent asynchronously (with planning when conversation is long)
     (async () => {
@@ -785,7 +835,7 @@ const HANDLERS = {
             (this._promptModeAddition || "") +
             _buildSceneReferencePromptAddition(pendingPrompt.sceneReferences || []);
 
-          this._lastPromptContext = {
+          s._lastPromptContext = {
             userPrompt: pendingPrompt.userPrompt,
             files: pendingPrompt.files?.length ? pendingPrompt.files : undefined,
             sceneReferences: pendingPrompt.sceneReferences?.length ? pendingPrompt.sceneReferences : undefined,
@@ -795,6 +845,7 @@ const HANDLERS = {
               "siljangnim:interruptedPrompt",
               JSON.stringify({
                 userPrompt: pendingPrompt.userPrompt,
+                chatId,
                 sceneReferences: pendingPrompt.sceneReferences?.map((ref) => ({
                   nodeId: ref.nodeId,
                   title: ref.title,
@@ -804,49 +855,56 @@ const HANDLERS = {
             );
           } catch { /* ignore */ }
 
+          const userAnswerPromise = () => {
+            return new Promise((resolve) => {
+              if (chatId && s !== this) s._userAnswerResolve = resolve;
+              else this._userAnswerResolve = resolve;
+            });
+          };
+
           await runWithPlan({
             apiKey: this.apiKey,
             userPrompt: pendingPrompt.userPrompt,
             log,
-            broadcast: (m) => this.broadcast(m),
+            broadcast: (m) => this.broadcast({ ...m, chatId }),
             onText,
             onTextDelta,
             onTextFinalize,
             onStatus,
             files: pendingPrompt.files,
-            messages: this.conversation,
+            messages: conversation,
             currentState,
             errorCollector: this.errorCollector,
-            userAnswerPromise: () => this.userAnswerPromise(),
+            userAnswerPromise,
             preprocessPromise: () => this.preprocessPromise(),
             recordingDonePromise: () => this.recordingDonePromise(),
             signal: abortController.signal,
-            injectedMessages: this.injectedMessages,
+            injectedMessages: s.injectedMessages,
             systemPromptAddition: promptAddition,
             assetContext: this._getAssetContext?.() || [],
             backendTarget: this._backendTarget,
             modelOverride: this._selectedModel,
             provider: this.provider,
             providerConfig: this.providerConfig,
-            toolResultCache: this._toolResultCache,
+            toolResultCache,
             canvasSize: _glEngine?.canvas ? { canvasWidth: _glEngine.canvas.width, canvasHeight: _glEngine.canvas.height } : undefined,
             resumeContext,
           });
 
           resumeContext = null;
-          pendingPrompt = _consumeInjectedPromptQueue(this);
+          pendingPrompt = _consumeInjectedPromptQueue(s);
           if (pendingPrompt) {
             log("System", "Queued follow-up detected — continuing with the next request", "info");
           }
         }
         completedNormally = true;
         this._clearInterruptedPrompt();
-        this.broadcast({ type: "chat_done" });
+        this.broadcast({ type: "chat_done", chatId });
       } catch (err) {
         // User-initiated cancel
         if (err.name === "AbortError") {
           this._clearInterruptedPrompt();
-          this.broadcast({ type: "chat_done" });
+          this.broadcast({ type: "chat_done", chatId });
           return;
         }
 
@@ -860,43 +918,44 @@ const HANDLERS = {
           errStr.includes("the internet connection appears to be offline") ||
           err.name === "TypeError" && errStr.includes("fetch");
 
-        if (isNetworkError && this._lastPromptContext) {
+        const streamBuf = (chatId && s !== this) ? s._streamingTextBuffer : this._streamingTextBuffer;
+
+        if (isNetworkError && s._lastPromptContext) {
           console.warn("[AgentEngine] Network interrupted — will retry on visibility restore");
-          this._backgroundRetryPending = true;
+          s._backgroundRetryPending = true;
 
           // Flush any streaming text buffer so it isn't lost.
-          // onTextFinalize may not have been called if the stream was interrupted.
-          if (this._streamingTextBuffer) {
-            this.chatHistory.push({ role: "assistant", text: this._streamingTextBuffer });
-            this._streamingTextBuffer = "";
-            this.broadcast({ type: "assistant_text_finalize" });
+          if (streamBuf) {
+            s.chatHistory.push({ role: "assistant", text: streamBuf });
+            if (chatId && s !== this) s._streamingTextBuffer = "";
+            else this._streamingTextBuffer = "";
+            this.broadcast({ type: "assistant_text_finalize", chatId });
           }
 
-          // Only remove the last assistant message if it was truly empty/placeholder.
-          // If the agent already sent meaningful text, keep it so the user can see it.
-          const lastMsg = this.chatHistory.length ? this.chatHistory[this.chatHistory.length - 1] : null;
+          const lastMsg = s.chatHistory.length ? s.chatHistory[s.chatHistory.length - 1] : null;
           if (lastMsg?.role === "assistant" && (!lastMsg.text || lastMsg.text.trim() === "")) {
-            this.chatHistory.pop();
+            s.chatHistory.pop();
           }
 
-          _persistChatHistory(this);
+          _persistChatHistory(this, chatId);
           this.broadcast({
             type: "agent_log", agent: "System",
             message: "연결이 끊어졌습니다. 앱으로 돌아오면 자동으로 재시도합니다.",
-            level: "warning",
+            level: "warning", chatId,
           });
-          this.broadcast({ type: "chat_done" });
+          this.broadcast({ type: "chat_done", chatId });
           return;
         }
 
         console.error("Agent error:", err);
 
         // Flush any streaming text buffer so partial responses aren't lost
-        if (this._streamingTextBuffer) {
-          this.chatHistory.push({ role: "assistant", text: this._streamingTextBuffer });
-          this._streamingTextBuffer = "";
-          this.broadcast({ type: "assistant_text_finalize" });
-          _persistChatHistory(this);
+        if (streamBuf) {
+          s.chatHistory.push({ role: "assistant", text: streamBuf });
+          if (chatId && s !== this) s._streamingTextBuffer = "";
+          else this._streamingTextBuffer = "";
+          this.broadcast({ type: "assistant_text_finalize", chatId });
+          _persistChatHistory(this, chatId);
         }
 
         let userMsg = err.message;
@@ -909,16 +968,16 @@ const HANDLERS = {
         this._clearInterruptedPrompt();
         this.broadcast({
           type: "agent_log", agent: "System",
-          message: `Agent error: ${err.message}`, level: "error",
+          message: `Agent error: ${err.message}`, level: "error", chatId,
         });
-        this.broadcast({ type: "assistant_text", text: `Error: ${userMsg}` });
-        this.broadcast({ type: "chat_done" });
+        this.broadcast({ type: "assistant_text", text: `Error: ${userMsg}`, chatId });
+        this.broadcast({ type: "chat_done", chatId });
       } finally {
-        const trailingPrompt = completedNormally ? _consumeInjectedPromptQueue(this) : null;
+        const trailingPrompt = completedNormally ? _consumeInjectedPromptQueue(s) : null;
         this.errorCollector.setInjectedMessages(null);
-        this.abortController = null;
-        this.agentBusy = false;
-        this.injectedMessages.length = 0;
+        s.abortController = null;
+        s.agentBusy = false;
+        s.injectedMessages.length = 0;
         if (trailingPrompt) {
           setTimeout(() => {
             this.handleMessage({
@@ -926,6 +985,7 @@ const HANDLERS = {
               text: trailingPrompt.userPrompt,
               files: trailingPrompt.files,
               sceneReferences: trailingPrompt.sceneReferences,
+              chatId,
               _isRetry: true,
             });
           }, 0);
@@ -938,9 +998,14 @@ const HANDLERS = {
 
   async user_answer(msg) {
     const text = msg.text || "";
-    if (this._userAnswerResolve) {
-      this._userAnswerResolve(text);
-      this._userAnswerResolve = null;
+    const chatId = msg.chatId || null;
+    const s = chatId ? this._getSession(chatId) : null;
+    // Try session-specific resolve first, then fall back to engine-level
+    const resolve = s?._userAnswerResolve || this._userAnswerResolve;
+    if (resolve) {
+      resolve(text);
+      if (s?._userAnswerResolve) s._userAnswerResolve = null;
+      else this._userAnswerResolve = null;
     }
   },
 
@@ -1018,23 +1083,46 @@ const HANDLERS = {
   },
 
   async new_chat(msg) {
-    // Abort any in-progress agent call
-    if (this.abortController) {
-      _releasePendingInteractions(this);
-      this.abortController.abort();
-      this.abortController = null;
-      this.agentBusy = false;
+    const chatId = msg.chatId || null;
+    const s = chatId ? this._getSession(chatId) : null;
+
+    if (s) {
+      // Session-specific reset
+      if (s.abortController) {
+        if (s._userAnswerResolve) { s._userAnswerResolve("(cancelled)"); s._userAnswerResolve = null; }
+        s.abortController.abort();
+        s.abortController = null;
+        s.agentBusy = false;
+      }
+      s._lastPromptContext = null;
+      s._backgroundRetryPending = false;
+      s._backgroundRetryCount = 0;
+      s._toolResultCache.clear();
+      s.chatHistory.length = 0;
+      s.conversation.length = 0;
+      s.injectedMessages.length = 0;
+      // Delete session-specific chat history file
+      storage.deleteFile(`chat_history_${chatId}.json`).catch(() => {});
+    } else {
+      // Legacy single-session reset
+      if (this.abortController) {
+        _releasePendingInteractions(this);
+        this.abortController.abort();
+        this.abortController = null;
+        this.agentBusy = false;
+      }
+      this._clearInterruptedPrompt();
+      this._backgroundRetryPending = false;
+      this._toolResultCache.clear();
+      this.chatHistory.length = 0;
+      this.conversation.length = 0;
     }
-    this._clearInterruptedPrompt();
-    this._backgroundRetryPending = false;
-    this._toolResultCache.clear();
-    this.chatHistory.length = 0;
-    this.conversation.length = 0;
+
     // Clear agent checkpoint
     storage.deleteFile("agent_checkpoint.json").catch(() => {});
     this.broadcast({
       type: "agent_log", agent: "System",
-      message: "Chat history cleared", level: "info",
+      message: "Chat history cleared", level: "info", chatId,
     });
   },
 
@@ -1161,11 +1249,15 @@ const HANDLERS = {
   },
 
   async cancel_agent(msg) {
-    if (this.abortController) {
+    const chatId = msg.chatId || null;
+    const s = chatId ? this._getSession(chatId) : null;
+
+    if (s?.abortController) {
+      if (s._userAnswerResolve) { s._userAnswerResolve("(cancelled)"); s._userAnswerResolve = null; }
+      s.abortController.abort();
+    } else if (this.abortController) {
       _releasePendingInteractions(this);
-      // Abort first — the finally block in the prompt handler will clear the controller
       this.abortController.abort();
-      // Do NOT clear abortController here; the async handler's finally block handles cleanup
     }
   },
 

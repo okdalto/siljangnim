@@ -7,6 +7,7 @@ import BranchSelector from "../components/BranchSelector.jsx";
 import { useCollapsedState } from "../hooks/useCollapsedState.js";
 import { TOOL_LABELS } from "../constants/toolLabels.js";
 import { useChatContext } from "../contexts/ChatContext.js";
+import ChatTabBar from "../components/ChatTabBar.jsx";
 
 function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
@@ -376,15 +377,26 @@ function ChatNode({ data, standalone = false, hideHeader = false }) {
         style={{ background: "var(--node-header-bg)", borderBottom: "1px solid var(--node-border)", color: "var(--chrome-text)" }}
         onDoubleClick={() => setCollapsed((v) => !v)}
       >
-        Chat
-        <button
-          type="button"
-          onClick={onNewChat}
-          disabled={isProcessing}
-          className="text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed px-1.5 py-0.5 rounded hover:bg-zinc-700"
-        >
-          New Chat
-        </button>
+        <span className="flex-shrink-0">Chat</span>
+        {chatCtx?.tabs ? (
+          <ChatTabBar
+            tabs={chatCtx.tabs}
+            activeTabId={chatCtx.activeTabId}
+            tabOrder={chatCtx.tabOrder}
+            onSwitch={chatCtx.switchTab}
+            onCreate={chatCtx.createTab}
+            onClose={chatCtx.closeTab}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={onNewChat}
+            disabled={isProcessing}
+            className="text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed px-1.5 py-0.5 rounded hover:bg-zinc-700"
+          >
+            New Chat
+          </button>
+        )}
       </div>
       )}
 

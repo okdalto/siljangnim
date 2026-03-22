@@ -11,6 +11,9 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
   useEffect(() => {
     const engine = engineRef.current;
     if (!engine || !backendTarget) return;
+    // "auto" defers to the scene's own backendTarget — don't force a switch
+    // that could mismatch the scene's shader language (WGSL vs GLSL).
+    if (backendTarget === "auto") return;
     const prefer = (backendTarget === "webgpu" || backendTarget === "hybrid") ? "webgpu" : "webgl2";
     const hybrid = backendTarget === "hybrid";
     engine.switchBackend(prefer, { hybrid }).catch((err) => {
@@ -51,8 +54,20 @@ export default function useSceneLoader(engineRef, { sceneJSON, paused, backendTa
     console.log("[ViewportNode] Loading scene:", sceneJSON.mode || "unknown");
     setError(null);
 
-    const wantBackend = (sceneJSON.backendTarget === "webgpu" || sceneJSON.backendTarget === "hybrid") ? "webgpu" : "webgl2";
+    let wantBackend = (sceneJSON.backendTarget === "webgpu" || sceneJSON.backendTarget === "hybrid") ? "webgpu" : "webgl2";
     const isHybrid = sceneJSON.backendTarget === "hybrid";
+
+    // Safety: if backendTarget is "auto" but the scene's scripts contain WGSL
+    // (e.g. saved before the fix that stopped writing "auto" to sceneJSON),
+    // use WebGPU to avoid feeding WGSL code to the GLSL compiler.
+    if (wantBackend === "webgl2" && sceneJSON.script) {
+      const code = [sceneJSON.script.setup, sceneJSON.script.render, sceneJSON.script.cleanup]
+        .filter(Boolean).join("\n");
+      if (code.includes("@vertex") || code.includes("@fragment") || code.includes("@compute") ||
+          code.includes("createShaderModule")) {
+        wantBackend = "webgpu";
+      }
+    }
 
     // Dispose the old scene BEFORE switching backend to free GPU memory.
     // Without this, old WebGL2 resources (FBOs, textures, shaders) coexist
