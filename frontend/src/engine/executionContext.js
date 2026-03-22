@@ -162,9 +162,12 @@ function isFollowUp(text) {
  * @returns {boolean}
  */
 export function shouldPlan(conversationLength, userPrompt, opts = {}) {
-  const { recentErrors = 0, previousPrompt = "", recentPlanExecuted = false } = opts;
+  const { recentErrors = 0, previousPrompt = "", recentPlanExecuted = false, consecutivePlanCount = 0 } = opts;
 
   const trimmed = userPrompt.trim();
+
+  // Hard cap: prevent cascading plan loops (3+ consecutive plans)
+  if (consecutivePlanCount >= 3) return false;
 
   // Very short prompts are likely follow-ups ("네", "ok", "ㅇㅇ")
   if (trimmed.length < 10) return false;
@@ -209,7 +212,7 @@ export function shouldPlan(conversationLength, userPrompt, opts = {}) {
  * Build the messages array for the planner call.
  * Includes a condensed conversation summary + current state + new request.
  */
-export function buildPlannerMessages(userPrompt, conversation, currentState, files = []) {
+export function buildPlannerMessages(userPrompt, conversation, currentState, files = [], failureContext = "") {
   const messages = [];
 
   // Include recent conversation exchanges (condensed)
@@ -223,6 +226,18 @@ export function buildPlannerMessages(userPrompt, conversation, currentState, fil
       if (text) messages.push({ role: "assistant", content: text.slice(0, 300) });
     }
     // Skip tool_result messages entirely — planner doesn't need them
+  }
+
+  // Inject previous plan failure context so planner avoids repeating failed approaches
+  if (failureContext) {
+    messages.push({
+      role: "user",
+      content: `[PREVIOUS PLAN FAILURES — avoid repeating these approaches]\n${failureContext}`,
+    });
+    messages.push({
+      role: "assistant",
+      content: "Understood. I will use a different approach.",
+    });
   }
 
   // Build state summary

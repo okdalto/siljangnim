@@ -8,6 +8,7 @@ and the generator runs with a fresh, minimal context.
 
 import json
 import logging
+import re
 from pathlib import Path
 
 import anthropic
@@ -58,17 +59,56 @@ _MIN_CONVERSATION_LENGTH = 10
 # Should we plan?
 # ---------------------------------------------------------------------------
 
-def should_plan(conversation_length: int, user_prompt: str) -> bool:
+_SIMPLE_EDIT_PATTERNS = [
+    re.compile(r"(?:uniform|파라미터|변수|값|value)\s*.*(?:바꿔|바꾸|변경|수정|change|update)", re.I),
+    re.compile(r"(?:색|색상|color|배경|background)\s*.*(?:바꿔|변경|change)", re.I),
+    re.compile(r"(?:켜|꺼|끄|enable|disable|toggle)\s*(?:줘|해)?$", re.I),
+    re.compile(r"(?:더\s*(?:빠르|느리|크|작|밝|어두)|(?:fast|slow|big|small)er)", re.I),
+]
+
+_FOLLOWUP_PATTERNS = [
+    re.compile(r"^(?:계속|계속해|이어서|진행해|그렇게\s*해|ㄱㄱ)(?:\s*줘)?$", re.I),
+    re.compile(r"^(?:continue|go ahead|proceed|do it|yes.*do)[\s.!]*$", re.I),
+]
+
+
+def should_plan(
+    conversation_length: int,
+    user_prompt: str,
+    *,
+    recent_errors: int = 0,
+    previous_prompt: str = "",
+    recent_plan_executed: bool = False,
+    consecutive_plan_count: int = 0,
+) -> bool:
     """Heuristic: planning is valuable when the conversation is long."""
-    if conversation_length < _MIN_CONVERSATION_LENGTH:
+    trimmed = user_prompt.strip()
+
+    # Hard cap: prevent cascading plan loops (3+ consecutive plans)
+    if consecutive_plan_count >= 3:
         return False
 
-    trimmed = user_prompt.strip()
     if len(trimmed) < 10:
         return False
 
     simple = {"yes", "no", "ok", "ㅇㅇ", "ㄴㄴ", "네", "아니요", "응", "ㅇ", "ㄴ"}
     if trimmed.lower() in simple:
+        return False
+
+    if any(p.search(trimmed) for p in _FOLLOWUP_PATTERNS):
+        return False
+
+    if recent_plan_executed and len(trimmed) < 60:
+        return False
+
+    # Repeated failures → plan regardless of conversation length
+    if recent_errors >= 3 and conversation_length >= 6:
+        return True
+
+    if conversation_length < _MIN_CONVERSATION_LENGTH:
+        return False
+
+    if any(p.search(trimmed) for p in _SIMPLE_EDIT_PATTERNS):
         return False
 
     return True
@@ -94,6 +134,7 @@ def build_planner_messages(
     user_prompt: str,
     conversation: list[dict],
     current_state: dict,
+    failure_context: str = "",
 ) -> list[dict]:
     """Build messages for the planner call."""
     messages = []
@@ -110,6 +151,17 @@ def build_planner_messages(
             text = _extract_text(msg.get("content", ""))
             if text:
                 messages.append({"role": "assistant", "content": text[:300]})
+
+    # Inject previous plan failure context
+    if failure_context:
+        messages.append({
+            "role": "user",
+            "content": f"[PREVIOUS PLAN FAILURES — avoid repeating these approaches]\n{failure_context}",
+        })
+        messages.append({
+            "role": "assistant",
+            "content": "Understood. I will use a different approach.",
+        })
 
     # State summary
     parts = ["[Current workspace state]"]

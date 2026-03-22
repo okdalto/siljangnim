@@ -1426,11 +1426,11 @@ export async function runDebugSubagent({
  *
  * @returns {Object|null} Parsed plan, or null if planning fails
  */
-async function runPlanner({ apiKey, userPrompt, conversation, currentState, files = [], log, onStatus, signal, provider = "anthropic", providerConfig = {} }) {
+async function runPlanner({ apiKey, userPrompt, conversation, currentState, files = [], log, onStatus, signal, provider = "anthropic", providerConfig = {}, failureContext = "" }) {
   onStatus?.("thinking", "작업 계획 중...");
   log("System", "Running planner for execution context rebuild", "info");
 
-  const plannerMessages = buildPlannerMessages(userPrompt, conversation, currentState, files);
+  const plannerMessages = buildPlannerMessages(userPrompt, conversation, currentState, files, failureContext);
 
   try {
     const { getSmallModel } = await import("./llmClient.js");
@@ -1545,14 +1545,18 @@ export async function runWithPlan({
   const previousPrompt = messages.filter(m => m.role === "user" && typeof m.content === "string")
     .slice(-2, -1)[0]?.content || "";
 
-  // Detect if a plan was recently executed (within last 6 messages).
-  // The plan-based generator inserts "[Execution context rebuilt]" style messages,
-  // but more reliably, check if the last few user messages include "Proceed with the execution plan."
-  const recentPlanExecuted = messages.slice(-6).some(m =>
-    m.role === "user" && typeof m.content === "string" &&
-    m.content.includes("Proceed with the execution plan"));
+  // Count consecutive plan executions from end of conversation
+  let consecutivePlanCount = 0;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === "assistant" && messages[i]._fromPlan) {
+      consecutivePlanCount++;
+    } else if (messages[i].role === "assistant") {
+      break;
+    }
+  }
+  const recentPlanExecuted = consecutivePlanCount > 0;
 
-  if (!shouldPlan(messages.length, userPrompt, { recentErrors: recentErrorCount, previousPrompt, recentPlanExecuted })) {
+  if (!shouldPlan(messages.length, userPrompt, { recentErrors: recentErrorCount, previousPrompt, recentPlanExecuted, consecutivePlanCount })) {
     return runAgent({
       apiKey, userPrompt, log, broadcast, onText, onTextDelta, onTextFinalize, onStatus,
       files, messages, currentState, errorCollector, userAnswerPromise, preprocessPromise, recordingDonePromise,
@@ -1561,10 +1565,25 @@ export async function runWithPlan({
     });
   }
 
+  // Collect failure context from previous plan attempts
+  let failureContext = "";
+  if (consecutivePlanCount > 0) {
+    const failures = [];
+    for (let i = messages.length - 1; i >= 0 && failures.length < 3; i--) {
+      const m = messages[i];
+      if (m.role === "assistant" && m._fromPlan && m._planFailureSummary) {
+        failures.push(m._planFailureSummary);
+      } else if (m.role === "assistant" && !m._fromPlan) {
+        break;
+      }
+    }
+    failureContext = failures.reverse().join("\n");
+  }
+
   // --- Phase 1: Plan ---
   const plan = await runPlanner({
     apiKey, userPrompt, conversation: messages, currentState, files,
-    log, onStatus, signal, provider, providerConfig,
+    log, onStatus, signal, provider, providerConfig, failureContext,
   });
 
   if (!plan) {
@@ -1632,11 +1651,36 @@ export async function runWithPlan({
     _cpCompletedSteps: [],
   });
 
+  // Detect if the plan execution had errors
+  const execHadErrors = execMessages.some(m =>
+    Array.isArray(m.content) && m.content.some(b =>
+      (b?.type === "tool_result" && b.is_error) ||
+      (b?.type === "tool_result" && typeof b.content === "string" &&
+       (b.content.includes("Script errors") || b.content.includes("FAILED")))
+    )
+  );
+  let planFailureSummary = "";
+  if (execHadErrors) {
+    const errors = [];
+    for (const m of execMessages) {
+      if (!Array.isArray(m.content)) continue;
+      for (const b of m.content) {
+        if (b?.type === "tool_result" && typeof b.content === "string" &&
+            (b.is_error || b.content.includes("Script errors") || b.content.includes("FAILED"))) {
+          errors.push(b.content.slice(0, 120));
+        }
+      }
+    }
+    planFailureSummary = [...new Set(errors)].slice(0, 3).join("; ");
+  }
+
   // Sync final assistant response back to the original conversation
   // so future planners can see what was done
   const lastAssistant = execMessages.filter((m) => m.role === "assistant").pop();
   if (lastAssistant) {
-    messages.push(lastAssistant);
+    const synced = { ...lastAssistant, _fromPlan: true };
+    if (planFailureSummary) synced._planFailureSummary = planFailureSummary;
+    messages.push(synced);
   }
 
   return result;

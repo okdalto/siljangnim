@@ -1105,9 +1105,22 @@ async def run_agent(
     messages = _conversations.setdefault(ws_id, [])
 
     # --- Execution Context Rebuild (plan-based) ---
+    # Count consecutive plan executions for loop prevention
+    consecutive_plan_count = 0
+    for m in reversed(messages):
+        if m.get("role") == "assistant" and m.get("_from_plan"):
+            consecutive_plan_count += 1
+        elif m.get("role") == "assistant":
+            break
+    recent_plan_executed = consecutive_plan_count > 0
+
     # For Anthropic provider with long conversations, run planner first
     _used_plan = False
-    if provider not in ("gemini", "custom") and should_plan(len(messages), user_prompt):
+    if provider not in ("gemini", "custom") and should_plan(
+        len(messages), user_prompt,
+        consecutive_plan_count=consecutive_plan_count,
+        recent_plan_executed=recent_plan_executed,
+    ):
         try:
             current_state = get_current_state()
             plan = await run_planner(user_prompt, messages, current_state, log)
@@ -1650,7 +1663,7 @@ async def run_agent(
                     last_assistant = m
                     break
             if last_assistant:
-                original_messages.append(last_assistant)
+                original_messages.append({**last_assistant, "_from_plan": True})
 
         _save_conversations()
         return {"chat_text": chat_text}
