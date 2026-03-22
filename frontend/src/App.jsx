@@ -893,7 +893,7 @@ export default function App() {
           />
         )}
 
-        {(!isMobile || tree.sidebarOpen) && (
+        {tree.sidebarOpen && (
           <ProjectTreeSidebar
             isOpen={tree.sidebarOpen}
             isMobile={isMobile}
