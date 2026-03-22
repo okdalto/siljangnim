@@ -364,6 +364,21 @@ def _convert_tools_to_openai(tools: list[dict]) -> list[dict]:
 # Provider-specific API call functions
 # ---------------------------------------------------------------------------
 
+_INTERNAL_MSG_FIELDS = {"_from_plan", "_planFailureSummary"}
+
+
+def _sanitize_messages(msgs: list[dict]) -> list[dict]:
+    """Strip internal metadata fields before sending to the API."""
+    needs_copy = any(k in m for m in msgs for k in _INTERNAL_MSG_FIELDS)
+    if not needs_copy:
+        return msgs
+    return [
+        {k: v for k, v in m.items() if k not in _INTERNAL_MSG_FIELDS}
+        if any(k in m for k in _INTERNAL_MSG_FIELDS) else m
+        for m in msgs
+    ]
+
+
 async def _call_anthropic(
     client: anthropic.AsyncAnthropic,
     model_name: str,
@@ -380,6 +395,7 @@ async def _call_anthropic(
     stop_reason: 'end_turn', 'tool_use', or 'max_tokens'.
     Raises anthropic exceptions on error (handled by caller).
     """
+    messages = _sanitize_messages(messages)
     current_block_type = None
     thinking_chunks: list[str] = []
     thinking_len = 0
