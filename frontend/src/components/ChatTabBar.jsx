@@ -31,12 +31,17 @@ function ChatTabBar({ tabs, activeTabId, tabOrder, onSwitch, onCreate, onClose, 
               />
             )}
             <span className="truncate max-w-[80px]">{tab.label}</span>
-            {tabOrder.length > 1 && (
+            {(tabOrder.length > 1 || tab.messages?.length > 0) && (
               <span
                 role="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onClose(id);
+                  if (tabOrder.length === 1) {
+                    if (tab.messages?.length > 0 && confirm("채팅을 리셋할까요?")) onReset?.(id);
+                  } else {
+                    if (tab.messages?.length > 0 && !confirm("채팅을 닫을까요?")) return;
+                    onClose(id);
+                  }
                 }}
                 className={`ml-0.5 rounded hover:bg-white/20 transition-colors ${
                   isActive ? "opacity-70 hover:opacity-100" : "opacity-0 group-hover:opacity-70 hover:!opacity-100"
