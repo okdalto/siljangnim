@@ -1,5 +1,7 @@
 export const FORMATS = ["MP4", "WebM", "PNG"];
 export const FPS_PRESETS = [24, 30, 60];
+export const FPS_MIN = 1;
+export const FPS_MAX = 240;
 export const QUALITIES = ["Low", "Med", "High", "Ultra"];
 export const MODES = ["Realtime", "Offline"];
 

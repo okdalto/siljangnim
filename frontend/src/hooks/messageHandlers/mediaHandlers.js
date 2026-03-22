@@ -1,3 +1,7 @@
+import { FPS_MIN, FPS_MAX } from "../../constants/recording.js";
+
+const clampFps = (v) => Math.max(FPS_MIN, Math.min(FPS_MAX, Math.round(v)));
+
 export function handleStartRecording(msg, deps) {
   const { recorderFnsRef, setPaused } = deps;
   if (msg.resetTimeline) {
@@ -5,7 +9,7 @@ export function handleStartRecording(msg, deps) {
   }
   setPaused(false);
   recorderFnsRef.current.startRecording({
-    fps: msg.fps || 30,
+    fps: clampFps(msg.fps || 30),
     duration: msg.duration,
     filename: msg.filename,
   });
