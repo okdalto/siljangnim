@@ -39,6 +39,33 @@ export function getSmallModel(provider) {
  * @param {Object} [params.callbacks] - Streaming callbacks
  * @returns {Promise<{contentBlocks: Array, stopReason: string}>}
  */
+// Strip internal metadata fields (e.g. _fromPlan, _planFailureSummary) that
+// would cause API validation errors if sent to the provider.
+const _INTERNAL_FIELDS = new Set(["_fromPlan", "_planFailureSummary"]);
+
+function _sanitizeMessages(msgs) {
+  let needsCopy = false;
+  for (const m of msgs) {
+    for (const key of _INTERNAL_FIELDS) {
+      if (key in m) { needsCopy = true; break; }
+    }
+    if (needsCopy) break;
+  }
+  if (!needsCopy) return msgs;
+  return msgs.map(m => {
+    let hasInternal = false;
+    for (const key of _INTERNAL_FIELDS) {
+      if (key in m) { hasInternal = true; break; }
+    }
+    if (!hasInternal) return m;
+    const clean = {};
+    for (const [k, v] of Object.entries(m)) {
+      if (!_INTERNAL_FIELDS.has(k)) clean[k] = v;
+    }
+    return clean;
+  });
+}
+
 export async function callLLM({
   provider = "anthropic",
   apiKey,
@@ -46,11 +73,13 @@ export async function callLLM({
   model,
   maxTokens,
   system,
-  messages,
+  messages: rawMessages,
   tools,
   signal,
   callbacks = {},
 }) {
+  const messages = _sanitizeMessages(rawMessages);
+
   if (provider === "anthropic") {
     return callAnthropic({ apiKey, model, maxTokens, system, messages, tools, signal, callbacks });
   }
