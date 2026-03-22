@@ -39,6 +39,6 @@ export function handleWorkspaceStateUpdate(msg, deps) {
     kf.restoreKeyframes(msg.workspace_state.keyframes);
     if (typeof msg.workspace_state.duration === "number") setDuration(msg.workspace_state.duration);
     if (typeof msg.workspace_state.loop === "boolean") setLoop(msg.workspace_state.loop);
-    if (typeof msg.workspace_state.fps === "number") setFps(msg.workspace_state.fps);
+    if (typeof msg.workspace_state.fps === "number") setFps(Math.max(1, Math.min(240, Math.round(msg.workspace_state.fps))));
   }
 }

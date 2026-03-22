@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { FPS_PRESETS, QUALITY_MULTIPLIER, RESOLUTION_PRESETS } from "../../constants/recording.js";
+import { FPS_PRESETS, FPS_MIN, FPS_MAX, QUALITY_MULTIPLIER, RESOLUTION_PRESETS } from "../../constants/recording.js";
 
 /**
  * Encapsulates all recording settings state (14 useState calls).
@@ -37,7 +37,7 @@ export default function useRecordSettings({ canvasWidth, canvasHeight, sceneDura
 
   const commitCustomFps = useCallback(() => {
     const v = parseInt(fpsInput, 10);
-    if (!isNaN(v) && v > 0) {
+    if (!isNaN(v) && v >= FPS_MIN && v <= FPS_MAX) {
       setFps(v);
     } else {
       setFpsInput(String(fps));

@@ -490,6 +490,7 @@ export async function startOfflineWebCodecs(ctx) {
   finalizeRef.current = finalize;
 
   encoder.addEventListener("error", () => {
+    if (finalized) return;
     console.error("VideoEncoder fatal error – aborting recording");
     finalized = true;
     finalizeRef.current = null;
@@ -621,7 +622,14 @@ export async function startOfflineFallback(ctx) {
   recorder.ondataavailable = (e) => {
     if (e.data.size > 0) chunksRef.current.push(e.data);
   };
+  recorder.onerror = (event) => {
+    console.error("Offline fallback MediaRecorder error:", event.error);
+    stream.getTracks().forEach((t) => t.stop());
+    setCompletionInfo({ success: false, error: event.error?.message || "MediaRecorder error", timeTaken: ((performance.now() - renderStartTime) / 1000).toFixed(1) });
+    finalizeCleanup({ setProgress, setRecording, engine, restoreEngine });
+  };
   recorder.onstop = () => {
+    stream.getTracks().forEach((t) => t.stop());
     const timeTaken = ((performance.now() - renderStartTime) / 1000).toFixed(1);
     const blob = new Blob(chunksRef.current, { type: mimeType });
     chunksRef.current = [];
@@ -776,7 +784,10 @@ export function startRealtimeMp4(ctx) {
       if (meta?.decoderConfig) hasCodecMeta = true;
       muxer.addVideoChunk(chunk, meta);
     },
-    error: (e) => console.error("VideoEncoder error:", e),
+    error: (e) => {
+      console.error("VideoEncoder error:", e);
+      if (!finalized) finalize();
+    },
   });
   encoder.configure({
     codec: avcCodecForResolution(canvas.width, canvas.height),
@@ -895,7 +906,7 @@ export function startRealtimeWebm(ctx) {
 
   const videoStream = canvas.captureStream(fps);
 
-  const combinedStream = hasAudio
+  const combinedStream = hasAudio && audioStream
     ? new MediaStream([
         ...videoStream.getVideoTracks(),
         ...audioStream.getAudioTracks(),
@@ -915,6 +926,7 @@ export function startRealtimeWebm(ctx) {
     if (e.data.size > 0) chunksRef.current.push(e.data);
   };
   recorder.onstop = () => {
+    videoStream.getTracks().forEach((t) => t.stop());
     setRecording(false);
     const timeTaken = ((performance.now() - startTimeRef.current) / 1000).toFixed(1);
     const blob = new Blob(chunksRef.current, { type: mimeType });
