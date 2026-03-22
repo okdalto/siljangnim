@@ -11,7 +11,13 @@ function ChatTabBar({ tabs, activeTabId, tabOrder, onSwitch, onCreate, onClose, 
           <button
             key={id}
             type="button"
-            onClick={() => isActive ? onReset?.(id) : onSwitch(id)}
+            onClick={() => {
+              if (isActive) {
+                if (tab.messages?.length > 0 && confirm("채팅을 리셋할까요?")) onReset?.(id);
+              } else {
+                onSwitch(id);
+              }
+            }}
             className={`group flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors whitespace-nowrap ${
               isActive
                 ? "text-zinc-100"
