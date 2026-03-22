@@ -410,86 +410,83 @@ async def _tool_write_file(input_data: dict, broadcast: BroadcastCallback) -> st
         return "Error: 'edits' must be a JSON array."
 
     if is_workspace_file:
-        # JSON dot-path editing for workspace files
-        try:
-            data = workspace.read_json(rel_path)
-        except FileNotFoundError:
+        _MAX_CAS_RETRIES = 3
+        for attempt in range(_MAX_CAS_RETRIES):
+            # JSON dot-path editing for workspace files (with optimistic locking)
+            is_new = False
+            try:
+                data, rev = workspace.read_json_with_rev(rel_path)
+            except FileNotFoundError:
+                if rel_path == "scene.json":
+                    return "No scene.json exists. Use write_file with content to create one first."
+                if rel_path == "workspace_state.json":
+                    data = {"version": 1, "keyframes": {}, "duration": 30, "loop": True}
+                else:
+                    data = {}
+                rev = None  # new file, no CAS needed
+                is_new = True
+
+            data = copy.deepcopy(data)
+            warnings = []
+            applied_count = 0
+            for i, edit in enumerate(edits):
+                if "path" in edit:
+                    dot_path = edit["path"]
+                    op = edit.get("op", "set")
+                    if not dot_path:
+                        warnings.append(f"Edit {i}: empty path, skipped")
+                        continue
+                    try:
+                        if op == "delete":
+                            _delete_nested(data, dot_path)
+                        else:
+                            _set_nested(data, dot_path, edit.get("value"))
+                        applied_count += 1
+                    except (KeyError, TypeError) as e:
+                        warnings.append(f"Edit {i} ({op} '{dot_path}'): {e}")
+                else:
+                    warnings.append(f"Edit {i}: JSON workspace files only support dot-path edits (need 'path' field). Use edits with 'path' key for dot-path operations.")
+
+            if applied_count == 0 and warnings:
+                return "Error: no edits applied.\n" + "\n".join(f"  - {w}" for w in warnings)
+
+            # scene.json: normalize + validate
             if rel_path == "scene.json":
-                return "No scene.json exists. Use write_file with content to create one first."
-            if rel_path == "workspace_state.json":
-                data = {"version": 1, "keyframes": {}, "duration": 30, "loop": True}
-            else:
-                data = {}
+                _normalize_script_strings(data)
+                errors = _validate_scene_json(data)
+                if errors:
+                    error_text = "Validation errors after edits:\n"
+                    error_text += "\n".join(f"  - {e}" for e in errors)
+                    if warnings:
+                        error_text += "\nEdit warnings:\n" + "\n".join(f"  - {w}" for w in warnings)
+                    return error_text
 
-        data = copy.deepcopy(data)
-        warnings = []
-        applied_count = 0
-        for i, edit in enumerate(edits):
-            # Detect edit type: dot-path (has 'path') vs text search-replace (has 'old_text')
-            if "path" in edit:
-                dot_path = edit["path"]
-                op = edit.get("op", "set")
-                if not dot_path:
-                    warnings.append(f"Edit {i}: empty path, skipped")
-                    continue
-                try:
-                    if op == "delete":
-                        _delete_nested(data, dot_path)
-                    else:
-                        _set_nested(data, dot_path, edit.get("value"))
-                    applied_count += 1
-                except (KeyError, TypeError) as e:
-                    warnings.append(f"Edit {i} ({op} '{dot_path}'): {e}")
-            else:
-                warnings.append(f"Edit {i}: JSON workspace files only support dot-path edits (need 'path' field). Use edits with 'path' key for dot-path operations.")
-
-        # If no edits were actually applied, return error
-        if applied_count == 0 and warnings:
-            return "Error: no edits applied.\n" + "\n".join(f"  - {w}" for w in warnings)
-
-        # scene.json: normalize + validate + broadcast
-        if rel_path == "scene.json":
-            _normalize_script_strings(data)
-            errors = _validate_scene_json(data)
-            if errors:
-                error_text = "Validation errors after edits:\n"
-                error_text += "\n".join(f"  - {e}" for e in errors)
-                if warnings:
-                    error_text += "\nEdit warnings:\n" + "\n".join(f"  - {w}" for w in warnings)
-                return error_text
-            try:
-                workspace.write_json("scene.json", data)
-            except OSError as e:
-                return f"Error writing scene.json: {e}"
-            await broadcast({"type": "scene_update", "scene_json": data})
-            result = f"ok — {len(edits)} edit(s) applied to scene.json and broadcast."
-            if warnings:
-                result += "\nWarnings:\n" + "\n".join(f"  - {w}" for w in warnings)
-            return result
-
-        # workspace_state.json: ensure version + broadcast
-        if rel_path == "workspace_state.json":
-            if "version" not in data:
+            if rel_path == "workspace_state.json" and "version" not in data:
                 data["version"] = 1
+
             try:
-                workspace.write_json("workspace_state.json", data)
+                if is_new:
+                    workspace.write_json(rel_path, data)
+                else:
+                    workspace.write_json_cas(rel_path, data, rev)
+            except workspace.RevisionConflictError:
+                if attempt < _MAX_CAS_RETRIES - 1:
+                    continue  # re-read and retry
+                return f"Error: file was modified by another agent (conflict after {attempt + 1} retries). Try again."
             except OSError as e:
-                return f"Error writing workspace_state.json: {e}"
-            await broadcast({"type": "workspace_state_update", "workspace_state": data})
-            result = f"ok — {len(edits)} edit(s) applied to workspace_state.json and broadcast."
+                return f"Error writing {rel_path}: {e}"
+
+            if rel_path == "scene.json":
+                await broadcast({"type": "scene_update", "scene_json": data})
+            elif rel_path == "workspace_state.json":
+                await broadcast({"type": "workspace_state_update", "workspace_state": data})
+
+            result = f"ok — {len(edits)} edit(s) applied to {rel_path}."
+            if rel_path in ("scene.json", "workspace_state.json"):
+                result += " Broadcast sent."
             if warnings:
                 result += "\nWarnings:\n" + "\n".join(f"  - {w}" for w in warnings)
             return result
-
-        # Other workspace JSON files: just save
-        try:
-            workspace.write_json(rel_path, data)
-        except OSError as e:
-            return f"Error writing {rel_path}: {e}"
-        result = f"ok — {len(edits)} edit(s) applied to {rel_path}."
-        if warnings:
-            result += "\nWarnings:\n" + "\n".join(f"  - {w}" for w in warnings)
-        return result
 
     else:
         # Text search-replace editing for .workspace/* files

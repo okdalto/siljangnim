@@ -176,81 +176,92 @@ export async function toolWriteScene(input, broadcast, context) {
 // edit_scene — surgical text-level edits within scene script sections
 // ---------------------------------------------------------------------------
 
+const _EDIT_SCENE_MAX_RETRIES = 3;
+
 export async function toolEditScene(input, broadcast) {
   const edits = input.edits;
   if (!edits || !Array.isArray(edits) || !edits.length) {
     return "Error: 'edits' array is required. Each edit: { section, old_text, new_text }.";
   }
 
-  let scene;
-  try {
-    scene = await storage.readJson("scene.json");
-  } catch {
-    return "Error: no scene.json exists. Use write_scene to create one first.";
-  }
-
-  if (!scene.script || typeof scene.script !== "object") {
-    return "Error: scene.json has no 'script' object.";
-  }
-
-  const warnings = [];
-  let appliedCount = 0;
-
-  for (let i = 0; i < edits.length; i++) {
-    const edit = edits[i];
-    const section = edit.section;
-    const oldText = edit.old_text;
-    const newText = edit.new_text ?? "";
-
-    if (!section || !["setup", "render", "cleanup"].includes(section)) {
-      warnings.push(`Edit ${i}: invalid section '${section}' — must be setup, render, or cleanup.`);
-      continue;
-    }
-    if (oldText == null) {
-      warnings.push(`Edit ${i}: 'old_text' is required.`);
-      continue;
+  for (let attempt = 0; attempt < _EDIT_SCENE_MAX_RETRIES; attempt++) {
+    let scene, rev;
+    try {
+      ({ data: scene, _rev: rev } = await storage.readJsonWithRev("scene.json"));
+    } catch {
+      return "Error: no scene.json exists. Use write_scene to create one first.";
     }
 
-    const code = scene.script[section];
-    if (code == null) {
-      warnings.push(`Edit ${i}: section '${section}' does not exist in current scene.`);
-      continue;
+    if (!scene.script || typeof scene.script !== "object") {
+      return "Error: scene.json has no 'script' object.";
     }
 
-    if (!code.includes(oldText)) {
-      // Provide a helpful preview of the section for debugging
-      const preview = code.length > 200 ? code.slice(0, 200) + "..." : code;
-      warnings.push(`Edit ${i}: old_text not found in script.${section}. Current content starts with:\n${preview}`);
-      continue;
+    const warnings = [];
+    let appliedCount = 0;
+
+    for (let i = 0; i < edits.length; i++) {
+      const edit = edits[i];
+      const section = edit.section;
+      const oldText = edit.old_text;
+      const newText = edit.new_text ?? "";
+
+      if (!section || !["setup", "render", "cleanup"].includes(section)) {
+        warnings.push(`Edit ${i}: invalid section '${section}' — must be setup, render, or cleanup.`);
+        continue;
+      }
+      if (oldText == null) {
+        warnings.push(`Edit ${i}: 'old_text' is required.`);
+        continue;
+      }
+
+      const code = scene.script[section];
+      if (code == null) {
+        warnings.push(`Edit ${i}: section '${section}' does not exist in current scene.`);
+        continue;
+      }
+
+      if (!code.includes(oldText)) {
+        const preview = code.length > 200 ? code.slice(0, 200) + "..." : code;
+        warnings.push(`Edit ${i}: old_text not found in script.${section}. Current content starts with:\n${preview}`);
+        continue;
+      }
+
+      const occurrences = code.split(oldText).length - 1;
+      if (occurrences > 1) {
+        warnings.push(`Edit ${i}: old_text found ${occurrences} times in script.${section} — only first replaced. Provide more context for unique match.`);
+      }
+
+      scene.script[section] = code.replace(oldText, newText);
+      appliedCount++;
     }
 
-    const occurrences = code.split(oldText).length - 1;
-    if (occurrences > 1) {
-      warnings.push(`Edit ${i}: old_text found ${occurrences} times in script.${section} — only first replaced. Provide more context for unique match.`);
+    if (appliedCount === 0 && warnings.length) {
+      return "Error: no edits applied.\n" + warnings.map((w) => `  - ${w}`).join("\n");
     }
 
-    scene.script[section] = code.replace(oldText, newText);
-    appliedCount++;
-  }
+    normalizeScriptStrings(scene);
+    const errors = validateSceneJson(scene);
+    if (errors.length) {
+      let result = "Validation errors after edits:\n" + errors.map((e) => `  - ${e}`).join("\n");
+      if (warnings.length) result += "\nEdit warnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+      return result;
+    }
 
-  if (appliedCount === 0 && warnings.length) {
-    return "Error: no edits applied.\n" + warnings.map((w) => `  - ${w}`).join("\n");
-  }
+    try {
+      await storage.writeJsonCAS("scene.json", scene, rev);
+    } catch (e) {
+      if (e.name === "RevisionConflictError" && attempt < _EDIT_SCENE_MAX_RETRIES - 1) {
+        continue; // re-read and retry
+      }
+      return `Error: scene was modified by another agent (conflict after ${attempt + 1} retries). Try again.`;
+    }
 
-  normalizeScriptStrings(scene);
-  const errors = validateSceneJson(scene);
-  if (errors.length) {
-    let result = "Validation errors after edits:\n" + errors.map((e) => `  - ${e}`).join("\n");
-    if (warnings.length) result += "\nEdit warnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+    broadcast({ type: "scene_update", scene_json: scene });
+
+    let result = `ok — ${appliedCount} edit(s) applied to scene and broadcast.`;
+    if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
     return result;
   }
-
-  await storage.writeJson("scene.json", scene);
-  broadcast({ type: "scene_update", scene_json: scene });
-
-  let result = `ok — ${appliedCount} edit(s) applied to scene and broadcast.`;
-  if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
-  return result;
 }
 
 // ---------------------------------------------------------------------------

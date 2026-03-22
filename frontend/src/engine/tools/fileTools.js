@@ -176,69 +176,82 @@ export async function toolWriteFile(input, broadcast) {
   if (!Array.isArray(edits)) return "Error: 'edits' must be a JSON array.";
 
   if (isWorkspaceFile) {
-    let data;
-    try {
-      data = await storage.readJson(relPath);
-    } catch {
-      if (relPath === "scene.json") return "No scene.json exists. Use write_file with content to create one first.";
-      if (relPath === "workspace_state.json") data = { version: 1, keyframes: {}, duration: 30, loop: true };
-      else data = {};
-    }
+    const _MAX_CAS_RETRIES = 3;
+    for (let attempt = 0; attempt < _MAX_CAS_RETRIES; attempt++) {
+      let data, rev;
+      let isNew = false;
+      try {
+        ({ data, _rev: rev } = await storage.readJsonWithRev(relPath));
+      } catch {
+        if (relPath === "scene.json") return "No scene.json exists. Use write_file with content to create one first.";
+        if (relPath === "workspace_state.json") data = { version: 1, keyframes: {}, duration: 30, loop: true };
+        else data = {};
+        rev = undefined; // new file, no CAS needed
+        isNew = true;
+      }
 
-    data = deepClone(data);
-    const warnings = [];
-    let appliedCount = 0;
+      data = deepClone(data);
+      const warnings = [];
+      let appliedCount = 0;
 
-    for (let i = 0; i < edits.length; i++) {
-      const edit = edits[i];
-      if ("path" in edit) {
-        const dotPath = edit.path;
-        const op = edit.op || "set";
-        if (!dotPath) { warnings.push(`Edit ${i}: empty path, skipped`); continue; }
-        try {
-          if (op === "delete") deleteNested(data, dotPath);
-          else setNested(data, dotPath, edit.value);
-          appliedCount++;
-        } catch (e) {
-          warnings.push(`Edit ${i} (${op} '${dotPath}'): ${e.message}`);
+      for (let i = 0; i < edits.length; i++) {
+        const edit = edits[i];
+        if ("path" in edit) {
+          const dotPath = edit.path;
+          const op = edit.op || "set";
+          if (!dotPath) { warnings.push(`Edit ${i}: empty path, skipped`); continue; }
+          try {
+            if (op === "delete") deleteNested(data, dotPath);
+            else setNested(data, dotPath, edit.value);
+            appliedCount++;
+          } catch (e) {
+            warnings.push(`Edit ${i} (${op} '${dotPath}'): ${e.message}`);
+          }
+        } else {
+          warnings.push(`Edit ${i}: JSON workspace files only support dot-path edits (need 'path' field).`);
         }
-      } else {
-        warnings.push(`Edit ${i}: JSON workspace files only support dot-path edits (need 'path' field).`);
       }
-    }
 
-    if (appliedCount === 0 && warnings.length) {
-      return "Error: no edits applied.\n" + warnings.map((w) => `  - ${w}`).join("\n");
-    }
-
-    if (relPath === "scene.json") {
-      normalizeScriptStrings(data);
-      const errors = validateSceneJson(data);
-      if (errors.length) {
-        let result = "Validation errors after edits:\n" + errors.map((e) => `  - ${e}`).join("\n");
-        if (warnings.length) result += "\nEdit warnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
-        return result;
+      if (appliedCount === 0 && warnings.length) {
+        return "Error: no edits applied.\n" + warnings.map((w) => `  - ${w}`).join("\n");
       }
-      await storage.writeJson("scene.json", data);
-      broadcast({ type: "scene_update", scene_json: data });
-      let result = `ok — ${edits.length} edit(s) applied to scene.json and broadcast.`;
+
+      if (relPath === "scene.json") {
+        normalizeScriptStrings(data);
+        const errors = validateSceneJson(data);
+        if (errors.length) {
+          let result = "Validation errors after edits:\n" + errors.map((e) => `  - ${e}`).join("\n");
+          if (warnings.length) result += "\nEdit warnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+          return result;
+        }
+      }
+
+      if (relPath === "workspace_state.json" && !data.version) data.version = 1;
+
+      try {
+        if (isNew) {
+          await storage.writeJson(relPath, data);
+        } else {
+          await storage.writeJsonCAS(relPath, data, rev);
+        }
+      } catch (e) {
+        if (e.name === "RevisionConflictError" && attempt < _MAX_CAS_RETRIES - 1) {
+          continue; // re-read and retry
+        }
+        return `Error: file was modified by another agent (conflict after ${attempt + 1} retries). Try again.`;
+      }
+
+      if (relPath === "scene.json") {
+        broadcast({ type: "scene_update", scene_json: data });
+      } else if (relPath === "workspace_state.json") {
+        broadcast({ type: "workspace_state_update", workspace_state: data });
+      }
+
+      let result = `ok — ${edits.length} edit(s) applied to ${relPath}.`;
+      if (relPath === "scene.json" || relPath === "workspace_state.json") result += " Broadcast sent.";
       if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
       return result;
     }
-
-    if (relPath === "workspace_state.json") {
-      if (!data.version) data.version = 1;
-      await storage.writeJson("workspace_state.json", data);
-      broadcast({ type: "workspace_state_update", workspace_state: data });
-      let result = `ok — ${edits.length} edit(s) applied to workspace_state.json and broadcast.`;
-      if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
-      return result;
-    }
-
-    await storage.writeJson(relPath, data);
-    let result = `ok — ${edits.length} edit(s) applied to ${relPath}.`;
-    if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
-    return result;
   } else {
     // .workspace/* text file edits
     let fileText;
