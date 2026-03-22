@@ -19,7 +19,7 @@ import useNodeSnapping from "./hooks/useNodeSnapping.js";
 import useNodeLayoutHistory from "./hooks/useNodeLayoutHistory.js";
 import useRecorder from "./hooks/useRecorder.js";
 import useApiKey from "./hooks/useApiKey.js";
-import useChat from "./hooks/useChat.js";
+import useTabManager from "./hooks/useTabManager.js";
 import useCustomPanels from "./hooks/useCustomPanels.js";
 import useKeyframes from "./hooks/useKeyframes.js";
 import useProjectManager from "./hooks/useProjectManager.js";
@@ -198,7 +198,7 @@ export default function App() {
 
   // --- Custom hooks ---
   const apiKey = useApiKey(sendRef);
-  const chat = useChat(sendRef);
+  const chat = useTabManager(sendRef);
   const panels = useCustomPanels(sendRef);
   const assetNodes = useAssetNodes();
   const { handleAssetUpload, handleAssetDelete } = useAssetHandlers({
@@ -379,8 +379,12 @@ export default function App() {
   // Handler: user changes backend target via toolbar
   const handleBackendTargetChange = useCallback((target) => {
     setBackendTarget(target);
-    // Persist into sceneJSON so it's saved with the project
-    setSceneJSON((prev) => prev ? { ...prev, backendTarget: target } : prev);
+    // Only persist explicit backend choices into sceneJSON.
+    // "auto" is a UI preference — it should not overwrite the scene's
+    // original backendTarget, because the scene's shaders depend on it.
+    if (target !== "auto") {
+      setSceneJSON((prev) => prev ? { ...prev, backendTarget: target } : prev);
+    }
     dirtyRef.current = true;
     autoSave.triggerAutoSave();
     // Notify backend/agent engine of the change
@@ -408,8 +412,8 @@ export default function App() {
     getUiConfig: () => uiConfigRef.current,
     getWorkspaceState,
     getPanels: () => Object.fromEntries(panelsDataRef.current),
-    getMessages: () => messagesRef.current,
-    getDebugLogs: () => chat.debugLogs,
+    getMessages: chat.getMessages || (() => messagesRef.current),
+    getDebugLogs: chat.getDebugLogs || (() => chat.debugLogs),
     getActiveProjectName: () => project.activeProject ? storageApi.getActiveProjectName() : null,
   });
   gettersRef.current.getWorkspaceState = getWorkspaceState;
@@ -845,7 +849,14 @@ export default function App() {
     onCancel: chat.handleCancel,
     onAnswer: chat.handleAnswer,
     addLog: chat.addLog,
-  }), [chat.messages, chat.isProcessing, chat.agentStatus, chat.pendingQuestion, chat.debugLogs, chat.handleSend, chat.handleNewChat, chat.handleCancel, chat.handleAnswer, chat.addLog]);
+    // Tab management
+    tabs: chat.tabs,
+    activeTabId: chat.activeTabId,
+    tabOrder: chat.tabOrder,
+    createTab: chat.createTab,
+    closeTab: chat.closeTab,
+    switchTab: chat.switchTab,
+  }), [chat.messages, chat.isProcessing, chat.agentStatus, chat.pendingQuestion, chat.debugLogs, chat.handleSend, chat.handleNewChat, chat.handleCancel, chat.handleAnswer, chat.addLog, chat.tabs, chat.activeTabId, chat.tabOrder, chat.createTab, chat.closeTab, chat.switchTab]);
 
   return (
     <SettingsContext.Provider value={settingsCtx}>

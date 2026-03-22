@@ -2,25 +2,37 @@ import { generateProjectName, renameNode, updateNodeMetadata } from "../../engin
 import * as storage from "../../engine/storage.js";
 import { unpackBufferRefs } from "./helpers.js";
 
+/** Resolve the correct chat interface for this message's chatId. */
+function _getChat(msg, deps) {
+  if (deps.chat.getChatForTab && msg.chatId) {
+    return deps.chat.getChatForTab(msg.chatId);
+  }
+  return deps.chat;
+}
+
 export function handleAssistantText(msg, deps) {
-  deps.chat.addAssistantText(msg.text);
+  const chat = _getChat(msg, deps);
+  chat.addAssistantText(msg.text);
   deps.autoSave?.triggerAutoSave?.();
 }
 
 export function handleAssistantTextDelta(msg, deps) {
-  deps.chat.addAssistantTextDelta(msg.chunk);
+  const chat = _getChat(msg, deps);
+  chat.addAssistantTextDelta(msg.chunk);
 }
 
 export function handleAssistantTextFinalize(msg, deps) {
-  deps.chat.finalizeAssistantText();
+  const chat = _getChat(msg, deps);
+  chat.finalizeAssistantText();
   deps.autoSave?.triggerAutoSave?.();
 }
 
 export function handleChatDone(msg, deps) {
   const {
-    chat, project, setWorkspaceFilesVersion, dirtyRef,
+    chat: chatHook, project, setWorkspaceFilesVersion, dirtyRef,
     setProjectManifest, projectTreeRef, overwriteModeRef, autoSave,
   } = deps;
+  const chat = _getChat(msg, deps);
   const { thinkingBufferRef, thinkingLogReceivedRef, getSceneJSONRef, getUiConfigRef, getWorkspaceStateRef, getPanelsRef, getMessagesRef, getDebugLogsRef } = unpackBufferRefs(deps);
 
   // Safety: finalize any lingering streaming text
@@ -147,7 +159,7 @@ export function handleChatDone(msg, deps) {
 }
 
 export function handleAgentStatus(msg, deps) {
-  const { chat } = deps;
+  const chat = _getChat(msg, deps);
   const { thinkingBufferRef } = unpackBufferRefs(deps);
   chat.setAgentStatus({ status: msg.status, detail: msg.detail });
   if (msg.status === "thinking" && msg.detail) {
@@ -158,7 +170,7 @@ export function handleAgentStatus(msg, deps) {
 }
 
 export function handleAgentLog(msg, deps) {
-  const { chat } = deps;
+  const chat = _getChat(msg, deps);
   const { thinkingBufferRef, thinkingLogReceivedRef } = unpackBufferRefs(deps);
   chat.addLog({ agent: msg.agent, message: msg.message, level: msg.level });
   if (msg.level === "thinking" && msg.message !== "[Thinking started]" && !msg.message.startsWith("Tool:")) {
@@ -168,9 +180,11 @@ export function handleAgentLog(msg, deps) {
 }
 
 export function handleAgentQuestion(msg, deps) {
-  deps.chat.setPendingQuestion({ question: msg.question, options: msg.options || [] });
+  const chat = _getChat(msg, deps);
+  chat.setPendingQuestion({ question: msg.question, options: msg.options || [] });
 }
 
 export function handleMessageInjected(msg, deps) {
-  deps.chat.addLog({ agent: "System", message: "Message queued for agent", level: "info" });
+  const chat = _getChat(msg, deps);
+  chat.addLog({ agent: "System", message: "Message queued for agent", level: "info" });
 }
