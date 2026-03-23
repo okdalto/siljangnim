@@ -609,7 +609,7 @@ export default function App() {
   } = useTreeActions({ tree, compare, handleMessage, project, chat, agentEngine: _agentEngine, getState });
 
   const resetToFreshWorkspace = useCallback(() => {
-    chat.clearAll();
+    chat.resetAllTabs();
     resetUniformHistory();
     setSceneJSON(null);
     setUiConfig({ controls: [], inspectable_buffers: [] });
@@ -625,7 +625,7 @@ export default function App() {
     tree.loadTree(null);
     dirtyRef.current = false;
     send({ type: "new_project" });
-  }, [send, chat.clearAll, resetUniformHistory, panels.restorePanels,
+  }, [send, chat.resetAllTabs, resetUniformHistory, panels.restorePanels,
       kf.resetKeyframes, project.setActiveProject, settings.defaultDuration,
       settings.defaultLoop, tree.loadTree]);
 

@@ -150,6 +150,12 @@ function reducer(state, action) {
       }
       return state;
     }
+    case "RESET_ALL_TABS": {
+      const chatId = genId();
+      const tab = createTabState(chatId, "Chat 1");
+      const tabs = new Map([[chatId, tab]]);
+      return { tabs, activeTabId: chatId, tabOrder: [chatId] };
+    }
     default:
       return state;
   }
@@ -395,6 +401,22 @@ export default function useTabManager(sendRef) {
     dispatch({ type: "UPDATE_TAB", chatId: id, updates: { messages: [], debugLogs: [] } });
   }, [activeTabId]);
 
+  /** Reset all tabs to a single fresh "Chat 1" — used on new project. */
+  const resetAllTabs = useCallback(() => {
+    // Clear all tab-related localStorage entries
+    for (const [id] of tabs) {
+      localStorage.removeItem(`siljangnim:messages:${id}`);
+      localStorage.removeItem(`siljangnim:debugLogs:${id}`);
+    }
+    localStorage.removeItem("siljangnim:tabs");
+    // Reset stream buffers
+    for (const buf of streamBuffersRef.current.values()) {
+      if (buf.handle) cancelAnimationFrame(buf.handle);
+    }
+    streamBuffersRef.current.clear();
+    dispatch({ type: "RESET_ALL_TABS" });
+  }, [tabs]);
+
   // ---- getChatForTab: returns per-tab chat interface for message handlers ----
   const getChatForTab = useCallback((chatId) => {
     const id = chatId || activeTabId;
@@ -444,6 +466,7 @@ export default function useTabManager(sendRef) {
     restoreMessages,
     setDebugLogs,
     clearAll,
+    resetAllTabs,
     getMessages,
     getDebugLogs,
 
