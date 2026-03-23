@@ -632,7 +632,8 @@ async function _runAgentLoop({
   _cpUserPrompt = "",
   _cpCompletedSteps = [],
 }) {
-  const modelName = modelOverride || (providerConfig.model || MODEL_COMPLEX);
+  const isCustom = provider === "custom";
+  const modelName = isCustom ? (providerConfig.model || MODEL_COMPLEX) : (modelOverride || (providerConfig.model || MODEL_COMPLEX));
   const isAnthropic = provider === "anthropic";
   const useThinking = isAnthropic && (modelName.includes("opus") || modelName.includes("sonnet"));
   const maxTokens = providerConfig.max_tokens || (useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX);
