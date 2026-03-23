@@ -684,7 +684,7 @@ const HANDLERS = {
     const s = chatId ? this._getSession(chatId) : this;
 
     s.autoFixCount = 0;
-    if (!this.apiKey) {
+    if (!this.apiKey && this.provider !== "custom") {
       this._pendingPrompt = msg;
       this.broadcast({ type: "api_key_required", chatId });
       this.broadcast({ type: "chat_done", chatId });
