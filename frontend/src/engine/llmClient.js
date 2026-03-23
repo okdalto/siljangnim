@@ -267,9 +267,10 @@ async function callOpenAICompatible({
     headers.Authorization = `Bearer ${apiKey}`;
     if (baseUrl) headers["x-base-url"] = baseUrl;
   } else if (provider === "custom") {
-    proxyUrl = `${PROXY_URL}?target=custom`;
+    // Custom provider: call the endpoint directly (no proxy) to avoid
+    // Vercel Edge Function timeout limits on slow/self-hosted models.
+    proxyUrl = `${baseUrl}/chat/completions`;
     if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
-    if (baseUrl) headers["x-base-url"] = baseUrl;
   }
 
   const response = await fetch(proxyUrl, {
@@ -718,9 +719,9 @@ const validateGLMKey = createValidator({
 });
 
 const validateCustom = createValidator({
-  url: () => `${PROXY_URL}?target=custom`,
-  headers: (apiKey, config) => {
-    const h = { "Content-Type": "application/json", "x-base-url": config.base_url };
+  url: (_, config) => `${config.base_url.replace(/\/+$/, "")}/chat/completions`,
+  headers: (apiKey) => {
+    const h = { "Content-Type": "application/json" };
     if (apiKey) h.Authorization = `Bearer ${apiKey}`;
     return h;
   },
