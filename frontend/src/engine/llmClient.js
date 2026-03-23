@@ -254,7 +254,10 @@ async function callOpenAICompatible({
   };
 
   const openaiTools = toOpenAITools(tools);
-  if (openaiTools) body.tools = openaiTools;
+  if (openaiTools) {
+    body.tools = openaiTools;
+    body.tool_choice = "auto";
+  }
 
   const headers = { "Content-Type": "application/json" };
   let proxyUrl = PROXY_URL;
