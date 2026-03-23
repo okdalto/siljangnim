@@ -150,12 +150,12 @@ export async function ensureRootNode(projectName, currentState) {
       try {
         const state = await reconstructFromChain([fallback]);
         const snapshotRef = `_snapshots/${fallback.id}.json`;
-        await storage.writeFile(snapshotRef, state);
+        await storage.writeFile(snapshotRef, state, projectName);
         fallback.snapshotRef = snapshotRef;
       } catch {
         // If reconstruction fails, create empty snapshot
         const snapshotRef = `_snapshots/${fallback.id}.json`;
-        await storage.writeFile(snapshotRef, buildSnapshot({}));
+        await storage.writeFile(snapshotRef, buildSnapshot({}), projectName);
         fallback.snapshotRef = snapshotRef;
       }
     }
@@ -168,7 +168,7 @@ export async function ensureRootNode(projectName, currentState) {
   const snapshot = await captureAndBuildSnapshot(currentState);
 
   const snapshotKey = `_snapshots/${nodeId}.json`;
-  await storage.writeFile(snapshotKey, snapshot);
+  await storage.writeFile(snapshotKey, snapshot, projectName);
 
   const node = {
     id: nodeId,
@@ -226,7 +226,7 @@ export async function createNodeAfterPrompt(projectName, parentNodeId, currentSt
   if (shouldCheckpoint) {
     // Store full snapshot
     snapshotRef = `_snapshots/${nodeId}.json`;
-    await storage.writeFile(snapshotRef, currentSnapshot);
+    await storage.writeFile(snapshotRef, currentSnapshot, projectName);
   } else {
     // Store patch relative to parent
     const parentChain = await walkToCheckpoint(parentNodeId);
@@ -237,14 +237,14 @@ export async function createNodeAfterPrompt(projectName, parentNodeId, currentSt
       if (skipIfUnchanged) return null; // no changes — skip node creation
       // No changes — still create node but as checkpoint for simplicity
       snapshotRef = `_snapshots/${nodeId}.json`;
-      await storage.writeFile(snapshotRef, currentSnapshot);
+      await storage.writeFile(snapshotRef, currentSnapshot, projectName);
     } else {
       patchRef = `_patches/${nodeId}.json`;
       await storage.writeFile(patchRef, {
         version: 1,
         parentNodeId,
         ops,
-      });
+      }, projectName);
     }
   }
 
@@ -285,7 +285,7 @@ export async function overwriteNode(nodeId, projectName, currentState, opts = {}
 
   // Always store as checkpoint when overwriting
   const snapshotRef = `_snapshots/${nodeId}.json`;
-  await storage.writeFile(snapshotRef, snapshot);
+  await storage.writeFile(snapshotRef, snapshot, projectName);
 
   // Update thumbnail if provided
   if (opts.thumbnailDataUrl) {
@@ -323,7 +323,7 @@ export async function duplicateAsCheckpoint(projectName, sourceNodeId) {
   const state = await reconstructScene(sourceNodeId, projectName);
   const nodeId = crypto.randomUUID();
   const snapshotRef = `_snapshots/${nodeId}.json`;
-  await storage.writeFile(snapshotRef, state);
+  await storage.writeFile(snapshotRef, state, projectName);
 
   const sourceNode = await storage.readNode(sourceNodeId);
   const node = {
@@ -379,6 +379,7 @@ async function reconstructFromChain(chain) {
   }
 
   const checkpoint = chain[0];
+  const proj = checkpoint.projectName; // explicit project scope for reads
   if (!checkpoint.isCheckpoint || !checkpoint.snapshotRef) {
     console.warn(`[projectTree] Chain root is not a checkpoint: ${checkpoint.id}, returning empty state`);
     return buildSnapshot({});
@@ -386,7 +387,7 @@ async function reconstructFromChain(chain) {
 
   let state;
   try {
-    state = await storage.readFile(checkpoint.snapshotRef);
+    state = await storage.readFile(checkpoint.snapshotRef, proj);
   } catch (err) {
     console.warn(`[projectTree] Failed to read snapshot for ${checkpoint.id}: ${err.message}`);
     return buildSnapshot({});
@@ -401,13 +402,13 @@ async function reconstructFromChain(chain) {
     const node = chain[i];
     if (node.isCheckpoint && node.snapshotRef) {
       try {
-        state = await storage.readFile(node.snapshotRef);
+        state = await storage.readFile(node.snapshotRef, proj);
       } catch {
         console.warn(`[projectTree] Failed to read snapshot for chain node ${node.id}, skipping`);
       }
     } else if (node.patchRef) {
       try {
-        const patch = await storage.readFile(node.patchRef);
+        const patch = await storage.readFile(node.patchRef, proj);
         if (patch?.ops) {
           state = apply(structuredClone(state), patch.ops);
         }
@@ -731,10 +732,10 @@ export async function deleteNodeTree(nodeId, projectName) {
       const node = await storage.readNode(id);
       // Clean up snapshot/patch files
       if (node.snapshotRef) {
-        try { await storage.deleteFile(node.snapshotRef); } catch { /* ok */ }
+        try { await storage.deleteFile(node.snapshotRef, projectName); } catch { /* ok */ }
       }
       if (node.patchRef) {
-        try { await storage.deleteFile(node.patchRef); } catch { /* ok */ }
+        try { await storage.deleteFile(node.patchRef, projectName); } catch { /* ok */ }
       }
       await storage.deleteNode(id);
     } catch { /* node might already be deleted */ }

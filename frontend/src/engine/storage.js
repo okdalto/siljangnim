@@ -199,8 +199,8 @@ async function deleteEntriesWithPrefix(storeName, prefix) {
 // File key helpers
 // ---------------------------------------------------------------------------
 
-function fileKey(filename) {
-  return `${getActiveProjectName()}/${filename}`;
+function fileKey(filename, projectName) {
+  return `${projectName || getActiveProjectName()}/${filename}`;
 }
 
 function blobKey(filename) {
@@ -276,17 +276,21 @@ export async function writeJsonCAS(filename, data, expectedRev) {
   return newRev;
 }
 
-export async function readFile(filename) {
-  return readJson(filename);
+export async function readFile(filename, projectName) {
+  const store = await tx(STORE_FILES);
+  const data = await idbReq(store.get(fileKey(filename, projectName)));
+  if (data === undefined) throw new Error(`File not found: ${filename}`);
+  return data;
 }
 
-export async function writeFile(filename, content) {
-  return writeJson(filename, content);
-}
-
-export async function deleteFile(filename) {
+export async function writeFile(filename, content, projectName) {
   const store = await tx(STORE_FILES, "readwrite");
-  await idbReq(store.delete(fileKey(filename)));
+  await idbReq(store.put(content, fileKey(filename, projectName)));
+}
+
+export async function deleteFile(filename, projectName) {
+  const store = await tx(STORE_FILES, "readwrite");
+  await idbReq(store.delete(fileKey(filename, projectName)));
 }
 
 export async function listFiles(prefix = "") {
