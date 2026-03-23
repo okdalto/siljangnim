@@ -250,7 +250,7 @@ async function callOpenAICompatible({
     model,
     max_tokens: maxTokens,
     messages: openaiMessages,
-    stream: provider !== "custom",
+    stream: true,
   };
 
   const openaiTools = toOpenAITools(tools);
