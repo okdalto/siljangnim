@@ -250,7 +250,7 @@ async function callOpenAICompatible({
     model,
     max_tokens: maxTokens,
     messages: openaiMessages,
-    stream: true,
+    stream: provider !== "custom",
   };
 
   const openaiTools = toOpenAITools(tools);
@@ -285,6 +285,11 @@ async function callOpenAICompatible({
     error.status = response.status;
     error.body = text;
     throw error;
+  }
+
+  // Non-streaming: parse JSON response directly
+  if (!body.stream) {
+    return parseOpenAIJsonResponse(await response.json(), callbacks);
   }
 
   return parseOpenAISSEStream(response.body, callbacks);
@@ -334,6 +339,40 @@ async function readSSELines(body, onChunk) {
   } finally {
     reader.releaseLock();
   }
+}
+
+/**
+ * Parse a non-streaming OpenAI JSON response into Anthropic-like content blocks.
+ */
+function parseOpenAIJsonResponse(json, callbacks) {
+  const contentBlocks = [];
+  const choice = json.choices?.[0];
+  if (!choice) return { contentBlocks, stopReason: "end_turn" };
+
+  const msg = choice.message;
+  if (msg?.content) {
+    callbacks.onContentBlockStart?.("text");
+    callbacks.onTextDelta?.(msg.content);
+    contentBlocks.push({ type: "text", text: msg.content });
+    callbacks.onContentBlockStop?.("text", msg.content);
+  }
+
+  if (msg?.tool_calls?.length) {
+    for (const tc of msg.tool_calls) {
+      let args = {};
+      try { args = typeof tc.function.arguments === "string" ? JSON.parse(tc.function.arguments) : tc.function.arguments; } catch {}
+      const block = { type: "tool_use", id: tc.id, name: tc.function.name, input: args };
+      callbacks.onContentBlockStart?.("tool_use", block);
+      contentBlocks.push(block);
+      callbacks.onContentBlockStop?.("tool_use", block);
+    }
+  }
+
+  let stopReason = "end_turn";
+  if (choice.finish_reason === "length") stopReason = "max_tokens";
+  else if (choice.finish_reason === "tool_calls") stopReason = "tool_use";
+
+  return { contentBlocks, stopReason };
 }
 
 /**
