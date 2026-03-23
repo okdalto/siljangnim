@@ -526,6 +526,8 @@ async function _resetToFreshUntitled(engine, { clearWorkspace = true } = {}) {
   engine._toolResultCache.clear();
   engine.chatHistory.length = 0;
   engine.conversation.length = 0;
+  // Clear all per-chatId sessions so old conversations don't persist
+  engine.sessions.clear();
   storage.deleteFile("agent_checkpoint.json").catch(() => {});
 
   if (clearWorkspace) {
