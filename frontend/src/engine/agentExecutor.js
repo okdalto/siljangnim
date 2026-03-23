@@ -366,8 +366,12 @@ export async function runAgent({
     log("System", `Files attached: ${files.map((f) => f.name).join(", ")}`, "info");
   }
 
-  const lightweight = isSimpleEditRequest(userPrompt);
-  if (lightweight) log("System", "Simple edit detected — using lightweight prompt", "info");
+  const isCustom = provider === "custom";
+  // Custom providers typically have smaller context windows — use lightweight prompt
+  // to avoid exceeding the context limit with our full system prompt + tool definitions.
+  const lightweight = isSimpleEditRequest(userPrompt) || isCustom;
+  if (lightweight && !isCustom) log("System", "Simple edit detected — using lightweight prompt", "info");
+  if (isCustom) log("System", "Custom provider — using lightweight prompt to fit context window", "info");
 
   const systemPrompt = await buildAugmentedSystemPrompt(
     buildSystemPrompt(userPrompt, !!files?.length, detectPlatformType(), { backendTarget, lightweight }),
@@ -636,7 +640,17 @@ async function _runAgentLoop({
   const modelName = isCustom ? (providerConfig.model || MODEL_COMPLEX) : (modelOverride || (providerConfig.model || MODEL_COMPLEX));
   const isAnthropic = provider === "anthropic";
   const useThinking = isAnthropic && (modelName.includes("opus") || modelName.includes("sonnet"));
-  const maxTokens = providerConfig.max_tokens || (useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX);
+  let maxTokens = providerConfig.max_tokens || (useThinking ? MODEL_THINKING_MAX : MODEL_COMPLEX_MAX);
+  // For custom providers with limited context, cap max_tokens to leave room for prompt
+  const contextWindow = providerConfig.context_window || 0;
+  if (isCustom && contextWindow > 0) {
+    // Reserve at most 25% of context for output, minimum 2048
+    const outputCap = Math.max(Math.floor(contextWindow * 0.25), 2048);
+    if (maxTokens > outputCap) {
+      maxTokens = outputCap;
+      log("System", `Capped max_tokens to ${maxTokens} (context window: ${contextWindow})`, "info");
+    }
+  }
 
   // Filter tools based on vision capability
   const availableTools = filterToolsForModel(TOOLS, provider, modelName, providerConfig);
