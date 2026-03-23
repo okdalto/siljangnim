@@ -770,7 +770,7 @@ async def _call_openai_compat(
         _input_chars = len(json.dumps(openai_messages, ensure_ascii=False))
         if openai_tools:
             _input_chars += len(json.dumps(openai_tools, ensure_ascii=False))
-        _est_input_tokens = int(_input_chars / 3.5)
+        _est_input_tokens = int(_input_chars / 2.5)
         _available = _context_window - _est_input_tokens
         _effective_max = min(max_tokens, _available)
         _effective_max = max(_effective_max, 1024)
