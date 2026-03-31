@@ -623,6 +623,9 @@ export default function App() {
     setLoop(settings.defaultLoop);
     setFps(30);
     tree.loadTree(null);
+    // Immediately clear activeNodeId from sessionStorage so that any subsequent
+    // prompt does not capture a stale parent from the previous project.
+    sessionStorage.removeItem("siljangnim:activeNodeId");
     dirtyRef.current = false;
     send({ type: "new_project" });
   }, [send, chat.resetAllTabs, resetUniformHistory, panels.restorePanels,
