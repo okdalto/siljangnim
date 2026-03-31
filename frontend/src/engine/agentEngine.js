@@ -771,23 +771,64 @@ const HANDLERS = {
     const conversation = chatId && s !== this ? s.conversation : this.conversation;
 
     // If conversation context is empty but we have chat history (e.g. after page refresh),
-    // inject a summary of previous exchanges so the model knows the context.
+    // rebuild conversation from persisted chat history so the model retains full context.
     if (conversation.length === 0 && s.chatHistory.length > 1) {
       const prior = s.chatHistory.slice(0, -1); // exclude current message (just pushed)
-      const summaryLines = prior.map((m) => {
-        const role = m.role === "user" ? "User" : "Assistant";
-        // Truncate long messages to keep token usage reasonable
-        const text = (m.text || "").slice(0, 500);
-        return `[${role}]: ${text}`;
-      });
-      conversation.push({
-        role: "user",
-        content: `[CONTEXT] The following is a summary of our previous conversation in this project. Use it as context for the current request:\n\n${summaryLines.join("\n\n")}`,
-      });
-      conversation.push({
-        role: "assistant",
-        content: "Understood. I have the context from our previous conversation. I'll continue from where we left off.",
-      });
+
+      // Budget: keep recent messages in full, summarize older ones
+      const MAX_FULL_MESSAGES = 20;
+      const MAX_CHAR_PER_MSG = 2000;
+      const recentStart = Math.max(0, prior.length - MAX_FULL_MESSAGES);
+
+      // Summarize older messages briefly (if any)
+      if (recentStart > 0) {
+        const older = prior.slice(0, recentStart);
+        const summaryLines = [];
+        for (const m of older) {
+          const role = m.role === "user" ? "User" : "Assistant";
+          const text = (m.text || "").slice(0, 300);
+          if (text) summaryLines.push(`[${role}]: ${text}`);
+        }
+        if (summaryLines.length > 0) {
+          conversation.push({
+            role: "user",
+            content: `[CONTEXT — earlier conversation summary]\n${summaryLines.join("\n\n")}`,
+          });
+          conversation.push({
+            role: "assistant",
+            content: "Understood. I have the context from our earlier conversation.",
+          });
+        }
+      }
+
+      // Replay recent messages as proper user/assistant turns
+      const recent = prior.slice(recentStart);
+      for (const m of recent) {
+        const text = (m.text || "").slice(0, MAX_CHAR_PER_MSG);
+        if (!text) continue;
+        if (m.role === "user") {
+          conversation.push({ role: "user", content: text });
+        } else if (m.role === "assistant") {
+          conversation.push({ role: "assistant", content: text });
+        }
+      }
+
+      // Ensure conversation alternates correctly (user/assistant/user/assistant)
+      // Fix any consecutive same-role messages by merging
+      for (let i = conversation.length - 1; i > 0; i--) {
+        if (conversation[i].role === conversation[i - 1].role) {
+          conversation[i - 1].content += "\n\n" + conversation[i].content;
+          conversation.splice(i, 1);
+        }
+      }
+
+      // Ensure conversation starts with user and ends with assistant
+      if (conversation.length > 0 && conversation[0].role === "assistant") {
+        conversation.unshift({ role: "user", content: "[Continuing previous conversation]" });
+      }
+      if (conversation.length > 0 && conversation[conversation.length - 1].role === "user") {
+        conversation.push({ role: "assistant", content: "Understood, continuing from where we left off." });
+      }
     }
 
     const { log, onText, onTextDelta, onTextFinalize, onStatus } = makeCallbacks(this, chatId);
