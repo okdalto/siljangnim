@@ -12,6 +12,7 @@ const DEFAULTS = {
   snapThreshold: 8,
   defaultDuration: 30,
   defaultLoop: true,
+  customRules: "",
 };
 
 const THEME_CANVAS_BG = {

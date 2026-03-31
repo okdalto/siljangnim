@@ -837,8 +837,18 @@ const HANDLERS = {
             this._backendTarget = currentState.scene_json.backendTarget;
           }
 
+          // Inject custom rules from user settings
+          let customRulesAddition = "";
+          try {
+            const appSettings = JSON.parse(localStorage.getItem("app-settings") || "{}");
+            if (appSettings.customRules) {
+              customRulesAddition = `\n\n## USER CUSTOM RULES\nThe user has set the following rules. Follow them strictly:\n${appSettings.customRules}`;
+            }
+          } catch { /* ignore */ }
+
           const promptAddition =
             (this._promptModeAddition || "") +
+            customRulesAddition +
             _buildSceneReferencePromptAddition(pendingPrompt.sceneReferences || []);
 
           s._lastPromptContext = {
@@ -905,6 +915,13 @@ const HANDLERS = {
         }
         completedNormally = true;
         this._clearInterruptedPrompt();
+
+        // Auto-extract user preferences into cross-session memory
+        try {
+          const { extractAndSave } = await import("./agentMemory.js");
+          extractAndSave(s.chatHistory);
+        } catch { /* memory extraction is non-critical */ }
+
         this.broadcast({ type: "chat_done", chatId, parentNodeId: capturedParentNodeId });
       } catch (err) {
         // User-initiated cancel
