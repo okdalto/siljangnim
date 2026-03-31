@@ -712,37 +712,54 @@ const HANDLERS = {
     const sceneReferences = msg.sceneReferences || [];
     const hasPromptPayload = !!userPrompt.trim() || !!msg.files?.length || sceneReferences.length > 0;
 
-    if (s.agentBusy) {
+    // Single-agent enforcement: block if ANY session (or global) is busy.
+    // This prevents concurrent agents from racing on shared resources
+    // (scene.json, canvas, error collector).
+    const anyBusy = s.agentBusy || this.agentBusy ||
+      [...this.sessions.values()].some((sess) => sess.agentBusy);
+
+    if (anyBusy) {
       if (hasPromptPayload) {
-        let savedFiles = [];
-        try {
-          savedFiles = await _savePromptFiles(this, msg.files || []);
-        } catch (e) {
+        // If the SAME session is busy, queue as follow-up
+        if (s.agentBusy) {
+          let savedFiles = [];
+          try {
+            savedFiles = await _savePromptFiles(this, msg.files || []);
+          } catch (e) {
+            this.broadcast({
+              type: "agent_log", agent: "System",
+              message: `Upload failed: ${e.message}`, level: "error", chatId,
+            });
+            return;
+          }
+
+          if (savedFiles.length) {
+            this.broadcast({ type: "files_uploaded", files: savedFiles });
+          }
+
+          s.injectedMessages.push({
+            kind: "user_followup",
+            text: userPrompt,
+            files: savedFiles,
+            sceneReferences,
+          });
+
+          const historyEntry = { role: "user", text: userPrompt };
+          if (savedFiles.length) {
+            historyEntry.files = savedFiles.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
+          }
+          s.chatHistory.push(historyEntry);
+          _persistChatHistory(this, chatId);
+          this.broadcast({ type: "message_injected", chatId });
+        } else {
+          // A DIFFERENT session is busy — reject outright
           this.broadcast({
             type: "agent_log", agent: "System",
-            message: `Upload failed: ${e.message}`, level: "error", chatId,
+            message: "다른 탭에서 에이전트가 실행 중입니다. 완료 후 다시 시도해 주세요.",
+            level: "warning", chatId,
           });
-          return;
+          this.broadcast({ type: "chat_done", chatId });
         }
-
-        if (savedFiles.length) {
-          this.broadcast({ type: "files_uploaded", files: savedFiles });
-        }
-
-        s.injectedMessages.push({
-          kind: "user_followup",
-          text: userPrompt,
-          files: savedFiles,
-          sceneReferences,
-        });
-
-        const historyEntry = { role: "user", text: userPrompt };
-        if (savedFiles.length) {
-          historyEntry.files = savedFiles.map((f) => ({ name: f.name, mime_type: f.mime_type, size: f.size }));
-        }
-        s.chatHistory.push(historyEntry);
-        _persistChatHistory(this, chatId);
-        this.broadcast({ type: "message_injected", chatId });
       } else {
         this.broadcast({ type: "chat_done", chatId });
       }
