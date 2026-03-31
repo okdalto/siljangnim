@@ -316,6 +316,13 @@ For .workspace/ files: write_file with small modules, then loadModule() in setup
     }
   } catch { /* no patterns yet, fine */ }
 
+  // Inject cross-session user preferences (auto memory)
+  try {
+    const { buildMemorySection } = await import("./agentMemory.js");
+    const memorySection = buildMemorySection();
+    if (memorySection) prompt += memorySection;
+  } catch { /* memory is non-critical */ }
+
   // Detect user language and enforce matching response language.
   // Placed at the end of the system prompt for maximum adherence.
   if (userPrompt) {

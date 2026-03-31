@@ -388,6 +388,36 @@ export default function SettingsMenu({ onChangeApiKey, backendTarget, onBackendT
 
           <hr className="my-2.5" style={{ borderColor: "var(--chrome-border)" }} />
 
+          {/* ── Custom Rules ──────────────────────────────── */}
+          <SectionLabel>Custom Rules</SectionLabel>
+          <div className="space-y-1.5">
+            <textarea
+              value={settings.customRules || ""}
+              onChange={(e) => {
+                const v = e.target.value.slice(0, 2000);
+                update("customRules", v);
+              }}
+              placeholder="에이전트에게 항상 적용할 규칙을 입력하세요..."
+              rows={4}
+              className="w-full text-xs rounded px-2 py-1.5 outline-none resize-y"
+              style={{
+                backgroundColor: "var(--input-bg)",
+                border: "1px solid var(--input-border)",
+                color: "var(--input-text)",
+                minHeight: "60px",
+                maxHeight: "160px",
+              }}
+            />
+            <div
+              className="text-[10px] text-right"
+              style={{ color: "var(--chrome-text-muted)" }}
+            >
+              {(settings.customRules || "").length} / 2000
+            </div>
+          </div>
+
+          <hr className="my-2.5" style={{ borderColor: "var(--chrome-border)" }} />
+
           {/* ── AI Provider ────────────────────────────────── */}
           <SectionLabel>AI Provider</SectionLabel>
           <SettingRow label="Current provider">
