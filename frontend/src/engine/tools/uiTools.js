@@ -39,6 +39,21 @@ export async function toolOpenPanel(input, broadcast) {
     const controls = configObj.controls || [];
     if (!controls.length) return "Error: config.controls array is required for template='controls'.";
 
+    // Soft validation — warn on poor UI quality
+    const warnings = [];
+    const interactiveTypes = new Set(["slider", "color", "toggle", "button", "dropdown", "pad2d", "vec3", "graph"]);
+    const decorativeTypes = new Set(["separator", "group", "html", "buffer_preview", "monitor"]);
+    const interactiveCount = controls.filter((c) => interactiveTypes.has(c.type)).length;
+    const missingUniform = controls.filter(
+      (c) => !decorativeTypes.has(c.type) && c.type !== "preset" && !c.uniform
+    );
+    if (interactiveCount === 0) {
+      warnings.push("Warning: panel has no interactive controls. Add sliders, toggles, or color pickers so the user can control the scene.");
+    }
+    if (missingUniform.length > 0) {
+      warnings.push(`Warning: ${missingUniform.length} control(s) missing 'uniform' field — they won't affect the scene.`);
+    }
+
     const panelData = {
       type: "open_panel",
       id: panelId,
@@ -50,7 +65,8 @@ export async function toolOpenPanel(input, broadcast) {
     broadcast(panelData);
 
     await updatePanelStorage(panelId, { title, controls, width, height });
-    return `ok — native controls panel '${panelId}' opened.`;
+    const warnStr = warnings.length ? "\n" + warnings.join("\n") : "";
+    return `ok — native controls panel '${panelId}' opened.${warnStr}`;
   }
 
   const url = input.url || "";

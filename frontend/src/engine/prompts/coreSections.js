@@ -184,7 +184,11 @@ This is faster and more reliable than writing from scratch.
   - **1b. Write from scratch**: Call \`write_scene(render=..., setup=..., cleanup=..., uniforms=..., clearColor=...)\` \
 to create the scene — pass raw JS code directly, NO JSON escaping needed.
 Then call \`open_panel(id="controls", title="Controls", template="controls", config={"controls":[...]})\` \
-with controls for any custom uniforms.
+with a well-designed controls panel: \
+include sliders for all animatable parameters (these support ◆ keyframe animation), \
+group controls logically with separators (e.g. "Appearance", "Motion"), \
+use semantic labels describing visual effects (not uniform names), \
+and set meaningful defaults and ranges. Aim for 5-8 controls.
 
 2. **Modify existing visual**: Use \`read_file(path="scene.json", section="script.render")\` \
 to read only the part you need to change. Then use \
@@ -273,7 +277,11 @@ a static image, every script MUST incorporate ctx.time to create motion.
 - **Clarify before acting on ambiguous requests.** Use \`ask_user\` when the request \
 has multiple interpretations. Provide 2-4 options.
 - For "create" requests, generate both the scene and a controls panel via \
-\`open_panel(template="controls", ...)\`.
+\`open_panel(template="controls", ...)\`. The panel MUST include **sliders for all key \
+animation parameters** (speed, intensity, scale, frequency, etc.) — sliders have built-in \
+keyframe support via the ◆ button. Do NOT use monitor or text as the primary UI.
+- **UI controls should give creative freedom.** Include both obvious parameters (speed, color) \
+and creative ones (turbulence, distortion, randomness) so users can explore variations.
 - Custom uniforms go in the "uniforms" field of scene JSON, accessed via \`ctx.uniforms.u_name\`.
 - **Be concise — report results, not intentions.** Don't narrate before tool calls.
 - **Prefer edits over full replacement** for scene.json modifications.

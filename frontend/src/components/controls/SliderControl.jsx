@@ -39,7 +39,7 @@ function EditableRangeLabel({ value, onChange, side }) {
           if (e.key === "Enter") commit();
           if (e.key === "Escape") { setText(String(value)); setEditing(false); }
         }}
-        className={`w-12 bg-zinc-800 text-zinc-100 text-[10px] rounded px-1 py-0 outline-none ring-1 ring-indigo-500 tabular-nums ${side === "left" ? "text-left" : "text-right"}`}
+        className={`w-12 bg-zinc-800 text-zinc-100 text-[10px] rounded px-1 py-0.5 outline-none ring-1 ring-indigo-500 tabular-nums ${side === "left" ? "text-left" : "text-right"}`}
       />
     );
   }
@@ -163,7 +163,7 @@ export default function SliderControl({ ctrl, onUniformChange, keyframeManagerRe
               onChange={(e) => setEditText(e.target.value)}
               onBlur={commitEdit}
               onKeyDown={handleKeyDown}
-              className="w-16 bg-zinc-800 text-zinc-100 text-xs text-right rounded px-1 py-0 outline-none ring-1 ring-indigo-500"
+              className="w-16 bg-zinc-800 text-zinc-100 text-xs text-right rounded px-1 py-0.5 outline-none ring-1 ring-indigo-500"
             />
           ) : (
             <span
