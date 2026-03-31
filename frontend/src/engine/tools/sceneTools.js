@@ -4,6 +4,7 @@
  */
 
 import * as storage from "../storage.js";
+import { toolCheckBrowserErrors } from "./debugTools.js";
 
 // ---------------------------------------------------------------------------
 // Scene JSON validation
@@ -169,7 +170,18 @@ export async function toolWriteScene(input, broadcast, context) {
   if (scene.backendTarget) {
     broadcast({ type: "set_backend_target", backendTarget: scene.backendTarget });
   }
-  return "ok — scene saved and broadcast. Errors will be reported automatically if setup fails. You may still call check_browser_errors for runtime verification.";
+
+  // Auto-verify: run check_browser_errors immediately after scene load
+  let verifyResult = "";
+  try {
+    verifyResult = await toolCheckBrowserErrors({}, broadcast, context);
+  } catch { /* verification is non-critical */ }
+
+  const base = "ok — scene saved and broadcast.";
+  if (verifyResult && !verifyResult.startsWith("No browser errors")) {
+    return `${base}\n\n[AUTO-VERIFY] Errors detected after loading:\n${verifyResult}`;
+  }
+  return `${base} Auto-verify passed — no errors detected.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -178,7 +190,7 @@ export async function toolWriteScene(input, broadcast, context) {
 
 const _EDIT_SCENE_MAX_RETRIES = 3;
 
-export async function toolEditScene(input, broadcast) {
+export async function toolEditScene(input, broadcast, context) {
   const edits = input.edits;
   if (!edits || !Array.isArray(edits) || !edits.length) {
     return "Error: 'edits' array is required. Each edit: { section, old_text, new_text }.";
@@ -260,6 +272,17 @@ export async function toolEditScene(input, broadcast) {
 
     let result = `ok — ${appliedCount} edit(s) applied to scene and broadcast.`;
     if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+
+    // Auto-verify: run check_browser_errors immediately after edits
+    try {
+      const verifyResult = await toolCheckBrowserErrors({}, broadcast, context);
+      if (verifyResult && !verifyResult.startsWith("No browser errors")) {
+        result += `\n\n[AUTO-VERIFY] Errors detected after edits:\n${verifyResult}`;
+      } else {
+        result += " Auto-verify passed.";
+      }
+    } catch { /* verification is non-critical */ }
+
     return result;
   }
 }
