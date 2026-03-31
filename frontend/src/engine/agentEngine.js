@@ -528,6 +528,20 @@ async function _resetToFreshUntitled(engine, { clearWorkspace = true } = {}) {
   engine.conversation.length = 0;
   // Clear all per-chatId sessions so old conversations don't persist
   engine.sessions.clear();
+  // Reset error/auto-fix state from previous project
+  engine.pendingErrors.length = 0;
+  engine.autoFixCount = 0;
+  engine.injectedMessages.length = 0;
+  engine._streamingTextBuffer = "";
+  // Reset error collector
+  engine.errorCollector.errors.length = 0;
+  engine.errorCollector._sceneLoaded = true;
+  engine.errorCollector._setupReady = null;
+  engine.errorCollector._injectedMessages = null;
+  engine.errorCollector._viewportState = {
+    error: null, safeModeActive: false, missingAssets: [],
+    hasScene: false, backendName: null,
+  };
   storage.deleteFile("agent_checkpoint.json").catch(() => {});
 
   if (clearWorkspace) {
