@@ -110,7 +110,7 @@ export default function Vec3Control({ ctrl, onUniformChange }) {
                   if (e.key === "Enter") commitEdit();
                   if (e.key === "Escape") setEditIdx(-1);
                 }}
-                className="w-full bg-zinc-800 text-zinc-100 text-[11px] rounded px-1 py-0.5 outline-none ring-1 ring-indigo-500 tabular-nums"
+                className="w-full bg-zinc-800 text-zinc-100 text-xs rounded px-1 py-1 outline-none ring-1 ring-indigo-500 tabular-nums"
               />
             ) : (
               <input
@@ -119,7 +119,7 @@ export default function Vec3Control({ ctrl, onUniformChange }) {
                 step={step}
                 onChange={(e) => handleScrub(i, e)}
                 onClick={() => startEdit(i)}
-                className="w-full bg-zinc-800 text-zinc-200 text-[11px] rounded px-1 py-0.5 border border-zinc-700 outline-none focus:ring-1 focus:ring-indigo-500 tabular-nums"
+                className="w-full bg-zinc-800 text-zinc-200 text-xs rounded px-1 py-1 border border-zinc-700 outline-none focus:ring-1 focus:ring-indigo-500 tabular-nums"
                 style={{ MozAppearance: "textfield" }}
               />
             )}

@@ -56,7 +56,7 @@ export default function CodeControl({ ctrl, onUniformChange }) {
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         spellCheck={false}
-        className="w-full bg-zinc-900 text-zinc-200 text-[11px] font-mono rounded px-2 py-1.5 border border-zinc-700 outline-none focus:ring-1 focus:ring-indigo-500 resize-y leading-relaxed"
+        className="w-full bg-zinc-800 text-zinc-200 text-xs font-mono rounded px-2 py-1.5 border border-zinc-700 outline-none focus:ring-1 focus:ring-indigo-500 resize-y leading-relaxed"
         style={{ height, tabSize: 2 }}
       />
     </div>

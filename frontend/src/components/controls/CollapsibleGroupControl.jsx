@@ -22,7 +22,7 @@ export default function CollapsibleGroupControl({ ctrl, renderChild }) {
         onClick={toggle}
         className="w-full flex items-center justify-between px-2 py-1.5 bg-zinc-800/50 hover:bg-zinc-800 transition-colors text-left"
       >
-        <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
+        <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
           {ctrl.label}
         </span>
         <svg

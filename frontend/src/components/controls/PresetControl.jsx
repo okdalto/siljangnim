@@ -39,7 +39,7 @@ export default function PresetControl({ ctrl, onUniformChange, engineRef }) {
   }, [engineRef]);
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <label className="flex justify-between items-center text-xs text-zinc-400">
         <span>{ctrl.label}</span>
         {ctrl.allowSave && (
@@ -57,7 +57,7 @@ export default function PresetControl({ ctrl, onUniformChange, engineRef }) {
           <button
             key={i}
             onClick={() => applyPreset(i)}
-            className={`text-[11px] px-2 py-1 rounded transition-colors ${
+            className={`text-xs px-2 py-1 rounded transition-colors ${
               activeIdx === i
                 ? "bg-indigo-500/30 text-indigo-300 border border-indigo-500"
                 : "bg-zinc-800 text-zinc-300 border border-zinc-700 hover:border-zinc-500"

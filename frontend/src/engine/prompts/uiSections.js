@@ -91,7 +91,65 @@ Optional \`allowSave\` (boolean). Clicking a preset applies all its uniform valu
 Needs \`label\` and \`children\` (array of control definitions). \
 Optional \`collapsed\` (boolean, default false).
 
-Create intuitive labels (e.g. "Glow Intensity" not "u_glow").`,
+Create intuitive labels (e.g. "Glow Intensity" not "u_glow").
+
+### UI QUALITY RULES
+
+1. **Every panel MUST have at least 2 interactive controls** (slider, color, toggle, pad2d, \
+dropdown, vec3, graph). A panel with only monitor/text/separator/buffer_preview is NOT acceptable — \
+the user needs to be able to control the scene interactively.
+
+2. **Prefer sliders for numeric parameters** — sliders support keyframe animation via the ◆ button. \
+Use "text" type only when the value range is unbounded or the user needs precise numeric entry.
+
+3. **NEVER create information-only panels.** monitor and buffer_preview are supplementary — \
+always pair them with interactive controls that let the user change the scene.
+
+4. **Group related controls** using "separator" or "group" type. \
+Recommended grouping: "Appearance" (colors, opacity), "Motion" (speed, amplitude, frequency), \
+"Shape" (size, count, spread), "Effects" (glow, blur, distortion).
+
+5. **Use semantic labels** — describe the visual effect, not the uniform name. \
+GOOD: "Glow Intensity", "Wave Speed", "Background Color" \
+BAD: "u_glow", "Parameter 1", "Value"
+
+6. **Provide meaningful ranges and defaults.** \
+Speed/frequency: default to a visually interesting value, not 0. \
+Colors: default to the scene's actual initial color, not black. \
+Scale/amplitude: set max to 2-3x the typical interesting value.
+
+7. **Aim for 5-8 controls per scene** to give users creative freedom. \
+Include both obvious parameters (speed, color, size) and creative ones \
+(turbulence, distortion, randomness, symmetry).
+
+### GOOD PANEL EXAMPLE
+\`\`\`json
+{
+  "controls": [
+    {"type": "separator", "label": "Appearance"},
+    {"type": "color", "label": "Particle Color", "uniform": "u_color", "default": "#4a9eff"},
+    {"type": "slider", "label": "Glow Intensity", "uniform": "u_glow", "min": 0, "max": 2, "step": 0.01, "default": 0.8},
+    {"type": "slider", "label": "Particle Size", "uniform": "u_size", "min": 0.5, "max": 5, "step": 0.1, "default": 1.5},
+    {"type": "separator", "label": "Motion"},
+    {"type": "slider", "label": "Speed", "uniform": "u_speed", "min": 0, "max": 3, "step": 0.01, "default": 1.0},
+    {"type": "slider", "label": "Turbulence", "uniform": "u_turb", "min": 0, "max": 2, "step": 0.01, "default": 0.5},
+    {"type": "toggle", "label": "Pulse Mode", "uniform": "u_pulse", "default": false}
+  ]
+}
+\`\`\`
+
+### BAD PANEL (DO NOT create panels like this)
+\`\`\`json
+{
+  "controls": [
+    {"type": "monitor", "label": "FPS", "stateKey": "fps"},
+    {"type": "monitor", "label": "Particle Count", "stateKey": "count"},
+    {"type": "text", "label": "u_val", "uniform": "u_val", "default": 1}
+  ]
+}
+\`\`\`
+Problems: no interactive controls, monitor-only, no keyframe-capable sliders, \
+non-semantic label, insufficient user control over the scene.`,
   },
   {
     id: "uploads",
@@ -180,11 +238,27 @@ then call \`set_timeline({duration: <media_duration>, loop: true})\` before or a
     core: false,
     keywords: [
       "keyframe", "timeline", "키프레임", "타임라인",
+      "만들", "create", "생성", "추가", "add",
     ],
     content: `\
-## KEYFRAME ANIMATION STATE
+## KEYFRAME ANIMATION
 
-Uniforms can be keyframe-animated via the UI. \
-Read/write via \`workspace_state.json\`. When modifying scenes, check existing keyframes first.`,
+Every slider control has a **◆ (diamond) button** that lets users add keyframes \
+at the current timeline position. This is a core feature — design your controls to take advantage of it.
+
+### Rules
+- **Use sliders for all time-varying parameters** (speed, intensity, scale, frequency, opacity, etc.). \
+Sliders support keyframe animation; text/monitor/dropdown controls do NOT.
+- When creating a scene, call \`set_timeline({duration: N})\` with an appropriate duration \
+(e.g. 10-30s for ambient scenes, matching media length for audio/video-reactive scenes).
+- **After creating a scene with controls, suggest keyframe ideas** to help users discover the system. \
+Example: "Try clicking the ◆ button on 'Glow Intensity' at t=0 (value 0) and t=5 (value 2) \
+to create a fade-in effect."
+
+### How it works
+- KeyframeManager uses cubic Hermite spline interpolation per uniform
+- When keyframes exist for a uniform, they automatically override the slider's static value each frame
+- Read/write keyframes via \`workspace_state.json\`
+- When modifying scenes, always check existing keyframes first to avoid conflicts`,
   },
 ];
