@@ -149,11 +149,13 @@ export function handleChatDone(msg, deps) {
       } else {
         // Use the parentNodeId captured at prompt start so concurrent agents
         // fork from the correct node instead of chaining linearly.
+        // For new projects, force parentNodeId to null — the captured ID belongs
+        // to the previous project's tree and must not create a stale reference.
         const node = await pt.createNodeAfterPrompt(projName, currentState, {
           title,
           type: "prompt_node",
           prompt: lastMsg?.text || lastMsg?.content || null,
-          parentNodeId: msg.parentNodeId || undefined,
+          parentNodeId: isNewProject ? undefined : (msg.parentNodeId || undefined),
           skipIfUnchanged: true,
         });
         if (node) updateNodeMetadata(node.id, currentState, { generateTitle: !skipAITitle, onTitleUpdated: reloadTree }).catch((e) => { console.warn("[chat_done] updateNodeMetadata failed:", e); });
