@@ -623,6 +623,7 @@ export default function App() {
     setLoop(settings.defaultLoop);
     setFps(30);
     tree.loadTree(null);
+    compare.cancelCompare();
     // Immediately clear activeNodeId from sessionStorage so that any subsequent
     // prompt does not capture a stale parent from the previous project.
     sessionStorage.removeItem("siljangnim:activeNodeId");
@@ -630,7 +631,7 @@ export default function App() {
     send({ type: "new_project" });
   }, [send, chat.resetAllTabs, resetUniformHistory, panels.restorePanels,
       kf.resetKeyframes, project.setActiveProject, settings.defaultDuration,
-      settings.defaultLoop, tree.loadTree]);
+      settings.defaultLoop, tree.loadTree, compare.cancelCompare]);
 
   const handleNewProject = useCallback(() => {
     if (_agentEngine?.abortController) {
