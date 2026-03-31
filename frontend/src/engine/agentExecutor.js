@@ -50,7 +50,7 @@ function getEnvironmentSection({ canvasWidth, canvasHeight } = {}) {
     : "Desktop environment with mouse and keyboard. ctx.mouse and ctx.keys are available."}`;
 }
 import { buildSystemPrompt } from "./agentPrompts.js";
-import TOOLS from "./agentTools.js";
+import TOOLS, { filterToolsByContext, buildToolSet } from "./agentTools.js";
 import { handleTool } from "./toolHandlers.js";
 import {
   shouldPlan,
@@ -85,13 +85,15 @@ const TOOL_TIMEOUT_OVERRIDES = {
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const CACHE_MAX_SIZE = 100;
 
-// Parallel tool execution classification
-const WRITE_TOOLS = new Set([
-  "write_scene", "edit_scene", "write_file",
-  "open_panel", "close_panel", "delete_asset", "clear_viewport", "generate_wav",
-]);
-const BLOCKING_TOOLS = new Set(["ask_user", "start_recording", "run_preprocess"]);
-const SCENE_DEPENDENT = new Set(["check_browser_errors", "inspect_viewport_state", "capture_viewport"]);
+// Parallel tool execution classification — derived from tool metadata
+const WRITE_TOOLS = (() => {
+  const auto = new Set(TOOLS.filter((t) => !t.readOnly && !t.blocking && !t.sceneDependent).map((t) => t.name));
+  // Exclude core read-capable tools that happen to not be readOnly
+  auto.delete("ask_user");
+  return auto;
+})();
+const BLOCKING_TOOLS = buildToolSet(TOOLS, "blocking");
+const SCENE_DEPENDENT = buildToolSet(TOOLS, "sceneDependent");
 
 // ---------------------------------------------------------------------------
 // Checkpoint helpers (fire-and-forget, never block the agent loop)
@@ -499,7 +501,19 @@ async function _executeOneTool(block, ctx) {
     };
   }
 
-  onStatus?.("thinking", `Running ${block.name}...`);
+  // Progress callback with tool-specific status messages
+  const TOOL_STATUS = {
+    write_scene: "씬 작성 중...",
+    edit_scene: "씬 수정 중...",
+    check_browser_errors: "브라우저 에러 확인 중...",
+    start_recording: "녹화 시작 중...",
+    capture_viewport: "뷰포트 캡처 중...",
+    run_preprocess: "전처리 실행 중...",
+    generate_wav: "오디오 생성 중...",
+    web_fetch: "웹 페이지 불러오는 중...",
+    debug_with_subagent: "디버그 에이전트 분석 중...",
+  };
+  onStatus?.("thinking", TOOL_STATUS[block.name] || `${block.name} 실행 중...`);
 
   let result;
   let isError = false;
@@ -659,11 +673,12 @@ async function _runAgentLoop({
     }
   }
 
-  // Filter tools based on vision capability
-  const availableTools = filterToolsForModel(TOOLS, provider, modelName, providerConfig);
+  // Filter tools: context-based (keywords) then vision capability
+  const contextTools = filterToolsByContext(TOOLS, _cpUserPrompt);
+  const availableTools = filterToolsForModel(contextTools, provider, modelName, providerConfig);
   const visionEnabled = isVisionCapable(provider, modelName, providerConfig);
 
-  log("System", `Model: ${modelName}${visionEnabled ? " (vision)" : ""}`, "info");
+  log("System", `Model: ${modelName}${visionEnabled ? " (vision)" : ""} | Tools: ${availableTools.length}/${TOOLS.length}`, "info");
 
   let lastText = "";
   let turns = 0;
@@ -673,7 +688,7 @@ async function _runAgentLoop({
   const recentToolNames = [];    // Track tool names for diagnosis loop detection
   const recentErrors = [];       // Improvement #1: error pattern tracking
   let errorFixCycles = 0;        // Improvement #2: debug subagent auto-trigger
-  const READ_ONLY_TOOLS = new Set(["read_file", "list_files", "list_uploaded_files", "search_code"]);
+  const READ_ONLY_TOOLS = buildToolSet(TOOLS, "readOnly");
   const toolCache = toolResultCache || new Map(); // Cross-turn cache (or fallback per-loop)
 
   // Incremental byte tracking for token estimation (avoids full JSON.stringify each turn)

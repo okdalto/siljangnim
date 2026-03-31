@@ -1,11 +1,20 @@
 /**
  * Tool definitions for the siljangnim agent — ported from tools.py.
- * Removed: run_python, run_command (browser-incompatible).
+ * Each tool includes metadata for execution classification and context-based filtering.
+ *
+ * Metadata flags:
+ *   core: true          — always included in tool list
+ *   readOnly: true      — does not modify scene/state (cacheable, parallel-safe)
+ *   blocking: true      — requires user interaction or long async wait
+ *   sceneDependent: true — should run after scene loads (not parallel with writes)
+ *   keywords: [...]     — userPrompt keywords that trigger inclusion (non-core only)
  */
 
 const TOOLS = [
   {
     name: "read_file",
+    core: true,
+    readOnly: true,
     description:
       "Unified file reader. Reads workspace files (scene.json, workspace_state.json, " +
       "panels.json, ui_config.json, debug_logs.json), uploaded files (uploads/xxx). " +
@@ -31,6 +40,7 @@ const TOOLS = [
   },
   {
     name: "write_file",
+    core: true,
     description:
       "Unified file writer. Writes to workspace files (scene.json, workspace_state.json, " +
       "panels.json, ui_config.json, debug_logs.json) and .workspace/ directory. " +
@@ -73,6 +83,8 @@ const TOOLS = [
   },
   {
     name: "list_uploaded_files",
+    readOnly: true,
+    keywords: ["upload", "file", "업로드", "파일", "asset", "에셋", "이미지", "image"],
     description: "List all files uploaded by the user. Returns filenames and metadata.",
     input_schema: {
       type: "object",
@@ -81,6 +93,8 @@ const TOOLS = [
   },
   {
     name: "list_files",
+    core: true,
+    readOnly: true,
     description:
       "List workspace file contents. " +
       "Useful for exploring what files exist in the current project.",
@@ -96,6 +110,8 @@ const TOOLS = [
   },
   {
     name: "search_code",
+    readOnly: true,
+    keywords: ["search", "find", "찾", "검색", "where", "어디"],
     description:
       "Search for a string or regex pattern across all workspace files " +
       "(scene.json script sections, ui_config.json, .workspace/* text files, etc.). " +
@@ -123,6 +139,7 @@ const TOOLS = [
   },
   {
     name: "open_panel",
+    core: true,
     description:
       "Open a panel as a draggable node in the UI. " +
       "Use template='controls' with config.controls array to render native " +
@@ -169,6 +186,7 @@ const TOOLS = [
   },
   {
     name: "close_panel",
+    core: true,
     description: "Close a previously opened custom panel by its ID.",
     input_schema: {
       type: "object",
@@ -183,6 +201,8 @@ const TOOLS = [
   },
   {
     name: "start_recording",
+    blocking: true,
+    keywords: ["record", "녹화", "영상", "video", "capture", "mp4", "webm"],
     description:
       "Start recording the WebGL canvas to a WebM video file. " +
       "If duration is specified, recording stops automatically. " +
@@ -207,6 +227,7 @@ const TOOLS = [
   },
   {
     name: "stop_recording",
+    keywords: ["record", "녹화", "영상", "video", "stop"],
     description: "Stop an in-progress canvas recording.",
     input_schema: {
       type: "object",
@@ -215,6 +236,7 @@ const TOOLS = [
   },
   {
     name: "generate_wav",
+    keywords: ["audio", "wav", "sound", "오디오", "소리", "music", "음악", "tone", "melody"],
     description:
       "Generate a synthetic WAV audio file and save it into uploads. " +
       "Useful for creating tones, short melodies, beeps, pads, or rhythm stabs that can be loaded with ctx.audio.load('/api/uploads/filename.wav'). " +
@@ -310,6 +332,8 @@ const TOOLS = [
   },
   {
     name: "check_browser_errors",
+    core: true,
+    sceneDependent: true,
     description:
       "Wait ~2 seconds for the browser to render and report any runtime errors, " +
       "then return them. Call this AFTER writing scene.json to verify the scene runs " +
@@ -321,6 +345,9 @@ const TOOLS = [
   },
   {
     name: "inspect_viewport_state",
+    core: true,
+    readOnly: true,
+    sceneDependent: true,
     description:
       "Read the current viewport UI state directly. Returns whether a visible error overlay, " +
       "safe-mode banner, or missing-assets overlay is currently shown. Use this when the user " +
@@ -332,6 +359,7 @@ const TOOLS = [
   },
   {
     name: "edit_scene",
+    core: true,
     description:
       "Make surgical text-level edits to scene.json script sections (setup, render, cleanup) " +
       "without rewriting the entire section. Like a diff — specify the exact old text to find " +
@@ -373,6 +401,7 @@ const TOOLS = [
   },
   {
     name: "write_scene",
+    core: true,
     description:
       "Create or fully replace scene.json. Pass raw JS code directly as " +
       "separate parameters — NO JSON escaping needed. " +
@@ -395,6 +424,8 @@ const TOOLS = [
   },
   {
     name: "ask_user",
+    core: true,
+    blocking: true,
     description:
       "Ask the user a clarifying question when their request is ambiguous. " +
       "Provide 2-4 options. The agent will pause until the user responds.",
@@ -423,6 +454,7 @@ const TOOLS = [
   },
   {
     name: "set_timeline",
+    keywords: ["timeline", "duration", "loop", "타임라인", "녹화", "record", "시간", "길이"],
     description:
       "Set timeline properties: duration (seconds), loop (true/false), and/or fps (frames per second). " +
       "Use this to match timeline duration to video length or adjust playback behavior. " +
@@ -447,6 +479,8 @@ const TOOLS = [
   },
   {
     name: "run_preprocess",
+    blocking: true,
+    keywords: ["video", "detect", "analyze", "preprocess", "영상", "분석", "감지", "추적", "tracking"],
     description:
       "Run a preprocessing script in the engine context BEFORE writing the scene. " +
       "Use this for heavy operations like analyzing video duration, pre-computing detection caches, " +
@@ -473,6 +507,8 @@ const TOOLS = [
   },
   {
     name: "web_fetch",
+    readOnly: true,
+    keywords: ["fetch", "url", "http", "web", "document", "문서", "링크", "link", "사이트"],
     description:
       "Fetch a web page or API endpoint and return its content as text. " +
       "Use this to read documentation, GitHub repos, API responses, or any public URL. " +
@@ -494,6 +530,7 @@ const TOOLS = [
   },
   {
     name: "delete_asset",
+    keywords: ["delete", "삭제", "remove", "제거", "asset", "에셋"],
     description:
       "Delete an uploaded asset from the workspace by filename. " +
       "Use list_uploaded_files first to see available assets.",
@@ -510,6 +547,7 @@ const TOOLS = [
   },
   {
     name: "unzip_asset",
+    keywords: ["unzip", "zip", "extract", "압축"],
     description:
       "Extract a ZIP file from uploads and save its contents as individual upload files. " +
       "Returns a list of extracted filenames. Use list_uploaded_files to see the ZIP file first.",
@@ -530,6 +568,9 @@ const TOOLS = [
   },
   {
     name: "capture_viewport",
+    core: true,
+    readOnly: true,
+    sceneDependent: true,
     description:
       "Capture a screenshot of the current viewport canvas and return it as an image. " +
       "Use this to visually inspect what is currently rendered — check colors, layout, " +
@@ -551,6 +592,7 @@ const TOOLS = [
   },
   {
     name: "use_template",
+    keywords: ["template", "템플릿", "use_template", "preset", "프리셋"],
     description:
       "Load a tested, pre-built scene template from the technique catalog. " +
       "Templates are production-ready code that renders immediately — much faster and more " +
@@ -583,6 +625,7 @@ const TOOLS = [
   },
   {
     name: "clear_viewport",
+    keywords: ["clear", "reset", "초기화", "리셋", "clean"],
     description:
       "Clear the viewport canvas completely — dispose the current scene, release all GPU " +
       "resources (buffers, textures, programs, framebuffers, pipelines), and reset the GL/WebGPU " +
@@ -596,6 +639,7 @@ const TOOLS = [
   },
   {
     name: "debug_with_subagent",
+    keywords: ["debug", "디버그", "diagnose", "진단"],
     description:
       "Spawn a debug sub-agent to analyze complex errors. The sub-agent has its own " +
       "conversation context and can read files, search code, and check browser errors. " +
@@ -618,5 +662,24 @@ const TOOLS = [
     },
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Tool metadata helpers — derive classification sets from tool definitions
+// ---------------------------------------------------------------------------
+
+/** Filter tools by user prompt context. Core tools always included. */
+export function filterToolsByContext(tools, userPrompt = "") {
+  const lower = (userPrompt || "").toLowerCase();
+  return tools.filter((t) => {
+    if (t.core) return true;
+    if (!t.keywords?.length) return true; // no keywords = always include
+    return t.keywords.some((kw) => lower.includes(kw));
+  });
+}
+
+/** Build a Set of tool names matching a metadata flag. */
+export function buildToolSet(tools, flag) {
+  return new Set(tools.filter((t) => t[flag]).map((t) => t.name));
+}
 
 export default TOOLS;
