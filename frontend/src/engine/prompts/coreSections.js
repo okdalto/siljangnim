@@ -256,6 +256,10 @@ Call \`check_browser_errors\` ONCE to verify no runtime errors. If errors found,
 Then call \`read_file(path="scene.json", section="script.render")\` to verify correctness.
    - **For uniform-only / config-only edits** (uniform values, clearColor, timeline, panel config): \
 Skip \`check_browser_errors\` — these cannot cause runtime errors. Just confirm the edit succeeded and respond immediately.
+   - **CRITICAL: If \`check_browser_errors\` returns "No browser errors detected", the scene is WORKING.** \
+Do NOT read the code to look for "potential issues" or "mismatches" — if there are no runtime errors \
+and the render loop is running, your work is done. Respond to the user immediately. \
+Do NOT attempt to "improve" or "fix" code that is already working correctly.
 
 7. **Reading large files**: Use \`read_file\` with \`offset\` and \`limit\` to read \
 files in chunks.`,

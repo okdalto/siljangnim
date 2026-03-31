@@ -138,4 +138,29 @@ export function isUnrecoverableError(errorMsg, { backendTarget } = {}) {
   return { unrecoverable: false, reason: "" };
 }
 
+// ---------------------------------------------------------------------------
+// Diagnosis loop detection — catches repeated diagnostic-only tool cycles
+// ---------------------------------------------------------------------------
+
+const DIAGNOSTIC_TOOLS = new Set([
+  "check_browser_errors", "inspect_viewport_state", "capture_viewport",
+  "read_file", "search_code", "list_files",
+]);
+
+/**
+ * Detect if the agent is stuck in a diagnosis loop — cycling through
+ * read-only/diagnostic tools without making any changes.
+ *
+ * @param {string[]} recentToolNames — recent tool names (last N)
+ * @param {number} threshold — how many consecutive diagnostic calls to flag
+ * @returns {{ looping: boolean, count: number }}
+ */
+export function detectDiagnosisLoop(recentToolNames, threshold = 6) {
+  if (recentToolNames.length < threshold) return { looping: false, count: 0 };
+
+  const tail = recentToolNames.slice(-threshold);
+  const allDiagnostic = tail.every((name) => DIAGNOSTIC_TOOLS.has(name));
+  return { looping: allDiagnostic, count: allDiagnostic ? tail.length : 0 };
+}
+
 export { normalizeError };

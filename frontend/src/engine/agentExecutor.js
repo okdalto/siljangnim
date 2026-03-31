@@ -8,7 +8,7 @@
 
 import { callLLM } from "./llmClient.js";
 import { classifyApiError } from "./agentErrorHandler.js";
-import { detectToolLoop, detectErrorLoop, normalizeError, isUnrecoverableError } from "./agentLoopDetector.js";
+import { detectToolLoop, detectErrorLoop, detectDiagnosisLoop, normalizeError, isUnrecoverableError } from "./agentLoopDetector.js";
 import { isVisionCapable, filterToolsForModel, estimateBytesPerToken } from "./modelCapabilities.js";
 import { compactMessages } from "./agentMessageCompactor.js";
 import { sanitizeOrphanedToolUse } from "./sanitizeMessages.js";
@@ -670,6 +670,7 @@ async function _runAgentLoop({
   let compactRetries = 0;
   let overloadRetries = 0;
   const recentToolSigs = [];
+  const recentToolNames = [];    // Track tool names for diagnosis loop detection
   const recentErrors = [];       // Improvement #1: error pattern tracking
   let errorFixCycles = 0;        // Improvement #2: debug subagent auto-trigger
   const READ_ONLY_TOOLS = new Set(["read_file", "list_files", "list_uploaded_files", "search_code"]);
@@ -1014,6 +1015,7 @@ async function _runAgentLoop({
       const toolResults = allResults.map(r => r.toolResult);
       for (const r of allResults) {
         if (r.sig) recentToolSigs.push(r.sig);
+        if (r.toolName) recentToolNames.push(r.toolName);
         if (r.errorInfo) {
           recentErrors.push(r.errorInfo.pattern);
           errorFixCycles++;
@@ -1128,6 +1130,18 @@ async function _runAgentLoop({
           role: "user",
           content: `WARNING: You have called the same tool ${loopResult.count} times. If you are stuck in a loop, try a different approach or respond to the user with what you have.`,
         });
+      }
+
+      // Diagnosis loop detection — agent cycling through read-only/diagnostic tools
+      // without making any changes (reading code and "finding" nonexistent problems)
+      const diagLoop = detectDiagnosisLoop(recentToolNames, 6);
+      if (diagLoop.looping) {
+        log("System", `Diagnosis loop detected (${diagLoop.count} consecutive diagnostic calls) — nudging agent`, "warning");
+        messages.push({
+          role: "user",
+          content: "SYSTEM: You have been calling diagnostic tools repeatedly without making any changes. If check_browser_errors returned no errors and the viewport looks correct, the scene is WORKING. Stop diagnosing and respond to the user with your results. Do NOT read more files or capture more screenshots — the scene is fine.",
+        });
+        recentToolNames.length = 0; // Reset so we don't fire again immediately
       }
 
       // Improvement #1: error loop detection (same error, different code)
