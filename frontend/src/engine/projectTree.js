@@ -613,18 +613,27 @@ async function callSmallLLM({ system, userContent, maxTokens }) {
 async function generateAITitle(node, chatHistory) {
   try {
     const { userPrompt, assistantResponse } = extractLastExchange(chatHistory);
-    if (!userPrompt && !assistantResponse) return;
+    if (!userPrompt) return;
 
     const titleText = await callSmallLLM({
-      system: "Generate a very short title (under 40 chars, no quotes) summarizing what was done in this creative coding interaction. Write in the same language as the user prompt. Be specific about the visual/technical change, not generic.",
-      userContent: `User asked: ${userPrompt || "(no prompt)"}\nAssistant did: ${assistantResponse || "(no response)"}`,
-      maxTokens: 40,
+      system: `You are a title generator for a visual creative coding tool.
+Given what the user asked, generate a SHORT title (max 30 characters) that describes the result.
+Rules:
+- Write in the SAME LANGUAGE as the user's message
+- No quotes, no punctuation at the end
+- Be concrete: describe what was created or changed (e.g. "파티클 노이즈 효과", "Neon grid animation")
+- Do NOT write generic titles like "Visual update" or "코드 수정"
+- Output ONLY the title, nothing else`,
+      userContent: userPrompt,
+      maxTokens: 30,
     });
 
     if (titleText && titleText.length > 0) {
-      const cleanTitle = titleText.replace(/^["']|["']$/g, "").slice(0, 60);
-      node.title = cleanTitle;
-      await storage.writeNode(node);
+      const cleanTitle = titleText.replace(/^["'「」『』]|["'「」『』]$/g, "").trim().slice(0, 50);
+      if (cleanTitle) {
+        node.title = cleanTitle;
+        await storage.writeNode(node);
+      }
     }
   } catch {
     // AI title generation is non-critical
@@ -637,17 +646,22 @@ async function generateAITitle(node, chatHistory) {
  */
 export async function generateProjectName(chatHistory) {
   try {
-    const { userPrompt, assistantResponse } = extractLastExchange(chatHistory);
-    if (!userPrompt && !assistantResponse) return null;
+    const { userPrompt } = extractLastExchange(chatHistory);
+    if (!userPrompt) return null;
 
     const text = await callSmallLLM({
-      system: "Extract the core topic from the user's request as a 2-5 word label. No quotes, no explanation. Same language as user.",
-      userContent: userPrompt || "(no prompt)",
-      maxTokens: 12,
+      system: `Extract the core visual subject from the user's request as a short project name (2-4 words, max 20 chars).
+Rules:
+- Same language as the user
+- No quotes, no explanation, no punctuation
+- Be specific: "파티클 시스템", "Fluid sim", "오디오 비주얼"
+- Output ONLY the name`,
+      userContent: userPrompt,
+      maxTokens: 15,
     });
 
     if (text && text.length > 0) {
-      return text.replace(/^["']|["']$/g, "").slice(0, 20);
+      return text.replace(/^["'「」『』]|["'「」『』]$/g, "").trim().slice(0, 25);
     }
     return null;
   } catch {
