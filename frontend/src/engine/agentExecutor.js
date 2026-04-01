@@ -621,12 +621,22 @@ async function _executeOneTool(block, ctx) {
       ? `Viewport captured (${result.width}×${result.height}) but vision is not available for this model. The scene is rendering.`
       : (typeof result === "string" ? result : JSON.stringify(result));
 
-    // Context inflation prevention: truncate very long tool results with a summary header
-    const TOOL_RESULT_MAX = 16000;
-    if (resultStr && resultStr.length > TOOL_RESULT_MAX) {
-      const kept = resultStr.slice(0, TOOL_RESULT_MAX);
-      const dropped = resultStr.length - TOOL_RESULT_MAX;
-      resultStr = `${kept}\n\n... (${dropped} characters truncated — use read_file with offset/limit to see the full content)`;
+    // Context inflation prevention: offload very long tool results to disk,
+    // keep only a preview + file reference in context. Agent can read_file to see full content.
+    const TOOL_RESULT_OFFLOAD_THRESHOLD = 12000;
+    if (resultStr && resultStr.length > TOOL_RESULT_OFFLOAD_THRESHOLD) {
+      const offloadPath = `.workspace/_tool_results/${block.name}_${Date.now()}.txt`;
+      try {
+        await storage.writeTextFile(offloadPath, resultStr);
+        const previewLen = 3000;
+        const preview = resultStr.slice(0, previewLen);
+        const totalLen = resultStr.length;
+        resultStr = `${preview}\n\n... (${totalLen - previewLen} more characters saved to "${offloadPath}" — use read_file to see the full result)`;
+      } catch {
+        // Fallback: simple truncation if disk write fails
+        const kept = resultStr.slice(0, TOOL_RESULT_OFFLOAD_THRESHOLD);
+        resultStr = `${kept}\n\n... (${resultStr.length - TOOL_RESULT_OFFLOAD_THRESHOLD} characters truncated)`;
+      }
     }
 
     tr = {
