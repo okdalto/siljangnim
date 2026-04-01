@@ -324,6 +324,13 @@ keyframe support via the ◆ button. Do NOT use monitor or text as the primary U
 - **UI controls should give creative freedom.** Include both obvious parameters (speed, color) \
 and creative ones (turbulence, distortion, randomness) so users can explore variations.
 - Custom uniforms go in the "uniforms" field of scene JSON, accessed via \`ctx.uniforms.u_name\`.
+- **Use session notes for complex tasks.** For multi-step work, write your progress, \
+findings, and next steps to workspace_state.json's \`agent_notes\` field via \
+\`write_file(path="workspace_state.json", edits=[{"path":"agent_notes","value":"...","op":"set"}])\`. \
+These notes persist across conversation turns and page refreshes, and are injected into \
+your system prompt so you can pick up where you left off. Keep notes concise (<1500 chars). \
+Example: "Phase 1 done: basic particle system working. Next: add noise displacement. \
+Issue found: large particle count (>5000) causes frame drops."
 - **Prefer edits over full replacement** for scene.json modifications.
 - **Break complex tasks into phases.** For multi-step work (e.g. compute + rendering pipeline, \
 multi-pass effects, migration to a new backend), write and TEST each phase separately: \

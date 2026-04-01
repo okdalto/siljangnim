@@ -318,6 +318,15 @@ For .workspace/ files: write_file with small modules, then loadModule() in setup
     }
   } catch { /* no patterns yet, fine */ }
 
+  // Inject session scratchpad (agent's own working notes from workspace_state.json)
+  try {
+    const ws = await storage.readJson("workspace_state.json").catch(() => null);
+    if (ws?.agent_notes && typeof ws.agent_notes === "string" && ws.agent_notes.trim()) {
+      const notes = ws.agent_notes.slice(0, 2000);
+      prompt += `\n\n## SESSION NOTES (your own working notes from this project)\n${notes}`;
+    }
+  } catch { /* non-critical */ }
+
   // Inject cross-session user preferences (auto memory)
   try {
     const { buildMemorySection } = await import("./agentMemory.js");
@@ -608,9 +617,18 @@ async function _executeOneTool(block, ctx) {
       ],
     };
   } else {
-    const resultStr = (typeof result === "object" && result.__type === "image")
+    let resultStr = (typeof result === "object" && result.__type === "image")
       ? `Viewport captured (${result.width}×${result.height}) but vision is not available for this model. The scene is rendering.`
       : (typeof result === "string" ? result : JSON.stringify(result));
+
+    // Context inflation prevention: truncate very long tool results with a summary header
+    const TOOL_RESULT_MAX = 16000;
+    if (resultStr && resultStr.length > TOOL_RESULT_MAX) {
+      const kept = resultStr.slice(0, TOOL_RESULT_MAX);
+      const dropped = resultStr.length - TOOL_RESULT_MAX;
+      resultStr = `${kept}\n\n... (${dropped} characters truncated — use read_file with offset/limit to see the full content)`;
+    }
+
     tr = {
       type: "tool_result",
       tool_use_id: block.id,
