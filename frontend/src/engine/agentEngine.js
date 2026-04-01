@@ -990,8 +990,9 @@ const HANDLERS = {
 
         // Auto-extract user preferences into cross-session memory
         try {
-          const { extractAndSave } = await import("./agentMemory.js");
-          extractAndSave(s.chatHistory);
+          const { extractAndSave, extractWithLLM } = await import("./agentMemory.js");
+          extractAndSave(s.chatHistory);       // keyword-based (instant)
+          extractWithLLM(s.chatHistory);        // LLM-based (async, non-blocking)
         } catch { /* memory extraction is non-critical */ }
 
         this.broadcast({ type: "chat_done", chatId, parentNodeId: capturedParentNodeId });

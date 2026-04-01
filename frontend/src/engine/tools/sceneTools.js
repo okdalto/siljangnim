@@ -7,6 +7,48 @@ import * as storage from "../storage.js";
 import { toolCheckBrowserErrors } from "./debugTools.js";
 
 // ---------------------------------------------------------------------------
+// Lightweight code review sub-agent (non-blocking, runs after auto-verify)
+// ---------------------------------------------------------------------------
+
+async function _reviewSceneCode(scene) {
+  const apiKey = sessionStorage.getItem("siljangnim:apiKey") || "";
+  if (!apiKey) return null;
+
+  const setup = scene.script?.setup || "";
+  const render = scene.script?.render || "";
+  const totalLines = (setup + render).split("\n").length;
+  // Skip review for very short scenes — not worth the API call
+  if (totalLines < 15) return null;
+
+  try {
+    const { callLLM, getSmallModel } = await import("../llmClient.js");
+    const provider = sessionStorage.getItem("siljangnim:provider") || "anthropic";
+    let providerConfig = {};
+    try { providerConfig = JSON.parse(sessionStorage.getItem("siljangnim:providerConfig") || "{}"); } catch {}
+    const model = getSmallModel(provider) || providerConfig.model || "claude-haiku-4-5-20251001";
+
+    const uniforms = scene.uniforms ? JSON.stringify(Object.keys(scene.uniforms)) : "[]";
+    const code = `uniforms: ${uniforms}\n\nsetup:\n${setup.slice(0, 2000)}\n\nrender:\n${render.slice(0, 3000)}`;
+    const result = await callLLM({
+      provider, apiKey, baseUrl: providerConfig.base_url, model, maxTokens: 250,
+      system: `You are a WebGL/WebGPU code reviewer for a creative visual tool. Briefly list ONLY critical issues (max 4):
+- GPU resource leaks (buffers/textures created every frame instead of setup)
+- Performance problems (heavy computation in render that should be in setup)
+- Uniform mismatch: uniforms declared in scene but never read via ctx.uniforms.u_xxx in code, or code reads ctx.uniforms.u_xxx but it's not declared
+- Reset safety: if setup uses hardcoded values instead of ctx.uniforms defaults, user slider values will be lost on scene reload
+- Obvious bugs (wrong variable names, typos)
+If the code looks fine, respond with exactly "LGTM". Be concise. Same language as code comments.`,
+      messages: [{ role: "user", content: code }],
+      tools: [],
+    });
+
+    const text = result.contentBlocks?.find((b) => b.type === "text")?.text?.trim();
+    if (!text || text === "LGTM" || text.toLowerCase().includes("lgtm")) return null;
+    return text.slice(0, 500);
+  } catch { return null; }
+}
+
+// ---------------------------------------------------------------------------
 // Scene JSON validation
 // ---------------------------------------------------------------------------
 
@@ -32,6 +74,44 @@ export function validateSceneJson(scene) {
     errors.push("Missing 'script.render' code in scene JSON");
   }
   return errors;
+}
+
+// ---------------------------------------------------------------------------
+// Uniform ↔ code connectivity check
+// ---------------------------------------------------------------------------
+
+function _checkUniformConnectivity(scene) {
+  const warnings = [];
+  const uniforms = scene.uniforms ? Object.keys(scene.uniforms) : [];
+  if (!uniforms.length) return warnings;
+
+  const allCode = [
+    scene.script?.setup || "",
+    scene.script?.render || "",
+    scene.script?.cleanup || "",
+  ].join("\n");
+
+  // Check: declared uniforms that are never referenced in code
+  for (const u of uniforms) {
+    if (!allCode.includes(u)) {
+      warnings.push(`Uniform "${u}" is declared but never used in setup/render/cleanup. The UI slider won't affect anything.`);
+    }
+  }
+
+  // Check: code references ctx.uniforms.u_xxx that aren't declared
+  const usedRe = /ctx\.uniforms\.(\w+)/g;
+  let match;
+  const declared = new Set(uniforms);
+  const seen = new Set();
+  while ((match = usedRe.exec(allCode)) !== null) {
+    const name = match[1];
+    if (!declared.has(name) && !seen.has(name)) {
+      warnings.push(`Code reads ctx.uniforms.${name} but it's not declared in uniforms — value will be undefined.`);
+      seen.add(name);
+    }
+  }
+
+  return warnings;
 }
 
 // ---------------------------------------------------------------------------
@@ -161,6 +241,9 @@ export async function toolWriteScene(input, broadcast, context) {
   const errors = validateSceneJson(scene);
   if (errors.length) return "Validation errors:\n" + errors.map((e) => `  - ${e}`).join("\n");
 
+  // Static validation: check uniform ↔ code connectivity
+  const uniformWarnings = _checkUniformConnectivity(scene);
+
   if (input.dry_run) {
     return _dryRunValidate(scene, context);
   }
@@ -177,11 +260,22 @@ export async function toolWriteScene(input, broadcast, context) {
     verifyResult = await toolCheckBrowserErrors({}, broadcast, context);
   } catch { /* verification is non-critical */ }
 
-  const base = "ok — scene saved and broadcast.";
+  let base = "ok — scene saved and broadcast.";
+  if (uniformWarnings.length) {
+    base += "\n\n[UNIFORM-CHECK] " + uniformWarnings.join("\n");
+  }
   if (verifyResult && !verifyResult.startsWith("No browser errors")) {
     return `${base}\n\n[AUTO-VERIFY] Errors detected after loading:\n${verifyResult}`;
   }
-  return `${base} Auto-verify passed — no errors detected.`;
+
+  // Code review (non-blocking — runs only when no errors)
+  let reviewNote = "";
+  try {
+    const review = await _reviewSceneCode(scene);
+    if (review) reviewNote = `\n\n[CODE-REVIEW] ${review}`;
+  } catch { /* non-critical */ }
+
+  return `${base} Auto-verify passed — no errors detected.${reviewNote}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -270,8 +364,12 @@ export async function toolEditScene(input, broadcast, context) {
 
     broadcast({ type: "scene_update", scene_json: scene });
 
+    // Check uniform connectivity after edits
+    const uniWarns = _checkUniformConnectivity(scene);
+
     let result = `ok — ${appliedCount} edit(s) applied to scene and broadcast.`;
     if (warnings.length) result += "\nWarnings:\n" + warnings.map((w) => `  - ${w}`).join("\n");
+    if (uniWarns.length) result += "\n\n[UNIFORM-CHECK] " + uniWarns.join("\n");
 
     // Auto-verify: run check_browser_errors immediately after edits
     try {
