@@ -147,6 +147,61 @@ export function extractAndSave(chatHistory) {
 }
 
 /**
+ * LLM-enhanced memory extraction — uses a small model to extract semantic
+ * preferences that keyword matching would miss (e.g. "불꽃이 흩날리는" → particle).
+ * Falls back silently if API key unavailable.
+ */
+export async function extractWithLLM(chatHistory) {
+  if (!chatHistory?.length || chatHistory.length < 2) return;
+
+  const apiKey = sessionStorage.getItem("siljangnim:apiKey") || "";
+  if (!apiKey) return;
+
+  const userMsgs = chatHistory
+    .filter((m) => m.role === "user")
+    .map((m) => (m.text || "").slice(0, 200))
+    .slice(-5);
+  if (!userMsgs.length) return;
+
+  try {
+    const { callLLM, getSmallModel } = await import("./llmClient.js");
+    const provider = sessionStorage.getItem("siljangnim:provider") || "anthropic";
+    let providerConfig = {};
+    try { providerConfig = JSON.parse(sessionStorage.getItem("siljangnim:providerConfig") || "{}"); } catch {}
+    const model = getSmallModel(provider) || providerConfig.model || "claude-haiku-4-5-20251001";
+
+    const result = await callLLM({
+      provider, apiKey, baseUrl: providerConfig.base_url, model, maxTokens: 200,
+      system: `Extract user preferences from these visual creative coding requests.
+Output a JSON array of {id, text} objects. Categories:
+- technique: visual techniques (e.g. "particle systems", "ray marching")
+- style: aesthetic preferences (e.g. "dark themes", "neon colors")
+- workflow: how they like to work (e.g. "prefers incremental edits")
+Max 5 items. Only include clear, repeated preferences. Output ONLY valid JSON array.`,
+      messages: [{ role: "user", content: userMsgs.join("\n") }],
+      tools: [],
+    });
+
+    const text = result.contentBlocks?.find((b) => b.type === "text")?.text?.trim();
+    if (!text) return;
+
+    // Parse JSON array from response
+    const match = text.match(/\[[\s\S]*\]/);
+    if (!match) return;
+    const items = JSON.parse(match[0]);
+    if (!Array.isArray(items)) return;
+
+    const memory = loadMemory();
+    for (const item of items.slice(0, 5)) {
+      if (item.id && item.text) {
+        _upsertEntry(memory, `llm:${item.id}`, item.text, 2);
+      }
+    }
+    saveMemory(memory);
+  } catch { /* LLM memory extraction is non-critical */ }
+}
+
+/**
  * Build a short prompt section from stored memory entries.
  * Returns empty string if no memory exists.
  */
