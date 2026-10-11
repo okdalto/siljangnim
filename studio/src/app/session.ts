@@ -40,6 +40,7 @@ import {
   type AssetInfo,
 } from "../project/assets";
 import { EXAMPLES } from "../project/examples";
+import { convertV1Project, readZip } from "../project/v1Import";
 import { resolveVersionId, sameScene, versionMessage } from "../project/history";
 import { ProjectStore, SCENE_FILE, type Version } from "../project/store";
 import type { SceneHost } from "../scene/host";
@@ -163,6 +164,28 @@ export async function openExample(slug: string): Promise<void> {
     await openProject(project.id);
   } catch (err) {
     set({ notice: { kind: "error", text: `Couldn't open the example: ${err instanceof Error ? err.message : String(err)}` } });
+  }
+}
+
+/** A new project from a Siljangnim v1 export (.zip). The agent hears what didn't come over. */
+export async function importV1Project(file: File): Promise<void> {
+  try {
+    const imported = convertV1Project(await readZip(await file.arrayBuffer()));
+    const project = await store.createProject(imported.name);
+    await store.writeFile(project.id, SCENE_FILE, JSON.stringify(imported.scene, null, 2));
+    for (const asset of imported.assets) {
+      const blob = new Blob([asset.data as BlobPart], { type: assetMimeType(asset.name, "") });
+      await store.writeFile(project.id, ASSET_DIR + asset.name, blob, await analyzeAsset(asset.name, blob));
+    }
+    await openProject(project.id);
+    const left = imported.notes.length ? ` ${imported.notes.join(" ")}` : "";
+    pendingNotes.set(
+      project.id,
+      `This project was imported from Siljangnim v1. v1 scripts may use ctx utilities v2 doesn't have; check viewport_status for errors and port them.${left}`,
+    );
+    set({ notice: { kind: "info", text: `Imported "${imported.name}" from v1.${left}` } });
+  } catch (err) {
+    set({ notice: { kind: "error", text: `Couldn't import that file: ${err instanceof Error ? err.message : String(err)}` } });
   }
 }
 

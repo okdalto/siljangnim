@@ -239,6 +239,103 @@ const CAPTURE_PNG = `(async () => {
   return await new Promise((resolve) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(blob); });
 })()`;
 
+/** A tiny stored ZIP (enough for a v1 project fixture). */
+function zipStore(files) {
+  const crc = (data) => {
+    let c = 0xffffffff;
+    for (const byte of data) {
+      c ^= byte;
+      for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    return (c ^ 0xffffffff) >>> 0;
+  };
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  for (const { name, data } of files) {
+    const n = Buffer.from(name);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt32LE(crc(data), 14);
+    local.writeUInt32LE(data.length, 18);
+    local.writeUInt32LE(data.length, 22);
+    local.writeUInt16LE(n.length, 26);
+    parts.push(local, n, data);
+    const entry = Buffer.alloc(46);
+    entry.writeUInt32LE(0x02014b50, 0);
+    entry.writeUInt16LE(20, 4);
+    entry.writeUInt16LE(20, 6);
+    entry.writeUInt32LE(crc(data), 16);
+    entry.writeUInt32LE(data.length, 20);
+    entry.writeUInt32LE(data.length, 24);
+    entry.writeUInt16LE(n.length, 28);
+    entry.writeUInt32LE(offset, 42);
+    central.push(entry, n);
+    offset += 30 + n.length + data.length;
+  }
+  const size = central.reduce((s, b) => s + b.length, 0);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(files.length, 8);
+  end.writeUInt16LE(files.length, 10);
+  end.writeUInt32LE(size, 12);
+  end.writeUInt32LE(offset, 16);
+  return Buffer.concat([...parts, ...central, end]);
+}
+
+/** Imports a v1-style project zip through the Projects menu and checks it runs. */
+async function runV1ImportScenario(win) {
+  const fs = `#version 300 es
+precision highp float; out vec4 outColor; uniform float u_glow;
+void main() { outColor = vec4(0.9 * u_glow, 0.4, 0.1, 1.0); }`;
+  const zip = zipStore([
+    { name: "Old Piece/siljangnim-project.json", data: Buffer.from(JSON.stringify({ name: "old-piece", display_name: "Old Piece" })) },
+    {
+      name: "Old Piece/scene.json",
+      data: Buffer.from(
+        JSON.stringify({
+          version: 1,
+          render_mode: "script",
+          script: {
+            setup: `if (!ctx.uploads["tile.png"]) throw new Error("upload missing"); ctx.state.p = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, ${JSON.stringify(fs)});`,
+            render: "ctx.utils.drawFullscreen(ctx.state.p);",
+          },
+          uniforms: { u_glow: { type: "float", value: 1 } },
+        }),
+      ),
+    },
+    { name: "Old Piece/panels.json", data: Buffer.from(JSON.stringify({ controls: { title: "Controls", controls: [{ type: "slider", label: "Glow", uniform: "u_glow", min: 0, max: 2, default: 1 }] } })) },
+    { name: "Old Piece/uploads/tile.png", data: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]) },
+  ]);
+  await win.webContents.executeJavaScript(`(async () => {
+    const bytes = Uint8Array.from(atob(${JSON.stringify(zip.toString("base64"))}), (c) => c.charCodeAt(0));
+    const input = document.querySelector('[data-testid="import-v1"]');
+    const dt = new DataTransfer();
+    dt.items.add(new File([bytes], "old-piece.zip", { type: "application/zip" }));
+    input.files = dt.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  })()`);
+  log("v1 zip handed to the import input");
+  let state = null;
+  for (let i = 0; i < 40; i++) {
+    await wait(250);
+    state = await win.webContents.executeJavaScript(`(() => {
+      const s = document.querySelector("[data-runtime-state]");
+      return {
+        project: document.querySelector('header button[title="Rename project"]')?.innerText,
+        state: s?.dataset.runtimeState,
+        errors: Number(s?.dataset.runtimeErrors),
+        glow: document.querySelector('[data-control="u_glow"] .tabular-nums')?.innerText ?? null,
+      };
+    })()`);
+    if (state.project === "Old Piece" && state.state === "running") break;
+  }
+  await wait(800);
+  state.errors = await win.webContents.executeJavaScript(`Number(document.querySelector("[data-runtime-state]")?.dataset.runtimeErrors)`);
+  return state;
+}
+
 /** Opens every bundled example through the gallery and checks it runs, error-free, and draws something. */
 async function runExamplesScenario(win, examplesOut) {
   const slugs = await win.webContents.executeJavaScript(`(async () => {
@@ -295,6 +392,17 @@ async function runExamplesScenario(win, examplesOut) {
 }
 
 export async function runSmokeTest(win, hub, keys, outDir) {
+  try {
+    await runSmoke(win, hub, keys, outDir);
+  } catch (err) {
+    // A scenario threw: say where and why instead of waiting for the timeout.
+    mkdirSync(outDir, { recursive: true });
+    writeFileSync(join(outDir, "report.json"), JSON.stringify({ ok: false, reason: `error after step ${lastStep}: ${err instanceof Error ? err.stack : err}` }, null, 2));
+    quit(hub, 1);
+  }
+}
+
+async function runSmoke(win, hub, keys, outDir) {
   mkdirSync(outDir, { recursive: true });
   const consoleErrors = [];
   win.webContents.on("console-message", ({ level, message }) => {
@@ -352,6 +460,8 @@ export async function runSmokeTest(win, hub, keys, outDir) {
   const history = agent ? await runHistoryScenario(win, sceneFrame) : null;
   log("examples");
   const examples = await runExamplesScenario(win, outDir);
+  log("v1 import");
+  const v1 = await runV1ImportScenario(win);
   log("waiting for hub");
 
   await waitForHub(hub);
@@ -395,11 +505,12 @@ export async function runSmokeTest(win, hub, keys, outDir) {
         }
       : {}),
     ...(history ? { historyRecorded: history.recorded, historyRestored: history.restored } : {}),
+    v1Imported: v1.project === "Old Piece" && v1.state === "running" && v1.errors === 0 && v1.glow === "1.00",
     examplesRun:
       Object.keys(examples).length >= 10 && Object.values(examples).every((e) => e.skipped || (e.state === "running" && e.errors === 0 && e.litFraction > 0.02)),
   };
   const ok = Object.values(checks).every(Boolean);
-  report({ ok, checks, scene, iframe, llm, agent, history, examples, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
+  report({ ok, checks, scene, iframe, llm, agent, history, examples, v1, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
   clearTimeout(timer);
   quit(hub, ok ? 0 : 1);
 }

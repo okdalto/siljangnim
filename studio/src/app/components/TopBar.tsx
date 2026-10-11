@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createProject, deleteProject, openProject, renameProject, setExamplesOpen, setSettingsOpen } from "../session";
+import { createProject, deleteProject, importV1Project, openProject, renameProject, setExamplesOpen, setSettingsOpen } from "../session";
 import { useApp } from "../state";
 import { ChevronIcon, GearIcon, Logo, PlusIcon, TrashIcon } from "./icons";
 
@@ -63,6 +63,7 @@ function ProjectMenu() {
   const projects = useApp((s) => s.projects);
   const current = useApp((s) => s.project);
   const ref = useRef<HTMLDivElement>(null);
+  const importInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -75,6 +76,20 @@ function ProjectMenu() {
 
   return (
     <div ref={ref} className="relative">
+      {/* Outside the menu, so it still handles the file after the menu closes. */}
+      <input
+        ref={importInput}
+        type="file"
+        accept=".zip,application/zip"
+        hidden
+        data-testid="import-v1"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          setOpen(false);
+          if (file) void importV1Project(file);
+        }}
+      />
       <button type="button" onClick={() => setOpen(!open)} className="rounded p-1 text-muted hover:bg-raised hover:text-fg" title="Projects">
         <ChevronIcon size={14} />
       </button>
@@ -128,6 +143,14 @@ function ProjectMenu() {
           >
             <span className="w-3.5 text-center text-faint">◇</span> Examples…
           </button>
+          <button
+            type="button"
+            className="flex w-full items-center gap-2 border-t border-line px-3 py-2 text-left hover:bg-line/40"
+            onClick={() => importInput.current?.click()}
+          >
+            <span className="w-3.5 text-center text-faint">↥</span> Import v1 project (.zip)…
+          </button>
+
         </div>
       )}
     </div>

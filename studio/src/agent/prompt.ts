@@ -37,7 +37,7 @@ ctx.resolution — [width, height]
 ctx.mouse — [x, y, clickX, clickY] normalized 0..1, origin top-left; ctx.mousePrev — the same one frame earlier; ctx.mouseDown — boolean
 ctx.keys — Set of KeyboardEvent.code currently held
 ctx.uniforms — current values of the scene uniforms, by name: plain numbers, booleans or arrays (ctx.uniforms.u_speed is 1.5, not an object). They follow the controls (and keyframes) live; read them every frame.
-ctx.assets — uploaded asset name → blob URL (see asset_list)
+ctx.assets — uploaded asset name → blob URL (see asset_list); ctx.uploads is the same object (the v1 name)
 ctx.audio — { active, source: "microphone"|"file"|null, level, bass, mid, treble (0..1), spectrum: Float32Array(256) 0..1, waveform: Float32Array(512) -1..1 }, refreshed every frame. inputs: ["microphone"] starts the microphone with the scene; ctx.utils.audio.play(assetName, {loop, volume, output}) plays and analyses an audio asset instead (output: false analyses silently) (music visualizers); ctx.utils.audio.stop(). setStandardUniforms also sets u_audio = vec4(level, bass, mid, treble); ctx.utils.audioTexture() is a 256x2 R32F texture (row 0 spectrum, row 1 waveform; sample with texelFetch or NEAREST).
 ctx.midi — { cc: Float32Array(128) 0..1, notes: Float32Array(128) velocity 0..1, lastNote, pitchBend -1..1 }; inputs: ["midi"] (or ctx.utils.enableMidi()) connects every MIDI device.
 ctx.publish(name, value) — show a number, string or boolean in the person's monitor panel (FPS, particle count, current state). Numbers get a sparkline. Calling it every frame is fine; only changes are sent.
