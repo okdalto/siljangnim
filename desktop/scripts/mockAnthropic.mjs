@@ -2,14 +2,15 @@
 // to drive the real agent loop end to end without a key or network access.
 //
 // Script (the smoke test uploads swatch.png and data.json first):
-// asset_list → asset_read → broken scene → (shader error comes back) →
+// asset_list → asset_read → ask_user (the smoke test clicks an option) → broken scene → (shader error comes back) →
 // fixed scene that samples swatch.png → viewport_capture → (image comes
 // back) → scene_edit adding a timeline and keyframes → history_list →
 // final text.
 import { createServer } from "node:http";
 
 export const FINAL_TEXT = "E2E done: a calm blue field.";
-export const EXPECTED_REQUESTS = 8;
+export const EXPECTED_REQUESTS = 9;
+export const QUESTION = { question: "Interactive piece or a timed sequence?", options: [{ label: "Live" }, { label: "Timeline", description: "A fixed-length animation" }] };
 
 const VERTEX = "ctx.utils.FULLSCREEN_VERTEX_SHADER";
 const fragment = (body) => `#version 300 es
@@ -81,21 +82,25 @@ function plan(body, step, checks) {
   }
   if (step === 2) {
     checks.assetRead = !result?.is_error && resultText(result).includes('"tint":"blue"');
-    return { tool: { name: "scene_write", input: { scene: BROKEN } } };
+    return { tool: { name: "ask_user", input: QUESTION } };
   }
   if (step === 3) {
+    checks.questionAnswered = !result?.is_error && resultText(result) === "The person chose: Timeline";
+    return { tool: { name: "scene_write", input: { scene: BROKEN } } };
+  }
+  if (step === 4) {
     checks.shaderErrorReturned = result?.is_error === true && /\[shader\/fragment\] line \d+/.test(resultText(result));
     return { text: "Fixing the typo.", tool: { name: "scene_write", input: { scene: FIXED } } };
   }
-  if (step === 4) {
+  if (step === 5) {
     checks.fixedSceneLoaded = !result?.is_error && /without errors/.test(resultText(result));
     return { tool: { name: "viewport_capture", input: { max_size: 256 } } };
   }
-  if (step === 5) {
+  if (step === 6) {
     checks.captureReturnedImage = Array.isArray(result?.content) && result.content.some((c) => c.type === "image");
     return { tool: { name: "scene_edit", input: TIMELINE_EDIT } };
   }
-  if (step === 6) {
+  if (step === 7) {
     checks.timelineApplied = !result?.is_error && /without errors/.test(resultText(result));
     return { tool: { name: "history_list", input: {} } };
   }

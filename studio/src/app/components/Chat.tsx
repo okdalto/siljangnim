@@ -4,7 +4,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { isStudioNote, STUDIO_NOTE_PREFIX } from "../../agent/context";
 import { ANTHROPIC_MODELS } from "../../agent/llm/anthropic";
 import type { MessageParam } from "../../agent/llm/types";
-import { clearChat, detachAsset, dismissNotice, sendPrompt, stopAgent } from "../session";
+import { answerQuestion, clearChat, detachAsset, dismissNotice, sendPrompt, stopAgent } from "../session";
 import { activeModel } from "../settings";
 import { useApp, type LiveTurn } from "../state";
 import { FilePickerButton } from "./Assets";
@@ -146,6 +146,7 @@ function Message({ message, results }: { message: MessageParam; results: Map<str
           );
         }
         if (block.type === "thinking" && block.thinking.trim()) return <Thought key={i} text={block.thinking} />;
+        if (block.type === "tool_use" && block.name === "ask_user") return <AnsweredQuestion key={i} input={block.input} result={results.get(block.id)} />;
         if (block.type === "tool_use") return <ToolChip key={i} name={block.name} result={results.get(block.id)} />;
         return null;
       })}
@@ -197,7 +198,46 @@ function ToolChip({ name, result, running = false }: { name: string; result?: To
   );
 }
 
+/** An earlier ask_user call: the question and what the person answered. */
+function AnsweredQuestion({ input, result }: { input: unknown; result?: ToolResult }) {
+  const question = (input as { question?: unknown })?.question;
+  const answer = typeof result?.content === "string" ? result.content.replace(/^The person (chose|answered in their own words): /, "") : null;
+  return (
+    <div className="rounded-lg border border-line px-3 py-2 text-xs">
+      <div className="text-muted">{typeof question === "string" ? question : "Question"}</div>
+      <div className="mt-1 text-fg">{result?.is_error ? <span className="text-faint">No answer</span> : (answer ?? "…")}</div>
+    </div>
+  );
+}
+
+/** The agent's open question: pick an option, or type an answer in the composer. */
+function QuestionCard() {
+  const question = useApp((s) => s.question);
+  if (!question) return null;
+  return (
+    <div className="rounded-lg border border-accent/40 bg-raised/50 p-3 text-xs" data-testid="question">
+      <p className="mb-2 text-sm text-fg">{question.question}</p>
+      <div className="space-y-1.5">
+        {question.options.map((o) => (
+          <button
+            key={o.label}
+            type="button"
+            data-question-option={o.label}
+            onClick={() => answerQuestion(o.label)}
+            className="block w-full rounded-md border border-line px-3 py-2 text-left hover:border-faint"
+          >
+            <span className="text-fg">{o.label}</span>
+            {o.description && <span className="mt-0.5 block text-[11px] text-faint">{o.description}</span>}
+          </button>
+        ))}
+      </div>
+      <p className="mt-2 text-[11px] text-faint">Or type your own answer below.</p>
+    </div>
+  );
+}
+
 function Live({ live }: { live: LiveTurn }) {
+  const asking = useApp((s) => Boolean(s.question));
   const idle = !live.text && !live.tools.length;
   return (
     <div className="space-y-2">
@@ -207,10 +247,9 @@ function Live({ live }: { live: LiveTurn }) {
           <Markdown>{live.text}</Markdown>
         </div>
       )}
-      {live.tools.map((t) => (
-        <ToolChip key={t.id} name={t.name} running />
-      ))}
-      {idle && !live.thinking && (
+      {live.tools.map((t) => (t.name === "ask_user" ? null : <ToolChip key={t.id} name={t.name} running />))}
+      {asking && <QuestionCard />}
+      {idle && !live.thinking && !asking && (
         <div className="flex items-center gap-2 text-xs text-faint">
           <Spinner size={12} /> Working…
         </div>
@@ -230,9 +269,12 @@ function Composer({ busy }: { busy: boolean }) {
     el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
   }, [text]);
 
+  const asking = useApp((s) => Boolean(s.question));
   const submit = () => {
-    if (busy || !text.trim()) return;
-    void sendPrompt(text);
+    if (!text.trim()) return;
+    if (asking) answerQuestion(text);
+    else if (!busy) void sendPrompt(text);
+    else return;
     setText("");
   };
 
@@ -255,10 +297,11 @@ function Composer({ busy }: { busy: boolean }) {
               submit();
             }
           }}
-          placeholder={busy ? "The agent is working…" : "Describe what you want to see"}
+          placeholder={asking ? "Type your own answer…" : busy ? "The agent is working…" : "Describe what you want to see"}
           className="max-h-[200px] flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-faint"
         />
-        {busy ? (
+        {/* While the agent waits for an answer, typed text is sent as the answer. */}
+        {busy && !(asking && text.trim()) ? (
           <button type="button" onClick={stopAgent} className="rounded-lg bg-raised p-1.5 text-fg hover:bg-line" title="Stop">
             <StopIcon size={15} />
           </button>

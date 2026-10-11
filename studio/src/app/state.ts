@@ -13,6 +13,11 @@ export interface LiveTurn {
   tools: Array<{ id: string; name: string }>;
 }
 
+export interface PendingQuestion {
+  question: string;
+  options: Array<{ label: string; description?: string }>;
+}
+
 export interface Notice {
   kind: "error" | "info";
   text: string;
@@ -37,6 +42,8 @@ export interface AppState {
   /** Whether undo/redo have anything (the stacks themselves live in the session controller). */
   canUndo: boolean;
   canRedo: boolean;
+  /** A question from the agent waiting for the person's answer. */
+  question: PendingQuestion | null;
   /** Streaming state of the agent's current turn; null when idle. */
   live: LiveTurn | null;
   notice: Notice | null;
@@ -59,6 +66,7 @@ export const useApp = create<AppState>(() => ({
   overrides: [],
   canUndo: false,
   canRedo: false,
+  question: null,
   live: null,
   notice: null,
   settings: loadSettings(),

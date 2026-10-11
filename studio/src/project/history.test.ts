@@ -76,7 +76,7 @@ describe("history tools", () => {
       return { version: infos[0]!, load: { ok: true, errors: [] } };
     },
   };
-  const env = { scene, history, assets: { list: async () => [], read: async () => undefined }, signal: new AbortController().signal };
+  const env = { scene, history, assets: { list: async () => [], read: async () => undefined }, user: { ask: async () => null }, signal: new AbortController().signal };
 
   it("lists versions with short ids and marks HEAD", async () => {
     const out = await list.run({}, env);
