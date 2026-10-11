@@ -1,13 +1,28 @@
 // Runs one scene at a time inside the runtime iframe.
 //
-// Every load gets a fresh canvas and WebGL context: no GL state or leaked
-// resources carry over between scenes, so there is nothing to track or
-// reset by hand.
+// Every load gets a fresh canvas and WebGL context (or WebGPU device): no
+// GPU state or leaked resources carry over between scenes, so there is
+// nothing to track or reset by hand.
 import { evaluateTracks, sortKeys, type Keyframe } from "../gl/keyframes";
 import { ShaderError } from "../gl/shader";
 import type { CaptureResult, LoadResult, MonitorValue, RuntimeState, RuntimeStatus, SceneError, SceneErrorSource } from "../protocol";
 import { uniformValues, type Scene, type Timeline, type UniformValue } from "../schema";
 import { createCtx, type SceneCtx } from "./ctx";
+import { createGpuCtx, type GpuSceneCtx } from "./gpuCtx";
+
+/** What scripts receive, either backend. The runner only touches the shared fields. */
+type AnyCtx = SceneCtx | GpuSceneCtx;
+
+/** What differs between WebGL2 and WebGPU around a scene's scripts. */
+interface Surface {
+  /** Before each render call. */
+  beforeRender(canvas: HTMLCanvasElement, check: boolean): void;
+  /** After each render call; `check` frames look for GPU errors. */
+  afterRender(check: boolean, report: (err: Error) => void): void;
+  /** Wraps setup; WebGPU turns validation errors raised during it into a setup failure. */
+  setup(run: Promise<void>): Promise<void>;
+  dispose(): void;
+}
 
 const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor as new (...args: string[]) => (ctx: SceneCtx) => Promise<void>;
 
@@ -27,10 +42,10 @@ type Emit = (event: "error" | "stats" | "monitors", data: unknown) => void;
 interface Loaded {
   generation: number;
   canvas: HTMLCanvasElement;
-  gl: WebGL2RenderingContext;
-  ctx: SceneCtx;
-  render: (ctx: SceneCtx) => unknown;
-  cleanup: (ctx: SceneCtx) => unknown;
+  surface: Surface;
+  ctx: AnyCtx;
+  render: (ctx: AnyCtx) => unknown;
+  cleanup: (ctx: AnyCtx) => unknown;
   disposeCtx: () => void;
   assetUrls: string[];
 }
@@ -97,18 +112,8 @@ export class SceneRunner {
     this.frame = 0;
     this.framesRendered = 0;
 
-    if (scene.backend !== "webgl2") {
-      this.fail("setup", new Error(`backend "${scene.backend}" is not supported yet; use "webgl2"`));
-      return this.loadResult();
-    }
-
     const canvas = document.createElement("canvas");
     this.container.replaceChildren(canvas);
-    const gl = canvas.getContext("webgl2", { antialias: true, alpha: false, powerPreference: "high-performance" });
-    if (!gl) {
-      this.fail("webgl", new Error("WebGL2 is not available"));
-      return this.loadResult();
-    }
     this.sizeCanvas(canvas);
 
     const assetUrls: string[] = [];
@@ -118,29 +123,46 @@ export class SceneRunner {
       assetUrls.push(url);
       assetMap[name] = url;
     }
+    const revokeAssets = () => assetUrls.forEach((url) => URL.revokeObjectURL(url));
+    const publish = (name: string, value: Parameters<SceneCtx["publish"]>[1]) => this.publish(name, value);
 
-    const { ctx, dispose } = createCtx(gl, canvas, uniformValues(scene), assetMap, (name, value) => this.publish(name, value));
+    let made: { ctx: AnyCtx; dispose: () => void; surface: Surface } | null;
+    try {
+      made =
+        scene.backend === "webgpu"
+          ? await this.makeWebGpu(canvas, scene, assetMap, publish, generation)
+          : this.makeWebGl(canvas, scene, assetMap, publish);
+    } catch (err) {
+      revokeAssets();
+      if (generation === this.generation) this.fail(scene.backend === "webgpu" ? "webgpu" : "webgl", err);
+      return generation === this.generation ? this.loadResult() : { ok: false, errors: [] };
+    }
+    if (!made) {
+      revokeAssets();
+      return { ok: false, errors: [] };
+    }
+    const { ctx, dispose, surface } = made;
     ctx.mouse = this.mouse;
     ctx.keys = this.keys;
 
-    let setup: (ctx: SceneCtx) => Promise<void>;
-    let render: (ctx: SceneCtx) => unknown;
-    let cleanup: (ctx: SceneCtx) => unknown;
+    let setup: (ctx: AnyCtx) => Promise<void>;
+    let render: (ctx: AnyCtx) => unknown;
+    let cleanup: (ctx: AnyCtx) => unknown;
     try {
-      setup = this.compile("setup", () => new AsyncFunction("ctx", scene.script.setup));
-      render = this.compile("render", () => new Function("ctx", scene.script.render) as (ctx: SceneCtx) => unknown);
-      cleanup = this.compile("cleanup", () => new Function("ctx", scene.script.cleanup) as (ctx: SceneCtx) => unknown);
+      setup = this.compile("setup", () => new AsyncFunction("ctx", scene.script.setup) as (ctx: AnyCtx) => Promise<void>);
+      render = this.compile("render", () => new Function("ctx", scene.script.render) as (ctx: AnyCtx) => unknown);
+      cleanup = this.compile("cleanup", () => new Function("ctx", scene.script.cleanup) as (ctx: AnyCtx) => unknown);
     } catch {
       dispose();
-      for (const url of assetUrls) URL.revokeObjectURL(url);
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      revokeAssets();
+      surface.dispose();
       return this.loadResult();
     }
 
-    this.current = { generation, canvas, gl, ctx, render, cleanup, disposeCtx: dispose, assetUrls };
+    this.current = { generation, canvas, surface, ctx, render, cleanup, disposeCtx: dispose, assetUrls };
 
     try {
-      await withTimeout(setup(ctx), SETUP_TIMEOUT_MS, "setup did not finish within 20s");
+      await withTimeout(surface.setup(setup(ctx)), SETUP_TIMEOUT_MS, "setup did not finish within 20s");
     } catch (err) {
       if (generation === this.generation) this.fail("setup", err);
       return this.loadResult();
@@ -270,7 +292,7 @@ export class SceneRunner {
     }
     old.disposeCtx();
     for (const url of old.assetUrls) URL.revokeObjectURL(url);
-    old.gl.getExtension("WEBGL_lose_context")?.loseContext();
+    old.surface.dispose();
     old.canvas.remove();
   }
 
@@ -309,10 +331,8 @@ export class SceneRunner {
       ctx.resolution[0] = loaded.canvas.width;
       ctx.resolution[1] = loaded.canvas.height;
       try {
-        // Scripts that render to framebuffers set their own viewport; the
-        // default one always covers the (possibly resized) canvas.
-        loaded.gl.bindFramebuffer(loaded.gl.FRAMEBUFFER, null);
-        loaded.gl.viewport(0, 0, loaded.canvas.width, loaded.canvas.height);
+        const check = this.frame % GL_ERROR_CHECK_EVERY === 1;
+        loaded.surface.beforeRender(loaded.canvas, check);
         const result = loaded.render(ctx);
         ctx.mousePrev.splice(0, 4, ...this.mouse);
         if (result instanceof Promise) {
@@ -322,7 +342,7 @@ export class SceneRunner {
         this.dirty = false;
         for (const name of this.pulses) ctx.uniforms[name] = false;
         this.pulses.clear();
-        if (this.frame % GL_ERROR_CHECK_EVERY === 1) this.checkGlError(loaded.gl);
+        loaded.surface.afterRender(check, (err) => this.record(err.message.startsWith("WebGPU") ? "webgpu" : "webgl", err));
         this.framesRendered++;
         this.flushCaptures(loaded.canvas);
       } catch (err) {
@@ -364,9 +384,10 @@ export class SceneRunner {
     );
   }
 
-  private checkGlError(gl: WebGL2RenderingContext): void {
-    const code = gl.getError();
-    if (code === gl.NO_ERROR || code === gl.CONTEXT_LOST_WEBGL) return;
+  private makeWebGl(canvas: HTMLCanvasElement, scene: Scene, assets: Record<string, string>, publish: SceneCtx["publish"]) {
+    const gl = canvas.getContext("webgl2", { antialias: true, alpha: false, powerPreference: "high-performance" });
+    if (!gl) throw new Error("WebGL2 is not available");
+    const { ctx, dispose } = createCtx(gl, canvas, uniformValues(scene), assets, publish);
     const names: Record<number, string> = {
       [gl.INVALID_ENUM]: "INVALID_ENUM",
       [gl.INVALID_VALUE]: "INVALID_VALUE",
@@ -374,7 +395,73 @@ export class SceneRunner {
       [gl.INVALID_FRAMEBUFFER_OPERATION]: "INVALID_FRAMEBUFFER_OPERATION",
       [gl.OUT_OF_MEMORY]: "OUT_OF_MEMORY",
     };
-    this.record("webgl", new Error(`gl.getError() = ${names[code] ?? code} during render`));
+    const surface: Surface = {
+      beforeRender(c) {
+        // Scripts that render to framebuffers set their own viewport; the
+        // default one always covers the (possibly resized) canvas.
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, c.width, c.height);
+      },
+      afterRender(check, report) {
+        if (!check) return;
+        const code = gl.getError();
+        if (code !== gl.NO_ERROR && code !== gl.CONTEXT_LOST_WEBGL) report(new Error(`gl.getError() = ${names[code] ?? code} during render`));
+      },
+      setup: (run) => run,
+      dispose: () => gl.getExtension("WEBGL_lose_context")?.loseContext(),
+    };
+    return { ctx, dispose, surface };
+  }
+
+  /** A fresh device per load; null when a newer load started meanwhile. */
+  private async makeWebGpu(canvas: HTMLCanvasElement, scene: Scene, assets: Record<string, string>, publish: SceneCtx["publish"], generation: number) {
+    if (!navigator.gpu) throw new Error("WebGPU is not available in this browser; use backend \"webgl2\"");
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+    if (!adapter) throw new Error("No WebGPU adapter on this machine; use backend \"webgl2\"");
+    const device = await adapter.requestDevice();
+    if (generation !== this.generation) {
+      device.destroy();
+      return null;
+    }
+    const context = canvas.getContext("webgpu") as GPUCanvasContext | null;
+    if (!context) {
+      device.destroy();
+      throw new Error("Could not get a webgpu canvas context");
+    }
+    const format = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({ device, format, alphaMode: "opaque" });
+
+    let destroyed = false;
+    void device.lost.then((info) => {
+      if (!destroyed && this.current?.generation === generation) this.fail("webgpu", new Error(`WebGPU device lost (${info.reason}): ${info.message}`));
+    });
+    device.addEventListener("uncapturederror", (e) => {
+      if (this.current?.generation === generation) this.record("webgpu", new Error(`WebGPU error: ${(e as GPUUncapturedErrorEvent).error.message}`));
+    });
+
+    const ctx = createGpuCtx(device, context, format, canvas, scene, uniformValues(scene), assets, publish);
+    const surface: Surface = {
+      beforeRender(_c, check) {
+        if (check) device.pushErrorScope("validation");
+      },
+      afterRender(check, report) {
+        if (!check) return;
+        void device.popErrorScope().then((err) => err && report(new Error(`WebGPU validation error during render: ${err.message}`)));
+      },
+      async setup(run) {
+        device.pushErrorScope("validation");
+        // The scope must be popped whether setup threw or not; the script's own error wins.
+        const outcome = await run.then(() => null, (err: unknown) => ({ err }));
+        const validation = await device.popErrorScope();
+        if (outcome) throw outcome.err;
+        if (validation) throw new Error(`WebGPU validation error during setup: ${validation.message}`);
+      },
+      dispose() {
+        destroyed = true;
+        device.destroy();
+      },
+    };
+    return { ctx, dispose: () => undefined, surface };
   }
 
   private waitForFrames(count: number): Promise<void> {

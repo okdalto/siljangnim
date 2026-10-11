@@ -88,6 +88,15 @@ export interface SceneCtx {
   utils: SceneUtils;
 }
 
+/** Dynamic import of an ES module, from the allowed CDNs only. */
+export function importModule(url: string): Promise<unknown> {
+  const origin = new URL(url).origin;
+  if (!ALLOWED_IMPORT_ORIGINS.includes(origin)) {
+    return Promise.reject(new Error(`ctx.utils.import: ${origin} is not allowed; use ${ALLOWED_IMPORT_ORIGINS.join(", ")}`));
+  }
+  return import(/* @vite-ignore */ url);
+}
+
 export function createCtx(
   gl: WebGL2RenderingContext,
   canvas: HTMLCanvasElement,
@@ -167,13 +176,7 @@ export function createCtx(
     createOrbitCamera,
     createVerletSystem,
     glsl,
-    import(url) {
-      const origin = new URL(url).origin;
-      if (!ALLOWED_IMPORT_ORIGINS.includes(origin)) {
-        return Promise.reject(new Error(`ctx.utils.import: ${origin} is not allowed; use ${ALLOWED_IMPORT_ORIGINS.join(", ")}`));
-      }
-      return import(/* @vite-ignore */ url);
-    },
+    import: importModule,
   };
 
   return {

@@ -194,12 +194,20 @@ async function runExamplesScenario(win) {
     await new Promise((r) => setTimeout(r, 200));
     document.querySelector('[data-testid="open-examples"]').click();
     await new Promise((r) => setTimeout(r, 300));
-    const slugs = [...document.querySelectorAll("[data-example]")].map((e) => e.dataset.example);
+    const slugs = [...document.querySelectorAll("[data-example]")].map((e) => ({ slug: e.dataset.example, requires: e.dataset.requires }));
     document.querySelector('[data-testid="examples"]')?.parentElement?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
     return slugs;
   })()`);
   const results = {};
-  for (const slug of slugs) {
+  // WebGPU examples run where WebGPU does (macOS/Windows; not SwiftShader on Linux CI).
+  const frameForGpu = await findSceneFrame(win);
+  const gpu = frameForGpu ? await frameForGpu.executeJavaScript("(async () => Boolean(navigator.gpu && (await navigator.gpu.requestAdapter())))()").catch(() => false) : false;
+  for (const { slug, requires } of slugs) {
+    if (requires?.includes("webgpu") && !gpu) {
+      results[slug] = { skipped: "no WebGPU here" };
+      log(`example ${slug}: skipped (no WebGPU)`);
+      continue;
+    }
     await win.webContents.executeJavaScript(`(async () => {
       if (!document.querySelector('[data-testid="examples"]')) {
         document.querySelector('[title="Projects"]').click();
@@ -322,7 +330,7 @@ export async function runSmokeTest(win, hub, keys, outDir) {
       : {}),
     ...(history ? { historyRecorded: history.recorded, historyRestored: history.restored } : {}),
     examplesRun:
-      Object.keys(examples).length >= 8 && Object.values(examples).every((e) => e.state === "running" && e.errors === 0 && e.litFraction > 0.02),
+      Object.keys(examples).length >= 9 && Object.values(examples).every((e) => e.skipped || (e.state === "running" && e.errors === 0 && e.litFraction > 0.02)),
   };
   const ok = Object.values(checks).every(Boolean);
   report({ ok, checks, scene, iframe, llm, agent, history, examples, bridge, hub: { ...info, token: undefined }, system, consoleErrors });

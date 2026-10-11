@@ -1,0 +1,75 @@
+{
+  "version": 2,
+  "backend": "webgpu",
+  "script": {
+    "setup": "const { device } = ctx;\nconst N = 200000;\nconst u = ctx.utils.createUniforms();\n// Particles: xy position, zw velocity, scattered in a disc.\nconst data = new Float32Array(N * 4);\nfor (let i = 0; i < N; i++) {\n  const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * 0.9;\n  data[i * 4] = Math.cos(a) * r;\n  data[i * 4 + 1] = Math.sin(a) * r;\n}\nconst particles = device.createBuffer({ size: data.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });\ndevice.queue.writeBuffer(particles, 0, data);\n\nconst code = u.wgsl + `\n@group(0) @binding(0) var<uniform> U: Uniforms;\n@group(0) @binding(1) var<storage, read_write> P: array<vec4f>;\n\nfn flow(p: vec2f, t: f32) -> vec2f {\n  let a = sin(p.y * 3.1 + t * 0.7) + cos(p.x * 2.3 - t * 0.5);\n  let b = cos(p.x * 3.7 - t * 0.6) - sin(p.y * 2.9 + t * 0.4);\n  return vec2f(a, b);\n}\n\n@compute @workgroup_size(64)\nfn step(@builtin(global_invocation_id) id: vec3u) {\n  let i = id.x;\n  if (i >= arrayLength(&P)) { return; }\n  let aspect = U.resolution.x / U.resolution.y;\n  var p = P[i];\n  var v = p.zw * 0.96 + flow(p.xy * U.u_scale, U.time) * 0.0009 * U.u_speed;\n  // While the mouse is pressed, particles are pulled toward it.\n  if (U.mouse.z > 0.0) {\n    let m = vec2f((U.mouse.x / U.resolution.x * 2.0 - 1.0) * aspect, U.mouse.y / U.resolution.y * 2.0 - 1.0);\n    let d = m - p.xy;\n    v += normalize(d + vec2f(1e-5)) * 0.0006 / (0.05 + length(d));\n  }\n  p = vec4f(p.xy + v, v);\n  if (abs(p.x) > 1.2 * aspect || abs(p.y) > 1.2) { p = vec4f(p.xy * -0.5, 0.0, 0.0); }\n  P[i] = p;\n}\n\nstruct VOut {\n  @builtin(position) pos: vec4f,\n  @location(0) speed: f32,\n}\n\n@vertex\nfn vs(@location(0) p: vec4f) -> VOut {\n  let aspect = U.resolution.x / U.resolution.y;\n  var o: VOut;\n  o.pos = vec4f(p.x / aspect, p.y, 0.0, 1.0);\n  o.speed = length(p.zw) * 120.0;\n  return o;\n}\n\n@fragment\nfn fs(i: VOut) -> @location(0) vec4f {\n  let c = mix(U.u_cold, U.u_hot, clamp(i.speed, 0.0, 1.0));\n  return vec4f(c * U.u_glow, 1.0);\n}\n`;\nconst module = await ctx.utils.createShaderModule(code, \"particles\");\nconst compute = device.createComputePipeline({ layout: \"auto\", compute: { module, entryPoint: \"step\" } });\nconst additive = { srcFactor: \"one\", dstFactor: \"one\", operation: \"add\" };\nconst render = device.createRenderPipeline({\n  layout: \"auto\",\n  vertex: { module, entryPoint: \"vs\", buffers: [{ arrayStride: 16, attributes: [{ shaderLocation: 0, offset: 0, format: \"float32x4\" }] }] },\n  fragment: { module, entryPoint: \"fs\", targets: [{ format: ctx.format, blend: { color: additive, alpha: additive } }] },\n  primitive: { topology: \"point-list\" },\n});\nctx.state.N = N;\nctx.state.u = u;\nctx.state.particles = particles;\nctx.state.compute = compute;\nctx.state.render = render;\nctx.state.computeGroup = device.createBindGroup({ layout: compute.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: u.buffer } }, { binding: 1, resource: { buffer: particles } }] });\nctx.state.renderGroup = device.createBindGroup({ layout: render.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: u.buffer } }] });",
+    "render": "const s = ctx.state, device = ctx.device;\ns.u.update();\nconst enc = device.createCommandEncoder();\nconst cp = enc.beginComputePass();\ncp.setPipeline(s.compute);\ncp.setBindGroup(0, s.computeGroup);\ncp.dispatchWorkgroups(Math.ceil(s.N / 64));\ncp.end();\nconst rp = enc.beginRenderPass({\n  colorAttachments: [{ view: ctx.context.getCurrentTexture().createView(), clearValue: { r: 0.01, g: 0.01, b: 0.02, a: 1 }, loadOp: \"clear\", storeOp: \"store\" }],\n});\nrp.setPipeline(s.render);\nrp.setBindGroup(0, s.renderGroup);\nrp.setVertexBuffer(0, s.particles);\nrp.draw(s.N);\nrp.end();\ndevice.queue.submit([enc.finish()]);\nctx.publish(\"particles\", s.N);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Flow speed",
+      "widget": "knob"
+    },
+    "u_scale": {
+      "type": "float",
+      "value": 2.5,
+      "min": 0.5,
+      "max": 6,
+      "step": 0.01,
+      "label": "Flow scale"
+    },
+    "u_glow": {
+      "type": "float",
+      "value": 0.55,
+      "min": 0.05,
+      "max": 1,
+      "step": 0.01,
+      "label": "Glow"
+    },
+    "u_cold": {
+      "type": "color",
+      "value": [
+        0.1,
+        0.35,
+        1.0
+      ],
+      "label": "Slow color"
+    },
+    "u_hot": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.5,
+        0.15
+      ],
+      "label": "Fast color"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ],
+  "controls": [
+    {
+      "label": "Flow",
+      "uniforms": [
+        "u_speed",
+        "u_scale"
+      ]
+    },
+    {
+      "label": "Look",
+      "uniforms": [
+        "u_glow",
+        "u_cold",
+        "u_hot"
+      ]
+    }
+  ],
+  "keyframes": {}
+}

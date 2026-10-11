@@ -11,6 +11,8 @@ assets/        files the scene loads by name (ctx.assets[name])
 recipe/        (torus-knot) the recipe that regenerates the asset with trimesh
 ```
 
+Thumbnails are captured from the running scene: `node mcp/scripts/capture-scene.mjs examples/<name>/scene.json examples/<name>/thumbnail.png`.
+
 | Example | Shows | Made with |
 |---|---|---|
 | Ocean waves | shader, live controls | built-in agent (GPT) |
@@ -21,6 +23,7 @@ recipe/        (torus-knot) the recipe that regenerates the asset with trimesh
 | Image on fluttering fabric | image asset as a texture | built-in agent (GPT), image attached |
 | Torus knot mesh | OBJ asset from the runtime, recipe | Claude Code over MCP + trimesh |
 | Swell (timeline) | Timeline mode, keyframes | the waves scene with two keyed controls |
+| GPU particles (WebGPU) | compute shader, storage buffers, monitor | written by hand as the WebGPU reference |
 
 Most were made during real-model test runs (prompts are in each `example.json`); labels were
 translated to English. To add one, put a folder here with the files above. `npm test` checks every

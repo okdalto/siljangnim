@@ -5,7 +5,7 @@ import type { Scene, Timeline, UniformValue } from "./schema";
 
 export const CHANNEL = "siljangnim-scene/1";
 
-export type SceneErrorSource = "setup" | "render" | "cleanup" | "shader" | "webgl" | "runtime";
+export type SceneErrorSource = "setup" | "render" | "cleanup" | "shader" | "webgl" | "webgpu" | "runtime";
 
 export interface ShaderDiagnostic {
   line: number;
@@ -19,7 +19,7 @@ export interface SceneError {
   line?: number;
   column?: number;
   /** For shader errors: which stage failed and the parsed compiler log. */
-  stage?: "vertex" | "fragment" | "link";
+  stage?: "vertex" | "fragment" | "link" | "wgsl";
   diagnostics?: ShaderDiagnostic[];
   /** Source lines around the first diagnostic, numbered. */
   excerpt?: string;

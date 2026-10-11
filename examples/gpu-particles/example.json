@@ -1,0 +1,19 @@
+{
+  "order": 9,
+  "title": "GPU particles (WebGPU)",
+  "title_ko": "GPU 입자 (WebGPU)",
+  "description": "200,000 particles moved by a compute shader through a swirling flow field. Hold the mouse to pull them. Needs WebGPU.",
+  "description_ko": "컴퓨트 셰이더가 20만 개 입자를 소용돌이 흐름장 위로 움직인다. 마우스를 누르면 끌어당긴다. WebGPU가 필요하다.",
+  "prompt": "(written by hand as the WebGPU reference scene)",
+  "made_with": "WebGPU compute + render, ctx.utils.createUniforms",
+  "features": [
+    "webgpu",
+    "compute",
+    "mouse",
+    "monitor"
+  ],
+  "mode": "live",
+  "requires": [
+    "webgpu"
+  ]
+}
