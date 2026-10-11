@@ -12,7 +12,22 @@ const LLM_PROBE = "app://siljangnim/api/llm/anthropic/v1/messages";
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const started = Date.now();
 // Progress on stdout, so a timeout shows which step hung.
-const log = (step) => console.log(`[smoke] ${((Date.now() - started) / 1000).toFixed(1)}s ${step}`);
+let lastStep = "start";
+const log = (step) => {
+  lastStep = step;
+  console.log(`[smoke] ${((Date.now() - started) / 1000).toFixed(1)}s ${step}`);
+};
+
+/** frame.executeJavaScript that fails instead of hanging when the frame goes away mid-call. */
+function inFrame(frame, code, label, ms = 20_000) {
+  let timer;
+  return Promise.race([
+    frame.executeJavaScript(code),
+    new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`${label}: no answer from the frame within ${ms / 1000}s`)), ms);
+    }),
+  ]).finally(() => clearTimeout(timer));
+}
 
 function waitForHub(hub) {
   return new Promise((resolve) => {
@@ -134,7 +149,7 @@ async function runAgentScenario(win, sceneFrame, keys) {
   await wait(300);
   const bursts = await win.webContents.executeJavaScript(`document.querySelector('[data-monitor="bursts"] .tabular-nums')?.innerText`);
   const panel = await runPanelScenario(win);
-  const sample = sceneFrame ? await sceneFrame.executeJavaScript(SAMPLE_CANVAS).catch(() => null) : null;
+  const sample = sceneFrame ? await inFrame(sceneFrame, SAMPLE_CANVAS, "sample scene").catch(() => null) : null;
   const chat = await win.webContents.executeJavaScript(`({
     chips: [...document.querySelectorAll("aside button")].map((b) => b.innerText).filter((t) => /scene|viewport/i.test(t)),
     images: document.querySelectorAll('aside img[alt="Viewport capture"]').length,
@@ -164,17 +179,17 @@ const READ_HISTORY = `(async () => {
 async function runPanelScenario(win) {
   const frame = win.webContents.mainFrame.framesInSubtree.find((f) => f.url === "about:srcdoc");
   if (!frame) return { found: false };
-  const before = await frame.executeJavaScript(`document.getElementById("v").textContent`);
-  await frame.executeJavaScript(`document.getElementById("half").click()`);
+  const before = await inFrame(frame, `document.getElementById("v").textContent`, "panel readout");
+  await inFrame(frame, `document.getElementById("half").click()`, "panel click");
   await wait(400);
-  const after = await frame.executeJavaScript(`document.getElementById("v").textContent`);
+  const after = await inFrame(frame, `document.getElementById("v").textContent`, "panel readout");
   const control = await win.webContents.executeJavaScript(`document.querySelector('[data-control="u_gain"] .tabular-nums')?.innerText`);
-  const isolation = await frame.executeJavaScript(`(async () => ({
+  const isolation = await inFrame(frame, `(async () => ({
     parent: (() => { try { return parent.document.title; } catch { return "blocked"; } })(),
     storage: (() => { try { return typeof localStorage.length; } catch { return "blocked"; } })(),
     network: await fetch("https://example.com").then(() => "reached", () => "blocked"),
-  }))()`);
-  await frame.executeJavaScript(`document.getElementById("full").click()`);
+  }))()`, "panel isolation");
+  await inFrame(frame, `document.getElementById("full").click()`, "panel click");
   await wait(300);
   return { found: true, before, after, control, isolation };
 }
@@ -195,7 +210,7 @@ async function runHistoryScenario(win, sceneFrame) {
     if (after[0]?.current) break;
   }
   await wait(500);
-  const sample = sceneFrame ? await sceneFrame.executeJavaScript(SAMPLE_CANVAS).catch(() => null) : null;
+  const sample = sceneFrame ? await inFrame(sceneFrame, SAMPLE_CANVAS, "sample scene").catch(() => null) : null;
   const [r, , b] = sample?.meanRgb ?? [0, 0, 0];
   return {
     before,
@@ -227,7 +242,7 @@ async function runExamplesScenario(win) {
   const results = {};
   // WebGPU examples run where WebGPU does (macOS/Windows; not SwiftShader on Linux CI).
   const frameForGpu = await findSceneFrame(win);
-  const gpu = frameForGpu ? await frameForGpu.executeJavaScript("(async () => Boolean(navigator.gpu && (await navigator.gpu.requestAdapter())))()").catch(() => false) : false;
+  const gpu = frameForGpu ? await inFrame(frameForGpu, "(async () => Boolean(navigator.gpu && (await navigator.gpu.requestAdapter())))()", "webgpu check").catch(() => false) : false;
   for (const { slug, requires } of slugs) {
     if (requires?.includes("webgpu") && !gpu) {
       results[slug] = { skipped: "no WebGPU here" };
@@ -254,7 +269,7 @@ async function runExamplesScenario(win) {
     }
     await wait(1200);
     const frame = await findSceneFrame(win);
-    const sample = frame ? await frame.executeJavaScript(SAMPLE_CANVAS).catch(() => null) : null;
+    const sample = frame ? await inFrame(frame, SAMPLE_CANVAS, `sample ${slug}`).catch(() => null) : null;
     const after = await win.webContents.executeJavaScript(`Number(document.querySelector("[data-runtime-state]")?.dataset.runtimeErrors)`);
     results[slug] = { ...state, errors: after, litFraction: sample?.litFraction ?? 0 };
     log(`example ${slug}: ${JSON.stringify(results[slug])}`);
@@ -271,7 +286,7 @@ export async function runSmokeTest(win, hub, keys, outDir) {
   const report = (data) => writeFileSync(join(outDir, "report.json"), JSON.stringify(data, null, 2));
 
   const timer = setTimeout(() => {
-    report({ ok: false, reason: "timeout", hub: { ...hub.info(), token: undefined } });
+    report({ ok: false, reason: `timeout after step: ${lastStep}`, hub: { ...hub.info(), token: undefined } });
     quit(hub, 1);
   }, TIMEOUT_MS);
 
@@ -286,7 +301,7 @@ export async function runSmokeTest(win, hub, keys, outDir) {
     // Give the default scene time to load and draw.
     let sample = null;
     for (let i = 0; i < 40; i++) {
-      sample = await sceneFrame.executeJavaScript(SAMPLE_CANVAS).catch((err) => ({ error: String(err) }));
+      sample = await inFrame(sceneFrame, SAMPLE_CANVAS, "sample default scene").catch((err) => ({ error: String(err) }));
       if (sample?.litFraction > 0.02) break;
       await wait(250);
     }
@@ -304,7 +319,7 @@ export async function runSmokeTest(win, hub, keys, outDir) {
   const llm = {
     fromApp: await win.webContents.executeJavaScript(probe(LLM_PROBE, true)),
     fromAppWithoutToken: await win.webContents.executeJavaScript(probe(LLM_PROBE, false)),
-    fromScene: sceneFrame ? await sceneFrame.executeJavaScript(probe(LLM_PROBE, false)) : null,
+    fromScene: sceneFrame ? await inFrame(sceneFrame, probe(LLM_PROBE, false), "probe from scene") : null,
   };
   const bridge = await win.webContents.executeJavaScript(
     "window.siljangnim ? window.siljangnim.keys.status().then((keys) => ({ desktop: window.siljangnim.desktop, keys })) : null",
