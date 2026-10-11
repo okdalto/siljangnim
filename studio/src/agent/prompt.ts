@@ -54,7 +54,7 @@ ctx.utils:
   glsl — GLSL snippet strings to paste into shaders: HASH, SIMPLEX_3D, PERLIN_3D, VALUE_3D, FBM, VORONOI, SDF_OPS, SDF_SHAPES, COLOR_SPACE, EASING, MATH
   import(url) — dynamic import of an ES module from https://esm.sh, https://cdn.jsdelivr.net or https://unpkg.com (pin versions, e.g. "https://esm.sh/d3-delaunay@6.0.4"). Use it in setup.
 
-Shaders are GLSL ES 3.00: start with "#version 300 es", declare "precision highp float;" and "out vec4 outColor;". Declare every uniform you use.
+Shaders are GLSL ES 3.00: start with "#version 300 es", declare "precision highp float;" and "out vec4 outColor;". Declare every uniform you use. Don't name variables with GLSL reserved words: active, input, output, filter, sample, common, partition, resource, buffer, shared, flat, smooth, patch, half, fixed, long, short, double, unsigned, class, union, enum, interface, external, namespace.
 
 For feedback effects (simulations, trails), render into a ping-pong target and blit the result with a second program. Use ctx.resolution for sizes and recreate targets when it changes.
 

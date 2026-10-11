@@ -2,7 +2,7 @@
 // Converts the Anthropic-format conversation at the edge.
 import { ProviderError, type ContentBlockParam, type LLMProvider, type MessageParam, type StopReason, type TurnCallbacks, type TurnRequest, type TurnResult } from "./types";
 
-interface OpenAIOptions {
+export interface OpenAIOptions {
   /** The app's forwarder, e.g. `app://siljangnim/api/llm/openai`. */
   endpoint: string;
   /** Upstream base URL, e.g. `http://localhost:8000/v1`. Empty means api.openai.com. */
@@ -37,9 +37,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
   }
 
   async runTurn(request: TurnRequest, callbacks: TurnCallbacks): Promise<TurnResult> {
-    const headers: Record<string, string> = { "content-type": "application/json", ...this.options.headers };
-    if (this.options.baseUrl) headers["x-llm-base-url"] = this.options.baseUrl;
-    if (this.options.apiKey) headers.authorization = `Bearer ${this.options.apiKey}`;
+    const headers = requestHeaders(this.options);
 
     let response: Response;
     try {
@@ -69,6 +67,55 @@ export class OpenAICompatibleProvider implements LLMProvider {
     }
     return readStream(response.body, callbacks);
   }
+}
+
+function requestHeaders(options: OpenAIOptions): Record<string, string> {
+  const headers: Record<string, string> = { "content-type": "application/json", ...options.headers };
+  if (options.baseUrl) headers["x-llm-base-url"] = options.baseUrl;
+  if (options.apiKey) headers.authorization = `Bearer ${options.apiKey}`;
+  return headers;
+}
+
+// OpenAI lists every model it serves. These can't hold a tool-using chat, are
+// slow/expensive variants (pro) or coding-specialized (codex), or are superseded.
+const NON_CHAT = /embed|whisper|tts|transcribe|dall-e|image|moderation|audio|realtime|search|babbage|davinci|sora|computer-use|instruct|codex|-pro\b/i;
+const LEGACY = /^gpt-3|^gpt-4(-\d{4}|-turbo|$)/i;
+// Pinned snapshots, e.g. gpt-5-2025-08-07 or gpt-4-0613.
+const SNAPSHOT = /-(\d{4}-\d{2}-\d{2}|\d{4})$/;
+
+/** Model ids from a /models response, newest first; chatOnly drops OpenAI's non-chat models. */
+export function chatModelIds(response: unknown, chatOnly: boolean): string[] {
+  const data = (response as { data?: Array<{ id?: unknown; created?: unknown }> } | null)?.data;
+  if (!Array.isArray(data)) return [];
+  const models = data.filter((m): m is { id: string; created?: unknown } => typeof m.id === "string");
+  const ids = new Set(models.map((m) => m.id));
+  return models
+    .filter(
+      (m) =>
+        !chatOnly ||
+        (/^(gpt|o\d|chatgpt)/i.test(m.id) &&
+          !NON_CHAT.test(m.id) &&
+          !LEGACY.test(m.id) &&
+          // A snapshot is noise next to its alias.
+          !(SNAPSHOT.test(m.id) && ids.has(m.id.replace(SNAPSHOT, "")))),
+    )
+    .sort((a, b) => (Number(b.created) || 0) - (Number(a.created) || 0) || a.id.localeCompare(b.id))
+    .map((m) => m.id);
+}
+
+/** GET /models through the forwarder. Throws a ProviderError worth showing. */
+export async function listModels(options: OpenAIOptions, { chatOnly }: { chatOnly: boolean }): Promise<string[]> {
+  let response: Response;
+  try {
+    response = await fetch(`${options.endpoint}/models`, { headers: requestHeaders(options) });
+  } catch (err) {
+    throw new ProviderError(`Could not reach the model server: ${err instanceof Error ? err.message : err}`);
+  }
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new ProviderError(`Model list failed (${response.status}): ${text.slice(0, 200)}`, response.status);
+  }
+  return chatModelIds(await response.json(), chatOnly);
 }
 
 export function toChatMessages(system: string, messages: MessageParam[]): ChatMessage[] {
