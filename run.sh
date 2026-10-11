@@ -15,7 +15,7 @@ if [ "$major" -lt 22 ]; then
   exit 1
 fi
 
-if [ ! -d desktop/node_modules ] || [ ! -d frontend/node_modules ]; then
+if [ ! -d desktop/node_modules ] || [ ! -d studio/node_modules ]; then
   npm install
 fi
 exec npm run dev

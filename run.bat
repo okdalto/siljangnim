@@ -19,7 +19,7 @@ if %NODE_MAJOR% LSS 22 (
 )
 
 if not exist desktop\node_modules goto install
-if not exist frontend\node_modules goto install
+if not exist studio\node_modules goto install
 goto run
 :install
 call npm install || exit /b 1
