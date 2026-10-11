@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/logo.svg" alt="실장님" width="112" height="112" />
+  <img src="studio/public/logo.svg" alt="실장님" width="112" height="112" />
 </p>
 
 <h1 align="center">실장님</h1>
@@ -154,8 +154,6 @@ hub/        앱이 실행하는 Python 사이드카 (uv로 관리): 런타임 �
 mcp/        외부 에이전트용 MCP 서버 (스튜디오를 띄우고 도구 호출을 중계)
 examples/   앱 갤러리에 나오는 예제 프로젝트
 registry/   공유 레시피(index.json + 레시피 파일), PR로 기여
-frontend/   v1 웹 앱 (스튜디오가 대체할 때까지 siljangnim.vercel.app에 배포)
-backend/    v1 FastAPI 서버. hub/로 대체
 docs/       아키텍처와 가이드
 ```
 

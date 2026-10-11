@@ -21,8 +21,9 @@ changing structure. Current work: `docs/m2.md`.
 - `hub/` — Python sidecar (FastAPI, uv-managed): system info and the runtime — isolated uv venvs and a job queue
   for C/D-grade open source (`python_run`, `command_run`; [docs/runtime.md](docs/runtime.md)), and recipes — saved
   integrations in `~/Siljangnim/recipes/<id>/recipe.md`, read/written only by `recipes.py` ([docs/recipes.md](docs/recipes.md)).
-- `frontend/`, `backend/` — **v1, legacy.** Still deployed to siljangnim.vercel.app. Read them to port
-  features; don't build on them. Retired when the studio reaches parity (M3).
+- v1 (`frontend/`, `backend/`, `worker/`) was retired in M3; it lives in git history (before the
+  v1-retirement commit) if you need to look up how something worked. v1 project exports still open via
+  *Import v1 project*.
 
 ## Commands (repo root)
 

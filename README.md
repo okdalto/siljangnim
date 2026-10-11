@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/logo.svg" alt="Siljangnim" width="112" height="112" />
+  <img src="studio/public/logo.svg" alt="Siljangnim" width="112" height="112" />
 </p>
 
 <h1 align="center">Siljangnim</h1>
@@ -161,8 +161,6 @@ hub/        Python sidecar run by the app (uv-managed): runtime jobs and recipes
 mcp/        MCP server for external agents (serves the studio, relays tool calls)
 examples/   Example projects shown in the app's gallery
 registry/   Shared recipes (index.json + recipe files), contributed by pull request
-frontend/   v1 web app (still deployed to siljangnim.vercel.app until the studio replaces it)
-backend/    v1 FastAPI server; replaced by hub/
 docs/       Architecture and guides
 ```
 
