@@ -53,9 +53,10 @@ const VIEWER_OPEN_TOOL = {
  *   open?: (url: string) => void,
  *   log?: (message: string) => void,
  *   hub?: (origin: string) => Promise<{ url: string, token: string }>,
- * }} options  hub starts (once) and returns the runtime hub for the viewer; leave it out to run without one
+ *   attach?: (request: { ws: string, token: string }) => Promise<boolean>,
+ * }} options  attach hands the bridge to a running desktop app (true when it took it) before a browser tab is opened;  hub starts (once) and returns the runtime hub for the viewer; leave it out to run without one
  */
-export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAULT_PORT, open = () => undefined, log = () => undefined, hub }) {
+export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAULT_PORT, open = () => undefined, log = () => undefined, hub, attach }) {
   const token = randomBytes(24).toString("base64url");
   let boundPort = port;
   /** @type {import("ws").WebSocket | null} */
@@ -70,6 +71,10 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
 
   const appOrigin = () => `http://localhost:${boundPort}`;
   const viewerUrl = () => `${appOrigin()}/#bridge=${token}`;
+  /** Where the viewer runs: the desktop app, or the studio this bridge serves in a browser. */
+  let viewerPlace = "browser";
+  // The desktop app's UI connects from its own scheme.
+  const allowedOrigins = () => new Set([appOrigin(), "app://siljangnim"]);
   const allowedHosts = () => new Set([`localhost:${boundPort}`, `127.0.0.1:${boundPort}`, `[::1]:${boundPort}`]);
 
   // --- MCP ---
@@ -90,7 +95,8 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
     try {
       if (name === VIEWER_OPEN_TOOL.name) {
         await ensureViewer(true);
-        return { content: [{ type: "text", text: `The viewer is open and connected: ${appOrigin()}` }] };
+        const where = viewerPlace === "desktop" ? "in the Siljangnim desktop app" : appOrigin();
+        return { content: [{ type: "text", text: `The viewer is open and connected: ${where}` }] };
       }
       if (!spec.tools.some((t) => t.name === name)) {
         return { isError: true, content: [{ type: "text", text: `Unknown tool "${name}".` }] };
@@ -111,8 +117,14 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
     if (viewer?.readyState === 1 && !forceOpen) return;
     if (forceOpen || Date.now() - lastOpened > REOPEN_AFTER_MS) {
       lastOpened = Date.now();
-      log(`opening the viewer: ${viewerUrl()}`);
-      open(viewerUrl());
+      if (attach && (await attach({ ws: `ws://localhost:${boundPort}/bridge`, token }))) {
+        viewerPlace = "desktop";
+        log("the desktop app is the viewer");
+      } else {
+        viewerPlace = "browser";
+        log(`opening the viewer: ${viewerUrl()}`);
+        open(viewerUrl());
+      }
     }
     if (viewer?.readyState === 1) return;
     await new Promise((resolve, reject) => {
@@ -211,8 +223,8 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
   const wss = new WebSocketServer({ noServer: true, maxPayload: 64 * 1024 * 1024 });
   http.on("upgrade", (req, socket, head) => {
     const url = new URL(req.url ?? "/", appOrigin());
-    // Only the studio page (not the scene iframe on 127.0.0.1, not other sites) may connect.
-    if (url.pathname !== "/bridge" || req.headers.origin !== appOrigin() || !allowedHosts().has(req.headers.host ?? "")) {
+    // Only the studio page or the desktop app (not the scene iframe on 127.0.0.1, not other sites) may connect.
+    if (url.pathname !== "/bridge" || !allowedOrigins().has(req.headers.origin ?? "") || !allowedHosts().has(req.headers.host ?? "")) {
       socket.destroy();
       return;
     }
@@ -277,7 +289,8 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
 
   async function close() {
     for (const p of pending.values()) clearTimeout(p.timer);
-    viewer?.close(1001, "bridge stopped");
+    // 4004: the agent session ended; the viewer stops retrying (the desktop app returns to its chat).
+    viewer?.close(4004, "session ended");
     wss.close();
     await new Promise((resolve) => http.close(() => resolve(undefined)));
     await mcp.close().catch(() => undefined);

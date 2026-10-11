@@ -25,6 +25,17 @@ export interface SiljangnimBridge {
     status(): Promise<Record<ProviderKeyId, boolean>>;
     set(provider: ProviderKeyId, key: string | null): Promise<void>;
   };
+  agent: {
+    /** An agent's MCP bridge asks to use this window as its viewer. */
+    onAttach(callback: (request: AgentAttach) => void): () => void;
+    pending(): Promise<AgentAttach | null>;
+  };
+}
+
+export interface AgentAttach {
+  /** The bridge's WebSocket, ws://localhost:<port>/bridge. */
+  ws: string;
+  token: string;
 }
 
 declare global {

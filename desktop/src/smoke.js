@@ -3,7 +3,9 @@
 // the app and refuses the scene, and the hub starts. Saves a screenshot and
 // a JSON report, then quits with a status code.
 import { mkdirSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { app } from "electron";
 
 const TIMEOUT_MS = 240_000;
@@ -285,6 +287,53 @@ function zipStore(files) {
 }
 
 /** Imports a v1-style project zip through the Projects menu and checks it runs. */
+/**
+ * An agent's MCP bridge (the real mcp/bin, run by this Electron as Node) attaches to this
+ * window instead of opening a browser: tools act here, and the chat comes back when it ends.
+ */
+async function runAttachScenario(win) {
+  const mcpDir = process.env.SILJANGNIM_SMOKE_MCP;
+  if (!mcpDir) return null;
+  const require = createRequire(join(mcpDir, "package.json"));
+  const { Client } = await import(pathToFileURL(require.resolve("@modelcontextprotocol/sdk/client/index.js")).href);
+  const { StdioClientTransport } = await import(pathToFileURL(require.resolve("@modelcontextprotocol/sdk/client/stdio.js")).href);
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args: [join(mcpDir, "bin", "siljangnim-mcp.js")],
+    // SILJANGNIM_OPEN=0: if attaching failed, nothing would open and the check fails.
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", SILJANGNIM_OPEN: "0", SILJANGNIM_PORT: "47931" },
+    stderr: "ignore",
+  });
+  const client = new Client({ name: "claude-code", version: "smoke" });
+  await client.connect(transport);
+  const text = (r) => r.content.filter((c) => c.type === "text").map((c) => c.text).join("\n");
+  const opened = text(await client.callTool({ name: "viewer_open", arguments: {} }));
+  const written = text(
+    await client.callTool({
+      name: "scene_write",
+      arguments: {
+        scene: {
+          version: 2,
+          script: { setup: "", render: 'ctx.gl.clearColor(0.2, 0.6, 0.3, 1); ctx.gl.clear(ctx.gl.COLOR_BUFFER_BIT); ctx.publish("attached", 1);' },
+        },
+      },
+    }),
+  );
+  await wait(800);
+  const ui = () =>
+    win.webContents.executeJavaScript(`({
+      status: document.querySelector('[data-testid="external-status"]')?.dataset.status ?? null,
+      tabs: [...document.querySelectorAll('[role="tab"]')].map((t) => t.innerText),
+      activity: [...document.querySelectorAll('[data-activity]')].map((a) => a.dataset.activity),
+      monitors: [...document.querySelectorAll('[data-monitor]')].map((m) => m.dataset.monitor),
+    })`);
+  const during = await ui();
+  await client.close();
+  await wait(4500);
+  const after = await ui();
+  return { opened, written, during, after };
+}
+
 async function runV1ImportScenario(win) {
   const fs = `#version 300 es
 precision highp float; out vec4 outColor; uniform float u_glow;
@@ -469,6 +518,8 @@ async function runSmoke(win, hub, keys, outDir) {
   const examples = await runExamplesScenario(win, outDir);
   log("v1 import");
   const v1 = await runV1ImportScenario(win);
+  log("agent attaches over MCP");
+  const attach = await runAttachScenario(win).catch((err) => ({ error: String(err) }));
   log("waiting for hub");
 
   await waitForHub(hub);
@@ -513,11 +564,23 @@ async function runSmoke(win, hub, keys, outDir) {
       : {}),
     ...(history ? { historyRecorded: history.recorded, historyRestored: history.restored } : {}),
     v1Imported: v1.project === "Old Piece" && v1.state === "running" && v1.errors === 0 && v1.glow === "1.00",
+    ...(attach
+      ? {
+          agentAttached:
+            /in the Siljangnim desktop app/.test(attach.opened ?? "") &&
+            /without errors/.test(attach.written ?? "") &&
+            attach.during?.status === "connected" &&
+            attach.during.tabs[0] === "Activity" &&
+            attach.during.activity.includes("scene_write") &&
+            attach.during.monitors.includes("attached"),
+          agentDetached: attach.after?.tabs[0] === "Chat" && attach.after.status === null,
+        }
+      : {}),
     examplesRun:
       Object.keys(examples).length >= 10 && Object.values(examples).every((e) => e.skipped || (e.state === "running" && e.errors === 0 && e.litFraction > 0.02)),
   };
   const ok = Object.values(checks).every(Boolean);
-  report({ ok, checks, scene, iframe, llm, agent, history, examples, v1, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
+  report({ ok, checks, scene, iframe, llm, agent, history, examples, v1, attach, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
   clearTimeout(timer);
   quit(hub, ok ? 0 : 1);
 }
