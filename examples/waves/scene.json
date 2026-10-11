@@ -1,0 +1,47 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "const fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv;\nout vec4 outColor;\nuniform float u_time;\nuniform vec2 u_resolution;\nuniform float u_speed;\nuniform float u_height;\nuniform float u_chop;\nuniform vec3 u_water;\nuniform vec4 u_mouse;\n\nfloat hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }\nfloat noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }\nfloat waves(vec2 p){\n float t=u_time*u_speed;\n float h=0.0;\n h+=sin(dot(p,vec2(0.82,0.57))*0.72-t*1.05)*0.52;\n h+=sin(dot(p,vec2(-0.37,0.93))*1.17-t*1.38)*0.26;\n h+=sin(dot(p,vec2(0.98,-0.2))*2.07-t*1.86)*0.12;\n float a=0.08; float f=3.4;\n for(int i=0;i<4;i++){\n  vec2 q=p*f+vec2(t*0.6,-t*0.45);\n  h+=(noise(q)-0.5)*a*u_chop;\n  p=mat2(0.8,-0.6,0.6,0.8)*p; f*=1.93; a*=0.48;\n }\n return h*u_height;\n}\nvec3 sky(vec3 rd){\n vec3 low=vec3(0.65,0.79,0.90), high=vec3(0.12,0.34,0.60);\n vec3 c=mix(low,high,pow(max(rd.y,0.0),0.55));\n vec3 sun=normalize(vec3(-0.50,0.25,-0.83));\n float s=max(dot(rd,sun),0.0);\n c+=vec3(1.0,0.81,0.56)*(pow(s,90.0)*0.38+pow(s,1000.0)*3.0);\n float cloud=noise(rd.xz*4.0/(max(rd.y,0.08))+vec2(0.025*u_time));\n c=mix(c,vec3(0.88,0.91,0.91),smoothstep(0.58,0.85,cloud)*smoothstep(0.01,0.25,rd.y)*0.3);\n return c;\n}\nvoid main(){\n vec2 uv=(2.0*gl_FragCoord.xy-u_resolution)/u_resolution.y;\n float mx=u_mouse.x/u_resolution.x-0.5;\n vec3 ro=vec3(0.0,3.6,7.0);\n vec3 target=vec3(mx*1.8,0.1,-5.0);\n vec3 fw=normalize(target-ro), rt=normalize(cross(fw,vec3(0,1,0))), up=cross(rt,fw);\n vec3 rd=normalize(fw*1.7+rt*uv.x+up*uv.y);\n vec3 col=sky(rd);\n if(rd.y<0.0){\n  float lo=0.0, hi=min((ro.y+u_height*1.5)/(-rd.y),230.0);\n  for(int i=0;i<30;i++){\n   float mid=(lo+hi)*0.5; vec3 p=ro+rd*mid;\n   if(p.y>waves(p.xz)) lo=mid; else hi=mid;\n  }\n  float d=(lo+hi)*0.5; vec3 p=ro+rd*d;\n  float eps=0.035+0.0003*d;\n  float h=waves(p.xz);\n  vec3 n=normalize(vec3(waves(p.xz-vec2(eps,0))-waves(p.xz+vec2(eps,0)),2.0*eps,waves(p.xz-vec2(0,eps))-waves(p.xz+vec2(0,eps))));\n  vec3 r=reflect(rd,n);\n  float fres=0.035+0.965*pow(1.0-max(dot(n,-rd),0.0),5.0);\n  vec3 sun=normalize(vec3(-0.50,0.25,-0.83));\n  float spec=pow(max(dot(r,sun),0.0),220.0);\n  vec3 sea=u_water*(0.58+0.4*max(dot(n,sun),0.0));\n  sea+=vec3(0.02,0.12,0.10)*smoothstep(-0.3,0.85,h/u_height);\n  col=mix(sea,sky(r),fres*0.85)+vec3(1.0,0.85,0.64)*spec*1.8;\n  float crest=smoothstep(0.62,0.84,h/u_height);\n  float foam=crest*smoothstep(0.47,0.76,noise(p.xz*6.0+u_time*u_speed*0.25));\n  foam*=u_chop*0.3;\n  col=mix(col,vec3(0.72,0.85,0.82),clamp(foam,0.0,0.6));\n  float haze=1.0-exp(-d*0.014);\n  haze=max(haze,1.0-smoothstep(0.0,0.045,-rd.y));\n  col=mix(col,sky(vec3(rd.x,0.0,rd.z)),haze);\n }\n col=col/(col+vec3(0.55));\n col=pow(col,vec3(0.92));\n float vignette=1.0-0.13*dot(v_uv-0.5,v_uv-0.5);\n outColor=vec4(col*vignette,1.0);\n}`;\nctx.state.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fs);",
+    "render": "ctx.utils.drawFullscreen(ctx.state.program);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 0.57,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Wave speed"
+    },
+    "u_height": {
+      "type": "float",
+      "value": 0.33,
+      "min": 0.1,
+      "max": 1.8,
+      "step": 0.01,
+      "label": "Wave height"
+    },
+    "u_chop": {
+      "type": "float",
+      "value": 1.76,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Chop & foam"
+    },
+    "u_water": {
+      "type": "color",
+      "value": [
+        0.015,
+        0.23,
+        0.27
+      ],
+      "label": "Water color"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

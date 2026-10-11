@@ -1,0 +1,18 @@
+{
+  "order": 108,
+  "title": "Beat runway (librosa)",
+  "title_ko": "비트 활주로 (librosa)",
+  "description": "librosa analysed the loop on this computer (recipe librosa.beat-track): tempo, beat times and the onset envelope. The scene plays the audio and follows its clock, so beat markers slide in and land exactly on time.",
+  "description_ko": "librosa가 이 컴퓨터에서 루프를 미리 분석했다(레시피 librosa.beat-track). 결과는 템포, 비트 시각, 온셋 엔벨로프다. 씬은 오디오를 재생하며 그 시계를 따라가서, 비트 표시가 미끄러져 와 정확한 순간에 맞는다.",
+  "prompt": "(open-source example: librosa run through the runtime, recipe included)",
+  "made_with": "librosa 0.11.0 via recipe librosa.beat-track (python_run)",
+  "features": [
+    "beat tracking",
+    "audio analysis",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "librosa"
+  ]
+}

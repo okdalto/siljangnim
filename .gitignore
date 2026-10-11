@@ -1,6 +1,5 @@
 # siljangnim - Node / Frontend
 node_modules/
-frontend/dist/
 
 # siljangnim - AI-generated workspace (sandboxed outputs)
 .workspace/projects/
@@ -215,4 +214,7 @@ marimo/_lsp/
 __marimo__/
 .vercel
 .DS_Store
-backend/.vite/
+
+# siljangnim-mcp: built studio copied in when packing
+mcp/studio/
+.env*

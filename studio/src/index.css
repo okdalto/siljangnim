@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0d0d0f;
+  --color-panel: #141417;
+  --color-raised: #1b1b1f;
+  --color-line: #26262c;
+  --color-fg: #ece9e2;
+  --color-muted: #8b8a92;
+  --color-faint: #5d5c64;
+  --color-accent: #ff4d2e;
+  --color-ok: #4ade80;
+  --color-warn: #fbbf24;
+  --color-danger: #f87171;
+  --font-sans: "Inter", "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+
+html, body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: color-mix(in srgb, var(--color-accent) 40%, transparent); }
+
+* { scrollbar-width: thin; scrollbar-color: var(--color-line) transparent; }
+
+.prose-chat p { margin: 0.4em 0; }
+.prose-chat p:first-child { margin-top: 0; }
+.prose-chat p:last-child { margin-bottom: 0; }
+.prose-chat ul, .prose-chat ol { margin: 0.4em 0; padding-left: 1.25em; }
+.prose-chat ul { list-style: disc; }
+.prose-chat ol { list-style: decimal; }
+.prose-chat code { font-family: var(--font-mono); font-size: 0.85em; background: var(--color-raised); padding: 0.1em 0.35em; border-radius: 4px; }
+.prose-chat pre { background: var(--color-raised); padding: 0.6em 0.8em; border-radius: 6px; overflow-x: auto; margin: 0.5em 0; }
+.prose-chat pre code { background: none; padding: 0; }
+.prose-chat a { color: var(--color-accent); text-decoration: underline; }
+.prose-chat strong { font-weight: 600; }
+
+input[type="range"] { accent-color: var(--color-accent); }

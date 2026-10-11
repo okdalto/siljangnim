@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// FFmpeg rendered a Mandelbrot zoom on this computer (recipe ffmpeg.mandelbrot-zoom, a command_run);\n// the scene plays the MP4 as a texture through a kaleidoscope.\nctx.state.video = await ctx.utils.createVideoTexture(\"mandelbrot.mp4\", { loop: true, muted: true, wrap: \"mirror\" });\nctx.state.p = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, \"#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor;\\nuniform sampler2D u_video; uniform vec2 u_resolution; uniform float u_time; uniform int u_segments; uniform float u_hue; uniform float u_zoom;\\nvec3 hueShift(vec3 c, float a){ const vec3 k = vec3(0.57735); float ca = cos(a); return c * ca + cross(k, c) * sin(a) + k * dot(k, c) * (1.0 - ca); }\\nvoid main(){\\n  vec2 p = (v_uv - 0.5) * vec2(u_resolution.x / u_resolution.y, 1.0);\\n  float r = length(p), a = atan(p.y, p.x) + u_time * 0.1;\\n  float seg = 6.2831853 / float(u_segments);\\n  a = abs(mod(a, seg) - seg * 0.5);\\n  vec2 q = vec2(cos(a), sin(a)) * r * u_zoom;\\n  vec3 c = texture(u_video, q * vec2(0.5625, 1.0) + 0.5).rgb;\\n  outColor = vec4(hueShift(c, u_hue * 6.2831853 + u_time * 0.05), 1.0);\\n}\");",
+    "render": "const s = ctx.state;\ns.video.update();\nctx.gl.useProgram(s.p);\nctx.utils.bindTexture(s.p, \"u_video\", s.video.texture, 0);\nctx.utils.drawFullscreen(s.p);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_segments": {
+      "type": "int",
+      "value": 8,
+      "min": 2,
+      "max": 16,
+      "step": 1,
+      "label": "Mirrors"
+    },
+    "u_zoom": {
+      "type": "float",
+      "value": 1.1,
+      "min": 0.3,
+      "max": 3,
+      "step": 0.01,
+      "label": "Zoom",
+      "widget": "knob"
+    },
+    "u_hue": {
+      "type": "float",
+      "value": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Hue"
+    }
+  },
+  "inputs": []
+}

@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// NetworkX laid out the Les Mis\u00e9rables character network and found its communities on this\n// computer (recipe networkx.les-miserables-layout \u2192 graph.json). Hover a character.\nconst data = await (await fetch(ctx.assets[\"graph.json\"])).json();\nconst gl = ctx.gl;\nconst buffer = (n) => {\n  const vao = gl.createVertexArray(), b = gl.createBuffer();\n  gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, b);\n  gl.bufferData(gl.ARRAY_BUFFER, n * 16, gl.DYNAMIC_DRAW);\n  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);\n  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);\n  gl.bindVertexArray(null);\n  return { vao, b, data: new Float32Array(n * 4) };\n};\nObject.assign(ctx.state, { data, edges: buffer(data.edges.length * 2), nodes: buffer(data.nodes.length), xy: new Float32Array(data.nodes.length * 2),\n  p: ctx.utils.createProgram(\"#version 300 es\\nlayout(location=0) in vec2 a_position; layout(location=1) in vec2 a_info;\\nuniform vec2 u_fit; out vec2 v_info;\\nvoid main(){ v_info = a_info; gl_Position = vec4((a_position * 2.0 - 1.0) * u_fit, 0.0, 1.0); gl_PointSize = a_info.y; }\", \"#version 300 es\\nprecision highp float; in vec2 v_info; out vec4 outColor; uniform int u_mode; uniform vec3 u_palette[8];\\nvoid main(){\\n  if (u_mode == 0) { outColor = vec4(vec3(0.5, 0.55, 0.7) * v_info.x, 1.0); return; }\\n  float d = length(gl_PointCoord - 0.5); if (d > 0.5) discard;\\n  vec3 c = u_palette[int(v_info.x) % 8];\\n  outColor = vec4(c * (smoothstep(0.5, 0.35, d) + 0.25), 1.0);\\n}\"),\n  palette: [[1, 0.45, 0.35], [0.35, 0.75, 1], [0.95, 0.8, 0.3], [0.55, 0.9, 0.5], [0.85, 0.5, 1], [1, 0.6, 0.8], [0.4, 0.95, 0.85], [0.9, 0.9, 0.9]].flat() });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution, d = s.data;\nconst view = w / h, fit = view > 1 ? [0.95 / view, 0.95] : [0.95, 0.95 * view];\nconst t = ctx.time * u.u_motion;\nd.nodes.forEach((n, i) => {\n  s.xy[i * 2] = n.x + 0.006 * Math.sin(t + i * 1.7);\n  s.xy[i * 2 + 1] = n.y + 0.006 * Math.cos(t * 0.9 + i * 2.3);\n});\n// The character under the pointer (screen \u2192 layout space).\nconst mx = ((ctx.mouse[0] * 2 - 1) / fit[0] + 1) / 2, my = (((1 - ctx.mouse[1]) * 2 - 1) / fit[1] + 1) / 2;\n// The pointer starts at the center; hovering begins once it has moved.\ns.moved ||= ctx.mouse[0] !== 0.5 || ctx.mouse[1] !== 0.5;\nlet hover = -1, best = s.moved ? 0.0009 : 0;\nd.nodes.forEach((_, i) => { const dd = (s.xy[i * 2] - mx) ** 2 + (s.xy[i * 2 + 1] - my) ** 2; if (dd < best) { best = dd; hover = i; } });\nconst dpr = Math.min(2, devicePixelRatio);\nd.edges.forEach(([a, b, wgt], k) => {\n  const lit = hover < 0 ? 0.9 + Math.min(wgt, 10) * 0.12 : a === hover || b === hover ? 1.6 : 0.12;\n  s.edges.data.set([s.xy[a * 2], s.xy[a * 2 + 1], lit, 0, s.xy[b * 2], s.xy[b * 2 + 1], lit, 0], k * 8);\n});\nd.nodes.forEach((n, i) => s.nodes.data.set([s.xy[i * 2], s.xy[i * 2 + 1], n.group, (5 + Math.sqrt(n.degree) * 3.2 * u.u_size) * dpr * (i === hover ? 1.6 : 1)], i * 4));\ngl.clearColor(0.03, 0.03, 0.045, 1); gl.clear(gl.COLOR_BUFFER_BIT);\ngl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);\ngl.useProgram(s.p);\nctx.utils.setUniforms(s.p, { u_fit: fit, u_palette: s.palette, u_mode: 0 });\nfor (const [part, mode, prim] of [[s.edges, 0, gl.LINES], [s.nodes, 1, gl.POINTS]]) {\n  ctx.utils.setUniforms(s.p, { u_mode: mode });\n  gl.bindVertexArray(part.vao); gl.bindBuffer(gl.ARRAY_BUFFER, part.b);\n  gl.bufferSubData(gl.ARRAY_BUFFER, 0, part.data);\n  gl.drawArrays(prim, 0, part.data.length / 4);\n}\ngl.bindVertexArray(null); gl.disable(gl.BLEND);\nctx.publish(\"character\", hover >= 0 ? d.nodes[hover].name : \"\u2014\");",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_size": {
+      "type": "float",
+      "value": 1,
+      "min": 0.3,
+      "max": 3,
+      "step": 0.01,
+      "label": "Node size"
+    },
+    "u_motion": {
+      "type": "float",
+      "value": 0.6,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Motion",
+      "widget": "knob"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "order": 111,
+  "title": "Les Misérables network (NetworkX)",
+  "title_ko": "레 미제라블 관계망 (NetworkX)",
+  "description": "NetworkX laid out the Les Misérables character co-occurrence graph and found its communities on this computer (recipe networkx.les-miserables-layout). Hover a character to light up its ties; the name shows in the monitor.",
+  "description_ko": "NetworkX가 이 컴퓨터에서 레 미제라블 인물 동시 등장 그래프를 배치하고 공동체를 찾았다(레시피 networkx.les-miserables-layout). 인물에 포인터를 올리면 그 관계가 빛나고 이름이 모니터에 나온다.",
+  "prompt": "(open-source example: NetworkX run through the runtime, recipe included)",
+  "made_with": "networkx 3.5 via recipe networkx.les-miserables-layout (python_run)",
+  "features": [
+    "graph layout",
+    "communities",
+    "mouse",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "networkx"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "order": 105,
+  "title": "Color spaces (culori)",
+  "title_ko": "색 공간 (culori)",
+  "description": "culori blends the same two colors in four color spaces, one band each: RGB, HSL, Lab and OKLCH from top to bottom. The pair slowly turns around the hue circle; OKLCH keeps lightness even where RGB goes muddy.",
+  "description_ko": "culori가 같은 두 색을 네 가지 색 공간에서 섞어 띠 하나씩 보여 준다. 위에서부터 RGB, HSL, Lab, OKLCH 순서다. 두 색은 천천히 색상환을 돈다. RGB가 탁해지는 곳에서도 OKLCH는 밝기가 고르게 유지된다.",
+  "prompt": "(open-source example: culori imported in the scene)",
+  "made_with": "culori 4.0.1 via ctx.utils.import",
+  "features": [
+    "color",
+    "gradient",
+    "palette"
+  ],
+  "mode": "live",
+  "uses": [
+    "culori"
+  ]
+}

@@ -1,0 +1,52 @@
+// Right panel: the agent chat, the version history and the assets, as tabs.
+import { setSidebarTab } from "../session";
+import { useApp } from "../state";
+import { Activity } from "./Activity";
+import { Assets } from "./Assets";
+import { Chat, ChatHeaderActions } from "./Chat";
+import { History } from "./History";
+import { Jobs } from "./Jobs";
+
+const TABS = [
+  { id: "chat", label: "Chat" },
+  { id: "history", label: "History" },
+  { id: "assets", label: "Assets" },
+] as const;
+
+// With an external agent the conversation lives in that agent's app.
+const EXTERNAL_TABS = [
+  { id: "activity", label: "Activity" },
+  { id: "history", label: "History" },
+  { id: "assets", label: "Assets" },
+] as const;
+
+export function Sidebar() {
+  const external = useApp((s) => Boolean(s.external));
+  const selected = useApp((s) => s.sidebarTab);
+  const jobsUsed = useApp((s) => s.jobsUsed);
+  // The Jobs tab appears once the agent has run something on this computer.
+  const tabs = [...(external ? EXTERNAL_TABS : TABS), ...(jobsUsed ? ([{ id: "jobs", label: "Jobs" }] as const) : [])];
+  const tab = tabs.some((t) => t.id === selected) ? selected : tabs[0]!.id;
+  return (
+    <aside className="flex w-[420px] shrink-0 flex-col border-l border-line bg-panel">
+      <div className="flex h-10 shrink-0 items-center gap-3 border-b border-line px-2 text-xs">
+        <div role="tablist" className="flex gap-1">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              onClick={() => setSidebarTab(t.id)}
+              className={`rounded-md px-2.5 py-1 ${tab === t.id ? "bg-raised text-fg" : "text-muted hover:text-fg"}`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-3 pr-2">{tab === "chat" && <ChatHeaderActions />}</div>
+      </div>
+      {tab === "chat" ? <Chat /> : tab === "activity" ? <Activity /> : tab === "history" ? <History /> : tab === "jobs" ? <Jobs /> : <Assets />}
+    </aside>
+  );
+}

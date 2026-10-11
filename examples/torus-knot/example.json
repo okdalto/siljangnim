@@ -1,0 +1,19 @@
+{
+  "order": 7,
+  "title": "Torus knot mesh",
+  "title_ko": "토러스 매듭 메시",
+  "description": "A (2,3) torus knot mesh loaded from an OBJ asset, lit and turning. The mesh was made with trimesh through python_run; the recipe to regenerate it is included.",
+  "description_ko": "OBJ 에셋에서 불러온 (2,3) 토러스 매듭 메시를 조명과 함께 회전시킨다. 메시는 python_run으로 trimesh를 써서 만들었고, 다시 만드는 레시피가 들어 있다.",
+  "prompt": "Siljangnim에서 python_run으로 trimesh 패키지를 써서 토러스 매듭 메시를 만들어 OBJ로 저장하고, 그 메시를 씬에서 천천히 회전시키며 셰이딩해서 보여 줘.",
+  "made_with": "Claude Code over MCP, trimesh 4.5.3 via the runtime",
+  "features": [
+    "mesh",
+    "assets",
+    "runtime",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "trimesh"
+  ]
+}

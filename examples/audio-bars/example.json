@@ -1,0 +1,15 @@
+{
+  "order": 10,
+  "title": "Audio bars",
+  "title_ko": "오디오 막대",
+  "description": "Spectrum bars, a bass pulse and the waveform from a bundled music loop. Swap in your own audio asset, or use the microphone (inputs: [\"microphone\"]).",
+  "description_ko": "들어 있는 음악 루프로 스펙트럼 막대, 베이스 펄스, 파형을 그린다. 다른 오디오 에셋이나 마이크(inputs: [\"microphone\"])로 바꿀 수 있다.",
+  "prompt": "(written by hand as the audio-input reference scene; the loop is synthesized)",
+  "made_with": "ctx.utils.audio + audioTexture",
+  "features": [
+    "audio",
+    "audio texture",
+    "monitor"
+  ],
+  "mode": "live"
+}

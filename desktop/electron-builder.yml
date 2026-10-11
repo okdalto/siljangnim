@@ -1,0 +1,47 @@
+appId: com.okdalto.siljangnim
+productName: Siljangnim
+copyright: Copyright © 2026 okdalto
+directories:
+  output: release
+  buildResources: assets
+files:
+  - package.json
+  - src/**
+  - assets/icon.png
+  - stage/renderer/**
+  - stage/server/**
+extraResources:
+  - from: stage/hub
+    to: hub
+  - from: vendor/bin
+    to: bin
+    filter:
+      - uv
+      - uv.exe
+artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+
+mac:
+  target:
+    - target: dmg
+      arch: arm64
+  category: public.app-category.graphics-design
+  # Ad-hoc signature until a Developer ID is set up (see README). Hardened
+  # runtime would reject Electron's pre-signed frameworks under ad-hoc signing.
+  identity: "-"
+  hardenedRuntime: false
+  extendInfo:
+    NSCameraUsageDescription: Siljangnim uses the camera for hand, pose and face tracking in your scenes.
+    NSMicrophoneUsageDescription: Siljangnim uses the microphone for audio-reactive scenes.
+
+win:
+  target:
+    - target: nsis
+      arch: x64
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+
+linux:
+  target: dir

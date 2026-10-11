@@ -1,0 +1,22 @@
+{
+  "order": 11,
+  "title": "Hand tracking (MediaPipe)",
+  "title_ko": "손 추적 (MediaPipe)",
+  "description": "Your hands glow over the mirrored webcam. MediaPipe Hand Landmarker is fetched on demand from a CDN, not bundled. Needs a camera and the network.",
+  "description_ko": "거울처럼 비친 웹캠 위에서 손이 빛난다. MediaPipe Hand Landmarker를 번들하지 않고 필요할 때 CDN에서 받는다. 카메라와 네트워크가 필요하다.",
+  "prompt": "(written by hand as the camera + on-demand library reference scene)",
+  "made_with": "@mediapipe/tasks-vision 1.0.1 via ctx.utils.import",
+  "features": [
+    "camera",
+    "mediapipe",
+    "on-demand library"
+  ],
+  "mode": "live",
+  "requires": [
+    "camera",
+    "network"
+  ],
+  "uses": [
+    "mediapipe-tasks-vision"
+  ]
+}

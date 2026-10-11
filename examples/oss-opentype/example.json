@@ -1,0 +1,19 @@
+{
+  "order": 104,
+  "title": "Type particles (opentype.js)",
+  "title_ko": "글자 입자 (opentype.js)",
+  "description": "opentype.js reads a font file (Bungee, SIL Open Font License) and gives the glyph outlines; 5,000 particles settle onto them and scatter from the pointer. Pick a word or let it cycle.",
+  "description_ko": "opentype.js가 폰트 파일(Bungee, SIL Open Font License)을 읽어 글자 윤곽을 준다. 입자 5,000개가 윤곽에 모이고 포인터를 피해 흩어진다. 단어를 고르거나 자동으로 바뀌게 할 수 있다.",
+  "prompt": "(open-source example: opentype.js imported in the scene, with an OFL font asset)",
+  "made_with": "opentype.js 1.3.4 via ctx.utils.import; Bungee font (OFL, see FONT-LICENSE.txt)",
+  "features": [
+    "font",
+    "text",
+    "particles",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "opentype-js"
+  ]
+}

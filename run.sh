@@ -1,60 +1,21 @@
 #!/usr/bin/env bash
-set -e
+# Run Siljangnim from source: installs dependencies on first run, then starts
+# the desktop app in dev mode. Only Node.js 22+ is required — Python is
+# downloaded and managed by the app itself.
+set -euo pipefail
+cd "$(dirname "$0")"
 
-ROOT="$(cd "$(dirname "$0")" && pwd)"
-
-# ── Kill stale processes on our ports ──────────────────────────
-free_port() {
-  local port=$1
-  local pids
-  pids=$(lsof -ti :"$port" 2>/dev/null || true)
-  if [ -n "$pids" ]; then
-    echo "Port $port in use — killing PIDs: $pids"
-    echo "$pids" | xargs kill -9 2>/dev/null || true
-    sleep 0.5
-  fi
-}
-
-free_port 8000
-free_port 5173
-
-# ── Backend setup ──────────────────────────────────────────────
-echo "Setting up backend..."
-if [ ! -d "$ROOT/backend/.venv" ]; then
-  python3 -m venv "$ROOT/backend/.venv"
+if ! command -v node >/dev/null 2>&1; then
+  echo "Node.js 22+ is required: https://nodejs.org" >&2
+  exit 1
 fi
-source "$ROOT/backend/.venv/bin/activate"
-pip install -q -r "$ROOT/backend/requirements.txt"
-
-# ── Frontend setup ─────────────────────────────────────────────
-echo "Setting up frontend..."
-if [ ! -d "$ROOT/frontend/node_modules" ]; then
-  (cd "$ROOT/frontend" && npm install)
+major=$(node -p 'process.versions.node.split(".")[0]')
+if [ "$major" -lt 22 ]; then
+  echo "Node.js 22+ is required (found $(node -v))." >&2
+  exit 1
 fi
 
-# ── Start servers ──────────────────────────────────────────────
-echo ""
-echo "Starting siljangnim..."
-echo "   Backend   → http://localhost:8000"
-echo "   Frontend  → http://localhost:5173"
-echo "   Rendering → WebGL2 in browser"
-echo ""
-
-cleanup() {
-  echo ""
-  echo "Shutting down..."
-  kill $BACKEND_PID $FRONTEND_PID 2>/dev/null
-  wait $BACKEND_PID $FRONTEND_PID 2>/dev/null
-  exit 0
-}
-trap cleanup INT TERM
-
-# Start backend (unset CLAUDECODE to allow Agent SDK subprocess spawning)
-(cd "$ROOT/backend" && unset CLAUDECODE && uvicorn main:app --host 0.0.0.0 --port 8000 --reload --ws-max-size 104857600) &
-BACKEND_PID=$!
-
-# Start frontend
-(cd "$ROOT/frontend" && npm run dev -- --host 0.0.0.0 --port 5173) &
-FRONTEND_PID=$!
-
-wait
+if [ ! -d desktop/node_modules ] || [ ! -d studio/node_modules ]; then
+  npm install
+fi
+exec npm run dev

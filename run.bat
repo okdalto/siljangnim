@@ -1,122 +1,27 @@
 @echo off
-setlocal EnableDelayedExpansion
+rem Run Siljangnim from source: installs dependencies on first run, then starts
+rem the desktop app in dev mode. Only Node.js 22+ is required - Python is
+rem downloaded and managed by the app itself.
+setlocal
+cd /d "%~dp0"
 
-set "ROOT=%~dp0"
-:: Remove trailing backslash
-if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
-
-:: ── Check prerequisites ─────────────────────────────────────────
-echo Checking prerequisites...
-
-:: Check Python
-python --version >nul 2>&1
+where node >nul 2>&1
 if errorlevel 1 (
-    echo.
-    echo  Python is not installed.
-    echo  Attempting to install via winget...
-    winget install -e --id Python.Python.3.12 --accept-package-agreements --accept-source-agreements
-    if errorlevel 1 (
-        echo.
-        echo  [ERROR] Failed to install Python automatically.
-        echo  Please install Python manually from https://www.python.org/downloads/
-        echo  Make sure to check "Add python.exe to PATH" during installation.
-        echo.
-        pause
-        exit /b 1
-    )
-    echo  Python installed. Please close this window and run again.
-    pause
-    exit /b 0
+  echo Node.js 22+ is required: https://nodejs.org
+  pause
+  exit /b 1
 )
-for /f "delims=" %%v in ('python --version 2^>^&1') do echo   %%v ... OK
-
-:: Check Node.js
-node --version >nul 2>&1
-if errorlevel 1 (
-    echo.
-    echo  Node.js is not installed.
-    echo  Attempting to install via winget...
-    winget install -e --id OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements
-    if errorlevel 1 (
-        echo.
-        echo  [ERROR] Failed to install Node.js automatically.
-        echo  Please install Node.js manually from https://nodejs.org/
-        echo.
-        pause
-        exit /b 1
-    )
-    echo  Node.js installed. Please close this window and run again.
-    pause
-    exit /b 0
+for /f %%v in ('node -p "process.versions.node.split('.')[0]"') do set NODE_MAJOR=%%v
+if %NODE_MAJOR% LSS 22 (
+  echo Node.js 22+ is required.
+  pause
+  exit /b 1
 )
-for /f "delims=" %%v in ('node --version 2^>^&1') do echo   Node.js %%v ... OK
 
-:: Check npm
-npm --version >nul 2>&1
-if errorlevel 1 (
-    echo.
-    echo  [ERROR] npm is not available. It should come with Node.js.
-    echo  Please reinstall Node.js from https://nodejs.org/
-    echo.
-    pause
-    exit /b 1
-)
-for /f "delims=" %%v in ('npm --version 2^>^&1') do echo   npm %%v ... OK
-echo.
-
-:: ── Kill stale processes on our ports ──────────────────────────
-call :free_port 8000
-call :free_port 5173
-
-:: ── Backend setup ──────────────────────────────────────────────
-if not exist "%ROOT%\backend\.venv" (
-    echo [1/4] Creating Python virtual environment...
-    python -m venv "%ROOT%\backend\.venv"
-) else echo [1/4] Python virtual environment already exists.
-call "%ROOT%\backend\.venv\Scripts\activate.bat"
-echo [2/4] Installing Python dependencies ^(pip^)...
-pip install -q -r "%ROOT%\backend\requirements.txt"
-echo      Done.
-
-:: ── Frontend setup ─────────────────────────────────────────────
-if not exist "%ROOT%\frontend\node_modules" (
-    echo [3/4] Installing frontend dependencies ^(npm install^)...
-    pushd "%ROOT%\frontend"
-    call npm install
-    popd
-    echo      Done.
-) else echo [3/4] Frontend dependencies already installed.
-
-:: ── Start servers ──────────────────────────────────────────────
-echo [4/4] Starting servers...
-echo.
-echo    Backend  : http://localhost:8000
-echo    Frontend : http://localhost:5173
-echo    Rendering: WebGL2 in browser
-echo.
-echo Press Ctrl+C to stop.
-echo.
-
-:: Start backend in a new window
-set "CLAUDECODE="
-set "BACKEND_DIR=%ROOT%\backend"
-set "PYTHON_EXE=%ROOT%\backend\.venv\Scripts\python.exe"
-start "siljangnim-backend" cmd /c "cd /d %BACKEND_DIR% && %PYTHON_EXE% -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
-
-:: Start frontend in current window (keeps the script alive)
-pushd "%ROOT%\frontend"
-call npm run dev -- --host 0.0.0.0 --port 5173
-popd
-
-goto :eof
-
-:: ── Helper: kill process using a given port ────────────────────
-:free_port
-set "PORT=%~1"
-for /f "tokens=5" %%p in ('netstat -aon ^| findstr ":%PORT% " ^| findstr "LISTENING" 2^>nul') do (
-    if not "%%p"=="0" (
-        echo Port %PORT% in use - killing PID: %%p
-        taskkill /F /PID %%p >nul 2>&1
-    )
-)
-goto :eof
+if not exist desktop\node_modules goto install
+if not exist studio\node_modules goto install
+goto run
+:install
+call npm install || exit /b 1
+:run
+call npm run dev

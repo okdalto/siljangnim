@@ -1,0 +1,14 @@
+{
+  "order": 1,
+  "title": "Ocean waves",
+  "title_ko": "바다 파도",
+  "description": "A shaded ocean surface with sun glints. Live controls for speed, height, chop and color.",
+  "description_ko": "햇빛 반사가 있는 바다 표면. 속도·높이·잔물결·색을 실시간으로 조절한다.",
+  "prompt": "파도 셰이더 만들어줘",
+  "made_with": "Built-in agent, GPT gpt-6.1-sol",
+  "features": [
+    "shader",
+    "controls"
+  ],
+  "mode": "live"
+}

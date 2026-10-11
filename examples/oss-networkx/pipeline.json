@@ -1,0 +1,24 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "networkx.les-miserables-layout@1",
+      "packages": [
+        "networkx==3.5",
+        "numpy"
+      ],
+      "resolved": [
+        "networkx==3.5",
+        "numpy==2.5.4"
+      ],
+      "inputs": [],
+      "params": {
+        "seed": 3,
+        "iterations": 200
+      },
+      "outputs": [
+        "graph.json"
+      ]
+    }
+  ]
+}

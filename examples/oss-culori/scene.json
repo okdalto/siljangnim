@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// culori interpolates the same two colors in four color spaces, one band each:\n// rgb, hsl, lab and oklch from top to bottom.\nconst culori = await ctx.utils.import(\"https://esm.sh/culori@4.0.1\");\nObject.assign(ctx.state, { culori, MODES: [\"rgb\", \"hsl\", \"lab\", \"oklch\"], ramp: new Float32Array(256 * 3),\n  p: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, \"#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform vec3 u_ramp[256];\\nvoid main(){\\n  float row = floor((1.0 - v_uv.y) * 4.0);\\n  float x = v_uv.x * 63.0; int i = int(floor(x)); float f = fract(x);\\n  int base = int(row) * 64;\\n  vec3 c = mix(u_ramp[base + i], u_ramp[base + min(i + 1, 63)], f);\\n  float edge = fract((1.0 - v_uv.y) * 4.0);\\n  c *= smoothstep(0.0, 0.015, edge) * smoothstep(1.0, 0.985, edge);\\n  outColor = vec4(c, 1.0);\\n}\") });",
+    "render": "const s = ctx.state, { culori } = s, u = ctx.uniforms;\nconst turn = (c) => {\n  const o = culori.oklch({ mode: \"rgb\", r: c[0], g: c[1], b: c[2] });\n  return { ...o, h: ((o.h ?? 0) + ctx.time * u.u_spin) % 360 };\n};\nconst a = turn(u.u_from), b = turn(u.u_to);\ns.MODES.forEach((mode, row) => {\n  const mix = culori.interpolate([a, b], mode);\n  for (let i = 0; i < 64; i++) {\n    const c = culori.clampChroma(culori.rgb(mix(i / 63)), \"rgb\");\n    s.ramp.set([c.r, c.g, c.b].map((v) => Math.min(1, Math.max(0, v ?? 0))), (row * 64 + i) * 3);\n  }\n});\nctx.gl.useProgram(s.p);\nctx.utils.drawFullscreen(s.p, { u_ramp: s.ramp });",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_from": {
+      "type": "color",
+      "value": [
+        0.1,
+        0.35,
+        1.0
+      ],
+      "label": "From"
+    },
+    "u_to": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.85,
+        0.1
+      ],
+      "label": "To"
+    },
+    "u_spin": {
+      "type": "float",
+      "value": 12,
+      "min": 0,
+      "max": 90,
+      "step": 0.1,
+      "label": "Hue turn (\u00b0/s)"
+    }
+  },
+  "inputs": []
+}

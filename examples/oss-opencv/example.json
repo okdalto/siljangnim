@@ -1,0 +1,18 @@
+{
+  "order": 109,
+  "title": "Edge drawing (OpenCV)",
+  "title_ko": "윤곽 드로잉 (OpenCV)",
+  "description": "OpenCV traced the edges of Hokusai's The Great Wave (public domain) on this computer (recipe opencv.contours); the scene redraws them stroke by stroke, longest lines first. Drop in another image and run the recipe again.",
+  "description_ko": "OpenCV가 이 컴퓨터에서 호쿠사이의 〈가나가와 해변의 높은 파도 아래〉(퍼블릭 도메인) 윤곽을 땄다(레시피 opencv.contours). 씬은 긴 선부터 한 획씩 다시 그린다. 다른 이미지를 넣고 레시피를 다시 실행하면 된다.",
+  "prompt": "(open-source example: OpenCV run through the runtime, recipe included)",
+  "made_with": "opencv-python-headless 4.11.0.86 via recipe opencv.contours (python_run)",
+  "features": [
+    "edge detection",
+    "line drawing",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "opencv"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// OpenCV found the edges of the image on this computer (recipe opencv.contours \u2192 contours.json);\n// the scene draws them as ink lines, longest first.\nconst data = await (await fetch(ctx.assets[\"contours.json\"])).json();\nconst gl = ctx.gl;\nconst makeLines = (data, stride) => {\n  const vao = gl.createVertexArray(), buffer = gl.createBuffer();\n  gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);\n  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);\n  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, stride * 4, 0);\n  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, stride - 2, gl.FLOAT, false, stride * 4, 8);\n  gl.bindVertexArray(null);\n  return { vao, count: data.length / stride };\n};\nconst segs = [];\ndata.contours.forEach((line, i) => {\n  const order = i / data.contours.length;\n  for (let k = 0; k + 3 < line.length; k += 2) segs.push(line[k], line[k + 1], order, line[k + 2], line[k + 3], order);\n});\nObject.assign(ctx.state, { data, lines: makeLines(new Float32Array(segs), 3), photo: await ctx.utils.loadTexture(\"great-wave.jpg\"),\n  p: ctx.utils.createProgram(\"#version 300 es\\nlayout(location=0) in vec2 a_position; layout(location=1) in float a_order;\\nuniform vec2 u_fit; out float v_order;\\nvoid main(){ v_order = a_order; gl_Position = vec4((a_position * 2.0 - 1.0) * u_fit, 0.0, 1.0); }\", \"#version 300 es\\nprecision highp float; in float v_order; out vec4 outColor; uniform float u_progress; uniform vec3 u_ink;\\nvoid main(){ if (v_order > u_progress) discard; float fresh = smoothstep(u_progress - 0.02, u_progress, v_order);\\n  outColor = vec4(mix(u_ink, vec3(0.9, 0.3, 0.2), fresh), 1.0); }\"), bg: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, \"#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform sampler2D u_photo; uniform vec2 u_fit; uniform float u_show; uniform vec3 u_paper;\\nvoid main(){ vec2 q = (v_uv - 0.5) / u_fit + 0.5; vec3 c = u_paper;\\n  if (all(greaterThanEqual(q, vec2(0.0))) && all(lessThanEqual(q, vec2(1.0)))) c = mix(c, texture(u_photo, q).rgb, u_show);\\n  outColor = vec4(c, 1.0); }\") });\nctx.publish(\"contours\", data.contours.length);",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst img = s.data.width / s.data.height, view = w / h;\nconst fit = img > view ? [0.92, 0.92 * view / img] : [0.92 * img / view, 0.92];\nconst cycle = u.u_duration + 2;\nconst progress = Math.min(1, (ctx.time % cycle) / u.u_duration);\ngl.useProgram(s.bg);\nctx.utils.bindTexture(s.bg, \"u_photo\", s.photo.texture, 0);\nctx.utils.drawFullscreen(s.bg, { u_fit: fit, u_show: u.u_photo });\ngl.useProgram(s.p);\nctx.utils.setUniforms(s.p, { u_fit: fit, u_progress: progress, u_ink: u.u_ink });\ngl.bindVertexArray(s.lines.vao);\ngl.drawArrays(gl.LINES, 0, s.lines.count);\ngl.bindVertexArray(null);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_duration": {
+      "type": "float",
+      "value": 10,
+      "min": 2,
+      "max": 30,
+      "step": 0.5,
+      "label": "Drawing time (s)"
+    },
+    "u_photo": {
+      "type": "float",
+      "value": 0.12,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Photo"
+    },
+    "u_ink": {
+      "type": "color",
+      "value": [
+        0.1,
+        0.16,
+        0.32
+      ],
+      "label": "Ink"
+    },
+    "u_paper": {
+      "type": "color",
+      "value": [
+        0.95,
+        0.92,
+        0.85
+      ],
+      "label": "Paper"
+    }
+  },
+  "inputs": []
+}
