@@ -1,0 +1,67 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// opentype.js reads the font file and gives glyph outlines; particles settle onto them.\nconst mod = await ctx.utils.import(\"https://esm.sh/opentype.js@1.3.4\");\nconst opentype = mod.default ?? mod;\nconst font = opentype.parse(await (await fetch(ctx.assets[\"Bungee-Regular.ttf\"])).arrayBuffer());\nconst WORDS = [\"SILJANGNIM\", \"OPEN SOURCE\", \"HELLO\"];\nconst N = 5000;\nconst [w, h] = ctx.resolution;\n// Outline \u2192 evenly spaced points, fitted to the canvas (uv, y up).\nctx.state.sample = (text) => {\n  const segs = [];\n  let cur = [0, 0], start = [0, 0];\n  for (const c of font.getPath(text, 0, 0, 100).commands) {\n    if (c.type === \"M\") { cur = [c.x, c.y]; start = cur; }\n    else if (c.type === \"L\") { segs.push([cur, [c.x, c.y]]); cur = [c.x, c.y]; }\n    else if (c.type === \"Q\" || c.type === \"C\") {\n      for (let k = 1; k <= 10; k++) {\n        const t = k / 10, m = 1 - t;\n        const p = c.type === \"Q\"\n          ? [m * m * cur[0] + 2 * m * t * c.x1 + t * t * c.x, m * m * cur[1] + 2 * m * t * c.y1 + t * t * c.y]\n          : [m ** 3 * cur[0] + 3 * m * m * t * c.x1 + 3 * m * t * t * c.x2 + t ** 3 * c.x, m ** 3 * cur[1] + 3 * m * m * t * c.y1 + 3 * m * t * t * c.y2 + t ** 3 * c.y];\n        segs.push([segs.length && k > 1 ? segs[segs.length - 1][1] : cur, p]);\n      }\n      cur = [c.x, c.y];\n    } else if (c.type === \"Z\") { segs.push([cur, start]); cur = start; }\n  }\n  const lengths = segs.map(([a, b]) => Math.hypot(b[0] - a[0], b[1] - a[1]));\n  const total = lengths.reduce((x, y) => x + y, 0);\n  const pts = [];\n  let si = 0, acc = 0;\n  for (let i = 0; i < N; i++) {\n    const d = (i / N) * total;\n    while (si < segs.length - 1 && acc + lengths[si] < d) acc += lengths[si++];\n    const [a, b] = segs[si], f = lengths[si] ? (d - acc) / lengths[si] : 0;\n    pts.push(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f);\n  }\n  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;\n  for (let i = 0; i < pts.length; i += 2) { x0 = Math.min(x0, pts[i]); x1 = Math.max(x1, pts[i]); y0 = Math.min(y0, pts[i + 1]); y1 = Math.max(y1, pts[i + 1]); }\n  const aspect = w / h, scale = Math.min(0.84 * aspect / (x1 - x0), 0.5 / (y1 - y0));\n  const out = new Float32Array(N * 2);\n  for (let i = 0; i < N; i++) {\n    out[i * 2] = 0.5 + ((pts[i * 2] - (x0 + x1) / 2) * scale) / aspect;\n    out[i * 2 + 1] = 0.5 - (pts[i * 2 + 1] - (y0 + y1) / 2) * scale;\n  }\n  return out;\n};\nconst pos = new Float32Array(N * 3);\nfor (let i = 0; i < N; i++) { pos[i * 3] = Math.random(); pos[i * 3 + 1] = Math.random(); pos[i * 3 + 2] = 0; }\nconst gl = ctx.gl, vao = gl.createVertexArray(), buffer = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 12, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 12, 8);\ngl.bindVertexArray(null);\nObject.assign(ctx.state, { WORDS, N, pos, vel: new Float32Array(N * 2), vao, buffer, word: -1, targets: null,\n  p: ctx.utils.createProgram(\"#version 300 es\\nlayout(location=0) in vec2 a_position; layout(location=1) in float a_t;\\nuniform float u_size; out float v_t;\\nvoid main(){ v_t = a_t; gl_Position = vec4(a_position * 2.0 - 1.0, 0.0, 1.0); gl_PointSize = u_size; }\", \"#version 300 es\\nprecision highp float; in float v_t; out vec4 outColor; uniform vec3 u_left; uniform vec3 u_right;\\nvoid main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.0, d);\\n  outColor = vec4(mix(u_left, u_right, v_t) * a * 0.55, 1.0); }\") });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms;\nconst word = u.u_auto ? Math.floor(ctx.time / 5) % s.WORDS.length : u.u_word;\nif (word !== s.word) { s.word = word; s.targets = s.sample(s.WORDS[word]); }\nconst [mx, my] = [ctx.mouse[0], 1 - ctx.mouse[1]];\n// The pointer starts at the center; it scatters particles only once it has moved.\ns.moved ||= mx !== 0.5 || my !== 0.5;\nfor (let i = 0; i < s.N; i++) {\n  const o = i * 3, v = i * 2;\n  let x = s.pos[o], y = s.pos[o + 1];\n  let vx = s.vel[v] + (s.targets[v] - x) * 0.02 * u.u_pull, vy = s.vel[v + 1] + (s.targets[v + 1] - y) * 0.02 * u.u_pull;\n  const dx = x - mx, dy = y - my, d2 = dx * dx + dy * dy;\n  if (s.moved && d2 < 0.01) { vx += dx * 0.004 / (d2 + 1e-4); vy += dy * 0.004 / (d2 + 1e-4); }\n  vx = vx * 0.86 + (Math.random() - 0.5) * 0.0004; vy = vy * 0.86 + (Math.random() - 0.5) * 0.0004;\n  s.vel[v] = vx; s.vel[v + 1] = vy;\n  s.pos[o] = x + vx; s.pos[o + 1] = y + vy; s.pos[o + 2] = s.targets[v];\n}\ngl.clearColor(0.03, 0.03, 0.05, 1); gl.clear(gl.COLOR_BUFFER_BIT);\ngl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);\ngl.useProgram(s.p);\nctx.utils.setUniforms(s.p, { u_size: 5 * Math.min(2, devicePixelRatio), u_left: u.u_left, u_right: u.u_right });\ngl.bindVertexArray(s.vao); gl.bindBuffer(gl.ARRAY_BUFFER, s.buffer);\ngl.bufferData(gl.ARRAY_BUFFER, s.pos, gl.DYNAMIC_DRAW);\ngl.drawArrays(gl.POINTS, 0, s.N);\ngl.bindVertexArray(null); gl.disable(gl.BLEND);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_word": {
+      "type": "int",
+      "value": 0,
+      "label": "Word",
+      "widget": "select",
+      "options": [
+        {
+          "label": "SILJANGNIM",
+          "value": 0
+        },
+        {
+          "label": "OPEN SOURCE",
+          "value": 1
+        },
+        {
+          "label": "HELLO",
+          "value": 2
+        }
+      ]
+    },
+    "u_auto": {
+      "type": "bool",
+      "value": true,
+      "label": "Cycle words"
+    },
+    "u_pull": {
+      "type": "float",
+      "value": 1,
+      "min": 0.1,
+      "max": 3,
+      "step": 0.01,
+      "label": "Pull",
+      "widget": "knob"
+    },
+    "u_left": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.45,
+        0.25
+      ],
+      "label": "Left"
+    },
+    "u_right": {
+      "type": "color",
+      "value": [
+        0.35,
+        0.55,
+        1.0
+      ],
+      "label": "Right"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

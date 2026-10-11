@@ -1,0 +1,31 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "opencv.contours@1",
+      "packages": [
+        "opencv-python-headless==4.11.0.86",
+        "numpy"
+      ],
+      "resolved": [
+        "numpy==2.5.4",
+        "opencv-python-headless==4.11.0.86"
+      ],
+      "inputs": [
+        "great-wave.jpg"
+      ],
+      "params": {
+        "blur": 3,
+        "low": 60,
+        "high": 160,
+        "min_length": 40,
+        "epsilon": 0.8,
+        "max_contours": 1500
+      },
+      "outputs": [
+        "contours.json",
+        "edges.png"
+      ]
+    }
+  ]
+}

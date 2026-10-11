@@ -1,6 +1,7 @@
 // Catalog tools: which open-source tool fits, before setting one up (docs/catalog.md).
 import { z } from "zod";
 import { CATALOG, searchCatalog, type CatalogEntry } from "../catalog/catalog";
+import { EXAMPLES, type Example } from "../project/examples";
 import { defineTool, type ToolDefinition } from "./tools";
 
 const HOW: Record<CatalogEntry["tier"], string> = {
@@ -10,8 +11,31 @@ const HOW: Record<CatalogEntry["tier"], string> = {
   E: "GPU/large model via python_run (slow without a GPU)",
 };
 
+/** The gallery example built around a tool: a working integration to learn from. */
+const exampleFor = (id: string): Example | undefined => EXAMPLES.find((x) => x.uses?.[0] === id) ?? EXAMPLES.find((x) => x.uses?.includes(id));
+
 function line(e: CatalogEntry): string {
-  return `${e.id} [${e.tier}: ${HOW[e.tier]}] ${e.name} — ${e.purpose} License ${e.license}${e.weights_license ? `; weights: ${e.weights_license}` : ""}.`;
+  const example = exampleFor(e.id);
+  return `${e.id} [${e.tier}: ${HOW[e.tier]}] ${e.name} — ${e.purpose} License ${e.license}${e.weights_license ? `; weights: ${e.weights_license}` : ""}.${example ? ` Example: "${example.title}".` : ""}`;
+}
+
+const MAX_REFERENCE = 4000;
+
+/** The example's setup code (and the recipe it ran), so the agent can follow a version that works. */
+async function reference(e: CatalogEntry): Promise<string> {
+  const example = exampleFor(e.id);
+  if (!example) return "";
+  const scene = await example.scene();
+  const setup = scene.script.setup.length > MAX_REFERENCE ? `${scene.script.setup.slice(0, MAX_REFERENCE)}\n// …` : scene.script.setup;
+  const steps = (example.pipeline as { steps?: Array<{ recipe?: string; params?: unknown }> } | null)?.steps ?? [];
+  const recipes = steps.flatMap((s) => (s.recipe ? [`${s.recipe}${s.params ? ` with params ${JSON.stringify(s.params)}` : ""}`] : []));
+  return [
+    `\nExample "${example.title}" (gallery: Projects → Examples) is built around it. ${example.description}`,
+    recipes.length ? `Its assets came from recipe ${recipes.join(", ")} (recipe_search / recipe_install to run it here).` : "",
+    `Its scene setup, a working integration:\n${setup}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function detail(e: CatalogEntry): string {
@@ -56,7 +80,7 @@ const catalogGet = defineTool({
   readOnly: true,
   async run({ id }) {
     const e = CATALOG.find((c) => c.id === id);
-    return e ? { content: detail(e) } : { isError: true, content: `No catalog entry "${id}"; use catalog_search.` };
+    return e ? { content: detail(e) + (await reference(e)) } : { isError: true, content: `No catalog entry "${id}"; use catalog_search.` };
   },
 });
 

@@ -1,37 +1,62 @@
 # Examples / 예제
 
-Scenes made in Siljangnim, ready to open: in the app, **Projects menu → Examples…** creates a new
-project from one (scene and assets). Each folder has:
+Scenes you can open right away: in the app, **Projects menu → Examples…** creates a new project from one
+(scene and assets). Most are **open-source tools connected to Siljangnim**: a library imported by the scene, or a
+Python package or program the agent ran through a recipe, whose output the scene uses. They double as references:
+`catalog_get` shows an agent the example built around a tool.
 
 ```
-example.json   title, description, the prompt it came from, who made it
+example.json   title, description, what it's made with, uses (catalog ids)
 scene.json     the scene (format v2, see docs/studio.md)
 thumbnail.png
 assets/        files the scene loads by name (ctx.assets[name])
-recipe/        (torus-knot) the recipe that regenerates the asset with trimesh
+recipe/        recipes that made the assets (also in ../registry)
+pipeline.json  how the assets were made (copied into the project, so project.md can say it)
 ```
 
-Thumbnails are captured from the running scene: `node mcp/scripts/capture-scene.mjs examples/<name>/scene.json examples/<name>/thumbnail.png`.
+## Open source in Siljangnim
+
+| Example | Tool | Shows |
+|---|---|---|
+| [Torus knot mesh](torus-knot/) | [trimesh](https://github.com/mikedh/trimesh) (MIT, Python, recipe) | mesh, assets, runtime, recipe |
+| [Hand tracking (MediaPipe)](hand-tracking/) | [MediaPipe Tasks Vision](https://github.com/google-ai-edge/mediapipe) (Apache-2.0, in the scene) | camera, mediapipe, on-demand library |
+| [Low-poly drift (d3-delaunay)](oss-d3-delaunay/) | [d3-delaunay](https://github.com/d3/d3-delaunay) (ISC, in the scene) | delaunay, dynamic mesh, mouse |
+| [Blob pour (Matter.js)](oss-matter-js/) | [Matter.js](https://github.com/liabru/matter-js) (MIT, in the scene) | physics, metaballs, mouse |
+| [Flow field (simplex-noise)](oss-simplex-noise/) | [simplex-noise](https://github.com/jwagner/simplex-noise.js) (MIT, in the scene) | noise, particles, trails |
+| [Type particles (opentype.js)](oss-opentype/) | [opentype.js](https://github.com/opentypejs/opentype.js) (MIT, in the scene) | font, text, particles, mouse |
+| [Color spaces (culori)](oss-culori/) | [culori](https://github.com/Evercoder/culori) (MIT, in the scene) | color, gradient, palette |
+| [Arpeggio ring (Tone.js)](oss-tone/) | [Tone.js](https://github.com/Tonejs/Tone.js) (MIT, in the scene) | audio synthesis, sequencer, audio-reactive |
+| [Chroma wheel (Meyda)](oss-meyda/) | [Meyda](https://github.com/meyda/meyda) (MIT, in the scene) | audio analysis, chroma, audio-reactive |
+| [Beat runway (librosa)](oss-librosa/) | [librosa](https://github.com/librosa/librosa) (ISC, Python, recipe) | beat tracking, audio analysis, recipe |
+| [Edge drawing (OpenCV)](oss-opencv/) | [OpenCV (opencv-python-headless)](https://github.com/opencv/opencv) (Apache-2.0, Python, recipe) | edge detection, line drawing, recipe |
+| [Contour islands (Shapely)](oss-shapely/) | [Shapely](https://github.com/shapely/shapely) (BSD-3-Clause, Python, recipe) | geometry, offset curves, recipe |
+| [Les Misérables network (NetworkX)](oss-networkx/) | [NetworkX](https://github.com/networkx/networkx) (BSD-3-Clause, Python, recipe) | graph layout, communities, mouse, recipe |
+| [GLB sculpture (glTF Transform)](oss-gltf-transform/) | [glTF Transform](https://github.com/donmccurdy/glTF-Transform) (MIT, in the scene), [trimesh](https://github.com/mikedh/trimesh) (MIT, Python, recipe) | gltf, 3d model, orbit camera, recipe |
+| [Fractal kaleidoscope (FFmpeg)](oss-ffmpeg/) | [FFmpeg](https://github.com/FFmpeg/FFmpeg) (LGPL-2.1-or-later, program, recipe) | video, kaleidoscope, recipe |
+
+## Made in Siljangnim
 
 | Example | Shows | Made with |
 |---|---|---|
-| Ocean waves | shader, live controls | built-in agent (GPT) |
-| Reaction–diffusion | ping-pong simulation, mouse | built-in agent (GPT) |
-| Raymarched mirror sphere | raymarching, orbit camera | built-in agent (GPT) |
-| Purple spiral | knob | Claude Code over MCP |
-| Orange ripples | control groups | Codex over MCP |
-| Image on fluttering fabric | image asset as a texture | built-in agent (GPT), image attached |
-| Torus knot mesh | OBJ asset from the runtime, recipe | Claude Code over MCP + trimesh |
-| Swell (timeline) | Timeline mode, keyframes | the waves scene with two keyed controls |
-| GPU particles (WebGPU) | compute shader, storage buffers, monitor | written by hand as the WebGPU reference |
-| Audio bars | audio analysis, audio texture (synthesized loop) | written by hand as the audio reference |
-| Hand tracking (MediaPipe) | webcam, MediaPipe from a CDN, landmark uniforms (needs a camera and the network) | written by hand as the camera + ML reference |
+| [Ocean waves](waves/) | shader, controls | Built-in agent, GPT gpt-6.1-sol |
+| [Reaction–diffusion](reaction-diffusion/) | simulation, ping-pong, mouse | Built-in agent, GPT gpt-6.1-sol |
+| [Raymarched mirror sphere](raymarch-spheres/) | raymarching, orbit camera | Built-in agent, GPT gpt-6.1-sol |
+| [Purple spiral](purple-spiral/) | shader, knob, mcp | Claude Code over MCP |
+| [Orange ripples](orange-rings/) | shader, control groups, mcp | Codex over MCP (gpt-5.5) |
+| [Image on fluttering fabric](fabric-flag/) | assets, texture, vision | Built-in agent, GPT gpt-6.1-sol (with the image attached) |
+| [Swell (timeline)](swell-timeline/) | timeline, keyframes | Ocean waves + keyframes |
+| [GPU particles (WebGPU)](gpu-particles/) | webgpu, compute, mouse, monitor | WebGPU compute + render, ctx.utils.createUniforms |
+| [Audio bars](audio-bars/) | audio, audio texture, monitor | ctx.utils.audio + audioTexture |
 
-Most were made during real-model test runs (prompts are in each `example.json`); labels were
-translated to English. To add one, put a folder here with the files above. `npm test` checks every
-example parses and ships the assets its scene names, and `npm run smoke` opens each one in the
-desktop app and checks it renders without errors.
+Recipe examples were generated by running their recipe through the hub (save → verify → run). Third-party
+material: the Bungee font is under the SIL Open Font License (`oss-opentype/FONT-LICENSE.txt`); Hokusai's
+*The Great Wave off Kanagawa* is in the public domain (via Wikimedia Commons).
 
-앱에서 **프로젝트 메뉴 → Examples…**를 열면 예제가 새 프로젝트(씬과 에셋 포함)로 열린다. 대부분은 실제 모델로
-테스트하면서 만든 결과이고, 각 `example.json`에 원래 프롬프트가 있다. 예제를 추가하려면 위 구성의 폴더를 넣는다.
-`npm test`가 씬 형식과 에셋을, `npm run smoke`가 데스크톱 앱에서 실제로 렌더링되는지를 확인한다.
+To add one, put a folder here with the files above. `npm test` checks every example parses, ships the assets its
+scene names, names catalog tools that exist and ships the same recipe as the registry; `npm run smoke` opens each one
+in the desktop app and checks it renders without errors. Thumbnails: `node mcp/scripts/capture-example.mjs <folder>`
+(after `npm --prefix studio run build`).
+
+앱에서 **프로젝트 메뉴 → Examples…**를 열면 예제가 새 프로젝트로 열린다. 대부분은 **오픈소스 하나를 실장님에 붙인 것**이다.
+씬이 가져오는 라이브러리이거나, 에이전트가 레시피로 실행한 Python 패키지·프로그램의 결과를 씬이 쓴다.
+에이전트에게는 참고 구현이 된다(`catalog_get`이 그 도구로 만든 예제의 코드를 보여 준다).

@@ -1,0 +1,18 @@
+{
+  "order": 106,
+  "title": "Arpeggio ring (Tone.js)",
+  "title_ko": "아르페지오 링 (Tone.js)",
+  "description": "Tone.js plays a generative arpeggio through a reverb; its waveform bends the ring and its spectrum grows the spikes. Click the viewport to start the sound (browsers need a gesture).",
+  "description_ko": "Tone.js가 리버브를 거친 생성형 아르페지오를 연주한다. 파형이 고리를 휘게 하고, 스펙트럼이 바깥 가시를 키운다. 뷰포트를 클릭하면 소리가 시작된다(브라우저는 사용자 동작이 있어야 소리를 낸다).",
+  "prompt": "(open-source example: Tone.js imported in the scene)",
+  "made_with": "Tone.js 15.1.22 via ctx.utils.import",
+  "features": [
+    "audio synthesis",
+    "sequencer",
+    "audio-reactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "tone-js"
+  ]
+}

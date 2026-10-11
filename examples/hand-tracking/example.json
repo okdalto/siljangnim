@@ -15,5 +15,8 @@
   "requires": [
     "camera",
     "network"
+  ],
+  "uses": [
+    "mediapipe-tasks-vision"
   ]
 }

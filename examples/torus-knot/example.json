@@ -12,5 +12,8 @@
     "runtime",
     "recipe"
   ],
-  "mode": "live"
+  "mode": "live",
+  "uses": [
+    "trimesh"
+  ]
 }

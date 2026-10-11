@@ -1,0 +1,18 @@
+{
+  "order": 107,
+  "title": "Chroma wheel (Meyda)",
+  "title_ko": "크로마 휠 (Meyda)",
+  "description": "Meyda analyses a bundled music loop: the 12 pitch classes (chroma) light up around the circle of fifths, loudness sizes the core and the spectral centroid colors it. Swap beat.wav for your own audio.",
+  "description_ko": "Meyda가 들어 있는 음악 루프를 분석한다. 12개 음높이 성분(크로마)이 5도권 순서로 빛나고, 음량이 가운데 원의 크기를, 스펙트럼 중심이 그 색을 정한다. beat.wav를 다른 오디오로 바꿔도 된다.",
+  "prompt": "(open-source example: Meyda imported in the scene, with an audio asset)",
+  "made_with": "Meyda 5.6.3 via ctx.utils.import",
+  "features": [
+    "audio analysis",
+    "chroma",
+    "audio-reactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "meyda"
+  ]
+}

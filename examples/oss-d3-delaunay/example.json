@@ -1,0 +1,18 @@
+{
+  "order": 101,
+  "title": "Low-poly drift (d3-delaunay)",
+  "title_ko": "로우폴리 흐름 (d3-delaunay)",
+  "description": "d3-delaunay re-triangulates 400 drifting points every frame; the facets take a two-color gradient and move away from the pointer.",
+  "description_ko": "d3-delaunay가 떠다니는 점 400개를 매 프레임 다시 삼각분할한다. 면은 두 색 그라디언트를 받고, 포인터를 피해 움직인다.",
+  "prompt": "(open-source example: d3-delaunay imported in the scene)",
+  "made_with": "d3-delaunay 6.0.4 via ctx.utils.import",
+  "features": [
+    "delaunay",
+    "dynamic mesh",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-delaunay"
+  ]
+}

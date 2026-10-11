@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Matter.js simulates the bodies; a shader draws them as merging blobs (metaballs).\nconst mod = await ctx.utils.import(\"https://esm.sh/matter-js@0.20.0\");\nconst M = mod.default ?? mod;\nconst [w, h] = ctx.resolution;\nconst W = 1000 * w / h, H = 1000;\nconst engine = M.Engine.create();\nconst wall = { isStatic: true };\nM.Composite.add(engine.world, [\n  M.Bodies.rectangle(W / 2, H + 50, W * 2, 100, wall),\n  M.Bodies.rectangle(-50, H / 2, 100, H * 3, wall),\n  M.Bodies.rectangle(W + 50, H / 2, 100, H * 3, wall),\n  // A tilted shelf the blobs pour over.\n  M.Bodies.rectangle(W * 0.35, H * 0.55, W * 0.45, 24, { isStatic: true, angle: 0.25 }),\n]);\nObject.assign(ctx.state, { M, engine, W, H, balls: [], spawn: 0, data: new Float32Array(270) });\nctx.state.p = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, '#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor;\\nuniform vec2 u_resolution; uniform vec3 u_balls[90]; uniform int u_count;\\nuniform vec3 u_colorA; uniform vec3 u_colorB; uniform float u_threshold; uniform vec4 u_shelf;\\nvoid main(){\\n  vec2 p = vec2(v_uv.x * u_resolution.x / u_resolution.y, v_uv.y);\\n  float field = 0.0; float hue = 0.0;\\n  for (int i = 0; i < 90; i++) {\\n    if (i >= u_count) break;\\n    vec3 b = u_balls[i];\\n    vec2 d = p - b.xy;\\n    float f = b.z * b.z / max(dot(d, d), 1e-5);\\n    field += f; hue += f * fract(float(i) * 0.618);\\n  }\\n  hue /= max(field, 1e-5);\\n  float inside = smoothstep(u_threshold - 0.08, u_threshold + 0.08, field);\\n  vec3 col = mix(u_colorA, u_colorB, hue);\\n  vec3 bg = vec3(0.04, 0.045, 0.06) + 0.05 * col * min(field, 1.0);\\n  vec3 c = mix(bg, col * (0.75 + 0.25 * smoothstep(u_threshold, u_threshold * 3.0, field)), inside);\\n  // The shelf: a rotated box (center, half length, angle).\\n  vec2 q = p - u_shelf.xy; float ca = cos(u_shelf.w), sa = sin(u_shelf.w);\\n  q = vec2(ca * q.x - sa * q.y, sa * q.x + ca * q.y);\\n  vec2 e = abs(q) - vec2(u_shelf.z, 0.012);\\n  float shelf = 1.0 - smoothstep(0.0, 0.003, length(max(e, 0.0)) + min(max(e.x, e.y), 0.0));\\n  outColor = vec4(mix(c, vec3(0.32, 0.34, 0.4), shelf), 1.0);\\n}');",
+    "render": "const s = ctx.state, { M } = s, u = ctx.uniforms;\ns.engine.gravity.y = u.u_gravity;\ns.spawn -= ctx.dt;\nif (s.spawn <= 0) {\n  s.spawn = 0.12;\n  const r = 18 + Math.random() * 26;\n  const ball = M.Bodies.circle(s.W * (0.15 + Math.random() * 0.7), -60, r, { restitution: 0.3, friction: 0.02 });\n  ball.r = r;\n  M.Composite.add(s.engine.world, ball);\n  s.balls.push(ball);\n  if (s.balls.length > 90) M.Composite.remove(s.engine.world, s.balls.shift());\n}\n// Hold the mouse button to pull the blobs toward the pointer.\nif (ctx.mouseDown) {\n  const tx = ctx.mouse[0] * s.W, ty = ctx.mouse[1] * s.H;\n  for (const b of s.balls) M.Body.applyForce(b, b.position, { x: (tx - b.position.x) * 2e-6 * b.mass, y: (ty - b.position.y) * 2e-6 * b.mass });\n}\nM.Engine.update(s.engine, Math.min(ctx.dt, 1 / 30) * 1000);\ns.balls.forEach((b, i) => s.data.set([b.position.x / s.H, 1 - b.position.y / s.H, b.r / s.H * 1.1], i * 3));\nctx.gl.useProgram(s.p);\n// Matter's y goes down and the shelf's angle turns clockwise on screen.\nctx.utils.drawFullscreen(s.p, { u_balls: s.data, u_count: s.balls.length, u_shelf: [s.W * 0.35 / s.H, 1 - 0.55, s.W * 0.45 / 2 / s.H, 0.25] });\nctx.publish(\"bodies\", s.balls.length);",
+    "cleanup": "ctx.state.M?.Engine.clear(ctx.state.engine);"
+  },
+  "uniforms": {
+    "u_gravity": {
+      "type": "float",
+      "value": 1,
+      "min": -1,
+      "max": 2,
+      "step": 0.01,
+      "label": "Gravity",
+      "widget": "knob"
+    },
+    "u_threshold": {
+      "type": "float",
+      "value": 1,
+      "min": 0.3,
+      "max": 3,
+      "step": 0.01,
+      "label": "Merge"
+    },
+    "u_colorA": {
+      "type": "color",
+      "value": [
+        0.15,
+        0.85,
+        0.75
+      ],
+      "label": "Color A"
+    },
+    "u_colorB": {
+      "type": "color",
+      "value": [
+        0.95,
+        0.35,
+        0.65
+      ],
+      "label": "Color B"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

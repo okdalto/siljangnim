@@ -1,0 +1,47 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "librosa.beat-track@1",
+      "packages": [
+        "librosa==0.11.0"
+      ],
+      "resolved": [
+        "audioread==3.1.0",
+        "certifi==2026.7.22",
+        "cffi==2.1.1",
+        "charset-normalizer==3.5.2",
+        "cloudpickle==3.1.2",
+        "decorator==5.3.1",
+        "idna==3.20",
+        "joblib==1.6.0",
+        "lazy-loader==0.6",
+        "librosa==0.11.0",
+        "llvmlite==0.50.0",
+        "msgpack==1.2.3",
+        "narwhals==2.27.1",
+        "numba==0.68.0",
+        "numpy==2.5.4",
+        "packaging==26.3",
+        "platformdirs==4.13.0",
+        "pooch==1.9.0",
+        "pycparser==3.11",
+        "requests==2.34.2",
+        "scikit-learn==1.9.1",
+        "scipy==1.18.1",
+        "soundfile==0.14.0",
+        "soxr==1.1.0",
+        "threadpoolctl==3.7.0",
+        "typing-extensions==4.16.0",
+        "urllib3==2.8.0"
+      ],
+      "inputs": [
+        "beat.wav"
+      ],
+      "params": {},
+      "outputs": [
+        "beats.json"
+      ]
+    }
+  ]
+}

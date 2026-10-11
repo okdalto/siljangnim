@@ -19,4 +19,16 @@ describe("catalog", () => {
     expect(searchCatalog("", { media: "audio" }).map((e) => e.id)).toContain("librosa");
     expect(searchCatalog("nonexistent-capability")).toEqual([]);
   });
+
+  it("catalog_get shows the example built around a tool as a working reference", async () => {
+    const { CATALOG_TOOLS } = await import("../agent/catalogTools");
+    const get = CATALOG_TOOLS.find((t) => t.name === "catalog_get")!;
+    const { stubEnv } = await import("../agent/testing");
+    const text = String((await get.run({ id: "librosa" }, stubEnv())).content);
+    expect(text).toContain('Example "Beat runway (librosa)"');
+    expect(text).toContain("recipe librosa.beat-track@1");
+    expect(text).toContain('fetch(ctx.assets["beats.json"])');
+    const search = CATALOG_TOOLS.find((t) => t.name === "catalog_search")!;
+    expect(String((await search.run(search.input.parse({ query: "delaunay" }), stubEnv())).content)).toContain('Example: "Low-poly drift (d3-delaunay)"');
+  });
 });

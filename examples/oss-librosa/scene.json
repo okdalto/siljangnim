@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// librosa analysed the loop ahead of time (recipe librosa.beat-track \u2192 beats.json): tempo, beat\n// times and the onset envelope. The scene plays the audio and follows its clock, so markers can\n// arrive exactly on the beat \u2014 something live analysis can't do.\nconst analysis = await (await fetch(ctx.assets[\"beats.json\"])).json();\nconst element = await ctx.utils.audio.play(\"beat.wav\", { loop: true });\nObject.assign(ctx.state, { analysis, element, last: 0, pulse: 0, env: new Float32Array(128), beats: new Float32Array(16),\n  p: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, \"#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor;\\nuniform vec2 u_resolution; uniform float u_env[128]; uniform float u_beats[16]; uniform float u_pulse; uniform vec3 u_color; uniform float u_window;\\nvoid main(){\\n  vec2 p = v_uv; float aspect = u_resolution.x / u_resolution.y;\\n  vec3 col = vec3(0.025, 0.025, 0.04);\\n  // Onset envelope around now (center), librosa's analysis looked ahead of the playhead.\\n  float x = p.x * 127.0; int i = int(x);\\n  float e = mix(u_env[i], u_env[min(i + 1, 127)], fract(x));\\n  float lane = 0.18;\\n  float bar = step(p.y, lane * 0.15 + e * lane) * step(lane * 0.15 - e * lane * 0.3, p.y);\\n  col += u_color * bar * (p.x < 0.5 ? 0.35 : 0.8);\\n  // Beat markers slide toward the playhead.\\n  for (int k = 0; k < 16; k++) {\\n    float bx = 0.5 + u_beats[k] / (2.0 * u_window);\\n    float m = exp(-abs(p.x - bx) * u_resolution.x * 0.25) * step(p.y, lane * 1.6);\\n    col += vec3(1.0, 0.9, 0.7) * m * (u_beats[k] > 0.0 ? 0.9 : 0.25);\\n  }\\n  col += vec3(1.0) * exp(-abs(p.x - 0.5) * u_resolution.x * 0.5) * step(p.y, lane * 1.6) * 0.6;\\n  // The beat pulse.\\n  vec2 c = (p - vec2(0.5, 0.6)) * vec2(aspect, 1.0);\\n  float r = length(c);\\n  float ring = exp(-abs(r - (0.12 + (1.0 - u_pulse) * 0.25)) * 90.0) * u_pulse;\\n  col += u_color * (ring * 1.4 + smoothstep(0.12, 0.0, r) * (0.25 + 0.75 * u_pulse));\\n  outColor = vec4(col, 1.0);\\n}\") });\nctx.publish(\"tempo\", Math.round(analysis.tempo * 10) / 10);",
+    "render": "const s = ctx.state, a = s.analysis, u = ctx.uniforms;\nconst now = s.element.currentTime, D = a.duration, W = u.u_window;\n// A beat crossed since the last frame (the loop wraps around).\nconst crossed = a.beats.some((b) => (s.last <= now ? b > s.last && b <= now : b > s.last || b <= now));\nif (crossed) s.pulse = 1;\ns.last = now;\ns.pulse *= Math.exp(-ctx.dt * 5);\nfor (let i = 0; i < 128; i++) {\n  const t = (((now + (i / 127 - 0.5) * 2 * W) % D) + D) % D;\n  s.env[i] = a.envelope[Math.floor(t * a.envelope_fps)] ?? 0;\n}\ns.beats.fill(-99);\nlet k = 0;\nfor (const b of a.beats) for (const shift of [-D, 0, D]) {\n  const d = b + shift - now;\n  if (Math.abs(d) < W && k < 16) s.beats[k++] = d;\n}\nctx.gl.useProgram(s.p);\nctx.utils.drawFullscreen(s.p, { u_env: s.env, u_beats: s.beats, u_pulse: s.pulse });",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_window": {
+      "type": "float",
+      "value": 2,
+      "min": 0.5,
+      "max": 4,
+      "step": 0.1,
+      "label": "Look ahead (s)"
+    },
+    "u_color": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.45,
+        0.3
+      ],
+      "label": "Color"
+    }
+  },
+  "inputs": []
+}

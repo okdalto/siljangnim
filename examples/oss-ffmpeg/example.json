@@ -1,0 +1,18 @@
+{
+  "order": 113,
+  "title": "Fractal kaleidoscope (FFmpeg)",
+  "title_ko": "프랙털 만화경 (FFmpeg)",
+  "description": "FFmpeg, the program installed on this computer, rendered a Mandelbrot zoom video from its built-in lavfi source (recipe ffmpeg.mandelbrot-zoom, run with command_run); the scene plays it through a kaleidoscope.",
+  "description_ko": "이 컴퓨터에 설치된 FFmpeg가 내장 lavfi 소스로 만델브로 확대 영상을 렌더했다(레시피 ffmpeg.mandelbrot-zoom, command_run으로 실행). 씬은 그 영상을 만화경으로 재생한다.",
+  "prompt": "(open-source example: FFmpeg run through the runtime, recipe included)",
+  "made_with": "FFmpeg (installed) via recipe ffmpeg.mandelbrot-zoom (command_run)",
+  "features": [
+    "video",
+    "kaleidoscope",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "ffmpeg"
+  ]
+}

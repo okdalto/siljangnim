@@ -2,6 +2,84 @@
   "version": 1,
   "recipes": [
     {
+      "id": "ffmpeg.mandelbrot-zoom",
+      "version": 2,
+      "title": "Mandelbrot zoom video from ffmpeg's lavfi source",
+      "capability": "video-generate fractal mandelbrot mp4",
+      "kind": "command",
+      "license": "LGPL-2.1-or-later (this build may include GPL parts)",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ffmpeg.mandelbrot-zoom/recipe.md",
+      "sha256": "b23b25a3ede0a9298ab98c73ffb4c896d6f8b2788e75332ded29438d6f77c5be"
+    },
+    {
+      "id": "librosa.beat-track",
+      "version": 1,
+      "title": "Beats, tempo and onset envelope (librosa)",
+      "capability": "audio-analyze beat tempo onset envelope json",
+      "kind": "python",
+      "license": "ISC",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/librosa.beat-track/recipe.md",
+      "sha256": "f125ae55cb449eff526566c1611b8b6f34421f8c1c7d563289a702cd54b5e133"
+    },
+    {
+      "id": "networkx.les-miserables-layout",
+      "version": 1,
+      "title": "Character network layout and communities (NetworkX)",
+      "capability": "graph-layout network nodes edges communities json",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/networkx.les-miserables-layout/recipe.md",
+      "sha256": "0851b6175145270d386564700ce6be0967a219029aa07fb743a0ab479096da00"
+    },
+    {
+      "id": "opencv.contours",
+      "version": 1,
+      "title": "Edge contours as polylines (OpenCV)",
+      "capability": "image-to-lines edges contours polylines json line drawing",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/opencv.contours/recipe.md",
+      "sha256": "ab16e3e78ec41d198874c0706cb5a87ba5c968a4935b8d785abb8878dd58e257"
+    },
+    {
+      "id": "shapely.offset-rings",
+      "version": 1,
+      "title": "Offset rings around blob shapes (Shapely)",
+      "capability": "geometry-generate offset contour rings topographic plotter lines json",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/shapely.offset-rings/recipe.md",
+      "sha256": "2f226b5c1adb3ffac381dd1ea4ae6fb91a5a6e41e0fb20056a5a40ed1dbe7b77"
+    },
+    {
+      "id": "trimesh.displaced-sphere-glb",
+      "version": 3,
+      "title": "Displaced, vertex-colored sphere as GLB (trimesh)",
+      "capability": "mesh-generate sculpture sphere displacement vertex colors glb gltf",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/trimesh.displaced-sphere-glb/recipe.md",
+      "sha256": "4359c23d1ee74d9de59236e7d1e29ba5b192aa5e1671f2d373897767fcea4269"
+    },
+    {
       "id": "trimesh.torus-knot",
       "version": 1,
       "title": "Torus knot tube mesh (trimesh)",
