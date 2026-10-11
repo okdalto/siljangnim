@@ -4,6 +4,7 @@ import { SceneHost, sceneRuntimeUrl } from "../../scene/host";
 import { attachSceneHost } from "../session";
 import { useApp } from "../state";
 import { AlertIcon, XIcon } from "./icons";
+import { RecordingOverlay } from "./Record";
 
 export function Viewport() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -32,6 +33,7 @@ export function Viewport() {
       <div ref={containerRef} className="absolute inset-0" />
       {hostError && <div className="absolute inset-0 grid place-items-center p-6 text-sm text-danger">{hostError}</div>}
       <StatusBar />
+      <RecordingOverlay />
     </section>
   );
 }

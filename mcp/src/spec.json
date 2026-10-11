@@ -351,6 +351,77 @@
       "readOnly": true
     },
     {
+      "name": "viewport_record",
+      "description": "Record the scene to a file saved as a project asset (and downloaded for the person): MP4 or WebM video, or PNG frames in a zip. Offline mode renders frame by frame from the start at exact timestamps (smooth at any size); realtime mode captures what plays, including the person's interaction (WebM only). Duration defaults to the timeline length, or 5 s.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "default": "mp4",
+            "type": "string",
+            "enum": [
+              "mp4",
+              "webm",
+              "png"
+            ]
+          },
+          "mode": {
+            "default": "offline",
+            "type": "string",
+            "enum": [
+              "offline",
+              "realtime"
+            ]
+          },
+          "duration": {
+            "description": "Seconds.",
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 600
+          },
+          "fps": {
+            "default": 30,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 120
+          },
+          "width": {
+            "default": 0,
+            "description": "0 keeps the viewport size.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7680
+          },
+          "height": {
+            "default": 0,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4320
+          },
+          "quality": {
+            "default": "high",
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "very-high"
+            ]
+          }
+        },
+        "required": [
+          "format",
+          "mode",
+          "fps",
+          "width",
+          "height",
+          "quality"
+        ],
+        "additionalProperties": false
+      },
+      "readOnly": false
+    },
+    {
       "name": "history_list",
       "description": "List saved versions of the scene (one per finished agent run or control adjustment), as a tree: indented entries are branches made after a restore. Use it when the person wants an earlier result back.",
       "inputSchema": {

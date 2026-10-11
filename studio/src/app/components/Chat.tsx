@@ -19,6 +19,7 @@ const TOOL_LABELS: Record<string, string> = {
   scene_edit: "Edited scene",
   viewport_capture: "Looked at the viewport",
   viewport_status: "Checked status",
+  viewport_record: "Recorded the scene",
   history_list: "Checked history",
   history_restore: "Restored a version",
   runtime_status: "Checked the runtime",

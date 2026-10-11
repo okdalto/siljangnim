@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LoadResult } from "../scene/protocol";
+import type { LoadResult, RecordOptions } from "../scene/protocol";
 import { DEFAULT_SCENE, type Scene } from "../scene/schema";
 import { runAgent, type AgentEvent } from "./loop";
 import type { ContentBlockParam, LLMProvider, MessageParam, TurnRequest, TurnResult } from "./llm/types";
@@ -24,11 +24,13 @@ function scripted(turns: Array<Partial<TurnResult> & { content: ContentBlockPara
   };
 }
 
-function fakeScene(loadResult: LoadResult = { ok: true, errors: [] }): SceneController & { applied: Scene[] } {
+function fakeScene(loadResult: LoadResult = { ok: true, errors: [] }): SceneController & { applied: Scene[]; recorded: RecordOptions[] } {
   let current = structuredClone(DEFAULT_SCENE);
   const applied: Scene[] = [];
+  const recorded: RecordOptions[] = [];
   return {
     applied,
+    recorded,
     get: () => current,
     async apply(scene) {
       current = scene;
@@ -40,6 +42,10 @@ function fakeScene(loadResult: LoadResult = { ok: true, errors: [] }): SceneCont
     },
     async status() {
       return { state: "running", time: 1, frame: 60, fps: 60, width: 2, height: 2, errors: [] };
+    },
+    async record(options) {
+      recorded.push(options);
+      return { asset: `recording.${options.format === "png" ? "zip" : options.format}`, bytes: 2 * 1024 * 1024, width: 1280, height: 720, frames: options.duration * options.fps };
     },
   };
 }
@@ -229,6 +235,23 @@ describe("ask_user", () => {
 
   it("needs two to four options", () => {
     expect(ask.input.safeParse({ question: "q", options: [{ label: "only" }] }).success).toBe(false);
+  });
+});
+
+describe("viewport_record", () => {
+  const record = SCENE_TOOLS.find((t) => t.name === "viewport_record")!;
+
+  it("defaults to the timeline length, and realtime means WebM", async () => {
+    const scene = fakeScene();
+    const env = stubEnv({ scene });
+    const out = await record.run(record.input.parse({}), env);
+    expect(String(out.content)).toContain("Recorded 150 frames at 1280x720 (5s, 30 fps) to recording.mp4 (2.0 MB)");
+    scene.get().timeline = { duration: 8, loop: true, preserveStateOnLoop: false };
+    await record.run(record.input.parse({ mode: "realtime", format: "mp4" }), env);
+    expect(scene.recorded.map((r) => [r.format, r.mode, r.duration])).toEqual([
+      ["mp4", "offline", 5],
+      ["webm", "realtime", 8],
+    ]);
   });
 });
 

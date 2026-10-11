@@ -43,7 +43,7 @@ import { EXAMPLES } from "../project/examples";
 import { resolveVersionId, sameScene, versionMessage } from "../project/history";
 import { ProjectStore, SCENE_FILE, type Version } from "../project/store";
 import type { SceneHost } from "../scene/host";
-import type { LoadResult } from "../scene/protocol";
+import type { LoadResult, RecordOptions } from "../scene/protocol";
 import { evaluateTrack, keyAt, removeKeyAt, upsertKey } from "../scene/gl/keyframes";
 import { DEFAULT_SCENE, KEYFRAMABLE, parseScene, type Scene, type Timeline, type UniformValue } from "../scene/schema";
 import { bridgeToken, keys } from "./platform";
@@ -198,6 +198,7 @@ export function attachSceneHost(next: SceneHost): () => void {
   host = next;
   const offStats = next.on("stats", (s) => set((st) => ({ runtime: { ...st.runtime, state: s.state, fps: s.fps, time: s.time } })));
   const offError = next.on("error", (e) => set((st) => ({ runtime: { ...st.runtime, errors: [...st.runtime.errors, e].slice(-20) } })));
+  const offRecording = next.on("recording", ({ frame, total }) => set((st) => ({ recording: st.recording && { ...st.recording, frame, total } })));
   const offMonitors = next.on("monitors", (values) =>
     set((st) => ({
       monitors: Object.fromEntries(
@@ -213,6 +214,7 @@ export function attachSceneHost(next: SceneHost): () => void {
     offStats();
     offError();
     offMonitors();
+    offRecording();
     if (host === next) host = null;
   };
 }
@@ -629,6 +631,7 @@ function projectEnv(
       apply: (scene) => (get().project?.id === projectId ? applyScene(scene) : Promise.resolve({ ok: false, errors: [] })),
       capture: (maxSize) => sceneHost.request("capture", { maxSize }),
       status: () => sceneHost.request("status", {}),
+      record: (options) => recordScene(options, projectId),
     },
     history: {
       list: async () => {
@@ -645,6 +648,42 @@ function projectEnv(
       read: async (name) => (get().project?.id === projectId ? assetBlobs.get(name) : undefined),
     },
   };
+}
+
+// --- recording (M3) ---
+
+/**
+ * Record the scene in the runtime, save the file as a project asset and hand
+ * it to the person as a download.
+ */
+export async function recordScene(options: RecordOptions, projectId = get().project?.id): Promise<{ asset: string; bytes: number; width: number; height: number; frames: number }> {
+  if (!host || !projectId || get().project?.id !== projectId) throw new Error("The viewport is not ready.");
+  if (get().recording) throw new Error("A recording is already running.");
+  set({ recording: { frame: 0, total: Math.round(options.duration * options.fps), options } });
+  try {
+    // Offline renders run at whatever speed the machine manages; allow plenty of time.
+    const result = await host.request("record", options, 60_000 + options.duration * options.fps * 2_000);
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, "").replace(/^(\d{8})/, "$1-");
+    const name = `recording-${stamp}.${result.extension}`;
+    const { names } = await addAssetFiles(projectId, [new File([result.file], name, { type: result.file.type })], { attach: false });
+    download(result.file, names[0] ?? name);
+    return { asset: names[0] ?? name, bytes: result.file.size, width: result.width, height: result.height, frames: result.frames };
+  } finally {
+    set({ recording: null });
+  }
+}
+
+export function cancelRecording(): void {
+  if (host) void host.request("recordCancel", {}).catch(() => undefined);
+}
+
+function download(blob: Blob, name: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 // --- runtime: open-source tools through the hub (docs/runtime.md) ---
@@ -830,6 +869,7 @@ function recipeSummary(r: HubRecipeSummary): RecipeSummary {
 // --- external agents (MCP bridge) ---
 
 const ACTIVITY_LIMIT = 100;
+const SCENE_CHANGING_TOOLS = new Set(["scene_write", "scene_edit"]);
 const VIEWER_READY_TIMEOUT_MS = 15_000;
 let activitySerial = 0;
 
@@ -858,7 +898,8 @@ export async function runExternalTool(name: string, input: unknown): Promise<Too
   const env: ToolEnv = { ...projectEnv(project.id, host), user: { ask: async () => null }, signal: new AbortController().signal };
   const output = await runTool(tool, input, env);
   set((st) => ({ activity: st.activity.map((a) => (a.id === id ? { ...a, output } : a)) }));
-  if (!tool.readOnly && !output.isError) noteControlChange(`${get().external?.client ?? "Agent"}: ${name.replace("_", " ")}`, "action");
+  // Only scene changes make a version; recordings, runtime jobs and restores don't change the scene itself.
+  if (SCENE_CHANGING_TOOLS.has(name) && !output.isError) noteControlChange(`${get().external?.client ?? "Agent"}: ${name.replace("_", " ")}`, "action");
   return output;
 }
 

@@ -5,7 +5,7 @@ import type { ApprovalRequest } from "../project/permissions";
 import type { ProviderKeyId } from "../desktop";
 import type { AssetInfo } from "../project/assets";
 import type { ProjectMeta, Version } from "../project/store";
-import type { MonitorValue, RuntimeState, SceneError } from "../scene/protocol";
+import type { MonitorValue, RecordOptions, RuntimeState, SceneError } from "../scene/protocol";
 import { DEFAULT_SCENE, type Scene } from "../scene/schema";
 import { loadSettings, type Settings } from "./settings";
 
@@ -64,6 +64,8 @@ export interface AppState {
   /** Whether undo/redo have anything (the stacks themselves live in the session controller). */
   canUndo: boolean;
   canRedo: boolean;
+  /** A recording in progress. */
+  recording: { frame: number; total: number; options: RecordOptions } | null;
   /** A runtime action (running code, installing packages) waiting for the person's OK. */
   approval: ApprovalRequest | null;
   /** A question from the agent waiting for the person's answer. */
@@ -96,6 +98,7 @@ export const useApp = create<AppState>(() => ({
   canRedo: false,
   question: null,
   approval: null,
+  recording: null,
   live: null,
   notice: null,
   settings: loadSettings(),

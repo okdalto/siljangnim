@@ -158,6 +158,31 @@ const viewportCapture = defineTool({
   },
 });
 
+const viewportRecord = defineTool({
+  name: "viewport_record",
+  description:
+    "Record the scene to a file saved as a project asset (and downloaded for the person): MP4 or WebM video, or PNG frames " +
+    "in a zip. Offline mode renders frame by frame from the start at exact timestamps (smooth at any size); realtime mode " +
+    "captures what plays, including the person's interaction (WebM only). Duration defaults to the timeline length, or 5 s.",
+  input: z.object({
+    format: z.enum(["mp4", "webm", "png"]).default("mp4"),
+    mode: z.enum(["offline", "realtime"]).default("offline"),
+    duration: z.number().positive().max(600).optional().describe("Seconds."),
+    fps: z.number().int().min(1).max(120).default(30),
+    width: z.number().int().min(0).max(7680).default(0).describe("0 keeps the viewport size."),
+    height: z.number().int().min(0).max(4320).default(0),
+    quality: z.enum(["low", "medium", "high", "very-high"]).default("high"),
+  }),
+  readOnly: false,
+  async run(input, env) {
+    const duration = input.duration ?? env.scene.get().timeline?.duration ?? 5;
+    const format = input.mode === "realtime" ? "webm" : input.format;
+    const saved = await env.scene.record({ ...input, format, duration });
+    const mb = (saved.bytes / 1024 / 1024).toFixed(1);
+    return { content: `Recorded ${saved.frames} frames at ${saved.width}x${saved.height} (${duration}s, ${input.fps} fps) to ${saved.asset} (${mb} MB). It is a project asset and was downloaded for the person.` };
+  },
+});
+
 const viewportStatus = defineTool({
   name: "viewport_status",
   description: "Runtime status of the scene: state, time, fps, size and any errors collected since it loaded.",
@@ -168,4 +193,4 @@ const viewportStatus = defineTool({
   },
 });
 
-export const SCENE_TOOLS: ToolDefinition[] = [sceneRead, sceneWrite, sceneEdit, viewportCapture, viewportStatus] as ToolDefinition[];
+export const SCENE_TOOLS: ToolDefinition[] = [sceneRead, sceneWrite, sceneEdit, viewportCapture, viewportStatus, viewportRecord] as ToolDefinition[];

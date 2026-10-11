@@ -1,7 +1,7 @@
 // Tool definitions shared by the built-in agent and (stage 2) the MCP server.
 import { z } from "zod";
 import type Anthropic from "@anthropic-ai/sdk";
-import type { CaptureResult, LoadResult, RuntimeStatus } from "../scene/protocol";
+import type { CaptureResult, LoadResult, RecordOptions, RuntimeStatus } from "../scene/protocol";
 import type { AssetInfo } from "../project/assets";
 import type { Scene } from "../scene/schema";
 import type { ToolSpec } from "./llm/types";
@@ -19,6 +19,8 @@ export interface SceneController {
   apply(scene: Scene): Promise<LoadResult>;
   capture(maxSize: number): Promise<CaptureResult>;
   status(): Promise<RuntimeStatus>;
+  /** Record the scene to a video (or PNG frames) and save it as a project asset. */
+  record(options: RecordOptions): Promise<{ asset: string; bytes: number; width: number; height: number; frames: number }>;
 }
 
 export interface VersionInfo {

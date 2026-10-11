@@ -1,6 +1,6 @@
 // Electron main used by the smoke test as "the person's browser": loads the
 // viewer URL, reports what the page shows, and saves a screenshot on exit.
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, session } = require("electron");
 const { writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 
@@ -20,6 +20,8 @@ const READ_STATE = `(() => ({
 }))()`;
 
 app.whenReady().then(async () => {
+  // Recordings download without a save dialog, into the smoke output.
+  session.defaultSession.on("will-download", (_e, item) => item.setSavePath(join(out, "downloads", item.getFilename())));
   const win = new BrowserWindow({ width: 1280, height: 800, show: true });
   await win.loadURL(url);
   const report = async () => {

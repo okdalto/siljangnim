@@ -22,6 +22,8 @@ if (!parentOrigin || window.parent === window || !root) {
     setTimeline: (p) => runner.setTimeline(p.timeline, p.keyframes),
     capture: (p) => runner.capture(p.maxSize),
     status: () => runner.status(),
+    record: (p) => runner.recordScene(p),
+    recordCancel: () => runner.cancelRecording(),
   };
 
   window.addEventListener("message", async (e: MessageEvent) => {

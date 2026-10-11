@@ -8,6 +8,7 @@ import type { Timeline as TimelineSettings } from "../../scene/schema";
 import { seek, transport, updateTimeline } from "../session";
 import { useApp } from "../state";
 import { PauseIcon, PlayIcon } from "./icons";
+import { RecordButton } from "./Record";
 
 export function Timeline() {
   const timeline = useApp((s) => s.scene.timeline);
@@ -37,6 +38,7 @@ export function Timeline() {
           <div className="flex-1" />
         </>
       )}
+      <RecordButton />
       <ModeSwitch timeline={Boolean(timeline)} />
     </div>
   );
