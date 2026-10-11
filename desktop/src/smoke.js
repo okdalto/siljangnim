@@ -166,7 +166,7 @@ export async function runSmokeTest(win, hub, keys, outDir) {
 
   const timer = setTimeout(() => {
     report({ ok: false, reason: "timeout", hub: { ...hub.info(), token: undefined } });
-    app.exit(1);
+    quit(hub, 1);
   }, TIMEOUT_MS);
 
   await new Promise((resolve) => {
@@ -241,5 +241,12 @@ export async function runSmokeTest(win, hub, keys, outDir) {
   const ok = Object.values(checks).every(Boolean);
   report({ ok, checks, scene, iframe, llm, agent, history, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
   clearTimeout(timer);
-  app.exit(ok ? 0 : 1);
+  quit(hub, ok ? 0 : 1);
+}
+
+// app.exit skips before-quit, where the app normally stops the hub; without
+// this every smoke run left a Python process behind.
+function quit(hub, code) {
+  hub.stop();
+  app.exit(code);
 }
