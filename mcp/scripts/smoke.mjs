@@ -3,7 +3,7 @@
 // the viewer, calls the tools and checks results and what the viewer shows.
 // Needs studio/dist (npm run smoke builds it first). Report in mcp/smoke-out/.
 import { spawn } from "node:child_process";
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -32,6 +32,7 @@ const transport = new StdioClientTransport({
     SILJANGNIM_PORT: "47911",
     // Reuse the desktop smoke's Python install instead of setting one up in ~/.siljangnim.
     SILJANGNIM_RUNTIME_ROOT: join(mcpDir, "..", "desktop", "release", "smoke-profile", "runtime"),
+    SILJANGNIM_RECIPES_DIR: join(out, "recipes"),
   },
   stderr: "pipe",
 });
@@ -84,6 +85,20 @@ await call("python_run", {
 // D grade: a CLI on PATH (node is there wherever this smoke runs), no shell.
 await call("command_run", { argv: ["node", "-e", "require('fs').writeFileSync('out/cli.txt', 'cli ok')"] });
 const status = await call("runtime_status");
+
+// Stage 4: save what worked as a recipe, verify it, find it, run it with new params.
+await call("recipe_save", {
+  id: "smoke.points",
+  title: "Points on a circle",
+  capability: "points-generate circle",
+  kind: "python",
+  code: "import json, math, pathlib\np = pathlib.Path('in/params.json')\nparams = json.loads(p.read_text()) if p.exists() else {}\nn = int(params.get('n', 4))\npts = [[math.cos(2*math.pi*i/n), math.sin(2*math.pi*i/n)] for i in range(n)]\npathlib.Path('out/circle.json').write_text(json.dumps(pts))\nprint('points', n)",
+  source: { name: "python stdlib", license: "PSF" },
+  verify: { params: { n: 3 }, expect_outputs: ["circle.json"] },
+});
+await call("recipe_verify", { id: "smoke.points" });
+const found = await call("recipe_search", { query: "circle" });
+await call("recipe_run", { id: "smoke.points", params: { n: 12 } });
 await call("asset_list");
 await wait(2500); // controls-style version commit after edits go quiet
 const history = await call("history_list");
@@ -100,6 +115,11 @@ const checks = {
   assetsAnswered: !calls.asset_list.isError && /points\.json/.test(text(calls.asset_list)),
   pythonRan: !calls.python_run.isError && /Saved to the project as assets: points\.json/.test(text(calls.python_run)) && /wrote 2 points/.test(text(calls.python_run)),
   commandRan: !calls.command_run.isError && /assets: cli\.txt/.test(text(calls.command_run)),
+  recipeSaved: !calls.recipe_save.isError && /smoke\.points v1 \[draft/.test(text(calls.recipe_save)),
+  recipeVerified: !calls.recipe_verify.isError && /^Verified: smoke\.points v1 \[verified here/.test(text(calls.recipe_verify)),
+  recipeFound: /smoke\.points v1 \[verified here/.test(text(found)),
+  recipeRan: !calls.recipe_run.isError && /Recipe smoke\.points v1 \(verified here\)/.test(text(calls.recipe_run)) && /points 12/.test(text(calls.recipe_run)),
+  recipeFile: existsSync(join(out, "recipes", "smoke.points", "recipe.md")),
   runtimeStatus: !status.isError && /Python environments:.*\(no packages\)/.test(text(status)),
   versionSaved: /"Initial scene"/.test(text(history)) && /Claude Code: scene write, scene edit/.test(text(history)),
   viewerConnected: viewerState.status === "connected" && /Claude Code/.test(viewerState.statusText ?? ""),

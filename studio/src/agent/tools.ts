@@ -62,6 +62,8 @@ export interface RuntimeJob {
   exitCode: number | null;
   error: string | null;
   log: string;
+  /** Output file names the job wrote to out/. */
+  outputs: string[];
   /** Output files, as the project asset names they were saved under. */
   assets: string[];
   /** Exact package versions the environment ended up with. */
@@ -79,6 +81,10 @@ export interface RuntimeRequest {
   timeoutS: number;
   /** How long to wait before returning a still-running job. */
   waitS: number;
+  /** Written to in/params.json (recipes read their parameters from there). */
+  params?: Record<string, unknown>;
+  /** Set when running a recipe; a trusted one (local, verified here) needs no approval. */
+  recipe?: { id: string; version: number; trusted: boolean };
 }
 
 /** Runs C/D-grade open source through the Python hub, after the person approves. */
@@ -90,12 +96,61 @@ export interface RuntimeController {
   job(id: string, waitS: number): Promise<RuntimeJob>;
 }
 
+export interface RecipeSummary {
+  id: string;
+  version: number;
+  title: string;
+  capability: string;
+  tier: "C" | "D";
+  kind: "python" | "command";
+  packages: string[];
+  program: string | null;
+  io: Record<string, unknown>;
+  license: string | null;
+  /** "local": written by recipe_save on this machine; anything else came from elsewhere. */
+  origin: string;
+  statusHere: "draft" | "verified" | "broken";
+  testedHere: string | null;
+}
+
+export interface RecipeDetail {
+  summary: RecipeSummary;
+  code: string;
+  argv: string[];
+  /** The whole recipe.md. */
+  text: string;
+  verify: { params: Record<string, unknown>; expectOutputs: string[] };
+}
+
+export interface RecipeFields {
+  title: string;
+  capability: string;
+  kind: "python" | "command";
+  packages?: string[];
+  code?: string;
+  argv?: string[];
+  source?: { name?: string; repo?: string; ref?: string; license?: string; weights_license?: string };
+  io?: Record<string, unknown>;
+  verify?: { params?: Record<string, unknown>; expect_outputs?: string[] };
+  setup?: string;
+  notes?: string;
+}
+
+/** Recipes on this machine (docs/recipes.md), stored by the hub. */
+export interface RecipeController {
+  search(query: string): Promise<{ platform: string; recipes: RecipeSummary[] }>;
+  read(id: string): Promise<RecipeDetail>;
+  save(id: string, fields: RecipeFields): Promise<RecipeSummary>;
+  setStatus(id: string, status: "verified" | "broken", log: string): Promise<RecipeSummary>;
+}
+
 export interface ToolEnv {
   scene: SceneController;
   history: HistoryController;
   assets: AssetController;
   user: UserController;
   runtime: RuntimeController;
+  recipes: RecipeController;
   signal: AbortSignal;
 }
 

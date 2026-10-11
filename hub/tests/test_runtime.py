@@ -10,6 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from siljangnim_hub.app import create_app
+from siljangnim_hub.recipes import Recipes
 from siljangnim_hub.runtime import Runtime, RuntimeErrorWithHint, env_key, validate_file_name, validate_packages
 
 TOKEN = "t"
@@ -38,7 +39,8 @@ def test_file_names_cannot_escape():
 @pytest.fixture
 def client(tmp_path: Path):
     runtime = Runtime(tmp_path / "rt", UV)
-    with TestClient(create_app(token=TOKEN, port=PORT, runtime=runtime), base_url=f"http://127.0.0.1:{PORT}") as c:
+    app = create_app(token=TOKEN, port=PORT, runtime=runtime, recipes=Recipes(tmp_path / "recipes", "test"))
+    with TestClient(app, base_url=f"http://127.0.0.1:{PORT}") as c:
         yield c
 
 

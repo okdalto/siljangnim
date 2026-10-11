@@ -68,6 +68,11 @@ export const bridgeToken: string | null = readBridgeToken();
 
 function readBridgeToken(): string | null {
   if (typeof window === "undefined") return null;
+  // A browser can reuse this tab for a newer bridge: only the fragment changes,
+  // which doesn't reload the page. Reload so the viewer connects to the new one.
+  window.addEventListener("hashchange", () => {
+    if (/bridge=[\w-]+/.test(window.location.hash)) window.location.reload();
+  });
   const match = window.location.hash.match(/bridge=([\w-]+)/);
   if (match?.[1]) {
     try {

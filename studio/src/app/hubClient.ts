@@ -45,6 +45,22 @@ export interface HubJob {
   seconds: number;
 }
 
+export interface HubRecipeSummary {
+  id: string;
+  version: number;
+  title: string;
+  capability: string;
+  tier: "C" | "D";
+  kind: "python" | "command";
+  packages: string[];
+  program: string | null;
+  io: Record<string, unknown>;
+  license: string | null;
+  origin: string;
+  status_here: "draft" | "verified" | "broken";
+  tested_here: string | null;
+}
+
 const TERMINAL = new Set(["done", "failed", "cancelled"]);
 /** The hub holds a request at most this long; longer waits are several requests. */
 const HUB_WAIT_S = 55;
@@ -86,6 +102,24 @@ export class HubClient {
 
   output(id: string, name: string) {
     return this.request<Blob>(`/jobs/${id}/outputs/${encodeURIComponent(name)}`);
+  }
+
+  recipes(query: string) {
+    return this.request<{ platform: string; recipes: HubRecipeSummary[] }>(`/recipes?q=${encodeURIComponent(query)}`);
+  }
+
+  recipe(id: string) {
+    return this.request<{ summary: HubRecipeSummary; code: string; argv: string[]; text: string; meta: { verify?: { params?: Record<string, unknown>; expect_outputs?: string[] } } }>(
+      `/recipes/${encodeURIComponent(id)}`,
+    );
+  }
+
+  saveRecipe(id: string, fields: unknown) {
+    return this.request<{ summary: HubRecipeSummary; text: string }>(`/recipes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(fields) });
+  }
+
+  recipeStatus(id: string, status: "verified" | "broken", log: string) {
+    return this.request<{ summary: HubRecipeSummary }>(`/recipes/${encodeURIComponent(id)}/status`, { method: "POST", body: JSON.stringify({ status, log }) });
   }
 
   /** The job once it finishes, or as it is after `waitS` seconds. */

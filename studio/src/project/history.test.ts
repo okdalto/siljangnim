@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { noRuntime } from "../agent/testing";
+import { noRecipes, noRuntime } from "../agent/testing";
 import { HISTORY_TOOLS } from "../agent/historyTools";
 import type { HistoryController, SceneController, VersionInfo } from "../agent/tools";
 import { DEFAULT_SCENE } from "../scene/schema";
@@ -77,7 +77,7 @@ describe("history tools", () => {
       return { version: infos[0]!, load: { ok: true, errors: [] } };
     },
   };
-  const env = { scene, history, assets: { list: async () => [], read: async () => undefined }, user: { ask: async () => null }, runtime: noRuntime, signal: new AbortController().signal };
+  const env = { scene, history, assets: { list: async () => [], read: async () => undefined }, user: { ask: async () => null }, runtime: noRuntime, recipes: noRecipes, signal: new AbortController().signal };
 
   it("lists versions with short ids and marks HEAD", async () => {
     const out = await list.run({}, env);

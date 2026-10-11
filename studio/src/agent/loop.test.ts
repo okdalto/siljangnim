@@ -5,7 +5,7 @@ import { runAgent, type AgentEvent } from "./loop";
 import type { ContentBlockParam, LLMProvider, MessageParam, TurnRequest, TurnResult } from "./llm/types";
 import { SCENE_TOOLS } from "./sceneTools";
 import { USER_TOOLS } from "./userTools";
-import { noAssets, noHistory, noRuntime, noUser, stubEnv } from "./testing";
+import { noAssets, noHistory, noRecipes, noRuntime, noUser, stubEnv } from "./testing";
 import type { SceneController } from "./tools";
 
 /** Provider that replays scripted turns and records every request. */
@@ -53,7 +53,7 @@ function run(provider: LLMProvider, scene: SceneController, events: AgentEvent[]
     effort: "high",
     system: "test",
     tools: SCENE_TOOLS,
-    env: { scene, history: noHistory, assets: noAssets, user: noUser, runtime: noRuntime },
+    env: { scene, history: noHistory, assets: noAssets, user: noUser, runtime: noRuntime, recipes: noRecipes },
     messages: [user("make waves")],
     signal,
     onEvent: (e) => events.push(e),
@@ -153,7 +153,7 @@ describe("scene_edit", () => {
         edits: [{ phase: "render", find: "drawFullscreen", replace: "drawFullscreen" }],
         uniforms: { u_speed: null, u_glow: { type: "float", value: 0.5 } },
       }),
-      { scene, history: noHistory, assets: noAssets, user: noUser, runtime: noRuntime, signal: new AbortController().signal },
+      { scene, history: noHistory, assets: noAssets, user: noUser, runtime: noRuntime, recipes: noRecipes, signal: new AbortController().signal },
     );
     expect(output.isError).toBeFalsy();
     expect(scene.applied[0]!.uniforms.u_speed).toBeUndefined();
@@ -162,7 +162,7 @@ describe("scene_edit", () => {
 
   it("sets a timeline and keyframes, and removes them with the timeline", async () => {
     const scene = fakeScene();
-    const env = { scene, history: noHistory, assets: noAssets, user: noUser, runtime: noRuntime, signal: new AbortController().signal };
+    const env = { scene, history: noHistory, assets: noAssets, user: noUser, runtime: noRuntime, recipes: noRecipes, signal: new AbortController().signal };
     const keyed = await edit.run(
       edit.input.parse({ timeline: { duration: 6 }, keyframes: { u_speed: [{ time: 0, value: 0 }, { time: 6, value: 4, ease: "linear" }] } }),
       env,
@@ -182,7 +182,7 @@ describe("scene_edit", () => {
 
   it("sets control groups and drops removed uniforms from them", async () => {
     const scene = fakeScene();
-    const env = { scene, history: noHistory, assets: noAssets, user: noUser, runtime: noRuntime, signal: new AbortController().signal };
+    const env = { scene, history: noHistory, assets: noAssets, user: noUser, runtime: noRuntime, recipes: noRecipes, signal: new AbortController().signal };
     await edit.run(edit.input.parse({ controls: [{ label: "Look", uniforms: ["u_speed", "u_tint"] }] }), env);
     expect(scene.applied[0]!.controls).toEqual([{ label: "Look", uniforms: ["u_speed", "u_tint"] }]);
     await edit.run(edit.input.parse({ uniforms: { u_speed: null } }), env);
@@ -195,7 +195,7 @@ describe("scene_edit", () => {
     const scene = fakeScene();
     const output = await edit.run(edit.input.parse({ edits: [{ phase: "setup", find: "does not exist", replace: "x" }] }), {
       scene,
-      history: noHistory, assets: noAssets, user: noUser, runtime: noRuntime,
+      history: noHistory, assets: noAssets, user: noUser, runtime: noRuntime, recipes: noRecipes,
       signal: new AbortController().signal,
     });
     expect(output.isError).toBe(true);
