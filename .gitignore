@@ -216,3 +216,6 @@ __marimo__/
 .vercel
 .DS_Store
 backend/.vite/
+
+# siljangnim-mcp: built studio copied in when packing
+mcp/studio/

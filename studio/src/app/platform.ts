@@ -56,3 +56,31 @@ function read(provider: ProviderKeyId): string | null {
     return memory[provider] ?? null;
   }
 }
+
+const BRIDGE_KEY = "siljangnim.bridge";
+
+/**
+ * Set when the MCP bridge opened this page: its per-launch token arrives in
+ * the URL fragment (never sent to a server or in a Referer). It is moved to
+ * sessionStorage of the app origin so reloads of this tab keep working.
+ */
+export const bridgeToken: string | null = readBridgeToken();
+
+function readBridgeToken(): string | null {
+  if (typeof window === "undefined") return null;
+  const match = window.location.hash.match(/bridge=([\w-]+)/);
+  if (match?.[1]) {
+    try {
+      sessionStorage.setItem(BRIDGE_KEY, match[1]);
+    } catch {
+      // not persisted: a reload of this tab will need the agent to reopen the viewer
+    }
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    return match[1];
+  }
+  try {
+    return sessionStorage.getItem(BRIDGE_KEY);
+  } catch {
+    return null;
+  }
+}
