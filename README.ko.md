@@ -49,14 +49,24 @@
 - **에이전트가 만드는 실시간 씬** — 원하는 비주얼을 말하면 에이전트가 WebGL2 씬을 쓰고, 줄 번호가 붙은
   컴파일 에러를 받아 고치고, 결과 화면을 캡처해 확인한 뒤 답합니다.
 - **격리된 씬 런타임** — 씬 코드는 별도 출처에서 자체 보안 정책 아래 실행되어 프로젝트나 API 키에 접근할 수 없습니다.
-- **실시간 컨트롤** — 에이전트가 노출한 파라미터(슬라이더, 색, 토글, 벡터)를 바꾸면 바로 반영됩니다.
+- **실시간 컨트롤** — 에이전트가 노출한 파라미터를 바꾸면 바로 반영됩니다. 슬라이더, 노브, 2D 패드, 선택 목록,
+  한 프레임 버튼, 색, 그룹 패널, 씬이 내보내는 값을 보여 주는 모니터가 있습니다.
+- **Live / Timeline** — 씬은 기본적으로 상호작용형이고, Timeline으로 바꾸면 정해진 길이 동안 컨트롤에 키프레임을
+  줄 수 있습니다. Cmd+Z로 되돌립니다.
+- **버전 히스토리** — 에이전트의 변경과 컨트롤 조정이 썸네일과 함께 버전으로 남고, 언제든 되돌릴 수 있습니다.
+- **에셋** — 이미지, 영상, 오디오, 폰트, 3D 모델, 데이터 파일을 끌어다 놓으면 에이전트가 보고 씁니다.
+- **이 컴퓨터에서 오픈소스 실행** — 승인하면 에이전트가 Python 패키지(trimesh, librosa 등)를 격리된 환경에서,
+  설치된 CLI(ffmpeg 등)를 실행하고 결과를 에셋으로 가져옵니다. 성공한 방법은 레시피로 남아 다음 요청 때 바로 실행됩니다.
+- **내 에이전트 연결** — Claude Code, Codex 같은 MCP 클라이언트가 스튜디오를 조작합니다([docs/mcp.md](docs/mcp.md)).
+  대화는 그 에이전트와 하고, 결과는 뷰어에서 봅니다.
+- **예제** — *프로젝트 메뉴 → Examples…*에서 바로 열어 볼 수 있습니다([examples/](examples/)).
 - **프로젝트** — 여러 프로젝트와 각각의 씬·채팅을 로컬에 저장합니다.
 - **AI 프로바이더** — Anthropic(기본 Claude Opus 5.5) 또는 OpenAI 호환 서버(OpenAI, vLLM, Ollama 등).
 - **데스크톱 앱** — macOS(Apple Silicon)와 Windows. API 키는 OS 키체인으로 암호화되고 앱 화면에는
   전달되지 않습니다. Python 런타임은 앱이 직접 관리합니다.
 
-v1에서 다음으로 옮겨 올 것([마일스톤](docs/studio.md#마일스톤)): WebGPU, 에이전트가 만드는 패널, 에셋 업로드,
-타임라인·키프레임, 버전 히스토리(M2). 녹화, 오디오·카메라·MIDI·MediaPipe 입력, v1 프로젝트 가져오기(M3).
+다음 작업([마일스톤](docs/studio.md#마일스톤)): WebGPU, 녹화, 오디오·카메라·MIDI 입력, v1 프로젝트 가져오기,
+프로젝트·레시피 공유.
 
 ## 다운로드
 
@@ -85,15 +95,27 @@ npm install
 npm run dev
 ```
 
-`./run.sh`(macOS/Linux)나 `run.bat`(Windows)을 실행해도 같습니다.
+`./run.sh`(macOS/Linux)나 `run.bat`(Windows)을 실행해도 같습니다. 실행한 뒤
+*프로젝트 메뉴 → Examples…*를 열면 예제를 바로 볼 수 있습니다.
+
+### Claude Code, Codex 같은 MCP 클라이언트로
+
+```bash
+npm install && npm --prefix studio run build
+claude mcp add siljangnim -- node "$PWD/mcp/bin/siljangnim-mcp.js"
+```
+
+에이전트에게 원하는 비주얼을 말하면 첫 도구 호출 때 브라우저에 뷰어가 열립니다. Codex 등은
+[docs/mcp.md](docs/mcp.md)를 보세요.
 
 | 명령 | 하는 일 |
 |---|---|
 | `npm run dev` | 데스크톱 앱 (코드 수정 시 바로 반영) |
 | `npm run web` | 브라우저에서 스튜디오 실행, http://localhost:5173 |
 | `npm run check` | 타입 검사와 린트 |
-| `npm test` | 스튜디오와 허브 테스트 |
-| `npm run smoke` | 데스크톱 앱 빌드·실행, 목 API로 에이전트 한 번 실행, 스크린샷과 동작 확인 |
+| `npm test` | 스튜디오, MCP 브리지, 허브 테스트 |
+| `npm run smoke` | 데스크톱 앱 빌드·실행, 목 API로 에이전트 실행, 모든 예제 열기. 이어서 MCP 브리지로 뷰어 조작 확인 |
+| `npm run mcp` | 외부 에이전트가 실행하는 MCP 서버 |
 | `npm run dist` | 현재 플랫폼용 설치 파일을 `desktop/release/`에 빌드 |
 
 `v*` 태그를 푸시하면 GitHub Actions가 두 플랫폼의 설치 파일을 빌드합니다.
@@ -122,7 +144,9 @@ npm run dev
 ```
 studio/     앱: React + TypeScript UI, 내장 에이전트, 격리된 씬 런타임
 desktop/    Electron 셸: 창, app:// 프로토콜, 키 보관, 허브 프로세스, 설치 파일
-hub/        앱이 실행하는 Python 사이드카 (uv로 관리)
+hub/        앱이 실행하는 Python 사이드카 (uv로 관리): 런타임 작업과 레시피
+mcp/        외부 에이전트용 MCP 서버 (스튜디오를 띄우고 도구 호출을 중계)
+examples/   앱 갤러리에 나오는 예제 프로젝트
 frontend/   v1 웹 앱 (스튜디오가 대체할 때까지 siljangnim.vercel.app에 배포)
 backend/    v1 FastAPI 서버. hub/로 대체
 docs/       아키텍처와 가이드

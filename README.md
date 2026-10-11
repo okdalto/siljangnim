@@ -52,15 +52,25 @@ In the new studio (desktop app and `npm run web`):
   errors with line numbers, fixes them, and looks at a screenshot of the result before answering.
 - **Isolated scene runtime** — scene code runs on a separate origin with its own security policy; it
   cannot reach your projects or API keys.
-- **Live controls** — the parameters the agent exposes (sliders, colors, toggles, vectors) update the scene instantly.
+- **Live controls** — the parameters the agent exposes update the scene instantly: sliders, knobs, 2D pads,
+  menus, one-frame buttons, colors, grouped panels, and monitors for values the scene publishes.
+- **Live or Timeline** — scenes are interactive by default; switch one to Timeline to keyframe its controls
+  over a fixed length. Undo/redo with Cmd+Z.
+- **Version history** — every agent change and control tweak is a version with a thumbnail; restore any of them.
+- **Assets** — drop images, video, audio, fonts, 3D models or data files; the agent sees and uses them.
+- **Open-source tools on your machine** — the agent runs Python packages (trimesh, librosa, …) in isolated
+  environments and installed CLIs (ffmpeg, …), after you approve; results come back as assets. What worked is
+  saved as a recipe, so the next request runs it directly.
+- **Bring your own agent** — Claude Code, Codex and other MCP clients can drive the studio
+  ([docs/mcp.md](docs/mcp.md)); you chat with them, the viewer shows the result.
+- **Examples** — *Projects menu → Examples…* opens ready-made scenes ([examples/](examples/)).
 - **Projects** — several projects with their scene and chat, saved locally.
 - **Providers** — Anthropic (Claude Opus 5.5 by default) or any OpenAI-compatible server (OpenAI, vLLM, Ollama, …).
 - **Desktop app** — macOS (Apple Silicon) and Windows. API keys are encrypted with the OS keychain and
   never reach the app window; the app manages its own Python runtime.
 
-Coming back from v1 next ([milestones](docs/studio.md#마일스톤)): WebGPU, agent-made panels, asset
-uploads, timeline and keyframes, version history (M2); recording, audio/camera/MIDI/MediaPipe inputs,
-importing v1 projects (M3).
+Coming next ([milestones](docs/studio.md#마일스톤)): WebGPU, recording, audio/camera/MIDI inputs,
+importing v1 projects, sharing projects and recipes.
 
 ## Download
 
@@ -90,15 +100,27 @@ npm install
 npm run dev
 ```
 
-`./run.sh` (macOS/Linux) and `run.bat` (Windows) do the same in one step.
+`./run.sh` (macOS/Linux) and `run.bat` (Windows) do the same in one step. Then open
+*Projects menu → Examples…* to try a scene right away.
+
+### With Claude Code, Codex or another MCP client
+
+```bash
+npm install && npm --prefix studio run build
+claude mcp add siljangnim -- node "$PWD/mcp/bin/siljangnim-mcp.js"
+```
+
+Ask your agent for a visual; its first tool call opens the viewer in your browser. Codex and others:
+see [docs/mcp.md](docs/mcp.md).
 
 | Command | What it does |
 |---|---|
 | `npm run dev` | Desktop app with hot reload |
 | `npm run web` | The studio in your browser at http://localhost:5173 |
 | `npm run check` | Typecheck and lint |
-| `npm test` | Studio and hub tests |
-| `npm run smoke` | Build and launch the desktop app, run one agent session against a mock API, screenshot and check it |
+| `npm test` | Studio, MCP bridge and hub tests |
+| `npm run smoke` | Build and launch the desktop app, run an agent session against a mock API and open every example; then drive the viewer through the MCP bridge |
+| `npm run mcp` | The MCP server external agents launch |
 | `npm run dist` | Build the installer for the current platform into `desktop/release/` |
 
 Installers for both platforms are built by GitHub Actions when a `v*` tag is pushed.
@@ -127,7 +149,9 @@ Details, recipe and project formats, and the staged plan: [docs/architecture.md]
 ```
 studio/     The app: React + TypeScript UI, built-in agent, isolated scene runtime
 desktop/    Electron shell: window, app:// protocol, key storage, hub process, installers
-hub/        Python sidecar run by the app (uv-managed)
+hub/        Python sidecar run by the app (uv-managed): runtime jobs and recipes
+mcp/        MCP server for external agents (serves the studio, relays tool calls)
+examples/   Example projects shown in the app's gallery
 frontend/   v1 web app (still deployed to siljangnim.vercel.app until the studio replaces it)
 backend/    v1 FastAPI server; replaced by hub/
 docs/       Architecture and guides

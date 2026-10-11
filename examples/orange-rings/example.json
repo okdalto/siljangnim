@@ -1,0 +1,15 @@
+{
+  "order": 5,
+  "title": "Orange ripples",
+  "title_ko": "주황 동심원",
+  "description": "Glowing rings spreading from the center, with a grouped control panel.",
+  "description_ko": "중심에서 퍼지는 빛나는 동심원과 그룹으로 묶인 컨트롤.",
+  "prompt": "Siljangnim MCP 도구로 뷰어에 주황색 동심원이 퍼지는 셰이더를 만들어.",
+  "made_with": "Codex over MCP (gpt-5.5)",
+  "features": [
+    "shader",
+    "control groups",
+    "mcp"
+  ],
+  "mode": "live"
+}

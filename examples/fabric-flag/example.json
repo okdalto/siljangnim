@@ -1,0 +1,15 @@
+{
+  "order": 6,
+  "title": "Image on fluttering fabric",
+  "title_ko": "펄럭이는 천 위의 이미지",
+  "description": "An uploaded image used as a texture on cloth moving in the wind.",
+  "description_ko": "업로드한 이미지를 바람에 펄럭이는 천의 텍스처로 쓴다.",
+  "prompt": "올린 이미지를 텍스처로 써서 천천히 펄럭이는 천처럼 보여줘",
+  "made_with": "Built-in agent, GPT gpt-6.1-sol (with the image attached)",
+  "features": [
+    "assets",
+    "texture",
+    "vision"
+  ],
+  "mode": "live"
+}

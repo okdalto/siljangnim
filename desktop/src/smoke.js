@@ -187,6 +187,47 @@ async function runHistoryScenario(win, sceneFrame) {
   };
 }
 
+/** Opens every bundled example through the gallery and checks it runs, error-free, and draws something. */
+async function runExamplesScenario(win) {
+  const slugs = await win.webContents.executeJavaScript(`(async () => {
+    document.querySelector('[title="Projects"]').click();
+    await new Promise((r) => setTimeout(r, 200));
+    document.querySelector('[data-testid="open-examples"]').click();
+    await new Promise((r) => setTimeout(r, 300));
+    const slugs = [...document.querySelectorAll("[data-example]")].map((e) => e.dataset.example);
+    document.querySelector('[data-testid="examples"]')?.parentElement?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    return slugs;
+  })()`);
+  const results = {};
+  for (const slug of slugs) {
+    await win.webContents.executeJavaScript(`(async () => {
+      if (!document.querySelector('[data-testid="examples"]')) {
+        document.querySelector('[title="Projects"]').click();
+        await new Promise((r) => setTimeout(r, 200));
+        document.querySelector('[data-testid="open-examples"]').click();
+        await new Promise((r) => setTimeout(r, 300));
+      }
+      document.querySelector('[data-example="${slug}"]').click();
+    })()`);
+    let state = null;
+    for (let i = 0; i < 60; i++) {
+      await wait(250);
+      state = await win.webContents.executeJavaScript(`(() => {
+        const s = document.querySelector("[data-runtime-state]");
+        return s && { state: s.dataset.runtimeState, errors: Number(s.dataset.runtimeErrors), project: document.querySelector('header button[title="Rename project"]')?.innerText };
+      })()`);
+      if (state?.state === "running" && state.project !== "Untitled") break;
+    }
+    await wait(1200);
+    const frame = await findSceneFrame(win);
+    const sample = frame ? await frame.executeJavaScript(SAMPLE_CANVAS).catch(() => null) : null;
+    const after = await win.webContents.executeJavaScript(`Number(document.querySelector("[data-runtime-state]")?.dataset.runtimeErrors)`);
+    results[slug] = { ...state, errors: after, litFraction: sample?.litFraction ?? 0 };
+    log(`example ${slug}: ${JSON.stringify(results[slug])}`);
+  }
+  return results;
+}
+
 export async function runSmokeTest(win, hub, keys, outDir) {
   mkdirSync(outDir, { recursive: true });
   const consoleErrors = [];
@@ -241,6 +282,8 @@ export async function runSmokeTest(win, hub, keys, outDir) {
   const agent = process.env.SILJANGNIM_SMOKE_KEY ? await runAgentScenario(win, sceneFrame, keys) : null;
   log("history scenario");
   const history = agent ? await runHistoryScenario(win, sceneFrame) : null;
+  log("examples");
+  const examples = await runExamplesScenario(win);
   log("waiting for hub");
 
   await waitForHub(hub);
@@ -278,9 +321,11 @@ export async function runSmokeTest(win, hub, keys, outDir) {
         }
       : {}),
     ...(history ? { historyRecorded: history.recorded, historyRestored: history.restored } : {}),
+    examplesRun:
+      Object.keys(examples).length >= 8 && Object.values(examples).every((e) => e.state === "running" && e.errors === 0 && e.litFraction > 0.02),
   };
   const ok = Object.values(checks).every(Boolean);
-  report({ ok, checks, scene, iframe, llm, agent, history, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
+  report({ ok, checks, scene, iframe, llm, agent, history, examples, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
   clearTimeout(timer);
   quit(hub, ok ? 0 : 1);
 }

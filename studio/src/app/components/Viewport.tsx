@@ -51,7 +51,12 @@ function StatusBar() {
   return (
     <>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-2">
-        <div className="pointer-events-auto flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-1 text-xs text-muted backdrop-blur" title={runtime.state}>
+        <div
+          className="pointer-events-auto flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-1 text-xs text-muted backdrop-blur"
+          title={runtime.state}
+          data-runtime-state={runtime.state}
+          data-runtime-errors={errors.length}
+        >
           <span className={`h-2 w-2 rounded-full ${dot}`} />
           <span className="tabular-nums text-faint">{runtime.fps} fps</span>
         </div>
