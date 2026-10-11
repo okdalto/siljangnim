@@ -78,6 +78,11 @@ const sceneEdit = defineTool({
       .default([]),
     uniforms: z.record(z.string(), UniformDefSchema.nullable()).optional(),
     inputs: z.array(z.enum(SCENE_INPUTS)).optional(),
+    controls: z
+      .array(z.object({ label: z.string(), uniforms: z.array(z.string()).min(1) }))
+      .nullable()
+      .optional()
+      .describe("Control panel groups; replaces the current grouping. null removes it (flat panel)."),
     timeline: TimelineSchema.nullable().optional(),
     keyframes: z
       .record(z.string(), z.array(KeyframeSchema).nullable())
@@ -85,7 +90,7 @@ const sceneEdit = defineTool({
       .describe('Uniform name → keys [{ "time": s, "value": n, "ease"?: "smooth"|"linear"|"easeIn"|"easeOut"|"easeInOut"|"step" }].'),
   }),
   readOnly: false,
-  async run({ edits, uniforms, inputs, timeline, keyframes }, env) {
+  async run({ edits, uniforms, inputs, controls, timeline, keyframes }, env) {
     const scene: Scene = structuredClone(env.scene.get());
     const problems: string[] = [];
     for (const [i, edit] of edits.entries()) {
@@ -105,6 +110,8 @@ const sceneEdit = defineTool({
       else scene.uniforms[name] = def;
     }
     if (inputs) scene.inputs = inputs;
+    if (controls === null) delete scene.controls;
+    else if (controls) scene.controls = controls;
     if (timeline === null) {
       delete scene.timeline;
       scene.keyframes = {};
@@ -115,8 +122,11 @@ const sceneEdit = defineTool({
       if (keys === null) delete scene.keyframes[name];
       else scene.keyframes[name] = keys;
     }
-    // Removing a uniform takes its keyframes with it.
+    // Removing a uniform takes its keyframes and group entries with it.
     for (const name of Object.keys(scene.keyframes)) if (!scene.uniforms[name]) delete scene.keyframes[name];
+    if (scene.controls) {
+      scene.controls = scene.controls.map((g) => ({ ...g, uniforms: g.uniforms.filter((n) => scene.uniforms[n]) })).filter((g) => g.uniforms.length);
+    }
     const parsed = parseScene(scene);
     if (!parsed.ok) return invalid(parsed.errors);
     return loadReport(await env.scene.apply(parsed.scene));

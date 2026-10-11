@@ -31,6 +31,8 @@ const scene = (fragBody) => ({
     setup: `ctx.state.p = ctx.utils.createProgram(${VERTEX}, ${JSON.stringify(fragment(fragBody))});
 ctx.state.tex = await ctx.utils.loadTexture("swatch.png");`,
     render: `const p = ctx.state.p;
+ctx.publish("frames", ctx.frame);
+ctx.publish("bursts", ctx.state.bursts = (ctx.state.bursts ?? 0) + (ctx.uniforms.u_burst ? 1 : 0));
 ctx.gl.useProgram(p);
 ctx.utils.bindTexture(p, "u_tex", ctx.state.tex.texture, 0);
 ctx.utils.drawFullscreen(p);`,
@@ -38,8 +40,10 @@ ctx.utils.drawFullscreen(p);`,
   },
   uniforms: {
     u_color: { type: "color", value: [1, 1, 1], label: "Color" },
-    u_gain: { type: "float", value: 1, min: 0, max: 1, label: "Gain" },
+    u_gain: { type: "float", value: 1, min: 0, max: 1, label: "Gain", widget: "knob" },
+    u_burst: { type: "bool", value: false, label: "Burst", widget: "button" },
   },
+  controls: [{ label: "Look", uniforms: ["u_color", "u_gain"] }],
   inputs: [],
 });
 

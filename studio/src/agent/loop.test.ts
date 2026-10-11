@@ -189,6 +189,17 @@ describe("scene_edit", () => {
     expect(scene.applied[1]!.keyframes).toEqual({});
   });
 
+  it("sets control groups and drops removed uniforms from them", async () => {
+    const scene = fakeScene();
+    const env = { scene, history: noHistory, assets: noAssets, user: noUser, signal: new AbortController().signal };
+    await edit.run(edit.input.parse({ controls: [{ label: "Look", uniforms: ["u_speed", "u_tint"] }] }), env);
+    expect(scene.applied[0]!.controls).toEqual([{ label: "Look", uniforms: ["u_speed", "u_tint"] }]);
+    await edit.run(edit.input.parse({ uniforms: { u_speed: null } }), env);
+    expect(scene.applied[1]!.controls).toEqual([{ label: "Look", uniforms: ["u_tint"] }]);
+    await edit.run(edit.input.parse({ controls: null }), env);
+    expect(scene.applied[2]!.controls).toBeUndefined();
+  });
+
   it("rejects snippets that are missing or ambiguous without applying anything", async () => {
     const scene = fakeScene();
     const output = await edit.run(edit.input.parse({ edits: [{ phase: "setup", find: "does not exist", replace: "x" }] }), {
@@ -241,6 +252,6 @@ describe("tool specs", () => {
       expect(spec.input_schema).not.toHaveProperty("$schema");
     }
     const edit = toolSpec(SCENE_TOOLS.find((t) => t.name === "scene_edit")!);
-    expect(Object.keys(edit.input_schema.properties as object)).toEqual(["edits", "uniforms", "inputs", "timeline", "keyframes"]);
+    expect(Object.keys(edit.input_schema.properties as object)).toEqual(["edits", "uniforms", "inputs", "controls", "timeline", "keyframes"]);
   });
 });

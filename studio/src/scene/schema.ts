@@ -11,6 +11,20 @@ export type UniformValue = number | boolean | number[];
 
 const VECTOR_SIZE: Partial<Record<UniformType, number>> = { vec2: 2, vec3: 3, vec4: 4, color: 3 };
 
+/** How a uniform is shown. Each widget accepts only some uniform types (see WIDGET_TYPES). */
+export const WIDGETS = ["slider", "knob", "pad", "select", "button", "toggle"] as const;
+export type Widget = (typeof WIDGETS)[number];
+
+export const WIDGET_TYPES: Record<Widget, readonly UniformType[]> = {
+  slider: ["float", "int"],
+  knob: ["float", "int"],
+  pad: ["vec2"],
+  select: ["int", "float"],
+  // Pulses: true for exactly one rendered frame per press.
+  button: ["bool"],
+  toggle: ["bool"],
+};
+
 export const UniformDefSchema = z
   .object({
     type: z.enum(UNIFORM_TYPES),
@@ -19,8 +33,15 @@ export const UniformDefSchema = z
     max: z.number().optional(),
     step: z.number().positive().optional(),
     label: z.string().optional(),
+    widget: z.enum(WIDGETS).optional(),
+    /** Choices for widget "select". */
+    options: z.array(z.object({ label: z.string(), value: z.number() })).min(1).optional(),
   })
   .superRefine((def, ctx) => {
+    if (def.widget && !WIDGET_TYPES[def.widget].includes(def.type)) {
+      ctx.addIssue({ code: "custom", message: `widget "${def.widget}" needs a ${WIDGET_TYPES[def.widget].join(" or ")} uniform, not ${def.type}` });
+    }
+    if (def.widget === "select" && !def.options) ctx.addIssue({ code: "custom", message: 'widget "select" needs options: [{ "label": "…", "value": 0 }, …]' });
     const size = VECTOR_SIZE[def.type];
     if (size !== undefined) {
       // color also accepts an alpha channel
@@ -70,10 +91,17 @@ export const SceneSchema = z
     }),
   inputs: z.array(z.enum(SCENE_INPUTS)).default([]),
   timeline: TimelineSchema.optional(),
+  /** Optional grouping of the controls panel; uniforms not listed show after the groups. */
+  controls: z.array(z.object({ label: z.string(), uniforms: z.array(z.string()).min(1) })).optional(),
   /** Uniform name → keys. Requires a timeline. */
   keyframes: z.record(z.string(), z.array(KeyframeSchema)).default({}),
 })
   .superRefine((scene, ctx) => {
+    for (const [i, group] of (scene.controls ?? []).entries()) {
+      for (const name of group.uniforms) {
+        if (!scene.uniforms[name]) ctx.addIssue({ code: "custom", path: ["controls", i], message: `group "${group.label}" lists "${name}", which is not a uniform` });
+      }
+    }
     const tracks = Object.entries(scene.keyframes);
     if (tracks.length && !scene.timeline) {
       ctx.addIssue({ code: "custom", path: ["keyframes"], message: 'keyframes need a timeline, e.g. "timeline": { "duration": 10, "loop": true }' });
