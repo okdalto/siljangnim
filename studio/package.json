@@ -10,7 +10,8 @@
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "test": "vitest run",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "export-mcp": "node scripts/export-mcp.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0",

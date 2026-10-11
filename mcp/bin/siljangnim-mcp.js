@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+// Entry point MCP clients launch, e.g.
+//   claude mcp add siljangnim -- node /path/to/siljangnim/mcp/bin/siljangnim-mcp.js
+// stdout carries MCP messages; everything else goes to stderr.
+import { spawn } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { DEFAULT_PORT, createBridge } from "../src/bridge.js";
+import { openBrowser } from "../src/open.js";
+
+const pkgDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+const log = (message) => process.stderr.write(`[siljangnim-mcp] ${message}\n`);
+
+// A published package carries the built studio in ./studio; in the repo it is ../studio/dist.
+const studioDir = resolve(
+  process.env.SILJANGNIM_STUDIO_DIR || (existsSync(join(pkgDir, "studio", "index.html")) ? join(pkgDir, "studio") : join(pkgDir, "..", "studio", "dist")),
+);
+if (!existsSync(join(studioDir, "index.html"))) {
+  log(`no studio build at ${studioDir}; run: npm --prefix studio run build`);
+  process.exit(1);
+}
+
+const spec = JSON.parse(readFileSync(join(pkgDir, "src", "spec.json"), "utf8"));
+const { version } = JSON.parse(readFileSync(join(pkgDir, "package.json"), "utf8"));
+// SILJANGNIM_OPEN=0 leaves opening to someone else (tests, remote sessions); the URL is logged.
+// SILJANGNIM_OPEN_COMMAND names a program to open it with instead (called with the URL).
+const openCommand = process.env.SILJANGNIM_OPEN_COMMAND;
+const open =
+  process.env.SILJANGNIM_OPEN === "0"
+    ? () => undefined
+    : openCommand
+      ? (url) => spawn(openCommand, [url], { detached: true, stdio: "ignore" }).on("error", (err) => log(`${openCommand}: ${err.message}`)).unref()
+      : (url) => openBrowser(url, log);
+
+const bridge = createBridge({ studioDir, spec, version, port: Number(process.env.SILJANGNIM_PORT) || DEFAULT_PORT, open, log });
+await bridge.listen();
+await bridge.mcp.connect(new StdioServerTransport());
+
+const shutdown = () => void bridge.close().finally(() => process.exit(0));
+process.stdin.on("close", shutdown);
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);

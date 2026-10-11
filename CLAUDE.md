@@ -14,6 +14,10 @@ changing structure. Current work: `docs/m2.md`.
   - `src/project/` — IndexedDB store. `src/app/` — UI, state (`state.ts`), controller (`session.ts`).
   - `server/llmForward.js` — LLM forwarder shared by the Vite dev server and the desktop main process.
 - `desktop/` — Electron shell: `app://` protocol, key storage, hub process, packaging, smoke test.
+- `mcp/` — `siljangnim-mcp`: MCP server for external agents (Claude Code, Codex). Serves the built studio on
+  localhost and relays tool calls to it over a token-checked WebSocket ([docs/mcp.md](docs/mcp.md)).
+  `src/spec.json` is generated from `studio/src/agent/external.ts` — run `npm --prefix studio run export-mcp`
+  after changing tools or the prompt (a studio test fails otherwise).
 - `hub/` — Python sidecar (FastAPI, uv-managed). Stage 2 turns it into the MCP server.
 - `frontend/`, `backend/` — **v1, legacy.** Still deployed to siljangnim.vercel.app. Read them to port
   features; don't build on them. Retired when the studio reaches parity (M3).
@@ -26,8 +30,9 @@ changing structure. Current work: `docs/m2.md`.
 | `npm run dev` | desktop app with hot reload |
 | `npm run web` | studio in a browser, http://localhost:5173 |
 | `npm run check` | typecheck + lint (studio) |
-| `npm test` | studio unit tests (vitest) + hub tests (pytest via bundled uv) |
-| `npm run smoke` | stage, launch Electron in a throwaway profile, run one agent session against a mock Anthropic server; report in `desktop/release/smoke/` |
+| `npm test` | studio unit tests (vitest) + mcp bridge tests (node:test) + hub tests (pytest via bundled uv) |
+| `npm run smoke` | stage, launch Electron in a throwaway profile, run one agent session against a mock Anthropic server (report in `desktop/release/smoke/`); then drive the viewer through the MCP bridge like an external agent (report in `mcp/smoke-out/`) |
+| `npm run mcp` | run the MCP bridge (what `claude mcp add` launches) |
 | `npm run dist` | installer for the current platform |
 
 Run `check`, `test` and `smoke` before every push; CI runs the same (Linux needs `xvfb-run -a`).
@@ -49,6 +54,9 @@ Run `check`, `test` and `smoke` before every push; CI runs the same (Linux needs
   same definitions over MCP — keep tools free of UI code; they act through `SceneController`/`ToolEnv`.
 - **Agent tool results must be actionable**: structured errors with line numbers/excerpts, never
   "something went wrong".
+- **External agents get the same tools.** The MCP bridge never implements tools; calls run in the viewer through
+  `runTool`. Its HTTP server stays on 127.0.0.1 with a Host check, and only the app origin with the per-launch
+  token may open the WebSocket.
 - **The system prompt is a cached prefix.** Keep `agent/prompt.ts` byte-stable across turns (no
   timestamps, no per-request data); put per-request context in messages. Keep its ctx reference in
   sync with `scene/runtime/ctx.ts`.

@@ -1,6 +1,7 @@
 // Right panel: the agent chat, the version history and the assets, as tabs.
 import { setSidebarTab } from "../session";
 import { useApp } from "../state";
+import { Activity } from "./Activity";
 import { Assets } from "./Assets";
 import { Chat, ChatHeaderActions } from "./Chat";
 import { History } from "./History";
@@ -11,13 +12,23 @@ const TABS = [
   { id: "assets", label: "Assets" },
 ] as const;
 
+// With an external agent the conversation lives in that agent's app.
+const EXTERNAL_TABS = [
+  { id: "activity", label: "Activity" },
+  { id: "history", label: "History" },
+  { id: "assets", label: "Assets" },
+] as const;
+
 export function Sidebar() {
-  const tab = useApp((s) => s.sidebarTab);
+  const external = useApp((s) => Boolean(s.external));
+  const selected = useApp((s) => s.sidebarTab);
+  const tabs = external ? EXTERNAL_TABS : TABS;
+  const tab = tabs.some((t) => t.id === selected) ? selected : tabs[0].id;
   return (
     <aside className="flex w-[420px] shrink-0 flex-col border-l border-line bg-panel">
       <div className="flex h-10 shrink-0 items-center gap-3 border-b border-line px-2 text-xs">
         <div role="tablist" className="flex gap-1">
-          {TABS.map((t) => (
+          {tabs.map((t) => (
             <button
               key={t.id}
               type="button"
@@ -32,7 +43,7 @@ export function Sidebar() {
         </div>
         <div className="flex min-w-0 flex-1 items-center justify-end gap-3 pr-2">{tab === "chat" && <ChatHeaderActions />}</div>
       </div>
-      {tab === "chat" ? <Chat /> : tab === "history" ? <History /> : <Assets />}
+      {tab === "chat" ? <Chat /> : tab === "activity" ? <Activity /> : tab === "history" ? <History /> : <Assets />}
     </aside>
   );
 }

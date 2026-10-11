@@ -166,7 +166,7 @@ function Thought({ text, live = false }: { text: string; live?: boolean }) {
   );
 }
 
-function ToolChip({ name, result, running = false }: { name: string; result?: ToolResult; running?: boolean }) {
+export function ToolChip({ name, result, running = false }: { name: string; result?: ToolResult; running?: boolean }) {
   const [open, setOpen] = useState(false);
   const label = TOOL_LABELS[name] ?? name;
   const content = result?.content;

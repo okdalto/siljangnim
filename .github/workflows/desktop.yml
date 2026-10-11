@@ -2,7 +2,7 @@ name: Desktop
 
 on:
   pull_request:
-    paths: ["desktop/**", "hub/**", "studio/**", "package.json", ".github/workflows/desktop.yml"]
+    paths: ["desktop/**", "hub/**", "studio/**", "mcp/**", "package.json", ".github/workflows/desktop.yml"]
   push:
     branches: [main]
     tags: ["v*"]
@@ -22,15 +22,18 @@ jobs:
       - run: npm install
       - name: Typecheck and lint
         run: npm run check
-      - name: Tests (studio + hub)
+      - name: Tests (studio + mcp + hub)
         run: npm test
-      - name: Smoke test (stage, launch, one agent run against a mock API)
+      - name: Smoke test (desktop agent run against a mock API, then an MCP client driving the viewer)
         run: xvfb-run -a npm run smoke
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: smoke-linux
-          path: desktop/release/smoke
+          path: |
+            desktop/release/smoke
+            mcp/smoke-out/report.json
+            mcp/smoke-out/viewer.png
 
   build:
     needs: check

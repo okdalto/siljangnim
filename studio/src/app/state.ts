@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { MessageParam } from "../agent/llm/types";
+import type { ToolOutput } from "../agent/tools";
 import type { ProviderKeyId } from "../desktop";
 import type { AssetInfo } from "../project/assets";
 import type { ProjectMeta, Version } from "../project/store";
@@ -18,6 +19,21 @@ export interface PendingQuestion {
   options: Array<{ label: string; description?: string }>;
 }
 
+export interface ActivityEntry {
+  id: number;
+  tool: string;
+  input: unknown;
+  at: number;
+  /** Null while the tool runs. */
+  output: ToolOutput | null;
+}
+
+/** An external agent driving this viewer through the MCP bridge. */
+export interface ExternalAgent {
+  status: "connecting" | "connected" | "reconnecting" | "ended" | "replaced";
+  client: string | null;
+}
+
 export interface Notice {
   kind: "error" | "info";
   text: string;
@@ -32,7 +48,10 @@ export interface AppState {
   messages: MessageParam[];
   /** The open project's versions, oldest first. */
   versions: Version[];
-  sidebarTab: "chat" | "history" | "assets";
+  sidebarTab: "chat" | "activity" | "history" | "assets";
+  /** Set when the viewer was opened by the MCP bridge: chat is replaced by the agent's activity. */
+  external: ExternalAgent | null;
+  activity: ActivityEntry[];
   /** The open project's uploaded files, by name. */
   assets: AssetInfo[];
   /** Assets uploaded since the last prompt; the next prompt tells the agent about them. */
@@ -63,6 +82,8 @@ export const useApp = create<AppState>(() => ({
   messages: [],
   versions: [],
   sidebarTab: "chat",
+  external: null,
+  activity: [],
   assets: [],
   attachments: [],
   monitors: {},

@@ -6,7 +6,8 @@ import { repairConversation, runAgent } from "../agent/loop";
 import type { ContentBlockParam, MessageParam } from "../agent/llm/types";
 import { SYSTEM_PROMPT } from "../agent/prompt";
 import { SCENE_TOOLS } from "../agent/sceneTools";
-import type { AssetController, HistoryController, SceneController, UserController, VersionInfo } from "../agent/tools";
+import { runTool, type AssetController, type HistoryController, type SceneController, type ToolOutput, type UserController, type VersionInfo } from "../agent/tools";
+import { EXTERNAL_TOOLS } from "../agent/external";
 import { USER_TOOLS } from "../agent/userTools";
 import { ASSET_TOOLS } from "../agent/assetTools";
 import {
@@ -27,7 +28,7 @@ import type { SceneHost } from "../scene/host";
 import type { LoadResult } from "../scene/protocol";
 import { evaluateTrack, keyAt, removeKeyAt, upsertKey } from "../scene/gl/keyframes";
 import { DEFAULT_SCENE, KEYFRAMABLE, parseScene, type Scene, type Timeline, type UniformValue } from "../scene/schema";
-import { keys } from "./platform";
+import { bridgeToken, keys } from "./platform";
 import { createProvider, looksLikeApiKey, saveSettings, type Settings } from "./settings";
 import { useApp, type AppState } from "./state";
 
@@ -82,6 +83,8 @@ const set = useApp.setState;
 // --- boot & projects ---
 
 export async function boot(): Promise<void> {
+  // Opened by the MCP bridge: an external agent drives this viewer.
+  if (bridgeToken) void import("./bridge").then(({ connectBridge }) => connectBridge(bridgeToken!));
   set({ keyStatus: await keys.status() });
   let projects = await store.listProjects();
   if (!projects.length) {
@@ -178,7 +181,7 @@ async function loadIntoHost(scene: Scene): Promise<LoadResult> {
   set((st) => ({ runtime: { ...st.runtime, errors: result.errors } }));
   // Projects start their history with whatever scene they first show.
   const project = get().project;
-  if (project) void commitVersion(project.id, "Initial scene", { rootOnly: true });
+  if (project) void commitVersion(project.id, "Initial scene", { rootOnly: true, scene });
   return result;
 }
 
@@ -377,9 +380,11 @@ async function flushSave(): Promise<void> {
  * Save the current scene as a child of HEAD and move HEAD to it. Skipped when
  * the scene equals HEAD's (or, with rootOnly, when any version exists).
  */
-function commitVersion(projectId: string, message: string, options: { rootOnly?: boolean } = {}): Promise<Version | null> {
+function commitVersion(projectId: string, message: string, options: { rootOnly?: boolean; scene?: Scene } = {}): Promise<Version | null> {
   return chained(async () => {
-    const { project, scene, messages, versions } = get();
+    const { project, messages, versions } = get();
+    // The root records the scene that was loaded, even if an edit already replaced it.
+    const scene = options.scene ?? get().scene;
     if (project?.id !== projectId) return null;
     if (options.rootOnly && versions.length) return null;
     const head = versions.find((v) => v.id === project.head) ?? null;
@@ -391,7 +396,8 @@ function commitVersion(projectId: string, message: string, options: { rootOnly?:
       createdAt: Date.now(),
       message,
       scene,
-      thumbnail: await captureThumbnail(),
+      // The viewport only shows this scene if nothing replaced it meanwhile.
+      thumbnail: sameScene(get().scene, scene) ? await captureThumbnail() : undefined,
       chatLength: messages.length,
     };
     await store.addVersion(version);
@@ -538,6 +544,71 @@ async function attachmentBlocks(names: string[]): Promise<ContentBlockParam[]> {
 
 // --- agent ---
 
+/** What tools act on, bound to one project: a run that outlives a project switch can't touch the new one. */
+function projectEnv(projectId: string, sceneHost: SceneHost): { scene: SceneController; history: HistoryController; assets: AssetController } {
+  return {
+    scene: {
+      get: () => get().scene,
+      apply: (scene) => (get().project?.id === projectId ? applyScene(scene) : Promise.resolve({ ok: false, errors: [] })),
+      capture: (maxSize) => sceneHost.request("capture", { maxSize }),
+      status: () => sceneHost.request("status", {}),
+    },
+    history: {
+      list: async () => {
+        const { project: current, versions } = get();
+        return current?.id === projectId ? versions.map((v) => versionInfo(v, current.head)) : [];
+      },
+      restore: async (id) => {
+        const { version, load } = await restore(projectId, id);
+        return { version: versionInfo(version, version.id), load };
+      },
+    },
+    assets: {
+      list: async () => (get().project?.id === projectId ? get().assets : []),
+      read: async (name) => (get().project?.id === projectId ? assetBlobs.get(name) : undefined),
+    },
+  };
+}
+
+// --- external agents (MCP bridge) ---
+
+const ACTIVITY_LIMIT = 100;
+const VIEWER_READY_TIMEOUT_MS = 15_000;
+let activitySerial = 0;
+
+function whenViewerReady(): Promise<boolean> {
+  const ready = () => Boolean(get().ready && get().project && host);
+  if (ready()) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const started = Date.now();
+    const timer = setInterval(() => {
+      if (ready() || Date.now() - started > VIEWER_READY_TIMEOUT_MS) {
+        clearInterval(timer);
+        resolve(ready());
+      }
+    }, 100);
+  });
+}
+
+/** Run a tool an external agent called through the bridge, and log it in the Activity panel. */
+export async function runExternalTool(name: string, input: unknown): Promise<ToolOutput> {
+  const tool = EXTERNAL_TOOLS.find((t) => t.name === name);
+  if (!tool) return { isError: true, content: `Unknown tool "${name}".` };
+  if (!(await whenViewerReady()) || !host) return { isError: true, content: "The viewer is still starting. Try again in a moment." };
+  const project = get().project!;
+  const id = ++activitySerial;
+  set((st) => ({ activity: [...st.activity, { id, tool: name, input, at: Date.now(), output: null }].slice(-ACTIVITY_LIMIT) }));
+  const env = { ...projectEnv(project.id, host), user: { ask: async () => null }, signal: new AbortController().signal };
+  const output = await runTool(tool, input, env);
+  set((st) => ({ activity: st.activity.map((a) => (a.id === id ? { ...a, output } : a)) }));
+  if (!tool.readOnly && !output.isError) noteControlChange(`${get().external?.client ?? "Agent"}: ${name.replace("_", " ")}`, "action");
+  return output;
+}
+
+export function setExternal(external: AppState["external"]): void {
+  set((st) => ({ external, sidebarTab: st.sidebarTab === "chat" ? "activity" : st.sidebarTab }));
+}
+
 export async function sendPrompt(text: string): Promise<void> {
   const prompt = text.trim();
   const { project, settings, live } = get();
@@ -566,24 +637,7 @@ export async function sendPrompt(text: string): Promise<void> {
   await flushControlVersion();
 
   const projectId = project.id;
-  const sceneHost = host;
-  const controller: SceneController = {
-    get: () => get().scene,
-    // A run winding down after a project switch must not touch the new project.
-    apply: (scene) => (get().project?.id === projectId ? applyScene(scene) : Promise.resolve({ ok: false, errors: [] })),
-    capture: (maxSize) => sceneHost.request("capture", { maxSize }),
-    status: () => sceneHost.request("status", {}),
-  };
-  const history: HistoryController = {
-    list: async () => {
-      const { project: current, versions } = get();
-      return current?.id === projectId ? versions.map((v) => versionInfo(v, current.head)) : [];
-    },
-    restore: async (id) => {
-      const { version, load } = await restore(projectId, id);
-      return { version: versionInfo(version, version.id), load };
-    },
-  };
+  const { scene: controller, history, assets: assetsEnv } = projectEnv(projectId, host);
 
   const user: UserController = {
     ask: (question, options, signal) =>
@@ -601,11 +655,6 @@ export async function sendPrompt(text: string): Promise<void> {
         set({ question: { question, options }, sidebarTab: "chat" });
       }),
   };
-  const assetsEnv: AssetController = {
-    list: async () => (get().project?.id === projectId ? get().assets : []),
-    read: async (name) => (get().project?.id === projectId ? assetBlobs.get(name) : undefined),
-  };
-
   const note = pendingNotes.get(projectId);
   pendingNotes.delete(projectId);
   const attached = get().attachments;
