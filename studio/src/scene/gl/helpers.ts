@@ -215,7 +215,7 @@ export interface VideoTexture extends LoadedTexture {
 const VIDEO_LOAD_TIMEOUT_MS = 15_000;
 
 /** A texture fed by a <video>. Resolves once the first frame is decodable. */
-export async function createVideoTexture(gl: WebGL2RenderingContext, url: string, options: VideoTextureOptions = {}): Promise<VideoTexture> {
+export async function createVideoTexture(gl: WebGL2RenderingContext, source: string | MediaStream, options: VideoTextureOptions = {}): Promise<VideoTexture> {
   const video = document.createElement("video");
   video.loop = options.loop ?? true;
   video.muted = options.muted ?? true;
@@ -231,7 +231,13 @@ export async function createVideoTexture(gl: WebGL2RenderingContext, url: string
       clearTimeout(timer);
       reject(new Error(`createVideoTexture: can't decode this video (${video.error?.message || "unsupported format"})`));
     };
-    video.src = url;
+    if (typeof source === "string") video.src = source;
+    else {
+      // A live stream has no data until it plays.
+      video.srcObject = source;
+      video.autoplay = true;
+      video.play().catch(() => undefined);
+    }
   });
   // Autoplay can still be refused (e.g. unmuted); the texture then shows the first frame.
   if (options.autoplay ?? true) video.play().catch(() => undefined);
@@ -278,6 +284,7 @@ export async function createVideoTexture(gl: WebGL2RenderingContext, url: string
     },
     dispose() {
       video.pause();
+      video.srcObject = null;
       video.removeAttribute("src");
       video.load();
     },

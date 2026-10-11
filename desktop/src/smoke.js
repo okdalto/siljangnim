@@ -228,8 +228,19 @@ async function runHistoryScenario(win, sceneFrame) {
   };
 }
 
+// Runs inside the scene frame: the canvas as a 512-wide PNG data URL.
+const CAPTURE_PNG = `(async () => {
+  const canvas = document.querySelector("#stage canvas");
+  await new Promise((r) => requestAnimationFrame(r));
+  const bitmap = await createImageBitmap(canvas);
+  const out = new OffscreenCanvas(512, Math.round((512 * canvas.height) / canvas.width));
+  out.getContext("2d").drawImage(bitmap, 0, 0, out.width, out.height);
+  const blob = await out.convertToBlob({ type: "image/png" });
+  return await new Promise((resolve) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(blob); });
+})()`;
+
 /** Opens every bundled example through the gallery and checks it runs, error-free, and draws something. */
-async function runExamplesScenario(win) {
+async function runExamplesScenario(win, examplesOut) {
   const slugs = await win.webContents.executeJavaScript(`(async () => {
     document.querySelector('[title="Projects"]').click();
     await new Promise((r) => setTimeout(r, 200));
@@ -272,6 +283,12 @@ async function runExamplesScenario(win) {
     const sample = frame ? await inFrame(frame, SAMPLE_CANVAS, `sample ${slug}`).catch(() => null) : null;
     const after = await win.webContents.executeJavaScript(`Number(document.querySelector("[data-runtime-state]")?.dataset.runtimeErrors)`);
     results[slug] = { ...state, errors: after, litFraction: sample?.litFraction ?? 0 };
+    // A capture per example (thumbnails, and a look at what ran).
+    const png = frame ? await inFrame(frame, CAPTURE_PNG, `capture ${slug}`).catch(() => null) : null;
+    if (png) {
+      mkdirSync(join(examplesOut, "examples"), { recursive: true });
+      writeFileSync(join(examplesOut, "examples", `${slug}.png`), Buffer.from(png.split(",")[1], "base64"));
+    }
     log(`example ${slug}: ${JSON.stringify(results[slug])}`);
   }
   return results;
@@ -290,6 +307,8 @@ export async function runSmokeTest(win, hub, keys, outDir) {
     quit(hub, 1);
   }, TIMEOUT_MS);
 
+  // Examples play audio; keep the machine running the smoke quiet.
+  win.webContents.setAudioMuted(true);
   await new Promise((resolve) => {
     if (!win.webContents.isLoading()) return resolve();
     win.webContents.once("did-finish-load", resolve);
@@ -332,7 +351,7 @@ export async function runSmokeTest(win, hub, keys, outDir) {
   log("history scenario");
   const history = agent ? await runHistoryScenario(win, sceneFrame) : null;
   log("examples");
-  const examples = await runExamplesScenario(win);
+  const examples = await runExamplesScenario(win, outDir);
   log("waiting for hub");
 
   await waitForHub(hub);
@@ -377,7 +396,7 @@ export async function runSmokeTest(win, hub, keys, outDir) {
       : {}),
     ...(history ? { historyRecorded: history.recorded, historyRestored: history.restored } : {}),
     examplesRun:
-      Object.keys(examples).length >= 9 && Object.values(examples).every((e) => e.skipped || (e.state === "running" && e.errors === 0 && e.litFraction > 0.02)),
+      Object.keys(examples).length >= 10 && Object.values(examples).every((e) => e.skipped || (e.state === "running" && e.errors === 0 && e.litFraction > 0.02)),
   };
   const ok = Object.values(checks).every(Boolean);
   report({ ok, checks, scene, iframe, llm, agent, history, examples, bridge, hub: { ...info, token: undefined }, system, consoleErrors });

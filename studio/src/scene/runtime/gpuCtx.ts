@@ -5,7 +5,9 @@ import { ShaderError } from "../gl/shader";
 import { FULLSCREEN_VERTEX_WGSL, packUniforms, uniformLayout, wgslDiagnostics, type UniformLayout } from "../gpu/wgsl";
 import type { MonitorValue } from "../protocol";
 import type { Scene, UniformValue } from "../schema";
-import { importModule } from "./ctx";
+import { importModule, type SceneAudioUtils } from "./ctx";
+import { emptyAudio, emptyMidi, type AudioState, type MidiState } from "./inputData";
+import type { SceneInputs } from "./inputs";
 
 // WebGPU usage flags (the TypeScript DOM lib types the API but not these constants).
 const BUFFER_UNIFORM = 0x40;
@@ -39,8 +41,14 @@ export interface GpuSceneCtx {
   keys: Set<string>;
   uniforms: Record<string, UniformValue>;
   assets: Record<string, string>;
+  audio: AudioState;
+  midi: MidiState;
   publish(name: string, value: MonitorValue): void;
   utils: {
+    audio: SceneAudioUtils;
+    enableMidi(): Promise<void>;
+    /** The webcam as a playing <video>; use device.importExternalTexture({ source }) each frame. */
+    cameraVideo(options?: { width?: number; height?: number; facingMode?: string }): Promise<HTMLVideoElement>;
     FULLSCREEN_VERTEX_WGSL: string;
     /** Compiles WGSL and throws with line numbers and an excerpt on errors. */
     createShaderModule(code: string, label?: string): Promise<GPUShaderModule>;
@@ -60,6 +68,7 @@ export function createGpuCtx(
   uniforms: Record<string, UniformValue>,
   assets: Record<string, string>,
   publish: GpuSceneCtx["publish"],
+  inputs?: SceneInputs,
 ): GpuSceneCtx {
   const ctx: GpuSceneCtx = {
     device,
@@ -77,11 +86,28 @@ export function createGpuCtx(
     keys: new Set(),
     uniforms,
     assets,
+    audio: inputs?.audio ?? emptyAudio(),
+    midi: inputs?.midi ?? emptyMidi(),
     publish,
     utils: undefined as unknown as GpuSceneCtx["utils"],
   };
 
   ctx.utils = {
+    audio: {
+      useMicrophone: () => (inputs ? inputs.microphone() : Promise.reject(new Error("audio input is not available here"))),
+      play: (nameOrUrl, options) => (inputs ? inputs.play(ctx.assets[nameOrUrl] ?? nameOrUrl, options) : Promise.reject(new Error("audio is not available here"))),
+      stop: () => inputs?.stopAudio(),
+    },
+    enableMidi: () => (inputs ? inputs.enableMidi() : Promise.reject(new Error("MIDI is not available here"))),
+    async cameraVideo(options = {}) {
+      if (!inputs) throw new Error("camera input is not available here");
+      const video = document.createElement("video");
+      video.muted = true;
+      video.playsInline = true;
+      video.srcObject = await inputs.camera(options);
+      await video.play();
+      return video;
+    },
     FULLSCREEN_VERTEX_WGSL,
     async createShaderModule(code, label) {
       // Own scope: the compile error is reported once, as a ShaderError with line numbers,
@@ -107,7 +133,8 @@ export function createGpuCtx(
           // Same convention as WebGL's u_mouse: pixels, origin bottom-left, zw negative when not pressed.
           const [mx, my, cx, cy] = ctx.mouse;
           const mouse = [mx * w, (1 - my) * h, ctx.mouseDown ? cx * w : -cx * w, ctx.mouseDown ? (1 - cy) * h : -(1 - cy) * h];
-          packUniforms(layout, { ...ctx.uniforms, time: ctx.time, dt: ctx.dt, frame: ctx.frame, resolution: [w, h], mouse }, data);
+          const audio = [ctx.audio.level, ctx.audio.bass, ctx.audio.mid, ctx.audio.treble];
+          packUniforms(layout, { ...ctx.uniforms, time: ctx.time, dt: ctx.dt, frame: ctx.frame, resolution: [w, h], mouse, audio }, data);
           device.queue.writeBuffer(buffer, 0, data);
         },
       };

@@ -7,6 +7,9 @@ const { join } = require("node:path");
 const url = process.env.SILJANGNIM_VIEWER_URL;
 const out = process.env.SILJANGNIM_SMOKE_OUT;
 app.setPath("userData", join(out, "profile"));
+// Chromium's fake microphone (a beep) and camera (a test pattern), with permission prompts accepted.
+app.commandLine.appendSwitch("use-fake-device-for-media-stream");
+app.commandLine.appendSwitch("use-fake-ui-for-media-stream");
 
 const READ_STATE = `(() => ({
   status: document.querySelector('[data-testid="external-status"]')?.dataset.status ?? null,
@@ -23,6 +26,12 @@ app.whenReady().then(async () => {
   // Recordings download without a save dialog, into the smoke output.
   session.defaultSession.on("will-download", (_e, item) => item.setSavePath(join(out, "downloads", item.getFilename())));
   const win = new BrowserWindow({ width: 1280, height: 800, show: true });
+  // The page's console, for when something goes wrong.
+  const logLines = [];
+  win.webContents.on("console-message", ({ level, message }) => {
+    logLines.push(`[${level}] ${message}`);
+    writeFileSync(join(out, "viewer-console.log"), logLines.slice(-300).join("\n"));
+  });
   await win.loadURL(url);
   const report = async () => {
     try {

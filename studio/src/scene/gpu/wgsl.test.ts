@@ -15,17 +15,18 @@ describe("uniform layout", () => {
       ["frame", 8],
       ["resolution", 16],
       ["mouse", 32],
-      ["u_speed", 48],
-      ["u_tint", 64], // vec3f aligns to 16
-      ["u_on", 76], // and an f32 fits in its last slot
-      ["u_offset", 80],
+      ["audio", 48],
+      ["u_speed", 64],
+      ["u_tint", 80], // vec3f aligns to 16
+      ["u_on", 92], // and an f32 fits in its last slot
+      ["u_offset", 96],
     ]);
-    expect(layout.size).toBe(96);
+    expect(layout.size).toBe(112);
     expect(layout.wgsl).toContain("u_tint: vec3f,");
 
-    const data = packUniforms(layout, { time: 2, resolution: [640, 480], u_speed: 1.5, u_tint: [1, 0.5, 0], u_on: true, u_offset: [3, 4] });
-    expect(data.length).toBe(24);
-    expect([data[0], data[4], data[5], data[12], data[16], data[17], data[19], data[20], data[21]]).toEqual([2, 640, 480, 1.5, 1, 0.5, 1, 3, 4]);
+    const data = packUniforms(layout, { time: 2, resolution: [640, 480], audio: [0.5, 0, 0, 0], u_speed: 1.5, u_tint: [1, 0.5, 0], u_on: true, u_offset: [3, 4] });
+    expect(data.length).toBe(28);
+    expect([data[0], data[4], data[5], data[12], data[16], data[20], data[21], data[23], data[24], data[25]]).toEqual([2, 640, 480, 0.5, 1.5, 1, 0.5, 1, 3, 4]);
   });
 });
 
