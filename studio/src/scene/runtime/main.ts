@@ -20,6 +20,7 @@ if (!parentOrigin || window.parent === window || !root) {
     setUniform: (p) => runner.setUniform(p.name, p.value),
     transport: (p) => runner.transport(p.action, p.time),
     setTimeline: (p) => runner.setTimeline(p.timeline, p.keyframes),
+    osc: (p) => runner.osc(p),
     capture: (p) => runner.capture(p.maxSize),
     status: () => runner.status(),
     record: (p) => runner.recordScene(p),

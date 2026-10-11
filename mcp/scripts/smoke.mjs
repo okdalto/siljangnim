@@ -3,6 +3,7 @@
 // the viewer, calls the tools and checks results and what the viewer shows.
 // Needs studio/dist (npm run smoke builds it first). Report in mcp/smoke-out/.
 import { spawn } from "node:child_process";
+import { createSocket } from "node:dgram";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
@@ -146,6 +147,41 @@ ctx.publish("camWidth", ctx.state.cam.width);`,
 await wait(2500);
 const inputs = await client.callTool({ name: "viewport_status", arguments: {} });
 
+// OSC: the hub listens on UDP, the viewer streams it into ctx.osc. Sent from here with dgram.
+const oscPort = await new Promise((resolve) => {
+  const probe = createSocket("udp4");
+  probe.bind(0, "127.0.0.1", () => {
+    const { port } = probe.address();
+    probe.close(() => resolve(port));
+  });
+});
+const oscScene = await client.callTool({ name: "scene_write", arguments: {
+  scene: {
+    version: 2,
+    script: {
+      setup: `ctx.utils.listenOsc(${oscPort}); ctx.state.count = 0;`,
+      render: `ctx.state.count += ctx.osc.messages.length;
+ctx.publish("oscActive", ctx.osc.active);
+ctx.publish("oscFader", ctx.osc.get("/fader", 0, -1));
+ctx.publish("oscText", String(ctx.osc.values["/label"]?.[0] ?? ""));
+ctx.publish("oscCount", ctx.state.count);
+ctx.gl.clearColor(0, 0, ctx.osc.get("/fader"), 1); ctx.gl.clear(ctx.gl.COLOR_BUFFER_BIT);`,
+    },
+  },
+} });
+await wait(1500);
+const oscSender = createSocket("udp4");
+const pad4 = (b) => Buffer.concat([b, Buffer.alloc(4 - (b.length % 4))]);
+const oscMessage = (address, tags, payload) => Buffer.concat([pad4(Buffer.from(address)), pad4(Buffer.from(tags)), payload]);
+const float = Buffer.alloc(4);
+float.writeFloatBE(0.75);
+for (const msg of [oscMessage("/fader", ",f", float), oscMessage("/label", ",s", pad4(Buffer.from("hello")))]) {
+  await new Promise((resolve) => oscSender.send(msg, oscPort, "127.0.0.1", resolve));
+}
+oscSender.close();
+await wait(1000);
+const oscStatus = await client.callTool({ name: "viewport_status", arguments: {} });
+
 
 const checks = {
   toolsListed: ["scene_write", "viewport_capture", "history_list", "asset_list", "viewer_open"].every((n) => tools.some((t) => t.name === n)) && !tools.some((t) => t.name === "ask_user"),
@@ -178,6 +214,12 @@ const checks = {
     /Monitors: .*audioActive=true/.test(text(inputs)) &&
     /camWidth=640/.test(text(inputs)) &&
     Number(text(inputs).match(/maxLevel=([\d.]+)/)?.[1] ?? 0) > 0,
+  oscWorks:
+    !oscScene.isError &&
+    /oscActive=true/.test(text(oscStatus)) &&
+    /oscFader=0\.75/.test(text(oscStatus)) &&
+    /oscText=hello/.test(text(oscStatus)) &&
+    /oscCount=2/.test(text(oscStatus)),
   runtimeStatus: !status.isError && /Python environments:.*\(no packages\)/.test(text(status)),
   // Edits close together share a version; slow steps between them (recordings) split them.
   versionSaved: /"Initial scene"/.test(text(history)) && /Claude Code: scene write/.test(text(history)) && /scene edit/.test(text(history)),
@@ -191,7 +233,7 @@ viewer?.kill("SIGTERM");
 await wait(1500);
 await client.close();
 const ok = Object.values(checks).every(Boolean);
-const report = { ok, checks, captureMeanRgb: rgb, history: text(history), inputs: [text(inputScene), text(inputs)], viewer: viewerState };
+const report = { ok, checks, captureMeanRgb: rgb, history: text(history), inputs: [text(inputScene), text(inputs)], osc: text(oscStatus), viewer: viewerState };
 writeFileSync(join(out, "report.json"), JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
 clearTimeout(timeout);

@@ -1,6 +1,7 @@
 // Messages between the app (host) and the scene runtime iframe.
 // Everything crosses window.postMessage; both sides check the peer origin.
 import type { Keyframe } from "./gl/keyframes";
+import type { OscMessage } from "./runtime/inputData";
 import type { Scene, Timeline, UniformValue } from "./schema";
 
 export const CHANNEL = "siljangnim-scene/1";
@@ -84,6 +85,8 @@ export interface RuntimeMethods {
   status: { params: Record<string, never>; result: RuntimeStatus };
   record: { params: RecordOptions; result: RecordResult };
   recordCancel: { params: Record<string, never>; result: void };
+  /** OSC the hub received, and whether it is listening (ctx.osc). */
+  osc: { params: { active?: boolean; messages?: OscMessage[]; error?: string }; result: void };
 }
 
 export type MethodName = keyof RuntimeMethods;
@@ -97,6 +100,8 @@ export interface RuntimeEvents {
   recording: { frame: number; total: number };
   /** Latest values the scene published with ctx.publish (all of them, when any changed). */
   monitors: Record<string, MonitorValue>;
+  /** The scene wants OSC on this UDP port (inputs: ["osc"] or ctx.utils.listenOsc). */
+  oscListen: { port: number };
 }
 
 export type MonitorValue = number | string | boolean;

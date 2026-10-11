@@ -6,7 +6,7 @@ import { FULLSCREEN_VERTEX_WGSL, packUniforms, uniformLayout, wgslDiagnostics, t
 import type { MonitorValue } from "../protocol";
 import type { Scene, UniformValue } from "../schema";
 import { importModule, type SceneAudioUtils } from "./ctx";
-import { emptyAudio, emptyMidi, type AudioState, type MidiState } from "./inputData";
+import { emptyAudio, emptyMidi, emptyOsc, type AudioState, type MidiState, type OscState } from "./inputData";
 import type { SceneInputs } from "./inputs";
 
 // WebGPU usage flags (the TypeScript DOM lib types the API but not these constants).
@@ -43,10 +43,12 @@ export interface GpuSceneCtx {
   assets: Record<string, string>;
   audio: AudioState;
   midi: MidiState;
+  osc: OscState;
   publish(name: string, value: MonitorValue): void;
   utils: {
     audio: SceneAudioUtils;
     enableMidi(): Promise<void>;
+    listenOsc(port?: number): void;
     /** The webcam as a playing <video>; use device.importExternalTexture({ source }) each frame. */
     cameraVideo(options?: { width?: number; height?: number; facingMode?: string }): Promise<HTMLVideoElement>;
     FULLSCREEN_VERTEX_WGSL: string;
@@ -88,6 +90,7 @@ export function createGpuCtx(
     assets,
     audio: inputs?.audio ?? emptyAudio(),
     midi: inputs?.midi ?? emptyMidi(),
+    osc: inputs?.osc ?? emptyOsc(),
     publish,
     utils: undefined as unknown as GpuSceneCtx["utils"],
   };
@@ -99,6 +102,7 @@ export function createGpuCtx(
       stop: () => inputs?.stopAudio(),
     },
     enableMidi: () => (inputs ? inputs.enableMidi() : Promise.reject(new Error("MIDI is not available here"))),
+    listenOsc: (port) => inputs?.listenOsc(port),
     async cameraVideo(options = {}) {
       if (!inputs) throw new Error("camera input is not available here");
       const video = document.createElement("video");

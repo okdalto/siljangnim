@@ -45,6 +45,7 @@ import { resolveVersionId, sameScene, versionMessage } from "../project/history"
 import { ProjectStore, SCENE_FILE, type Version } from "../project/store";
 import type { SceneHost } from "../scene/host";
 import type { LoadResult, RecordOptions } from "../scene/protocol";
+import type { OscMessage } from "../scene/runtime/inputData";
 import { evaluateTrack, keyAt, removeKeyAt, upsertKey } from "../scene/gl/keyframes";
 import { DEFAULT_SCENE, KEYFRAMABLE, parseScene, type Scene, type Timeline, type UniformValue } from "../scene/schema";
 import { bridgeToken, keys } from "./platform";
@@ -222,6 +223,10 @@ export function attachSceneHost(next: SceneHost): () => void {
   const offStats = next.on("stats", (s) => set((st) => ({ runtime: { ...st.runtime, state: s.state, fps: s.fps, time: s.time } })));
   const offError = next.on("error", (e) => set((st) => ({ runtime: { ...st.runtime, errors: [...st.runtime.errors, e].slice(-20) } })));
   const offRecording = next.on("recording", ({ frame, total }) => set((st) => ({ recording: st.recording && { ...st.recording, frame, total } })));
+  const offOsc = next.on("oscListen", ({ port }) => {
+    oscRequested = true;
+    void startOsc(port);
+  });
   const offMonitors = next.on("monitors", (values) =>
     set((st) => ({
       monitors: Object.fromEntries(
@@ -238,14 +243,69 @@ export function attachSceneHost(next: SceneHost): () => void {
     offError();
     offMonitors();
     offRecording();
-    if (host === next) host = null;
+    offOsc();
+    if (host === next) {
+      host = null;
+      stopOsc();
+    }
   };
+}
+
+// --- OSC: the hub listens on UDP and streams messages; they go on to the scene ---
+
+let osc: { port: number; abort: AbortController; client: HubClient | null } | null = null;
+let oscRequested = false;
+
+function sendOsc(params: { active?: boolean; messages?: OscMessage[]; error?: string }): void {
+  host?.request("osc", params).catch(() => undefined);
+}
+
+async function startOsc(port: number): Promise<void> {
+  if (osc?.port === port) {
+    // A reloaded scene: tell it the listener is still there.
+    if (osc.client) sendOsc({ active: true });
+    return;
+  }
+  stopOsc();
+  const current = { port, abort: new AbortController(), client: null as HubClient | null };
+  osc = current;
+  const client = await hubClient();
+  if (osc !== current) return;
+  if (typeof client === "string") {
+    sendOsc({ active: false, error: `OSC needs the hub. ${client}` });
+    return;
+  }
+  try {
+    const status = await client.oscListen(port);
+    if (!status.listening) throw new Error(status.error ?? "the hub could not listen");
+  } catch (err) {
+    if (osc === current) sendOsc({ active: false, error: err instanceof Error ? err.message : String(err) });
+    return;
+  }
+  if (osc !== current) return;
+  current.client = client;
+  sendOsc({ active: true });
+  // Reconnect if the stream drops (the hub restarted, the machine slept).
+  while (!current.abort.signal.aborted) {
+    await client.oscStream(current.abort.signal, (messages) => sendOsc({ messages })).catch(() => undefined);
+    if (!current.abort.signal.aborted) await new Promise((r) => setTimeout(r, 1000));
+  }
+}
+
+function stopOsc(): void {
+  if (!osc) return;
+  osc.abort.abort();
+  void osc.client?.oscStop().catch(() => undefined);
+  osc = null;
 }
 
 async function loadIntoHost(scene: Scene): Promise<LoadResult> {
   if (!host) return { ok: false, errors: [] };
   set((st) => ({ runtime: { ...st.runtime, state: "loading", errors: [] } }));
+  oscRequested = false;
   const result = await host.load(scene, Object.fromEntries(assetBlobs));
+  // The OSC listener stays open across reloads of scenes that use it.
+  if (!oscRequested) stopOsc();
   set((st) => ({ runtime: { ...st.runtime, errors: result.errors } }));
   // Projects start their history with whatever scene they first show.
   const project = get().project;

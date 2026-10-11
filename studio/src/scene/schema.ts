@@ -3,7 +3,7 @@ import { z } from "zod";
 import { EASES } from "./gl/keyframes";
 
 export const UNIFORM_TYPES = ["float", "int", "bool", "vec2", "vec3", "vec4", "color"] as const;
-export const SCENE_INPUTS = ["mouse", "keyboard", "camera", "microphone", "midi"] as const;
+export const SCENE_INPUTS = ["mouse", "keyboard", "camera", "microphone", "midi", "osc"] as const;
 
 export type UniformType = (typeof UNIFORM_TYPES)[number];
 export type SceneInput = (typeof SCENE_INPUTS)[number];

@@ -9,15 +9,18 @@ rebinding as a second line.
 from __future__ import annotations
 
 import hmac
+import json
+import math
 import os
 import shutil
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 
 from . import __version__, system
+from .osc import OscListener
 from .recipes import Recipes
 from .runtime import Job, Runtime, RuntimeErrorWithHint, programs
 
@@ -29,15 +32,19 @@ RENDERER_ORIGINS = ["app://siljangnim", "http://localhost:5173", "http://127.0.0
 KNOWN_PROGRAMS = ["ffmpeg", "ffprobe", "blender", "openscad", "magick", "inkscape", "vpype", "potrace"]
 
 MAX_WAIT_S = 60
+# The OSC stream sends a comment this often so a dead connection is noticed.
+OSC_PING_S = 15
 
 
-def create_app(token: str, port: int, runtime: Runtime | None = None, recipes: Recipes | None = None) -> FastAPI:
+def create_app(token: str, port: int, runtime: Runtime | None = None, recipes: Recipes | None = None, osc: OscListener | None = None) -> FastAPI:
     if not token:
         raise ValueError("hub token must not be empty")
     if runtime is None:
         runtime = default_runtime()
     if recipes is None:
         recipes = default_recipes()
+    if osc is None:
+        osc = OscListener()
 
     allowed_hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
     app = FastAPI(title="siljangnim-hub", version=__version__, docs_url=None, redoc_url=None, openapi_url=None)
@@ -165,7 +172,47 @@ def create_app(token: str, port: int, runtime: Runtime | None = None, recipes: R
         body = await request.json()
         return {"summary": recipes.set_status(recipe_id, body.get("status", ""), body.get("log", ""))["summary"]}
 
+    # --- OSC input (see osc.py) ---
+
+    @app.get("/osc")
+    def osc_status():
+        return osc.status()
+
+    @app.post("/osc/listen")
+    async def osc_listen(request: Request):
+        body = await request.json()
+        return await osc.listen(int(body.get("port") or 0))
+
+    @app.post("/osc/stop")
+    def osc_stop():
+        osc.close()
+        return osc.status()
+
+    @app.get("/osc/stream")
+    async def osc_stream():
+        """Server-sent events: each data line is a JSON array of [address, args]."""
+        queue = osc.subscribe()
+
+        async def events():
+            try:
+                yield ": connected\n\n"
+                while True:
+                    batch = await osc.batch(queue, OSC_PING_S)
+                    if not batch:
+                        yield ": ping\n\n"
+                        continue
+                    yield f"data: {json.dumps([[a, [_finite(v) for v in args]] for a, args in batch], allow_nan=False)}\n\n"
+            finally:
+                osc.unsubscribe(queue)
+
+        return StreamingResponse(events(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
+
     return app
+
+
+def _finite(value):
+    """JSON has no NaN or Infinity."""
+    return None if isinstance(value, float) and not math.isfinite(value) else value
 
 
 def default_recipes() -> Recipes:

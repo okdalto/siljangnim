@@ -1,6 +1,8 @@
-// Live inputs for a scene (M3): microphone or audio-file analysis, MIDI and
-// camera. One instance per load; everything it opened is closed on unload.
-import { SPECTRUM_BINS, WAVEFORM_SAMPLES, applyMidiMessage, emptyAudio, emptyMidi, updateBands } from "./inputData";
+// Live inputs for a scene (M3): microphone or audio-file analysis, MIDI,
+// camera and OSC. One instance per load; everything it opened is closed on unload.
+import { SPECTRUM_BINS, WAVEFORM_SAMPLES, applyMidiMessage, applyOscMessages, emptyAudio, emptyMidi, emptyOsc, updateBands, type OscMessage, type OscState } from "./inputData";
+
+export const DEFAULT_OSC_PORT = 9000;
 
 const FFT_SIZE = SPECTRUM_BINS * 4; // 1024 → 512 frequency bins, averaged in pairs
 const DB_FLOOR = -100;
@@ -9,6 +11,8 @@ const DB_CEIL = -20;
 export class SceneInputs {
   readonly audio = emptyAudio();
   readonly midi = emptyMidi();
+  readonly osc = emptyOsc();
+  private oscFrame: OscState["messages"] = [];
   private context: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
   private node: AudioNode | null = null;
@@ -17,6 +21,9 @@ export class SceneInputs {
   private midiAccess: MIDIAccess | null = null;
   private freq = new Float32Array(FFT_SIZE / 2);
   private wave = new Float32Array(FFT_SIZE);
+
+  /** requestOsc asks the app to have the hub listen (browsers can't receive UDP). */
+  constructor(private readonly requestOsc: (port: number) => void = () => undefined) {}
 
   private ensureContext(): { context: AudioContext; analyser: AnalyserNode } {
     if (!this.context || !this.analyser) {
@@ -98,8 +105,22 @@ export class SceneInputs {
     return stream;
   }
 
-  /** Refresh the audio values; call once per frame before rendering. */
+  /** OSC arrives through the app from the hub; port is where controllers send. */
+  listenOsc(port = DEFAULT_OSC_PORT): void {
+    this.osc.port = port;
+    this.requestOsc(port);
+  }
+
+  /** Called by the app: whether the hub is listening, and any messages. */
+  receiveOsc(update: { active?: boolean; messages?: OscMessage[] }): void {
+    if (update.active !== undefined) this.osc.active = update.active;
+    if (update.messages) applyOscMessages(this.osc, this.oscFrame, update.messages);
+  }
+
+  /** Refresh the input values; call once per frame before rendering. */
   update(): void {
+    this.osc.messages = this.oscFrame;
+    this.oscFrame = [];
     if (!this.analyser || !this.audio.active) return;
     this.analyser.getFloatFrequencyData(this.freq);
     this.analyser.getFloatTimeDomainData(this.wave);

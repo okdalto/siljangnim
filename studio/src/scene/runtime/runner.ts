@@ -11,6 +11,7 @@ import { uniformValues, type Scene, type Timeline, type UniformValue } from "../
 import { createCtx, type SceneCtx } from "./ctx";
 import { createGpuCtx, type GpuSceneCtx } from "./gpuCtx";
 import { SceneInputs } from "./inputs";
+import type { OscMessage } from "./inputData";
 
 /** What scripts receive, either backend. The runner only touches the shared fields. */
 type AnyCtx = SceneCtx | GpuSceneCtx;
@@ -39,7 +40,7 @@ const MAX_MONITOR_TEXT = 200;
 // new Function() puts the body two lines below the header in V8.
 const FUNCTION_HEADER_LINES = 2;
 
-type Emit = (event: "error" | "stats" | "monitors" | "recording", data: unknown) => void;
+type Emit = (event: "error" | "stats" | "monitors" | "recording" | "oscListen", data: unknown) => void;
 
 interface Loaded {
   generation: number;
@@ -135,7 +136,7 @@ export class SceneRunner {
     const revokeAssets = () => assetUrls.forEach((url) => URL.revokeObjectURL(url));
     const publish = (name: string, value: Parameters<SceneCtx["publish"]>[1]) => this.publish(name, value);
 
-    const inputs = new SceneInputs();
+    const inputs = new SceneInputs((port) => generation === this.generation && this.emit("oscListen", { port }));
     let made: { ctx: AnyCtx; dispose: () => void; surface: Surface; beforeFrame?: () => void } | null;
     try {
       made =
@@ -176,6 +177,7 @@ export class SceneRunner {
     this.current = { generation, canvas, surface, ctx, render, cleanup, disposeCtx: dispose, beforeFrame, inputs, assetUrls };
     // Declared inputs start with the scene; a refusal is reported, not fatal.
     if (scene.inputs.includes("microphone")) inputs.microphone().catch((err: unknown) => this.record("runtime", new Error(`microphone: ${err instanceof Error ? err.message : err}`)));
+    if (scene.inputs.includes("osc")) inputs.listenOsc();
     if (scene.inputs.includes("midi")) inputs.enableMidi().catch((err: unknown) => this.record("runtime", new Error(`MIDI: ${err instanceof Error ? err.message : err}`)));
 
     try {
@@ -198,6 +200,12 @@ export class SceneRunner {
     if (this.tracks[name]) this.overrides.add(name);
     if (value === true && this.source?.scene.uniforms[name]?.widget === "button") this.pulses.add(name);
     this.dirty = true;
+  }
+
+  /** OSC from the hub, through the app. */
+  osc(update: { active?: boolean; messages?: OscMessage[]; error?: string }): void {
+    if (update.error) this.record("runtime", new Error(`OSC: ${update.error}`));
+    this.current?.inputs.receiveOsc(update);
   }
 
   setTimeline(timeline: Timeline | undefined, keyframes: Record<string, Keyframe[]>): void {
