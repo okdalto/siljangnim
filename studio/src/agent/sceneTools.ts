@@ -83,6 +83,11 @@ const sceneEdit = defineTool({
       .nullable()
       .optional()
       .describe("Control panel groups; replaces the current grouping. null removes it (flat panel)."),
+    panel: z
+      .object({ html: z.string().min(1), height: z.number().int().min(60).max(800).optional() })
+      .nullable()
+      .optional()
+      .describe("Custom HTML panel (see the system prompt); null removes it."),
     timeline: TimelineSchema.nullable().optional(),
     keyframes: z
       .record(z.string(), z.array(KeyframeSchema).nullable())
@@ -90,7 +95,7 @@ const sceneEdit = defineTool({
       .describe('Uniform name → keys [{ "time": s, "value": n, "ease"?: "smooth"|"linear"|"easeIn"|"easeOut"|"easeInOut"|"step" }].'),
   }),
   readOnly: false,
-  async run({ edits, uniforms, inputs, controls, timeline, keyframes }, env) {
+  async run({ edits, uniforms, inputs, controls, panel, timeline, keyframes }, env) {
     const scene: Scene = structuredClone(env.scene.get());
     const problems: string[] = [];
     for (const [i, edit] of edits.entries()) {
@@ -110,6 +115,8 @@ const sceneEdit = defineTool({
       else scene.uniforms[name] = def;
     }
     if (inputs) scene.inputs = inputs;
+    if (panel === null) delete scene.panel;
+    else if (panel) scene.panel = { html: panel.html, height: panel.height ?? 220 };
     if (controls === null) delete scene.controls;
     else if (controls) scene.controls = controls;
     if (timeline === null) {

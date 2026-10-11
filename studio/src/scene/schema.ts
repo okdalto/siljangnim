@@ -91,6 +91,8 @@ export const SceneSchema = z
     }),
   inputs: z.array(z.enum(SCENE_INPUTS)).default([]),
   timeline: TimelineSchema.optional(),
+  /** Optional custom panel: agent-written HTML in a sandboxed iframe (see app/panel.ts). */
+  panel: z.object({ html: z.string().min(1).max(200_000), height: z.number().int().min(60).max(800).default(220) }).optional(),
   /** Optional grouping of the controls panel; uniforms not listed show after the groups. */
   controls: z.array(z.object({ label: z.string(), uniforms: z.array(z.string()).min(1) })).optional(),
   /** Uniform name → keys. Requires a timeline. */

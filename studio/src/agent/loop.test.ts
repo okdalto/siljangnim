@@ -241,6 +241,6 @@ describe("tool specs", () => {
       expect(spec.input_schema).not.toHaveProperty("$schema");
     }
     const edit = toolSpec(SCENE_TOOLS.find((t) => t.name === "scene_edit")!);
-    expect(Object.keys(edit.input_schema.properties as object)).toEqual(["edits", "uniforms", "inputs", "controls", "timeline", "keyframes"]);
+    expect(Object.keys(edit.input_schema.properties as object)).toEqual(["edits", "uniforms", "inputs", "controls", "panel", "timeline", "keyframes"]);
   });
 });
