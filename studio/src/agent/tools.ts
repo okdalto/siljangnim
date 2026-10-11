@@ -68,6 +68,8 @@ export interface RuntimeJob {
   outputs: string[];
   /** Output files, as the project asset names they were saved under. */
   assets: string[];
+  /** Of those, the ones that replaced files an earlier job made (a re-run). */
+  replaced?: string[];
   /** Exact package versions the environment ended up with. */
   resolved: string[];
   seconds: number;
@@ -146,6 +148,14 @@ export interface RecipeController {
   setStatus(id: string, status: "verified" | "broken", log: string): Promise<RecipeSummary>;
 }
 
+/** Sharing a project as project.md (docs/project-md.md). */
+export interface ProjectController {
+  /** The open project as project.md. */
+  exportMd(): Promise<string>;
+  /** A new project from a project.md, opened; returns what to rebuild. */
+  importMd(markdown: string): Promise<string>;
+}
+
 export interface ToolEnv {
   scene: SceneController;
   history: HistoryController;
@@ -153,6 +163,7 @@ export interface ToolEnv {
   user: UserController;
   runtime: RuntimeController;
   recipes: RecipeController;
+  project: ProjectController;
   signal: AbortSignal;
 }
 

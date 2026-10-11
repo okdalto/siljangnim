@@ -106,3 +106,26 @@ def test_recipe_endpoints(tmp_path: Path):
         assert recipe["meta"]["verify"]["params"] == {"p": 2, "q": 3}
         assert c.get("/recipes/nope", headers=AUTH).status_code == 400
         assert c.put("/recipes/x", json=FIELDS, headers=AUTH).status_code == 400
+
+
+def test_import_from_another_machine_lands_as_draft(tmp_path: Path):
+    there = Recipes(tmp_path / "there", "win-x64")
+    there.save({**FIELDS, "id": "trimesh.torus-knot"})
+    text = there.set_status("trimesh.torus-knot", "verified")["text"]
+
+    here = Recipes(tmp_path / "here", "mac-arm64")
+    imported = here.import_text(text)
+    assert not imported["kept"]
+    assert imported["summary"]["origin"] == "imported"
+    assert imported["summary"]["status_here"] == "draft"
+    # What the other machine verified stays as information.
+    assert imported["meta"]["platforms"]["win-x64"]["status"] == "verified"
+    assert imported["code"] == FIELDS["code"].rstrip()
+
+    # A local recipe at the same version or newer is kept.
+    here.save({**FIELDS, "id": "trimesh.torus-knot", "code": FIELDS["code"] + "# local\n"})
+    assert here.import_text(text)["kept"]
+    assert here.get("trimesh.torus-knot")["summary"]["origin"] == "local"
+
+    with pytest.raises(RuntimeErrorWithHint):
+        here.import_text("no front matter")

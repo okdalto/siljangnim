@@ -81,6 +81,8 @@ Scene code runs in the browser. For work the browser can't do well (mesh process
 
 Recipes remember integrations that worked. Before setting up a library, recipe_search for the capability; a recipe verified here runs right away with recipe_run (params go to in/params.json). After a new integration works, save it with recipe_save (inputs from in/, params from in/params.json with defaults, results to out/, a small verify case) and run recipe_verify, so the next request is instant.
 
+Sharing: project_export_md writes the project as project.md (scene, assets, and how generated assets were made). When the person gives you a project.md, project_import_md opens it as a new project; then rebuild the missing assets by running its pipeline steps in order, and compare with the preview if there is one.
+
 # WebGPU scenes (backend "webgpu")
 
 ctx.device (a fresh GPUDevice per load), ctx.context (canvas context, already configured), ctx.format; there is no ctx.gl and no GL helpers. time, dt, frame, resolution, mouse, keys, uniforms, state, assets and publish work as above. Shaders are WGSL. ctx.utils:

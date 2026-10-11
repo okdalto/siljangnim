@@ -65,7 +65,6 @@ export function ChatHeaderActions() {
 export function Chat() {
   const messages = useApp((s) => s.messages);
   const live = useApp((s) => s.live);
-  const notice = useApp((s) => s.notice);
   const results = useMemo(() => collectResults(messages), [messages]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -84,15 +83,7 @@ export function Chat() {
         {live && <Live live={live} />}
       </div>
 
-      {notice && (
-        <div className={`mx-3 mb-2 flex items-start gap-2 rounded-md px-3 py-2 text-xs ${notice.kind === "error" ? "bg-danger/10 text-danger" : "bg-raised text-muted"}`}>
-          <AlertIcon size={14} className="mt-0.5 shrink-0" />
-          <span className="flex-1">{notice.text}</span>
-          <button type="button" onClick={dismissNotice} className="opacity-70 hover:opacity-100">
-            <XIcon size={13} />
-          </button>
-        </div>
-      )}
+      <Notice />
       <Composer busy={Boolean(live)} />
     </>
   );
@@ -362,4 +353,22 @@ function collectResults(messages: MessageParam[]): Map<string, ToolResult> {
     for (const b of m.content) if (b.type === "tool_result") map.set(b.tool_use_id, b);
   }
   return map;
+}
+
+/** The app's latest notice (imports, exports, errors); shown under Chat and Activity. */
+export function Notice() {
+  const notice = useApp((s) => s.notice);
+  if (!notice) return null;
+  return (
+    <div
+      data-testid="notice"
+      className={`mx-3 mb-2 flex items-start gap-2 rounded-md px-3 py-2 text-xs ${notice.kind === "error" ? "bg-danger/10 text-danger" : "bg-raised text-muted"}`}
+    >
+      <AlertIcon size={14} className="mt-0.5 shrink-0" />
+      <span className="flex-1">{notice.text}</span>
+      <button type="button" onClick={dismissNotice} className="opacity-70 hover:opacity-100">
+        <XIcon size={13} />
+      </button>
+    </div>
+  );
 }

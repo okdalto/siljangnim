@@ -200,6 +200,35 @@ class Recipes:
         )
         return self.get(recipe_id)
 
+    def import_text(self, text: str) -> dict:
+        """Add a recipe file from elsewhere (a project bundle). It is draft here and
+        marked imported, so running it asks the person first. A local recipe with
+        the same id and at least this version is kept instead."""
+        recipe = parse(text)
+        meta = dict(recipe["meta"])
+        recipe_id = validate_id(str(meta.get("id", "")))
+        if meta.get("kind") not in ("python", "command"):
+            raise RuntimeErrorWithHint('the recipe kind must be "python" or "command"')
+        if meta.get("kind") == "python":
+            validate_packages(meta.get("packages") or [])
+        path = self._path(recipe_id)
+        if path.is_file():
+            try:
+                existing = parse(path.read_text(encoding="utf-8"))["meta"]
+            except (RuntimeErrorWithHint, ValueError, yaml.YAMLError):
+                existing = None
+            if existing and int(existing.get("version", 0)) >= int(meta.get("version", 0)):
+                return {**self.get(recipe_id), "kept": True}
+        platforms = {p: v for p, v in (meta.get("platforms") or {}).items() if p != self.platform}
+        platforms[self.platform] = {"status": "draft"}
+        meta.update({"id": recipe_id, "platforms": platforms, "status": "draft", "origin": "imported"})
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            render(meta, setup=recipe["setup"], code=recipe["code"], argv=recipe["argv"], verify=recipe["verify"], notes=recipe["notes"], failures=[]),
+            encoding="utf-8",
+        )
+        return {**self.get(recipe_id), "kept": False}
+
     def set_status(self, recipe_id: str, status: str, log: str = "") -> dict:
         """Record a verification result for this platform (and a failure log when broken)."""
         if status not in ("verified", "broken"):

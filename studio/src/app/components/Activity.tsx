@@ -6,7 +6,7 @@ import { setExamplesOpen } from "../session";
 import { useApp, type ExternalAgent } from "../state";
 import { Spinner } from "./icons";
 import { ApprovalCard } from "./Approval";
-import { ToolChip } from "./Chat";
+import { Notice, ToolChip } from "./Chat";
 
 export function Activity() {
   const external = useApp((s) => s.external);
@@ -45,6 +45,7 @@ export function Activity() {
         ))}
         <ApprovalCard />
       </div>
+      <Notice />
     </div>
   );
 }
