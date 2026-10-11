@@ -2,7 +2,7 @@
 //
 // Used by the Vite dev server, by the desktop main process (which passes
 // `getKey` so API keys never reach the renderer) and by the web deploy's
-// function (api/llm/[...path].js, through webForward). Web-standard Request
+// function (api/llm.js, through webForward). Web-standard Request
 // in, Response out, streaming bodies passed straight through.
 //
 //   /api/llm/anthropic/<path>  → https://api.anthropic.com/<path>
@@ -91,6 +91,13 @@ export async function forwardLlmRequest(request, options = {}) {
  */
 export async function webForward(request) {
   const url = new URL(request.url);
+  // vercel.json rewrites /api/llm/<path> to this one function with ?__path=<path>.
+  const rewritten = url.searchParams.get("__path");
+  if (rewritten !== null) {
+    url.searchParams.delete("__path");
+    url.pathname = LLM_PREFIX + rewritten;
+    request = new Request(url, { method: request.method, headers: request.headers, body: request.method === "POST" ? await request.arrayBuffer() : undefined });
+  }
   const origin = request.headers.get("origin");
   const site = request.headers.get("sec-fetch-site");
   const sameOrigin = origin ? origin === url.origin : site === "same-origin";

@@ -71,8 +71,7 @@
 - **데스크톱 앱** — macOS(Apple Silicon)와 Windows. API 키는 OS 키체인으로 암호화되고 앱 화면에는
   전달되지 않습니다. Python 런타임은 앱이 직접 관리합니다.
 
-다음: 호스팅 웹 버전을 스튜디오로 전환([studio/vercel.json](studio/vercel.json)으로 준비됨,
-[docs/m3.md](docs/m3.md#4-웹-배포-준비))하고 v1을 은퇴합니다.
+웹 버전 [siljangnim.vercel.app](https://siljangnim.vercel.app/)도 이 스튜디오입니다([docs/m3.md](docs/m3.md#4-웹-배포-전환과-v1-은퇴)).
 
 ## 다운로드
 
@@ -159,9 +158,10 @@ docs/       아키텍처와 가이드
 
 ## 웹 버전
 
-[siljangnim.vercel.app](https://siljangnim.vercel.app/)에는 아직 v1 웹 앱이 배포되어 있습니다. 새 스튜디오도
-브라우저에서 돌아가며(`npm run web`), v1 기능을 따라잡으면 웹에도 배포합니다. 로컬 런타임이 필요한
-도구(Python 패키지, CLI 앱, GPU 모델)는 데스크톱 앱에서 쓰게 됩니다.
+[siljangnim.vercel.app](https://siljangnim.vercel.app/)에서 스튜디오를 브라우저로 씁니다. API 키는 직접 넣고,
+탭의 세션 저장소에만 두며 사이트의 전달 함수를 거쳐 모델 제공사로만 갑니다. 씬은 별도 도메인에서 돕니다.
+로컬 런타임이 필요한 도구(Python 패키지, CLI 앱, GPU 모델, OSC)는 데스크톱 앱이나 MCP 클라이언트에서 씁니다.
+v1 웹 앱은 은퇴했고, v1에서 내보낸 프로젝트는 *Import v1 project*로 엽니다.
 
 ## 비용과 보안
 
