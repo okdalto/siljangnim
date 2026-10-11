@@ -91,6 +91,7 @@ await call("python_run", {
 // D grade: a CLI on PATH (node is there wherever this smoke runs), no shell.
 await call("command_run", { argv: ["node", "-e", "require('fs').writeFileSync('out/cli.txt', 'cli ok')"] });
 const status = await call("runtime_status");
+const catalog = await call("catalog_search", { query: "plotter svg" });
 
 // Stage 4: save what worked as a recipe, verify it, find it, run it with new params.
 await call("recipe_save", {
@@ -282,6 +283,7 @@ const checks = {
     /origin: imported/.test(importedRecipe) &&
     /status: draft/.test(importedRecipe),
   mdImported: !mdImport.isError && /Missing generated assets: .*points\.json \(step \d\)/.test(text(mdImport)) && /No errors/.test(text(afterImport)),
+  catalogFound: !catalog.isError && /^Catalog matches[^\n]*\nvpype \[C: Python via python_run\]/.test(text(catalog)),
   runtimeStatus: !status.isError && /Python environments:.*\(no packages\)/.test(text(status)),
   // Edits close together share a version; slow steps between them (recordings) split them.
   versionSaved: /"Initial scene"/.test(text(history)) && /Claude Code: scene write/.test(text(history)) && /scene edit/.test(text(history)),

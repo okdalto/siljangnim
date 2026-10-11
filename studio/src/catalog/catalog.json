@@ -1,0 +1,965 @@
+{
+ "version": 1,
+ "updated": "2026-10-11",
+ "entries": [
+  {
+   "id": "d3-delaunay",
+   "name": "d3-delaunay",
+   "repo": "https://github.com/d3/d3-delaunay",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "Delaunay triangulation and Voronoi diagrams of 2D points.",
+   "tags": [
+    "delaunay",
+    "voronoi",
+    "triangulation",
+    "low-poly",
+    "mesh"
+   ],
+   "media": {
+    "in": [
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-delaunay@6.0.4"
+   }
+  },
+  {
+   "id": "earcut",
+   "name": "earcut",
+   "repo": "https://github.com/mapbox/earcut",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "Fast triangulation of 2D polygons with holes (for filling shapes).",
+   "tags": [
+    "triangulation",
+    "polygon",
+    "fill",
+    "2d"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/earcut@3.0.1"
+   }
+  },
+  {
+   "id": "simplex-noise",
+   "name": "simplex-noise",
+   "repo": "https://github.com/jwagner/simplex-noise.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "2D/3D/4D simplex noise on the CPU (shaders can use ctx.utils.glsl instead).",
+   "tags": [
+    "noise",
+    "procedural",
+    "simplex"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/simplex-noise@4.0.3"
+   }
+  },
+  {
+   "id": "matter-js",
+   "name": "Matter.js",
+   "repo": "https://github.com/liabru/matter-js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "2D rigid-body physics: bodies, constraints, collisions.",
+   "tags": [
+    "physics",
+    "2d",
+    "rigid body",
+    "collision"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "simulation"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/matter-js@0.20.0"
+   }
+  },
+  {
+   "id": "opentype-js",
+   "name": "opentype.js",
+   "repo": "https://github.com/opentypejs/opentype.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Read fonts and turn text into vector paths (outlines, points along glyphs).",
+   "tags": [
+    "font",
+    "text",
+    "typography",
+    "glyph",
+    "path"
+   ],
+   "media": {
+    "in": [
+     "font"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/opentype.js@1.3.4"
+   }
+  },
+  {
+   "id": "mediapipe-tasks-vision",
+   "name": "MediaPipe Tasks Vision",
+   "repo": "https://github.com/google-ai-edge/mediapipe",
+   "license": "Apache-2.0",
+   "tier": "B",
+   "purpose": "Hand, face and pose landmarks, segmentation and object detection in the browser (WASM + GPU).",
+   "tags": [
+    "hand tracking",
+    "face",
+    "pose",
+    "segmentation",
+    "webcam",
+    "ml"
+   ],
+   "media": {
+    "in": [
+     "camera",
+     "image",
+     "video"
+    ],
+    "out": [
+     "landmarks",
+     "mask"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/vision_bundle.mjs"
+   },
+   "notes": "Models download from storage.googleapis.com/mediapipe-models; see the hand-tracking example."
+  },
+  {
+   "id": "onnxruntime-web",
+   "name": "ONNX Runtime Web",
+   "repo": "https://github.com/microsoft/onnxruntime",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Run ONNX models in the browser on WebGPU or WASM.",
+   "tags": [
+    "ml",
+    "onnx",
+    "inference",
+    "model"
+   ],
+   "media": {
+    "in": [
+     "image",
+     "data"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.min.mjs"
+   },
+   "notes": "Weights come with each model and have their own licenses."
+  },
+  {
+   "id": "gltf-transform",
+   "name": "glTF Transform",
+   "repo": "https://github.com/donmccurdy/glTF-Transform",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Read and edit glTF/GLB files (meshes, materials) in the scene.",
+   "tags": [
+    "gltf",
+    "glb",
+    "3d model",
+    "mesh"
+   ],
+   "media": {
+    "in": [
+     "model"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/@gltf-transform/core@4.5.0"
+   }
+  },
+  {
+   "id": "culori",
+   "name": "culori",
+   "repo": "https://github.com/Evercoder/culori",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Color spaces and interpolation (OKLCH, Lab, palettes, gradients).",
+   "tags": [
+    "color",
+    "palette",
+    "gradient",
+    "oklch"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "color"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/culori@4.0.1"
+   }
+  },
+  {
+   "id": "tone-js",
+   "name": "Tone.js",
+   "repo": "https://github.com/Tonejs/Tone.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Synthesize and sequence sound in the browser (synths, effects, transport).",
+   "tags": [
+    "audio",
+    "synth",
+    "music",
+    "sequencer",
+    "sound"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "audio"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/tone@15.1.22"
+   }
+  },
+  {
+   "id": "meyda",
+   "name": "Meyda",
+   "repo": "https://github.com/meyda/meyda",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Audio features (MFCC, chroma, spectral centroid…) beyond ctx.audio's bands.",
+   "tags": [
+    "audio",
+    "analysis",
+    "features",
+    "mfcc",
+    "chroma"
+   ],
+   "media": {
+    "in": [
+     "audio"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/meyda@5.6.3"
+   }
+  },
+  {
+   "id": "trimesh",
+   "name": "trimesh",
+   "repo": "https://github.com/mikedh/trimesh",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "Load, build, repair and export triangle meshes (OBJ, GLB, STL); booleans and sampling.",
+   "tags": [
+    "mesh",
+    "3d",
+    "geometry",
+    "obj",
+    "glb",
+    "stl"
+   ],
+   "media": {
+    "in": [
+     "model"
+    ],
+    "out": [
+     "model",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "trimesh==4.5.3",
+     "numpy",
+     "scipy==1.14.1"
+    ]
+   }
+  },
+  {
+   "id": "shapely",
+   "name": "Shapely",
+   "repo": "https://github.com/shapely/shapely",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "2D geometry operations: buffers, unions, intersections, simplification.",
+   "tags": [
+    "2d",
+    "geometry",
+    "polygon",
+    "offset",
+    "boolean"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "pip": [
+     "shapely==2.1.1"
+    ]
+   }
+  },
+  {
+   "id": "vpype",
+   "name": "vpype",
+   "repo": "https://github.com/abey79/vpype",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "Prepare SVGs for pen plotters: merge and sort lines, page layout, multiple layers.",
+   "tags": [
+    "plotter",
+    "svg",
+    "pen plot",
+    "lines",
+    "optimize"
+   ],
+   "media": {
+    "in": [
+     "svg"
+    ],
+    "out": [
+     "svg"
+    ]
+   },
+   "install": {
+    "pip": [
+     "vpype==1.15.0"
+    ]
+   }
+  },
+  {
+   "id": "opencv",
+   "name": "OpenCV (opencv-python-headless)",
+   "repo": "https://github.com/opencv/opencv",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "Image and video processing: filters, edges, contours, optical flow, feature detection.",
+   "tags": [
+    "image",
+    "video",
+    "edges",
+    "contours",
+    "computer vision"
+   ],
+   "media": {
+    "in": [
+     "image",
+     "video"
+    ],
+    "out": [
+     "image",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "opencv-python-headless==4.11.0.86"
+    ]
+   }
+  },
+  {
+   "id": "scikit-image",
+   "name": "scikit-image",
+   "repo": "https://github.com/scikit-image/scikit-image",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "Image analysis: segmentation, morphology, contour finding, transforms.",
+   "tags": [
+    "image",
+    "segmentation",
+    "contours",
+    "morphology"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "scikit-image==0.25.2"
+    ]
+   }
+  },
+  {
+   "id": "pillow",
+   "name": "Pillow",
+   "repo": "https://github.com/python-pillow/Pillow",
+   "license": "MIT-CMU",
+   "tier": "C",
+   "purpose": "Read, write and edit images (resize, crop, draw, formats).",
+   "tags": [
+    "image",
+    "resize",
+    "format",
+    "draw"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "pillow==11.3.0"
+    ]
+   }
+  },
+  {
+   "id": "librosa",
+   "name": "librosa",
+   "repo": "https://github.com/librosa/librosa",
+   "license": "ISC",
+   "tier": "C",
+   "purpose": "Music analysis: beats, tempo, onsets, pitch, spectrograms.",
+   "tags": [
+    "audio",
+    "music",
+    "beat",
+    "tempo",
+    "onset",
+    "analysis"
+   ],
+   "media": {
+    "in": [
+     "audio"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "librosa==0.11.0"
+    ]
+   }
+  },
+  {
+   "id": "open3d",
+   "name": "Open3D",
+   "repo": "https://github.com/isl-org/Open3D",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "Point clouds and meshes: reconstruction, registration, normals.",
+   "tags": [
+    "point cloud",
+    "mesh",
+    "3d",
+    "reconstruction"
+   ],
+   "media": {
+    "in": [
+     "model",
+     "data"
+    ],
+    "out": [
+     "model"
+    ]
+   },
+   "install": {
+    "pip": [
+     "open3d==0.19.0"
+    ]
+   }
+  },
+  {
+   "id": "networkx",
+   "name": "NetworkX",
+   "repo": "https://github.com/networkx/networkx",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "Graphs and networks: layouts, shortest paths, generators.",
+   "tags": [
+    "graph",
+    "network",
+    "layout"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "networkx==3.5"
+    ]
+   }
+  },
+  {
+   "id": "svgpathtools",
+   "name": "svgpathtools",
+   "repo": "https://github.com/mathandy/svgpathtools",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "Read SVG paths and sample, measure or transform them.",
+   "tags": [
+    "svg",
+    "path",
+    "bezier",
+    "sampling"
+   ],
+   "media": {
+    "in": [
+     "svg"
+    ],
+    "out": [
+     "geometry",
+     "svg"
+    ]
+   },
+   "install": {
+    "pip": [
+     "svgpathtools==1.7.1"
+    ]
+   }
+  },
+  {
+   "id": "pymeshlab",
+   "name": "PyMeshLab",
+   "repo": "https://github.com/cnr-isti-vclab/PyMeshLab",
+   "license": "GPL-3.0",
+   "tier": "C",
+   "purpose": "MeshLab filters from Python: remeshing, decimation, smoothing.",
+   "tags": [
+    "mesh",
+    "remesh",
+    "decimate",
+    "smooth"
+   ],
+   "media": {
+    "in": [
+     "model"
+    ],
+    "out": [
+     "model"
+    ]
+   },
+   "install": {
+    "pip": [
+     "pymeshlab==2023.12.post3"
+    ]
+   },
+   "notes": "GPL: fine to run; distributing code built on it carries GPL terms."
+  },
+  {
+   "id": "ffmpeg",
+   "name": "FFmpeg",
+   "repo": "https://github.com/FFmpeg/FFmpeg",
+   "license": "LGPL-2.1-or-later",
+   "tier": "D",
+   "purpose": "Convert, cut and combine video and audio; extract frames; encode.",
+   "tags": [
+    "video",
+    "audio",
+    "convert",
+    "frames",
+    "encode"
+   ],
+   "media": {
+    "in": [
+     "video",
+     "audio",
+     "image"
+    ],
+    "out": [
+     "video",
+     "audio",
+     "image"
+    ]
+   },
+   "install": {
+    "program": "ffmpeg"
+   },
+   "notes": "Builds with GPL parts are GPL."
+  },
+  {
+   "id": "blender",
+   "name": "Blender",
+   "repo": "https://projects.blender.org/blender/blender",
+   "license": "GPL-2.0-or-later",
+   "tier": "D",
+   "purpose": "Render or process 3D scenes headless (blender -b -P script.py).",
+   "tags": [
+    "3d",
+    "render",
+    "mesh",
+    "animation"
+   ],
+   "media": {
+    "in": [
+     "model"
+    ],
+    "out": [
+     "image",
+     "model",
+     "video"
+    ]
+   },
+   "install": {
+    "program": "blender"
+   }
+  },
+  {
+   "id": "openscad",
+   "name": "OpenSCAD",
+   "repo": "https://github.com/openscad/openscad",
+   "license": "GPL-2.0",
+   "tier": "D",
+   "purpose": "Script solid 3D models (CSG) and export STL.",
+   "tags": [
+    "cad",
+    "csg",
+    "3d",
+    "stl"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "model"
+    ]
+   },
+   "install": {
+    "program": "openscad"
+   }
+  },
+  {
+   "id": "imagemagick",
+   "name": "ImageMagick",
+   "repo": "https://github.com/ImageMagick/ImageMagick",
+   "license": "ImageMagick",
+   "tier": "D",
+   "purpose": "Convert and batch-edit images from the command line.",
+   "tags": [
+    "image",
+    "convert",
+    "batch",
+    "resize"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "magick"
+   }
+  },
+  {
+   "id": "inkscape",
+   "name": "Inkscape",
+   "repo": "https://gitlab.com/inkscape/inkscape",
+   "license": "GPL-2.0-or-later",
+   "tier": "D",
+   "purpose": "Convert and export SVG (PDF, PNG), text to paths, from the command line.",
+   "tags": [
+    "svg",
+    "vector",
+    "export",
+    "pdf"
+   ],
+   "media": {
+    "in": [
+     "svg"
+    ],
+    "out": [
+     "svg",
+     "image"
+    ]
+   },
+   "install": {
+    "program": "inkscape"
+   }
+  },
+  {
+   "id": "potrace",
+   "name": "Potrace",
+   "repo": "https://potrace.sourceforge.net",
+   "license": "GPL-2.0-or-later",
+   "tier": "D",
+   "purpose": "Trace bitmaps into smooth vector outlines (SVG).",
+   "tags": [
+    "trace",
+    "vectorize",
+    "bitmap",
+    "svg"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "svg"
+    ]
+   },
+   "install": {
+    "program": "potrace"
+   }
+  },
+  {
+   "id": "depth-anything-v2",
+   "name": "Depth Anything V2",
+   "repo": "https://github.com/DepthAnything/Depth-Anything-V2",
+   "license": "Apache-2.0",
+   "tier": "E",
+   "purpose": "Depth maps from a single image.",
+   "tags": [
+    "depth",
+    "image",
+    "3d",
+    "ml",
+    "monocular"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch",
+     "transformers==4.53.2"
+    ]
+   },
+   "weights_license": "Small: Apache-2.0; Base/Large/Giant: CC-BY-NC-4.0 (non-commercial)",
+   "gpu": "optional (CUDA or MPS; slow on CPU)"
+  },
+  {
+   "id": "rembg",
+   "name": "rembg",
+   "repo": "https://github.com/danielgatis/rembg",
+   "license": "MIT",
+   "tier": "E",
+   "purpose": "Remove image backgrounds (cut-out with alpha).",
+   "tags": [
+    "background removal",
+    "matting",
+    "segmentation",
+    "image"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "rembg[cpu]==2.0.67"
+    ]
+   },
+   "weights_license": "depends on the model (u2net: Apache-2.0)",
+   "gpu": "optional"
+  },
+  {
+   "id": "segment-anything",
+   "name": "Segment Anything (SAM)",
+   "repo": "https://github.com/facebookresearch/segment-anything",
+   "license": "Apache-2.0",
+   "tier": "E",
+   "purpose": "Masks for any object from points or boxes.",
+   "tags": [
+    "segmentation",
+    "mask",
+    "image",
+    "ml"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch",
+     "segment-anything==1.0"
+    ]
+   },
+   "weights_license": "Apache-2.0",
+   "gpu": "recommended"
+  },
+  {
+   "id": "whisper",
+   "name": "Whisper",
+   "repo": "https://github.com/openai/whisper",
+   "license": "MIT",
+   "tier": "E",
+   "purpose": "Speech to text with timestamps (subtitles, lyrics timing).",
+   "tags": [
+    "speech",
+    "transcription",
+    "audio",
+    "subtitles"
+   ],
+   "media": {
+    "in": [
+     "audio",
+     "video"
+    ],
+    "out": [
+     "text",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "openai-whisper==20250625"
+    ]
+   },
+   "weights_license": "MIT",
+   "gpu": "optional"
+  },
+  {
+   "id": "demucs",
+   "name": "Demucs",
+   "repo": "https://github.com/facebookresearch/demucs",
+   "license": "MIT",
+   "tier": "E",
+   "purpose": "Split music into stems: drums, bass, vocals, other.",
+   "tags": [
+    "audio",
+    "music",
+    "stems",
+    "separation"
+   ],
+   "media": {
+    "in": [
+     "audio"
+    ],
+    "out": [
+     "audio"
+    ]
+   },
+   "install": {
+    "pip": [
+     "demucs==4.0.1"
+    ]
+   },
+   "weights_license": "MIT",
+   "gpu": "optional (slow on CPU)"
+  },
+  {
+   "id": "real-esrgan",
+   "name": "Real-ESRGAN",
+   "repo": "https://github.com/xinntao/Real-ESRGAN",
+   "license": "BSD-3-Clause",
+   "tier": "E",
+   "purpose": "Upscale images and video frames 2–4x.",
+   "tags": [
+    "upscale",
+    "super resolution",
+    "image",
+    "video"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "realesrgan==0.3.0"
+    ]
+   },
+   "weights_license": "BSD-3-Clause",
+   "gpu": "recommended"
+  },
+  {
+   "id": "diffusers",
+   "name": "Diffusers (Stable Diffusion and others)",
+   "repo": "https://github.com/huggingface/diffusers",
+   "license": "Apache-2.0",
+   "tier": "E",
+   "purpose": "Generate or edit images with diffusion models.",
+   "tags": [
+    "image generation",
+    "diffusion",
+    "text to image",
+    "ml"
+   ],
+   "media": {
+    "in": [
+     "text",
+     "image"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch",
+     "diffusers==0.34.0",
+     "transformers==4.53.2"
+    ]
+   },
+   "weights_license": "depends on the model (e.g. CreativeML OpenRAIL-M, which restricts some uses)",
+   "gpu": "required in practice"
+  }
+ ]
+}

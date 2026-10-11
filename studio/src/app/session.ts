@@ -27,6 +27,7 @@ import { PERMISSIONS_FILE, approvalNeeded, grant, parseGrants, programName, type
 import { hubClient, type HubClient, type HubJob, type HubRecipeSummary } from "./hubClient";
 import { RECIPE_TOOLS } from "../agent/recipeTools";
 import { PROJECT_TOOLS } from "../agent/projectTools";
+import { CATALOG_TOOLS } from "../agent/catalogTools";
 import { EXTERNAL_TOOLS } from "../agent/external";
 import { USER_TOOLS } from "../agent/userTools";
 import { ASSET_TOOLS } from "../agent/assetTools";
@@ -1268,7 +1269,7 @@ export async function sendPrompt(text: string): Promise<void> {
       model,
       effort: settings.effort,
       system: SYSTEM_PROMPT,
-      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...RUNTIME_TOOLS, ...RECIPE_TOOLS, ...PROJECT_TOOLS, ...USER_TOOLS],
+      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...RUNTIME_TOOLS, ...CATALOG_TOOLS, ...RECIPE_TOOLS, ...PROJECT_TOOLS, ...USER_TOOLS],
       env: { scene: controller, history, assets: assetsEnv, user, runtime, recipes, project: projectEnvPart },
       messages,
       signal: abort.signal,
