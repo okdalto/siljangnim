@@ -38,6 +38,11 @@ export function ExamplesDialog() {
                       WebGPU{gpu ? "" : " ✕"}
                     </span>
                   )}
+                  {e.requires?.includes("camera") && (
+                    <span className="shrink-0 rounded bg-raised px-1.5 py-0.5 text-[10px] text-muted" title="Asks for the camera">
+                      Camera
+                    </span>
+                  )}
                 </div>
                 <p className="mt-1 line-clamp-3 text-[11px] leading-snug text-muted">{e.description}</p>
                 <p className="mt-1.5 truncate text-[10px] text-faint">{e.made_with}</p>

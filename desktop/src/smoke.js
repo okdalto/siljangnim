@@ -357,6 +357,13 @@ async function runExamplesScenario(win, examplesOut) {
       log(`example ${slug}: skipped (no WebGPU)`);
       continue;
     }
+    // A camera and the network can't be assumed on a test machine.
+    const needs = (requires ?? "").split(" ").filter((r) => r === "camera" || r === "network");
+    if (needs.length) {
+      results[slug] = { skipped: `needs ${needs.join(", ")}` };
+      log(`example ${slug}: skipped (needs ${needs.join(", ")})`);
+      continue;
+    }
     await win.webContents.executeJavaScript(`(async () => {
       if (!document.querySelector('[data-testid="examples"]')) {
         document.querySelector('[title="Projects"]').click();
