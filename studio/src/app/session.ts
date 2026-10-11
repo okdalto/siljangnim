@@ -13,7 +13,7 @@ import type { SceneHost } from "../scene/host";
 import type { LoadResult } from "../scene/protocol";
 import { DEFAULT_SCENE, parseScene, type Scene, type UniformValue } from "../scene/schema";
 import { keys } from "./platform";
-import { createProvider, saveSettings, type Settings } from "./settings";
+import { createProvider, looksLikeApiKey, saveSettings, type Settings } from "./settings";
 import { useApp } from "./state";
 
 const ACTIVE_PROJECT_KEY = "siljangnim.activeProject";
@@ -273,6 +273,10 @@ export async function sendPrompt(text: string): Promise<void> {
     set({ settingsOpen: true, notice: { kind: "error", text: "Add an Anthropic API key to start." } });
     return;
   }
+  if (settings.provider === "openai" && !status.openai) {
+    set({ settingsOpen: true, notice: { kind: "error", text: "Add an OpenAI API key to start." } });
+    return;
+  }
   const { provider, model } = await createProvider(settings);
   if (!model) {
     set({ settingsOpen: true, notice: { kind: "error", text: "Choose a model in Settings." } });
@@ -393,6 +397,12 @@ export async function clearChat(): Promise<void> {
 // --- settings ---
 
 export function updateSettings(patch: Partial<Settings>): void {
+  for (const value of Object.values(patch)) {
+    if (typeof value === "string" && looksLikeApiKey(value)) {
+      set({ notice: { kind: "error", text: "That looks like an API key. Paste it into the API key field; it was not saved here." } });
+      return;
+    }
+  }
   const settings = { ...get().settings, ...patch };
   saveSettings(settings);
   set({ settings });

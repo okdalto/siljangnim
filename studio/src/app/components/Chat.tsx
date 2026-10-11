@@ -5,6 +5,7 @@ import { isStudioNote, STUDIO_NOTE_PREFIX } from "../../agent/context";
 import { ANTHROPIC_MODELS } from "../../agent/llm/anthropic";
 import type { MessageParam } from "../../agent/llm/types";
 import { clearChat, dismissNotice, sendPrompt, stopAgent } from "../session";
+import { activeModel } from "../settings";
 import { useApp, type LiveTurn } from "../state";
 import { AlertIcon, CheckIcon, SendIcon, Spinner, StopIcon, XIcon } from "./icons";
 
@@ -34,7 +35,7 @@ export function ChatHeaderActions() {
   const modelLabel =
     settings.provider === "anthropic"
       ? (ANTHROPIC_MODELS.find((m) => m.id === settings.anthropicModel)?.label ?? settings.anthropicModel)
-      : settings.openaiModel || "custom model";
+      : activeModel(settings) || "no model chosen";
   return (
     <>
       <span className="truncate text-faint">{modelLabel}</span>

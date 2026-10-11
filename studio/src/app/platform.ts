@@ -1,7 +1,8 @@
 // Desktop vs. browser differences: where the LLM forwarder lives and who holds API keys.
 import type { ProviderKeyId } from "../desktop";
 
-export const bridge = window.siljangnim;
+// Guarded so modules importing this also load under Node (unit tests).
+export const bridge = typeof window === "undefined" ? undefined : window.siljangnim;
 export const isDesktop = bridge?.desktop === true;
 
 /** Base of the app's API routes (LLM forwarder). The desktop serves them from app://siljangnim even in dev. */
