@@ -705,6 +705,23 @@
       "readOnly": true
     },
     {
+      "name": "recipe_install",
+      "description": "Add a recipe from the shared registry (found with recipe_search) to this machine. It arrives as a draft: recipe_verify it here (the person is asked before its code first runs), then recipe_run.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "readOnly": false
+    },
+    {
       "name": "recipe_read",
       "description": "Read a recipe's markdown: setup, the run code, what params it reads from in/params.json, verification and notes.",
       "inputSchema": {

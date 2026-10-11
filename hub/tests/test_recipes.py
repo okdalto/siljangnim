@@ -129,3 +129,60 @@ def test_import_from_another_machine_lands_as_draft(tmp_path: Path):
 
     with pytest.raises(RuntimeErrorWithHint):
         here.import_text("no front matter")
+
+
+def test_registry_search_and_install(tmp_path: Path):
+    import hashlib
+    import json
+
+    from siljangnim_hub.registry import Registry, build_index
+
+    there = Recipes(tmp_path / "there", "win-x64")
+    there.save({**FIELDS, "id": "trimesh.torus-knot"})
+    text = there.set_status("trimesh.torus-knot", "verified")["text"]
+    folder = tmp_path / "registry"
+    (folder / "recipes" / "trimesh.torus-knot").mkdir(parents=True)
+    (folder / "recipes" / "trimesh.torus-knot" / "recipe.md").write_text(text, encoding="utf-8")
+    index = build_index(folder)
+    assert index["recipes"][0]["verified_on"] == ["win-x64"]
+    assert index["recipes"][0]["sha256"] == hashlib.sha256(text.encode()).hexdigest()
+    (folder / "index.json").write_text(json.dumps(index))
+
+    here = Recipes(tmp_path / "here", "mac-arm64")
+    registry = Registry(str(folder), here)
+    assert [r["id"] for r in registry.search("torus")] == ["trimesh.torus-knot"]
+    assert registry.search("nothing-like-this") == []
+    installed = registry.install("trimesh.torus-knot")
+    assert installed["summary"]["origin"] == "imported" and installed["summary"]["status_here"] == "draft"
+
+    # A file that no longer matches its index entry is refused.
+    (folder / "recipes" / "trimesh.torus-knot" / "recipe.md").write_text(text + "\n# changed\n", encoding="utf-8")
+    with pytest.raises(RuntimeErrorWithHint, match="sha256"):
+        Registry(str(folder), Recipes(tmp_path / "third", "mac-arm64")).install("trimesh.torus-knot")
+    with pytest.raises(RuntimeErrorWithHint, match="https"):
+        Registry("http://example.com/registry", here).index()
+
+
+def test_registry_endpoints(tmp_path: Path):
+    import json
+
+    folder = tmp_path / "registry"
+    folder.mkdir()
+    (folder / "index.json").write_text(json.dumps({"version": 1, "recipes": []}))
+    from siljangnim_hub.registry import Registry
+
+    recipes = Recipes(tmp_path / "r", "linux-x64")
+    app = create_app(token=TOKEN, port=PORT, runtime=Runtime(tmp_path / "rt", "uv"), recipes=recipes, registry=Registry(str(folder), recipes))
+    c = TestClient(app, base_url=f"http://127.0.0.1:{PORT}")
+    assert c.get("/registry?q=x", headers=AUTH).json()["recipes"] == []
+    res = c.post("/registry/nope.recipe/install", headers=AUTH)
+    assert res.status_code == 400 and "no recipe" in res.json()["error"]
+
+
+def test_the_repository_registry_index_is_current():
+    import json
+
+    from siljangnim_hub.registry import build_index
+
+    folder = Path(__file__).resolve().parents[2] / "registry"
+    assert json.loads((folder / "index.json").read_text()) == build_index(folder), "run: python -m siljangnim_hub.registry build ../registry"

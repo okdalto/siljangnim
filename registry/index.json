@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "recipes": [
+    {
+      "id": "trimesh.torus-knot",
+      "version": 1,
+      "title": "Torus knot tube mesh (trimesh)",
+      "capability": "mesh-generate torus knot tube glb json",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/trimesh.torus-knot/recipe.md",
+      "sha256": "efc3e9d676e1f16e23dba75cb7c6b119cdd528d344088e5911379e15466e1cc7"
+    }
+  ]
+}
