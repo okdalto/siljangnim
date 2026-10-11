@@ -22,4 +22,14 @@ contextBridge.exposeInMainWorld("siljangnim", {
     status: () => ipcRenderer.invoke("keys:status"),
     set: (provider, key) => ipcRenderer.invoke("keys:set", provider, key),
   },
+  agent: {
+    /** An agent's MCP bridge asked to use this window as its viewer. */
+    onAttach(callback) {
+      const listener = (_event, request) => callback(request);
+      ipcRenderer.on("agent:attach", listener);
+      return () => ipcRenderer.removeListener("agent:attach", listener);
+    },
+    /** A request that arrived before the UI was listening. */
+    pending: () => ipcRenderer.invoke("agent:pending"),
+  },
 });

@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { DEFAULT_PORT, createBridge } from "../src/bridge.js";
 import { createHubLauncher, findHubDir, findUv } from "../src/hub.js";
+import { attachToDesktop } from "../src/desktop.js";
 import { openBrowser } from "../src/open.js";
 
 const pkgDir = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -56,6 +57,8 @@ const bridge = createBridge({
     viewerOrigin = origin;
     return hub.get();
   },
+  // A running desktop app becomes the viewer (SILJANGNIM_VIEWER=browser always opens a browser tab).
+  ...(process.env.SILJANGNIM_VIEWER === "browser" ? {} : { attach: (request) => attachToDesktop(request, log) }),
 });
 await bridge.listen();
 await bridge.mcp.connect(new StdioServerTransport());

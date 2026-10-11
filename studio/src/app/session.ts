@@ -65,7 +65,7 @@ import type { LoadResult, RecordOptions } from "../scene/protocol";
 import type { OscMessage } from "../scene/runtime/inputData";
 import { evaluateTrack, keyAt, removeKeyAt, upsertKey } from "../scene/gl/keyframes";
 import { DEFAULT_SCENE, KEYFRAMABLE, parseScene, type Scene, type Timeline, type UniformValue } from "../scene/schema";
-import { bridgeToken, keys } from "./platform";
+import { bridge, bridgeToken, keys } from "./platform";
 import { createProvider, looksLikeApiKey, saveSettings, type Settings } from "./settings";
 import { useApp, type AppState } from "./state";
 
@@ -122,6 +122,18 @@ const set = useApp.setState;
 export async function boot(): Promise<void> {
   // Opened by the MCP bridge: an external agent drives this viewer.
   if (bridgeToken) void import("./bridge").then(({ connectBridge }) => connectBridge(bridgeToken!));
+  // Desktop: an agent's MCP bridge can attach to this window (docs/mcp.md).
+  if (bridge?.agent) {
+    let attached = "";
+    // The live event and the startup check can both bring the same request.
+    const attach = (request: { ws: string; token: string }) => {
+      if (request.token === attached) return;
+      attached = request.token;
+      void import("./bridge").then(({ connectBridge }) => connectBridge(request.token, { url: request.ws, desktop: true }));
+    };
+    bridge.agent.onAttach(attach);
+    void bridge.agent.pending().then((request) => request && attach(request));
+  }
   set({ keyStatus: await keys.status() });
   let projects = await store.listProjects();
   if (!projects.length) {
@@ -1220,7 +1232,8 @@ export async function runExternalTool(name: string, input: unknown): Promise<Too
 }
 
 export function setExternal(external: AppState["external"]): void {
-  set((st) => ({ external, sidebarTab: st.sidebarTab === "chat" ? "activity" : st.sidebarTab }));
+  // An agent that just attached: show what it does.
+  set((st) => ({ external, sidebarTab: external && (!st.external || st.sidebarTab === "chat") ? "activity" : st.sidebarTab }));
 }
 
 export async function sendPrompt(text: string): Promise<void> {

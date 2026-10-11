@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BrowserWindow, app, ipcMain, session, shell } from "electron";
+import { startAttachServer } from "./attach.js";
 import { Hub } from "./hub.js";
 import { KeyStore } from "./keys.js";
 import { originOf, resolveOrigins } from "./origins.js";
@@ -30,6 +31,9 @@ const hub = new Hub();
 const forwarderToken = randomBytes(32).toString("hex");
 let keys = null;
 let mainWindow = null;
+let attachServer = null;
+/** A bridge that asked to attach before the UI was listening; the UI takes it on startup. */
+let pendingAttach = null;
 
 const isAppOrigin = (url) => originOf(url) === ORIGINS.app;
 const isOurOrigin = (url) => isAppOrigin(url) || originOf(url) === ORIGINS.scene;
@@ -98,6 +102,12 @@ function registerIpc() {
     keys.set(provider, key);
   });
   hub.on("status", (info) => mainWindow?.webContents.send("hub:status", info));
+  ipcMain.handle("agent:pending", (event) => {
+    if (!fromApp(event)) return null;
+    const request = pendingAttach;
+    pendingAttach = null;
+    return request;
+  });
 }
 
 app.on("second-instance", () => {
@@ -115,6 +125,22 @@ app.whenReady().then(async () => {
 
   const win = createWindow();
   hub.start();
+  // An agent's MCP bridge can use this window as its viewer.
+  attachServer = await startAttachServer({
+    version: app.getVersion(),
+    onConnect(request) {
+      if (!mainWindow) return false;
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+      pendingAttach = request;
+      mainWindow.webContents.send("agent:attach", request);
+      return true;
+    },
+  }).catch((err) => {
+    console.error(`[siljangnim] agents can't attach to this window: ${err.message}`);
+    return null;
+  });
 
   if (process.env.SILJANGNIM_SMOKE_OUT) {
     runSmokeTest(win, hub, keys, process.env.SILJANGNIM_SMOKE_OUT);
@@ -129,4 +155,7 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
-app.on("before-quit", () => hub.stop());
+app.on("before-quit", () => {
+  hub.stop();
+  attachServer?.close();
+});

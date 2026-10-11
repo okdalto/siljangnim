@@ -217,4 +217,41 @@ describe("bridge runtime hub", () => {
       await bridge.close();
     }
   });
+
+  it("hands the viewer to a running desktop app before opening a browser", async () => {
+    const opened = [];
+    const attached = [];
+    let accept = true;
+    const bridge = createBridge({ studioDir: studioDir(), spec, port: 0, open: (url) => opened.push(url), attach: async (r) => (attached.push(r), accept) });
+    await bridge.listen();
+    const client = await connectClient(bridge);
+    try {
+      const result = client.callTool({ name: "viewer_open", arguments: {} });
+      await new Promise((r) => setTimeout(r, 50));
+      assert.equal(opened.length, 0);
+      assert.match(attached[0].ws, /^ws:\/\/localhost:\d+\/bridge$/);
+      // The desktop UI connects from app://siljangnim with the token it was handed.
+      const viewer = fakeViewer(bridge, { origin: "app://siljangnim", token: attached[0].token });
+      await viewer.ready;
+      assert.match((await result).content[0].text, /in the Siljangnim desktop app/);
+      viewer.ws.close();
+      await viewer.closed;
+      // No app (or it declined): the browser tab opens as before.
+      accept = false;
+      const again = client.callTool({ name: "viewer_open", arguments: {} });
+      await new Promise((r) => setTimeout(r, 50));
+      assert.equal(opened.length, 1);
+      const browser = fakeViewer(bridge);
+      await browser.ready;
+      assert.match((await again).content[0].text, /^The viewer is open and connected: http:\/\/localhost:/);
+      browser.ws.close();
+      await browser.closed;
+      // Other origins stay out even with the token.
+      const other = fakeViewer(bridge, { origin: "https://evil.example", token: attached[0].token });
+      await assert.rejects(other.ready);
+    } finally {
+      await client.close();
+      await bridge.close();
+    }
+  });
 });
