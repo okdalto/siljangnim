@@ -48,7 +48,7 @@ project needs it, and every project records exactly what it used.
 
 In the new studio (desktop app and `npm run web`):
 
-- **Agent-built live scenes** — describe a visual; the agent writes a WebGL2 scene, reads back compile
+- **Agent-built live scenes** — describe a visual; the agent writes a WebGL2 or WebGPU scene, reads back compile
   errors with line numbers, fixes them, and looks at a screenshot of the result before answering.
 - **Isolated scene runtime** — scene code runs on a separate origin with its own security policy; it
   cannot reach your projects or API keys.
@@ -62,15 +62,23 @@ In the new studio (desktop app and `npm run web`):
   environments and installed CLIs (ffmpeg, …), after you approve; results come back as assets. What worked is
   saved as a recipe, so the next request runs it directly.
 - **Bring your own agent** — Claude Code, Codex and other MCP clients can drive the studio
-  ([docs/mcp.md](docs/mcp.md)); you chat with them, the viewer shows the result.
+  ([docs/mcp.md](docs/mcp.md)); you chat with them, the viewer shows the result. With the desktop app
+  running, the agent works in its window.
+- **Recording** — MP4, WebM or PNG frames, rendered frame by frame or captured live.
+- **Inputs** — microphone and audio files (spectrum, bands), camera, MIDI, OSC from controllers, and
+  browser ML such as MediaPipe hand tracking.
+- **Sharing** — export a project as `project.md` (scene, assets and how they were made) or a bundle; another
+  agent can rebuild it from the document ([docs/project-md.md](docs/project-md.md)). Recipes are shared through
+  a registry ([registry/](registry/)), and a catalog helps the agent pick open-source tools.
+- **v1 projects** — *Projects menu → Import v1 project* brings old exports over.
 - **Examples** — *Projects menu → Examples…* opens ready-made scenes ([examples/](examples/)).
 - **Projects** — several projects with their scene and chat, saved locally.
 - **Providers** — Anthropic (Claude Opus 5.5 by default) or any OpenAI-compatible server (OpenAI, vLLM, Ollama, …).
 - **Desktop app** — macOS (Apple Silicon) and Windows. API keys are encrypted with the OS keychain and
   never reach the app window; the app manages its own Python runtime.
 
-Coming next ([milestones](docs/studio.md#마일스톤)): WebGPU, recording, audio/camera/MIDI inputs,
-importing v1 projects, sharing projects and recipes.
+Next: switching the hosted web version to the studio (prepared in [studio/vercel.json](studio/vercel.json),
+see [docs/m3.md](docs/m3.md#4-웹-배포-준비)) and retiring v1.
 
 ## Download
 
@@ -152,6 +160,7 @@ desktop/    Electron shell: window, app:// protocol, key storage, hub process, i
 hub/        Python sidecar run by the app (uv-managed): runtime jobs and recipes
 mcp/        MCP server for external agents (serves the studio, relays tool calls)
 examples/   Example projects shown in the app's gallery
+registry/   Shared recipes (index.json + recipe files), contributed by pull request
 frontend/   v1 web app (still deployed to siljangnim.vercel.app until the studio replaces it)
 backend/    v1 FastAPI server; replaced by hub/
 docs/       Architecture and guides
