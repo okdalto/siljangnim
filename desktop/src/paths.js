@@ -11,8 +11,10 @@ export function rendererDir() {
   return join(app.getAppPath(), "stage", "renderer");
 }
 
-export function proxyModulePath() {
-  return join(app.getAppPath(), "stage", "proxy", "proxy.js");
+export function llmForwardModulePath() {
+  return app.isPackaged
+    ? join(app.getAppPath(), "stage", "server", "llmForward.js")
+    : join(repoRoot, "studio", "server", "llmForward.js");
 }
 
 export function hubDir() {

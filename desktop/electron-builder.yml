@@ -9,7 +9,7 @@ files:
   - src/**
   - assets/icon.png
   - stage/renderer/**
-  - stage/proxy/**
+  - stage/server/**
 extraResources:
   - from: stage/hub
     to: hub

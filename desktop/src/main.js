@@ -1,26 +1,25 @@
+import { randomBytes } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BrowserWindow, app, ipcMain, session, shell } from "electron";
 import { Hub } from "./hub.js";
-import { ORIGIN, handleAppProtocol, registerScheme } from "./protocol.js";
+import { KeyStore } from "./keys.js";
+import { originOf, resolveOrigins } from "./origins.js";
+import { handleAppProtocol, registerScheme } from "./protocol.js";
 import { runSmokeTest } from "./smoke.js";
 
 const srcDir = dirname(fileURLToPath(import.meta.url));
 const DEV_URL = process.env.SILJANGNIM_DEV_URL || null;
-const START_URL = DEV_URL || `${ORIGIN}/`;
+const ORIGINS = resolveOrigins(DEV_URL);
+const START_URL = DEV_URL || `${ORIGINS.app}/`;
 
-// Permissions the renderer actually uses: camera/mic (MediaPipe, audio input),
+// Permissions the app and its scenes use: camera/mic (tracking, audio input),
 // MIDI controllers, fullscreen, clipboard, pointer lock for orbit controls.
-const ALLOWED_PERMISSIONS = new Set([
-  "media",
-  "midi",
-  "midiSysex",
-  "fullscreen",
-  "clipboard-sanitized-write",
-  "pointerLock",
-]);
+const ALLOWED_PERMISSIONS = new Set(["media", "midi", "midiSysex", "fullscreen", "clipboard-sanitized-write", "pointerLock"]);
 
 app.setName("Siljangnim");
+// Lets the smoke test run against a throwaway profile instead of the user's projects and keys.
+if (process.env.SILJANGNIM_USER_DATA) app.setPath("userData", process.env.SILJANGNIM_USER_DATA);
 registerScheme();
 
 if (!app.requestSingleInstanceLock()) {
@@ -28,27 +27,21 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 const hub = new Hub();
+const forwarderToken = randomBytes(32).toString("hex");
+let keys = null;
 let mainWindow = null;
 
-// Compare scheme + host rather than URL.origin: for custom schemes like
-// app:// the origin is the opaque "null", which data: URLs share.
-function isAppUrl(url) {
-  try {
-    const u = new URL(url);
-    if (DEV_URL) return u.origin === new URL(DEV_URL).origin;
-    return `${u.protocol}//${u.host}` === ORIGIN;
-  } catch {
-    return false;
-  }
-}
+const isAppOrigin = (url) => originOf(url) === ORIGINS.app;
+const isOurOrigin = (url) => isAppOrigin(url) || originOf(url) === ORIGINS.scene;
 
 function configureSession() {
   const ses = session.defaultSession;
-  ses.setPermissionRequestHandler((webContents, permission, callback) => {
-    callback(isAppUrl(webContents.getURL()) && ALLOWED_PERMISSIONS.has(permission));
+  ses.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    const requester = details?.requestingUrl ?? webContents.getURL();
+    callback(isAppOrigin(webContents.getURL()) && isOurOrigin(requester) && ALLOWED_PERMISSIONS.has(permission));
   });
   ses.setPermissionCheckHandler((_webContents, permission, requestingOrigin) => {
-    return isAppUrl(requestingOrigin) && ALLOWED_PERMISSIONS.has(permission);
+    return isOurOrigin(requestingOrigin) && ALLOWED_PERMISSIONS.has(permission);
   });
 }
 
@@ -58,7 +51,7 @@ function createWindow() {
     height: 900,
     minWidth: 960,
     minHeight: 600,
-    backgroundColor: "#0b0b0d",
+    backgroundColor: "#0d0d0f",
     autoHideMenuBar: true,
     title: "Siljangnim",
     // macOS takes the icon from the app bundle; elsewhere the window needs it.
@@ -78,7 +71,7 @@ function createWindow() {
     return { action: "deny" };
   });
   webContents.on("will-navigate", (event, url) => {
-    if (!isAppUrl(url)) {
+    if (!isAppOrigin(url)) {
       event.preventDefault();
       if (/^https?:/.test(url)) shell.openExternal(url);
     }
@@ -91,6 +84,22 @@ function createWindow() {
   return mainWindow;
 }
 
+/** IPC handlers answer only the app UI's main frame, never a scene or other frame. */
+function fromApp(event) {
+  return event.senderFrame?.parent === null && isAppOrigin(event.senderFrame.url);
+}
+
+function registerIpc() {
+  ipcMain.handle("hub:info", (event) => (fromApp(event) ? hub.info() : null));
+  ipcMain.handle("keys:status", (event) => (fromApp(event) ? keys.status() : null));
+  ipcMain.handle("llm:token", (event) => (fromApp(event) ? forwarderToken : null));
+  ipcMain.handle("keys:set", (event, provider, key) => {
+    if (!fromApp(event)) throw new Error("forbidden");
+    keys.set(provider, key);
+  });
+  hub.on("status", (info) => mainWindow?.webContents.send("hub:status", info));
+}
+
 app.on("second-instance", () => {
   if (!mainWindow) return;
   if (mainWindow.isMinimized()) mainWindow.restore();
@@ -98,17 +107,17 @@ app.on("second-instance", () => {
 });
 
 app.whenReady().then(async () => {
+  keys = new KeyStore();
   configureSession();
-  if (!DEV_URL) await handleAppProtocol();
-
-  ipcMain.handle("hub:info", () => hub.info());
-  hub.on("status", (info) => mainWindow?.webContents.send("hub:status", info));
+  // In dev the UI comes from Vite, but the LLM forwarder (with keys) is still served here.
+  await handleAppProtocol({ origins: ORIGINS, keys, forwarderToken, serveRenderer: !DEV_URL });
+  registerIpc();
 
   const win = createWindow();
   hub.start();
 
   if (process.env.SILJANGNIM_SMOKE_OUT) {
-    runSmokeTest(win, hub, process.env.SILJANGNIM_SMOKE_OUT);
+    runSmokeTest(win, hub, keys, process.env.SILJANGNIM_SMOKE_OUT);
   }
 
   app.on("activate", () => {

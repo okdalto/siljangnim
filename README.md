@@ -19,9 +19,11 @@
 
 ---
 
-> **Siljangnim v2 is in progress.** The desktop app, the local runtime and the
-> MCP connection are being built in stages ([plan](docs/architecture.md#11-단계별-계획)).
-> Everything under **What works today** runs now; the rest is where it is going.
+> **Siljangnim v2 is in progress.** The app is being rebuilt from scratch as a
+> desktop studio ([plan](docs/architecture.md#11-단계별-계획), [studio design](docs/studio.md)).
+> **What works today** lists what the new studio does now; the v1 web app at
+> [siljangnim.vercel.app](https://siljangnim.vercel.app/) still has the older, larger feature set
+> until the rewrite catches up.
 
 ## What it is
 
@@ -44,14 +46,21 @@ project needs it, and every project records exactly what it used.
 
 ## What works today
 
-- **Live shader scenes** — WebGL2/WebGPU, multi-pass buffers, 3D, post-processing, written and debugged by the agent.
-- **Generated controls** — sliders, color pickers, pads, camera orbit, bound to uniforms with undo/redo.
-- **Inputs** — audio analysis, microphone, MIDI, OSC, webcam hand/pose/face tracking (MediaPipe).
-- **Assets** — images, video, fonts, SVG, audio and 3D models (OBJ, FBX, glTF with skeletal animation).
-- **Timeline** — keyframes with easing on any uniform; record to MP4, WebM or PNG sequences.
-- **Projects** — version tree with branches and comparison, multi-tab chat, GitHub save/load.
-- **Desktop app** — macOS (Apple Silicon) and Windows, with its own managed Python runtime.
-- **Providers** — Anthropic, OpenAI, Gemini, GLM, or any OpenAI-compatible server (vLLM, Ollama, …).
+In the new studio (desktop app and `npm run web`):
+
+- **Agent-built live scenes** — describe a visual; the agent writes a WebGL2 scene, reads back compile
+  errors with line numbers, fixes them, and looks at a screenshot of the result before answering.
+- **Isolated scene runtime** — scene code runs on a separate origin with its own security policy; it
+  cannot reach your projects or API keys.
+- **Live controls** — the parameters the agent exposes (sliders, colors, toggles, vectors) update the scene instantly.
+- **Projects** — several projects with their scene and chat, saved locally.
+- **Providers** — Anthropic (Claude Opus 5.5 by default) or any OpenAI-compatible server (OpenAI, vLLM, Ollama, …).
+- **Desktop app** — macOS (Apple Silicon) and Windows. API keys are encrypted with the OS keychain and
+  never reach the app window; the app manages its own Python runtime.
+
+Coming back from v1 next ([milestones](docs/studio.md#마일스톤)): WebGPU, agent-made panels, asset
+uploads, timeline and keyframes, version history (M2); recording, audio/camera/MIDI/MediaPipe inputs,
+importing v1 projects (M3).
 
 ## Download
 
@@ -86,9 +95,10 @@ npm run dev
 | Command | What it does |
 |---|---|
 | `npm run dev` | Desktop app with hot reload |
-| `npm run web` | Browser-only version at http://localhost:5173 |
-| `npm test` | Frontend and hub tests |
-| `npm run smoke` | Build, launch, screenshot and check the desktop app |
+| `npm run web` | The studio in your browser at http://localhost:5173 |
+| `npm run check` | Typecheck and lint |
+| `npm test` | Studio and hub tests |
+| `npm run smoke` | Build and launch the desktop app, run one agent session against a mock API, screenshot and check it |
 | `npm run dist` | Build the installer for the current platform into `desktop/release/` |
 
 Installers for both platforms are built by GitHub Actions when a `v*` tag is pushed.
@@ -100,7 +110,8 @@ Your agent (MCP)      Built-in agent
         \                 /
          ▼               ▼
  ┌────────── Siljangnim desktop (Electron) ──────────┐
- │ Renderer   node canvas · viewport · panels         │
+ │ Studio     chat · viewport · controls;             │
+ │            scenes run on an isolated origin        │
  │ Hub        local Python sidecar: MCP, runtime,     │
  │            recipes, provenance, permissions        │
  └────────────────────────────────────────────────────┘
@@ -114,18 +125,20 @@ Details, recipe and project formats, and the staged plan: [docs/architecture.md]
 ## Repository layout
 
 ```
-desktop/    Electron shell: window, app:// protocol, hub process, installers
+studio/     The app: React + TypeScript UI, built-in agent, isolated scene runtime
+desktop/    Electron shell: window, app:// protocol, key storage, hub process, installers
 hub/        Python sidecar run by the app (uv-managed)
-frontend/   Renderer: React, node canvas, GL engine, built-in agent (also the web build)
-backend/    Legacy FastAPI server from v1; replaced by hub/ in stage 2
+frontend/   v1 web app (still deployed to siljangnim.vercel.app until the studio replaces it)
+backend/    v1 FastAPI server; replaced by hub/
 docs/       Architecture and guides
 ```
 
 ## The web version
 
-[siljangnim.vercel.app](https://siljangnim.vercel.app/) runs the renderer and the built-in
-agent in the browser. It covers shaders, panels, recording and in-browser ML. Tools that need
-a local runtime (Python packages, CLI apps, GPU models) need the desktop app.
+[siljangnim.vercel.app](https://siljangnim.vercel.app/) still serves the v1 web app. The new
+studio also runs in a browser (`npm run web`); a hosted version follows once it reaches v1's
+features. Tools that need a local runtime (Python packages, CLI apps, GPU models) will need the
+desktop app.
 
 ## Costs and security
 

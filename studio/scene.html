@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- The placeholder below is replaced with the scene CSP at build/serve time (vite.config.ts). -->
+    <meta http-equiv="Content-Security-Policy" content="__SCENE_CSP__" />
+    <title>Siljangnim scene</title>
+    <style>
+      html, body, #stage { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+      #stage { touch-action: none; }
+      #stage canvas { display: block; width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script type="module" src="/src/scene/runtime/main.ts"></script>
+  </body>
+</html>
