@@ -26,7 +26,7 @@ import {
 } from "../gl/helpers";
 import { FULLSCREEN_VERTEX_SHADER, MESH_VERTEX_SHADER, createProgram } from "../gl/shader";
 import type { MonitorValue } from "../protocol";
-import { SPECTRUM_BINS, emptyAudio, emptyMidi, type AudioState, type MidiState } from "./inputData";
+import { SPECTRUM_BINS, emptyAudio, emptyMidi, emptyOsc, type AudioState, type MidiState, type OscState } from "./inputData";
 import type { SceneInputs } from "./inputs";
 import type { UniformValue } from "../schema";
 
@@ -54,6 +54,8 @@ export interface SceneUtils {
   audio: SceneAudioUtils;
   /** Start listening to MIDI devices (fills ctx.midi). */
   enableMidi(): Promise<void>;
+  /** Have the app receive OSC on this UDP port (fills ctx.osc; default 9000). */
+  listenOsc(port?: number): void;
   createMesh(geometry: GeometryData): Drawable;
   geometry: {
     quad(): GeometryData;
@@ -106,6 +108,8 @@ export interface SceneCtx {
   audio: AudioState;
   /** MIDI input (inputs: ["midi"] or ctx.utils.enableMidi()). */
   midi: MidiState;
+  /** OSC from controllers (inputs: ["osc"] or ctx.utils.listenOsc(port)); needs the desktop app or the MCP bridge. */
+  osc: OscState;
   /** Show a value in the app's monitor panel (FPS, particle count…). Cheap; call it every frame if you like. */
   publish(name: string, value: MonitorValue): void;
   utils: SceneUtils;
@@ -160,6 +164,7 @@ export function createCtx(
     uploads: assets,
     audio: inputs?.audio ?? emptyAudio(),
     midi: inputs?.midi ?? emptyMidi(),
+    osc: inputs?.osc ?? emptyOsc(),
     publish,
     utils: undefined as unknown as SceneUtils,
   };
@@ -214,6 +219,7 @@ export function createCtx(
       stop: () => inputs?.stopAudio(),
     },
     enableMidi: () => (inputs ? inputs.enableMidi() : Promise.reject(new Error("MIDI is not available here"))),
+    listenOsc: (port) => inputs?.listenOsc(port),
     createMesh: (geometry) => createMesh(gl, geometry),
     geometry: {
       quad: geometries.createQuadGeometry,

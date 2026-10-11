@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyMidiMessage, bandLevel, emptyAudio, emptyMidi, updateBands } from "./inputData";
+import { applyMidiMessage, applyOscMessages, bandLevel, emptyAudio, emptyMidi, emptyOsc, updateBands } from "./inputData";
 
 describe("audio bands", () => {
   it("averages the bins in each band", () => {
@@ -31,5 +31,19 @@ describe("midi", () => {
     expect(m.pitchBend).toBe(0);
     applyMidiMessage(m, [0xe0, 0x7f, 0x7f]);
     expect(m.pitchBend).toBeCloseTo(1, 3);
+  });
+});
+
+describe("osc", () => {
+  it("keeps the latest values per address and this frame's messages", () => {
+    const osc = emptyOsc();
+    const frame: typeof osc.messages = [];
+    applyOscMessages(osc, frame, [["/fader/1", [0.25]], ["/toggle", [true]], ["/fader/1", [0.75, "x"]]]);
+    expect(osc.get("/fader/1")).toBe(0.75);
+    expect(osc.get("/fader/1", 1, -1)).toBe(-1);
+    expect(osc.get("/toggle")).toBe(1);
+    expect(osc.get("/missing", 0, 0.5)).toBe(0.5);
+    expect(osc.last).toEqual({ address: "/fader/1", args: [0.75, "x"] });
+    expect(frame).toHaveLength(3);
   });
 });

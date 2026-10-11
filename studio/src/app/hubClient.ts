@@ -1,6 +1,7 @@
 // Access to the Python hub (runtime jobs). The desktop app learns its URL and
 // token from the preload bridge; a viewer opened by the MCP bridge gets them
 // over the bridge connection. The token never reaches the scene iframe.
+import type { OscMessage } from "../scene/runtime/inputData";
 import { bridge } from "./platform";
 
 export interface HubAccess {
@@ -59,6 +60,15 @@ export interface HubRecipeSummary {
   origin: string;
   status_here: "draft" | "verified" | "broken";
   tested_here: string | null;
+}
+
+export interface HubOscStatus {
+  listening: boolean;
+  port: number | null;
+  host: string;
+  error: string | null;
+  received: number;
+  dropped: number;
 }
 
 const TERMINAL = new Set(["done", "failed", "cancelled"]);
@@ -120,6 +130,34 @@ export class HubClient {
 
   recipeStatus(id: string, status: "verified" | "broken", log: string) {
     return this.request<{ summary: HubRecipeSummary }>(`/recipes/${encodeURIComponent(id)}/status`, { method: "POST", body: JSON.stringify({ status, log }) });
+  }
+
+  oscListen(port: number) {
+    return this.request<HubOscStatus>("/osc/listen", { method: "POST", body: JSON.stringify({ port }) });
+  }
+
+  oscStop() {
+    return this.request<HubOscStatus>("/osc/stop", { method: "POST" });
+  }
+
+  /** Server-sent OSC batches until the signal aborts or the hub goes away. */
+  async oscStream(signal: AbortSignal, onBatch: (messages: OscMessage[]) => void): Promise<void> {
+    const res = await fetch(`${this.access.url}/osc/stream`, { headers: { Authorization: `Bearer ${this.access.token}` }, signal });
+    if (!res.ok || !res.body) throw new Error(`hub returned ${res.status}`);
+    const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) return;
+      buffer += value;
+      let end: number;
+      while ((end = buffer.indexOf("\n\n")) >= 0) {
+        const event = buffer.slice(0, end);
+        buffer = buffer.slice(end + 2);
+        const data = event.split("\n").filter((l) => l.startsWith("data: ")).map((l) => l.slice(6)).join("\n");
+        if (data) onBatch(JSON.parse(data) as OscMessage[]);
+      }
+    }
   }
 
   /** The job once it finishes, or as it is after `waitS` seconds. */

@@ -75,3 +75,47 @@ export function applyMidiMessage(state: MidiState, data: ArrayLike<number>): voi
     state.pitchBend = ((b << 7) | a) / 8192 - 1;
   }
 }
+
+export type OscArg = number | string | boolean | null;
+export type OscMessage = [address: string, args: OscArg[]];
+
+export interface OscState {
+  /** Whether the hub is listening for this scene. */
+  active: boolean;
+  /** UDP port controllers send to. */
+  port: number | null;
+  /** Latest arguments by address. */
+  values: Record<string, OscArg[]>;
+  /** Messages that arrived since the previous frame, oldest first. */
+  messages: Array<{ address: string; args: OscArg[] }>;
+  last: { address: string; args: OscArg[] } | null;
+  /** values[address][index] as a number, or fallback. */
+  get(address: string, index?: number, fallback?: number): number;
+}
+
+export function emptyOsc(): OscState {
+  const state: OscState = {
+    active: false,
+    port: null,
+    values: {},
+    messages: [],
+    last: null,
+    get(address, index = 0, fallback = 0) {
+      const v = state.values[address]?.[index];
+      return typeof v === "number" ? v : typeof v === "boolean" ? Number(v) : fallback;
+    },
+  };
+  return state;
+}
+
+/** Keep the latest values; `frame` collects this frame's messages. */
+export function applyOscMessages(state: OscState, frame: OscState["messages"], messages: OscMessage[]): void {
+  for (const [address, args] of messages) {
+    if (typeof address !== "string" || !Array.isArray(args)) continue;
+    state.values[address] = args;
+    state.last = { address, args };
+    frame.push({ address, args });
+  }
+  // A flood between frames keeps the newest.
+  if (frame.length > 1024) frame.splice(0, frame.length - 1024);
+}

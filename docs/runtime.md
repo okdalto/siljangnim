@@ -54,6 +54,8 @@
 | `GET /jobs/{id}?wait=s` | 상태(최대 60초까지 기다림) |
 | `POST /jobs/{id}/cancel` | 취소 |
 | `GET /jobs/{id}/outputs/{name}` | 출력 파일 |
+| `GET /osc`, `POST /osc/listen {port}`, `POST /osc/stop` | OSC UDP 리스너 상태·시작·중지([m3.md](m3.md#2-입력)) |
+| `GET /osc/stream` | 받은 OSC를 server-sent events로 보낸다(`data: [[주소, 인자들], …]`) |
 
 ## 검증
 
