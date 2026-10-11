@@ -4,7 +4,7 @@ import { DEFAULT_SCENE, type Scene } from "../scene/schema";
 import { runAgent, type AgentEvent } from "./loop";
 import type { ContentBlockParam, LLMProvider, MessageParam, TurnRequest, TurnResult } from "./llm/types";
 import { SCENE_TOOLS } from "./sceneTools";
-import type { SceneController } from "./tools";
+import type { HistoryController, SceneController } from "./tools";
 
 /** Provider that replays scripted turns and records every request. */
 function scripted(turns: Array<Partial<TurnResult> & { content: ContentBlockParam[] }>): LLMProvider & { requests: TurnRequest[] } {
@@ -42,6 +42,13 @@ function fakeScene(loadResult: LoadResult = { ok: true, errors: [] }): SceneCont
   };
 }
 
+const noHistory: HistoryController = {
+  list: async () => [],
+  restore: async () => {
+    throw new Error("no versions");
+  },
+};
+
 const user = (text: string): MessageParam => ({ role: "user", content: [{ type: "text", text }] });
 
 function run(provider: LLMProvider, scene: SceneController, events: AgentEvent[] = [], signal = new AbortController().signal) {
@@ -51,7 +58,7 @@ function run(provider: LLMProvider, scene: SceneController, events: AgentEvent[]
     effort: "high",
     system: "test",
     tools: SCENE_TOOLS,
-    env: { scene },
+    env: { scene, history: noHistory },
     messages: [user("make waves")],
     signal,
     onEvent: (e) => events.push(e),
@@ -151,7 +158,7 @@ describe("scene_edit", () => {
         edits: [{ phase: "render", find: "drawFullscreen", replace: "drawFullscreen" }],
         uniforms: { u_speed: null, u_glow: { type: "float", value: 0.5 } },
       }),
-      { scene, signal: new AbortController().signal },
+      { scene, history: noHistory, signal: new AbortController().signal },
     );
     expect(output.isError).toBeFalsy();
     expect(scene.applied[0]!.uniforms.u_speed).toBeUndefined();
@@ -162,6 +169,7 @@ describe("scene_edit", () => {
     const scene = fakeScene();
     const output = await edit.run(edit.input.parse({ edits: [{ phase: "setup", find: "does not exist", replace: "x" }] }), {
       scene,
+      history: noHistory,
       signal: new AbortController().signal,
     });
     expect(output.isError).toBe(true);

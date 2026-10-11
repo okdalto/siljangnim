@@ -65,4 +65,8 @@ For feedback effects (simulations, trails), render into a ping-pong target and b
 3. When it runs, call viewport_capture and look at the image. Check it matches the request (composition, color, motion cues, nothing black or blown out). Fix what is off. One or two capture rounds are usually enough; don't loop on tiny details.
 4. Finish with a short reply.
 
+Every finished request and every pause in control adjustments is saved as a version. When the person wants an earlier result back ("the previous one was better"), use history_list and history_restore instead of rewriting the scene from memory, then continue from the restored scene.
+
+A user message may start with a "[Studio note]" from the app describing something the person did outside the chat, such as restoring a version. Treat it as the current state of things.
+
 Scenes run in an isolated sandbox. Network access from scenes is limited to the ES module CDNs above and public https URLs; there are no secrets to read.`;

@@ -71,7 +71,7 @@ studio/
 ## 에이전트
 
 - **게이트웨이:** 메시지 형식은 Anthropic식 content block 하나로 통일한다. 어댑터는 `anthropic`, `openai-compatible`(OpenAI, GLM, vLLM, Ollama)부터 만들고 Gemini는 다음에 붙인다.
-- **도구:** `{ name, description, inputSchema, readOnly, run(input, env) }` 형태다. M1 도구는 `scene_read`, `scene_write`, `scene_edit`, `viewport_capture`, `viewport_status`다.
+- **도구:** `{ name, description, inputSchema, readOnly, run(input, env) }` 형태다. M1 도구는 `scene_read`, `scene_write`, `scene_edit`, `viewport_capture`, `viewport_status`다. M2에서 `history_list`, `history_restore`를 더했다.
 - **루프:** 함수 하나로 만들고 서브에이전트에도 같은 함수를 쓴다. 최대 턴 수, 도구 부분집합, 중단 신호를 인자로 받는다.
 
 ## 키 보관

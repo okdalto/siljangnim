@@ -97,6 +97,46 @@ async function runAgentScenario(win, sceneFrame, keys) {
   return { replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
 }
 
+// Opens the History tab and describes its rows (oldest first).
+const READ_HISTORY = `(async () => {
+  [...document.querySelectorAll("[role=tab]")].find((t) => t.innerText === "History")?.click();
+  await new Promise((r) => setTimeout(r, 300));
+  return [...document.querySelectorAll("[data-version]")].map((row) => ({
+    id: row.dataset.version,
+    text: row.innerText,
+    current: row.innerText.includes("current"),
+    thumbnail: Boolean(row.querySelector("img[src]")),
+  }));
+})()`;
+
+/** After the agent run: two versions (initial + the run), then restore the first one from the panel. */
+async function runHistoryScenario(win, sceneFrame) {
+  let before = [];
+  for (let i = 0; i < 20 && before.length < 2; i++) {
+    before = await win.webContents.executeJavaScript(READ_HISTORY);
+    if (before.length < 2) await wait(250);
+  }
+  const first = before[0];
+  if (first) await win.webContents.executeJavaScript(`document.querySelector('[data-version="${first.id}"]').click()`);
+  let after = [];
+  for (let i = 0; i < 20; i++) {
+    await wait(250);
+    after = await win.webContents.executeJavaScript(READ_HISTORY);
+    if (after[0]?.current) break;
+  }
+  await wait(500);
+  const sample = sceneFrame ? await sceneFrame.executeJavaScript(SAMPLE_CANVAS).catch(() => null) : null;
+  const [r, , b] = sample?.meanRgb ?? [0, 0, 0];
+  return {
+    before,
+    after,
+    meanRgbAfterRestore: sample?.meanRgb,
+    recorded: before.length === 2 && /Make a calm blue field/.test(before[1]?.text ?? "") && before[1]?.current && before.every((v) => v.thumbnail),
+    // The default scene is orange: restoring it must replace the blue one, without adding a version.
+    restored: after.length === 2 && after[0]?.current === true && r > b,
+  };
+}
+
 export async function runSmokeTest(win, hub, keys, outDir) {
   mkdirSync(outDir, { recursive: true });
   const consoleErrors = [];
@@ -146,6 +186,7 @@ export async function runSmokeTest(win, hub, keys, outDir) {
   );
 
   const agent = process.env.SILJANGNIM_SMOKE_KEY ? await runAgentScenario(win, sceneFrame, keys) : null;
+  const history = agent ? await runHistoryScenario(win, sceneFrame) : null;
 
   await waitForHub(hub);
   let system = null;
@@ -169,9 +210,10 @@ export async function runSmokeTest(win, hub, keys, outDir) {
     llmRefusesScene: [0, 403].includes(llm.fromScene),
     llmRequiresToken: llm.fromAppWithoutToken === 403,
     ...(agent ? { agentReplied: agent.replied, agentSceneApplied: agent.blue, agentShowsCapture: agent.images > 0 } : {}),
+    ...(history ? { historyRecorded: history.recorded, historyRestored: history.restored } : {}),
   };
   const ok = Object.values(checks).every(Boolean);
-  report({ ok, checks, scene, iframe, llm, agent, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
+  report({ ok, checks, scene, iframe, llm, agent, history, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
   clearTimeout(timer);
   app.exit(ok ? 0 : 1);
 }

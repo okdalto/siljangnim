@@ -14,7 +14,7 @@ export function formatSceneError(e: SceneError): string {
   return text;
 }
 
-function loadReport(result: LoadResult): ToolOutput {
+export function loadReport(result: LoadResult): ToolOutput {
   if (result.ok) return { content: "Scene loaded and rendering without errors. Capture the viewport to check that it looks right." };
   const errors = result.errors.map(formatSceneError).join("\n\n");
   return { isError: true, content: `The scene was saved but failed to run:\n\n${errors}\n\nFix these and apply the scene again.` };

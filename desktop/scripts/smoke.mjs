@@ -7,7 +7,7 @@ import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "nod
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import electronPath from "electron";
-import { FINAL_TEXT, startMockAnthropic } from "./mockAnthropic.mjs";
+import { EXPECTED_REQUESTS, FINAL_TEXT, startMockAnthropic } from "./mockAnthropic.mjs";
 
 const desktopDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = process.env.SILJANGNIM_SMOKE_OUT || join(desktopDir, "release", "smoke");
@@ -53,7 +53,7 @@ try {
 }
 const { requests, ...mockChecks } = mock.checks;
 report.mock = { requests, checks: mockChecks };
-report.ok = report.ok && requests === 4 && Object.values(mockChecks).every(Boolean);
+report.ok = report.ok && requests === EXPECTED_REQUESTS && Object.values(mockChecks).every(Boolean);
 writeFileSync(join(outDir, "report.json"), JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
 process.exit(status === 0 && report.ok ? 0 : 1);

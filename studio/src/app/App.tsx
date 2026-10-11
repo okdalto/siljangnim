@@ -1,6 +1,6 @@
-import { Chat } from "./components/Chat";
 import { Controls } from "./components/Controls";
 import { SettingsDialog } from "./components/SettingsDialog";
+import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { Viewport } from "./components/Viewport";
 import { useApp } from "./state";
@@ -15,7 +15,7 @@ export function App() {
           <Viewport />
           <Controls />
         </main>
-        <Chat />
+        <Sidebar />
       </div>
       {settingsOpen && <SettingsDialog />}
     </div>

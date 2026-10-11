@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import type Anthropic from "@anthropic-ai/sdk";
+import { isStudioNote, STUDIO_NOTE_PREFIX } from "../../agent/context";
 import { ANTHROPIC_MODELS } from "../../agent/llm/anthropic";
 import type { MessageParam } from "../../agent/llm/types";
 import { clearChat, dismissNotice, sendPrompt, stopAgent } from "../session";
@@ -15,6 +16,8 @@ const TOOL_LABELS: Record<string, string> = {
   scene_edit: "Edited scene",
   viewport_capture: "Looked at the viewport",
   viewport_status: "Checked status",
+  history_list: "Checked history",
+  history_restore: "Restored a version",
 };
 
 const EXAMPLES = [
@@ -23,11 +26,31 @@ const EXAMPLES = [
   "레이마칭으로 무한 평면 위의 반사 구체",
 ];
 
+/** Model name and "New chat", shown in the sidebar header on the chat tab. */
+export function ChatHeaderActions() {
+  const settings = useApp((s) => s.settings);
+  const hasMessages = useApp((s) => s.messages.length > 0);
+  const busy = useApp((s) => Boolean(s.live));
+  const modelLabel =
+    settings.provider === "anthropic"
+      ? (ANTHROPIC_MODELS.find((m) => m.id === settings.anthropicModel)?.label ?? settings.anthropicModel)
+      : settings.openaiModel || "custom model";
+  return (
+    <>
+      <span className="truncate text-faint">{modelLabel}</span>
+      {hasMessages && !busy && (
+        <button type="button" onClick={() => void clearChat()} className="shrink-0 text-faint hover:text-fg">
+          New chat
+        </button>
+      )}
+    </>
+  );
+}
+
 export function Chat() {
   const messages = useApp((s) => s.messages);
   const live = useApp((s) => s.live);
   const notice = useApp((s) => s.notice);
-  const settings = useApp((s) => s.settings);
   const results = useMemo(() => collectResults(messages), [messages]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -36,24 +59,8 @@ export function Chat() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, live]);
 
-  const modelLabel =
-    settings.provider === "anthropic"
-      ? (ANTHROPIC_MODELS.find((m) => m.id === settings.anthropicModel)?.label ?? settings.anthropicModel)
-      : settings.openaiModel || "custom model";
-
   return (
-    <aside className="flex w-[420px] shrink-0 flex-col border-l border-line bg-panel">
-      <div className="flex h-10 shrink-0 items-center justify-between border-b border-line px-4 text-xs">
-        <span className="text-muted">
-          Agent · <span className="text-fg">{modelLabel}</span>
-        </span>
-        {messages.length > 0 && !live && (
-          <button type="button" onClick={() => void clearChat()} className="text-faint hover:text-fg">
-            New chat
-          </button>
-        )}
-      </div>
-
+    <>
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm leading-relaxed">
         {messages.length === 0 && !live && <Empty />}
         {messages.map((m, i) => (
@@ -72,7 +79,7 @@ export function Chat() {
         </div>
       )}
       <Composer busy={Boolean(live)} />
-    </aside>
+    </>
   );
 }
 
@@ -100,11 +107,19 @@ function Empty() {
 function Message({ message, results }: { message: MessageParam; results: Map<string, ToolResult> }) {
   const blocks = typeof message.content === "string" ? [{ type: "text" as const, text: message.content }] : message.content;
   if (message.role === "user") {
-    const text = blocks.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("\n");
+    const notes = blocks.flatMap((b) => (b.type === "text" && isStudioNote(b) ? [b.text.slice(STUDIO_NOTE_PREFIX.length)] : []));
+    const text = blocks.flatMap((b) => (b.type === "text" && !isStudioNote(b) ? [b.text] : [])).join("\n");
     if (!text) return null; // tool results render under their tool calls
     return (
-      <div className="flex justify-end">
-        <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-raised px-3.5 py-2">{text}</div>
+      <div className="space-y-1.5">
+        {notes.map((note, i) => (
+          <p key={i} className="text-center text-[11px] text-faint">
+            {note}
+          </p>
+        ))}
+        <div className="flex justify-end">
+          <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-raised px-3.5 py-2">{text}</div>
+        </div>
       </div>
     );
   }

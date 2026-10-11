@@ -20,8 +20,26 @@ export interface SceneController {
   status(): Promise<RuntimeStatus>;
 }
 
+export interface VersionInfo {
+  id: string;
+  parentId: string | null;
+  createdAt: number;
+  message: string;
+  /** The version the current scene descends from. */
+  head: boolean;
+}
+
+/** The project's version history. Implemented by the app over the project store. */
+export interface HistoryController {
+  /** Versions oldest first. */
+  list(): Promise<VersionInfo[]>;
+  /** Load a version (full id or unique prefix) and move HEAD to it. Throws with an actionable message. */
+  restore(idOrPrefix: string): Promise<{ version: VersionInfo; load: LoadResult }>;
+}
+
 export interface ToolEnv {
   scene: SceneController;
+  history: HistoryController;
   signal: AbortSignal;
 }
 
