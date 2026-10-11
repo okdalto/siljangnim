@@ -167,6 +167,26 @@ describe("scene_edit", () => {
     expect(scene.applied[0]!.uniforms.u_glow?.value).toBe(0.5);
   });
 
+  it("sets a timeline and keyframes, and removes them with the timeline", async () => {
+    const scene = fakeScene();
+    const env = { scene, history: noHistory, assets: noAssets, signal: new AbortController().signal };
+    const keyed = await edit.run(
+      edit.input.parse({ timeline: { duration: 6 }, keyframes: { u_speed: [{ time: 0, value: 0 }, { time: 6, value: 4, ease: "linear" }] } }),
+      env,
+    );
+    expect(keyed.isError).toBeFalsy();
+    expect(scene.applied[0]!.timeline).toEqual({ duration: 6, loop: true, preserveStateOnLoop: false });
+    expect(scene.applied[0]!.keyframes.u_speed).toHaveLength(2);
+
+    const invalid = await edit.run(edit.input.parse({ keyframes: { u_tint: [{ time: 0, value: 1 }] } }), env);
+    expect(invalid.isError).toBe(true);
+    expect(String(invalid.content)).toContain("only float and int");
+
+    await edit.run(edit.input.parse({ timeline: null }), env);
+    expect(scene.applied[1]!.timeline).toBeUndefined();
+    expect(scene.applied[1]!.keyframes).toEqual({});
+  });
+
   it("rejects snippets that are missing or ambiguous without applying anything", async () => {
     const scene = fakeScene();
     const output = await edit.run(edit.input.parse({ edits: [{ phase: "setup", find: "does not exist", replace: "x" }] }), {
@@ -189,6 +209,6 @@ describe("tool specs", () => {
       expect(spec.input_schema).not.toHaveProperty("$schema");
     }
     const edit = toolSpec(SCENE_TOOLS.find((t) => t.name === "scene_edit")!);
-    expect(Object.keys(edit.input_schema.properties as object)).toEqual(["edits", "uniforms", "inputs"]);
+    expect(Object.keys(edit.input_schema.properties as object)).toEqual(["edits", "uniforms", "inputs", "timeline", "keyframes"]);
   });
 });

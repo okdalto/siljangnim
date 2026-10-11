@@ -19,6 +19,7 @@ if (!parentOrigin || window.parent === window || !root) {
     load: (p) => runner.load(p.scene, p.assets),
     setUniform: (p) => runner.setUniform(p.name, p.value),
     transport: (p) => runner.transport(p.action, p.time),
+    setTimeline: (p) => runner.setTimeline(p.timeline, p.keyframes),
     capture: (p) => runner.capture(p.maxSize),
     status: () => runner.status(),
   };

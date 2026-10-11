@@ -1,6 +1,7 @@
 // Messages between the app (host) and the scene runtime iframe.
 // Everything crosses window.postMessage; both sides check the peer origin.
-import type { Scene, UniformValue } from "./schema";
+import type { Keyframe } from "./gl/keyframes";
+import type { Scene, Timeline, UniformValue } from "./schema";
 
 export const CHANNEL = "siljangnim-scene/1";
 
@@ -53,6 +54,8 @@ export interface RuntimeMethods {
   load: { params: { scene: Scene; assets: Record<string, Blob> }; result: LoadResult };
   setUniform: { params: { name: string; value: UniformValue }; result: void };
   transport: { params: { action: "play" | "pause" | "seek"; time?: number }; result: void };
+  /** Replace the timeline and keyframes without reloading. Clears slider overrides. */
+  setTimeline: { params: { timeline: Timeline | undefined; keyframes: Record<string, Keyframe[]> }; result: void };
   capture: { params: { maxSize: number }; result: CaptureResult };
   status: { params: Record<string, never>; result: RuntimeStatus };
 }

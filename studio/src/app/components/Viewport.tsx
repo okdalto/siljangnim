@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { formatSceneError } from "../../agent/sceneTools";
 import { SceneHost, sceneRuntimeUrl } from "../../scene/host";
-import { attachSceneHost, transport } from "../session";
+import { attachSceneHost } from "../session";
 import { useApp } from "../state";
-import { AlertIcon, PauseIcon, PlayIcon, XIcon } from "./icons";
+import { AlertIcon, XIcon } from "./icons";
 
 export function Viewport() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,7 +39,6 @@ export function Viewport() {
 function StatusBar() {
   const runtime = useApp((s) => s.runtime);
   const [showErrors, setShowErrors] = useState(false);
-  const paused = runtime.state === "paused";
   const dot = {
     idle: "bg-faint",
     loading: "bg-warn animate-pulse",
@@ -52,17 +51,8 @@ function StatusBar() {
   return (
     <>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-2">
-        <div className="pointer-events-auto flex items-center gap-1 rounded-md bg-black/60 px-1 py-1 text-xs text-muted backdrop-blur">
-          <button
-            type="button"
-            onClick={() => transport(paused ? "play" : "pause")}
-            className="rounded p-1 hover:bg-white/10 hover:text-fg"
-            title={paused ? "Play" : "Pause"}
-          >
-            {paused ? <PlayIcon size={14} /> : <PauseIcon size={14} />}
-          </button>
+        <div className="pointer-events-auto flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-1 text-xs text-muted backdrop-blur" title={runtime.state}>
           <span className={`h-2 w-2 rounded-full ${dot}`} />
-          <span className="tabular-nums">{runtime.time.toFixed(1)}s</span>
           <span className="tabular-nums text-faint">{runtime.fps} fps</span>
         </div>
         {errors.length > 0 && (
