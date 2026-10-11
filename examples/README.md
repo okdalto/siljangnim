@@ -25,6 +25,7 @@ Thumbnails are captured from the running scene: `node mcp/scripts/capture-scene.
 | Swell (timeline) | Timeline mode, keyframes | the waves scene with two keyed controls |
 | GPU particles (WebGPU) | compute shader, storage buffers, monitor | written by hand as the WebGPU reference |
 | Audio bars | audio analysis, audio texture (synthesized loop) | written by hand as the audio reference |
+| Hand tracking (MediaPipe) | webcam, MediaPipe from a CDN, landmark uniforms (needs a camera and the network) | written by hand as the camera + ML reference |
 
 Most were made during real-model test runs (prompts are in each `example.json`); labels were
 translated to English. To add one, put a folder here with the files above. `npm test` checks every

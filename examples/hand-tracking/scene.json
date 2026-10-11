@@ -1,0 +1,41 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "// MediaPipe is fetched on demand from the CDN (nothing bundled), with its model from Google's storage.\nconst { FilesetResolver, HandLandmarker } = await ctx.utils.import(\"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/vision_bundle.mjs\");\nconst fileset = await FilesetResolver.forVisionTasks(\"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm\");\nctx.state.hands = await HandLandmarker.createFromOptions(fileset, {\n  baseOptions: { modelAssetPath: \"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task\", delegate: \"GPU\" },\n  runningMode: \"VIDEO\",\n  numHands: 2,\n});\nctx.state.cam = await ctx.utils.createCameraTexture({ width: 640, height: 480 });\nctx.state.points = new Float32Array(84);\nctx.state.count = 0;\nctx.state.p = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, \"#version 300 es\\nprecision highp float;\\nin vec2 v_uv;\\nout vec4 outColor;\\nuniform sampler2D u_cam;\\nuniform vec2 u_resolution;\\nuniform vec2 u_points[42];\\nuniform int u_count;\\nuniform float u_dim;\\nuniform float u_size;\\nuniform vec3 u_color;\\nvoid main() {\\n  // Mirrored, like looking in a mirror.\\n  vec3 cam = texture(u_cam, vec2(1.0 - v_uv.x, v_uv.y)).rgb * u_dim;\\n  vec2 aspect = vec2(u_resolution.x / u_resolution.y, 1.0);\\n  float glow = 0.0;\\n  for (int i = 0; i < 42; i++) {\\n    if (i >= u_count) break;\\n    float d = length((v_uv - u_points[i]) * aspect);\\n    glow += u_size * 0.0004 / (d * d + 0.0001);\\n  }\\n  outColor = vec4(cam + u_color * min(glow, 3.0), 1.0);\\n}\");",
+    "render": "const s = ctx.state;\ns.cam.update();\nconst video = s.cam.video;\n// Detect once per new camera frame.\nif (video.readyState >= 2 && video.currentTime !== s.lastTime) {\n  s.lastTime = video.currentTime;\n  const result = s.hands.detectForVideo(video, performance.now());\n  const points = result.landmarks.flat().slice(0, 42);\n  points.forEach((p, i) => { s.points[i * 2] = 1 - p.x; s.points[i * 2 + 1] = 1 - p.y; });\n  s.count = points.length;\n  ctx.publish(\"hands\", result.landmarks.length);\n}\nctx.gl.useProgram(s.p);\nctx.utils.bindTexture(s.p, \"u_cam\", s.cam.texture, 0);\nctx.utils.drawFullscreen(s.p, { u_points: s.points, u_count: s.count });",
+    "cleanup": "ctx.state.hands?.close();"
+  },
+  "uniforms": {
+    "u_dim": {
+      "type": "float",
+      "value": 0.45,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Camera brightness"
+    },
+    "u_size": {
+      "type": "float",
+      "value": 1,
+      "min": 0.2,
+      "max": 4,
+      "step": 0.01,
+      "label": "Glow size",
+      "widget": "knob"
+    },
+    "u_color": {
+      "type": "color",
+      "value": [
+        0.3,
+        0.9,
+        1.0
+      ],
+      "label": "Glow color"
+    }
+  },
+  "inputs": [
+    "camera"
+  ],
+  "keyframes": {}
+}
