@@ -10,6 +10,7 @@ import { recordOffline, recordRealtime } from "./recorder";
 import { uniformValues, type Scene, type Timeline, type UniformValue } from "../schema";
 import { createCtx, type SceneCtx } from "./ctx";
 import { createGpuCtx, type GpuSceneCtx } from "./gpuCtx";
+import { SceneInputs } from "./inputs";
 
 /** What scripts receive, either backend. The runner only touches the shared fields. */
 type AnyCtx = SceneCtx | GpuSceneCtx;
@@ -48,6 +49,9 @@ interface Loaded {
   render: (ctx: AnyCtx) => unknown;
   cleanup: (ctx: AnyCtx) => unknown;
   disposeCtx: () => void;
+  /** Per-frame work of the ctx (e.g. the audio texture upload). */
+  beforeFrame: () => void;
+  inputs: SceneInputs;
   assetUrls: string[];
 }
 
@@ -131,22 +135,26 @@ export class SceneRunner {
     const revokeAssets = () => assetUrls.forEach((url) => URL.revokeObjectURL(url));
     const publish = (name: string, value: Parameters<SceneCtx["publish"]>[1]) => this.publish(name, value);
 
-    let made: { ctx: AnyCtx; dispose: () => void; surface: Surface } | null;
+    const inputs = new SceneInputs();
+    let made: { ctx: AnyCtx; dispose: () => void; surface: Surface; beforeFrame?: () => void } | null;
     try {
       made =
         scene.backend === "webgpu"
-          ? await this.makeWebGpu(canvas, scene, assetMap, publish, generation)
-          : this.makeWebGl(canvas, scene, assetMap, publish);
+          ? await this.makeWebGpu(canvas, scene, assetMap, publish, generation, inputs)
+          : this.makeWebGl(canvas, scene, assetMap, publish, inputs);
     } catch (err) {
+      inputs.dispose();
       revokeAssets();
       if (generation === this.generation) this.fail(scene.backend === "webgpu" ? "webgpu" : "webgl", err);
       return generation === this.generation ? this.loadResult() : { ok: false, errors: [] };
     }
     if (!made) {
+      inputs.dispose();
       revokeAssets();
       return { ok: false, errors: [] };
     }
     const { ctx, dispose, surface } = made;
+    const beforeFrame = made.beforeFrame ?? (() => undefined);
     ctx.mouse = this.mouse;
     ctx.keys = this.keys;
 
@@ -159,12 +167,16 @@ export class SceneRunner {
       cleanup = this.compile("cleanup", () => new Function("ctx", scene.script.cleanup) as (ctx: AnyCtx) => unknown);
     } catch {
       dispose();
+      inputs.dispose();
       revokeAssets();
       surface.dispose();
       return this.loadResult();
     }
 
-    this.current = { generation, canvas, surface, ctx, render, cleanup, disposeCtx: dispose, assetUrls };
+    this.current = { generation, canvas, surface, ctx, render, cleanup, disposeCtx: dispose, beforeFrame, inputs, assetUrls };
+    // Declared inputs start with the scene; a refusal is reported, not fatal.
+    if (scene.inputs.includes("microphone")) inputs.microphone().catch((err: unknown) => this.record("runtime", new Error(`microphone: ${err instanceof Error ? err.message : err}`)));
+    if (scene.inputs.includes("midi")) inputs.enableMidi().catch((err: unknown) => this.record("runtime", new Error(`MIDI: ${err instanceof Error ? err.message : err}`)));
 
     try {
       await withTimeout(surface.setup(setup(ctx)), SETUP_TIMEOUT_MS, "setup did not finish within 20s");
@@ -223,6 +235,7 @@ export class SceneRunner {
       width: canvas?.width ?? 0,
       height: canvas?.height ?? 0,
       errors: [...this.errors],
+      monitors: { ...this.monitors },
     };
   }
 
@@ -296,6 +309,7 @@ export class SceneRunner {
       this.record("cleanup", err);
     }
     old.disposeCtx();
+    old.inputs.dispose();
     for (const url of old.assetUrls) URL.revokeObjectURL(url);
     old.surface.dispose();
     old.canvas.remove();
@@ -354,6 +368,8 @@ export class SceneRunner {
   /** Draw one frame at this.time. Throws what the scene's render throws. */
   private renderFrame(loaded: Loaded, dt: number): void {
     const ctx = loaded.ctx;
+    loaded.inputs.update();
+    loaded.beforeFrame();
     Object.assign(ctx.uniforms, this.keyedValues());
     ctx.time = this.time;
     ctx.dt = dt;
@@ -451,10 +467,10 @@ export class SceneRunner {
     );
   }
 
-  private makeWebGl(canvas: HTMLCanvasElement, scene: Scene, assets: Record<string, string>, publish: SceneCtx["publish"]) {
+  private makeWebGl(canvas: HTMLCanvasElement, scene: Scene, assets: Record<string, string>, publish: SceneCtx["publish"], inputs: SceneInputs) {
     const gl = canvas.getContext("webgl2", { antialias: true, alpha: false, powerPreference: "high-performance" });
     if (!gl) throw new Error("WebGL2 is not available");
-    const { ctx, dispose } = createCtx(gl, canvas, uniformValues(scene), assets, publish);
+    const { ctx, dispose, beforeFrame } = createCtx(gl, canvas, uniformValues(scene), assets, publish, inputs);
     const names: Record<number, string> = {
       [gl.INVALID_ENUM]: "INVALID_ENUM",
       [gl.INVALID_VALUE]: "INVALID_VALUE",
@@ -477,11 +493,11 @@ export class SceneRunner {
       setup: (run) => run,
       dispose: () => gl.getExtension("WEBGL_lose_context")?.loseContext(),
     };
-    return { ctx, dispose, surface };
+    return { ctx, dispose, surface, beforeFrame };
   }
 
   /** A fresh device per load; null when a newer load started meanwhile. */
-  private async makeWebGpu(canvas: HTMLCanvasElement, scene: Scene, assets: Record<string, string>, publish: SceneCtx["publish"], generation: number) {
+  private async makeWebGpu(canvas: HTMLCanvasElement, scene: Scene, assets: Record<string, string>, publish: SceneCtx["publish"], generation: number, inputs: SceneInputs) {
     if (!navigator.gpu) throw new Error("WebGPU is not available in this browser; use backend \"webgl2\"");
     const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
     if (!adapter) throw new Error("No WebGPU adapter on this machine; use backend \"webgl2\"");
@@ -506,7 +522,7 @@ export class SceneRunner {
       if (this.current?.generation === generation) this.record("webgpu", new Error(`WebGPU error: ${(e as GPUUncapturedErrorEvent).error.message}`));
     });
 
-    const ctx = createGpuCtx(device, context, format, canvas, scene, uniformValues(scene), assets, publish);
+    const ctx = createGpuCtx(device, context, format, canvas, scene, uniformValues(scene), assets, publish, inputs);
     const surface: Surface = {
       beforeRender(_c, check) {
         if (check) device.pushErrorScope("validation");
@@ -599,6 +615,8 @@ export class SceneRunner {
       if (!this.playing) this.dirty = true;
     });
     this.container.addEventListener("pointerdown", (e) => {
+      // A click is the gesture browsers want before audio can start.
+      this.current?.inputs.resume();
       const [x, y] = toNormalized(e);
       this.mouse.splice(0, 4, x, y, x, y);
       this.mouseDown = true;

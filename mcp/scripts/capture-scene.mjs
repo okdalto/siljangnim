@@ -21,6 +21,7 @@ const mcpDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const electronPath = createRequire(join(mcpDir, "..", "desktop", "package.json"))("electron");
 const scratch = mkdtempSync(join(tmpdir(), "siljangnim-capture-"));
 let viewer = null;
+process.on("exit", () => viewer?.kill("SIGKILL"));
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: [join(mcpDir, "bin", "siljangnim-mcp.js")],

@@ -22,7 +22,10 @@ export function loadReport(result: LoadResult): ToolOutput {
 }
 
 function statusText(status: RuntimeStatus): string {
-  const head = `state=${status.state} time=${status.time.toFixed(2)}s frame=${status.frame} fps=${status.fps} size=${status.width}x${status.height}`;
+  const monitors = Object.entries(status.monitors ?? {});
+  const head =
+    `state=${status.state} time=${status.time.toFixed(2)}s frame=${status.frame} fps=${status.fps} size=${status.width}x${status.height}` +
+    (monitors.length ? `\nMonitors: ${monitors.map(([k, v]) => `${k}=${typeof v === "number" ? Number(v.toFixed(4)) : v}`).join(", ")}` : "");
   if (!status.errors.length) return `${head}\nNo errors.`;
   return `${head}\nErrors:\n${status.errors.map(formatSceneError).join("\n\n")}`;
 }

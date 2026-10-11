@@ -36,6 +36,8 @@ export interface RuntimeStatus {
   width: number;
   height: number;
   errors: SceneError[];
+  /** Values the scene publishes with ctx.publish. */
+  monitors: Record<string, MonitorValue>;
 }
 
 export interface LoadResult {

@@ -38,6 +38,8 @@ ctx.mouse — [x, y, clickX, clickY] normalized 0..1, origin top-left; ctx.mouse
 ctx.keys — Set of KeyboardEvent.code currently held
 ctx.uniforms — current values of the scene uniforms, by name: plain numbers, booleans or arrays (ctx.uniforms.u_speed is 1.5, not an object). They follow the controls (and keyframes) live; read them every frame.
 ctx.assets — uploaded asset name → blob URL (see asset_list)
+ctx.audio — { active, source: "microphone"|"file"|null, level, bass, mid, treble (0..1), spectrum: Float32Array(256) 0..1, waveform: Float32Array(512) -1..1 }, refreshed every frame. inputs: ["microphone"] starts the microphone with the scene; ctx.utils.audio.play(assetName, {loop, volume, output}) plays and analyses an audio asset instead (output: false analyses silently) (music visualizers); ctx.utils.audio.stop(). setStandardUniforms also sets u_audio = vec4(level, bass, mid, treble); ctx.utils.audioTexture() is a 256x2 R32F texture (row 0 spectrum, row 1 waveform; sample with texelFetch or NEAREST).
+ctx.midi — { cc: Float32Array(128) 0..1, notes: Float32Array(128) velocity 0..1, lastNote, pitchBend -1..1 }; inputs: ["midi"] (or ctx.utils.enableMidi()) connects every MIDI device.
 ctx.publish(name, value) — show a number, string or boolean in the person's monitor panel (FPS, particle count, current state). Numbers get a sparkline. Calling it every frame is fine; only changes are sent.
 
 ctx.utils:
@@ -50,6 +52,7 @@ ctx.utils:
   bindTexture(program, samplerName, texture, unit)
   loadTexture(assetNameOrUrl, {flipY, wrap: "clamp"|"repeat"|"mirror", filter: "linear"|"nearest", mipmap}) → Promise<{texture, width, height}>
   createVideoTexture(assetNameOrUrl, {loop, muted, autoplay, flipY, wrap}) → Promise<{texture, video, width, height, update()}>. Call update() every frame before drawing; videos stop when the scene is replaced.
+  createCameraTexture({width, height, facingMode, flipY}) → the webcam, same shape as createVideoTexture (list "camera" in inputs; the person is asked for permission).
   createMesh({positions, normals?, uvs?, indices?, dimension?}) → {vao, count, draw(mode?, instances?)}
   geometry.quad() / box() / sphere(segments) / plane(w, h, wSegs, hSegs) — geometry data for createMesh
   createPingPong(width, height, {internalFormat, format, type, filter, depth, count}) → {read(), write(), swap(), resize(w, h), width, height}; read()/write() return {framebuffer, texture, textures}
@@ -82,6 +85,7 @@ ctx.device (a fresh GPUDevice per load), ctx.context (canvas context, already co
   createUniforms() → {buffer, wgsl, update()}: a uniform buffer with time, dt, frame, resolution (vec2f), mouse (vec4f, pixels, origin bottom-left, zw negative when not pressed) and every scene uniform by name (int and bool as f32, color as vec3f). Paste .wgsl into your shader, bind .buffer as var<uniform>, call update() every frame.
   FULLSCREEN_VERTEX_WGSL — vertex entry point "fullscreen_vertex" (draw 3 vertices) passing @location(0) uv (0..1) to the fragment stage.
   loadTexture(assetNameOrUrl, {flipY}) → Promise<{texture, width, height}> (rgba8unorm); import(url).
+  audio, enableMidi as in WebGL (ctx.audio, ctx.midi; the uniform struct has audio: vec4f); cameraVideo() → a playing <video> for device.importExternalTexture({ source }).
 In render, encode your passes and submit; draw into ctx.context.getCurrentTexture(). GPUBufferUsage, GPUTextureUsage and GPUShaderStage are globals. Validation errors and device loss come back as scene errors.
 
 For feedback effects (simulations, trails), render into a ping-pong target and blit the result with a second program. Use ctx.resolution for sizes and recreate targets when it changes.

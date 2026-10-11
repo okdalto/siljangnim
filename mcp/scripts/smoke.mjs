@@ -17,12 +17,13 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 const electronPath = createRequire(join(mcpDir, "..", "desktop", "package.json"))("electron");
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+let viewer = null;
+// Never leave the viewer window behind (an orphan keeps writing viewer.json into the next run).
+process.on("exit", () => viewer?.kill("SIGKILL"));
 const timeout = setTimeout(() => {
   console.error("[mcp-smoke] timed out");
   process.exit(1);
 }, 180_000);
-
-let viewer = null;
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: [join(mcpDir, "bin", "siljangnim-mcp.js")],
@@ -109,6 +110,43 @@ const history = await call("history_list");
 await wait(600);
 const viewerState = JSON.parse(readFileSync(join(out, "viewer.json"), "utf8"));
 
+// M3: inputs. Chromium's fake camera, and audio analysis of a tone the scene
+// generates (the fake microphone hangs on macOS, where capture needs OS permission).
+const inputScene = await client.callTool({ name: "scene_write", arguments: {
+  scene: {
+    version: 2,
+    inputs: ["camera"],
+    script: {
+      setup: `const rate = 22050, seconds = 2, samples = rate * seconds;
+const wav = new DataView(new ArrayBuffer(44 + samples * 2));
+const text = (o, s) => [...s].forEach((c, i) => wav.setUint8(o + i, c.charCodeAt(0)));
+text(0, "RIFF"); wav.setUint32(4, 36 + samples * 2, true); text(8, "WAVEfmt "); wav.setUint32(16, 16, true);
+wav.setUint16(20, 1, true); wav.setUint16(22, 1, true); wav.setUint32(24, rate, true); wav.setUint32(28, rate * 2, true);
+wav.setUint16(32, 2, true); wav.setUint16(34, 16, true); text(36, "data"); wav.setUint32(40, samples * 2, true);
+for (let i = 0; i < samples; i++) wav.setInt16(44 + i * 2, Math.sin(2 * Math.PI * 110 * i / rate) * 20000, true);
+await ctx.utils.audio.play(URL.createObjectURL(new Blob([wav.buffer], { type: "audio/wav" })), { loop: true, output: false });
+ctx.state.cam = await ctx.utils.createCameraTexture({ width: 640, height: 480 });
+ctx.state.p = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, \`#version 300 es
+precision highp float; in vec2 v_uv; out vec4 outColor; uniform sampler2D u_cam; uniform vec4 u_audio;
+void main() { outColor = vec4(texture(u_cam, v_uv).rgb + u_audio.x, 1.0); }\`);
+ctx.state.max = 0;`,
+      render: `ctx.state.cam.update();
+const p = ctx.state.p;
+ctx.gl.useProgram(p);
+ctx.utils.bindTexture(p, "u_cam", ctx.state.cam.texture, 0);
+ctx.utils.drawFullscreen(p);
+ctx.state.max = Math.max(ctx.state.max, ctx.audio.level);
+ctx.publish("audioActive", ctx.audio.active);
+ctx.publish("bass", ctx.audio.bass);
+ctx.publish("maxLevel", ctx.state.max);
+ctx.publish("camWidth", ctx.state.cam.width);`,
+    },
+  },
+} });
+await wait(2500);
+const inputs = await client.callTool({ name: "viewport_status", arguments: {} });
+
+
 const checks = {
   toolsListed: ["scene_write", "viewport_capture", "history_list", "asset_list", "viewer_open"].every((n) => tools.some((t) => t.name === n)) && !tools.some((t) => t.name === "ask_user"),
   instructions: instructions.includes("Talk with the person in your own chat"),
@@ -135,8 +173,14 @@ const checks = {
       return false;
     }
   })(),
+  inputsWork:
+    !inputScene.isError &&
+    /Monitors: .*audioActive=true/.test(text(inputs)) &&
+    /camWidth=640/.test(text(inputs)) &&
+    Number(text(inputs).match(/maxLevel=([\d.]+)/)?.[1] ?? 0) > 0,
   runtimeStatus: !status.isError && /Python environments:.*\(no packages\)/.test(text(status)),
-  versionSaved: /"Initial scene"/.test(text(history)) && /Claude Code: scene write, scene edit/.test(text(history)),
+  // Edits close together share a version; slow steps between them (recordings) split them.
+  versionSaved: /"Initial scene"/.test(text(history)) && /Claude Code: scene write/.test(text(history)) && /scene edit/.test(text(history)),
   viewerConnected: viewerState.status === "connected" && /Claude Code/.test(viewerState.statusText ?? ""),
   chatReplacedByActivity: viewerState.tabs.join() === "Activity,History,Assets",
   activityLogged: ["scene_write", "viewport_capture", "scene_edit", "python_run"].every((n) => viewerState.activity.includes(n)),
@@ -147,7 +191,7 @@ viewer?.kill("SIGTERM");
 await wait(1500);
 await client.close();
 const ok = Object.values(checks).every(Boolean);
-const report = { ok, checks, captureMeanRgb: rgb, history: text(history), viewer: viewerState };
+const report = { ok, checks, captureMeanRgb: rgb, history: text(history), inputs: [text(inputScene), text(inputs)], viewer: viewerState };
 writeFileSync(join(out, "report.json"), JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
 clearTimeout(timeout);

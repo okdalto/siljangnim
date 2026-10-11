@@ -41,7 +41,7 @@ function fakeScene(loadResult: LoadResult = { ok: true, errors: [] }): SceneCont
       return { png: new Blob([new Uint8Array([137, 80, 78, 71])], { type: "image/png" }), width: 2, height: 2 };
     },
     async status() {
-      return { state: "running", time: 1, frame: 60, fps: 60, width: 2, height: 2, errors: [] };
+      return { state: "running", time: 1, frame: 60, fps: 60, width: 2, height: 2, errors: [], monitors: {} };
     },
     async record(options) {
       recorded.push(options);

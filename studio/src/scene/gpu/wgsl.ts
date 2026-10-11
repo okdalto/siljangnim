@@ -33,6 +33,8 @@ export const STANDARD_FIELDS: Array<[string, Field["wgsl"]]> = [
   ["frame", "f32"],
   ["resolution", "vec2f"],
   ["mouse", "vec4f"],
+  // level, bass, mid, treble (zeros without an audio source)
+  ["audio", "vec4f"],
 ];
 
 function wgslType(def: UniformDef): Field["wgsl"] {
