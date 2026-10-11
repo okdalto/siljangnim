@@ -31,6 +31,10 @@ export const noRecipes: RecipeController = {
   setStatus: async () => {
     throw new Error("no recipes in tests");
   },
+  registrySearch: async () => ({ url: "test", recipes: [] }),
+  install: async () => {
+    throw new Error("no registry in tests");
+  },
 };
 
 export const noProject: ProjectController = {

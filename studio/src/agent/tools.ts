@@ -146,6 +146,21 @@ export interface RecipeController {
   read(id: string): Promise<RecipeDetail>;
   save(id: string, fields: RecipeFields): Promise<RecipeSummary>;
   setStatus(id: string, status: "verified" | "broken", log: string): Promise<RecipeSummary>;
+  /** The shared registry (docs/registry.md): recipes other people verified. */
+  registrySearch(query: string): Promise<{ url: string; recipes: RegistryRecipe[] }>;
+  /** Add one from the registry; it lands as an imported draft. */
+  install(id: string): Promise<{ summary: RecipeSummary; kept: boolean }>;
+}
+
+export interface RegistryRecipe {
+  id: string;
+  version: number;
+  title: string;
+  capability: string;
+  kind: "python" | "command";
+  license: string | null;
+  /** Platforms where the contributor verified it, e.g. mac-arm64. */
+  verifiedOn: string[];
 }
 
 /** Sharing a project as project.md (docs/project-md.md). */

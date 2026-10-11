@@ -85,4 +85,27 @@ describe("recipe tools", () => {
     expect(String(pending.content)).toContain("isn't marked yet");
     expect(slow.statuses).toEqual([]);
   });
+
+  it("search adds registry recipes this machine lacks, and install adds one as a draft", async () => {
+    const { e } = env(detail(), job());
+    const registry = [
+      { id: "trimesh.knot", version: 2, title: "Torus knot", capability: "mesh-generate", kind: "python" as const, license: "MIT", verifiedOn: ["linux-x64"] },
+      { id: "vpype.optimize", version: 1, title: "Plotter cleanup", capability: "svg-optimize", kind: "python" as const, license: "MIT", verifiedOn: ["mac-arm64", "win-x64"] },
+    ];
+    e.recipes = {
+      ...e.recipes,
+      registrySearch: async () => ({ url: "test", recipes: registry }),
+      install: async (id) => ({ summary: summary({ id, origin: "imported", statusHere: "draft" }), kept: false }),
+    };
+    const text = String((await tool("recipe_search").run(tool("recipe_search").input.parse({ query: "" }), e)).content);
+    expect(text).toContain("In the shared registry, not on this machine (recipe_install adds one):\nvpype.optimize v1 Plotter cleanup");
+    expect(text).toContain("verified on mac-arm64, win-x64");
+    expect(text.match(/trimesh\.knot/g)).toHaveLength(1);
+    const installed = String((await tool("recipe_install").run({ id: "vpype.optimize" }, e)).content);
+    expect(installed).toMatch(/^Installed from the registry: vpype\.optimize v2 \[draft/);
+
+    e.recipes = { ...e.recipes, registrySearch: async () => Promise.reject(new Error("offline")) };
+    const offline = String((await tool("recipe_search").run(tool("recipe_search").input.parse({ query: "" }), e)).content);
+    expect(offline).toContain("(The shared registry couldn't be searched: offline)");
+  });
 });

@@ -140,6 +140,16 @@ export class HubClient {
     return this.request<{ summary: HubRecipeSummary; text: string }>(`/recipes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(fields) });
   }
 
+  registry(query: string) {
+    return this.request<{ url: string; recipes: Array<{ id: string; version: number; title: string; capability: string; kind: "python" | "command"; license: string | null; verified_on: string[] }> }>(
+      `/registry?q=${encodeURIComponent(query)}`,
+    );
+  }
+
+  installRecipe(id: string) {
+    return this.request<{ summary: HubRecipeSummary; kept: boolean }>(`/registry/${encodeURIComponent(id)}/install`, { method: "POST" });
+  }
+
   importRecipe(text: string) {
     return this.request<{ summary: HubRecipeSummary; kept: boolean }>("/recipes/import", { method: "POST", body: JSON.stringify({ text }) });
   }

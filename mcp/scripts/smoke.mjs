@@ -35,6 +35,8 @@ const transport = new StdioClientTransport({
     // Reuse the desktop smoke's Python install instead of setting one up in ~/.siljangnim.
     SILJANGNIM_RUNTIME_ROOT: join(mcpDir, "..", "desktop", "release", "smoke-profile", "runtime"),
     SILJANGNIM_RECIPES_DIR: join(out, "recipes"),
+    // The repository's own registry folder stands in for the published one.
+    SILJANGNIM_REGISTRY_URL: join(mcpDir, "..", "registry"),
   },
   stderr: "pipe",
 });
@@ -92,6 +94,9 @@ await call("python_run", {
 await call("command_run", { argv: ["node", "-e", "require('fs').writeFileSync('out/cli.txt', 'cli ok')"] });
 const status = await call("runtime_status");
 const catalog = await call("catalog_search", { query: "plotter svg" });
+const registrySearch = await client.callTool({ name: "recipe_search", arguments: { query: "torus" } });
+const registryInstall = await client.callTool({ name: "recipe_install", arguments: { id: "trimesh.torus-knot" } });
+const installedRecipe = existsSync(join(out, "recipes", "trimesh.torus-knot", "recipe.md")) ? readFileSync(join(out, "recipes", "trimesh.torus-knot", "recipe.md"), "utf8") : "";
 
 // Stage 4: save what worked as a recipe, verify it, find it, run it with new params.
 await call("recipe_save", {
@@ -305,6 +310,10 @@ const checks = {
     /python/.test(jobsPanel.value.label) &&
     jobsPanel.value.state === "cancelled" &&
     /cancelled/.test(text(longAfter)),
+  registryWorks:
+    /In the shared registry, not on this machine[^\n]*\ntrimesh\.torus-knot v1 /.test(text(registrySearch)) &&
+    /^Installed from the registry: trimesh\.torus-knot v1 \[draft/.test(text(registryInstall)) &&
+    /origin: imported/.test(installedRecipe),
   runtimeStatus: !status.isError && /Python environments:.*\(no packages\)/.test(text(status)),
   // Edits close together share a version; slow steps between them (recordings) split them.
   versionSaved: /"Initial scene"/.test(text(history)) && /Claude Code: scene write/.test(text(history)) && /scene edit/.test(text(history)),

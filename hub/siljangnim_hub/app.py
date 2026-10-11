@@ -22,6 +22,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from . import __version__, system
 from .osc import OscListener
 from .recipes import Recipes
+from .registry import DEFAULT_URL, Registry
 from .runtime import Job, Runtime, RuntimeErrorWithHint, programs
 
 # Origins the desktop renderer runs under (packaged app / dev server). The
@@ -36,7 +37,7 @@ MAX_WAIT_S = 60
 OSC_PING_S = 15
 
 
-def create_app(token: str, port: int, runtime: Runtime | None = None, recipes: Recipes | None = None, osc: OscListener | None = None) -> FastAPI:
+def create_app(token: str, port: int, runtime: Runtime | None = None, recipes: Recipes | None = None, osc: OscListener | None = None, registry: Registry | None = None) -> FastAPI:
     if not token:
         raise ValueError("hub token must not be empty")
     if runtime is None:
@@ -45,6 +46,8 @@ def create_app(token: str, port: int, runtime: Runtime | None = None, recipes: R
         recipes = default_recipes()
     if osc is None:
         osc = OscListener()
+    if registry is None:
+        registry = Registry(os.environ.get("SILJANGNIM_REGISTRY_URL") or DEFAULT_URL, recipes)
 
     allowed_hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
     app = FastAPI(title="siljangnim-hub", version=__version__, docs_url=None, redoc_url=None, openapi_url=None)
@@ -162,6 +165,15 @@ def create_app(token: str, port: int, runtime: Runtime | None = None, recipes: R
     @app.get("/recipes")
     def recipe_search(q: str = ""):
         return {"platform": recipes.platform, "recipes": recipes.search(q)}
+
+    @app.get("/registry")
+    def registry_search(q: str = ""):
+        return {"url": registry.base, "recipes": registry.search(q)}
+
+    @app.post("/registry/{recipe_id}/install")
+    def registry_install(recipe_id: str):
+        recipe = registry.install(recipe_id)
+        return {"summary": recipe["summary"], "kept": recipe["kept"]}
 
     @app.post("/recipes/import")
     async def recipe_import(request: Request):

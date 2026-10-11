@@ -1148,6 +1148,14 @@ const recipeController: RecipeController = {
   },
   save: async (id, fields) => recipeSummary((await (await requireHub()).saveRecipe(id, fields)).summary),
   setStatus: async (id, status, log) => recipeSummary((await (await requireHub()).recipeStatus(id, status, log)).summary),
+  registrySearch: async (query) => {
+    const { url, recipes } = await (await requireHub()).registry(query);
+    return { url, recipes: recipes.map(({ verified_on, ...r }) => ({ ...r, verifiedOn: verified_on })) };
+  },
+  install: async (id) => {
+    const { summary, kept } = await (await requireHub()).installRecipe(id);
+    return { summary: recipeSummary(summary), kept };
+  },
 };
 
 async function requireHub(): Promise<HubClient> {

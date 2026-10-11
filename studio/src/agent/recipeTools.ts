@@ -3,7 +3,7 @@
 // python_run/command_run.
 import { z } from "zod";
 import { jobReport } from "./runtimeTools";
-import { defineTool, type RecipeSummary, type ToolDefinition, type ToolEnv, type ToolOutput } from "./tools";
+import { defineTool, type RecipeSummary, type RegistryRecipe, type ToolDefinition, type ToolEnv, type ToolOutput } from "./tools";
 
 const WAIT_S = 90;
 
@@ -31,8 +31,39 @@ const recipeSearch = defineTool({
     const blocked = await guard(env);
     if (blocked) return blocked;
     const { platform, recipes } = await env.recipes.search(query);
-    if (!recipes.length) return { content: `No recipes match "${query}" on ${platform}. Set it up with python_run/command_run, then save it with recipe_save.` };
-    return { content: `Recipes on ${platform} (best first):\n${recipes.map(line).join("\n")}` };
+    // The shared registry adds recipes this machine doesn't have (or has older).
+    let shared = "";
+    try {
+      const local = new Map(recipes.map((r) => [r.id, r.version]));
+      const others = (await env.recipes.registrySearch(query)).recipes.filter((r) => (local.get(r.id) ?? 0) < r.version);
+      if (others.length) shared = `\n\nIn the shared registry, not on this machine (recipe_install adds one):\n${others.map(registryLine).join("\n")}`;
+    } catch (err) {
+      shared = `\n\n(The shared registry couldn't be searched: ${err instanceof Error ? err.message : String(err)})`;
+    }
+    if (!recipes.length) {
+      return { content: `No recipes match "${query}" on ${platform}.${shared ? "" : " Set it up with python_run/command_run, then save it with recipe_save."}${shared}` };
+    }
+    return { content: `Recipes on ${platform} (best first):\n${recipes.map(line).join("\n")}${shared}` };
+  },
+});
+
+function registryLine(r: RegistryRecipe): string {
+  return `${r.id} v${r.version} ${r.title} — capability: ${r.capability}; ${r.kind}${r.license ? `; license ${r.license}` : ""}; verified on ${r.verifiedOn.join(", ") || "no platform yet"}`;
+}
+
+const recipeInstall = defineTool({
+  name: "recipe_install",
+  description:
+    "Add a recipe from the shared registry (found with recipe_search) to this machine. It arrives as a draft: " +
+    "recipe_verify it here (the person is asked before its code first runs), then recipe_run.",
+  input: z.object({ id: z.string() }),
+  readOnly: false,
+  async run({ id }, env) {
+    const blocked = await guard(env);
+    if (blocked) return blocked;
+    const { summary, kept } = await env.recipes.install(id);
+    if (kept) return { content: `This machine already has ${line(summary)}; kept it.` };
+    return { content: `Installed from the registry: ${line(summary)}\nNext: recipe_verify with id "${id}".` };
   },
 });
 
@@ -148,4 +179,4 @@ const recipeRun = defineTool({
   },
 });
 
-export const RECIPE_TOOLS: ToolDefinition[] = [recipeSearch, recipeRead, recipeSave, recipeVerify, recipeRun] as ToolDefinition[];
+export const RECIPE_TOOLS: ToolDefinition[] = [recipeSearch, recipeInstall, recipeRead, recipeSave, recipeVerify, recipeRun] as ToolDefinition[];
