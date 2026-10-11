@@ -44,10 +44,22 @@ export interface AssetController {
   read(name: string): Promise<Blob | undefined>;
 }
 
+export interface QuestionOption {
+  label: string;
+  description?: string;
+}
+
+/** The person at the keyboard. */
+export interface UserController {
+  /** Show a question and wait for the answer: an option label or free text. Null if stopped. */
+  ask(question: string, options: QuestionOption[], signal: AbortSignal): Promise<string | null>;
+}
+
 export interface ToolEnv {
   scene: SceneController;
   history: HistoryController;
   assets: AssetController;
+  user: UserController;
   signal: AbortSignal;
 }
 

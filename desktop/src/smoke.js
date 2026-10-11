@@ -101,6 +101,14 @@ async function runAgentScenario(win, sceneFrame, keys) {
   const finalText = process.env.SILJANGNIM_SMOKE_FINAL_TEXT ?? "";
   const attached = await win.webContents.executeJavaScript(UPLOAD_ASSETS);
   await win.webContents.executeJavaScript(TYPE_PROMPT);
+  // The mock agent asks a question first; answer it the way a person would.
+  let answered = false;
+  for (let i = 0; i < 120 && !answered; i++) {
+    await wait(250);
+    answered = await win.webContents.executeJavaScript(
+      `(() => { const b = document.querySelector('[data-question-option="Timeline"]'); b?.click(); return Boolean(b); })()`,
+    );
+  }
   let replied = false;
   for (let i = 0; i < 120 && !replied; i++) {
     await wait(500);
@@ -115,7 +123,7 @@ async function runAgentScenario(win, sceneFrame, keys) {
     timelineMenu: document.querySelector('[data-testid="timeline-menu"]')?.innerText ?? null,
   })`);
   const [r, g, b] = sample?.meanRgb ?? [0, 0, 0];
-  return { attached, replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
+  return { attached, answered, replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
 }
 
 // Opens the History tab and describes its rows (oldest first).
@@ -233,6 +241,7 @@ export async function runSmokeTest(win, hub, keys, outDir) {
     ...(agent
       ? {
           assetsUploaded: ["swatch.png", "data.json"].every((n) => agent.attached.includes(n)),
+          questionShown: agent.answered,
           agentReplied: agent.replied,
           agentSceneApplied: agent.blue,
           agentShowsCapture: agent.images > 0,

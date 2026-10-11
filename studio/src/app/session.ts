@@ -6,7 +6,8 @@ import { repairConversation, runAgent } from "../agent/loop";
 import type { ContentBlockParam, MessageParam } from "../agent/llm/types";
 import { SYSTEM_PROMPT } from "../agent/prompt";
 import { SCENE_TOOLS } from "../agent/sceneTools";
-import type { AssetController, HistoryController, SceneController, VersionInfo } from "../agent/tools";
+import type { AssetController, HistoryController, SceneController, UserController, VersionInfo } from "../agent/tools";
+import { USER_TOOLS } from "../agent/userTools";
 import { ASSET_TOOLS } from "../agent/assetTools";
 import {
   ASSET_DIR,
@@ -69,6 +70,8 @@ const DEFAULT_TIMELINE: Timeline = { duration: 10, loop: true, preserveStateOnLo
 
 /** Blobs of the open project's assets, by name; sent to the runtime with every load. */
 let assetBlobs = new Map<string, Blob>();
+/** Resolves the agent's open question (see ask_user). */
+let answerPending: ((answer: string | null) => void) | null = null;
 /** Context for the next prompt, by project (e.g. "the person restored version X"). */
 const pendingNotes = new Map<string, string>();
 
@@ -565,6 +568,22 @@ export async function sendPrompt(text: string): Promise<void> {
     },
   };
 
+  const user: UserController = {
+    ask: (question, options, signal) =>
+      new Promise((resolve) => {
+        if (signal.aborted || get().project?.id !== projectId) return resolve(null);
+        const done = (answer: string | null) => {
+          signal.removeEventListener("abort", onAbort);
+          if (answerPending === done) answerPending = null;
+          set({ question: null });
+          resolve(answer);
+        };
+        const onAbort = () => done(null);
+        signal.addEventListener("abort", onAbort);
+        answerPending = done;
+        set({ question: { question, options }, sidebarTab: "chat" });
+      }),
+  };
   const assetsEnv: AssetController = {
     list: async () => (get().project?.id === projectId ? get().assets : []),
     read: async (name) => (get().project?.id === projectId ? assetBlobs.get(name) : undefined),
@@ -594,8 +613,8 @@ export async function sendPrompt(text: string): Promise<void> {
       model,
       effort: settings.effort,
       system: SYSTEM_PROMPT,
-      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS],
-      env: { scene: controller, history, assets: assetsEnv },
+      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...USER_TOOLS],
+      env: { scene: controller, history, assets: assetsEnv, user },
       messages,
       signal: abort.signal,
       onEvent(event) {
@@ -649,6 +668,12 @@ export async function sendPrompt(text: string): Promise<void> {
       set({ live: null });
     }
   }
+}
+
+/** Answer the agent's open question with an option label or free text. */
+export function answerQuestion(answer: string): void {
+  const text = answer.trim();
+  if (text) answerPending?.(text);
 }
 
 /** Abort the current run. The UI stays busy until it has actually wound down. */

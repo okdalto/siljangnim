@@ -4,7 +4,8 @@ import { DEFAULT_SCENE, type Scene } from "../scene/schema";
 import { runAgent, type AgentEvent } from "./loop";
 import type { ContentBlockParam, LLMProvider, MessageParam, TurnRequest, TurnResult } from "./llm/types";
 import { SCENE_TOOLS } from "./sceneTools";
-import type { AssetController, HistoryController, SceneController } from "./tools";
+import { USER_TOOLS } from "./userTools";
+import type { AssetController, HistoryController, SceneController, UserController } from "./tools";
 
 /** Provider that replays scripted turns and records every request. */
 function scripted(turns: Array<Partial<TurnResult> & { content: ContentBlockParam[] }>): LLMProvider & { requests: TurnRequest[] } {
@@ -49,6 +50,7 @@ const noHistory: HistoryController = {
   },
 };
 
+const noUser: UserController = { ask: async () => null };
 const noAssets: AssetController = { list: async () => [], read: async () => undefined };
 
 const user = (text: string): MessageParam => ({ role: "user", content: [{ type: "text", text }] });
@@ -60,7 +62,7 @@ function run(provider: LLMProvider, scene: SceneController, events: AgentEvent[]
     effort: "high",
     system: "test",
     tools: SCENE_TOOLS,
-    env: { scene, history: noHistory, assets: noAssets },
+    env: { scene, history: noHistory, assets: noAssets, user: noUser },
     messages: [user("make waves")],
     signal,
     onEvent: (e) => events.push(e),
@@ -160,7 +162,7 @@ describe("scene_edit", () => {
         edits: [{ phase: "render", find: "drawFullscreen", replace: "drawFullscreen" }],
         uniforms: { u_speed: null, u_glow: { type: "float", value: 0.5 } },
       }),
-      { scene, history: noHistory, assets: noAssets, signal: new AbortController().signal },
+      { scene, history: noHistory, assets: noAssets, user: noUser, signal: new AbortController().signal },
     );
     expect(output.isError).toBeFalsy();
     expect(scene.applied[0]!.uniforms.u_speed).toBeUndefined();
@@ -169,7 +171,7 @@ describe("scene_edit", () => {
 
   it("sets a timeline and keyframes, and removes them with the timeline", async () => {
     const scene = fakeScene();
-    const env = { scene, history: noHistory, assets: noAssets, signal: new AbortController().signal };
+    const env = { scene, history: noHistory, assets: noAssets, user: noUser, signal: new AbortController().signal };
     const keyed = await edit.run(
       edit.input.parse({ timeline: { duration: 6 }, keyframes: { u_speed: [{ time: 0, value: 0 }, { time: 6, value: 4, ease: "linear" }] } }),
       env,
@@ -191,12 +193,42 @@ describe("scene_edit", () => {
     const scene = fakeScene();
     const output = await edit.run(edit.input.parse({ edits: [{ phase: "setup", find: "does not exist", replace: "x" }] }), {
       scene,
-      history: noHistory, assets: noAssets,
+      history: noHistory, assets: noAssets, user: noUser,
       signal: new AbortController().signal,
     });
     expect(output.isError).toBe(true);
     expect(String(output.content)).toContain("occurs 0 times");
     expect(scene.applied).toHaveLength(0);
+  });
+});
+
+describe("ask_user", () => {
+  const ask = USER_TOOLS[0]!;
+  const options = [{ label: "Live" }, { label: "Timeline", description: "10 s sequence" }];
+  const env = (answer: string | null, seen: string[] = []) => ({
+    scene: fakeScene(),
+    history: noHistory,
+    assets: noAssets,
+    user: {
+      ask: async (question: string) => {
+        seen.push(question);
+        return answer;
+      },
+    },
+    signal: new AbortController().signal,
+  });
+
+  it("returns the chosen option, a typed answer, or an error when stopped", async () => {
+    const seen: string[] = [];
+    const input = ask.input.parse({ question: "Interactive or timed?", options });
+    expect((await ask.run(input, env("Timeline", seen))).content).toBe("The person chose: Timeline");
+    expect(seen).toEqual(["Interactive or timed?"]);
+    expect((await ask.run(input, env("both, please"))).content).toBe("The person answered in their own words: both, please");
+    expect((await ask.run(input, env(null))).isError).toBe(true);
+  });
+
+  it("needs two to four options", () => {
+    expect(ask.input.safeParse({ question: "q", options: [{ label: "only" }] }).success).toBe(false);
   });
 });
 
