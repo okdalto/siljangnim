@@ -4,12 +4,12 @@
 // Script (the smoke test uploads swatch.png and data.json first):
 // asset_list → asset_read → ask_user (the smoke test clicks an option) → broken scene → (shader error comes back) →
 // fixed scene that samples swatch.png → viewport_capture → (image comes
-// back) → scene_edit adding a timeline and keyframes → history_list →
-// final text.
+// back) → scene_edit adding a timeline and keyframes → python_run on the
+// hub (the smoke test approves it) → history_list → final text.
 import { createServer } from "node:http";
 
 export const FINAL_TEXT = "E2E done: a calm blue field.";
-export const EXPECTED_REQUESTS = 9;
+export const EXPECTED_REQUESTS = 10;
 export const QUESTION = { question: "Interactive piece or a timed sequence?", options: [{ label: "Live" }, { label: "Timeline", description: "A fixed-length animation" }] };
 
 const VERTEX = "ctx.utils.FULLSCREEN_VERTEX_SHADER";
@@ -49,6 +49,12 @@ ctx.utils.drawFullscreen(p);`,
 
 const BROKEN = scene("outColor = vec4(texture(u_tex, v_uv).rgb * u_colour, 1.0);");
 const FIXED = scene("outColor = vec4(texture(u_tex, v_uv).rgb * u_color * u_gain, 1.0);");
+// Runs on the hub with no packages: reads an uploaded asset, writes a new one.
+const PYTHON = `import json, pathlib
+data = json.loads(pathlib.Path("in/data.json").read_text())
+pathlib.Path("out/palette.json").write_text(json.dumps({"colors": [data["tint"], "white"]}))
+print("tint is", data["tint"])`;
+
 // Keys that hold the gain at 1, so the color checks stay stable while the timeline plays.
 const TIMELINE_EDIT = {
   timeline: { duration: 4, loop: true, preserveStateOnLoop: true },
@@ -106,6 +112,11 @@ function plan(body, step, checks) {
   }
   if (step === 7) {
     checks.timelineApplied = !result?.is_error && /without errors/.test(resultText(result));
+    return { tool: { name: "python_run", input: { code: PYTHON, packages: [], inputs: ["data.json"] } } };
+  }
+  if (step === 8) {
+    const text = resultText(result);
+    checks.pythonRan = !result?.is_error && /Saved to the project as assets: palette\.json/.test(text) && text.includes("tint is blue");
     return { tool: { name: "history_list", input: {} } };
   }
   // Only the project's first scene is saved while the run is still going.

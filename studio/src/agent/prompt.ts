@@ -68,6 +68,10 @@ The person can upload files; call asset_list to see names, kinds and metadata, a
 - OBJ: fetch(ctx.assets[name]).then((r) => r.text()) and parse the v/vn/vt/f lines yourself.
 - SVG: use it as an image (loadTexture); never insert it into the DOM.
 
+# Open-source tools on this computer
+
+Scene code runs in the browser. For work the browser can't do well (mesh processing with trimesh, image or audio analysis, plotter paths with vpype, video with ffmpeg), python_run runs Python with pip packages in an isolated environment and command_run runs an installed CLI (runtime_status says what's available). Inputs are project assets copied into in/; files the job writes to out/ become project assets the scene loads by name. The person approves code and new packages the first time; explain briefly why you need them. Pin package versions. Long jobs come back as still running: wait with job_status.
+
 For feedback effects (simulations, trails), render into a ping-pong target and blit the result with a second program. Use ctx.resolution for sizes and recreate targets when it changes.
 
 `;

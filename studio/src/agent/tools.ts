@@ -55,11 +55,47 @@ export interface UserController {
   ask(question: string, options: QuestionOption[], signal: AbortSignal): Promise<string | null>;
 }
 
+/** A run of open-source code through the hub (docs/runtime.md). */
+export interface RuntimeJob {
+  id: string;
+  state: "queued" | "installing" | "running" | "done" | "failed" | "cancelled";
+  exitCode: number | null;
+  error: string | null;
+  log: string;
+  /** Output files, as the project asset names they were saved under. */
+  assets: string[];
+  /** Exact package versions the environment ended up with. */
+  resolved: string[];
+  seconds: number;
+}
+
+export interface RuntimeRequest {
+  kind: "python" | "command";
+  packages: string[];
+  code: string;
+  argv: string[];
+  /** Project asset names copied into the job's in/ folder. */
+  inputs: string[];
+  timeoutS: number;
+  /** How long to wait before returning a still-running job. */
+  waitS: number;
+}
+
+/** Runs C/D-grade open source through the Python hub, after the person approves. */
+export interface RuntimeController {
+  /** Why the runtime can't be used here, or null when it can. */
+  unavailable(): Promise<string | null>;
+  info(): Promise<{ platform: string; accelerators: string[]; gpus: string[]; environments: string[][]; programs: Record<string, boolean> }>;
+  run(request: RuntimeRequest, signal: AbortSignal): Promise<RuntimeJob>;
+  job(id: string, waitS: number): Promise<RuntimeJob>;
+}
+
 export interface ToolEnv {
   scene: SceneController;
   history: HistoryController;
   assets: AssetController;
   user: UserController;
+  runtime: RuntimeController;
   signal: AbortSignal;
 }
 

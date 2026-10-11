@@ -75,6 +75,9 @@ export class Hub extends EventEmitter {
       PYTHONDONTWRITEBYTECODE: "1",
       PYTHONUNBUFFERED: "1",
       SILJANGNIM_HUB_TOKEN: this.token,
+      // The runtime (tool environments and jobs) creates venvs with the same uv.
+      SILJANGNIM_UV: uvPath(),
+      SILJANGNIM_RUNTIME_DIR: join(runtime, "tools"),
     };
   }
 

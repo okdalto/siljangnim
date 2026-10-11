@@ -26,7 +26,13 @@ let viewer = null;
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: [join(mcpDir, "bin", "siljangnim-mcp.js")],
-  env: { ...process.env, SILJANGNIM_OPEN: "0", SILJANGNIM_PORT: "47911" },
+  env: {
+    ...process.env,
+    SILJANGNIM_OPEN: "0",
+    SILJANGNIM_PORT: "47911",
+    // Reuse the desktop smoke's Python install instead of setting one up in ~/.siljangnim.
+    SILJANGNIM_RUNTIME_ROOT: join(mcpDir, "..", "desktop", "release", "smoke-profile", "runtime"),
+  },
   stderr: "pipe",
 });
 transport.stderr.on("data", (chunk) => {
@@ -72,6 +78,12 @@ const capture = await call("viewport_capture", { max_size: 256 });
 const image = capture.content.find((c) => c.type === "image");
 const rgb = image ? meanColor(Buffer.from(image.data, "base64")) : null;
 await call("scene_edit", { timeline: { duration: 4, preserveStateOnLoop: true }, keyframes: { u_gain: [{ time: 0, value: 1 }, { time: 2, value: 1 }] } });
+await call("python_run", {
+  code: "import json, pathlib\npathlib.Path('out/points.json').write_text(json.dumps([[0, 0], [1, 1]]))\nprint('wrote 2 points')",
+});
+// D grade: a CLI on PATH (node is there wherever this smoke runs), no shell.
+await call("command_run", { argv: ["node", "-e", "require('fs').writeFileSync('out/cli.txt', 'cli ok')"] });
+const status = await call("runtime_status");
 await call("asset_list");
 await wait(2500); // controls-style version commit after edits go quiet
 const history = await call("history_list");
@@ -85,11 +97,14 @@ const checks = {
   sceneWritten: !calls.scene_write.isError && /without errors/.test(text(calls.scene_write)),
   captureBlue: Boolean(rgb && rgb[2] > 150 && rgb[2] > 2 * rgb[0] && rgb[2] > rgb[1]),
   timelineEdited: !calls.scene_edit.isError,
-  assetsAnswered: !calls.asset_list.isError,
+  assetsAnswered: !calls.asset_list.isError && /points\.json/.test(text(calls.asset_list)),
+  pythonRan: !calls.python_run.isError && /Saved to the project as assets: points\.json/.test(text(calls.python_run)) && /wrote 2 points/.test(text(calls.python_run)),
+  commandRan: !calls.command_run.isError && /assets: cli\.txt/.test(text(calls.command_run)),
+  runtimeStatus: !status.isError && /Python environments:.*\(no packages\)/.test(text(status)),
   versionSaved: /"Initial scene"/.test(text(history)) && /scene write/.test(text(history)),
   viewerConnected: viewerState.status === "connected" && /Claude Code/.test(viewerState.statusText ?? ""),
   chatReplacedByActivity: viewerState.tabs.join() === "Activity,History,Assets",
-  activityLogged: ["scene_write", "viewport_capture", "scene_edit"].every((n) => viewerState.activity.includes(n)),
+  activityLogged: ["scene_write", "viewport_capture", "scene_edit", "python_run"].every((n) => viewerState.activity.includes(n)),
   panelShown: viewerState.widgets.includes("knob") && viewerState.monitors.includes("frames") && viewerState.keyMarks === 2,
 };
 

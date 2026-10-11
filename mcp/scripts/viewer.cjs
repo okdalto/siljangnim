@@ -16,6 +16,7 @@ const READ_STATE = `(() => ({
   widgets: [...document.querySelectorAll('[data-widget]')].map((w) => w.dataset.widget),
   monitors: [...document.querySelectorAll('[data-monitor]')].map((m) => m.dataset.monitor),
   keyMarks: document.querySelectorAll('[data-key-time]').length,
+  assets: [...document.querySelectorAll('[data-asset]')].map((a) => a.dataset.asset),
 }))()`;
 
 app.whenReady().then(async () => {
@@ -23,6 +24,8 @@ app.whenReady().then(async () => {
   await win.loadURL(url);
   const report = async () => {
     try {
+      // The person approves the agent's Python run when asked.
+      await win.webContents.executeJavaScript(`document.querySelector('[data-approval="project"]')?.click()`);
       writeFileSync(join(out, "viewer.json"), JSON.stringify(await win.webContents.executeJavaScript(READ_STATE)));
     } catch {
       // page navigating; next tick

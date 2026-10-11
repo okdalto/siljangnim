@@ -18,7 +18,8 @@ changing structure. Current work: `docs/m2.md`.
   localhost and relays tool calls to it over a token-checked WebSocket ([docs/mcp.md](docs/mcp.md)).
   `src/spec.json` is generated from `studio/src/agent/external.ts` — run `npm --prefix studio run export-mcp`
   after changing tools or the prompt (a studio test fails otherwise).
-- `hub/` — Python sidecar (FastAPI, uv-managed). Stage 2 turns it into the MCP server.
+- `hub/` — Python sidecar (FastAPI, uv-managed): system info and the runtime — isolated uv venvs and a job queue
+  for C/D-grade open source (`python_run`, `command_run`; [docs/runtime.md](docs/runtime.md)).
 - `frontend/`, `backend/` — **v1, legacy.** Still deployed to siljangnim.vercel.app. Read them to port
   features; don't build on them. Retired when the studio reaches parity (M3).
 
@@ -57,6 +58,9 @@ Run `check`, `test` and `smoke` before every push; CI runs the same (Linux needs
 - **External agents get the same tools.** The MCP bridge never implements tools; calls run in the viewer through
   `runTool`. Its HTTP server stays on 127.0.0.1 with a Host check, and only the app origin with the per-launch
   token may open the WebSocket.
+- **Runtime jobs need the person's OK.** Running code, new packages and new programs go through the approval card
+  (`project/permissions.ts`) before reaching the hub; package specs stay plain (no URLs/paths/flags) and jobs never
+  see the hub token. It is file/dependency isolation, not an OS sandbox — don't describe it as one.
 - **The system prompt is a cached prefix.** Keep `agent/prompt.ts` byte-stable across turns (no
   timestamps, no per-request data); put per-request context in messages. Keep its ctx reference in
   sync with `scene/runtime/ctx.ts`.

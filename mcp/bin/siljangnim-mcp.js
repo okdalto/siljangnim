@@ -8,6 +8,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { DEFAULT_PORT, createBridge } from "../src/bridge.js";
+import { createHubLauncher, findHubDir, findUv } from "../src/hub.js";
 import { openBrowser } from "../src/open.js";
 
 const pkgDir = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -34,11 +35,35 @@ const open =
       ? (url) => spawn(openCommand, [url], { detached: true, stdio: "ignore" }).on("error", (err) => log(`${openCommand}: ${err.message}`)).unref()
       : (url) => openBrowser(url, log);
 
-const bridge = createBridge({ studioDir, spec, version, port: Number(process.env.SILJANGNIM_PORT) || DEFAULT_PORT, open, log });
+// The runtime hub (python_run, command_run) starts only when a tool needs it.
+let viewerOrigin = "";
+// SILJANGNIM_RUNTIME_ROOT moves the hub's Python, venvs and job folders (default ~/.siljangnim/runtime).
+const hub = createHubLauncher({
+  uv: findUv(pkgDir),
+  hubDir: findHubDir(pkgDir),
+  ...(process.env.SILJANGNIM_RUNTIME_ROOT ? { runtimeDir: process.env.SILJANGNIM_RUNTIME_ROOT } : {}),
+  origins: () => [viewerOrigin],
+  log,
+});
+const bridge = createBridge({
+  studioDir,
+  spec,
+  version,
+  port: Number(process.env.SILJANGNIM_PORT) || DEFAULT_PORT,
+  open,
+  log,
+  hub: (origin) => {
+    viewerOrigin = origin;
+    return hub.get();
+  },
+});
 await bridge.listen();
 await bridge.mcp.connect(new StdioServerTransport());
 
-const shutdown = () => void bridge.close().finally(() => process.exit(0));
+const shutdown = () => {
+  hub.stop();
+  void bridge.close().finally(() => process.exit(0));
+};
 process.stdin.on("close", shutdown);
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);

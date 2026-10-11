@@ -4,17 +4,19 @@
 import { useEffect, useRef } from "react";
 import { useApp, type ExternalAgent } from "../state";
 import { Spinner } from "./icons";
+import { ApprovalCard } from "./Approval";
 import { ToolChip } from "./Chat";
 
 export function Activity() {
   const external = useApp((s) => s.external);
   const activity = useApp((s) => s.activity);
+  const approval = useApp((s) => s.approval);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [activity]);
+  }, [activity, approval]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-testid="activity">
@@ -33,6 +35,7 @@ export function Activity() {
             )}
           </div>
         ))}
+        <ApprovalCard />
       </div>
     </div>
   );

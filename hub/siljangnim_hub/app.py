@@ -9,20 +9,32 @@ rebinding as a second line.
 from __future__ import annotations
 
 import hmac
+import os
+import shutil
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from . import __version__, system
+from .runtime import Job, Runtime, RuntimeErrorWithHint, programs
 
-# Origins the desktop renderer runs under (packaged app / dev server).
+# Origins the desktop renderer runs under (packaged app / dev server). The
+# MCP bridge adds its viewer origin through SILJANGNIM_HUB_ORIGINS.
 RENDERER_ORIGINS = ["app://siljangnim", "http://localhost:5173", "http://127.0.0.1:5173"]
 
+# Native tools the agent may use when they're installed (D grade).
+KNOWN_PROGRAMS = ["ffmpeg", "ffprobe", "blender", "openscad", "magick", "inkscape", "vpype", "potrace"]
 
-def create_app(token: str, port: int) -> FastAPI:
+MAX_WAIT_S = 60
+
+
+def create_app(token: str, port: int, runtime: Runtime | None = None) -> FastAPI:
     if not token:
         raise ValueError("hub token must not be empty")
+    if runtime is None:
+        runtime = default_runtime()
 
     allowed_hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
     app = FastAPI(title="siljangnim-hub", version=__version__, docs_url=None, redoc_url=None, openapi_url=None)
@@ -42,8 +54,8 @@ def create_app(token: str, port: int) -> FastAPI:
     # Added after the token middleware so it wraps it and answers preflights.
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=RENDERER_ORIGINS,
-        allow_methods=["GET", "POST"],
+        allow_origins=RENDERER_ORIGINS + [o for o in os.environ.get("SILJANGNIM_HUB_ORIGINS", "").split(",") if o],
+        allow_methods=["GET", "POST", "PUT"],
         allow_headers=["Authorization", "Content-Type"],
     )
 
@@ -55,4 +67,86 @@ def create_app(token: str, port: int) -> FastAPI:
     def system_info():
         return system.detect().to_dict()
 
+    # --- runtime: environments and jobs (see runtime.py) ---
+
+    def unavailable() -> JSONResponse:
+        return JSONResponse({"error": "the runtime is unavailable: uv was not found (set SILJANGNIM_UV)"}, status_code=503)
+
+    def find(job_id: str) -> Job | None:
+        return runtime.jobs.get(job_id) if runtime else None
+
+    @app.exception_handler(RuntimeErrorWithHint)
+    async def hint(_request: Request, err: RuntimeErrorWithHint):
+        return JSONResponse({"error": str(err)}, status_code=400)
+
+    @app.get("/runtime")
+    def runtime_info():
+        if not runtime:
+            return unavailable()
+        return {"environments": runtime.environments(), "programs": programs(KNOWN_PROGRAMS)}
+
+    @app.post("/jobs", status_code=201)
+    async def create_job(request: Request):
+        if not runtime:
+            return unavailable()
+        body = await request.json()
+        job = runtime.create_job(
+            body.get("kind", "python"),
+            packages=body.get("packages") or [],
+            code=body.get("code") or "",
+            argv=body.get("argv") or [],
+            timeout_s=body.get("timeout_s") or 120,
+        )
+        return job.to_dict()
+
+    @app.put("/jobs/{job_id}/inputs/{name}")
+    async def add_input(job_id: str, name: str, request: Request):
+        job = find(job_id)
+        if not job:
+            return JSONResponse({"error": "no such job"}, status_code=404)
+        runtime.add_input(job, name, await request.body())
+        return {"ok": True}
+
+    # async: the job queue lives on the server's event loop.
+    @app.post("/jobs/{job_id}/start")
+    async def start(job_id: str):
+        job = find(job_id)
+        if not job:
+            return JSONResponse({"error": "no such job"}, status_code=404)
+        runtime.start(job)
+        return job.to_dict()
+
+    @app.get("/jobs/{job_id}")
+    async def get_job(job_id: str, wait: float = 0):
+        job = find(job_id)
+        if not job:
+            return JSONResponse({"error": "no such job"}, status_code=404)
+        if wait > 0:
+            await runtime.wait(job, min(wait, MAX_WAIT_S))
+        return job.to_dict()
+
+    @app.post("/jobs/{job_id}/cancel")
+    def cancel(job_id: str):
+        job = find(job_id)
+        if not job:
+            return JSONResponse({"error": "no such job"}, status_code=404)
+        runtime.cancel(job)
+        return job.to_dict()
+
+    @app.get("/jobs/{job_id}/outputs/{name}")
+    def output(job_id: str, name: str):
+        job = find(job_id)
+        if not job:
+            return JSONResponse({"error": "no such job"}, status_code=404)
+        return FileResponse(runtime.output_path(job, name))
+
     return app
+
+
+def default_runtime() -> Runtime | None:
+    """Runtime under SILJANGNIM_RUNTIME_DIR using the uv at SILJANGNIM_UV (or on PATH)."""
+    uv = os.environ.get("SILJANGNIM_UV") or shutil.which("uv")
+    if not uv:
+        return None
+    root = Path(os.environ.get("SILJANGNIM_RUNTIME_DIR") or Path.home() / ".siljangnim" / "runtime")
+    return Runtime(root, uv)

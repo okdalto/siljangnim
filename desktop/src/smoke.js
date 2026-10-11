@@ -106,20 +106,24 @@ async function runAgentScenario(win, sceneFrame, keys) {
   const attached = await win.webContents.executeJavaScript(UPLOAD_ASSETS);
   log("sending prompt");
   await win.webContents.executeJavaScript(TYPE_PROMPT);
-  // The mock agent asks a question first; answer it the way a person would.
+  // Answer the agent's question and approve its Python run the way a person would.
   let answered = false;
-  for (let i = 0; i < 120 && !answered; i++) {
-    await wait(250);
-    answered = await win.webContents.executeJavaScript(
-      `(() => { const b = document.querySelector('[data-question-option="Timeline"]'); b?.click(); return Boolean(b); })()`,
-    );
-  }
-  log(`question answered: ${answered}`);
+  let approved = false;
   let replied = false;
-  for (let i = 0; i < 120 && !replied; i++) {
-    await wait(500);
-    replied = await win.webContents.executeJavaScript(`document.body.innerText.includes(${JSON.stringify(finalText)})`);
+  for (let i = 0; i < 240 && !replied; i++) {
+    await wait(250);
+    const state = await win.webContents.executeJavaScript(`(() => {
+      const option = document.querySelector('[data-question-option="Timeline"]');
+      option?.click();
+      const allow = document.querySelector('[data-approval="project"]');
+      allow?.click();
+      return { option: Boolean(option), allow: Boolean(allow), replied: document.body.innerText.includes(${JSON.stringify(finalText)}) };
+    })()`);
+    answered ||= state.option;
+    approved ||= state.allow;
+    replied = state.replied;
   }
+  log(`question answered: ${answered}, python approved: ${approved}`);
   await wait(500);
   log(`agent replied: ${replied}`);
   // Press the button widget twice; each press should count exactly one frame.
@@ -140,7 +144,7 @@ async function runAgentScenario(win, sceneFrame, keys) {
     timelineMenu: document.querySelector('[data-testid="timeline-menu"]')?.innerText ?? null,
   })`);
   const [r, g, b] = sample?.meanRgb ?? [0, 0, 0];
-  return { attached, answered, bursts, replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
+  return { attached, answered, approved, bursts, replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
 }
 
 // Opens the History tab and describes its rows (oldest first).
@@ -231,6 +235,9 @@ export async function runSmokeTest(win, hub, keys, outDir) {
     "window.siljangnim ? window.siljangnim.keys.status().then((keys) => ({ desktop: window.siljangnim.desktop, keys })) : null",
   );
 
+  // The agent run uses the hub (python_run), so it waits for the hub first.
+  log("waiting for hub");
+  await waitForHub(hub);
   const agent = process.env.SILJANGNIM_SMOKE_KEY ? await runAgentScenario(win, sceneFrame, keys) : null;
   log("history scenario");
   const history = agent ? await runHistoryScenario(win, sceneFrame) : null;
@@ -261,6 +268,7 @@ export async function runSmokeTest(win, hub, keys, outDir) {
       ? {
           assetsUploaded: ["swatch.png", "data.json"].every((n) => agent.attached.includes(n)),
           questionShown: agent.answered,
+          approvalShown: agent.approved,
           panelWidgets: agent.widgets.includes("knob") && agent.widgets.includes("button") && agent.groups.join() === "Look,Other,Monitors",
           monitorsShown: agent.frames > 0 && agent.bursts === "2",
           agentReplied: agent.replied,

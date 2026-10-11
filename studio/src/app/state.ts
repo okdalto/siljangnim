@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { MessageParam } from "../agent/llm/types";
 import type { ToolOutput } from "../agent/tools";
+import type { ApprovalRequest } from "../project/permissions";
 import type { ProviderKeyId } from "../desktop";
 import type { AssetInfo } from "../project/assets";
 import type { ProjectMeta, Version } from "../project/store";
@@ -63,6 +64,8 @@ export interface AppState {
   /** Whether undo/redo have anything (the stacks themselves live in the session controller). */
   canUndo: boolean;
   canRedo: boolean;
+  /** A runtime action (running code, installing packages) waiting for the person's OK. */
+  approval: ApprovalRequest | null;
   /** A question from the agent waiting for the person's answer. */
   question: PendingQuestion | null;
   /** Streaming state of the agent's current turn; null when idle. */
@@ -91,6 +94,7 @@ export const useApp = create<AppState>(() => ({
   canUndo: false,
   canRedo: false,
   question: null,
+  approval: null,
   live: null,
   notice: null,
   settings: loadSettings(),

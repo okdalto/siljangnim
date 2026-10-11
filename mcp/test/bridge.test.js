@@ -167,3 +167,54 @@ describe("bridge", () => {
     assert.match(content[0].text, /Unknown tool/);
   });
 });
+
+describe("bridge runtime hub", () => {
+  it("hands the hub only to the authenticated viewer, starting it on request", async () => {
+    let started = 0;
+    const bridge = createBridge({
+      studioDir: studioDir(),
+      spec,
+      port: 0,
+      hub: async (origin) => {
+        started++;
+        assert.match(origin, /^http:\/\/localhost:\d+$/);
+        return { url: "http://127.0.0.1:1234", token: "hub-token" };
+      },
+    });
+    await bridge.listen();
+    try {
+      const viewer = fakeViewer(bridge);
+      await viewer.ready;
+      const reply = new Promise((resolve) => viewer.ws.on("message", (raw) => {
+        const message = JSON.parse(String(raw));
+        if (message.type === "hub") resolve(message);
+      }));
+      viewer.ws.send(JSON.stringify({ type: "hub_request", id: 7 }));
+      assert.deepEqual(await reply, { type: "hub", id: 7, url: "http://127.0.0.1:1234", token: "hub-token" });
+      assert.equal(started, 1);
+      viewer.ws.close();
+      await viewer.closed;
+    } finally {
+      await bridge.close();
+    }
+  });
+
+  it("explains when there is no hub", async () => {
+    const bridge = createBridge({ studioDir: studioDir(), spec, port: 0 });
+    await bridge.listen();
+    try {
+      const viewer = fakeViewer(bridge);
+      await viewer.ready;
+      const reply = new Promise((resolve) => viewer.ws.on("message", (raw) => {
+        const message = JSON.parse(String(raw));
+        if (message.type === "hub") resolve(message);
+      }));
+      viewer.ws.send(JSON.stringify({ type: "hub_request", id: 1 }));
+      assert.match((await reply).error, /without the runtime hub/);
+      viewer.ws.close();
+      await viewer.closed;
+    } finally {
+      await bridge.close();
+    }
+  });
+});

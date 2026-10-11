@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { noRuntime } from "../agent/testing";
 import { ASSET_TOOLS } from "../agent/assetTools";
 import type { AssetController, HistoryController, SceneController } from "../agent/tools";
 import {
@@ -101,7 +102,7 @@ describe("asset tools", () => {
     { name: "poster.png", kind: "image", size: 2048, type: "image/png", meta: { width: 640, height: 400 } },
   ];
   const assets: AssetController = { list: async () => infos, read: async (name) => files[name] };
-  const env = { scene: {} as SceneController, history: {} as HistoryController, assets, user: { ask: async () => null }, signal: new AbortController().signal };
+  const env = { scene: {} as SceneController, history: {} as HistoryController, assets, user: { ask: async () => null }, runtime: noRuntime, signal: new AbortController().signal };
 
   it("lists assets with size and metadata", async () => {
     const text = String((await list.run({}, env)).content);

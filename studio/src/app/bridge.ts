@@ -1,5 +1,6 @@
 // Viewer side of the MCP bridge (mcp/src/bridge.js): runs the tools an
 // external agent calls and reports the connection in the UI.
+import { setHubProvider } from "./hubClient";
 import { runExternalTool, setExternal } from "./session";
 
 const RETRY_MAX_MS = 5_000;
@@ -8,6 +9,7 @@ const MAX_ATTEMPTS = 8;
 
 type BridgeMessage =
   | { type: "client"; name: string }
+  | { type: "hub"; id: number; url?: string; token?: string; error?: string }
   | { type: "call"; id: number; name: string; input: unknown }
   | { type: "replaced" };
 
@@ -16,9 +18,25 @@ export function connectBridge(token: string): void {
   let finished = false;
   let client: string | null = null;
   setExternal({ status: "connecting", client });
+  let socket: WebSocket | null = null;
+  let hubRequests = 0;
+  const hubWaiters = new Map<number, (access: { url: string; token: string } | string) => void>();
+
+  // The runtime hub is started by the bridge on first use and handed to this
+  // (authenticated) viewer only.
+  setHubProvider(
+    () =>
+      new Promise((resolve) => {
+        if (socket?.readyState !== WebSocket.OPEN) return resolve("The viewer is not connected to the agent's bridge right now.");
+        const id = ++hubRequests;
+        hubWaiters.set(id, resolve);
+        socket.send(JSON.stringify({ type: "hub_request", id }));
+      }),
+  );
 
   const connect = () => {
     const ws = new WebSocket(`ws://${window.location.host}/bridge`);
+    socket = ws;
     ws.onopen = () => ws.send(JSON.stringify({ type: "hello", token }));
     ws.onmessage = (e: MessageEvent<string>) => {
       let message: BridgeMessage;
@@ -35,12 +53,18 @@ export function connectBridge(token: string): void {
         void runExternalTool(message.name, message.input).then((output) => {
           if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "result", id: message.id, output }));
         });
+      } else if (message.type === "hub") {
+        const waiter = hubWaiters.get(message.id);
+        hubWaiters.delete(message.id);
+        waiter?.(message.url && message.token ? { url: message.url, token: message.token } : (message.error ?? "The runtime hub is unavailable."));
       } else if (message.type === "replaced") {
         finished = true;
         setExternal({ status: "replaced", client });
       }
     };
     ws.onclose = (e) => {
+      for (const resolve of hubWaiters.values()) resolve("The connection to the agent's bridge was lost.");
+      hubWaiters.clear();
       if (finished) return;
       // 4003: the token is from a bridge that has since restarted (the agent session ended).
       if (e.code === 4003) {
