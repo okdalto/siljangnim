@@ -7,6 +7,7 @@ import type { MessageParam } from "../../agent/llm/types";
 import { answerQuestion, clearChat, detachAsset, dismissNotice, sendPrompt, stopAgent } from "../session";
 import { activeModel } from "../settings";
 import { useApp, type LiveTurn } from "../state";
+import { ApprovalCard } from "./Approval";
 import { FilePickerButton } from "./Assets";
 import { AlertIcon, CheckIcon, PaperclipIcon, SendIcon, Spinner, StopIcon, XIcon } from "./icons";
 
@@ -20,6 +21,10 @@ const TOOL_LABELS: Record<string, string> = {
   viewport_status: "Checked status",
   history_list: "Checked history",
   history_restore: "Restored a version",
+  runtime_status: "Checked the runtime",
+  python_run: "Ran Python",
+  command_run: "Ran a program",
+  job_status: "Checked a job",
   asset_list: "Checked assets",
   asset_read: "Read an asset",
 };
@@ -238,6 +243,7 @@ function QuestionCard() {
 
 function Live({ live }: { live: LiveTurn }) {
   const asking = useApp((s) => Boolean(s.question));
+  const approving = useApp((s) => Boolean(s.approval));
   const idle = !live.text && !live.tools.length;
   return (
     <div className="space-y-2">
@@ -249,7 +255,8 @@ function Live({ live }: { live: LiveTurn }) {
       )}
       {live.tools.map((t) => (t.name === "ask_user" ? null : <ToolChip key={t.id} name={t.name} running />))}
       {asking && <QuestionCard />}
-      {idle && !live.thinking && !asking && (
+      <ApprovalCard />
+      {idle && !live.thinking && !asking && !approving && (
         <div className="flex items-center gap-2 text-xs text-faint">
           <Spinner size={12} /> Working…
         </div>

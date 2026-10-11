@@ -10,5 +10,7 @@ const uv = existsSync(bundled) ? bundled : "uv";
 const result = spawnSync(uv, ["run", "--frozen", "--project", join(desktopDir, "..", "hub"), "pytest", "-q"], {
   cwd: join(desktopDir, "..", "hub"),
   stdio: "inherit",
+  // The runtime tests create venvs with the same uv.
+  env: { ...process.env, SILJANGNIM_UV: existsSync(bundled) ? bundled : process.env.SILJANGNIM_UV },
 });
 process.exit(result.status ?? 1);

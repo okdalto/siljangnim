@@ -52,9 +52,10 @@ const VIEWER_OPEN_TOOL = {
  *   port?: number,
  *   open?: (url: string) => void,
  *   log?: (message: string) => void,
- * }} options
+ *   hub?: (origin: string) => Promise<{ url: string, token: string }>,
+ * }} options  hub starts (once) and returns the runtime hub for the viewer; leave it out to run without one
  */
-export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAULT_PORT, open = () => undefined, log = () => undefined }) {
+export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAULT_PORT, open = () => undefined, log = () => undefined, hub }) {
   const token = randomBytes(24).toString("base64url");
   let boundPort = port;
   /** @type {import("ws").WebSocket | null} */
@@ -145,6 +146,13 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
     try {
       message = JSON.parse(String(raw));
     } catch {
+      return;
+    }
+    if (message?.type === "hub_request") {
+      // Only the authenticated viewer gets here; the hub token goes to it alone.
+      const reply = (body) => send({ type: "hub", id: message.id, ...body });
+      if (!hub) reply({ error: "This bridge runs without the runtime hub." });
+      else hub(appOrigin()).then((access) => reply(access), (err) => reply({ error: `The runtime hub could not start: ${err instanceof Error ? err.message : err}` }));
       return;
     }
     if (message?.type !== "result") return;

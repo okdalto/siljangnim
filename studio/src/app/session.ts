@@ -6,7 +6,21 @@ import { repairConversation, runAgent } from "../agent/loop";
 import type { ContentBlockParam, MessageParam } from "../agent/llm/types";
 import { SYSTEM_PROMPT } from "../agent/prompt";
 import { SCENE_TOOLS } from "../agent/sceneTools";
-import { runTool, type AssetController, type HistoryController, type SceneController, type ToolOutput, type UserController, type VersionInfo } from "../agent/tools";
+import {
+  runTool,
+  type AssetController,
+  type HistoryController,
+  type RuntimeController,
+  type RuntimeJob,
+  type SceneController,
+  type ToolEnv,
+  type ToolOutput,
+  type UserController,
+  type VersionInfo,
+} from "../agent/tools";
+import { RUNTIME_TOOLS } from "../agent/runtimeTools";
+import { PERMISSIONS_FILE, approvalNeeded, grant, parseGrants, programName, type ApprovalAnswer, type ApprovalRequest } from "../project/permissions";
+import { hubClient, type HubClient, type HubJob } from "./hubClient";
 import { EXTERNAL_TOOLS } from "../agent/external";
 import { USER_TOOLS } from "../agent/userTools";
 import { ASSET_TOOLS } from "../agent/assetTools";
@@ -480,6 +494,13 @@ async function captureThumbnail(): Promise<Blob | undefined> {
 export async function uploadAssets(files: File[]): Promise<void> {
   const project = get().project;
   if (!project || !files.length) return;
+  const { rejected } = await addAssetFiles(project.id, files, { attach: true });
+  if (rejected.length) set({ notice: { kind: "error", text: `Not uploaded: ${rejected.join("; ")}.` } });
+}
+
+/** Store files as project assets (renaming duplicates). Returns the names they got. */
+async function addAssetFiles(projectId: string, files: File[], options: { attach: boolean }): Promise<{ names: string[]; rejected: string[] }> {
+  const names: string[] = [];
   const rejected: string[] = [];
   for (const file of files) {
     if (file.size > MAX_ASSET_BYTES) {
@@ -493,16 +514,17 @@ export async function uploadAssets(files: File[]): Promise<void> {
     const name = uniqueAssetName(sanitizeAssetName(file.name), assetBlobs.keys());
     const blob = new Blob([file], { type: assetMimeType(name, file.type) });
     const meta = await analyzeAsset(name, blob);
-    await store.writeFile(project.id, ASSET_DIR + name, blob, meta);
-    if (get().project?.id !== project.id) return;
+    await store.writeFile(projectId, ASSET_DIR + name, blob, meta);
+    if (get().project?.id !== projectId) break;
     assetBlobs.set(name, blob);
+    names.push(name);
     const info = assetInfo(name, blob, meta);
     set((st) => ({
-      assets: [...st.assets, info].sort((a, b) => (a.name < b.name ? -1 : 1)),
-      attachments: [...st.attachments, name],
+      assets: [...st.assets.filter((a) => a.name !== name), info].sort((a, b) => (a.name < b.name ? -1 : 1)),
+      attachments: options.attach ? [...st.attachments, name] : st.attachments,
     }));
   }
-  if (rejected.length) set({ notice: { kind: "error", text: `Not uploaded: ${rejected.join("; ")}.` } });
+  return { names, rejected };
 }
 
 export async function deleteAsset(name: string): Promise<void> {
@@ -545,8 +567,12 @@ async function attachmentBlocks(names: string[]): Promise<ContentBlockParam[]> {
 // --- agent ---
 
 /** What tools act on, bound to one project: a run that outlives a project switch can't touch the new one. */
-function projectEnv(projectId: string, sceneHost: SceneHost): { scene: SceneController; history: HistoryController; assets: AssetController } {
+function projectEnv(
+  projectId: string,
+  sceneHost: SceneHost,
+): { scene: SceneController; history: HistoryController; assets: AssetController; runtime: RuntimeController } {
   return {
+    runtime: runtimeController(projectId),
     scene: {
       get: () => get().scene,
       apply: (scene) => (get().project?.id === projectId ? applyScene(scene) : Promise.resolve({ ok: false, errors: [] })),
@@ -568,6 +594,124 @@ function projectEnv(projectId: string, sceneHost: SceneHost): { scene: SceneCont
       read: async (name) => (get().project?.id === projectId ? assetBlobs.get(name) : undefined),
     },
   };
+}
+
+// --- runtime: open-source tools through the hub (docs/runtime.md) ---
+
+const LOCK_FILE = "project.lock.json";
+/** Output files already saved as assets, by job id, so a second job_status doesn't save them twice. */
+const importedJobs = new Map<string, string[]>();
+let answerApproval: ((answer: ApprovalAnswer) => void) | null = null;
+
+/** Ask the person to allow a runtime action; resolves "deny" when the run stops. */
+function requestApproval(request: ApprovalRequest, signal: AbortSignal): Promise<ApprovalAnswer> {
+  return new Promise((resolve) => {
+    if (signal.aborted) return resolve("deny");
+    const done = (answer: ApprovalAnswer) => {
+      signal.removeEventListener("abort", onAbort);
+      if (answerApproval === done) answerApproval = null;
+      set({ approval: null });
+      resolve(answer);
+    };
+    const onAbort = () => done("deny");
+    signal.addEventListener("abort", onAbort);
+    // A newer request replaces an unanswered one (it can only come from a stopped run).
+    answerApproval?.("deny");
+    answerApproval = done;
+    set((st) => ({ approval: request, sidebarTab: st.external ? "activity" : "chat" }));
+  });
+}
+
+export function answerRuntimeApproval(answer: ApprovalAnswer): void {
+  answerApproval?.(answer);
+}
+
+async function readJsonFile(projectId: string, path: string): Promise<unknown> {
+  const raw = await store.readFile(projectId, path);
+  return typeof raw === "string" ? safeJson(raw) : null;
+}
+
+export function runtimeController(projectId: string): RuntimeController {
+  const client = async () => {
+    const c = await hubClient();
+    if (typeof c === "string") throw new Error(c);
+    return c;
+  };
+
+  const finish = async (c: HubClient, job: HubJob): Promise<RuntimeJob> => {
+    let assets = importedJobs.get(job.id) ?? [];
+    const terminal = job.state === "done" || job.state === "failed" || job.state === "cancelled";
+    if (terminal && !importedJobs.has(job.id)) {
+      importedJobs.set(job.id, []);
+      const files = await Promise.all(job.outputs.map(async (o) => new File([await c.output(job.id, o.name)], o.name)));
+      assets = (await addAssetFiles(projectId, files, { attach: false })).names;
+      importedJobs.set(job.id, assets);
+      if (job.state === "done") await recordLock(projectId, job);
+    }
+    return {
+      id: job.id,
+      state: job.state === "created" ? "queued" : job.state,
+      exitCode: job.exit_code,
+      error: job.error,
+      log: job.log,
+      assets,
+      resolved: job.resolved,
+      seconds: job.seconds,
+    };
+  };
+
+  return {
+    unavailable: async () => {
+      const c = await hubClient();
+      return typeof c === "string" ? c : null;
+    },
+    info: async () => {
+      const c = await client();
+      const [system, runtime] = await Promise.all([c.system(), c.runtime()]);
+      return {
+        platform: system.platform,
+        accelerators: system.accelerators,
+        gpus: system.gpus.map((g) => g.name),
+        environments: runtime.environments.map((e) => e.packages),
+        programs: Object.fromEntries(Object.entries(runtime.programs).map(([name, path]) => [name, Boolean(path)])),
+      };
+    },
+    run: async (request, signal) => {
+      const missing = request.inputs.filter((name) => !assetBlobs.has(name));
+      if (missing.length) {
+        throw new Error(`No asset named ${missing.join(", ")}. Available: ${[...assetBlobs.keys()].join(", ") || "none"}.`);
+      }
+      const grants = parseGrants(await store.readFile(projectId, PERMISSIONS_FILE));
+      const needed = approvalNeeded(grants, request);
+      if (needed) {
+        const answer = await requestApproval(needed, signal);
+        if (answer === "deny") throw new Error("The person did not allow this. Ask them in your reply, or find a way that runs in the browser.");
+        if (answer === "project") await store.writeFile(projectId, PERMISSIONS_FILE, JSON.stringify(grant(grants, request), null, 2));
+      }
+      const c = await client();
+      const job = await c.createJob({ kind: request.kind, packages: request.packages, code: request.code, argv: request.argv, timeout_s: request.timeoutS });
+      for (const name of request.inputs) await c.putInput(job.id, name, assetBlobs.get(name)!);
+      await c.start(job.id);
+      return finish(c, await c.wait(job.id, request.waitS));
+    },
+    job: async (id, waitS) => {
+      const c = await client();
+      return finish(c, await c.wait(id, waitS));
+    },
+  };
+}
+
+/** project.lock.json: what the project's results depend on (exact package versions, programs). */
+async function recordLock(projectId: string, job: HubJob): Promise<void> {
+  const lock = ((await readJsonFile(projectId, LOCK_FILE)) ?? {}) as { python?: Array<{ packages: string[]; resolved: string[] }>; programs?: string[] };
+  if (job.kind === "command") {
+    lock.programs = [...new Set([...(lock.programs ?? []), programName(job.argv[0] ?? "")])].sort();
+  } else {
+    const packages = job.packages;
+    const others = (lock.python ?? []).filter((e) => e.packages.join() !== packages.join());
+    lock.python = [...others, { packages, resolved: job.resolved }];
+  }
+  await store.writeFile(projectId, LOCK_FILE, JSON.stringify(lock, null, 2));
 }
 
 // --- external agents (MCP bridge) ---
@@ -598,7 +742,7 @@ export async function runExternalTool(name: string, input: unknown): Promise<Too
   const project = get().project!;
   const id = ++activitySerial;
   set((st) => ({ activity: [...st.activity, { id, tool: name, input, at: Date.now(), output: null }].slice(-ACTIVITY_LIMIT) }));
-  const env = { ...projectEnv(project.id, host), user: { ask: async () => null }, signal: new AbortController().signal };
+  const env: ToolEnv = { ...projectEnv(project.id, host), user: { ask: async () => null }, signal: new AbortController().signal };
   const output = await runTool(tool, input, env);
   set((st) => ({ activity: st.activity.map((a) => (a.id === id ? { ...a, output } : a)) }));
   if (!tool.readOnly && !output.isError) noteControlChange(`${get().external?.client ?? "Agent"}: ${name.replace("_", " ")}`, "action");
@@ -637,7 +781,7 @@ export async function sendPrompt(text: string): Promise<void> {
   await flushControlVersion();
 
   const projectId = project.id;
-  const { scene: controller, history, assets: assetsEnv } = projectEnv(projectId, host);
+  const { scene: controller, history, assets: assetsEnv, runtime } = projectEnv(projectId, host);
 
   const user: UserController = {
     ask: (question, options, signal) =>
@@ -679,8 +823,8 @@ export async function sendPrompt(text: string): Promise<void> {
       model,
       effort: settings.effort,
       system: SYSTEM_PROMPT,
-      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...USER_TOOLS],
-      env: { scene: controller, history, assets: assetsEnv, user },
+      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...RUNTIME_TOOLS, ...USER_TOOLS],
+      env: { scene: controller, history, assets: assetsEnv, user, runtime },
       messages,
       signal: abort.signal,
       onEvent(event) {
