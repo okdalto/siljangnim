@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Siljangnim</title>
+  <rect width="512" height="512" rx="116" fill="#111113"/>
+  <g fill="none" stroke="#F4F1EA" stroke-width="44" stroke-linecap="round">
+    <path d="M256 138 C 232 248, 192 318, 140 372"/>
+    <path d="M244 232 C 278 302, 318 342, 372 372"/>
+  </g>
+  <g fill="#111113" stroke="#F4F1EA" stroke-width="18">
+    <circle cx="140" cy="372" r="30"/>
+    <circle cx="372" cy="372" r="30"/>
+  </g>
+  <circle cx="256" cy="138" r="38" fill="#FF4D2E"/>
+</svg>

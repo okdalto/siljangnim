@@ -2,7 +2,7 @@ name: Desktop
 
 on:
   pull_request:
-    paths: ["desktop/**", "hub/**", "frontend/**", "package.json", ".github/workflows/desktop.yml"]
+    paths: ["desktop/**", "hub/**", "studio/**", "package.json", ".github/workflows/desktop.yml"]
   push:
     branches: [main]
     tags: ["v*"]
@@ -20,9 +20,11 @@ jobs:
         with:
           node-version: 22
       - run: npm install
-      - name: Tests (frontend + hub)
+      - name: Typecheck and lint
+        run: npm run check
+      - name: Tests (studio + hub)
         run: npm test
-      - name: Smoke test (stage + launch)
+      - name: Smoke test (stage, launch, one agent run against a mock API)
         run: xvfb-run -a npm run smoke
       - uses: actions/upload-artifact@v4
         if: always()

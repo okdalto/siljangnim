@@ -3,12 +3,13 @@
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "postinstall": "npm --prefix frontend ci && npm --prefix desktop ci",
+    "postinstall": "npm --prefix studio ci && npm --prefix desktop ci",
     "dev": "npm --prefix desktop run dev",
-    "web": "npm --prefix frontend run dev",
-    "dist": "npm --prefix desktop run dist",
-    "test": "npm --prefix frontend test && node desktop/scripts/test-hub.mjs",
-    "smoke": "npm --prefix desktop run stage && npm --prefix desktop run smoke"
+    "web": "npm --prefix studio run dev",
+    "check": "npm --prefix studio run typecheck && npm --prefix studio run lint",
+    "test": "npm --prefix studio test && node desktop/scripts/test-hub.mjs",
+    "smoke": "npm --prefix desktop run stage && npm --prefix desktop run smoke",
+    "dist": "npm --prefix desktop run dist"
   },
   "engines": {
     "node": ">=22"

@@ -1,21 +1,19 @@
-// Dev loop: Vite dev server (browser mode, hot reload) + Electron pointed at it.
+// Dev loop: the studio's Vite dev server (hot reload) + Electron pointed at it.
 import { spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import electronPath from "electron";
 
 const desktopDir = join(dirname(fileURLToPath(import.meta.url)), "..");
-const frontendDir = join(desktopDir, "..", "frontend");
+const studioDir = join(desktopDir, "..", "studio");
 const PORT = 5173;
+// The UI runs on localhost; the scene runtime on 127.0.0.1 (a separate origin).
 const DEV_URL = `http://localhost:${PORT}`;
 
-const vercel = JSON.parse(readFileSync(join(frontendDir, "vercel.json"), "utf8"));
-const vite = spawn(
-  process.execPath,
-  [join(frontendDir, "node_modules", "vite", "bin", "vite.js"), "--port", String(PORT), "--strictPort"],
-  { cwd: frontendDir, env: { ...process.env, ...vercel.build.env }, stdio: "inherit" },
-);
+const vite = spawn(process.execPath, [join(studioDir, "node_modules", "vite", "bin", "vite.js")], {
+  cwd: studioDir,
+  stdio: "inherit",
+});
 
 let electron = null;
 function shutdown(code = 0) {
@@ -33,13 +31,13 @@ process.on("SIGTERM", () => shutdown());
 async function waitForVite() {
   for (let i = 0; i < 120; i++) {
     try {
-      if ((await fetch(DEV_URL)).ok) return;
+      if ((await fetch(`http://127.0.0.1:${PORT}/`)).ok) return;
     } catch {
       // not up yet
     }
     await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error(`vite did not start on ${DEV_URL}`);
+  throw new Error(`vite did not start on port ${PORT}`);
 }
 
 await waitForVite();

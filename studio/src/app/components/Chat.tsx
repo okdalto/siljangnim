@@ -1,0 +1,257 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import Markdown from "react-markdown";
+import type Anthropic from "@anthropic-ai/sdk";
+import { ANTHROPIC_MODELS } from "../../agent/llm/anthropic";
+import type { MessageParam } from "../../agent/llm/types";
+import { clearChat, dismissNotice, sendPrompt, stopAgent } from "../session";
+import { useApp, type LiveTurn } from "../state";
+import { AlertIcon, CheckIcon, SendIcon, Spinner, StopIcon, XIcon } from "./icons";
+
+type ToolResult = Anthropic.Beta.BetaToolResultBlockParam;
+
+const TOOL_LABELS: Record<string, string> = {
+  scene_read: "Read scene",
+  scene_write: "Wrote scene",
+  scene_edit: "Edited scene",
+  viewport_capture: "Looked at the viewport",
+  viewport_status: "Checked status",
+};
+
+const EXAMPLES = [
+  "Slow blue waves drifting across the screen",
+  "A reaction-diffusion simulation I can disturb with the mouse",
+  "레이마칭으로 무한 평면 위의 반사 구체",
+];
+
+export function Chat() {
+  const messages = useApp((s) => s.messages);
+  const live = useApp((s) => s.live);
+  const notice = useApp((s) => s.notice);
+  const settings = useApp((s) => s.settings);
+  const results = useMemo(() => collectResults(messages), [messages]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, live]);
+
+  const modelLabel =
+    settings.provider === "anthropic"
+      ? (ANTHROPIC_MODELS.find((m) => m.id === settings.anthropicModel)?.label ?? settings.anthropicModel)
+      : settings.openaiModel || "custom model";
+
+  return (
+    <aside className="flex w-[420px] shrink-0 flex-col border-l border-line bg-panel">
+      <div className="flex h-10 shrink-0 items-center justify-between border-b border-line px-4 text-xs">
+        <span className="text-muted">
+          Agent · <span className="text-fg">{modelLabel}</span>
+        </span>
+        {messages.length > 0 && !live && (
+          <button type="button" onClick={() => void clearChat()} className="text-faint hover:text-fg">
+            New chat
+          </button>
+        )}
+      </div>
+
+      <div ref={scrollRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm leading-relaxed">
+        {messages.length === 0 && !live && <Empty />}
+        {messages.map((m, i) => (
+          <Message key={i} message={m} results={results} />
+        ))}
+        {live && <Live live={live} />}
+      </div>
+
+      {notice && (
+        <div className={`mx-3 mb-2 flex items-start gap-2 rounded-md px-3 py-2 text-xs ${notice.kind === "error" ? "bg-danger/10 text-danger" : "bg-raised text-muted"}`}>
+          <AlertIcon size={14} className="mt-0.5 shrink-0" />
+          <span className="flex-1">{notice.text}</span>
+          <button type="button" onClick={dismissNotice} className="opacity-70 hover:opacity-100">
+            <XIcon size={13} />
+          </button>
+        </div>
+      )}
+      <Composer busy={Boolean(live)} />
+    </aside>
+  );
+}
+
+function Empty() {
+  return (
+    <div className="pt-10 text-center">
+      <p className="text-base font-medium">What should we make?</p>
+      <p className="mt-1 text-xs text-muted">Describe a visual. The agent writes it, runs it and checks the result.</p>
+      <div className="mt-6 space-y-2">
+        {EXAMPLES.map((e) => (
+          <button
+            key={e}
+            type="button"
+            onClick={() => void sendPrompt(e)}
+            className="block w-full rounded-lg border border-line px-3 py-2 text-left text-xs text-muted transition-colors hover:border-faint hover:text-fg"
+          >
+            {e}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Message({ message, results }: { message: MessageParam; results: Map<string, ToolResult> }) {
+  const blocks = typeof message.content === "string" ? [{ type: "text" as const, text: message.content }] : message.content;
+  if (message.role === "user") {
+    const text = blocks.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("\n");
+    if (!text) return null; // tool results render under their tool calls
+    return (
+      <div className="flex justify-end">
+        <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-raised px-3.5 py-2">{text}</div>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-2">
+      {blocks.map((block, i) => {
+        if (block.type === "text" && block.text.trim()) {
+          return (
+            <div key={i} className="prose-chat">
+              <Markdown>{block.text}</Markdown>
+            </div>
+          );
+        }
+        if (block.type === "thinking" && block.thinking.trim()) return <Thought key={i} text={block.thinking} />;
+        if (block.type === "tool_use") return <ToolChip key={i} name={block.name} result={results.get(block.id)} />;
+        return null;
+      })}
+    </div>
+  );
+}
+
+function Thought({ text, live = false }: { text: string; live?: boolean }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="text-xs text-faint">
+      <button type="button" onClick={() => setOpen(!open)} className={`hover:text-muted ${live ? "animate-pulse" : ""}`}>
+        {live ? "Thinking…" : "Thought"} {open ? "▾" : "▸"}
+      </button>
+      {open && <div className="mt-1 whitespace-pre-wrap border-l border-line pl-3">{text}</div>}
+    </div>
+  );
+}
+
+function ToolChip({ name, result, running = false }: { name: string; result?: ToolResult; running?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const label = TOOL_LABELS[name] ?? name;
+  const content = result?.content;
+  const items = typeof content === "string" ? [{ type: "text" as const, text: content }] : (content ?? []);
+  const image = items.find((c) => c.type === "image");
+  const text = items.flatMap((c) => (c.type === "text" ? [c.text] : [])).join("\n");
+  const failed = Boolean(result?.is_error);
+
+  return (
+    <div className="text-xs">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        disabled={!result}
+        className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 ${failed ? "border-danger/40 text-danger" : "border-line text-muted"} ${result ? "hover:text-fg" : ""}`}
+      >
+        {running ? <Spinner size={12} /> : failed ? <AlertIcon size={12} /> : <CheckIcon size={12} />}
+        {running ? `${label}…` : failed ? `${label} — failed` : label}
+      </button>
+      {image?.type === "image" && image.source.type === "base64" && (
+        <img
+          src={`data:${image.source.media_type};base64,${image.source.data}`}
+          alt="Viewport capture"
+          className="mt-2 max-h-40 rounded-md border border-line"
+        />
+      )}
+      {open && text && <pre className="mt-1.5 max-h-64 overflow-auto whitespace-pre-wrap rounded-md bg-bg p-2 font-mono text-[11px] text-muted">{text}</pre>}
+    </div>
+  );
+}
+
+function Live({ live }: { live: LiveTurn }) {
+  const idle = !live.text && !live.tools.length;
+  return (
+    <div className="space-y-2">
+      {live.thinking && <Thought text={live.thinking} live />}
+      {live.text && (
+        <div className="prose-chat">
+          <Markdown>{live.text}</Markdown>
+        </div>
+      )}
+      {live.tools.map((t) => (
+        <ToolChip key={t.id} name={t.name} running />
+      ))}
+      {idle && !live.thinking && (
+        <div className="flex items-center gap-2 text-xs text-faint">
+          <Spinner size={12} /> Working…
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Composer({ busy }: { busy: boolean }) {
+  const [text, setText] = useState("");
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+  }, [text]);
+
+  const submit = () => {
+    if (busy || !text.trim()) return;
+    void sendPrompt(text);
+    setText("");
+  };
+
+  return (
+    <div className="shrink-0 border-t border-line p-3">
+      <div className="flex items-end gap-2 rounded-xl border border-line bg-bg px-3 py-2 focus-within:border-faint">
+        <textarea
+          ref={ref}
+          rows={1}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            // Don't send while an IME (Korean, Japanese…) is still composing.
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          placeholder={busy ? "The agent is working…" : "Describe what you want to see"}
+          className="max-h-[200px] flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-faint"
+        />
+        {busy ? (
+          <button type="button" onClick={stopAgent} className="rounded-lg bg-raised p-1.5 text-fg hover:bg-line" title="Stop">
+            <StopIcon size={15} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={submit}
+            disabled={!text.trim()}
+            className="rounded-lg bg-accent p-1.5 text-white transition-opacity disabled:opacity-30"
+            title="Send"
+          >
+            <SendIcon size={15} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function collectResults(messages: MessageParam[]): Map<string, ToolResult> {
+  const map = new Map<string, ToolResult>();
+  for (const m of messages) {
+    if (m.role !== "user" || typeof m.content === "string") continue;
+    for (const b of m.content) if (b.type === "tool_result") map.set(b.tool_use_id, b);
+  }
+  return map;
+}

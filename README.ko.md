@@ -19,9 +19,10 @@
 
 ---
 
-> **실장님 v2를 만들고 있습니다.** 데스크톱 앱, 로컬 런타임, MCP 연결을
-> 단계별로 만드는 중입니다([계획](docs/architecture.md#11-단계별-계획)).
-> **지금 되는 것**에 있는 기능은 바로 쓸 수 있고, 나머지는 앞으로의 방향입니다.
+> **실장님 v2를 만들고 있습니다.** 앱을 데스크톱 스튜디오로 처음부터 다시 만드는 중입니다
+> ([계획](docs/architecture.md#11-단계별-계획), [스튜디오 설계](docs/studio.md)).
+> **지금 되는 것**은 새 스튜디오 기준입니다. 기능이 더 많은 v1 웹 앱은 새 스튜디오가
+> 따라잡을 때까지 [siljangnim.vercel.app](https://siljangnim.vercel.app/)에 그대로 있습니다.
 
 ## 어떤 앱인가요
 
@@ -43,14 +44,19 @@
 
 ## 지금 되는 것
 
-- **실시간 셰이더 씬** — WebGL2/WebGPU, 멀티패스 버퍼, 3D, 후처리. 에이전트가 작성하고 디버깅합니다.
-- **자동 생성 컨트롤** — 슬라이더, 컬러 피커, 2D 패드, 카메라 오빗. 유니폼에 연결되고 undo/redo를 지원합니다.
-- **입력** — 오디오 분석, 마이크, MIDI, OSC, 웹캠 손·포즈·얼굴 추적(MediaPipe).
-- **에셋** — 이미지, 비디오, 폰트, SVG, 오디오, 3D 모델(OBJ, FBX, glTF 스켈레탈 애니메이션 포함).
-- **타임라인** — 모든 유니폼에 이징 키프레임. MP4, WebM, PNG 시퀀스로 녹화.
-- **프로젝트** — 브랜치와 비교가 되는 버전 트리, 멀티탭 채팅, GitHub 저장/불러오기.
-- **데스크톱 앱** — macOS(Apple Silicon)와 Windows. 앱이 직접 관리하는 Python 런타임 포함.
-- **AI 프로바이더** — Anthropic, OpenAI, Gemini, GLM, 또는 OpenAI 호환 서버(vLLM, Ollama 등).
+새 스튜디오(데스크톱 앱, `npm run web`) 기준:
+
+- **에이전트가 만드는 실시간 씬** — 원하는 비주얼을 말하면 에이전트가 WebGL2 씬을 쓰고, 줄 번호가 붙은
+  컴파일 에러를 받아 고치고, 결과 화면을 캡처해 확인한 뒤 답합니다.
+- **격리된 씬 런타임** — 씬 코드는 별도 출처에서 자체 보안 정책 아래 실행되어 프로젝트나 API 키에 접근할 수 없습니다.
+- **실시간 컨트롤** — 에이전트가 노출한 파라미터(슬라이더, 색, 토글, 벡터)를 바꾸면 바로 반영됩니다.
+- **프로젝트** — 여러 프로젝트와 각각의 씬·채팅을 로컬에 저장합니다.
+- **AI 프로바이더** — Anthropic(기본 Claude Opus 5.5) 또는 OpenAI 호환 서버(OpenAI, vLLM, Ollama 등).
+- **데스크톱 앱** — macOS(Apple Silicon)와 Windows. API 키는 OS 키체인으로 암호화되고 앱 화면에는
+  전달되지 않습니다. Python 런타임은 앱이 직접 관리합니다.
+
+v1에서 다음으로 옮겨 올 것([마일스톤](docs/studio.md#마일스톤)): WebGPU, 에이전트가 만드는 패널, 에셋 업로드,
+타임라인·키프레임, 버전 히스토리(M2). 녹화, 오디오·카메라·MIDI·MediaPipe 입력, v1 프로젝트 가져오기(M3).
 
 ## 다운로드
 
@@ -84,9 +90,10 @@ npm run dev
 | 명령 | 하는 일 |
 |---|---|
 | `npm run dev` | 데스크톱 앱 (코드 수정 시 바로 반영) |
-| `npm run web` | 브라우저 전용 버전, http://localhost:5173 |
-| `npm test` | 프론트엔드와 허브 테스트 |
-| `npm run smoke` | 빌드 → 실행 → 스크린샷 → 동작 확인 |
+| `npm run web` | 브라우저에서 스튜디오 실행, http://localhost:5173 |
+| `npm run check` | 타입 검사와 린트 |
+| `npm test` | 스튜디오와 허브 테스트 |
+| `npm run smoke` | 데스크톱 앱 빌드·실행, 목 API로 에이전트 한 번 실행, 스크린샷과 동작 확인 |
 | `npm run dist` | 현재 플랫폼용 설치 파일을 `desktop/release/`에 빌드 |
 
 `v*` 태그를 푸시하면 GitHub Actions가 두 플랫폼의 설치 파일을 빌드합니다.
@@ -98,7 +105,8 @@ npm run dev
         \                 /
          ▼               ▼
  ┌────────── 실장님 데스크톱 (Electron) ──────────────┐
- │ Renderer   노드 캔버스 · 뷰포트 · 패널              │
+ │ Studio     채팅 · 뷰포트 · 컨트롤                   │
+ │            씬은 격리된 출처에서 실행                 │
  │ Hub        로컬 Python 사이드카: MCP, 런타임,       │
  │            레시피, 출처 기록, 권한                   │
  └────────────────────────────────────────────────────┘
@@ -112,18 +120,19 @@ npm run dev
 ## 저장소 구성
 
 ```
-desktop/    Electron 셸: 창, app:// 프로토콜, 허브 프로세스, 설치 파일
+studio/     앱: React + TypeScript UI, 내장 에이전트, 격리된 씬 런타임
+desktop/    Electron 셸: 창, app:// 프로토콜, 키 보관, 허브 프로세스, 설치 파일
 hub/        앱이 실행하는 Python 사이드카 (uv로 관리)
-frontend/   렌더러: React, 노드 캔버스, GL 엔진, 내장 에이전트 (웹 빌드와 공용)
-backend/    v1의 FastAPI 서버. 2단계에서 hub/로 대체
+frontend/   v1 웹 앱 (스튜디오가 대체할 때까지 siljangnim.vercel.app에 배포)
+backend/    v1 FastAPI 서버. hub/로 대체
 docs/       아키텍처와 가이드
 ```
 
 ## 웹 버전
 
-[siljangnim.vercel.app](https://siljangnim.vercel.app/)은 렌더러와 내장 에이전트를 브라우저에서
-실행합니다. 셰이더, 패널, 녹화, 브라우저용 ML까지 됩니다. 로컬 런타임이 필요한 도구(Python
-패키지, CLI 앱, GPU 모델)는 데스크톱 앱에서 쓸 수 있습니다.
+[siljangnim.vercel.app](https://siljangnim.vercel.app/)에는 아직 v1 웹 앱이 배포되어 있습니다. 새 스튜디오도
+브라우저에서 돌아가며(`npm run web`), v1 기능을 따라잡으면 웹에도 배포합니다. 로컬 런타임이 필요한
+도구(Python 패키지, CLI 앱, GPU 모델)는 데스크톱 앱에서 쓰게 됩니다.
 
 ## 비용과 보안
 

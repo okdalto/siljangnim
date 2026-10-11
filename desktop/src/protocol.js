@@ -1,15 +1,19 @@
-// Serves the renderer from app://siljangnim/ and answers /api/proxy with the
-// same handler the web build uses on Vercel. A fixed custom origin keeps
-// IndexedDB/localStorage stable across launches (a random localhost port would
-// not) and counts as a secure context for WebGPU and the camera.
+// app:// protocol.
+//
+//   app://siljangnim/…           the studio UI (stage/renderer)
+//   app://siljangnim/api/llm/…   LLM forwarder; adds API keys from the main process
+//   app://scene/scene.html       the scene runtime, a separate origin with no access to the app's storage
+//
+// Fixed custom origins keep IndexedDB/localStorage stable across launches and
+// count as secure contexts (WebGPU, camera).
+import { timingSafeEqual } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { protocol } from "electron";
-import { proxyModulePath, rendererDir } from "./paths.js";
+import { llmForwardModulePath, rendererDir } from "./paths.js";
 
 export const SCHEME = "app";
-export const ORIGIN = `${SCHEME}://siljangnim`;
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -25,8 +29,6 @@ const MIME = {
   ".wasm": "application/wasm",
   ".woff2": "font/woff2",
   ".txt": "text/plain; charset=utf-8",
-  ".md": "text/markdown; charset=utf-8",
-  ".glsl": "text/plain; charset=utf-8",
 };
 
 // Must run before app "ready".
@@ -47,40 +49,87 @@ export function registerScheme() {
   ]);
 }
 
-async function serveFile(root, pathname) {
+async function serveFile(root, pathname, { spaFallback }) {
   const rel = normalize(decodeURIComponent(pathname)).replace(/^[/\\]+/, "");
   let file = join(root, rel);
-  if (file !== root && !file.startsWith(root + sep)) {
-    return new Response("Not found", { status: 404 });
+  if (file !== root && !file.startsWith(root + sep)) return notFound();
+  if (!extname(file)) {
+    if (!spaFallback) return notFound();
+    file = join(root, "index.html");
   }
-  // SPA fallback: extensionless paths are client-side routes.
-  if (!extname(file)) file = join(root, "index.html");
   try {
     const body = await readFile(file);
-    const type = MIME[extname(file).toLowerCase()] || "application/octet-stream";
-    return new Response(body, { headers: { "Content-Type": type } });
+    return new Response(body, { headers: { "Content-Type": MIME[extname(file).toLowerCase()] || "application/octet-stream" } });
   } catch {
-    return new Response("Not found", { status: 404 });
+    return notFound();
   }
 }
 
-export async function handleAppProtocol() {
-  const { handleProxy } = await import(pathToFileURL(proxyModulePath()).href);
+function notFound() {
+  return new Response("Not found", { status: 404 });
+}
+
+export const FORWARDER_TOKEN_HEADER = "x-siljangnim-token";
+
+function tokenMatches(supplied, expected) {
+  const a = Buffer.from(supplied ?? "");
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+/**
+ * @param {{
+ *   origins: { app: string, scene: string },
+ *   keys: import("./keys.js").KeyStore,
+ *   forwarderToken: string,
+ *   serveRenderer: boolean,
+ * }} options
+ */
+export async function handleAppProtocol({ origins, keys, forwarderToken, serveRenderer }) {
+  const { forwardLlmRequest, LLM_PREFIX } = await import(pathToFileURL(llmForwardModulePath()).href);
   const root = normalize(rendererDir());
+
+  const cors = (response) => {
+    // Only matters in dev, where the UI runs on http://localhost and calls app://.
+    if (origins.app !== "app://siljangnim") {
+      response.headers.set("Access-Control-Allow-Origin", origins.app);
+      response.headers.set("Access-Control-Allow-Headers", "*");
+      response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    }
+    return response;
+  };
 
   protocol.handle(SCHEME, async (request) => {
     const url = new URL(request.url);
-    if (url.host !== "siljangnim") return new Response("Not found", { status: 404 });
 
-    if (url.pathname === "/api/proxy") {
-      if (request.method === "OPTIONS") return new Response(null, { status: 204 });
-      if (request.method !== "POST") return new Response("Method not allowed", { status: 405 });
+    if (url.host === "siljangnim" && url.pathname.startsWith(LLM_PREFIX)) {
+      if (request.method === "OPTIONS") return cors(new Response(null, { status: 204 }));
+      // Keys are attached here, so only the app UI may call. Electron drops
+      // Origin for custom protocols, so the app proves itself with a per-launch
+      // token it gets over IPC; the scene runtime (another origin, no preload)
+      // never has it.
+      if (!tokenMatches(request.headers.get(FORWARDER_TOKEN_HEADER), forwarderToken)) {
+        return new Response("Forbidden", { status: 403 });
+      }
       try {
-        return await handleProxy(request, ORIGIN);
+        return cors(
+          await forwardLlmRequest(request, {
+            getKey: (provider) => keys.get(provider),
+            // Optional gateway (or the smoke test's mock server) instead of api.anthropic.com.
+            anthropicBaseUrl: process.env.SILJANGNIM_ANTHROPIC_BASE_URL || undefined,
+          }),
+        );
       } catch (err) {
-        return Response.json({ error: err.message }, { status: 502 });
+        return cors(Response.json({ type: "error", error: { type: "proxy_error", message: err.message } }, { status: 502 }));
       }
     }
-    return serveFile(root, url.pathname);
+
+    if (!serveRenderer) return notFound();
+    if (url.host === "siljangnim") return serveFile(root, url.pathname, { spaFallback: true });
+    // The scene origin serves only its own document and the built assets.
+    if (url.host === "scene" && (url.pathname === "/scene.html" || url.pathname.startsWith("/assets/"))) {
+      return serveFile(root, url.pathname, { spaFallback: false });
+    }
+    return notFound();
   });
 }
