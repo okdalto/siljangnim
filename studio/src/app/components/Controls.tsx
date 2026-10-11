@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { evaluateTrack, keyAt } from "../../scene/gl/keyframes";
 import { KEYFRAMABLE, type UniformDef, type UniformValue } from "../../scene/schema";
 import { controlSections } from "../controlLayout";
+import { CustomPanel } from "./CustomPanel";
 import { KEY_SNAP_SECONDS, pulseUniform, setUniformValue, toggleKey } from "../session";
 import { useApp } from "../state";
 
@@ -13,8 +14,9 @@ export function Controls() {
   const uniforms = useApp((s) => s.scene.uniforms);
   const groups = useApp((s) => s.scene.controls);
   const hasMonitors = useApp((s) => Object.keys(s.monitors).length > 0);
+  const panel = useApp((s) => s.scene.panel);
   const sections = controlSections({ uniforms, controls: groups });
-  if (!sections.length && !hasMonitors) {
+  if (!sections.length && !hasMonitors && !panel) {
     return (
       <div className="shrink-0 border-t border-line bg-panel px-4 py-3 text-xs text-faint">
         No controls yet. Ask the agent to expose the parameters you want to tweak.
@@ -22,7 +24,8 @@ export function Controls() {
     );
   }
   return (
-    <div className="max-h-[38%] shrink-0 space-y-4 overflow-y-auto border-t border-line bg-panel px-4 py-3" data-testid="controls">
+    <div className="max-h-[45%] shrink-0 space-y-4 overflow-y-auto border-t border-line bg-panel px-4 py-3" data-testid="controls">
+      {panel && <CustomPanel html={panel.html} height={panel.height} />}
       {sections.map((section) => (
         <section key={section.label ?? ""}>
           {section.label && <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-faint">{section.label}</h3>}

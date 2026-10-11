@@ -133,6 +133,7 @@ async function runAgentScenario(win, sceneFrame, keys) {
   }
   await wait(300);
   const bursts = await win.webContents.executeJavaScript(`document.querySelector('[data-monitor="bursts"] .tabular-nums')?.innerText`);
+  const panel = await runPanelScenario(win);
   const sample = sceneFrame ? await sceneFrame.executeJavaScript(SAMPLE_CANVAS).catch(() => null) : null;
   const chat = await win.webContents.executeJavaScript(`({
     chips: [...document.querySelectorAll("aside button")].map((b) => b.innerText).filter((t) => /scene|viewport/i.test(t)),
@@ -144,7 +145,7 @@ async function runAgentScenario(win, sceneFrame, keys) {
     timelineMenu: document.querySelector('[data-testid="timeline-menu"]')?.innerText ?? null,
   })`);
   const [r, g, b] = sample?.meanRgb ?? [0, 0, 0];
-  return { attached, answered, approved, bursts, replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
+  return { attached, answered, approved, bursts, panel, replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
 }
 
 // Opens the History tab and describes its rows (oldest first).
@@ -158,6 +159,25 @@ const READ_HISTORY = `(async () => {
     thumbnail: Boolean(row.querySelector("img[src]")),
   }));
 })()`;
+
+/** The scene's custom panel: its button sets a uniform; it can't reach the app or the network. */
+async function runPanelScenario(win) {
+  const frame = win.webContents.mainFrame.framesInSubtree.find((f) => f.url === "about:srcdoc");
+  if (!frame) return { found: false };
+  const before = await frame.executeJavaScript(`document.getElementById("v").textContent`);
+  await frame.executeJavaScript(`document.getElementById("half").click()`);
+  await wait(400);
+  const after = await frame.executeJavaScript(`document.getElementById("v").textContent`);
+  const control = await win.webContents.executeJavaScript(`document.querySelector('[data-control="u_gain"] .tabular-nums')?.innerText`);
+  const isolation = await frame.executeJavaScript(`(async () => ({
+    parent: (() => { try { return parent.document.title; } catch { return "blocked"; } })(),
+    storage: (() => { try { return typeof localStorage.length; } catch { return "blocked"; } })(),
+    network: await fetch("https://example.com").then(() => "reached", () => "blocked"),
+  }))()`);
+  await frame.executeJavaScript(`document.getElementById("full").click()`);
+  await wait(300);
+  return { found: true, before, after, control, isolation };
+}
 
 /** After the agent run: two versions (initial + the run), then restore the first one from the panel. */
 async function runHistoryScenario(win, sceneFrame) {
@@ -181,9 +201,15 @@ async function runHistoryScenario(win, sceneFrame) {
     before,
     after,
     meanRgbAfterRestore: sample?.meanRgb,
-    recorded: before.length === 2 && /Make a calm blue field/.test(before[1]?.text ?? "") && before[1]?.current && before.every((v) => v.thumbnail),
+    // Initial scene, the agent run, then the panel's gain changes (control versions) — the last one current.
+    recorded:
+      before.length >= 2 &&
+      /Initial scene/.test(before[0]?.text ?? "") &&
+      before.some((v) => /Make a calm blue field/.test(v.text)) &&
+      Boolean(before.at(-1)?.current) &&
+      before.every((v) => v.thumbnail),
     // The default scene is orange: restoring it must replace the blue one, without adding a version.
-    restored: after.length === 2 && after[0]?.current === true && r > b,
+    restored: after.length === before.length && after[0]?.current === true && r > b,
   };
 }
 
@@ -322,6 +348,12 @@ export async function runSmokeTest(win, hub, keys, outDir) {
           approvalShown: agent.approved,
           panelWidgets: agent.widgets.includes("knob") && agent.widgets.includes("button") && agent.groups.join() === "Look,Other,Monitors",
           monitorsShown: agent.frames > 0 && agent.bursts === "2",
+          panelWorks:
+            agent.panel.found &&
+            agent.panel.before === "gain 1" &&
+            agent.panel.after === "gain 0.5" &&
+            agent.panel.control === "0.50" &&
+            Object.values(agent.panel.isolation).every((v) => v === "blocked"),
           agentReplied: agent.replied,
           agentSceneApplied: agent.blue,
           agentShowsCapture: agent.images > 0,

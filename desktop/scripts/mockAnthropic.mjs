@@ -44,6 +44,11 @@ ctx.utils.drawFullscreen(p);`,
     u_burst: { type: "bool", value: false, label: "Burst", widget: "button" },
   },
   controls: [{ label: "Look", uniforms: ["u_color", "u_gain"] }],
+  // A custom panel: two buttons that set the gain, and a readout of it.
+  panel: {
+    height: 90,
+    html: '<div id="v">gain ?</div><button id="half" onclick="siljangnim.setUniform(\'u_gain\', 0.5)">Half</button><button id="full" onclick="siljangnim.setUniform(\'u_gain\', 1)">Full</button><script>siljangnim.onValues(({ uniforms }) => { document.getElementById("v").textContent = "gain " + uniforms.u_gain; });</script>',
+  },
   inputs: [],
 });
 
