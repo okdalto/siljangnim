@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { DEFAULT_SCENE } from "../scene/schema";
-import { displayedValue, redo, setUniformValue, toggleKey, undo, updateTimeline } from "./session";
+import { displayedValue, mergeActions, redo, setUniformValue, toggleKey, undo, updateTimeline } from "./session";
 import { useApp } from "./state";
 
 const speed = () => useApp.getState().scene.uniforms.u_speed!.value;
@@ -68,5 +68,15 @@ describe("controls, keyframes and undo (no scene host)", () => {
     updateTimeline(null);
     expect(useApp.getState().scene.timeline).toBeUndefined();
     expect(useApp.getState().scene.keyframes).toEqual({});
+  });
+});
+
+describe("version messages", () => {
+  it("merge an agent's actions under its name", () => {
+    expect(mergeActions(["Claude Code: scene write", "Added Speed key", "Claude Code: scene edit", "Codex: python run"])).toEqual([
+      "Claude Code: scene write, scene edit",
+      "Added Speed key",
+      "Codex: python run",
+    ]);
   });
 });
