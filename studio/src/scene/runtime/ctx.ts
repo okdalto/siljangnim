@@ -100,6 +100,8 @@ export interface SceneCtx {
   uniforms: Record<string, UniformValue>;
   /** Asset name → object URL. */
   assets: Record<string, string>;
+  /** Same object as assets, for scenes imported from v1 (which used ctx.uploads). */
+  uploads: Record<string, string>;
   /** Microphone or audio-file analysis (see ctx.utils.audio); zeros until a source runs. */
   audio: AudioState;
   /** MIDI input (inputs: ["midi"] or ctx.utils.enableMidi()). */
@@ -155,6 +157,7 @@ export function createCtx(
     keys: new Set(),
     uniforms,
     assets,
+    uploads: assets,
     audio: inputs?.audio ?? emptyAudio(),
     midi: inputs?.midi ?? emptyMidi(),
     publish,
