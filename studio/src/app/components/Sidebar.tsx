@@ -5,6 +5,7 @@ import { Activity } from "./Activity";
 import { Assets } from "./Assets";
 import { Chat, ChatHeaderActions } from "./Chat";
 import { History } from "./History";
+import { Jobs } from "./Jobs";
 
 const TABS = [
   { id: "chat", label: "Chat" },
@@ -22,8 +23,10 @@ const EXTERNAL_TABS = [
 export function Sidebar() {
   const external = useApp((s) => Boolean(s.external));
   const selected = useApp((s) => s.sidebarTab);
-  const tabs = external ? EXTERNAL_TABS : TABS;
-  const tab = tabs.some((t) => t.id === selected) ? selected : tabs[0].id;
+  const jobsUsed = useApp((s) => s.jobsUsed);
+  // The Jobs tab appears once the agent has run something on this computer.
+  const tabs = [...(external ? EXTERNAL_TABS : TABS), ...(jobsUsed ? ([{ id: "jobs", label: "Jobs" }] as const) : [])];
+  const tab = tabs.some((t) => t.id === selected) ? selected : tabs[0]!.id;
   return (
     <aside className="flex w-[420px] shrink-0 flex-col border-l border-line bg-panel">
       <div className="flex h-10 shrink-0 items-center gap-3 border-b border-line px-2 text-xs">
@@ -43,7 +46,7 @@ export function Sidebar() {
         </div>
         <div className="flex min-w-0 flex-1 items-center justify-end gap-3 pr-2">{tab === "chat" && <ChatHeaderActions />}</div>
       </div>
-      {tab === "chat" ? <Chat /> : tab === "activity" ? <Activity /> : tab === "history" ? <History /> : <Assets />}
+      {tab === "chat" ? <Chat /> : tab === "activity" ? <Activity /> : tab === "history" ? <History /> : tab === "jobs" ? <Jobs /> : <Assets />}
     </aside>
   );
 }

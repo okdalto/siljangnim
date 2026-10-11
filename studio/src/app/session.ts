@@ -718,6 +718,20 @@ async function attachmentBlocks(names: string[]): Promise<ContentBlockParam[]> {
   return blocks;
 }
 
+// --- job queue (the Jobs tab) ---
+
+/** Recent hub jobs, or why there are none to show. */
+export async function listJobs(): Promise<HubJob[] | string> {
+  const c = await hubClient();
+  if (typeof c === "string") return c;
+  return (await c.jobs()).jobs;
+}
+
+export async function cancelJob(id: string): Promise<void> {
+  const c = await hubClient();
+  if (typeof c !== "string") await c.cancel(id);
+}
+
 // --- sharing: project.md (docs/project-md.md) ---
 
 async function sha256(blob: Blob): Promise<string> {
@@ -1067,7 +1081,9 @@ export function runtimeController(projectId: string): RuntimeController {
         if (answer === "project") await store.writeFile(projectId, PERMISSIONS_FILE, JSON.stringify(grant(grants, request), null, 2));
       }
       const c = await client();
-      const job = await c.createJob({ kind: request.kind, packages: request.packages, code: request.code, argv: request.argv, timeout_s: request.timeoutS });
+      const label = request.recipe ? `recipe ${request.recipe.id}` : request.kind === "python" ? `python${request.packages.length ? `: ${request.packages.map((p) => p.split(/[=<>~![]/)[0]).join(", ")}` : ""}` : programName(request.argv[0] ?? "");
+      const job = await c.createJob({ kind: request.kind, packages: request.packages, code: request.code, argv: request.argv, timeout_s: request.timeoutS, label });
+      set({ jobsUsed: true });
       for (const name of request.inputs) await c.putInput(job.id, name, assetBlobs.get(name)!);
       if (request.params) await c.putInput(job.id, "params.json", new Blob([JSON.stringify(request.params)], { type: "application/json" }));
       if (request.recipe) jobRecipes.set(job.id, `${request.recipe.id}@${request.recipe.version}`);

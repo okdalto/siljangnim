@@ -49,7 +49,9 @@ export interface AppState {
   messages: MessageParam[];
   /** The open project's versions, oldest first. */
   versions: Version[];
-  sidebarTab: "chat" | "activity" | "history" | "assets";
+  sidebarTab: "chat" | "activity" | "history" | "assets" | "jobs";
+  /** Whether this session ran runtime jobs (shows the Jobs tab). */
+  jobsUsed: boolean;
   /** Set when the viewer was opened by the MCP bridge: chat is replaced by the agent's activity. */
   external: ExternalAgent | null;
   activity: ActivityEntry[];
@@ -88,6 +90,7 @@ export const useApp = create<AppState>(() => ({
   messages: [],
   versions: [],
   sidebarTab: "chat",
+  jobsUsed: false,
   external: null,
   activity: [],
   assets: [],

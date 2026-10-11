@@ -111,3 +111,13 @@ def test_bad_input_names_and_unknown_jobs(client: TestClient):
     assert client.put(f"/jobs/{job['id']}/inputs/..%2Fescape", content=b"x", headers=AUTH).status_code in {400, 404}
     assert client.get("/jobs/nope", headers=AUTH).status_code == 404
     assert client.post("/jobs", json={"kind": "python", "packages": ["git+https://x"], "code": "pass"}, headers=AUTH).status_code == 400
+
+
+@needs_uv
+def test_job_list_is_newest_first_with_labels_and_log_tails(client: TestClient):
+    first = run_job(client, {"kind": "python", "code": "print('x' * 5000)", "label": "recipe demo.long"})
+    second = run_job(client, {"kind": "python", "code": "print('second')"})
+    jobs = client.get("/jobs", headers=AUTH).json()["jobs"]
+    assert [j["id"] for j in jobs] == [second["id"], first["id"]]
+    assert jobs[1]["label"] == "recipe demo.long"
+    assert len(jobs[1]["log"]) <= 2000 and jobs[1]["created_at"] <= jobs[0]["created_at"]

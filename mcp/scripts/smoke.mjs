@@ -196,6 +196,21 @@ const inPage = async (code, timeoutMs = 15_000) => {
   }
   return { ok: false, error: "timed out" };
 };
+// Stage 6: the job queue. A long job comes back "still running"; the person cancels it in the Jobs tab.
+const longJob = await client.callTool({ name: "python_run", arguments: { code: "import time\nprint('working', flush=True)\ntime.sleep(60)", wait_s: 1 } });
+const longId = text(longJob).match(/Job (\w+) is still/)?.[1];
+const jobsPanel = await inPage(`(async () => {
+  [...document.querySelectorAll('[role="tab"]')].find((t) => t.innerText === "Jobs").click();
+  for (let i = 0; i < 40 && !document.querySelector('[data-cancel-job="${longId}"]'); i++) await new Promise((r) => setTimeout(r, 100));
+  const row = document.querySelector('[data-job="${longId}"]');
+  const label = row?.innerText ?? "";
+  document.querySelector('[data-cancel-job="${longId}"]')?.click();
+  for (let i = 0; i < 60 && row?.dataset.jobState !== "cancelled"; i++) await new Promise((r) => setTimeout(r, 100));
+  const state = document.querySelector('[data-job="${longId}"]')?.dataset.jobState;
+  [...document.querySelectorAll('[role="tab"]')].find((t) => t.innerText === "Activity").click();
+  return { label, state, rows: document.querySelectorAll("[data-job]").length };
+})()`);
+const longAfter = longId ? await client.callTool({ name: "job_status", arguments: { id: longId, wait_s: 5 } }) : null;
 const exported = await call("project_export_md");
 const md = text(exported);
 await inPage(`(async () => {
@@ -284,11 +299,17 @@ const checks = {
     /status: draft/.test(importedRecipe),
   mdImported: !mdImport.isError && /Missing generated assets: .*points\.json \(step \d\)/.test(text(mdImport)) && /No errors/.test(text(afterImport)),
   catalogFound: !catalog.isError && /^Catalog matches[^\n]*\nvpype \[C: Python via python_run\]/.test(text(catalog)),
+  jobQueue:
+    Boolean(longId) &&
+    jobsPanel.ok &&
+    /python/.test(jobsPanel.value.label) &&
+    jobsPanel.value.state === "cancelled" &&
+    /cancelled/.test(text(longAfter)),
   runtimeStatus: !status.isError && /Python environments:.*\(no packages\)/.test(text(status)),
   // Edits close together share a version; slow steps between them (recordings) split them.
   versionSaved: /"Initial scene"/.test(text(history)) && /Claude Code: scene write/.test(text(history)) && /scene edit/.test(text(history)),
   viewerConnected: viewerState.status === "connected" && /Claude Code/.test(viewerState.statusText ?? ""),
-  chatReplacedByActivity: viewerState.tabs.join() === "Activity,History,Assets",
+  chatReplacedByActivity: viewerState.tabs.join() === "Activity,History,Assets,Jobs",
   activityLogged: ["scene_write", "viewport_capture", "scene_edit", "python_run"].every((n) => viewerState.activity.includes(n)),
   panelShown: viewerState.widgets.includes("knob") && viewerState.monitors.includes("frames") && viewerState.keyMarks === 2,
 };
@@ -297,7 +318,7 @@ viewer?.kill("SIGTERM");
 await wait(1500);
 await client.close();
 const ok = Object.values(checks).every(Boolean);
-const report = { ok, checks, captureMeanRgb: rgb, history: text(history), inputs: [text(inputScene), text(inputs)], osc: text(oscStatus), project: { bundle, bundleImport, mdImport: text(mdImport) }, viewer: viewerState };
+const report = { ok, checks, captureMeanRgb: rgb, history: text(history), inputs: [text(inputScene), text(inputs)], osc: text(oscStatus), project: { bundle, bundleImport, mdImport: text(mdImport) }, jobs: { jobsPanel, longAfter: longAfter && text(longAfter) }, viewer: viewerState };
 writeFileSync(join(out, "report.json"), JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
 clearTimeout(timeout);

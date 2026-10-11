@@ -106,8 +106,15 @@ def create_app(token: str, port: int, runtime: Runtime | None = None, recipes: R
             code=body.get("code") or "",
             argv=body.get("argv") or [],
             timeout_s=body.get("timeout_s") or 120,
+            label=body.get("label") or "",
         )
         return job.to_dict()
+
+    @app.get("/jobs")
+    def list_jobs():
+        if not runtime:
+            return unavailable()
+        return {"jobs": runtime.list_jobs()}
 
     @app.put("/jobs/{job_id}/inputs/{name}")
     async def add_input(job_id: str, name: str, request: Request):

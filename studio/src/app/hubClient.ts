@@ -44,6 +44,9 @@ export interface HubJob {
   outputs: Array<{ name: string; size: number }>;
   resolved: string[];
   seconds: number;
+  /** What it is for, e.g. "recipe trimesh.torus-knot". */
+  label?: string;
+  created_at?: number;
 }
 
 export interface HubRecipeSummary {
@@ -98,12 +101,21 @@ export class HubClient {
     return this.request<{ environments: Array<{ packages: string[] }>; programs: Record<string, string | null> }>("/runtime");
   }
 
-  createJob(body: { kind: "python" | "command"; packages: string[]; code: string; argv: string[]; timeout_s: number }) {
+  createJob(body: { kind: "python" | "command"; packages: string[]; code: string; argv: string[]; timeout_s: number; label?: string }) {
     return this.request<HubJob>("/jobs", { method: "POST", body: JSON.stringify(body) });
   }
 
   putInput(id: string, name: string, data: Blob) {
     return this.request<unknown>(`/jobs/${id}/inputs/${encodeURIComponent(name)}`, { method: "PUT", body: data });
+  }
+
+  /** Recent jobs, newest first, with the end of each log. */
+  jobs() {
+    return this.request<{ jobs: HubJob[] }>("/jobs");
+  }
+
+  cancel(id: string) {
+    return this.request<HubJob>(`/jobs/${id}/cancel`, { method: "POST" });
   }
 
   start(id: string) {

@@ -84,6 +84,9 @@ def _job_env() -> dict[str, str]:
     return env
 
 
+LIST_LOG_CHARS = 2000
+
+
 @dataclass
 class Job:
     id: str
@@ -93,6 +96,8 @@ class Job:
     code: str = ""
     argv: list[str] = field(default_factory=list)
     timeout_s: int = DEFAULT_TIMEOUT_S
+    # What the job is for, shown in the app's job list (e.g. "recipe trimesh.torus-knot").
+    label: str = ""
     state: str = "created"  # created | queued | installing | running | done | failed | cancelled
     created_at: float = field(default_factory=time.time)
     finished_at: float | None = None
@@ -120,6 +125,8 @@ class Job:
             "outputs": self.outputs,
             "resolved": self.resolved,
             "seconds": round((self.finished_at or time.time()) - self.created_at, 2),
+            "label": self.label,
+            "created_at": self.created_at,
         }
 
 
@@ -189,7 +196,7 @@ class Runtime:
 
     # --- jobs ---
 
-    def create_job(self, kind: str, *, packages: list[str] | None = None, code: str = "", argv: list[str] | None = None, timeout_s: int = DEFAULT_TIMEOUT_S) -> Job:
+    def create_job(self, kind: str, *, packages: list[str] | None = None, code: str = "", argv: list[str] | None = None, timeout_s: int = DEFAULT_TIMEOUT_S, label: str = "") -> Job:
         if kind not in {"python", "command"}:
             raise RuntimeErrorWithHint(f'unknown job kind "{kind}"')
         timeout_s = max(1, min(int(timeout_s), MAX_TIMEOUT_S))
@@ -197,7 +204,7 @@ class Runtime:
         job_dir = self.root / "jobs" / job_id
         (job_dir / "in").mkdir(parents=True)
         (job_dir / "out").mkdir()
-        job = Job(id=job_id, kind=kind, dir=job_dir, timeout_s=timeout_s)
+        job = Job(id=job_id, kind=kind, dir=job_dir, timeout_s=timeout_s, label=str(label)[:120])
         if kind == "python":
             job.packages = validate_packages(packages or [])
             if not code.strip():
@@ -213,6 +220,11 @@ class Runtime:
             job.argv = [program, *argv[1:]]
         self.jobs[job_id] = job
         return job
+
+    def list_jobs(self, limit: int = 50) -> list[dict]:
+        """Newest first, with only the end of each log."""
+        jobs = sorted(self.jobs.values(), key=lambda j: j.created_at, reverse=True)[:limit]
+        return [{**j.to_dict(), "log": j.log[-LIST_LOG_CHARS:]} for j in jobs]
 
     def add_input(self, job: Job, name: str, data: bytes) -> None:
         if job.state != "created":

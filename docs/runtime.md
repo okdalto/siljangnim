@@ -52,10 +52,21 @@
 | `PUT /jobs/{id}/inputs/{name}` | 입력 파일(본문 그대로) |
 | `POST /jobs/{id}/start` | 대기열에 넣는다 |
 | `GET /jobs/{id}?wait=s` | 상태(최대 60초까지 기다림) |
+| `GET /jobs` | 최근 작업 50개, 최신순(로그는 끝 2000자) |
 | `POST /jobs/{id}/cancel` | 취소 |
 | `GET /jobs/{id}/outputs/{name}` | 출력 파일 |
 | `GET /osc`, `POST /osc/listen {port}`, `POST /osc/stop` | OSC UDP 리스너 상태·시작·중지([m3.md](m3.md#2-입력)) |
 | `GET /osc/stream` | 받은 OSC를 server-sent events로 보낸다(`data: [[주소, 인자들], …]`) |
+
+## 작업 큐 UI (6단계)
+
+- 에이전트가 이 컴퓨터에서 무언가를 실행하면 사이드바에 **Jobs** 탭이 생긴다. 내장 에이전트와 외부 에이전트 모두 해당한다. 오래 걸리는 E 등급(GPU·큰 모델) 작업을 위한 것이다.
+- 탭에서 보이는 것:
+  - 작업마다 라벨(`recipe <id>`, `python: 패키지들`, 프로그램 이름), 상태(설치 중·실행 중 등), 경과 시간
+  - 펼치면 로그 끝부분과 출력, 에러
+  - 대기 중이거나 실행 중인 작업은 **Cancel**로 멈출 수 있다. 에이전트는 `job_status`에서 cancelled를 받는다.
+- 1.5초마다 갱신한다. 작업은 한 번에 하나씩 실행된다.
+- 검증(MCP smoke): 60초짜리 작업을 `wait_s: 1`로 시작해 "still running"을 받는다. 뷰어의 Jobs 탭에서 사람이 하듯 Cancel을 누르고, 행 상태와 `job_status`가 cancelled인지 확인한다. hub pytest는 목록 순서, 라벨, 로그 길이를 확인한다.
 
 ## 검증
 
