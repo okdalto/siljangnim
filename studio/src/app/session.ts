@@ -460,10 +460,31 @@ function flushControlVersion(): Promise<unknown> {
   controlTimer = undefined;
   const project = get().project;
   if ((!controlChanges.size && !controlActions.size) || !project) return Promise.resolve();
-  const parts = [...(controlChanges.size ? [`Adjusted ${[...controlChanges].join(", ")}`] : []), ...controlActions];
+  const parts = [...(controlChanges.size ? [`Adjusted ${[...controlChanges].join(", ")}`] : []), ...mergeActions([...controlActions])];
   controlChanges.clear();
   controlActions.clear();
   return commitVersion(project.id, versionMessage(parts.join("; ")));
+}
+
+/** "Claude Code: scene write", "Claude Code: scene edit" → "Claude Code: scene write, scene edit". */
+export function mergeActions(actions: string[]): string[] {
+  const out: string[] = [];
+  const byPrefix = new Map<string, string[]>();
+  for (const action of actions) {
+    const colon = action.indexOf(": ");
+    if (colon < 0) {
+      out.push(action);
+      continue;
+    }
+    const prefix = action.slice(0, colon);
+    const rest = byPrefix.get(prefix);
+    if (rest) rest.push(action.slice(colon + 2));
+    else {
+      byPrefix.set(prefix, [action.slice(colon + 2)]);
+      out.push(prefix);
+    }
+  }
+  return out.map((item) => (byPrefix.has(item) ? `${item}: ${byPrefix.get(item)!.join(", ")}` : item));
 }
 
 function discardControlVersion(): void {

@@ -101,7 +101,7 @@ const checks = {
   pythonRan: !calls.python_run.isError && /Saved to the project as assets: points\.json/.test(text(calls.python_run)) && /wrote 2 points/.test(text(calls.python_run)),
   commandRan: !calls.command_run.isError && /assets: cli\.txt/.test(text(calls.command_run)),
   runtimeStatus: !status.isError && /Python environments:.*\(no packages\)/.test(text(status)),
-  versionSaved: /"Initial scene"/.test(text(history)) && /scene write/.test(text(history)),
+  versionSaved: /"Initial scene"/.test(text(history)) && /Claude Code: scene write, scene edit/.test(text(history)),
   viewerConnected: viewerState.status === "connected" && /Claude Code/.test(viewerState.statusText ?? ""),
   chatReplacedByActivity: viewerState.tabs.join() === "Activity,History,Assets",
   activityLogged: ["scene_write", "viewport_capture", "scene_edit", "python_run"].every((n) => viewerState.activity.includes(n)),
