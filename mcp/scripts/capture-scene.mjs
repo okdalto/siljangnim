@@ -2,6 +2,7 @@
 // e.g. to make an example's thumbnail:
 //   node mcp/scripts/capture-scene.mjs examples/gpu-particles/scene.json examples/gpu-particles/thumbnail.png
 // Prints the runtime status (errors included). Uses the Electron from desktop/.
+// SILJANGNIM_RECORD=mp4|webm|png also records 2 s of it and prints the result.
 import { spawn } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -45,6 +46,10 @@ try {
   const image = capture.content.find((c) => c.type === "image");
   console.log(capture.content.filter((c) => c.type === "text").map((c) => c.text).join("\n"));
   if (image) writeFileSync(resolve(outPath), Buffer.from(image.data, "base64"));
+  if (process.env.SILJANGNIM_RECORD) {
+    const recorded = await client.callTool({ name: "viewport_record", arguments: { format: process.env.SILJANGNIM_RECORD, duration: 2, fps: 30, width: 640, height: 360 } });
+    console.log(recorded.content.map((c) => c.text).join("\n"));
+  }
 } finally {
   viewer?.kill("SIGTERM");
   await client.close();

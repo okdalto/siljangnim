@@ -16,6 +16,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0",
     "idb": "8.0.3",
+    "mediabunny": "1.60.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "10.1.0",

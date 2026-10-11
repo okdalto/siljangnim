@@ -3,7 +3,7 @@
 // the viewer, calls the tools and checks results and what the viewer shows.
 // Needs studio/dist (npm run smoke builds it first). Report in mcp/smoke-out/.
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -78,6 +78,10 @@ await call("scene_write", { scene: SCENE });
 const capture = await call("viewport_capture", { max_size: 256 });
 const image = capture.content.find((c) => c.type === "image");
 const rgb = image ? meanColor(Buffer.from(image.data, "base64")) : null;
+// M3: recording, offline (MP4, PNG frames) and realtime (WebM).
+const mp4 = await call("viewport_record", { format: "mp4", duration: 1, fps: 30, width: 320, height: 240 });
+const png = await call("viewport_record", { format: "png", duration: 0.2, fps: 10 });
+const live = await call("viewport_record", { mode: "realtime", duration: 1 });
 await call("scene_edit", { timeline: { duration: 4, preserveStateOnLoop: true }, keyframes: { u_gain: [{ time: 0, value: 1 }, { time: 2, value: 1 }] } });
 await call("python_run", {
   code: "import json, pathlib\npathlib.Path('out/points.json').write_text(json.dumps([[0, 0], [1, 1]]))\nprint('wrote 2 points')",
@@ -120,6 +124,17 @@ const checks = {
   recipeFound: /smoke\.points v1 \[verified here/.test(text(found)),
   recipeRan: !calls.recipe_run.isError && /Recipe smoke\.points v1 \(verified here\)/.test(text(calls.recipe_run)) && /points 12/.test(text(calls.recipe_run)),
   recipeFile: existsSync(join(out, "recipes", "smoke.points", "recipe.md")),
+  recordedMp4: !mp4.isError && /Recorded 30 frames at 320x240 \(1s, 30 fps\) to recording-[\w-]+\.mp4/.test(text(mp4)),
+  recordedPng: !png.isError && /Recorded 2 frames .* to recording-[\w-]+\.zip/.test(text(png)),
+  recordedRealtime: !live.isError && /to recording-[\w-]+\.webm/.test(text(live)),
+  recordingsDecode: /recording-[\w-]+\.mp4 .* video 320x240 1\.00s/.test(text(calls.asset_list)),
+  recordingsDownloaded: (() => {
+    try {
+      return readdirSync(join(out, "downloads")).filter((f) => f.startsWith("recording-")).length === 3;
+    } catch {
+      return false;
+    }
+  })(),
   runtimeStatus: !status.isError && /Python environments:.*\(no packages\)/.test(text(status)),
   versionSaved: /"Initial scene"/.test(text(history)) && /Claude Code: scene write, scene edit/.test(text(history)),
   viewerConnected: viewerState.status === "connected" && /Claude Code/.test(viewerState.statusText ?? ""),

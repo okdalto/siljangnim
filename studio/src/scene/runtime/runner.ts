@@ -5,7 +5,8 @@
 // nothing to track or reset by hand.
 import { evaluateTracks, sortKeys, type Keyframe } from "../gl/keyframes";
 import { ShaderError } from "../gl/shader";
-import type { CaptureResult, LoadResult, MonitorValue, RuntimeState, RuntimeStatus, SceneError, SceneErrorSource } from "../protocol";
+import type { CaptureResult, LoadResult, MonitorValue, RecordOptions, RecordResult, RuntimeState, RuntimeStatus, SceneError, SceneErrorSource } from "../protocol";
+import { recordOffline, recordRealtime } from "./recorder";
 import { uniformValues, type Scene, type Timeline, type UniformValue } from "../schema";
 import { createCtx, type SceneCtx } from "./ctx";
 import { createGpuCtx, type GpuSceneCtx } from "./gpuCtx";
@@ -37,7 +38,7 @@ const MAX_MONITOR_TEXT = 200;
 // new Function() puts the body two lines below the header in V8.
 const FUNCTION_HEADER_LINES = 2;
 
-type Emit = (event: "error" | "stats" | "monitors", data: unknown) => void;
+type Emit = (event: "error" | "stats" | "monitors" | "recording", data: unknown) => void;
 
 interface Loaded {
   generation: number;
@@ -87,6 +88,10 @@ export class SceneRunner {
   private monitorsChanged = false;
   /** Button uniforms pressed since the last frame; they read true for one rendered frame. */
   private readonly pulses = new Set<string>();
+  private recording = false;
+  private recordAbort: AbortController | null = null;
+  /** Output size while recording; the canvas ignores the container until it's cleared. */
+  private fixedSize: { width: number; height: number } | null = null;
 
   constructor(container: HTMLElement, emit: Emit) {
     this.container = container;
@@ -303,7 +308,8 @@ export class SceneRunner {
     if (dt > 0) this.fps = this.fps * 0.9 + (1 / dt) * 0.1;
 
     const loaded = this.current;
-    const active = loaded && (this.state === "running" || this.state === "paused");
+    // While recording offline, frames are rendered by the recorder at exact times instead.
+    const active = loaded && !this.recording && (this.state === "running" || this.state === "paused");
     if (active && (this.playing || this.dirty)) {
       const frameDt = this.playing ? dt : 0;
       if (this.playing) {
@@ -322,28 +328,8 @@ export class SceneRunner {
           }
         }
       }
-      const ctx = loaded.ctx;
-      Object.assign(ctx.uniforms, this.keyedValues());
-      ctx.time = this.time;
-      ctx.dt = frameDt;
-      ctx.frame = this.frame;
-      ctx.mouseDown = this.mouseDown;
-      ctx.resolution[0] = loaded.canvas.width;
-      ctx.resolution[1] = loaded.canvas.height;
       try {
-        const check = this.frame % GL_ERROR_CHECK_EVERY === 1;
-        loaded.surface.beforeRender(loaded.canvas, check);
-        const result = loaded.render(ctx);
-        ctx.mousePrev.splice(0, 4, ...this.mouse);
-        if (result instanceof Promise) {
-          throw new Error("render must be synchronous; do async work (loading, imports) in setup");
-        }
-        this.frame++;
-        this.dirty = false;
-        for (const name of this.pulses) ctx.uniforms[name] = false;
-        this.pulses.clear();
-        loaded.surface.afterRender(check, (err) => this.record(err.message.startsWith("WebGPU") ? "webgpu" : "webgl", err));
-        this.framesRendered++;
+        this.renderFrame(loaded, frameDt);
         this.flushCaptures(loaded.canvas);
       } catch (err) {
         this.fail("render", err);
@@ -363,6 +349,87 @@ export class SceneRunner {
         this.emit("monitors", { ...this.monitors });
       }
     }
+  }
+
+  /** Draw one frame at this.time. Throws what the scene's render throws. */
+  private renderFrame(loaded: Loaded, dt: number): void {
+    const ctx = loaded.ctx;
+    Object.assign(ctx.uniforms, this.keyedValues());
+    ctx.time = this.time;
+    ctx.dt = dt;
+    ctx.frame = this.frame;
+    ctx.mouseDown = this.mouseDown;
+    ctx.resolution[0] = loaded.canvas.width;
+    ctx.resolution[1] = loaded.canvas.height;
+    const check = this.frame % GL_ERROR_CHECK_EVERY === 1;
+    loaded.surface.beforeRender(loaded.canvas, check);
+    const result = loaded.render(ctx);
+    ctx.mousePrev.splice(0, 4, ...this.mouse);
+    if (result instanceof Promise) {
+      throw new Error("render must be synchronous; do async work (loading, imports) in setup");
+    }
+    this.frame++;
+    this.dirty = false;
+    for (const name of this.pulses) ctx.uniforms[name] = false;
+    this.pulses.clear();
+    loaded.surface.afterRender(check, (err) => this.record(err.message.startsWith("WebGPU") ? "webgpu" : "webgl", err));
+    this.framesRendered++;
+  }
+
+  // --- recording ---
+
+  async recordScene(options: RecordOptions): Promise<RecordResult> {
+    if (!this.source) throw new Error("no scene loaded");
+    if (this.recording) throw new Error("already recording");
+    const abort = new AbortController();
+    this.recordAbort = abort;
+    const progress = (frame: number, total: number) => this.emit("recording", { frame, total });
+    const wasPlaying = this.playing;
+    try {
+      if (options.mode === "realtime") {
+        if (!this.current) throw new Error("no scene loaded");
+        this.playing = true;
+        return await recordRealtime(options, this.current.canvas, abort.signal, progress);
+      }
+      // Offline: start the scene over at the output size, then render frame by frame.
+      if (options.width > 0 && options.height > 0) {
+        // H.264 needs even dimensions.
+        this.fixedSize = { width: options.width - (options.width % 2), height: options.height - (options.height % 2) };
+      }
+      const { scene, assets } = this.source;
+      const loaded = await this.load(scene, assets);
+      if (!loaded.ok || !this.current) throw new Error(`the scene failed to load for recording: ${loaded.errors.map((e) => e.message).join("; ")}`);
+      const current = this.current;
+      if (!this.fixedSize) {
+        const even = { width: current.canvas.width - (current.canvas.width % 2), height: current.canvas.height - (current.canvas.height % 2) };
+        this.fixedSize = even;
+        this.sizeCanvas(current.canvas);
+      }
+      this.recording = true;
+      return await recordOffline(options, {
+        canvas: current.canvas,
+        signal: abort.signal,
+        onProgress: progress,
+        renderAt: (time, dt, frame) => {
+          if (this.current !== current) throw new Error("the scene was replaced during recording");
+          this.time = time;
+          this.frame = frame;
+          this.renderFrame(current, dt);
+          if (this.errors.length) throw new Error(`the scene failed while recording: ${this.errors.at(-1)!.message}`);
+        },
+      });
+    } finally {
+      this.recording = false;
+      this.recordAbort = null;
+      this.fixedSize = null;
+      this.playing = wasPlaying;
+      if (this.current) this.sizeCanvas(this.current.canvas);
+      this.dirty = true;
+    }
+  }
+
+  cancelRecording(): void {
+    this.recordAbort?.abort();
   }
 
   private flushCaptures(canvas: HTMLCanvasElement): void {
@@ -504,6 +571,13 @@ export class SceneRunner {
   }
 
   private sizeCanvas(canvas: HTMLCanvasElement): void {
+    if (this.fixedSize) {
+      if (canvas.width !== this.fixedSize.width || canvas.height !== this.fixedSize.height) {
+        canvas.width = this.fixedSize.width;
+        canvas.height = this.fixedSize.height;
+      }
+      return;
+    }
     const ratio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
     const width = Math.max(1, Math.round(this.container.clientWidth * ratio));
     const height = Math.max(1, Math.round(this.container.clientHeight * ratio));

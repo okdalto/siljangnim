@@ -49,6 +49,28 @@ export interface CaptureResult {
   height: number;
 }
 
+export interface RecordOptions {
+  format: "mp4" | "webm" | "png";
+  /** offline: rendered frame by frame from t=0 at exactly `fps` (deterministic). realtime: what plays, as it plays (WebM). */
+  mode: "offline" | "realtime";
+  fps: number;
+  /** Seconds. */
+  duration: number;
+  /** Output size in pixels; 0 keeps the canvas size. */
+  width: number;
+  height: number;
+  quality: "low" | "medium" | "high" | "very-high";
+}
+
+export interface RecordResult {
+  file: Blob;
+  /** File extension: mp4, webm or zip (PNG frames). */
+  extension: string;
+  width: number;
+  height: number;
+  frames: number;
+}
+
 /** Request methods: params and result types. */
 export interface RuntimeMethods {
   load: { params: { scene: Scene; assets: Record<string, Blob> }; result: LoadResult };
@@ -58,6 +80,8 @@ export interface RuntimeMethods {
   setTimeline: { params: { timeline: Timeline | undefined; keyframes: Record<string, Keyframe[]> }; result: void };
   capture: { params: { maxSize: number }; result: CaptureResult };
   status: { params: Record<string, never>; result: RuntimeStatus };
+  record: { params: RecordOptions; result: RecordResult };
+  recordCancel: { params: Record<string, never>; result: void };
 }
 
 export type MethodName = keyof RuntimeMethods;
@@ -67,6 +91,8 @@ export interface RuntimeEvents {
   ready: Record<string, never>;
   error: SceneError;
   stats: { state: RuntimeState; time: number; fps: number };
+  /** Recording progress. */
+  recording: { frame: number; total: number };
   /** Latest values the scene published with ctx.publish (all of them, when any changed). */
   monitors: Record<string, MonitorValue>;
 }
