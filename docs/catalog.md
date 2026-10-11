@@ -17,3 +17,4 @@
   - 프롬프트: 도구를 고를 때 `catalog_search` → `recipe_search` 순서로 쓴다.
 - **index.opensource:** 참고 목록으로 계획했지만, 데이터 사용 조건이 사이트에 적혀 있지 않아 설명문을 옮기지 않았다. 조건을 확인하면 출처를 표기하고 항목을 늘린다. 이건 사람이 결정한다.
 - **기여:** 이 파일에 항목을 추가하는 PR을 보낸다. 테스트가 id 중복, 등급별 설치 정보, B 등급 CDN 허용 목록(esm.sh, jsdelivr, unpkg)을 확인한다.
+- **예제와 연결:** 갤러리의 "Open source in Siljangnim" 예제는 카탈로그 도구 하나를 실장님에 붙인 것이다(`example.json`의 `uses`). `catalog_search`가 예제 이름을 함께 보여 주고, `catalog_get`이 그 예제의 setup 코드와 쓴 레시피를 **동작하는 참고 구현**으로 보여 준다. 15개(B 9, C 5, D 1)이고, C·D 예제의 에셋은 레시피를 허브에서 저장 → 검증 → 실행해 만들었다. 같은 레시피가 `registry/`에도 있다.

@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Tone.js plays a generative arpeggio (PolySynth \u2192 reverb); its FFT and waveform drive the picture.\n// Browsers start audio only after a gesture: click the viewport.\nconst Tone = await ctx.utils.import(\"https://esm.sh/tone@15.1.22\");\nconst synth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: \"triangle8\" }, envelope: { attack: 0.005, decay: 0.25, sustain: 0.15, release: 1.4 } });\nconst reverb = new Tone.Reverb({ decay: 3.5, wet: 0.35 });\nconst fft = new Tone.FFT(64), wave = new Tone.Waveform(128);\nsynth.chain(reverb, Tone.getDestination());\nsynth.connect(fft); synth.connect(wave);\nsynth.volume.value = -10;\nconst chords = [[\"C4\", \"E4\", \"G4\", \"B4\"], [\"A3\", \"C4\", \"E4\", \"G4\"], [\"F3\", \"A3\", \"C4\", \"E4\"], [\"G3\", \"B3\", \"D4\", \"F4\"]];\nlet step = 0;\nconst loop = new Tone.Loop((time) => {\n  const chord = chords[Math.floor(step / 16) % chords.length];\n  const note = Tone.Frequency(chord[[0, 1, 2, 3, 2, 1, 3, 2][step % 8]]).transpose(step % 16 >= 8 ? 12 : 0);\n  synth.triggerAttackRelease(note, \"16n\", time, 0.5 + 0.5 * Math.random());\n  Tone.getDraw().schedule(() => { ctx.state.hit = 1; }, time);\n  step++;\n}, \"8n\");\nconst start = async () => {\n  if (ctx.state.playing) return;\n  await Tone.start();\n  loop.start(0);\n  Tone.getTransport().start();\n  ctx.state.playing = true;\n};\nwindow.addEventListener(\"pointerdown\", start);\nObject.assign(ctx.state, { Tone, synth, reverb, fft, wave, loop, start, hit: 0, playing: false,\n  waveData: new Float32Array(128), fftData: new Float32Array(64),\n  p: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, \"#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor;\\nuniform vec2 u_resolution; uniform float u_wave[128]; uniform float u_fft[64]; uniform float u_hit; uniform float u_time;\\nuniform vec3 u_color;\\nvoid main(){\\n  vec2 p = (v_uv - 0.5) * vec2(u_resolution.x / u_resolution.y, 1.0);\\n  float r = length(p), a = atan(p.y, p.x) / 6.2831853 + 0.5;\\n  float fi = a * 64.0; int k = int(fi) % 64;\\n  float bar = u_fft[k];\\n  float wi = a * 127.0; int j = int(wi);\\n  float w = mix(u_wave[j], u_wave[min(j + 1, 127)], fract(wi));\\n  float ring = 0.22 + 0.06 * w + 0.03 * u_hit;\\n  float line = exp(-abs(r - ring) * 220.0);\\n  float spikes = step(0.3, r) * step(r, 0.3 + bar * 0.22) * smoothstep(0.5, 0.35, abs(fract(fi) - 0.5));\\n  vec3 col = u_color * (line * 1.6 + spikes * 0.7) + vec3(0.9, 0.95, 1.0) * line * 0.4;\\n  col += u_color * 0.12 * u_hit * exp(-r * 6.0);\\n  outColor = vec4(col + vec3(0.02, 0.02, 0.035), 1.0);\\n}\") });",
+    "render": "const s = ctx.state, u = ctx.uniforms;\ns.Tone.getTransport().bpm.value = u.u_tempo;\nif (s.playing) {\n  s.waveData.set(s.wave.getValue());\n  const db = s.fft.getValue();\n  for (let i = 0; i < 64; i++) s.fftData[i] = Math.max(0, Math.min(1, (db[i] + 100) / 70));\n} else {\n  // Before the first click: a quiet breathing ring.\n  for (let i = 0; i < 128; i++) s.waveData[i] = 0.3 * Math.sin(i / 128 * Math.PI * 6 + ctx.time * 2) * (0.5 + 0.5 * Math.sin(ctx.time));\n  for (let i = 0; i < 64; i++) s.fftData[i] = 0.25 * Math.pow(0.5 + 0.5 * Math.sin(i * 0.9 + ctx.time * 1.5), 3);\n}\ns.hit *= Math.exp(-ctx.dt * 6);\nctx.publish(\"audio\", s.playing ? \"playing\" : \"click the viewport to start\");\nctx.gl.useProgram(s.p);\nctx.utils.drawFullscreen(s.p, { u_wave: s.waveData, u_fft: s.fftData, u_hit: s.hit });",
+    "cleanup": "const s = ctx.state;\nwindow.removeEventListener(\"pointerdown\", s.start);\ns.Tone?.getTransport().stop(); s.Tone?.getTransport().cancel();\nfor (const node of [s.loop, s.synth, s.reverb, s.fft, s.wave]) node?.dispose();"
+  },
+  "uniforms": {
+    "u_tempo": {
+      "type": "float",
+      "value": 96,
+      "min": 50,
+      "max": 180,
+      "step": 1,
+      "label": "Tempo (BPM)",
+      "widget": "knob"
+    },
+    "u_color": {
+      "type": "color",
+      "value": [
+        0.45,
+        0.85,
+        1.0
+      ],
+      "label": "Color"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

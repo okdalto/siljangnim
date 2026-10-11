@@ -191,6 +191,8 @@ export async function openExample(slug: string): Promise<void> {
       const typed = new Blob([blob], { type: assetMimeType(asset.name, blob.type) });
       await store.writeFile(project.id, ASSET_DIR + asset.name, typed, await analyzeAsset(asset.name, typed));
     }
+    // Recipe examples say how their assets were made, so project.md can tell another machine.
+    if (example.pipeline) await store.writeFile(project.id, PIPELINE_FILE, JSON.stringify(example.pipeline, null, 2));
     await openProject(project.id);
   } catch (err) {
     set({ notice: { kind: "error", text: `Couldn't open the example: ${err instanceof Error ? err.message : String(err)}` } });

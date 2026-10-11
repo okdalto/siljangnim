@@ -1,0 +1,18 @@
+{
+  "order": 103,
+  "title": "Flow field (simplex-noise)",
+  "title_ko": "흐름장 (simplex-noise)",
+  "description": "12,000 particles follow a simplex-noise flow field computed on the CPU and leave fading trails. The noise scale, speed and trail length are controls.",
+  "description_ko": "입자 12,000개가 CPU에서 계산한 simplex-noise 흐름장을 따라가며 사라지는 궤적을 남긴다. 노이즈 크기, 속도, 궤적 길이를 조절할 수 있다.",
+  "prompt": "(open-source example: simplex-noise imported in the scene)",
+  "made_with": "simplex-noise 4.0.3 via ctx.utils.import",
+  "features": [
+    "noise",
+    "particles",
+    "trails"
+  ],
+  "mode": "live",
+  "uses": [
+    "simplex-noise"
+  ]
+}

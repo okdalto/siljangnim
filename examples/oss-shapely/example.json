@@ -1,0 +1,18 @@
+{
+  "order": 110,
+  "title": "Contour islands (Shapely)",
+  "title_ko": "등고선 섬 (Shapely)",
+  "description": "Shapely merged random circles into islands and offset them inward and outward on this computer (recipe shapely.offset-rings); the scene draws the rings like a contour map with a pulse running through the levels. The same rings work as pen-plotter paths.",
+  "description_ko": "Shapely가 이 컴퓨터에서 무작위 원들을 섬으로 합치고 안팎으로 오프셋했다(레시피 shapely.offset-rings). 씬은 고리들을 등고선 지도처럼 그리고, 높이를 따라 빛이 흐른다. 같은 고리를 펜 플로터 경로로도 쓸 수 있다.",
+  "prompt": "(open-source example: Shapely run through the runtime, recipe included)",
+  "made_with": "shapely 2.1.1 via recipe shapely.offset-rings (python_run)",
+  "features": [
+    "geometry",
+    "offset curves",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "shapely"
+  ]
+}

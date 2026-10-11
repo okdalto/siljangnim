@@ -1,0 +1,18 @@
+{
+  "order": 102,
+  "title": "Blob pour (Matter.js)",
+  "title_ko": "방울 쏟아짐 (Matter.js)",
+  "description": "Matter.js does the rigid-body physics; a shader turns the circles into merging blobs. Hold the mouse button to pull them.",
+  "description_ko": "Matter.js가 강체 물리를 계산하고, 셰이더가 원들을 서로 녹아 붙는 방울로 그린다. 마우스를 누르고 있으면 끌어당긴다.",
+  "prompt": "(open-source example: matter-js imported in the scene)",
+  "made_with": "matter-js 0.20.0 via ctx.utils.import",
+  "features": [
+    "physics",
+    "metaballs",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "matter-js"
+  ]
+}

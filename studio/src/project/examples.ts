@@ -15,12 +15,16 @@ interface ExampleMeta {
   mode: "live" | "timeline";
   /** Platform features the example can't run without, e.g. "webgpu". */
   requires?: string[];
+  /** Catalog ids of the open-source tools the example is built around (src/catalog). */
+  uses?: string[];
 }
 
 export interface Example extends ExampleMeta {
   slug: string;
   thumbnail: string;
   assets: Array<{ name: string; url: string }>;
+  /** How its generated assets were made (pipeline.json; recipe examples), for project.md. */
+  pipeline: unknown;
   /** The scene, validated (scene.json files load on demand to keep the app bundle small). */
   scene(): Promise<Scene>;
 }
@@ -28,6 +32,7 @@ export interface Example extends ExampleMeta {
 const metas = import.meta.glob<ExampleMeta>("../../../examples/*/example.json", { eager: true, import: "default" });
 const scenes = import.meta.glob<unknown>("../../../examples/*/scene.json", { import: "default" });
 const thumbnails = import.meta.glob<string>("../../../examples/*/thumbnail.png", { eager: true, query: "?url", import: "default" });
+const pipelines = import.meta.glob<unknown>("../../../examples/*/pipeline.json", { eager: true, import: "default" });
 const assetUrls = import.meta.glob<string>("../../../examples/*/assets/*", { eager: true, query: "?url", import: "default" });
 
 const slugOf = (path: string) => path.split("/").at(-2)!;
@@ -43,6 +48,7 @@ export const EXAMPLES: Example[] = Object.entries(metas)
       assets: Object.entries(assetUrls)
         .filter(([p]) => p.startsWith(`${dir}/assets/`))
         .map(([p, url]) => ({ name: p.slice(p.lastIndexOf("/") + 1), url })),
+      pipeline: pipelines[`${dir}/pipeline.json`] ?? null,
       async scene() {
         const load = scenes[`${dir}/scene.json`];
         if (!load) throw new Error(`example ${slugOf(path)} has no scene.json`);

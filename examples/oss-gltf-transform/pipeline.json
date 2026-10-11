@@ -1,0 +1,26 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "trimesh.displaced-sphere-glb@3",
+      "packages": [
+        "trimesh==4.5.3",
+        "numpy",
+        "scipy==1.14.1"
+      ],
+      "resolved": [
+        "numpy==2.2.6",
+        "scipy==1.14.1",
+        "trimesh==4.5.3"
+      ],
+      "inputs": [],
+      "params": {
+        "subdivisions": 6,
+        "seed": 4
+      },
+      "outputs": [
+        "sculpture.glb"
+      ]
+    }
+  ]
+}

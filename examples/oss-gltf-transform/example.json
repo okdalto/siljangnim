@@ -1,0 +1,20 @@
+{
+  "order": 112,
+  "title": "GLB sculpture (glTF Transform)",
+  "title_ko": "GLB 조형 (glTF Transform)",
+  "description": "glTF Transform reads a GLB in the scene and its positions, normals and vertex colors go straight into WebGL. The model itself was made by trimesh on this computer (recipe trimesh.displaced-sphere-glb). Drag to orbit; drop in your own .glb.",
+  "description_ko": "glTF Transform이 씬 안에서 GLB를 읽고, 위치·법선·정점 색이 그대로 WebGL로 들어간다. 모델은 이 컴퓨터에서 trimesh로 만들었다(레시피 trimesh.displaced-sphere-glb). 드래그해서 돌려 보거나, 다른 .glb를 넣어 볼 수 있다.",
+  "prompt": "(open-source example: glTF Transform in the scene, model from a trimesh recipe)",
+  "made_with": "@gltf-transform/core 4.5.0 via ctx.utils.import; trimesh 4.5.3 via recipe",
+  "features": [
+    "gltf",
+    "3d model",
+    "orbit camera",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "gltf-transform",
+    "trimesh"
+  ]
+}

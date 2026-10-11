@@ -1,0 +1,26 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "shapely.offset-rings@1",
+      "packages": [
+        "shapely==2.1.1"
+      ],
+      "resolved": [
+        "numpy==2.5.4",
+        "shapely==2.1.1"
+      ],
+      "inputs": [],
+      "params": {
+        "seed": 7,
+        "blobs": 9,
+        "step": 0.016,
+        "outward": 8,
+        "aspect": 1.6
+      },
+      "outputs": [
+        "rings.json"
+      ]
+    }
+  ]
+}

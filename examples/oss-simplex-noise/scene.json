@@ -1,0 +1,56 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// simplex-noise gives a flow field on the CPU; particles follow it and leave fading trails.\nconst { createNoise3D } = await ctx.utils.import(\"https://esm.sh/simplex-noise@4.0.3\");\nconst N = 12000;\nconst pos = new Float32Array(N * 3); // x, y, speed\nfor (let i = 0; i < N; i++) { pos[i * 3] = Math.random(); pos[i * 3 + 1] = Math.random(); }\nconst gl = ctx.gl;\n// Half-float trails fade smoothly to black (8-bit ones get stuck at faint values).\ngl.getExtension(\"EXT_color_buffer_float\");\nconst vao = gl.createVertexArray(), buffer = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 12, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 12, 8);\ngl.bindVertexArray(null);\nObject.assign(ctx.state, {\n  noise: createNoise3D(), N, pos, vao, buffer, trails: null,\n  fade: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, '#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform sampler2D u_prev; uniform float u_fade;\\nvoid main(){ outColor = vec4(texture(u_prev, v_uv).rgb * u_fade, 1.0); }'),\n  copy: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, '#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform sampler2D u_tex;\\nvoid main(){ vec3 c = texture(u_tex, v_uv).rgb; outColor = vec4(1.0 - exp(-c * 1.6), 1.0); }'),\n  points: ctx.utils.createProgram('#version 300 es\\nlayout(location=0) in vec2 a_position; layout(location=1) in float a_speed;\\nout float v_speed;\\nvoid main(){ v_speed = a_speed; gl_Position = vec4(a_position * 2.0 - 1.0, 0.0, 1.0); gl_PointSize = 1.5; }', '#version 300 es\\nprecision highp float; in float v_speed; out vec4 outColor; uniform vec3 u_slow; uniform vec3 u_fast;\\nvoid main(){ outColor = vec4(mix(u_slow, u_fast, clamp(v_speed, 0.0, 1.0)) * 0.2, 1.0); }'),\n});",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms;\nconst [w, h] = ctx.resolution;\nif (!s.trails || s.trails.width !== w || s.trails.height !== h) {\n  s.trails = ctx.utils.createPingPong(w, h, { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT, filter: gl.LINEAR });\n}\nconst aspect = w / h, t = ctx.time * 0.08, scale = u.u_scale, step = 0.0009 * u.u_speed;\nfor (let i = 0; i < s.N; i++) {\n  const o = i * 3;\n  let x = s.pos[o], y = s.pos[o + 1];\n  const angle = s.noise(x * scale * aspect, y * scale, t) * Math.PI * 2;\n  const n2 = s.noise(x * scale * 2 + 9, y * scale * 2, t);\n  x += Math.cos(angle) * step / aspect; y += Math.sin(angle) * step;\n  // Respawn particles that leave, or now and then, so the field stays covered.\n  if (x < 0 || x > 1 || y < 0 || y > 1 || Math.random() < 0.002) { x = Math.random(); y = Math.random(); }\n  s.pos[o] = x; s.pos[o + 1] = y; s.pos[o + 2] = n2 * 0.5 + 0.5;\n}\nconst read = s.trails.read(), write = s.trails.write();\ngl.bindFramebuffer(gl.FRAMEBUFFER, write.framebuffer);\ngl.viewport(0, 0, w, h);\ngl.useProgram(s.fade);\nctx.utils.bindTexture(s.fade, \"u_prev\", read.texture, 0);\nctx.utils.drawFullscreen(s.fade, { u_fade: u.u_trail });\ngl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);\ngl.useProgram(s.points);\nctx.utils.setUniforms(s.points, { u_slow: u.u_slow, u_fast: u.u_fast });\ngl.bindVertexArray(s.vao); gl.bindBuffer(gl.ARRAY_BUFFER, s.buffer);\ngl.bufferData(gl.ARRAY_BUFFER, s.pos, gl.DYNAMIC_DRAW);\ngl.drawArrays(gl.POINTS, 0, s.N);\ngl.bindVertexArray(null); gl.disable(gl.BLEND);\ns.trails.swap();\ngl.bindFramebuffer(gl.FRAMEBUFFER, null);\ngl.viewport(0, 0, w, h);\ngl.useProgram(s.copy);\nctx.utils.bindTexture(s.copy, \"u_tex\", s.trails.read().texture, 0);\nctx.utils.drawFullscreen(s.copy);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_scale": {
+      "type": "float",
+      "value": 2.2,
+      "min": 0.3,
+      "max": 8,
+      "step": 0.01,
+      "label": "Noise scale"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 1.6,
+      "min": 0,
+      "max": 5,
+      "step": 0.01,
+      "label": "Speed",
+      "widget": "knob"
+    },
+    "u_trail": {
+      "type": "float",
+      "value": 0.965,
+      "min": 0.8,
+      "max": 0.995,
+      "step": 0.001,
+      "label": "Trail"
+    },
+    "u_slow": {
+      "type": "color",
+      "value": [
+        0.25,
+        0.45,
+        1.0
+      ],
+      "label": "Slow"
+    },
+    "u_fast": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.55,
+        0.2
+      ],
+      "label": "Fast"
+    }
+  },
+  "inputs": []
+}

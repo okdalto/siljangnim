@@ -433,7 +433,12 @@ async function runExamplesScenario(win, examplesOut) {
     }
     await wait(1200);
     const frame = await findSceneFrame(win);
-    const sample = frame ? await inFrame(frame, SAMPLE_CANVAS, `sample ${slug}`).catch(() => null) : null;
+    // Libraries come from a CDN with an empty cache here: give setup a few seconds to finish.
+    let sample = null;
+    for (let i = 0; i < 8 && !(sample?.litFraction > 0.02); i++) {
+      if (i) await wait(750);
+      sample = frame ? await inFrame(frame, SAMPLE_CANVAS, `sample ${slug}`).catch(() => null) : null;
+    }
     const after = await win.webContents.executeJavaScript(`Number(document.querySelector("[data-runtime-state]")?.dataset.runtimeErrors)`);
     results[slug] = { ...state, errors: after, litFraction: sample?.litFraction ?? 0 };
     // A capture per example (thumbnails, and a look at what ran).
