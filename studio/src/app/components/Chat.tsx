@@ -4,10 +4,11 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { isStudioNote, STUDIO_NOTE_PREFIX } from "../../agent/context";
 import { ANTHROPIC_MODELS } from "../../agent/llm/anthropic";
 import type { MessageParam } from "../../agent/llm/types";
-import { clearChat, dismissNotice, sendPrompt, stopAgent } from "../session";
+import { clearChat, detachAsset, dismissNotice, sendPrompt, stopAgent } from "../session";
 import { activeModel } from "../settings";
 import { useApp, type LiveTurn } from "../state";
-import { AlertIcon, CheckIcon, SendIcon, Spinner, StopIcon, XIcon } from "./icons";
+import { FilePickerButton } from "./Assets";
+import { AlertIcon, CheckIcon, PaperclipIcon, SendIcon, Spinner, StopIcon, XIcon } from "./icons";
 
 type ToolResult = Anthropic.Beta.BetaToolResultBlockParam;
 
@@ -19,6 +20,8 @@ const TOOL_LABELS: Record<string, string> = {
   viewport_status: "Checked status",
   history_list: "Checked history",
   history_restore: "Restored a version",
+  asset_list: "Checked assets",
+  asset_read: "Read an asset",
 };
 
 const EXAMPLES = [
@@ -110,6 +113,7 @@ function Message({ message, results }: { message: MessageParam; results: Map<str
   if (message.role === "user") {
     const notes = blocks.flatMap((b) => (b.type === "text" && isStudioNote(b) ? [b.text.slice(STUDIO_NOTE_PREFIX.length)] : []));
     const text = blocks.flatMap((b) => (b.type === "text" && !isStudioNote(b) ? [b.text] : [])).join("\n");
+    const images = blocks.flatMap((b) => (b.type === "image" && b.source.type === "base64" ? [`data:${b.source.media_type};base64,${b.source.data}`] : []));
     if (!text) return null; // tool results render under their tool calls
     return (
       <div className="space-y-1.5">
@@ -118,6 +122,13 @@ function Message({ message, results }: { message: MessageParam; results: Map<str
             {note}
           </p>
         ))}
+        {images.length > 0 && (
+          <div className="flex justify-end gap-1.5">
+            {images.map((src, i) => (
+              <img key={i} src={src} alt="Attached image" className="max-h-24 rounded-md border border-line" />
+            ))}
+          </div>
+        )}
         <div className="flex justify-end">
           <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-raised px-3.5 py-2">{text}</div>
         </div>
@@ -227,7 +238,11 @@ function Composer({ busy }: { busy: boolean }) {
 
   return (
     <div className="shrink-0 border-t border-line p-3">
+      <Attachments />
       <div className="flex items-end gap-2 rounded-xl border border-line bg-bg px-3 py-2 focus-within:border-faint">
+        <FilePickerButton title="Attach files" className="rounded-lg p-1.5 text-faint hover:text-fg">
+          <PaperclipIcon size={15} />
+        </FilePickerButton>
         <textarea
           ref={ref}
           rows={1}
@@ -259,6 +274,24 @@ function Composer({ busy }: { busy: boolean }) {
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Assets uploaded since the last prompt; the next prompt tells the agent about them. */
+function Attachments() {
+  const attachments = useApp((s) => s.attachments);
+  if (!attachments.length) return null;
+  return (
+    <div className="mb-2 flex flex-wrap gap-1.5">
+      {attachments.map((name) => (
+        <span key={name} className="inline-flex max-w-full items-center gap-1 rounded-md bg-raised px-2 py-1 text-[11px] text-muted">
+          <span className="truncate">{name}</span>
+          <button type="button" onClick={() => detachAsset(name)} title="Don't mention in the next message" className="hover:text-fg">
+            <XIcon size={11} />
+          </button>
+        </span>
+      ))}
     </div>
   );
 }

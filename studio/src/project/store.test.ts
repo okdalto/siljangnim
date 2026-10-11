@@ -69,6 +69,24 @@ describe("ProjectStore", () => {
   });
 });
 
+describe("ProjectStore assets", () => {
+  it("keeps metadata, lists by prefix and deletes single files", async () => {
+    const store = freshStore();
+    const p = await store.createProject("P");
+    await store.writeFile(p.id, SCENE_FILE, "{}");
+    await store.writeFile(p.id, "assets/b.json", "[]", { lines: 1 });
+    await store.writeFile(p.id, "assets/a.png", "png", { width: 4, height: 2 });
+
+    const records = await store.listFileRecords(p.id, "assets/");
+    expect(records.map((r) => [r.path, r.meta])).toEqual([
+      ["assets/a.png", { width: 4, height: 2 }],
+      ["assets/b.json", { lines: 1 }],
+    ]);
+    await store.deleteFile(p.id, "assets/a.png");
+    expect(await store.listFiles(p.id)).toEqual(["assets/b.json", SCENE_FILE]);
+  });
+});
+
 describe("ProjectStore migration", () => {
   it("upgrades a version 1 database without losing data", async () => {
     const name = `migrate-${n++}`;

@@ -2,6 +2,7 @@
 import { z } from "zod";
 import type Anthropic from "@anthropic-ai/sdk";
 import type { CaptureResult, LoadResult, RuntimeStatus } from "../scene/protocol";
+import type { AssetInfo } from "../project/assets";
 import type { Scene } from "../scene/schema";
 import type { ToolSpec } from "./llm/types";
 
@@ -37,9 +38,16 @@ export interface HistoryController {
   restore(idOrPrefix: string): Promise<{ version: VersionInfo; load: LoadResult }>;
 }
 
+/** The project's uploaded assets. */
+export interface AssetController {
+  list(): Promise<AssetInfo[]>;
+  read(name: string): Promise<Blob | undefined>;
+}
+
 export interface ToolEnv {
   scene: SceneController;
   history: HistoryController;
+  assets: AssetController;
   signal: AbortSignal;
 }
 

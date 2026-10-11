@@ -1,12 +1,14 @@
-// Right panel: the agent chat and the version history, as tabs.
+// Right panel: the agent chat, the version history and the assets, as tabs.
 import { setSidebarTab } from "../session";
 import { useApp } from "../state";
+import { Assets } from "./Assets";
 import { Chat, ChatHeaderActions } from "./Chat";
 import { History } from "./History";
 
 const TABS = [
   { id: "chat", label: "Chat" },
   { id: "history", label: "History" },
+  { id: "assets", label: "Assets" },
 ] as const;
 
 export function Sidebar() {
@@ -30,7 +32,7 @@ export function Sidebar() {
         </div>
         <div className="flex min-w-0 flex-1 items-center justify-end gap-3 pr-2">{tab === "chat" && <ChatHeaderActions />}</div>
       </div>
-      {tab === "chat" ? <Chat /> : <History />}
+      {tab === "chat" ? <Chat /> : tab === "history" ? <History /> : <Assets />}
     </aside>
   );
 }

@@ -6,7 +6,20 @@ import { repairConversation, runAgent } from "../agent/loop";
 import type { ContentBlockParam, MessageParam } from "../agent/llm/types";
 import { SYSTEM_PROMPT } from "../agent/prompt";
 import { SCENE_TOOLS } from "../agent/sceneTools";
-import type { HistoryController, SceneController, VersionInfo } from "../agent/tools";
+import type { AssetController, HistoryController, SceneController, VersionInfo } from "../agent/tools";
+import { ASSET_TOOLS } from "../agent/assetTools";
+import {
+  ASSET_DIR,
+  MAX_ASSET_BYTES,
+  analyzeAsset,
+  assetKind,
+  assetMimeType,
+  describeMeta,
+  sanitizeAssetName,
+  uniqueAssetName,
+  visionImage,
+  type AssetInfo,
+} from "../project/assets";
 import { resolveVersionId, sameScene, versionMessage } from "../project/history";
 import { ProjectStore, SCENE_FILE, type Version } from "../project/store";
 import type { SceneHost } from "../scene/host";
@@ -14,7 +27,7 @@ import type { LoadResult } from "../scene/protocol";
 import { DEFAULT_SCENE, parseScene, type Scene, type UniformValue } from "../scene/schema";
 import { keys } from "./platform";
 import { createProvider, looksLikeApiKey, saveSettings, type Settings } from "./settings";
-import { useApp } from "./state";
+import { useApp, type AppState } from "./state";
 
 const ACTIVE_PROJECT_KEY = "siljangnim.activeProject";
 const SAVE_DELAY_MS = 400;
@@ -33,6 +46,8 @@ let saveTimer: ReturnType<typeof setTimeout> | undefined;
 let versionChain: Promise<unknown> = Promise.resolve();
 let controlTimer: ReturnType<typeof setTimeout> | undefined;
 const controlChanges = new Set<string>();
+/** Blobs of the open project's assets, by name; sent to the runtime with every load. */
+let assetBlobs = new Map<string, Blob>();
 /** Context for the next prompt, by project (e.g. "the person restored version X"). */
 const pendingNotes = new Map<string, string>();
 
@@ -68,8 +83,11 @@ export async function openProject(id: string): Promise<void> {
   }
   const messages = repairConversation(await store.readChat(id));
   const versions = await store.listVersions(id);
+  const records = await store.listFileRecords(id, ASSET_DIR);
+  assetBlobs = new Map(records.flatMap((r) => (r.content instanceof Blob ? [[r.path.slice(ASSET_DIR.length), r.content] as const] : [])));
+  const assets = records.flatMap((r) => (r.content instanceof Blob ? [assetInfo(r.path.slice(ASSET_DIR.length), r.content, r.meta ?? {})] : []));
   safeLocal(() => localStorage.setItem(ACTIVE_PROJECT_KEY, id));
-  set({ project, scene, messages, versions, live: null, notice: null, projects: await store.listProjects() });
+  set({ project, scene, messages, versions, assets, attachments: [], live: null, notice: null, projects: await store.listProjects() });
   if (host) void loadIntoHost(scene);
 }
 
@@ -119,7 +137,7 @@ export function attachSceneHost(next: SceneHost): () => void {
 async function loadIntoHost(scene: Scene): Promise<LoadResult> {
   if (!host) return { ok: false, errors: [] };
   set((st) => ({ runtime: { ...st.runtime, state: "loading", errors: [] } }));
-  const result = await host.load(scene);
+  const result = await host.load(scene, Object.fromEntries(assetBlobs));
   set((st) => ({ runtime: { ...st.runtime, errors: result.errors } }));
   // Projects start their history with whatever scene they first show.
   const project = get().project;
@@ -221,7 +239,7 @@ export async function restoreVersion(id: string): Promise<void> {
   }
 }
 
-export function setSidebarTab(tab: "chat" | "history"): void {
+export function setSidebarTab(tab: AppState["sidebarTab"]): void {
   set({ sidebarTab: tab });
 }
 
@@ -254,6 +272,74 @@ async function captureThumbnail(): Promise<Blob | undefined> {
   } catch {
     return undefined; // a version without a thumbnail is still useful
   }
+}
+
+// --- assets ---
+
+/** Save dropped or picked files as project assets and attach them to the next prompt. */
+export async function uploadAssets(files: File[]): Promise<void> {
+  const project = get().project;
+  if (!project || !files.length) return;
+  const rejected: string[] = [];
+  for (const file of files) {
+    if (file.size > MAX_ASSET_BYTES) {
+      rejected.push(`${file.name} is over the 200 MB limit`);
+      continue;
+    }
+    if (!file.size) {
+      rejected.push(`${file.name} is empty`);
+      continue;
+    }
+    const name = uniqueAssetName(sanitizeAssetName(file.name), assetBlobs.keys());
+    const blob = new Blob([file], { type: assetMimeType(name, file.type) });
+    const meta = await analyzeAsset(name, blob);
+    await store.writeFile(project.id, ASSET_DIR + name, blob, meta);
+    if (get().project?.id !== project.id) return;
+    assetBlobs.set(name, blob);
+    const info = assetInfo(name, blob, meta);
+    set((st) => ({
+      assets: [...st.assets, info].sort((a, b) => (a.name < b.name ? -1 : 1)),
+      attachments: [...st.attachments, name],
+    }));
+  }
+  if (rejected.length) set({ notice: { kind: "error", text: `Not uploaded: ${rejected.join("; ")}.` } });
+}
+
+export async function deleteAsset(name: string): Promise<void> {
+  const project = get().project;
+  if (!project) return;
+  await store.deleteFile(project.id, ASSET_DIR + name);
+  if (get().project?.id !== project.id) return;
+  assetBlobs.delete(name);
+  set((st) => ({ assets: st.assets.filter((a) => a.name !== name), attachments: st.attachments.filter((n) => n !== name) }));
+}
+
+export function assetBlob(name: string): Blob | undefined {
+  return assetBlobs.get(name);
+}
+
+/** Stop mentioning an asset in the next prompt (it stays in the project). */
+export function detachAsset(name: string): void {
+  set((st) => ({ attachments: st.attachments.filter((n) => n !== name) }));
+}
+
+/** A note naming the attached assets, plus downscaled images so the model can see them. */
+async function attachmentBlocks(names: string[]): Promise<ContentBlockParam[]> {
+  const infos = names.flatMap((n) => get().assets.filter((a) => a.name === n));
+  if (!infos.length) return [];
+  const list = infos.map((a) => `${a.name} (${describeMeta(a.kind, a.meta)})`).join(", ");
+  const blocks: ContentBlockParam[] = [studioNote(`The person uploaded ${list}. Scenes reach them through ctx.assets[name].`)];
+  for (const info of infos) {
+    const blob = assetBlobs.get(info.name);
+    if (info.kind !== "image" || !blob) continue;
+    try {
+      const image = await visionImage(blob);
+      blocks.push({ type: "image", source: { type: "base64", media_type: image.mediaType, data: image.data } });
+    } catch {
+      // The model still gets the name and metadata.
+    }
+  }
+  return blocks;
 }
 
 // --- agent ---
@@ -305,10 +391,20 @@ export async function sendPrompt(text: string): Promise<void> {
     },
   };
 
-  const content: ContentBlockParam[] = [{ type: "text", text: prompt }];
+  const assetsEnv: AssetController = {
+    list: async () => (get().project?.id === projectId ? get().assets : []),
+    read: async (name) => (get().project?.id === projectId ? assetBlobs.get(name) : undefined),
+  };
+
   const note = pendingNotes.get(projectId);
-  if (note) content.unshift(studioNote(note));
   pendingNotes.delete(projectId);
+  const attached = get().attachments;
+  set({ attachments: [] });
+  const content: ContentBlockParam[] = [
+    ...(note ? [studioNote(note)] : []),
+    ...(await attachmentBlocks(attached)),
+    { type: "text", text: prompt },
+  ];
   const messages: MessageParam[] = [...get().messages, { role: "user", content }];
   const abort = new AbortController();
   agentAbort = abort;
@@ -324,8 +420,8 @@ export async function sendPrompt(text: string): Promise<void> {
       model,
       effort: settings.effort,
       system: SYSTEM_PROMPT,
-      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS],
-      env: { scene: controller, history },
+      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS],
+      env: { scene: controller, history, assets: assetsEnv },
       messages,
       signal: abort.signal,
       onEvent(event) {
@@ -422,6 +518,10 @@ export function dismissNotice(): void {
 }
 
 // --- helpers ---
+
+function assetInfo(name: string, blob: Blob, meta: AssetInfo["meta"]): AssetInfo {
+  return { name, kind: assetKind(name, blob.type), size: blob.size, type: blob.type, meta };
+}
 
 function versionInfo(v: Version, head: string | undefined): VersionInfo {
   return { id: v.id, parentId: v.parentId, createdAt: v.createdAt, message: v.message, head: v.id === head };

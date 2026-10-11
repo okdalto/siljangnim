@@ -77,10 +77,29 @@ const TYPE_PROMPT = `(() => {
   ta.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
 })()`;
 
+// Uploads two assets through the chat's file picker: a blue 8x8 PNG and a JSON file.
+const UPLOAD_ASSETS = `(async () => {
+  const c = new OffscreenCanvas(8, 8);
+  const g = c.getContext("2d");
+  g.fillStyle = "rgb(26, 89, 255)";
+  g.fillRect(0, 0, 8, 8);
+  const png = new File([await c.convertToBlob({ type: "image/png" })], "swatch.png", { type: "image/png" });
+  const json = new File(['{"tint":"blue"}'], "data.json", { type: "application/json" });
+  const input = document.querySelector('[data-testid="asset-input"]');
+  const dt = new DataTransfer();
+  dt.items.add(png);
+  dt.items.add(json);
+  input.files = dt.files;
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+  for (let i = 0; i < 40 && document.querySelectorAll("aside .truncate").length < 3; i++) await new Promise((r) => setTimeout(r, 100));
+  return [...document.querySelectorAll("aside span.truncate")].map((e) => e.innerText);
+})()`;
+
 /** One agent run through the real UI, SDK, forwarder and tools (against the smoke test's mock API). */
 async function runAgentScenario(win, sceneFrame, keys) {
   keys.set("anthropic", process.env.SILJANGNIM_SMOKE_KEY);
   const finalText = process.env.SILJANGNIM_SMOKE_FINAL_TEXT ?? "";
+  const attached = await win.webContents.executeJavaScript(UPLOAD_ASSETS);
   await win.webContents.executeJavaScript(TYPE_PROMPT);
   let replied = false;
   for (let i = 0; i < 120 && !replied; i++) {
@@ -91,10 +110,10 @@ async function runAgentScenario(win, sceneFrame, keys) {
   const sample = sceneFrame ? await sceneFrame.executeJavaScript(SAMPLE_CANVAS).catch(() => null) : null;
   const chat = await win.webContents.executeJavaScript(`({
     chips: [...document.querySelectorAll("aside button")].map((b) => b.innerText).filter((t) => /scene|viewport/i.test(t)),
-    images: document.querySelectorAll("aside img").length,
+    images: document.querySelectorAll('aside img[alt="Viewport capture"]').length,
   })`);
   const [r, g, b] = sample?.meanRgb ?? [0, 0, 0];
-  return { replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
+  return { attached, replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
 }
 
 // Opens the History tab and describes its rows (oldest first).
@@ -209,7 +228,14 @@ export async function runSmokeTest(win, hub, keys, outDir) {
     llmAnswersApp: [400, 401].includes(llm.fromApp),
     llmRefusesScene: [0, 403].includes(llm.fromScene),
     llmRequiresToken: llm.fromAppWithoutToken === 403,
-    ...(agent ? { agentReplied: agent.replied, agentSceneApplied: agent.blue, agentShowsCapture: agent.images > 0 } : {}),
+    ...(agent
+      ? {
+          assetsUploaded: ["swatch.png", "data.json"].every((n) => agent.attached.includes(n)),
+          agentReplied: agent.replied,
+          agentSceneApplied: agent.blue,
+          agentShowsCapture: agent.images > 0,
+        }
+      : {}),
     ...(history ? { historyRecorded: history.recorded, historyRestored: history.restored } : {}),
   };
   const ok = Object.values(checks).every(Boolean);

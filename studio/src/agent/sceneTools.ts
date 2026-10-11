@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { LoadResult, RuntimeStatus, SceneError } from "../scene/protocol";
+import { blobToBase64 } from "../project/assets";
 import { parseScene, UniformDefSchema, SCENE_INPUTS, type Scene } from "../scene/schema";
 import { defineTool, type ToolDefinition, type ToolOutput } from "./tools";
 
@@ -132,11 +133,3 @@ const viewportStatus = defineTool({
 });
 
 export const SCENE_TOOLS: ToolDefinition[] = [sceneRead, sceneWrite, sceneEdit, viewportCapture, viewportStatus] as ToolDefinition[];
-
-async function blobToBase64(blob: Blob): Promise<string> {
-  const bytes = new Uint8Array(await blob.arrayBuffer());
-  let binary = "";
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-  return btoa(binary);
-}

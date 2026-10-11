@@ -14,12 +14,15 @@ import {
   bindTexture,
   createFullscreenQuad,
   createMesh,
+  createVideoTexture,
   loadTexture,
   setUniforms,
   type Drawable,
   type GeometryData,
   type LoadedTexture,
   type TextureOptions,
+  type VideoTexture,
+  type VideoTextureOptions,
 } from "../gl/helpers";
 import { FULLSCREEN_VERTEX_SHADER, MESH_VERTEX_SHADER, createProgram } from "../gl/shader";
 import type { UniformValue } from "../schema";
@@ -39,6 +42,8 @@ export interface SceneUtils {
   bindTexture(program: WebGLProgram, name: string, texture: WebGLTexture | null, unit?: number): void;
   /** Load an image texture by asset name (see ctx.assets) or URL. */
   loadTexture(nameOrUrl: string, options?: TextureOptions): Promise<LoadedTexture>;
+  /** Video texture by asset name or URL; call .update() every frame before drawing. */
+  createVideoTexture(nameOrUrl: string, options?: VideoTextureOptions): Promise<VideoTexture>;
   createMesh(geometry: GeometryData): Drawable;
   geometry: {
     quad(): GeometryData;
@@ -87,6 +92,7 @@ export function createCtx(
   assets: Record<string, string>,
 ): { ctx: SceneCtx; dispose(): void } {
   const quad = createFullscreenQuad(gl);
+  const videos: VideoTexture[] = [];
   const glsl: Record<string, string> = {};
   for (const [name, source] of Object.entries({ ...noise, ...glslSnippets })) {
     if (typeof source === "string") glsl[name] = source;
@@ -137,6 +143,11 @@ export function createCtx(
     setUniforms: (program, values) => setUniforms(gl, program, values),
     bindTexture: (program, name, texture, unit) => bindTexture(gl, program, name, texture, unit),
     loadTexture: (nameOrUrl, options) => loadTexture(gl, ctx.assets[nameOrUrl] ?? nameOrUrl, options),
+    async createVideoTexture(nameOrUrl, options) {
+      const video = await createVideoTexture(gl, ctx.assets[nameOrUrl] ?? nameOrUrl, options);
+      videos.push(video);
+      return video;
+    },
     createMesh: (geometry) => createMesh(gl, geometry),
     geometry: {
       quad: geometries.createQuadGeometry,
@@ -160,5 +171,12 @@ export function createCtx(
     },
   };
 
-  return { ctx, dispose: () => quad.dispose() };
+  return {
+    ctx,
+    dispose: () => {
+      quad.dispose();
+      // Videos keep decoding (and playing sound) until stopped.
+      for (const video of videos.splice(0)) video.dispose();
+    },
+  };
 }
