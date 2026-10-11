@@ -1,11 +1,14 @@
 // App controller: projects, the scene host, and agent runs. UI components
 // read state from useApp and call these functions.
+import { studioNote } from "../agent/context";
+import { HISTORY_TOOLS } from "../agent/historyTools";
 import { repairConversation, runAgent } from "../agent/loop";
-import type { MessageParam } from "../agent/llm/types";
+import type { ContentBlockParam, MessageParam } from "../agent/llm/types";
 import { SYSTEM_PROMPT } from "../agent/prompt";
 import { SCENE_TOOLS } from "../agent/sceneTools";
-import type { SceneController } from "../agent/tools";
-import { ProjectStore, SCENE_FILE } from "../project/store";
+import type { HistoryController, SceneController, VersionInfo } from "../agent/tools";
+import { resolveVersionId, sameScene, versionMessage } from "../project/history";
+import { ProjectStore, SCENE_FILE, type Version } from "../project/store";
 import type { SceneHost } from "../scene/host";
 import type { LoadResult } from "../scene/protocol";
 import { DEFAULT_SCENE, parseScene, type Scene, type UniformValue } from "../scene/schema";
@@ -15,6 +18,10 @@ import { useApp } from "./state";
 
 const ACTIVE_PROJECT_KEY = "siljangnim.activeProject";
 const SAVE_DELAY_MS = 400;
+/** Controls idle this long become a version. */
+const CONTROL_VERSION_DELAY_MS = 1500;
+const THUMBNAIL_SIZE = 256;
+const THUMBNAIL_TIMEOUT_MS = 3000;
 
 const store = new ProjectStore();
 let host: SceneHost | null = null;
@@ -22,6 +29,12 @@ let agentAbort: AbortController | null = null;
 /** The run that owns `live`; outlives agentAbort while a stopped run winds down. */
 let running: AbortController | null = null;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+/** Version commits and restores run one at a time, in call order. */
+let versionChain: Promise<unknown> = Promise.resolve();
+let controlTimer: ReturnType<typeof setTimeout> | undefined;
+const controlChanges = new Set<string>();
+/** Context for the next prompt, by project (e.g. "the person restored version X"). */
+const pendingNotes = new Map<string, string>();
 
 const get = useApp.getState;
 const set = useApp.setState;
@@ -43,6 +56,7 @@ export async function boot(): Promise<void> {
 
 export async function openProject(id: string): Promise<void> {
   stopAgent();
+  await flushControlVersion();
   await flushSave();
   const project = await store.getProject(id);
   if (!project) return;
@@ -53,8 +67,9 @@ export async function openProject(id: string): Promise<void> {
     if (parsed.ok) scene = parsed.scene;
   }
   const messages = repairConversation(await store.readChat(id));
+  const versions = await store.listVersions(id);
   safeLocal(() => localStorage.setItem(ACTIVE_PROJECT_KEY, id));
-  set({ project, scene, messages, live: null, notice: null, projects: await store.listProjects() });
+  set({ project, scene, messages, versions, live: null, notice: null, projects: await store.listProjects() });
   if (host) void loadIntoHost(scene);
 }
 
@@ -73,7 +88,11 @@ export async function renameProject(name: string): Promise<void> {
 }
 
 export async function deleteProject(id: string): Promise<void> {
-  if (get().project?.id === id) stopAgent();
+  if (get().project?.id === id) {
+    stopAgent();
+    discardControlVersion();
+  }
+  pendingNotes.delete(id);
   await store.deleteProject(id);
   const projects = await store.listProjects();
   set({ projects });
@@ -102,6 +121,9 @@ async function loadIntoHost(scene: Scene): Promise<LoadResult> {
   set((st) => ({ runtime: { ...st.runtime, state: "loading", errors: [] } }));
   const result = await host.load(scene);
   set((st) => ({ runtime: { ...st.runtime, errors: result.errors } }));
+  // Projects start their history with whatever scene they first show.
+  const project = get().project;
+  if (project) void commitVersion(project.id, "Initial scene", { rootOnly: true });
   return result;
 }
 
@@ -118,6 +140,9 @@ export function setUniformValue(name: string, value: UniformValue): void {
   set({ scene: { ...scene, uniforms: { ...scene.uniforms, [name]: { ...def, value } } } });
   host?.setUniform(name, value);
   scheduleSave();
+  controlChanges.add(def.label ?? name);
+  clearTimeout(controlTimer);
+  controlTimer = setTimeout(() => void flushControlVersion(), CONTROL_VERSION_DELAY_MS);
 }
 
 export function transport(action: "play" | "pause"): void {
@@ -134,6 +159,101 @@ async function flushSave(): Promise<void> {
   saveTimer = undefined;
   const { project, scene } = get();
   if (project) await store.writeFile(project.id, SCENE_FILE, JSON.stringify(scene, null, 2));
+}
+
+// --- history ---
+
+/**
+ * Save the current scene as a child of HEAD and move HEAD to it. Skipped when
+ * the scene equals HEAD's (or, with rootOnly, when any version exists).
+ */
+function commitVersion(projectId: string, message: string, options: { rootOnly?: boolean } = {}): Promise<Version | null> {
+  return chained(async () => {
+    const { project, scene, messages, versions } = get();
+    if (project?.id !== projectId) return null;
+    if (options.rootOnly && versions.length) return null;
+    const head = versions.find((v) => v.id === project.head) ?? null;
+    if (head && sameScene(head.scene, scene)) return null;
+    const version: Version = {
+      id: crypto.randomUUID(),
+      projectId,
+      parentId: head?.id ?? null,
+      createdAt: Date.now(),
+      message,
+      scene,
+      thumbnail: await captureThumbnail(),
+      chatLength: messages.length,
+    };
+    await store.addVersion(version);
+    await store.setHead(projectId, version.id);
+    if (get().project?.id === projectId) {
+      set((st) => ({ versions: [...st.versions, version], project: st.project && { ...st.project, head: version.id } }));
+    }
+    return version;
+  });
+}
+
+/** Load a version's scene and move HEAD to it. Later changes branch from there. */
+function restore(projectId: string, idOrPrefix: string): Promise<{ version: Version; load: LoadResult }> {
+  return chained(async () => {
+    const { project, versions } = get();
+    if (project?.id !== projectId) throw new Error("The project was switched; nothing was restored.");
+    const version = resolveVersionId(versions, idOrPrefix);
+    await store.setHead(projectId, version.id);
+    set((st) => ({ project: st.project && { ...st.project, head: version.id } }));
+    return { version, load: await applyScene(version.scene) };
+  });
+}
+
+/** Restore from the history panel. The agent hears about it with the next prompt. */
+export async function restoreVersion(id: string): Promise<void> {
+  const project = get().project;
+  if (!project || get().live) return;
+  await flushControlVersion();
+  try {
+    const { version } = await restore(project.id, id);
+    pendingNotes.set(
+      project.id,
+      `The person restored version ${version.id.slice(0, 8)} ("${version.message}") from the history panel. The current scene is that version; earlier messages may describe a different scene.`,
+    );
+  } catch (err) {
+    set({ notice: { kind: "error", text: err instanceof Error ? err.message : String(err) } });
+  }
+}
+
+export function setSidebarTab(tab: "chat" | "history"): void {
+  set({ sidebarTab: tab });
+}
+
+function flushControlVersion(): Promise<unknown> {
+  clearTimeout(controlTimer);
+  controlTimer = undefined;
+  const project = get().project;
+  if (!controlChanges.size || !project) return Promise.resolve();
+  const names = [...controlChanges];
+  controlChanges.clear();
+  return commitVersion(project.id, versionMessage(`Adjusted ${names.join(", ")}`));
+}
+
+function discardControlVersion(): void {
+  clearTimeout(controlTimer);
+  controlTimer = undefined;
+  controlChanges.clear();
+}
+
+function chained<T>(task: () => Promise<T>): Promise<T> {
+  const next = versionChain.then(task, task);
+  versionChain = next.catch(() => undefined);
+  return next;
+}
+
+async function captureThumbnail(): Promise<Blob | undefined> {
+  if (!host) return undefined;
+  try {
+    return (await host.request("capture", { maxSize: THUMBNAIL_SIZE }, THUMBNAIL_TIMEOUT_MS)).png;
+  } catch {
+    return undefined; // a version without a thumbnail is still useful
+  }
 }
 
 // --- agent ---
@@ -158,6 +278,8 @@ export async function sendPrompt(text: string): Promise<void> {
     set({ settingsOpen: true, notice: { kind: "error", text: "Choose a model in Settings." } });
     return;
   }
+  // Control tweaks made before this prompt are their own version.
+  await flushControlVersion();
 
   const projectId = project.id;
   const sceneHost = host;
@@ -168,8 +290,22 @@ export async function sendPrompt(text: string): Promise<void> {
     capture: (maxSize) => sceneHost.request("capture", { maxSize }),
     status: () => sceneHost.request("status", {}),
   };
+  const history: HistoryController = {
+    list: async () => {
+      const { project: current, versions } = get();
+      return current?.id === projectId ? versions.map((v) => versionInfo(v, current.head)) : [];
+    },
+    restore: async (id) => {
+      const { version, load } = await restore(projectId, id);
+      return { version: versionInfo(version, version.id), load };
+    },
+  };
 
-  const messages: MessageParam[] = [...get().messages, { role: "user", content: [{ type: "text", text: prompt }] }];
+  const content: ContentBlockParam[] = [{ type: "text", text: prompt }];
+  const note = pendingNotes.get(projectId);
+  if (note) content.unshift(studioNote(note));
+  pendingNotes.delete(projectId);
+  const messages: MessageParam[] = [...get().messages, { role: "user", content }];
   const abort = new AbortController();
   agentAbort = abort;
   running = abort;
@@ -184,8 +320,8 @@ export async function sendPrompt(text: string): Promise<void> {
       model,
       effort: settings.effort,
       system: SYSTEM_PROMPT,
-      tools: SCENE_TOOLS,
-      env: { scene: controller },
+      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS],
+      env: { scene: controller, history },
       messages,
       signal: abort.signal,
       onEvent(event) {
@@ -229,7 +365,10 @@ export async function sendPrompt(text: string): Promise<void> {
     // Persist the final conversation even after a stop: it ends with complete
     // tool results, so the next request stays valid.
     await store.writeChat(projectId, finalMessages);
-    if (get().project?.id === projectId) set({ messages: finalMessages });
+    if (get().project?.id === projectId) {
+      set({ messages: finalMessages });
+      await commitVersion(projectId, versionMessage(prompt));
+    }
     if (agentAbort === abort) agentAbort = null;
     if (running === abort) {
       running = null;
@@ -273,6 +412,10 @@ export function dismissNotice(): void {
 }
 
 // --- helpers ---
+
+function versionInfo(v: Version, head: string | undefined): VersionInfo {
+  return { id: v.id, parentId: v.parentId, createdAt: v.createdAt, message: v.message, head: v.id === head };
+}
 
 function safeJson(text: string): unknown {
   try {

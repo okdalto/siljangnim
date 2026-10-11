@@ -2,10 +2,11 @@
 // to drive the real agent loop end to end without a key or network access.
 //
 // Script: broken scene → (shader error comes back) → fixed scene →
-// viewport_capture → (image comes back) → final text.
+// viewport_capture → (image comes back) → history_list → final text.
 import { createServer } from "node:http";
 
 export const FINAL_TEXT = "E2E done: a calm blue field.";
+export const EXPECTED_REQUESTS = 5;
 
 const VERTEX = "ctx.utils.FULLSCREEN_VERTEX_SHADER";
 const fragment = (body) => `#version 300 es
@@ -59,7 +60,12 @@ function plan(body, step, checks) {
     checks.fixedSceneLoaded = !result?.is_error && /without errors/.test(resultText(result));
     return { tool: { name: "viewport_capture", input: { max_size: 256 } } };
   }
-  checks.captureReturnedImage = Array.isArray(result?.content) && result.content.some((c) => c.type === "image");
+  if (step === 3) {
+    checks.captureReturnedImage = Array.isArray(result?.content) && result.content.some((c) => c.type === "image");
+    return { tool: { name: "history_list", input: {} } };
+  }
+  // Only the project's first scene is saved while the run is still going.
+  checks.historyListed = !result?.is_error && /"Initial scene"\s+<- HEAD/.test(resultText(result));
   // Assistant turns must come back unchanged (thinking blocks included).
   checks.thinkingEchoed = body.messages.filter((m) => m.role === "assistant").every((m) => m.content[0]?.type === "thinking");
   return { text: FINAL_TEXT };

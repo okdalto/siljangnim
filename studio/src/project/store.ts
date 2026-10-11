@@ -1,12 +1,15 @@
 // Projects, their files and their chat, in IndexedDB.
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { MessageParam } from "../agent/llm/types";
+import type { Scene } from "../scene/schema";
 
 export interface ProjectMeta {
   id: string;
   name: string;
   createdAt: number;
   updatedAt: number;
+  /** Version the current scene descends from (see docs/m2.md#1-버전-히스토리). */
+  head?: string;
 }
 
 export interface ProjectFile {
@@ -22,11 +25,27 @@ export interface ProjectChat {
   updatedAt: number;
 }
 
+/** A full scene snapshot in the project's version tree. */
+export interface Version {
+  id: string;
+  projectId: string;
+  parentId: string | null;
+  createdAt: number;
+  message: string;
+  scene: Scene;
+  thumbnail?: Blob;
+  /** Number of chat messages when the version was made. */
+  chatLength: number;
+}
+
 interface StudioDB extends DBSchema {
   projects: { key: string; value: ProjectMeta; indexes: { byUpdated: number } };
   files: { key: [string, string]; value: ProjectFile; indexes: { byProject: string } };
   chats: { key: string; value: ProjectChat };
+  versions: { key: string; value: Version; indexes: { byProject: string } };
 }
+
+export const DB_VERSION = 2;
 
 export const SCENE_FILE = "scene.json";
 
@@ -34,11 +53,16 @@ export class ProjectStore {
   private readonly db: Promise<IDBPDatabase<StudioDB>>;
 
   constructor(name = "siljangnim-studio") {
-    this.db = openDB<StudioDB>(name, 1, {
-      upgrade(db) {
-        db.createObjectStore("projects", { keyPath: "id" }).createIndex("byUpdated", "updatedAt");
-        db.createObjectStore("files", { keyPath: ["projectId", "path"] }).createIndex("byProject", "projectId");
-        db.createObjectStore("chats", { keyPath: "projectId" });
+    this.db = openDB<StudioDB>(name, DB_VERSION, {
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          db.createObjectStore("projects", { keyPath: "id" }).createIndex("byUpdated", "updatedAt");
+          db.createObjectStore("files", { keyPath: ["projectId", "path"] }).createIndex("byProject", "projectId");
+          db.createObjectStore("chats", { keyPath: "projectId" });
+        }
+        if (oldVersion < 2) {
+          db.createObjectStore("versions", { keyPath: "id" }).createIndex("byProject", "projectId");
+        }
       },
     });
   }
@@ -65,12 +89,14 @@ export class ProjectStore {
 
   async deleteProject(id: string): Promise<void> {
     const db = await this.db;
-    const tx = db.transaction(["projects", "files", "chats"], "readwrite");
+    const tx = db.transaction(["projects", "files", "chats", "versions"], "readwrite");
     const fileKeys = await tx.objectStore("files").index("byProject").getAllKeys(id);
+    const versionKeys = await tx.objectStore("versions").index("byProject").getAllKeys(id);
     await Promise.all([
       tx.objectStore("projects").delete(id),
       tx.objectStore("chats").delete(id),
       ...fileKeys.map((key) => tx.objectStore("files").delete(key)),
+      ...versionKeys.map((key) => tx.objectStore("versions").delete(key)),
       tx.done,
     ]);
   }
@@ -96,6 +122,27 @@ export class ProjectStore {
   async writeChat(projectId: string, messages: MessageParam[]): Promise<void> {
     await (await this.db).put("chats", { projectId, messages, updatedAt: Date.now() });
     await this.touch(projectId);
+  }
+
+  /** All versions of a project, oldest first. */
+  async listVersions(projectId: string): Promise<Version[]> {
+    const all = await (await this.db).getAllFromIndex("versions", "byProject", projectId);
+    return all.sort((a, b) => a.createdAt - b.createdAt);
+  }
+
+  async getVersion(id: string): Promise<Version | undefined> {
+    return (await this.db).get("versions", id);
+  }
+
+  async addVersion(version: Version): Promise<void> {
+    await (await this.db).put("versions", version);
+  }
+
+  /** Move the project's HEAD. Doesn't count as an edit, so the project keeps its place in the list. */
+  async setHead(projectId: string, versionId: string): Promise<void> {
+    const db = await this.db;
+    const project = await db.get("projects", projectId);
+    if (project) await db.put("projects", { ...project, head: versionId });
   }
 
   private async touch(id: string, patch: Partial<ProjectMeta> = {}): Promise<void> {
