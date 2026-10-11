@@ -1,0 +1,27 @@
+{
+  "name": "siljangnim-desktop",
+  "productName": "Siljangnim",
+  "version": "0.2.0",
+  "description": "Siljangnim desktop app",
+  "license": "GPL-3.0-or-later",
+  "author": "okdalto",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/okdalto/siljangnim.git"
+  },
+  "private": true,
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "postinstall": "node scripts/fetch-uv.mjs",
+    "dev": "node scripts/dev.mjs",
+    "stage": "node scripts/stage.mjs",
+    "start": "npm run stage && electron .",
+    "dist": "npm run stage && electron-builder --publish never",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "electron": "44.4.4",
+    "electron-builder": "26.16.1"
+  }
+}

@@ -1,249 +1,139 @@
 <p align="center">
-  <img src="frontend/public/logo.svg" alt="실장님" width="128" height="128" />
+  <img src="frontend/public/logo.svg" alt="실장님" width="112" height="112" />
 </p>
 
 <h1 align="center">실장님</h1>
 
 <p align="center">
-  AI 기반 실시간 그래픽 제작 도구.<br/>
-  자연어로 비주얼을 묘사하면 — Claude가 WebGL2 셰이더를 생성해 브라우저에서 바로 렌더링합니다.
+  에이전트가 운영하는 크리에이티브 스튜디오.<br/>
+  만들고 싶은 것을 말하면, 에이전트가 맞는 오픈소스를 골라<br/>
+  내 컴퓨터에서 엮고, 결과를 실시간으로 보여 줍니다.
 </p>
 
 <p align="center">
-  <a href="https://siljangnim.vercel.app/">🌐 온라인에서 사용하기</a> · <a href="README.md">English</a>
+  <a href="https://github.com/okdalto/siljangnim/releases">다운로드</a> ·
+  <a href="https://siljangnim.vercel.app/">웹에서 써 보기</a> ·
+  <a href="docs/architecture.md">아키텍처</a> ·
+  <a href="README.md">English</a>
 </p>
 
-![WebGL2](https://img.shields.io/badge/WebGL2-ES_3.0-blue)
-![License](https://img.shields.io/badge/license-GPLv3-green)
+---
 
-## 무엇을 할 수 있나요?
+> **실장님 v2를 만들고 있습니다.** 데스크톱 앱, 로컬 런타임, MCP 연결을
+> 단계별로 만드는 중입니다([계획](docs/architecture.md#11-단계별-계획)).
+> **지금 되는 것**에 있는 기능은 바로 쓸 수 있고, 나머지는 앞으로의 방향입니다.
 
-**상상하는 모든 것을 만들 수 있습니다.** 3D 모델 로딩이 될까 걱정되나요? 알아서 로더를 짭니다. 음악 파일을 읽을 수 있을까 걱정되나요? 파일을 분석하고, 스펙트럼을 뽑고, 셰이더에 연결하는 것까지 전부 알아서 합니다. 코드를 작성할 필요 없이 — 원하는 것을 설명하면 에이전트가 나머지를 해결합니다.
+## 어떤 앱인가요
 
-AI 에이전트에게 자연어로 채팅하세요 — WebGL2 셰이더를 작성하고, UI 패널을 만들고, 모든 것을 실시간으로 연결합니다.
+디자인 스튜디오의 실장님은 "이런 걸 하고 싶다"는 말을 들으면 누구를 부르고 어떤 도구를
+쓸지 압니다. 이 앱은 크리에이티브 코딩에서 그 역할을 합니다.
 
-### 비주얼 생성
+- **결과를 말하면** — "이 사진으로 깊이에 따라 밀도가 달라지는 해칭 드로잉, A3 플로터용으로".
+- **방법은 에이전트가 정합니다** — 셰이더, 기하 라이브러리, ML 모델, CLI 도구 중 무엇이 맞는지
+  판단하고, 내 컴퓨터에 받아서 연결합니다.
+- **성공한 방법은 레시피가 됩니다** — 도구를 어떻게 설치하고 호출했는지 적은 짧은 md 파일입니다.
+  다음에는 바로 실행되고, 다른 에이전트도 참고할 수 있습니다.
+- **코드가 아니라 구조를 공유합니다** — 프로젝트는 파이프라인과 레시피를 담은 md 문서로 내보냅니다.
+  받은 사람의 에이전트가 그 문서로 다시 만들어 냅니다.
+- **내 에이전트를 붙일 수 있습니다** — Claude Code, Codex, Cursor 또는 직접 만든 에이전트가 MCP로
+  앱을 조종합니다. 내장 에이전트와 함께 쓸 수 있습니다.
 
-보고 싶은 것을 말하세요:
+앱은 오픈소스 코드를 번들하지 않습니다. 프로젝트에 필요할 때 사용자의 컴퓨터에서 받고,
+프로젝트마다 무엇을 썼는지 정확히 기록합니다.
 
-> "파란 파도가 화면을 천천히 가로지르는 셰이더 만들어줘"
->
-> "마우스 인터랙션이 있는 반응-확산 시뮬레이션 만들어줘"
->
-> "무한 평면 위에 반사 구체가 있는 레이마칭 장면 만들어줘"
+## 지금 되는 것
 
-에이전트가 GLSL 셰이더를 작성하고, 컴파일하고, 실시간으로 렌더링합니다 — 멀티패스 버퍼, 3D 지오메트리, 후처리까지 모두 자동으로 처리됩니다.
+- **실시간 셰이더 씬** — WebGL2/WebGPU, 멀티패스 버퍼, 3D, 후처리. 에이전트가 작성하고 디버깅합니다.
+- **자동 생성 컨트롤** — 슬라이더, 컬러 피커, 2D 패드, 카메라 오빗. 유니폼에 연결되고 undo/redo를 지원합니다.
+- **입력** — 오디오 분석, 마이크, MIDI, OSC, 웹캠 손·포즈·얼굴 추적(MediaPipe).
+- **에셋** — 이미지, 비디오, 폰트, SVG, 오디오, 3D 모델(OBJ, FBX, glTF 스켈레탈 애니메이션 포함).
+- **타임라인** — 모든 유니폼에 이징 키프레임. MP4, WebM, PNG 시퀀스로 녹화.
+- **프로젝트** — 브랜치와 비교가 되는 버전 트리, 멀티탭 채팅, GitHub 저장/불러오기.
+- **데스크톱 앱** — macOS(Apple Silicon)와 Windows. 앱이 직접 관리하는 Python 런타임 포함.
+- **AI 프로바이더** — Anthropic, OpenAI, Gemini, GLM, 또는 OpenAI 호환 서버(vLLM, Ollama 등).
 
-### 자동 생성 UI 컨트롤
+## 다운로드
 
-에이전트가 씬에 필요한 인터랙티브 컨트롤 패널을 자동으로 만듭니다:
+| 플랫폼 | 파일 |
+|---|---|
+| macOS (Apple Silicon) | `Siljangnim-<버전>-mac-arm64.dmg` |
+| Windows (x64) | `Siljangnim-<버전>-win-x64.exe` |
 
-> "색상이랑 속도 조절할 수 있게 컨트롤 패널 만들어줘"
+[Releases](https://github.com/okdalto/siljangnim/releases)에서 받으세요. 아직 코드 서명이 되어
+있지 않습니다.
 
-슬라이더, 컬러 피커, 토글, 2D 패드, 드롭다운, 카메라 오빗 컨트롤, 버퍼 프리뷰 등을 생성합니다. 모든 컨트롤은 셰이더 유니폼에 연결되며 undo/redo 및 키프레임 애니메이션을 지원합니다.
+- **macOS** — 처음 한 번 앱을 연 뒤 *시스템 설정 → 개인정보 보호 및 보안*에서 **그래도 열기**를 누르세요.
+- **Windows** — SmartScreen 창에서 **추가 정보 → 실행**을 누르세요.
 
-```
-┌─ Wave Controls ─────────────────┐
-│ Speed       ●━━━━━━━━━━━  0.8   │
-│ Amplitude   ━━━━●━━━━━━━  0.4   │
-│ Color       [■ #3b82f6]        │
-│ Wireframe   [  ○ OFF  ]        │
-│ Shape       [ Sphere ▾ ]       │
-└─────────────────────────────────┘
-```
+처음 실행할 때 앱 전용 Python 런타임(디스크 약 120 MB)을 앱 데이터 폴더에 받습니다.
+시스템에는 아무것도 설치하지 않습니다.
 
-### 오디오 리액티브 비주얼
+## 소스에서 실행
 
-오디오 파일을 업로드하거나 URL을 사용하세요 — 에이전트가 베이스/미드/트레블, FFT, 웨이브폼 데이터를 실시간으로 분석합니다:
-
-> "이 음악에 반응하는 비주얼 만들어줘. 베이스에 원이 커지고 하이에 색이 바뀌게"
-
-### MediaPipe 손/포즈/얼굴 트래킹
-
-MediaPipe Vision을 활용한 웹캠 기반 실시간 트래킹:
-
-> "웹캠으로 손 인식해서 두 손으로 pinch하면 와이어프레임 박스가 나타나게 해줘"
-
-33포인트 바디 포즈, 21포인트 손 랜드마크 (양손), 478포인트 페이스 메시를 지원하며 — 모두 셰이더에서 사용할 수 있는 GPU 텍스처로 제공됩니다.
-
-### 3D 모델 및 스켈레탈 애니메이션
-
-`.obj`, `.fbx`, `.gltf`, `.glb` 파일을 업로드하세요 — 에이전트가 지오메트리, 머티리얼, 텍스처, 스켈레탈 애니메이션 데이터를 자동으로 처리합니다:
-
-> "캐릭터 모델을 업로드하고 림 라이팅과 아이들 애니메이션으로 렌더링해줘"
-
-### 파일 처리 및 업로드
-
-이미지, 폰트, SVG, 오디오, 비디오, 3D 모델을 업로드할 수 있습니다. 각 파일은 자동으로 WebGL에 적합한 형태(비트맵 아틀라스, 스펙트로그램, 지오메트리 JSON 등)로 변환됩니다.
-
-### 녹화 및 내보내기
-
-뷰포트를 MP4 (오프라인, 프레임 정확), WebM (실시간 또는 오프라인), 또는 PNG 시퀀스 (알파 투명도 지원)로 녹화할 수 있습니다. FPS, 화질, 해상도를 설정할 수 있습니다.
-
-### 타임라인 및 키프레임 애니메이션
-
-키프레임, 큐빅 에르미트 보간, 이징으로 모든 유니폼을 시간에 따라 애니메이션할 수 있습니다. 타임라인 바에서 스크럽, 루프, 길이 조절이 가능합니다.
-
-## 지원 AI 프로바이더
-
-다양한 AI 프로바이더를 지원합니다. 용도에 맞게 선택하세요:
-
-| 프로바이더 | 모델 | 특징 |
-|------------|------|------|
-| **Anthropic (Claude)** | Claude Opus 4.6, Claude Sonnet 4.6 | 최고 품질, 복잡한 씬에 추천 |
-| **OpenAI** | GPT-4.1 | 좋은 대안, 강력한 도구 호출 |
-| **Google Gemini** | Gemini 2.5 Flash | 빠른 속도, 큰 컨텍스트 윈도우 |
-| **Zhipu AI (GLM)** | GLM-4-Plus | 중국어 지원 |
-| **커스텀 (OpenAI 호환)** | 모든 모델 | 셀프 호스팅 / 로컬 모델 |
-
-### 커스텀 모델 연결 (vLLM, Ollama 등)
-
-OpenAI 호환 API 서버라면 무엇이든 연결할 수 있습니다 — vLLM, Ollama, TGI, LM Studio 등.
-
-**예시: vLLM으로 Qwen3.5-27B 실행**
-
-```bash
-# vLLM 서버 시작
-vllm serve Qwen/Qwen3.5-27B \
-  --max-model-len 131072 \
-  --enable-auto-tool-choice \
-  --tool-call-parser hermes
-```
-
-앱의 API 설정 모달에서:
-1. **Custom** 프로바이더 선택
-2. **Base URL**에 서버 주소 입력 (예: `http://localhost:8000/v1/`)
-3. **Model Name**에 모델명 입력 (예: `Qwen/Qwen3.5-27B`)
-4. **Max Tokens** 설정 (예: `4096` — 이것은 최대 *출력* 길이이며, 컨텍스트 크기가 아닙니다)
-5. API Key는 로컬 서버의 경우 비워도 됩니다
-
-> **팁:** 커스텀 모델은 도구 호출(tool calling)을 지원하는 27B 이상 모델을 권장합니다. 작은 모델은 복잡한 셰이더 생성에 어려움을 겪을 수 있습니다.
-
-> **팁:** `--max-model-len`은 vLLM이 할당하는 컨텍스트 윈도우 크기입니다. GPU 메모리가 허용하는 한 크게 설정하세요 — 앱 설정의 `max_tokens`와는 다릅니다.
-
-## 주의사항
-
-> **보안** — AI 에이전트는 호스트 머신에서 임의의 Python 코드를 실행할 수 있습니다. 컨테이너나 OS 수준의 샌드박스가 없습니다. **이 애플리케이션을 공용 인터넷에 노출하지 마세요.** 자세한 내용은 [보안 안내](#보안-안내)를 참조하세요.
-
-> **비용** — 클라우드 API (Anthropic, OpenAI, Gemini, GLM) 사용 시 모든 채팅 메시지는 토큰을 소모합니다. 복잡한 씬은 프롬프트당 여러 차례의 도구 사용 라운드를 발생시킬 수 있습니다. 단일 대화로 쉽게 **$1–5+ 이상의 API 크레딧**을 사용할 수 있습니다. 프로바이더 대시보드에서 사용량을 모니터링하세요. 셀프 호스팅 커스텀 모델은 토큰당 비용이 없습니다.
-
-## 빠른 시작
-
-**필수 조건:** Python 3.10+, Node.js 18+, [지원 프로바이더](#지원-ai-프로바이더) 중 하나의 API 키
-
-**macOS / Linux:**
+**Node.js 22 이상**만 있으면 됩니다. Python은 앱이 알아서 받고 관리합니다.
 
 ```bash
 git clone https://github.com/okdalto/siljangnim.git
 cd siljangnim
-chmod +x run.sh
-./run.sh
-```
-
-**Windows:**
-
-```powershell
-git clone https://github.com/okdalto/siljangnim.git
-cd siljangnim
-run.bat
-```
-
-**http://localhost:5173** 을 열고, 프롬프트에 따라 API 키를 입력하세요 — `backend/.env`에 자동 저장됩니다.
-
-<details>
-<summary><strong>수동 설정</strong></summary>
-
-**macOS / Linux:**
-
-```bash
-# 백엔드
-cd backend
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-echo "ANTHROPIC_API_KEY=sk-ant-..." > .env   # 선택사항
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-
-# 프론트엔드 (새 터미널)
-cd frontend
 npm install
-npm run dev -- --host 0.0.0.0 --port 5173
+npm run dev
 ```
 
-**Windows:**
+`./run.sh`(macOS/Linux)나 `run.bat`(Windows)을 실행해도 같습니다.
 
-```powershell
-# 백엔드
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-echo ANTHROPIC_API_KEY=sk-ant-... > .env   # 선택사항
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+| 명령 | 하는 일 |
+|---|---|
+| `npm run dev` | 데스크톱 앱 (코드 수정 시 바로 반영) |
+| `npm run web` | 브라우저 전용 버전, http://localhost:5173 |
+| `npm test` | 프론트엔드와 허브 테스트 |
+| `npm run smoke` | 빌드 → 실행 → 스크린샷 → 동작 확인 |
+| `npm run dist` | 현재 플랫폼용 설치 파일을 `desktop/release/`에 빌드 |
 
-# 프론트엔드 (새 터미널)
-cd frontend
-npm install
-npm run dev -- --host 0.0.0.0 --port 5173
-```
+`v*` 태그를 푸시하면 GitHub Actions가 두 플랫폼의 설치 파일을 빌드합니다.
 
-</details>
-
-## 사용법
-
-1. **채팅에 원하는 비주얼을 설명하세요** — 어떤 언어든 가능합니다
-2. **뷰포트에서 결과를 확인하세요** — 셰이더가 자동으로 컴파일되고 렌더링됩니다
-3. **파라미터를 조정하세요** — 자동 생성된 컨트롤 패널을 통해
-4. **타임라인으로 애니메이션하세요** — 키프레임, 스크럽, 루프
-5. **녹화하거나 저장하세요** — 비디오 내보내기 또는 프로젝트 저장
-
-| 단축키 | 동작 |
-|--------|------|
-| `Space` | 재생 / 일시정지 전환 |
-| `Ctrl/Cmd + Z` | 실행 취소 (유니폼, 레이아웃, 키프레임) |
-| `Ctrl/Cmd + S` | 프로젝트 저장 |
-
-## 프로젝트 구조
+## 구조
 
 ```
-siljangnim/
-├── backend/
-│   ├── main.py           # FastAPI 서버 + WebSocket
-│   ├── agents.py         # Claude 에이전트 (셰이더 생성 + UI 컨트롤)
-│   ├── workspace.py      # 샌드박스 파일 I/O
-│   ├── projects.py       # 프로젝트 저장/불러오기
-│   └── config.py         # API 키 관리
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx       # 메인 앱 + 상태 관리
-│   │   ├── engine/       # GLEngine (WebGL2 렌더러)
-│   │   ├── nodes/        # ReactFlow 노드 (채팅, 뷰포트, 인스펙터 등)
-│   │   └── components/   # 툴바, 타임라인, 스냅 가이드
-│   └── package.json
-├── .workspace/           # 런타임 데이터 (씬, 업로드, 프로젝트)
-├── run.sh                # 원클릭 실행 스크립트 (macOS/Linux)
-└── run.bat               # 원클릭 실행 스크립트 (Windows)
+내 에이전트 (MCP)      내장 에이전트
+        \                 /
+         ▼               ▼
+ ┌────────── 실장님 데스크톱 (Electron) ──────────────┐
+ │ Renderer   노드 캔버스 · 뷰포트 · 패널              │
+ │ Hub        로컬 Python 사이드카: MCP, 런타임,       │
+ │            레시피, 출처 기록, 권한                   │
+ └────────────────────────────────────────────────────┘
+         │ 필요할 때 받아서, 도구별로 격리해 실행
+         ▼
+ 오픈소스: GLSL · JS/WASM · Python · CLI 앱 · ML 모델
 ```
 
-## 기술 스택
+레시피와 프로젝트 형식, 단계별 계획은 [docs/architecture.md](docs/architecture.md)에 있습니다.
 
-| 레이어 | 기술 |
-|--------|------|
-| 프론트엔드 | React 19, Vite, TailwindCSS v4, @xyflow/react |
-| 렌더링 | WebGL2 (ES 3.0), 커스텀 GLEngine |
-| 백엔드 | FastAPI, WebSocket, Uvicorn |
-| AI | Anthropic Claude API (도구 호출) |
+## 저장소 구성
 
-## 보안 안내
+```
+desktop/    Electron 셸: 창, app:// 프로토콜, 허브 프로세스, 설치 파일
+hub/        앱이 실행하는 Python 사이드카 (uv로 관리)
+frontend/   렌더러: React, 노드 캔버스, GL 엔진, 내장 에이전트 (웹 빌드와 공용)
+backend/    v1의 FastAPI 서버. 2단계에서 hub/로 대체
+docs/       아키텍처와 가이드
+```
 
-AI 에이전트는 `run_python` 및 `run_command` 도구를 통해 호스트 머신에서 임의의 Python 코드와 허용된 셸 명령(`pip`, `ffmpeg`, `ffprobe`, `convert`, `magick`)을 실행할 수 있습니다. 실행은 `.workspace/` 작업 디렉토리로 제한되고 셸 명령은 화이트리스트로 제한되지만, **Python 코드는 백엔드 프로세스와 동일한 권한으로 실행됩니다** — 컨테이너나 OS 수준의 샌드박스가 없습니다.
+## 웹 버전
 
-이는 프롬프트 인젝션 공격(예: 악의적으로 조작된 업로드 파일)이 잠재적으로 다음을 수행할 수 있음을 의미합니다:
-- 백엔드 프로세스가 접근할 수 있는 파일 읽기/쓰기
-- `pip`을 통한 임의의 패키지 설치
-- 설치된 패키지나 네트워크 호출을 통한 데이터 유출
+[siljangnim.vercel.app](https://siljangnim.vercel.app/)은 렌더러와 내장 에이전트를 브라우저에서
+실행합니다. 셰이더, 패널, 녹화, 브라우저용 ML까지 됩니다. 로컬 런타임이 필요한 도구(Python
+패키지, CLI 앱, GPU 모델)는 데스크톱 앱에서 쓸 수 있습니다.
 
-**이 애플리케이션을 공용 인터넷에 노출하지 마세요.** 로컬 단일 사용자 전용으로 설계되었습니다. 공유 네트워크에서 실행해야 하는 경우 인증을 추가하고 백엔드를 컨테이너 내부에서 실행하는 것을 고려하세요.
+## 비용과 보안
+
+- **비용** — 클라우드 프로바이더는 토큰 단위로 과금합니다. 복잡한 씬은 도구 호출을 여러 번 하므로
+  대화 하나에 몇 달러가 들 수 있습니다. 셀프 호스팅 모델은 토큰 비용이 없습니다.
+- **보안** — 에이전트는 내 컴퓨터에서 코드를 작성하고 실행하며, 이후 단계에서는 오픈소스 도구도
+  설치합니다. 그런 작업은 먼저 확인을 받게 됩니다. 허브는 127.0.0.1에서만 열리고 실행마다 새로
+  발급되는 토큰이 있어야 접근할 수 있습니다. 앱을 네트워크에 노출하지 마세요.
 
 ## 라이선스
 
-[GPLv3](LICENSE)
+[GPL-3.0](LICENSE). 에이전트가 받아 오는 오픈소스는 각자의 라이선스를 따르며, 프로젝트마다
+무엇을 썼는지 기록됩니다.
