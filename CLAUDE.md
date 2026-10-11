@@ -43,7 +43,7 @@ Run `check`, `test` and `smoke` before every push; CI runs the same (Linux needs
 ## Invariants — don't break these
 
 - **Scene code is untrusted.** It runs only in the scene iframe on a separate origin (`app://scene`;
-  `127.0.0.1` vs `localhost` in dev) under the CSP in `studio/vite.config.ts`. Never run scene/agent
+  `127.0.0.1` vs `localhost` in dev; `siljangnim-scene.vercel.app` on the web, see `docs/m3.md`) under the CSP in `studio/vite.config.ts`. Never run scene/agent
   code in the app window, never pass secrets (API keys, hub token, forwarder token) into the iframe,
   and never add `allow-same-origin` to anything served from the app's origin.
 - **API keys stay in the desktop main process** (`desktop/src/keys.js`, safeStorage). The renderer

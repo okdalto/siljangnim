@@ -1,0 +1,6 @@
+# The web deploy builds studio/ (Root Directory), which bundles examples/.
+/*
+!/studio
+!/examples
+/studio/node_modules
+/studio/dist

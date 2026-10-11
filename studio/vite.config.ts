@@ -66,6 +66,13 @@ function devLlmProxy(): Plugin {
   };
 }
 
+// Vercel previews: the app is opened at the branch URL and the scene runs at the
+// deployment's own unique URL, so both come from the same build on different
+// origins. Production sets VITE_SCENE_ORIGIN to its scene domain (docs/m3.md).
+if (!process.env.VITE_SCENE_ORIGIN && process.env.VERCEL_ENV === "preview" && process.env.VERCEL_URL) {
+  process.env.VITE_SCENE_ORIGIN = `https://${process.env.VERCEL_URL}`;
+}
+
 export default defineConfig({
   plugins: [react(), tailwindcss(), sceneCspPlugin(), devLlmProxy()],
   server: {

@@ -45,4 +45,13 @@ describe("web LLM forwarder", () => {
     const res = await forwardLlmRequest(request("openai/chat/completions", { "x-llm-base-url": "http://localhost:11434/v1" }));
     expect(res.status).toBe(200);
   });
+
+  it("takes the path the Vercel rewrite passes in __path, keeping other query parameters", async () => {
+    vi.stubGlobal("fetch", upstream);
+    const req = new Request("https://studio.example/api/llm?__path=anthropic/v1/messages&beta=true", { method: "POST", headers: { origin: "https://studio.example" }, body: "{}" });
+    expect((await webForward(req)).status).toBe(401); // routed; no key given
+    const withKey = new Request("https://studio.example/api/llm?__path=anthropic/v1/messages&beta=true", { method: "POST", headers: { origin: "https://studio.example", "x-api-key": "k" }, body: "{}" });
+    expect((await webForward(withKey)).status).toBe(200);
+    expect(String(upstream.mock.calls[0]![0])).toBe("https://api.anthropic.com/v1/messages?beta=true");
+  });
 });

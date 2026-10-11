@@ -77,8 +77,7 @@ In the new studio (desktop app and `npm run web`):
 - **Desktop app** — macOS (Apple Silicon) and Windows. API keys are encrypted with the OS keychain and
   never reach the app window; the app manages its own Python runtime.
 
-Next: switching the hosted web version to the studio (prepared in [studio/vercel.json](studio/vercel.json),
-see [docs/m3.md](docs/m3.md#4-웹-배포-준비)) and retiring v1.
+The web version at [siljangnim.vercel.app](https://siljangnim.vercel.app/) runs this studio ([docs/m3.md](docs/m3.md#4-웹-배포-전환과-v1-은퇴)).
 
 ## Download
 
@@ -166,10 +165,11 @@ docs/       Architecture and guides
 
 ## The web version
 
-[siljangnim.vercel.app](https://siljangnim.vercel.app/) still serves the v1 web app. The new
-studio also runs in a browser (`npm run web`); a hosted version follows once it reaches v1's
-features. Tools that need a local runtime (Python packages, CLI apps, GPU models) will need the
-desktop app.
+[siljangnim.vercel.app](https://siljangnim.vercel.app/) runs the studio in your browser, with your own
+API key (kept in the tab's session storage and sent only to the model provider through the site's
+forwarder). Scenes run on a separate domain. Tools that need a local runtime (Python packages, CLI
+apps, GPU models, OSC) need the desktop app or an MCP client. The v1 web app has been retired; open
+its project exports with *Import v1 project*.
 
 ## Costs and security
 
