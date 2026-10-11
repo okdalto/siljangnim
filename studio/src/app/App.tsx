@@ -1,4 +1,5 @@
 import { Controls } from "./components/Controls";
+import { DropOverlay } from "./components/DropOverlay";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
@@ -17,6 +18,7 @@ export function App() {
         </main>
         <Sidebar />
       </div>
+      <DropOverlay />
       {settingsOpen && <SettingsDialog />}
     </div>
   );

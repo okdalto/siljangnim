@@ -2,6 +2,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { MessageParam } from "../agent/llm/types";
 import type { Scene } from "../scene/schema";
+import type { AssetMeta } from "./assets";
 
 export interface ProjectMeta {
   id: string;
@@ -17,6 +18,8 @@ export interface ProjectFile {
   path: string;
   content: string | Blob;
   updatedAt: number;
+  /** Analysis results for assets (see project/assets.ts). */
+  meta?: AssetMeta;
 }
 
 export interface ProjectChat {
@@ -105,9 +108,20 @@ export class ProjectStore {
     return (await (await this.db).get("files", [projectId, path]))?.content;
   }
 
-  async writeFile(projectId: string, path: string, content: string | Blob): Promise<void> {
-    await (await this.db).put("files", { projectId, path, content, updatedAt: Date.now() });
+  async writeFile(projectId: string, path: string, content: string | Blob, meta?: AssetMeta): Promise<void> {
+    await (await this.db).put("files", { projectId, path, content, updatedAt: Date.now(), ...(meta ? { meta } : {}) });
     await this.touch(projectId);
+  }
+
+  async deleteFile(projectId: string, path: string): Promise<void> {
+    await (await this.db).delete("files", [projectId, path]);
+    await this.touch(projectId);
+  }
+
+  /** Full records of the files under a folder prefix such as "assets/", sorted by path. */
+  async listFileRecords(projectId: string, prefix: string): Promise<ProjectFile[]> {
+    const all = await (await this.db).getAllFromIndex("files", "byProject", projectId);
+    return all.filter((f) => f.path.startsWith(prefix)).sort((a, b) => (a.path < b.path ? -1 : 1));
   }
 
   async listFiles(projectId: string): Promise<string[]> {

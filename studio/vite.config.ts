@@ -17,7 +17,7 @@ function sceneCsp(dev: boolean): string {
     `connect-src 'self' blob: data: https:${dev ? " ws:" : ""}`,
     "img-src 'self' blob: data: https:",
     "media-src 'self' blob: data: https:",
-    "font-src 'self' data: https:",
+    "font-src 'self' blob: data: https:",
     "style-src 'self' 'unsafe-inline'",
     "worker-src 'self' blob:",
   ].join("; ");

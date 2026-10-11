@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { MessageParam } from "../agent/llm/types";
 import type { ProviderKeyId } from "../desktop";
+import type { AssetInfo } from "../project/assets";
 import type { ProjectMeta, Version } from "../project/store";
 import type { RuntimeState, SceneError } from "../scene/protocol";
 import { DEFAULT_SCENE, type Scene } from "../scene/schema";
@@ -26,7 +27,11 @@ export interface AppState {
   messages: MessageParam[];
   /** The open project's versions, oldest first. */
   versions: Version[];
-  sidebarTab: "chat" | "history";
+  sidebarTab: "chat" | "history" | "assets";
+  /** The open project's uploaded files, by name. */
+  assets: AssetInfo[];
+  /** Assets uploaded since the last prompt; the next prompt tells the agent about them. */
+  attachments: string[];
   /** Streaming state of the agent's current turn; null when idle. */
   live: LiveTurn | null;
   notice: Notice | null;
@@ -44,6 +49,8 @@ export const useApp = create<AppState>(() => ({
   messages: [],
   versions: [],
   sidebarTab: "chat",
+  assets: [],
+  attachments: [],
   live: null,
   notice: null,
   settings: loadSettings(),

@@ -1,35 +1,44 @@
 // A scripted stand-in for the Anthropic Messages API, used by the smoke test
 // to drive the real agent loop end to end without a key or network access.
 //
-// Script: broken scene → (shader error comes back) → fixed scene →
-// viewport_capture → (image comes back) → history_list → final text.
+// Script (the smoke test uploads swatch.png and data.json first):
+// asset_list → asset_read → broken scene → (shader error comes back) →
+// fixed scene that samples swatch.png → viewport_capture → (image comes
+// back) → history_list → final text.
 import { createServer } from "node:http";
 
 export const FINAL_TEXT = "E2E done: a calm blue field.";
-export const EXPECTED_REQUESTS = 5;
+export const EXPECTED_REQUESTS = 7;
 
 const VERTEX = "ctx.utils.FULLSCREEN_VERTEX_SHADER";
 const fragment = (body) => `#version 300 es
 precision highp float;
+in vec2 v_uv;
 out vec4 outColor;
 uniform vec3 u_color;
+uniform sampler2D u_tex;
 void main() {
   ${body}
 }`;
+// The color comes from the uploaded swatch.png, so a blue result proves the asset reached the scene.
 const scene = (fragBody) => ({
   version: 2,
   backend: "webgl2",
   script: {
-    setup: `ctx.state.p = ctx.utils.createProgram(${VERTEX}, ${JSON.stringify(fragment(fragBody))});`,
-    render: "ctx.utils.drawFullscreen(ctx.state.p);",
+    setup: `ctx.state.p = ctx.utils.createProgram(${VERTEX}, ${JSON.stringify(fragment(fragBody))});
+ctx.state.tex = await ctx.utils.loadTexture("swatch.png");`,
+    render: `const p = ctx.state.p;
+ctx.gl.useProgram(p);
+ctx.utils.bindTexture(p, "u_tex", ctx.state.tex.texture, 0);
+ctx.utils.drawFullscreen(p);`,
     cleanup: "",
   },
-  uniforms: { u_color: { type: "color", value: [0.1, 0.35, 1.0], label: "Color" } },
+  uniforms: { u_color: { type: "color", value: [1, 1, 1], label: "Color" } },
   inputs: [],
 });
 
-const BROKEN = scene("outColor = vec4(u_colour, 1.0);");
-const FIXED = scene("outColor = vec4(u_color, 1.0);");
+const BROKEN = scene("outColor = vec4(texture(u_tex, v_uv).rgb * u_colour, 1.0);");
+const FIXED = scene("outColor = vec4(texture(u_tex, v_uv).rgb * u_color, 1.0);");
 
 function lastToolResult(body) {
   const last = body.messages.at(-1);
@@ -49,18 +58,30 @@ function plan(body, step, checks) {
     checks.toolsEager = body.tools?.length > 0 && body.tools.every((t) => t.eager_input_streaming === true);
     checks.adaptiveThinking = body.thinking?.type === "adaptive";
     checks.stream = body.stream === true;
-    return { tool: { name: "scene_write", input: { scene: BROKEN } } };
+    // The uploads arrive as a studio note plus the image itself (vision).
+    const prompt = body.messages.at(-1)?.content ?? [];
+    const note = prompt.find((b) => b.type === "text" && b.text.startsWith("[Studio note]"))?.text ?? "";
+    checks.uploadsAttached = /swatch\.png \(image 8x8\)/.test(note) && /data\.json/.test(note) && prompt.some((b) => b.type === "image");
+    return { tool: { name: "asset_list", input: {} } };
   }
   const result = lastToolResult(body);
   if (step === 1) {
+    checks.assetsListed = /swatch\.png .*image 8x8/.test(resultText(result)) && /data\.json/.test(resultText(result));
+    return { tool: { name: "asset_read", input: { name: "data.json" } } };
+  }
+  if (step === 2) {
+    checks.assetRead = !result?.is_error && resultText(result).includes('"tint":"blue"');
+    return { tool: { name: "scene_write", input: { scene: BROKEN } } };
+  }
+  if (step === 3) {
     checks.shaderErrorReturned = result?.is_error === true && /\[shader\/fragment\] line \d+/.test(resultText(result));
     return { text: "Fixing the typo.", tool: { name: "scene_write", input: { scene: FIXED } } };
   }
-  if (step === 2) {
+  if (step === 4) {
     checks.fixedSceneLoaded = !result?.is_error && /without errors/.test(resultText(result));
     return { tool: { name: "viewport_capture", input: { max_size: 256 } } };
   }
-  if (step === 3) {
+  if (step === 5) {
     checks.captureReturnedImage = Array.isArray(result?.content) && result.content.some((c) => c.type === "image");
     return { tool: { name: "history_list", input: {} } };
   }

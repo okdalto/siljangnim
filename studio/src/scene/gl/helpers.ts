@@ -195,3 +195,93 @@ export async function loadTexture(gl: WebGL2RenderingContext, url: string, optio
   bitmap.close();
   return result;
 }
+
+export interface VideoTextureOptions {
+  loop?: boolean;
+  muted?: boolean;
+  /** Start playing right away (default true). */
+  autoplay?: boolean;
+  flipY?: boolean;
+  wrap?: "clamp" | "repeat" | "mirror";
+}
+
+export interface VideoTexture extends LoadedTexture {
+  video: HTMLVideoElement;
+  /** Upload the current video frame if it changed. Call once per frame before drawing. */
+  update(): void;
+  dispose(): void;
+}
+
+const VIDEO_LOAD_TIMEOUT_MS = 15_000;
+
+/** A texture fed by a <video>. Resolves once the first frame is decodable. */
+export async function createVideoTexture(gl: WebGL2RenderingContext, url: string, options: VideoTextureOptions = {}): Promise<VideoTexture> {
+  const video = document.createElement("video");
+  video.loop = options.loop ?? true;
+  video.muted = options.muted ?? true;
+  video.playsInline = true;
+  video.preload = "auto";
+  await new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`createVideoTexture: video did not load within ${VIDEO_LOAD_TIMEOUT_MS / 1000}s`)), VIDEO_LOAD_TIMEOUT_MS);
+    video.onloadeddata = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    video.onerror = () => {
+      clearTimeout(timer);
+      reject(new Error(`createVideoTexture: can't decode this video (${video.error?.message || "unsupported format"})`));
+    };
+    video.src = url;
+  });
+  // Autoplay can still be refused (e.g. unmuted); the texture then shows the first frame.
+  if (options.autoplay ?? true) video.play().catch(() => undefined);
+
+  const texture = gl.createTexture();
+  const wrap = { clamp: gl.CLAMP_TO_EDGE, repeat: gl.REPEAT, mirror: gl.MIRRORED_REPEAT }[options.wrap ?? "clamp"];
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+
+  let uploadedTime = -1;
+  let frameReady = true;
+  const hasFrameCallback = typeof video.requestVideoFrameCallback === "function";
+  const watchFrames = () => {
+    video.requestVideoFrameCallback(() => {
+      frameReady = true;
+      watchFrames();
+    });
+  };
+  if (hasFrameCallback) watchFrames();
+
+  const result: VideoTexture = {
+    texture,
+    video,
+    width: video.videoWidth,
+    height: video.videoHeight,
+    update() {
+      if (video.readyState < video.HAVE_CURRENT_DATA) return;
+      // Without frame callbacks, fall back to "the clock moved".
+      const changed = hasFrameCallback ? frameReady : video.currentTime !== uploadedTime;
+      if (!changed) return;
+      frameReady = false;
+      uploadedTime = video.currentTime;
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, options.flipY ?? true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, video);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+      result.width = video.videoWidth;
+      result.height = video.videoHeight;
+    },
+    dispose() {
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+    },
+  };
+  result.update();
+  return result;
+}

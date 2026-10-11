@@ -34,7 +34,7 @@ ctx.resolution — [width, height]
 ctx.mouse — [x, y, clickX, clickY] normalized 0..1, origin top-left; ctx.mousePrev — the same one frame earlier; ctx.mouseDown — boolean
 ctx.keys — Set of KeyboardEvent.code currently held
 ctx.uniforms — current values of the scene uniforms, by name
-ctx.assets — asset name → URL
+ctx.assets — uploaded asset name → blob URL (see asset_list)
 
 ctx.utils:
   FULLSCREEN_VERTEX_SHADER — #version 300 es vertex shader; outputs "in vec2 v_uv" (0..1) to the fragment shader
@@ -45,6 +45,7 @@ ctx.utils:
   setUniforms(program, {name: value}) — sets uniforms by name (numbers, arrays, booleans); unused names are ignored
   bindTexture(program, samplerName, texture, unit)
   loadTexture(assetNameOrUrl, {flipY, wrap: "clamp"|"repeat"|"mirror", filter: "linear"|"nearest", mipmap}) → Promise<{texture, width, height}>
+  createVideoTexture(assetNameOrUrl, {loop, muted, autoplay, flipY, wrap}) → Promise<{texture, video, width, height, update()}>. Call update() every frame before drawing; videos stop when the scene is replaced.
   createMesh({positions, normals?, uvs?, indices?, dimension?}) → {vao, count, draw(mode?, instances?)}
   geometry.quad() / box() / sphere(segments) / plane(w, h, wSegs, hSegs) — geometry data for createMesh
   createPingPong(width, height, {internalFormat, format, type, filter, depth, count}) → {read(), write(), swap(), resize(w, h), width, height}; read()/write() return {framebuffer, texture, textures}
@@ -55,6 +56,14 @@ ctx.utils:
   import(url) — dynamic import of an ES module from https://esm.sh, https://cdn.jsdelivr.net or https://unpkg.com (pin versions, e.g. "https://esm.sh/d3-delaunay@6.0.4"). Use it in setup.
 
 Shaders are GLSL ES 3.00: start with "#version 300 es", declare "precision highp float;" and "out vec4 outColor;". Declare every uniform you use. Don't name variables with GLSL reserved words: active, input, output, filter, sample, common, partition, resource, buffer, shared, flat, smooth, patch, half, fixed, long, short, double, unsigned, class, union, enum, interface, external, namespace.
+
+# Assets
+
+The person can upload files; call asset_list to see names, kinds and metadata, and asset_read to read text files (JSON, CSV, shader source, OBJ). Images attached to a message are also shown to you directly. Use assets by name in setup:
+- images: ctx.utils.loadTexture(name); video: ctx.utils.createVideoTexture(name); audio: new Audio(ctx.assets[name]); fonts: new FontFace("Name", \`url(\${ctx.assets[name]})\`) then document.fonts.add.
+- glTF/GLB: const { WebIO } = await ctx.utils.import("https://esm.sh/@gltf-transform/core@4.5.0"); const doc = await new WebIO().readBinary(new Uint8Array(await (await fetch(ctx.assets[name])).arrayBuffer())); then for each doc.getRoot().listMeshes() → mesh.listPrimitives(), read getAttribute("POSITION" / "NORMAL" / "TEXCOORD_0")?.getArray() and getIndices()?.getArray() and pass them to createMesh.
+- OBJ: fetch(ctx.assets[name]).then((r) => r.text()) and parse the v/vn/vt/f lines yourself.
+- SVG: use it as an image (loadTexture); never insert it into the DOM.
 
 For feedback effects (simulations, trails), render into a ping-pong target and blit the result with a second program. Use ctx.resolution for sizes and recreate targets when it changes.
 
