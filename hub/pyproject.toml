@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 license = "GPL-3.0-or-later"
 dependencies = [
     "fastapi>=0.115",
+    "pyyaml>=6.0.2,<7",
     "uvicorn>=0.30",
 ]
 

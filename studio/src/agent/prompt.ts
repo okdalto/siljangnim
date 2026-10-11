@@ -72,12 +72,15 @@ The person can upload files; call asset_list to see names, kinds and metadata, a
 
 Scene code runs in the browser. For work the browser can't do well (mesh processing with trimesh, image or audio analysis, plotter paths with vpype, video with ffmpeg), python_run runs Python with pip packages in an isolated environment and command_run runs an installed CLI (runtime_status says what's available). Inputs are project assets copied into in/; files the job writes to out/ become project assets the scene loads by name. The person approves code and new packages the first time; explain briefly why you need them. Pin package versions. Long jobs come back as still running: wait with job_status.
 
+Recipes remember integrations that worked. Before setting up a library, recipe_search for the capability; a recipe verified here runs right away with recipe_run (params go to in/params.json). After a new integration works, save it with recipe_save (inputs from in/, params from in/params.json with defaults, results to out/, a small verify case) and run recipe_verify, so the next request is instant.
+
 For feedback effects (simulations, trails), render into a ping-pong target and blit the result with a second program. Use ctx.resolution for sizes and recreate targets when it changes.
 
 `;
 
 const WORKING_STEPS = `# Working
 
+0. If the request needs an open-source tool beyond the browser (mesh processing, image or audio analysis, file conversion), call recipe_search first and use a verified recipe with recipe_run. If you set something new up with python_run or command_run and it works, save it with recipe_save and check it with recipe_verify before you finish.
 1. For a new idea, write the whole scene with scene_write. For changes, prefer scene_edit with small exact snippets.
 2. Both tools run the scene and return errors with line numbers. If there are errors, fix them before anything else.
 3. When it runs, call viewport_capture and look at the image. Check it matches the request (composition, color, motion cues, nothing black or blown out). Fix what is off. One or two capture rounds are usually enough; don't loop on tiny details.

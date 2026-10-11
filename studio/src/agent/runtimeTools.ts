@@ -8,7 +8,11 @@ const DEFAULT_WAIT_S = 90;
 // Below common MCP client tool timeouts, so long jobs come back as "still running" instead of timing out.
 const MAX_WAIT_S = 110;
 
-export function jobReport(job: RuntimeJob): ToolOutput {
+/** Appended when a hand-written run works: the next request should be able to reuse it. */
+export const SAVE_RECIPE_HINT =
+  "It worked. Before you finish, save this as a recipe (recipe_save with params read from in/params.json, then recipe_verify) so the next request for this can run it directly.";
+
+export function jobReport(job: RuntimeJob, options: { suggestRecipe?: boolean } = {}): ToolOutput {
   const log = job.log.length > LOG_TAIL ? `…${job.log.slice(-LOG_TAIL)}` : job.log;
   const logBlock = log.trim() ? `\n\nOutput (stdout + stderr):\n${log.trimEnd()}` : "";
   if (job.state === "queued" || job.state === "installing" || job.state === "running") {
@@ -17,7 +21,7 @@ export function jobReport(job: RuntimeJob): ToolOutput {
   }
   const assets = job.assets.length ? `\nSaved to the project as assets: ${job.assets.join(", ")} (use them by name, e.g. ctx.assets[name]).` : "\nNo files were written to out/.";
   if (job.state === "done") {
-    return { content: `Job ${job.id} finished in ${job.seconds}s.${assets}${logBlock}` };
+    return { content: `Job ${job.id} finished in ${job.seconds}s.${assets}${logBlock}${options.suggestRecipe ? `\n\n${SAVE_RECIPE_HINT}` : ""}` };
   }
   const why = job.state === "cancelled" ? "was cancelled" : `failed: ${job.error ?? `exit code ${job.exitCode}`}`;
   return { isError: true, content: `Job ${job.id} ${why}.${job.assets.length ? assets : ""}${logBlock}\n\nFix the problem and run it again.` };
@@ -74,7 +78,7 @@ const pythonRun = defineTool({
     const blocked = await guard(env);
     if (blocked) return blocked;
     const job = await env.runtime.run({ kind: "python", code, packages, argv: [], inputs, timeoutS: timeout_s, waitS: wait_s }, env.signal);
-    return jobReport(job);
+    return jobReport(job, { suggestRecipe: true });
   },
 });
 
@@ -93,7 +97,7 @@ const commandRun = defineTool({
     const blocked = await guard(env);
     if (blocked) return blocked;
     const job = await env.runtime.run({ kind: "command", code: "", packages: [], argv, inputs, timeoutS: timeout_s, waitS: wait_s }, env.signal);
-    return jobReport(job);
+    return jobReport(job, { suggestRecipe: true });
   },
 });
 
@@ -108,7 +112,7 @@ const jobStatus = defineTool({
   async run({ id, wait_s }, env) {
     const blocked = await guard(env);
     if (blocked) return blocked;
-    return jobReport(await env.runtime.job(id, wait_s));
+    return jobReport(await env.runtime.job(id, wait_s), { suggestRecipe: true });
   },
 });
 

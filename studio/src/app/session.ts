@@ -10,6 +10,8 @@ import {
   runTool,
   type AssetController,
   type HistoryController,
+  type RecipeController,
+  type RecipeSummary,
   type RuntimeController,
   type RuntimeJob,
   type SceneController,
@@ -20,7 +22,8 @@ import {
 } from "../agent/tools";
 import { RUNTIME_TOOLS } from "../agent/runtimeTools";
 import { PERMISSIONS_FILE, approvalNeeded, grant, parseGrants, programName, type ApprovalAnswer, type ApprovalRequest } from "../project/permissions";
-import { hubClient, type HubClient, type HubJob } from "./hubClient";
+import { hubClient, type HubClient, type HubJob, type HubRecipeSummary } from "./hubClient";
+import { RECIPE_TOOLS } from "../agent/recipeTools";
 import { EXTERNAL_TOOLS } from "../agent/external";
 import { USER_TOOLS } from "../agent/userTools";
 import { ASSET_TOOLS } from "../agent/assetTools";
@@ -591,9 +594,10 @@ async function attachmentBlocks(names: string[]): Promise<ContentBlockParam[]> {
 function projectEnv(
   projectId: string,
   sceneHost: SceneHost,
-): { scene: SceneController; history: HistoryController; assets: AssetController; runtime: RuntimeController } {
+): { scene: SceneController; history: HistoryController; assets: AssetController; runtime: RuntimeController; recipes: RecipeController } {
   return {
     runtime: runtimeController(projectId),
+    recipes: recipeController,
     scene: {
       get: () => get().scene,
       apply: (scene) => (get().project?.id === projectId ? applyScene(scene) : Promise.resolve({ ok: false, errors: [] })),
@@ -622,13 +626,21 @@ function projectEnv(
 const LOCK_FILE = "project.lock.json";
 /** Output files already saved as assets, by job id, so a second job_status doesn't save them twice. */
 const importedJobs = new Map<string, string[]>();
-let answerApproval: ((answer: ApprovalAnswer) => void) | null = null;
+/** Which recipe (id@version) a job ran, for project.lock.json. */
+const jobRecipes = new Map<string, string>();
+let answerApproval: ((answer: ApprovalAnswer | "unanswered") => void) | null = null;
 
-/** Ask the person to allow a runtime action; resolves "deny" when the run stops. */
-function requestApproval(request: ApprovalRequest, signal: AbortSignal): Promise<ApprovalAnswer> {
+/**
+ * Ask the person to allow a runtime action. Resolves "deny" when the run
+ * stops, and "unanswered" after `timeoutS` so a tool call never hangs on a
+ * card nobody is looking at.
+ */
+function requestApproval(request: ApprovalRequest, signal: AbortSignal, timeoutS: number): Promise<ApprovalAnswer | "unanswered"> {
   return new Promise((resolve) => {
     if (signal.aborted) return resolve("deny");
-    const done = (answer: ApprovalAnswer) => {
+    const timer = setTimeout(() => done("unanswered"), timeoutS * 1000);
+    const done = (answer: ApprovalAnswer | "unanswered") => {
+      clearTimeout(timer);
       signal.removeEventListener("abort", onAbort);
       if (answerApproval === done) answerApproval = null;
       set({ approval: null });
@@ -667,10 +679,11 @@ export function runtimeController(projectId: string): RuntimeController {
       const files = await Promise.all(job.outputs.map(async (o) => new File([await c.output(job.id, o.name)], o.name)));
       assets = (await addAssetFiles(projectId, files, { attach: false })).names;
       importedJobs.set(job.id, assets);
-      if (job.state === "done") await recordLock(projectId, job);
+      if (job.state === "done") await recordLock(projectId, job, jobRecipes.get(job.id));
     }
     return {
       id: job.id,
+      outputs: job.outputs.map((o) => o.name),
       state: job.state === "created" ? "queued" : job.state,
       exitCode: job.exit_code,
       error: job.error,
@@ -703,15 +716,23 @@ export function runtimeController(projectId: string): RuntimeController {
         throw new Error(`No asset named ${missing.join(", ")}. Available: ${[...assetBlobs.keys()].join(", ") || "none"}.`);
       }
       const grants = parseGrants(await store.readFile(projectId, PERMISSIONS_FILE));
-      const needed = approvalNeeded(grants, request);
+      // A recipe written and verified on this machine already ran with the person's OK.
+      const needed = request.recipe?.trusted ? null : approvalNeeded(grants, request);
       if (needed) {
-        const answer = await requestApproval(needed, signal);
+        const answer = await requestApproval(needed, signal, Math.max(10, request.waitS));
+        if (answer === "unanswered") {
+          throw new Error(
+            `Waiting for the person to approve this in the Siljangnim window (${needed.items.join("; ")}). Nothing ran. Tell them to look at the approval card, then call the tool again.`,
+          );
+        }
         if (answer === "deny") throw new Error("The person did not allow this. Ask them in your reply, or find a way that runs in the browser.");
         if (answer === "project") await store.writeFile(projectId, PERMISSIONS_FILE, JSON.stringify(grant(grants, request), null, 2));
       }
       const c = await client();
       const job = await c.createJob({ kind: request.kind, packages: request.packages, code: request.code, argv: request.argv, timeout_s: request.timeoutS });
       for (const name of request.inputs) await c.putInput(job.id, name, assetBlobs.get(name)!);
+      if (request.params) await c.putInput(job.id, "params.json", new Blob([JSON.stringify(request.params)], { type: "application/json" }));
+      if (request.recipe) jobRecipes.set(job.id, `${request.recipe.id}@${request.recipe.version}`);
       await c.start(job.id);
       return finish(c, await c.wait(job.id, request.waitS));
     },
@@ -723,8 +744,9 @@ export function runtimeController(projectId: string): RuntimeController {
 }
 
 /** project.lock.json: what the project's results depend on (exact package versions, programs). */
-async function recordLock(projectId: string, job: HubJob): Promise<void> {
-  const lock = ((await readJsonFile(projectId, LOCK_FILE)) ?? {}) as { python?: Array<{ packages: string[]; resolved: string[] }>; programs?: string[] };
+async function recordLock(projectId: string, job: HubJob, recipe?: string): Promise<void> {
+  const lock = ((await readJsonFile(projectId, LOCK_FILE)) ?? {}) as { python?: Array<{ packages: string[]; resolved: string[] }>; programs?: string[]; recipes?: string[] };
+  if (recipe) lock.recipes = [...new Set([...(lock.recipes ?? []).filter((r) => !r.startsWith(`${recipe.split("@")[0]}@`)), recipe])].sort();
   if (job.kind === "command") {
     lock.programs = [...new Set([...(lock.programs ?? []), programName(job.argv[0] ?? "")])].sort();
   } else {
@@ -733,6 +755,50 @@ async function recordLock(projectId: string, job: HubJob): Promise<void> {
     lock.python = [...others, { packages, resolved: job.resolved }];
   }
   await store.writeFile(projectId, LOCK_FILE, JSON.stringify(lock, null, 2));
+}
+
+const recipeController: RecipeController = {
+  search: async (query) => {
+    const c = await requireHub();
+    const { platform, recipes } = await c.recipes(query);
+    return { platform, recipes: recipes.map(recipeSummary) };
+  },
+  read: async (id) => {
+    const r = await (await requireHub()).recipe(id);
+    return {
+      summary: recipeSummary(r.summary),
+      code: r.code,
+      argv: r.argv,
+      text: r.text,
+      verify: { params: r.meta.verify?.params ?? {}, expectOutputs: r.meta.verify?.expect_outputs ?? [] },
+    };
+  },
+  save: async (id, fields) => recipeSummary((await (await requireHub()).saveRecipe(id, fields)).summary),
+  setStatus: async (id, status, log) => recipeSummary((await (await requireHub()).recipeStatus(id, status, log)).summary),
+};
+
+async function requireHub(): Promise<HubClient> {
+  const c = await hubClient();
+  if (typeof c === "string") throw new Error(c);
+  return c;
+}
+
+function recipeSummary(r: HubRecipeSummary): RecipeSummary {
+  return {
+    id: r.id,
+    version: r.version,
+    title: r.title,
+    capability: r.capability,
+    tier: r.tier,
+    kind: r.kind,
+    packages: r.packages,
+    program: r.program,
+    io: r.io,
+    license: r.license,
+    origin: r.origin,
+    statusHere: r.status_here,
+    testedHere: r.tested_here,
+  };
 }
 
 // --- external agents (MCP bridge) ---
@@ -802,7 +868,7 @@ export async function sendPrompt(text: string): Promise<void> {
   await flushControlVersion();
 
   const projectId = project.id;
-  const { scene: controller, history, assets: assetsEnv, runtime } = projectEnv(projectId, host);
+  const { scene: controller, history, assets: assetsEnv, runtime, recipes } = projectEnv(projectId, host);
 
   const user: UserController = {
     ask: (question, options, signal) =>
@@ -844,8 +910,8 @@ export async function sendPrompt(text: string): Promise<void> {
       model,
       effort: settings.effort,
       system: SYSTEM_PROMPT,
-      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...RUNTIME_TOOLS, ...USER_TOOLS],
-      env: { scene: controller, history, assets: assetsEnv, user, runtime },
+      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...RUNTIME_TOOLS, ...RECIPE_TOOLS, ...USER_TOOLS],
+      env: { scene: controller, history, assets: assetsEnv, user, runtime, recipes },
       messages,
       signal: abort.signal,
       onEvent(event) {

@@ -37,6 +37,8 @@ const status = await new Promise((resolveExit) => {
       SILJANGNIM_ANTHROPIC_BASE_URL: mock.url,
       SILJANGNIM_SMOKE_KEY: TEST_KEY,
       SILJANGNIM_SMOKE_FINAL_TEXT: FINAL_TEXT,
+      // Recipes go to the throwaway profile, not ~/Siljangnim.
+      SILJANGNIM_RECIPES_DIR: join(profile, "recipes"),
     },
     stdio: "inherit",
   });

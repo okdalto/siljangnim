@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 
 from . import __version__, system
+from .recipes import Recipes
 from .runtime import Job, Runtime, RuntimeErrorWithHint, programs
 
 # Origins the desktop renderer runs under (packaged app / dev server). The
@@ -30,11 +31,13 @@ KNOWN_PROGRAMS = ["ffmpeg", "ffprobe", "blender", "openscad", "magick", "inkscap
 MAX_WAIT_S = 60
 
 
-def create_app(token: str, port: int, runtime: Runtime | None = None) -> FastAPI:
+def create_app(token: str, port: int, runtime: Runtime | None = None, recipes: Recipes | None = None) -> FastAPI:
     if not token:
         raise ValueError("hub token must not be empty")
     if runtime is None:
         runtime = default_runtime()
+    if recipes is None:
+        recipes = default_recipes()
 
     allowed_hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
     app = FastAPI(title="siljangnim-hub", version=__version__, docs_url=None, redoc_url=None, openapi_url=None)
@@ -140,7 +143,35 @@ def create_app(token: str, port: int, runtime: Runtime | None = None) -> FastAPI
             return JSONResponse({"error": "no such job"}, status_code=404)
         return FileResponse(runtime.output_path(job, name))
 
+    # --- recipes (see recipes.py) ---
+
+    @app.get("/recipes")
+    def recipe_search(q: str = ""):
+        return {"platform": recipes.platform, "recipes": recipes.search(q)}
+
+    @app.get("/recipes/{recipe_id}")
+    def recipe_get(recipe_id: str):
+        recipe = recipes.get(recipe_id)
+        return {k: recipe[k] for k in ("meta", "summary", "code", "argv", "setup", "verify", "notes", "text")}
+
+    @app.put("/recipes/{recipe_id}")
+    async def recipe_save(recipe_id: str, request: Request):
+        fields = await request.json()
+        recipe = recipes.save({**fields, "id": recipe_id})
+        return {"summary": recipe["summary"], "text": recipe["text"]}
+
+    @app.post("/recipes/{recipe_id}/status")
+    async def recipe_status(recipe_id: str, request: Request):
+        body = await request.json()
+        return {"summary": recipes.set_status(recipe_id, body.get("status", ""), body.get("log", ""))["summary"]}
+
     return app
+
+
+def default_recipes() -> Recipes:
+    """Recipes under SILJANGNIM_RECIPES_DIR (default ~/Siljangnim/recipes), for this platform."""
+    root = Path(os.environ.get("SILJANGNIM_RECIPES_DIR") or Path.home() / "Siljangnim" / "recipes")
+    return Recipes(root, system.platform_key())
 
 
 def default_runtime() -> Runtime | None:

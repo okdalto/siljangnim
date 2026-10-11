@@ -25,6 +25,11 @@ const TOOL_LABELS: Record<string, string> = {
   python_run: "Ran Python",
   command_run: "Ran a program",
   job_status: "Checked a job",
+  recipe_search: "Searched recipes",
+  recipe_read: "Read a recipe",
+  recipe_save: "Saved a recipe",
+  recipe_verify: "Verified a recipe",
+  recipe_run: "Ran a recipe",
   asset_list: "Checked assets",
   asset_read: "Read an asset",
 };

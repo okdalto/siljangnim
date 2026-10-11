@@ -4,7 +4,7 @@ import { noRuntime, stubEnv } from "./testing";
 import type { RuntimeJob, RuntimeRequest } from "./tools";
 
 const tool = (name: string) => RUNTIME_TOOLS.find((t) => t.name === name)!;
-const job = (over: Partial<RuntimeJob>): RuntimeJob => ({ id: "j1", state: "done", exitCode: 0, error: null, log: "", assets: [], resolved: [], seconds: 1.5, ...over });
+const job = (over: Partial<RuntimeJob>): RuntimeJob => ({ id: "j1", state: "done", exitCode: 0, error: null, log: "", outputs: [], assets: [], resolved: [], seconds: 1.5, ...over });
 
 describe("runtime tools", () => {
   it("explain when there is no runtime", async () => {
@@ -19,6 +19,7 @@ describe("runtime tools", () => {
     });
     const py = await tool("python_run").run(tool("python_run").input.parse({ code: "x", packages: ["trimesh==4.5.3"], inputs: ["a.png"] }), env);
     expect(String(py.content)).toContain("Saved to the project as assets: mesh.obj");
+    expect(String(py.content)).toContain("save this as a recipe");
     await tool("command_run").run(tool("command_run").input.parse({ argv: ["ffmpeg", "-version"] }), env);
     expect(seen).toEqual([
       { kind: "python", code: "x", packages: ["trimesh==4.5.3"], argv: [], inputs: ["a.png"], timeoutS: 120, waitS: 90 },

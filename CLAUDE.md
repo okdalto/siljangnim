@@ -19,7 +19,8 @@ changing structure. Current work: `docs/m2.md`.
   `src/spec.json` is generated from `studio/src/agent/external.ts` — run `npm --prefix studio run export-mcp`
   after changing tools or the prompt (a studio test fails otherwise).
 - `hub/` — Python sidecar (FastAPI, uv-managed): system info and the runtime — isolated uv venvs and a job queue
-  for C/D-grade open source (`python_run`, `command_run`; [docs/runtime.md](docs/runtime.md)).
+  for C/D-grade open source (`python_run`, `command_run`; [docs/runtime.md](docs/runtime.md)), and recipes — saved
+  integrations in `~/Siljangnim/recipes/<id>/recipe.md`, read/written only by `recipes.py` ([docs/recipes.md](docs/recipes.md)).
 - `frontend/`, `backend/` — **v1, legacy.** Still deployed to siljangnim.vercel.app. Read them to port
   features; don't build on them. Retired when the studio reaches parity (M3).
 
