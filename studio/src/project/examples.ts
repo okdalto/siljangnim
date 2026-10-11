@@ -13,6 +13,8 @@ interface ExampleMeta {
   made_with: string;
   features: string[];
   mode: "live" | "timeline";
+  /** Platform features the example can't run without, e.g. "webgpu". */
+  requires?: string[];
 }
 
 export interface Example extends ExampleMeta {

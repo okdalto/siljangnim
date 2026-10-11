@@ -31,15 +31,17 @@ void main() {
 `;
 
 export class ShaderError extends Error {
-  readonly stage: "vertex" | "fragment" | "link";
+  readonly stage: "vertex" | "fragment" | "link" | "wgsl";
   readonly diagnostics: ShaderDiagnostic[];
   readonly excerpt: string;
 
-  constructor(stage: "vertex" | "fragment" | "link", log: string, source: string) {
-    super(`${stage} shader ${stage === "link" ? "link" : "compile"} failed: ${firstLine(log)}`);
+  /** GLSL: pass the driver log. WGSL: pass the diagnostics from getCompilationInfo() instead. */
+  constructor(stage: "vertex" | "fragment" | "link" | "wgsl", log: string, source: string, diagnostics?: ShaderDiagnostic[]) {
+    const parsed = diagnostics ?? parseShaderLog(log);
+    super(`${stage} shader ${stage === "link" ? "link" : "compile"} failed: ${diagnostics ? (parsed[0]?.message ?? "unknown error") : firstLine(log)}`);
     this.name = "ShaderError";
     this.stage = stage;
-    this.diagnostics = parseShaderLog(log);
+    this.diagnostics = parsed;
     this.excerpt = excerptAround(source, this.diagnostics[0]?.line);
   }
 }

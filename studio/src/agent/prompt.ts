@@ -25,7 +25,7 @@ A scene is JSON, format version 2:
 - inputs declares what the scene uses: mouse, keyboard, camera, microphone, midi.
 - timeline (optional): { "duration": 10, "loop": true, "preserveStateOnLoop": false }. A scene without one is live: interactive, running indefinitely; that is the default and right for most requests. Add a timeline only when the request is about timing (a build-up, a sequence, a fixed-length loop or clip); the person sees it as switching the scene to Timeline mode. With a timeline, ctx.time runs from 0 to duration. At each loop the scene restarts (setup runs again) so simulations line up with the keyframes; set preserveStateOnLoop to true to keep the state and only wrap the time.
 - keyframes (optional, needs a timeline): { "u_speed": [{ "time": 0, "value": 1 }, { "time": 5, "value": 3, "ease": "easeInOut" }] }. Only float and int uniforms. "ease" shapes the segment that ends at that key: smooth (default), linear, easeIn, easeOut, easeInOut, step. Before every render the runtime writes the keyed values into ctx.uniforms, so setStandardUniforms/drawFullscreen pick them up. Use keyframes for changes the person may want to retime (a build-up, a sequence of moments); use ctx.time in code for continuous motion. The person can add or move keys in the timeline themselves.
-- Only "webgl2" is available right now.
+- backend is "webgl2" (default) or "webgpu". Use WebGPU when the scene needs compute shaders (large particle systems, simulations on storage buffers); otherwise WebGL2.
 
 # ctx
 
@@ -73,6 +73,15 @@ The person can upload files; call asset_list to see names, kinds and metadata, a
 Scene code runs in the browser. For work the browser can't do well (mesh processing with trimesh, image or audio analysis, plotter paths with vpype, video with ffmpeg), python_run runs Python with pip packages in an isolated environment and command_run runs an installed CLI (runtime_status says what's available). Inputs are project assets copied into in/; files the job writes to out/ become project assets the scene loads by name. The person approves code and new packages the first time; explain briefly why you need them. Pin package versions. Long jobs come back as still running: wait with job_status.
 
 Recipes remember integrations that worked. Before setting up a library, recipe_search for the capability; a recipe verified here runs right away with recipe_run (params go to in/params.json). After a new integration works, save it with recipe_save (inputs from in/, params from in/params.json with defaults, results to out/, a small verify case) and run recipe_verify, so the next request is instant.
+
+# WebGPU scenes (backend "webgpu")
+
+ctx.device (a fresh GPUDevice per load), ctx.context (canvas context, already configured), ctx.format; there is no ctx.gl and no GL helpers. time, dt, frame, resolution, mouse, keys, uniforms, state, assets and publish work as above. Shaders are WGSL. ctx.utils:
+  createShaderModule(code, label?) → Promise<GPUShaderModule>; throws with line numbers on compile errors. Use it instead of device.createShaderModule.
+  createUniforms() → {buffer, wgsl, update()}: a uniform buffer with time, dt, frame, resolution (vec2f), mouse (vec4f, pixels, origin bottom-left, zw negative when not pressed) and every scene uniform by name (int and bool as f32, color as vec3f). Paste .wgsl into your shader, bind .buffer as var<uniform>, call update() every frame.
+  FULLSCREEN_VERTEX_WGSL — vertex entry point "fullscreen_vertex" (draw 3 vertices) passing @location(0) uv (0..1) to the fragment stage.
+  loadTexture(assetNameOrUrl, {flipY}) → Promise<{texture, width, height}> (rgba8unorm); import(url).
+In render, encode your passes and submit; draw into ctx.context.getCurrentTexture(). GPUBufferUsage, GPUTextureUsage and GPUShaderStage are globals. Validation errors and device loss come back as scene errors.
 
 For feedback effects (simulations, trails), render into a ping-pong target and blit the result with a second program. Use ctx.resolution for sizes and recreate targets when it changes.
 
