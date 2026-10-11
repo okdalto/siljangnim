@@ -1,5 +1,5 @@
 // Stubs for tests: a ToolEnv whose parts do nothing unless a test replaces them.
-import type { AssetController, HistoryController, RecipeController, RuntimeController, SceneController, ToolEnv, UserController } from "./tools";
+import type { AssetController, HistoryController, ProjectController, RecipeController, RuntimeController, SceneController, ToolEnv, UserController } from "./tools";
 
 export const noHistory: HistoryController = {
   list: async () => [],
@@ -33,6 +33,13 @@ export const noRecipes: RecipeController = {
   },
 };
 
+export const noProject: ProjectController = {
+  exportMd: async () => "# test project",
+  importMd: async () => {
+    throw new Error("no projects in tests");
+  },
+};
+
 export function stubEnv(parts: Partial<ToolEnv> & { scene?: SceneController } = {}): ToolEnv {
   return {
     scene: parts.scene ?? ({} as SceneController),
@@ -41,6 +48,7 @@ export function stubEnv(parts: Partial<ToolEnv> & { scene?: SceneController } = 
     user: noUser,
     runtime: noRuntime,
     recipes: noRecipes,
+    project: noProject,
     signal: new AbortController().signal,
     ...parts,
   };

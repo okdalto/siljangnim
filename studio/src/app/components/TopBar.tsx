@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createProject, deleteProject, importV1Project, openProject, renameProject, setExamplesOpen, setSettingsOpen } from "../session";
+import { createProject, deleteProject, exportProjectBundle, importProjectFile, importV1Project, openProject, renameProject, setExamplesOpen, setSettingsOpen } from "../session";
 import { useApp } from "../state";
 import { ChevronIcon, GearIcon, Logo, PlusIcon, TrashIcon } from "./icons";
 
@@ -64,6 +64,7 @@ function ProjectMenu() {
   const current = useApp((s) => s.project);
   const ref = useRef<HTMLDivElement>(null);
   const importInput = useRef<HTMLInputElement>(null);
+  const projectInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -88,6 +89,19 @@ function ProjectMenu() {
           e.target.value = "";
           setOpen(false);
           if (file) void importV1Project(file);
+        }}
+      />
+      <input
+        ref={projectInput}
+        type="file"
+        accept=".zip,.md,application/zip,text/markdown"
+        hidden
+        data-testid="import-project"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          setOpen(false);
+          if (file) void importProjectFile(file);
         }}
       />
       <button type="button" onClick={() => setOpen(!open)} className="rounded p-1 text-muted hover:bg-raised hover:text-fg" title="Projects">
@@ -149,6 +163,25 @@ function ProjectMenu() {
             onClick={() => importInput.current?.click()}
           >
             <span className="w-3.5 text-center text-faint">↥</span> Import v1 project (.zip)…
+          </button>
+          <button
+            type="button"
+            data-testid="export-project"
+            className="flex w-full items-center gap-2 border-t border-line px-3 py-2 text-left hover:bg-line/40"
+            title="project.md with the scene and how its assets were made, plus the assets, recipes and a preview"
+            onClick={() => {
+              setOpen(false);
+              void exportProjectBundle();
+            }}
+          >
+            <span className="w-3.5 text-center text-faint">↧</span> Export project (.zip)
+          </button>
+          <button
+            type="button"
+            className="flex w-full items-center gap-2 border-t border-line px-3 py-2 text-left hover:bg-line/40"
+            onClick={() => projectInput.current?.click()}
+          >
+            <span className="w-3.5 text-center text-faint">↥</span> Import project (project.md or .zip)…
           </button>
 
         </div>

@@ -156,6 +156,12 @@ def create_app(token: str, port: int, runtime: Runtime | None = None, recipes: R
     def recipe_search(q: str = ""):
         return {"platform": recipes.platform, "recipes": recipes.search(q)}
 
+    @app.post("/recipes/import")
+    async def recipe_import(request: Request):
+        body = await request.json()
+        recipe = recipes.import_text(str(body.get("text") or ""))
+        return {"summary": recipe["summary"], "kept": recipe["kept"]}
+
     @app.get("/recipes/{recipe_id}")
     def recipe_get(recipe_id: str):
         recipe = recipes.get(recipe_id)

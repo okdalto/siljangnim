@@ -19,7 +19,10 @@ export function jobReport(job: RuntimeJob, options: { suggestRecipe?: boolean } 
     const what = job.state === "installing" ? "installing packages" : job.state;
     return { content: `Job ${job.id} is still ${what} (${job.seconds}s so far). Call job_status with id "${job.id}" to wait for it.${logBlock}` };
   }
-  const assets = job.assets.length ? `\nSaved to the project as assets: ${job.assets.join(", ")} (use them by name, e.g. ctx.assets[name]).` : "\nNo files were written to out/.";
+  const replaced = job.replaced?.length
+    ? ` ${job.replaced.join(", ")} replaced the earlier run's file${job.replaced.length === 1 ? "" : "s"}; scenes see the new contents when they load again (scene_write or scene_edit).`
+    : "";
+  const assets = job.assets.length ? `\nSaved to the project as assets: ${job.assets.join(", ")} (use them by name, e.g. ctx.assets[name]).${replaced}` : "\nNo files were written to out/.";
   if (job.state === "done") {
     return { content: `Job ${job.id} finished in ${job.seconds}s.${assets}${logBlock}${options.suggestRecipe ? `\n\n${SAVE_RECIPE_HINT}` : ""}` };
   }
@@ -71,13 +74,14 @@ const pythonRun = defineTool({
   input: z.object({
     code: z.string().min(1).describe("A complete Python 3.12 script."),
     packages: z.array(z.string()).max(30).default([]).describe('Pip requirement specs, e.g. ["trimesh==4.5.3", "numpy"].'),
+    params: z.record(z.string(), z.unknown()).optional().describe("Written to in/params.json for the script to read."),
     ...common,
   }),
   readOnly: false,
-  async run({ code, packages, inputs, timeout_s, wait_s }, env) {
+  async run({ code, packages, params, inputs, timeout_s, wait_s }, env) {
     const blocked = await guard(env);
     if (blocked) return blocked;
-    const job = await env.runtime.run({ kind: "python", code, packages, argv: [], inputs, timeoutS: timeout_s, waitS: wait_s }, env.signal);
+    const job = await env.runtime.run({ kind: "python", code, packages, argv: [], inputs, ...(params ? { params } : {}), timeoutS: timeout_s, waitS: wait_s }, env.signal);
     return jobReport(job, { suggestRecipe: true });
   },
 });

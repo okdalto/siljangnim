@@ -10,10 +10,12 @@ import {
   runTool,
   type AssetController,
   type HistoryController,
+  type ProjectController,
   type RecipeController,
   type RecipeSummary,
   type RuntimeController,
   type RuntimeJob,
+  type RuntimeRequest,
   type SceneController,
   type ToolEnv,
   type ToolOutput,
@@ -24,6 +26,7 @@ import { RUNTIME_TOOLS } from "../agent/runtimeTools";
 import { PERMISSIONS_FILE, approvalNeeded, grant, parseGrants, programName, type ApprovalAnswer, type ApprovalRequest } from "../project/permissions";
 import { hubClient, type HubClient, type HubJob, type HubRecipeSummary } from "./hubClient";
 import { RECIPE_TOOLS } from "../agent/recipeTools";
+import { PROJECT_TOOLS } from "../agent/projectTools";
 import { EXTERNAL_TOOLS } from "../agent/external";
 import { USER_TOOLS } from "../agent/userTools";
 import { ASSET_TOOLS } from "../agent/assetTools";
@@ -40,6 +43,19 @@ import {
   type AssetInfo,
 } from "../project/assets";
 import { EXAMPLES } from "../project/examples";
+import {
+  PIPELINE_FILE,
+  PROJECT_MD,
+  addPipelineStep,
+  assetSources,
+  importNote,
+  parseProjectMd,
+  renderProjectMd,
+  type PipelineStep,
+  type ProjectDocument,
+  type ProjectRecipeRef,
+} from "../project/projectMd";
+import { storedZip } from "../scene/runtime/zip";
 import { convertV1Project, readZip } from "../project/v1Import";
 import { resolveVersionId, sameScene, versionMessage } from "../project/history";
 import { ProjectStore, SCENE_FILE, type Version } from "../project/store";
@@ -634,7 +650,8 @@ export async function uploadAssets(files: File[]): Promise<void> {
 }
 
 /** Store files as project assets (renaming duplicates). Returns the names they got. */
-async function addAssetFiles(projectId: string, files: File[], options: { attach: boolean }): Promise<{ names: string[]; rejected: string[] }> {
+/** `replace` names existing assets a file may overwrite (outputs of an earlier job); others get a new name. */
+async function addAssetFiles(projectId: string, files: File[], options: { attach: boolean; replace?: Set<string> }): Promise<{ names: string[]; rejected: string[] }> {
   const names: string[] = [];
   const rejected: string[] = [];
   for (const file of files) {
@@ -646,7 +663,8 @@ async function addAssetFiles(projectId: string, files: File[], options: { attach
       rejected.push(`${file.name} is empty`);
       continue;
     }
-    const name = uniqueAssetName(sanitizeAssetName(file.name), assetBlobs.keys());
+    const clean = sanitizeAssetName(file.name);
+    const name = options.replace?.has(clean) ? clean : uniqueAssetName(clean, assetBlobs.keys());
     const blob = new Blob([file], { type: assetMimeType(name, file.type) });
     const meta = await analyzeAsset(name, blob);
     await store.writeFile(projectId, ASSET_DIR + name, blob, meta);
@@ -699,16 +717,174 @@ async function attachmentBlocks(names: string[]): Promise<ContentBlockParam[]> {
   return blocks;
 }
 
+// --- sharing: project.md (docs/project-md.md) ---
+
+async function sha256(blob: Blob): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** The open project as a ProjectDocument, plus what a bundle carries besides the md. */
+async function projectDocument(
+  projectId: string,
+  options: { includeAssets: boolean; preview: boolean },
+): Promise<{ doc: ProjectDocument; preview: Blob | null; recipeTexts: Map<string, string> }> {
+  const { project, scene, messages } = get();
+  if (project?.id !== projectId) throw new Error("That project is no longer open.");
+  let steps = (((await readJsonFile(projectId, PIPELINE_FILE)) as { steps?: PipelineStep[] } | null)?.steps ?? []);
+  const lock = ((await readJsonFile(projectId, LOCK_FILE)) ?? {}) as { recipes?: string[]; programs?: string[] };
+  const sources = assetSources(steps);
+  const assets = await Promise.all(
+    [...assetBlobs].map(async ([name, blob]) => ({
+      name,
+      kind: assetKind(name, blob.type),
+      bytes: blob.size,
+      sha256: await sha256(blob),
+      source: sources.has(name) ? (`step ${sources.get(name)!}` as const) : ("user-provided" as const),
+      included: options.includeAssets,
+    })),
+  );
+  const refs = [...new Set([...(lock.recipes ?? []), ...steps.flatMap((s) => (s.recipe ? [s.recipe] : []))])].sort();
+  const recipes: ProjectRecipeRef[] = [];
+  const recipeTexts = new Map<string, string>();
+  const client = refs.length ? await hubClient() : null;
+  for (const ref of refs) {
+    const id = ref.split("@")[0]!;
+    if (!client || typeof client === "string") {
+      recipes.push({ ref });
+      continue;
+    }
+    try {
+      const recipe = await client.recipe(id);
+      const source = (recipe.meta as { source?: { license?: string; weights_license?: string } }).source;
+      recipes.push({ ref, title: recipe.summary.title, license: source?.license ?? null, weightsLicense: source?.weights_license ?? null });
+      recipeTexts.set(id, recipe.text);
+      // The recipe's code was written by an agent, not taken from the tool, so the md can carry it:
+      // a machine without the recipe can still run the step.
+      steps = steps.map((s) => (s.recipe?.split("@")[0] === id && s.kind === "python" && !s.code && recipe.code ? { ...s, code: recipe.code } : s));
+    } catch {
+      recipes.push({ ref });
+    }
+  }
+  const requests = messages.flatMap((m) =>
+    m.role === "user" && Array.isArray(m.content)
+      ? m.content.flatMap((b) => (b.type === "text" && !b.text.startsWith("[Studio note]") && b.text.trim() ? [b.text.trim()] : []))
+      : [],
+  );
+  const preview = options.preview && host ? (await host.request("capture", { maxSize: 1024 }).catch(() => null))?.png ?? null : null;
+  return {
+    doc: {
+      title: project.name,
+      exported: new Date().toISOString().slice(0, 10),
+      scene,
+      assets,
+      pipeline: steps,
+      recipes,
+      programs: lock.programs ?? [],
+      requests,
+      preview: Boolean(preview),
+    },
+    preview,
+    recipeTexts,
+  };
+}
+
+function projectController(projectId: string): ProjectController {
+  return {
+    exportMd: async () => renderProjectMd((await projectDocument(projectId, { includeAssets: false, preview: false })).doc),
+    importMd: async (markdown) => (await importProjectText(markdown, new Map(), [])).note,
+  };
+}
+
+/** Download the open project as a bundle: project.md, preview.png, assets/, recipes/. */
+export async function exportProjectBundle(): Promise<void> {
+  const project = get().project;
+  if (!project) return;
+  try {
+    const { doc, preview, recipeTexts } = await projectDocument(project.id, { includeAssets: true, preview: true });
+    const encode = (text: string) => new TextEncoder().encode(text);
+    const files = [{ name: PROJECT_MD, data: encode(renderProjectMd(doc)) }];
+    if (preview) files.push({ name: "preview.png", data: new Uint8Array(await preview.arrayBuffer()) });
+    for (const [name, blob] of assetBlobs) files.push({ name: `assets/${name}`, data: new Uint8Array(await blob.arrayBuffer()) });
+    for (const [id, text] of recipeTexts) files.push({ name: `recipes/${id}/recipe.md`, data: encode(text) });
+    const slug = project.name.trim().replace(/[^\p{L}\p{N}._-]+/gu, "-").replace(/^-+|-+$/g, "") || "project";
+    download(storedZip(files), `${slug}.siljangnim.zip`);
+    set({ notice: { kind: "info", text: `Exported "${project.name}" with ${assetBlobs.size} asset${assetBlobs.size === 1 ? "" : "s"}${recipeTexts.size ? ` and ${recipeTexts.size} recipe${recipeTexts.size === 1 ? "" : "s"}` : ""}.` } });
+  } catch (err) {
+    set({ notice: { kind: "error", text: `Couldn't export the project: ${err instanceof Error ? err.message : String(err)}` } });
+  }
+}
+
+/** A project.md, or a bundle (.zip) with it, as a new project. */
+export async function importProjectFile(file: File): Promise<void> {
+  try {
+    let result: { title: string; note: string };
+    if (/\.(md|markdown|txt)$/i.test(file.name)) {
+      result = await importProjectText(await file.text(), new Map(), []);
+    } else {
+      const entries = await readZip(await file.arrayBuffer());
+      const mdPath = [...entries.keys()].filter((k) => k === PROJECT_MD || k.endsWith(`/${PROJECT_MD}`)).sort((a, b) => a.length - b.length)[0];
+      if (!mdPath) throw new Error("the zip has no project.md");
+      const root = mdPath.slice(0, -PROJECT_MD.length);
+      const assets = new Map<string, Uint8Array>();
+      const recipeTexts: string[] = [];
+      for (const [path, data] of entries) {
+        if (!path.startsWith(root) || path.endsWith("/")) continue;
+        const rest = path.slice(root.length);
+        if (rest.startsWith("assets/") && !rest.slice(7).includes("/")) assets.set(rest.slice(7), data);
+        else if (/^recipes\/[^/]+\/recipe\.md$/.test(rest)) recipeTexts.push(new TextDecoder().decode(data));
+      }
+      result = await importProjectText(new TextDecoder().decode(entries.get(mdPath)!), assets, recipeTexts);
+    }
+    set({ notice: { kind: "info", text: `Imported "${result.title}". ${result.note.replace(/^This project was imported from a project\.md \("[^"]*"\)\. The scene is loaded\. ?/, "")}`.trim() } });
+  } catch (err) {
+    set({ notice: { kind: "error", text: `Couldn't import that project: ${err instanceof Error ? err.message : String(err)}` } });
+  }
+}
+
+async function importProjectText(markdown: string, assets: Map<string, Uint8Array>, recipeTexts: string[]): Promise<{ title: string; note: string }> {
+  const parsed = parseProjectMd(markdown);
+  const project = await store.createProject(parsed.title);
+  await store.writeFile(project.id, SCENE_FILE, JSON.stringify(parsed.scene, null, 2));
+  for (const [name, data] of assets) {
+    const blob = new Blob([data as BlobPart], { type: assetMimeType(name, "") });
+    await store.writeFile(project.id, ASSET_DIR + name, blob, await analyzeAsset(name, blob));
+  }
+  if (parsed.pipeline.length) await store.writeFile(project.id, PIPELINE_FILE, JSON.stringify({ steps: parsed.pipeline }, null, 2));
+  const imported: string[] = [];
+  let recipeProblem = "";
+  if (recipeTexts.length) {
+    const client = await hubClient();
+    if (typeof client === "string") {
+      recipeProblem = ` The bundle's recipes weren't added (${client}).`;
+    } else {
+      for (const text of recipeTexts) {
+        try {
+          const result = await client.importRecipe(text);
+          if (!result.kept) imported.push(`${result.summary.id}@${result.summary.version}`);
+        } catch (err) {
+          recipeProblem += ` A recipe couldn't be added: ${err instanceof Error ? err.message : String(err)}.`;
+        }
+      }
+    }
+  }
+  await openProject(project.id);
+  const note = importNote(parsed, new Set(assets.keys()), imported) + recipeProblem;
+  pendingNotes.set(project.id, note);
+  return { title: parsed.title, note };
+}
+
 // --- agent ---
 
 /** What tools act on, bound to one project: a run that outlives a project switch can't touch the new one. */
 function projectEnv(
   projectId: string,
   sceneHost: SceneHost,
-): { scene: SceneController; history: HistoryController; assets: AssetController; runtime: RuntimeController; recipes: RecipeController } {
+): { scene: SceneController; history: HistoryController; assets: AssetController; runtime: RuntimeController; recipes: RecipeController; project: ProjectController } {
   return {
     runtime: runtimeController(projectId),
     recipes: recipeController,
+    project: projectController(projectId),
     scene: {
       get: () => get().scene,
       apply: (scene) => (get().project?.id === projectId ? applyScene(scene) : Promise.resolve({ ok: false, errors: [] })),
@@ -776,6 +952,9 @@ const LOCK_FILE = "project.lock.json";
 const importedJobs = new Map<string, string[]>();
 /** Which recipe (id@version) a job ran, for project.lock.json. */
 const jobRecipes = new Map<string, string>();
+/** What each job was asked to do, for pipeline.json (project.md). */
+const jobRequests = new Map<string, RuntimeRequest>();
+const replacedByJob = new Map<string, string[]>();
 let answerApproval: ((answer: ApprovalAnswer | "unanswered") => void) | null = null;
 
 /**
@@ -825,9 +1004,18 @@ export function runtimeController(projectId: string): RuntimeController {
     if (terminal && !importedJobs.has(job.id)) {
       importedJobs.set(job.id, []);
       const files = await Promise.all(job.outputs.map(async (o) => new File([await c.output(job.id, o.name)], o.name)));
-      assets = (await addAssetFiles(projectId, files, { attach: false })).names;
+      // A re-run (other params, or the real run after recipe_verify) replaces what an earlier job made;
+      // files the person added keep theirs and the new ones get another name.
+      const generated = assetSources((((await readJsonFile(projectId, PIPELINE_FILE)) as { steps?: PipelineStep[] } | null)?.steps ?? []));
+      const replace = new Set([...generated.keys()].filter((name) => assetBlobs.has(name)));
+      assets = (await addAssetFiles(projectId, files, { attach: false, replace })).names;
+      replacedByJob.set(job.id, assets.filter((name) => replace.has(name)));
       importedJobs.set(job.id, assets);
-      if (job.state === "done") await recordLock(projectId, job, jobRecipes.get(job.id));
+      if (job.state === "done") {
+        await recordLock(projectId, job, jobRecipes.get(job.id));
+        const request = jobRequests.get(job.id);
+        if (request && assets.length) await recordPipeline(projectId, request, job, assets);
+      }
     }
     return {
       id: job.id,
@@ -837,6 +1025,7 @@ export function runtimeController(projectId: string): RuntimeController {
       error: job.error,
       log: job.log,
       assets,
+      replaced: replacedByJob.get(job.id) ?? [],
       resolved: job.resolved,
       seconds: job.seconds,
     };
@@ -881,6 +1070,7 @@ export function runtimeController(projectId: string): RuntimeController {
       for (const name of request.inputs) await c.putInput(job.id, name, assetBlobs.get(name)!);
       if (request.params) await c.putInput(job.id, "params.json", new Blob([JSON.stringify(request.params)], { type: "application/json" }));
       if (request.recipe) jobRecipes.set(job.id, `${request.recipe.id}@${request.recipe.version}`);
+      jobRequests.set(job.id, request);
       await c.start(job.id);
       return finish(c, await c.wait(job.id, request.waitS));
     },
@@ -889,6 +1079,24 @@ export function runtimeController(projectId: string): RuntimeController {
       return finish(c, await c.wait(id, waitS));
     },
   };
+}
+
+/** pipeline.json: how each generated asset was made, so project.md can say how to rebuild it. */
+async function recordPipeline(projectId: string, request: RuntimeRequest, job: HubJob, outputs: string[]): Promise<void> {
+  const step: PipelineStep = {
+    kind: request.kind,
+    ...(request.recipe ? { recipe: `${request.recipe.id}@${request.recipe.version}` } : {}),
+    packages: request.packages,
+    resolved: job.resolved,
+    ...(request.kind === "command" ? { argv: [programName(request.argv[0] ?? ""), ...request.argv.slice(1)] } : {}),
+    // A recipe's code lives in the recipe; other code was written for this project.
+    ...(request.kind === "python" && !request.recipe ? { code: request.code } : {}),
+    inputs: request.inputs,
+    ...(request.params ? { params: request.params } : {}),
+    outputs,
+  };
+  const steps = (((await readJsonFile(projectId, PIPELINE_FILE)) as { steps?: PipelineStep[] } | null)?.steps ?? []);
+  await store.writeFile(projectId, PIPELINE_FILE, JSON.stringify({ steps: addPipelineStep(steps, step) }, null, 2));
 }
 
 /** project.lock.json: what the project's results depend on (exact package versions, programs). */
@@ -1018,7 +1226,7 @@ export async function sendPrompt(text: string): Promise<void> {
   await flushControlVersion();
 
   const projectId = project.id;
-  const { scene: controller, history, assets: assetsEnv, runtime, recipes } = projectEnv(projectId, host);
+  const { scene: controller, history, assets: assetsEnv, runtime, recipes, project: projectEnvPart } = projectEnv(projectId, host);
 
   const user: UserController = {
     ask: (question, options, signal) =>
@@ -1060,8 +1268,8 @@ export async function sendPrompt(text: string): Promise<void> {
       model,
       effort: settings.effort,
       system: SYSTEM_PROMPT,
-      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...RUNTIME_TOOLS, ...RECIPE_TOOLS, ...USER_TOOLS],
-      env: { scene: controller, history, assets: assetsEnv, user, runtime, recipes },
+      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...RUNTIME_TOOLS, ...RECIPE_TOOLS, ...PROJECT_TOOLS, ...USER_TOOLS],
+      env: { scene: controller, history, assets: assetsEnv, user, runtime, recipes, project: projectEnvPart },
       messages,
       signal: abort.signal,
       onEvent(event) {

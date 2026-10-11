@@ -1,7 +1,7 @@
 // Electron main used by the smoke test as "the person's browser": loads the
 // viewer URL, reports what the page shows, and saves a screenshot on exit.
 const { app, BrowserWindow, session } = require("electron");
-const { writeFileSync } = require("node:fs");
+const { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 
 const url = process.env.SILJANGNIM_VIEWER_URL;
@@ -43,6 +43,24 @@ app.whenReady().then(async () => {
     }
   };
   setInterval(report, 300);
+  // The smoke test acts as the person: it drops <name>.js into commands/, which runs in the page;
+  // the result lands in <name>.json.
+  const commands = join(out, "commands");
+  setInterval(async () => {
+    if (!existsSync(commands)) return;
+    for (const file of readdirSync(commands).filter((f) => f.endsWith(".js"))) {
+      const path = join(commands, file);
+      const code = readFileSync(path, "utf8");
+      renameSync(path, `${path}.taken`);
+      let result;
+      try {
+        result = { ok: true, value: await win.webContents.executeJavaScript(code) };
+      } catch (err) {
+        result = { ok: false, error: String(err) };
+      }
+      writeFileSync(path.replace(/\.js$/, ".json"), JSON.stringify(result));
+    }
+  }, 200);
   process.on("SIGTERM", async () => {
     await report();
     writeFileSync(join(out, "viewer.png"), (await win.webContents.capturePage()).toPNG());

@@ -182,6 +182,58 @@ oscSender.close();
 await wait(1000);
 const oscStatus = await client.callTool({ name: "viewport_status", arguments: {} });
 
+// Stage 5: project.md. The agent's export, the person's bundle (.zip) and an import of each.
+let commandSerial = 0;
+/** Run JS in the viewer page, as the person would act there. */
+const inPage = async (code, timeoutMs = 15_000) => {
+  const dir = join(out, "commands");
+  mkdirSync(dir, { recursive: true });
+  const name = `c${++commandSerial}`;
+  writeFileSync(join(dir, `${name}.js`), code);
+  for (const end = Date.now() + timeoutMs; Date.now() < end; await wait(150)) {
+    if (existsSync(join(dir, `${name}.json`))) return JSON.parse(readFileSync(join(dir, `${name}.json`), "utf8"));
+  }
+  return { ok: false, error: "timed out" };
+};
+const exported = await call("project_export_md");
+const md = text(exported);
+await inPage(`(async () => {
+  document.querySelector('[title="Projects"]').click();
+  await new Promise((r) => setTimeout(r, 200));
+  document.querySelector('[data-testid="export-project"]').click();
+})()`);
+let bundle = null;
+for (let i = 0; i < 60 && !bundle; i++) {
+  await wait(250);
+  bundle = (existsSync(join(out, "downloads")) ? readdirSync(join(out, "downloads")) : []).find((f) => f.endsWith(".siljangnim.zip")) ?? null;
+}
+await wait(500);
+// As if on another machine: the recipe isn't here until the bundle brings it.
+rmSync(join(out, "recipes", "smoke.points"), { recursive: true, force: true });
+const bundleImport = bundle
+  ? await inPage(`(async () => {
+  const bytes = Uint8Array.from(atob(${JSON.stringify(readFileSync(join(out, "downloads", bundle)).toString("base64"))}), (c) => c.charCodeAt(0));
+  const input = document.querySelector('[data-testid="import-project"]');
+  const files = new DataTransfer();
+  files.items.add(new File([bytes], ${JSON.stringify(bundle)}, { type: "application/zip" }));
+  input.files = files.files;
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+  for (let i = 0; i < 40 && !document.querySelector('[data-testid="notice"]'); i++) await new Promise((r) => setTimeout(r, 100));
+  await new Promise((r) => setTimeout(r, 1500));
+  return {
+    notice: document.querySelector('[data-testid="notice"]')?.innerText ?? null,
+    project: document.querySelector('header button[title="Rename project"]')?.innerText ?? null,
+    assets: [...document.querySelectorAll("[data-asset]")].map((a) => a.dataset.asset),
+    state: document.querySelector("[data-runtime-state]")?.dataset.runtimeState,
+  };
+})()`)
+  : { ok: false, error: "no bundle downloaded" };
+const bundleAssets = text(await client.callTool({ name: "asset_list", arguments: {} }));
+const importedRecipe = existsSync(join(out, "recipes", "smoke.points", "recipe.md")) ? readFileSync(join(out, "recipes", "smoke.points", "recipe.md"), "utf8") : "";
+const mdImport = await call("project_import_md", { markdown: md });
+await wait(1500);
+const afterImport = await client.callTool({ name: "viewport_status", arguments: {} });
+
 
 const checks = {
   toolsListed: ["scene_write", "viewport_capture", "history_list", "asset_list", "viewer_open"].every((n) => tools.some((t) => t.name === n)) && !tools.some((t) => t.name === "ask_user"),
@@ -220,6 +272,16 @@ const checks = {
     /oscFader=0\.75/.test(text(oscStatus)) &&
     /oscText=hello/.test(text(oscStatus)) &&
     /oscCount=2/.test(text(oscStatus)),
+  projectExported:
+    !exported.isError && /^---\ntitle: /.test(md) && /### Step \d+: Python \(recipe smoke\.points@1\)/.test(md) && /```python\n/.test(md) && /"version": 2/.test(md),
+  bundleImported:
+    Boolean(bundle) &&
+    bundleImport.ok &&
+    /^Imported "[^"]+"\. All assets came with it\. Recipes added/.test(bundleImport.value?.notice ?? "") &&
+    ["points.json", "cli.txt"].every((a) => bundleAssets.includes(a)) &&
+    /origin: imported/.test(importedRecipe) &&
+    /status: draft/.test(importedRecipe),
+  mdImported: !mdImport.isError && /Missing generated assets: .*points\.json \(step \d\)/.test(text(mdImport)) && /No errors/.test(text(afterImport)),
   runtimeStatus: !status.isError && /Python environments:.*\(no packages\)/.test(text(status)),
   // Edits close together share a version; slow steps between them (recordings) split them.
   versionSaved: /"Initial scene"/.test(text(history)) && /Claude Code: scene write/.test(text(history)) && /scene edit/.test(text(history)),
@@ -233,7 +295,7 @@ viewer?.kill("SIGTERM");
 await wait(1500);
 await client.close();
 const ok = Object.values(checks).every(Boolean);
-const report = { ok, checks, captureMeanRgb: rgb, history: text(history), inputs: [text(inputScene), text(inputs)], osc: text(oscStatus), viewer: viewerState };
+const report = { ok, checks, captureMeanRgb: rgb, history: text(history), inputs: [text(inputScene), text(inputs)], osc: text(oscStatus), project: { bundle, bundleImport, mdImport: text(mdImport) }, viewer: viewerState };
 writeFileSync(join(out, "report.json"), JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
 clearTimeout(timeout);

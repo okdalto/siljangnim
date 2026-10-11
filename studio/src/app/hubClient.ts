@@ -128,6 +128,10 @@ export class HubClient {
     return this.request<{ summary: HubRecipeSummary; text: string }>(`/recipes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(fields) });
   }
 
+  importRecipe(text: string) {
+    return this.request<{ summary: HubRecipeSummary; kept: boolean }>("/recipes/import", { method: "POST", body: JSON.stringify({ text }) });
+  }
+
   recipeStatus(id: string, status: "verified" | "broken", log: string) {
     return this.request<{ summary: HubRecipeSummary }>(`/recipes/${encodeURIComponent(id)}/status`, { method: "POST", body: JSON.stringify({ status, log }) });
   }
