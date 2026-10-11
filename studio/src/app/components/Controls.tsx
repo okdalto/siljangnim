@@ -1,6 +1,7 @@
 // Live controls generated from the scene's uniforms.
-import type { UniformDef, UniformValue } from "../../scene/schema";
-import { setUniformValue } from "../session";
+import { evaluateTrack, keyAt } from "../../scene/gl/keyframes";
+import { KEYFRAMABLE, type UniformDef, type UniformValue } from "../../scene/schema";
+import { KEY_SNAP_SECONDS, setUniformValue, toggleKey } from "../session";
 import { useApp } from "../state";
 
 export function Controls() {
@@ -27,17 +28,43 @@ export function Controls() {
 function Control({ name, def }: { name: string; def: UniformDef }) {
   const label = def.label ?? name.replace(/^u_/, "");
   const set = (value: UniformValue) => setUniformValue(name, value);
+  const keys = useApp((s) => s.scene.keyframes[name]);
+  const overridden = useApp((s) => s.overrides.includes(name));
+  // Only animated controls follow the playhead (and re-render with it).
+  const time = useApp((s) => (keys ? s.runtime.time : 0));
+  const keyable = KEYFRAMABLE.includes(def.type);
+  // Key buttons belong to Timeline mode; Live scenes show plain controls.
+  const timelineMode = useApp((s) => Boolean(s.scene.timeline));
+  const shown: UniformDef = keys && !overridden ? { ...def, value: evaluateTrack(keys, time) ?? def.value } : def;
 
   return (
-    <label className="block text-xs">
+    <div className="block text-xs" data-control={name}>
       <div className="mb-1 flex items-center justify-between gap-2">
         <span className="truncate text-muted" title={name}>
           {label}
         </span>
-        {(def.type === "float" || def.type === "int") && <span className="tabular-nums text-faint">{format(def.value as number, def.type)}</span>}
+        <span className="flex items-center gap-1.5">
+          {keyable && <span className="tabular-nums text-faint">{format(shown.value as number, def.type as "float" | "int")}</span>}
+          {keyable && timelineMode && <KeyButton name={name} label={label} animated={Boolean(keys)} onKey={Boolean(keyAt(keys, time, KEY_SNAP_SECONDS))} />}
+        </span>
       </div>
-      <Input def={def} set={set} />
-    </label>
+      <Input def={shown} set={set} />
+    </div>
+  );
+}
+
+/** ◇ adds a key at the playhead; ◆ (on a key) removes it. Accent when the control is animated. */
+function KeyButton({ name, label, animated, onKey }: { name: string; label: string; animated: boolean; onKey: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={() => void toggleKey(name)}
+      title={onKey ? `Remove ${label} key here` : `Add ${label} key at the playhead`}
+      data-key-button={name}
+      className={`grid h-4 w-4 place-items-center ${animated ? "text-accent" : "text-faint hover:text-muted"}`}
+    >
+      <span className={`block h-2 w-2 rotate-45 border border-current ${onKey ? "bg-current" : ""}`} />
+    </button>
   );
 }
 

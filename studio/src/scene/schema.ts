@@ -1,5 +1,6 @@
 // Scene format v2. See docs/studio.md#씬-형식-v2.
 import { z } from "zod";
+import { EASES } from "./gl/keyframes";
 
 export const UNIFORM_TYPES = ["float", "int", "bool", "vec2", "vec3", "vec4", "color"] as const;
 export const SCENE_INPUTS = ["mouse", "keyboard", "camera", "microphone", "midi"] as const;
@@ -32,7 +33,24 @@ export const UniformDefSchema = z
     }
   });
 
-export const SceneSchema = z.object({
+export const TimelineSchema = z.object({
+  duration: z.number().positive().max(3600),
+  loop: z.boolean().default(true),
+  /** On loop, keep running instead of re-running setup (stateless scenes, or ones that should evolve). */
+  preserveStateOnLoop: z.boolean().default(false),
+});
+
+export const KeyframeSchema = z.object({
+  time: z.number().min(0),
+  value: z.number(),
+  ease: z.enum(EASES).optional(),
+});
+
+/** Uniform types keyframes can animate. Vectors and colors come later (per component). */
+export const KEYFRAMABLE: readonly UniformType[] = ["float", "int"];
+
+export const SceneSchema = z
+  .object({
   version: z.literal(2),
   backend: z.enum(["webgl2", "webgpu"]).default("webgl2"),
   script: z.object({
@@ -51,10 +69,33 @@ export const SceneSchema = z.object({
       }
     }),
   inputs: z.array(z.enum(SCENE_INPUTS)).default([]),
-});
+  timeline: TimelineSchema.optional(),
+  /** Uniform name → keys. Requires a timeline. */
+  keyframes: z.record(z.string(), z.array(KeyframeSchema)).default({}),
+})
+  .superRefine((scene, ctx) => {
+    const tracks = Object.entries(scene.keyframes);
+    if (tracks.length && !scene.timeline) {
+      ctx.addIssue({ code: "custom", path: ["keyframes"], message: 'keyframes need a timeline, e.g. "timeline": { "duration": 10, "loop": true }' });
+    }
+    for (const [name, keys] of tracks) {
+      const def = scene.uniforms[name];
+      if (!def) {
+        ctx.addIssue({ code: "custom", path: ["keyframes", name], message: `no uniform "${name}"; keyframes animate existing uniforms` });
+      } else if (!KEYFRAMABLE.includes(def.type)) {
+        ctx.addIssue({ code: "custom", path: ["keyframes", name], message: `"${name}" is ${def.type}; only float and int uniforms can have keyframes` });
+      }
+      if (!keys.length) ctx.addIssue({ code: "custom", path: ["keyframes", name], message: "empty track; remove it instead" });
+      const late = scene.timeline && keys.find((k) => k.time > scene.timeline!.duration);
+      if (late) {
+        ctx.addIssue({ code: "custom", path: ["keyframes", name], message: `key at ${late.time}s is after the timeline end (${scene.timeline!.duration}s)` });
+      }
+    }
+  });
 
 export type UniformDef = z.infer<typeof UniformDefSchema>;
 export type Scene = z.infer<typeof SceneSchema>;
+export type Timeline = z.infer<typeof TimelineSchema>;
 
 export type ParseResult = { ok: true; scene: Scene } | { ok: false; errors: string[] };
 
@@ -93,6 +134,7 @@ function migrateV1(v1: V1Scene) {
     script: { setup: v1.script.setup ?? "", render: v1.script.render ?? "", cleanup: v1.script.cleanup ?? "" },
     uniforms,
     inputs: ["mouse"],
+    keyframes: {},
   };
 }
 
@@ -130,4 +172,5 @@ ctx.state.program = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, 
     u_tint: { type: "color", value: [1, 0.3, 0.18], label: "Tint" },
   },
   inputs: ["mouse"],
+  keyframes: {},
 };

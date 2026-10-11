@@ -3,9 +3,10 @@
 // Every load gets a fresh canvas and WebGL context: no GL state or leaked
 // resources carry over between scenes, so there is nothing to track or
 // reset by hand.
+import { evaluateTracks, sortKeys, type Keyframe } from "../gl/keyframes";
 import { ShaderError } from "../gl/shader";
 import type { CaptureResult, LoadResult, RuntimeState, RuntimeStatus, SceneError, SceneErrorSource } from "../protocol";
-import { uniformValues, type Scene, type UniformValue } from "../schema";
+import { uniformValues, type Scene, type Timeline, type UniformValue } from "../schema";
 import { createCtx, type SceneCtx } from "./ctx";
 
 const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor as new (...args: string[]) => (ctx: SceneCtx) => Promise<void>;
@@ -58,6 +59,13 @@ export class SceneRunner {
   private readonly mouse: [number, number, number, number] = [0.5, 0.5, 0.5, 0.5];
   private mouseDown = false;
   private readonly keys = new Set<string>();
+  /** What the current scene was loaded from, for restarting on loop. */
+  private source: { scene: Scene; assets: Record<string, Blob> } | null = null;
+  private timeline: Timeline | undefined;
+  private tracks: Record<string, Keyframe[]> = {};
+  /** Keyed uniforms the person set directly; they win over keyframes until the keys change. */
+  private readonly overrides = new Set<string>();
+  private restarting = false;
 
   constructor(container: HTMLElement, emit: Emit) {
     this.container = container;
@@ -72,6 +80,8 @@ export class SceneRunner {
   async load(scene: Scene, assets: Record<string, Blob>): Promise<LoadResult> {
     const generation = ++this.generation;
     this.unload();
+    this.source = { scene, assets };
+    this.applyTimeline(scene.timeline, scene.keyframes);
     this.errors = [];
     this.state = "loading";
     this.time = 0;
@@ -137,13 +147,25 @@ export class SceneRunner {
   setUniform(name: string, value: UniformValue): void {
     if (!this.current) return;
     this.current.ctx.uniforms[name] = value;
+    if (this.tracks[name]) this.overrides.add(name);
+    this.dirty = true;
+  }
+
+  setTimeline(timeline: Timeline | undefined, keyframes: Record<string, Keyframe[]>): void {
+    this.applyTimeline(timeline, keyframes);
+    if (this.source) this.source = { ...this.source, scene: { ...this.source.scene, timeline, keyframes } };
+    this.time = this.clampTime(this.time);
     this.dirty = true;
   }
 
   transport(action: "play" | "pause" | "seek", time?: number): void {
-    if (action === "play") this.playing = true;
+    if (action === "play") {
+      // Playing a finished one-shot timeline starts it over.
+      if (this.timeline && !this.timeline.loop && this.time >= this.timeline.duration) this.time = 0;
+      this.playing = true;
+    }
     if (action === "pause") this.playing = false;
-    if (action === "seek" && time !== undefined) this.time = Math.max(0, time);
+    if (action === "seek" && time !== undefined) this.time = this.clampTime(time);
     if (this.state === "running" || this.state === "paused") this.state = this.playing ? "running" : "paused";
     this.dirty = true;
   }
@@ -173,6 +195,34 @@ export class SceneRunner {
   }
 
   // --- internals ---
+
+  private applyTimeline(timeline: Timeline | undefined, keyframes: Record<string, Keyframe[]>): void {
+    this.timeline = timeline;
+    this.tracks = Object.fromEntries(Object.entries(keyframes).map(([name, keys]) => [name, sortKeys(keys)]));
+    this.overrides.clear();
+  }
+
+  /** Keyframe values at the current time; int uniforms are rounded. */
+  private keyedValues(): Record<string, number> {
+    const values = evaluateTracks(this.tracks, this.time, this.overrides);
+    const uniforms = this.source?.scene.uniforms ?? {};
+    for (const name of Object.keys(values)) if (uniforms[name]?.type === "int") values[name] = Math.round(values[name]!);
+    return values;
+  }
+
+  private clampTime(time: number): number {
+    const t = Math.max(0, time);
+    return this.timeline ? Math.min(t, this.timeline.duration) : t;
+  }
+
+  private restart(): void {
+    if (this.restarting || !this.source) return;
+    this.restarting = true;
+    const { scene, assets } = this.source;
+    void this.load(scene, assets).finally(() => {
+      this.restarting = false;
+    });
+  }
 
   private compile<T>(source: SceneErrorSource, build: () => T): T {
     try {
@@ -210,8 +260,24 @@ export class SceneRunner {
     const active = loaded && (this.state === "running" || this.state === "paused");
     if (active && (this.playing || this.dirty)) {
       const frameDt = this.playing ? dt : 0;
-      if (this.playing) this.time += dt;
+      if (this.playing) {
+        this.time += dt;
+        if (this.timeline && this.time >= this.timeline.duration) {
+          if (!this.timeline.loop) {
+            this.time = this.timeline.duration;
+            this.playing = false;
+            this.state = "paused";
+          } else if (this.timeline.preserveStateOnLoop) {
+            this.time %= this.timeline.duration;
+          } else {
+            // Start the scene over so simulations line up with the keyframes again.
+            this.restart();
+            return;
+          }
+        }
+      }
       const ctx = loaded.ctx;
+      Object.assign(ctx.uniforms, this.keyedValues());
       ctx.time = this.time;
       ctx.dt = frameDt;
       ctx.frame = this.frame;
@@ -242,7 +308,8 @@ export class SceneRunner {
       this.flushCaptures(loaded.canvas);
     }
 
-    if (now - this.lastStats > 250) {
+    // Often enough for a smooth playhead and animated controls.
+    if (now - this.lastStats > 100) {
       this.lastStats = now;
       this.emit("stats", { state: this.state, time: this.time, fps: Math.round(this.fps) });
     }

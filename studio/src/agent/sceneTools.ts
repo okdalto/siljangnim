@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { LoadResult, RuntimeStatus, SceneError } from "../scene/protocol";
 import { blobToBase64 } from "../project/assets";
-import { parseScene, UniformDefSchema, SCENE_INPUTS, type Scene } from "../scene/schema";
+import { KeyframeSchema, parseScene, SCENE_INPUTS, TimelineSchema, UniformDefSchema, type Scene } from "../scene/schema";
 import { defineTool, type ToolDefinition, type ToolOutput } from "./tools";
 
 export function formatSceneError(e: SceneError): string {
@@ -63,7 +63,9 @@ const sceneEdit = defineTool({
   name: "scene_edit",
   description:
     "Edit the current scene in place and run it. Text edits replace an exact snippet of a script phase " +
-    "(it must occur exactly once). Uniform entries are added or replaced; set one to null to remove it.",
+    "(it must occur exactly once). Uniform entries are added or replaced; set one to null to remove it. " +
+    "timeline sets the animation length and looping (null removes it and all keyframes). keyframes replaces a " +
+    "uniform's whole key list (null removes that track); only float/int uniforms can be keyed.",
   input: z.object({
     edits: z
       .array(
@@ -76,9 +78,14 @@ const sceneEdit = defineTool({
       .default([]),
     uniforms: z.record(z.string(), UniformDefSchema.nullable()).optional(),
     inputs: z.array(z.enum(SCENE_INPUTS)).optional(),
+    timeline: TimelineSchema.nullable().optional(),
+    keyframes: z
+      .record(z.string(), z.array(KeyframeSchema).nullable())
+      .optional()
+      .describe('Uniform name → keys [{ "time": s, "value": n, "ease"?: "smooth"|"linear"|"easeIn"|"easeOut"|"easeInOut"|"step" }].'),
   }),
   readOnly: false,
-  async run({ edits, uniforms, inputs }, env) {
+  async run({ edits, uniforms, inputs, timeline, keyframes }, env) {
     const scene: Scene = structuredClone(env.scene.get());
     const problems: string[] = [];
     for (const [i, edit] of edits.entries()) {
@@ -98,6 +105,18 @@ const sceneEdit = defineTool({
       else scene.uniforms[name] = def;
     }
     if (inputs) scene.inputs = inputs;
+    if (timeline === null) {
+      delete scene.timeline;
+      scene.keyframes = {};
+    } else if (timeline) {
+      scene.timeline = timeline;
+    }
+    for (const [name, keys] of Object.entries(keyframes ?? {})) {
+      if (keys === null) delete scene.keyframes[name];
+      else scene.keyframes[name] = keys;
+    }
+    // Removing a uniform takes its keyframes with it.
+    for (const name of Object.keys(scene.keyframes)) if (!scene.uniforms[name]) delete scene.keyframes[name];
     const parsed = parseScene(scene);
     if (!parsed.ok) return invalid(parsed.errors);
     return loadReport(await env.scene.apply(parsed.scene));

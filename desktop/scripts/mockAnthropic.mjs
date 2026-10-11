@@ -4,11 +4,12 @@
 // Script (the smoke test uploads swatch.png and data.json first):
 // asset_list → asset_read → broken scene → (shader error comes back) →
 // fixed scene that samples swatch.png → viewport_capture → (image comes
-// back) → history_list → final text.
+// back) → scene_edit adding a timeline and keyframes → history_list →
+// final text.
 import { createServer } from "node:http";
 
 export const FINAL_TEXT = "E2E done: a calm blue field.";
-export const EXPECTED_REQUESTS = 7;
+export const EXPECTED_REQUESTS = 8;
 
 const VERTEX = "ctx.utils.FULLSCREEN_VERTEX_SHADER";
 const fragment = (body) => `#version 300 es
@@ -16,6 +17,7 @@ precision highp float;
 in vec2 v_uv;
 out vec4 outColor;
 uniform vec3 u_color;
+uniform float u_gain;
 uniform sampler2D u_tex;
 void main() {
   ${body}
@@ -33,12 +35,20 @@ ctx.utils.bindTexture(p, "u_tex", ctx.state.tex.texture, 0);
 ctx.utils.drawFullscreen(p);`,
     cleanup: "",
   },
-  uniforms: { u_color: { type: "color", value: [1, 1, 1], label: "Color" } },
+  uniforms: {
+    u_color: { type: "color", value: [1, 1, 1], label: "Color" },
+    u_gain: { type: "float", value: 1, min: 0, max: 1, label: "Gain" },
+  },
   inputs: [],
 });
 
 const BROKEN = scene("outColor = vec4(texture(u_tex, v_uv).rgb * u_colour, 1.0);");
-const FIXED = scene("outColor = vec4(texture(u_tex, v_uv).rgb * u_color, 1.0);");
+const FIXED = scene("outColor = vec4(texture(u_tex, v_uv).rgb * u_color * u_gain, 1.0);");
+// Keys that hold the gain at 1, so the color checks stay stable while the timeline plays.
+const TIMELINE_EDIT = {
+  timeline: { duration: 4, loop: true, preserveStateOnLoop: true },
+  keyframes: { u_gain: [{ time: 0, value: 1 }, { time: 2, value: 1, ease: "linear" }] },
+};
 
 function lastToolResult(body) {
   const last = body.messages.at(-1);
@@ -83,6 +93,10 @@ function plan(body, step, checks) {
   }
   if (step === 5) {
     checks.captureReturnedImage = Array.isArray(result?.content) && result.content.some((c) => c.type === "image");
+    return { tool: { name: "scene_edit", input: TIMELINE_EDIT } };
+  }
+  if (step === 6) {
+    checks.timelineApplied = !result?.is_error && /without errors/.test(resultText(result));
     return { tool: { name: "history_list", input: {} } };
   }
   // Only the project's first scene is saved while the run is still going.

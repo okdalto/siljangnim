@@ -111,6 +111,8 @@ async function runAgentScenario(win, sceneFrame, keys) {
   const chat = await win.webContents.executeJavaScript(`({
     chips: [...document.querySelectorAll("aside button")].map((b) => b.innerText).filter((t) => /scene|viewport/i.test(t)),
     images: document.querySelectorAll('aside img[alt="Viewport capture"]').length,
+    keyMarks: [...document.querySelectorAll("[data-key-time]")].map((m) => m.title),
+    timelineMenu: document.querySelector('[data-testid="timeline-menu"]')?.innerText ?? null,
   })`);
   const [r, g, b] = sample?.meanRgb ?? [0, 0, 0];
   return { attached, replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
@@ -234,6 +236,7 @@ export async function runSmokeTest(win, hub, keys, outDir) {
           agentReplied: agent.replied,
           agentSceneApplied: agent.blue,
           agentShowsCapture: agent.images > 0,
+          timelineShown: agent.timelineMenu === "4s · loop" && agent.keyMarks.length === 2 && agent.keyMarks.every((t) => t.includes("Gain")),
         }
       : {}),
     ...(history ? { historyRecorded: history.recorded, historyRestored: history.restored } : {}),

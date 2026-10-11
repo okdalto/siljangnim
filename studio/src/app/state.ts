@@ -32,6 +32,11 @@ export interface AppState {
   assets: AssetInfo[];
   /** Assets uploaded since the last prompt; the next prompt tells the agent about them. */
   attachments: string[];
+  /** Keyed uniforms the person moved directly; the runtime holds them off their keyframes. */
+  overrides: string[];
+  /** Whether undo/redo have anything (the stacks themselves live in the session controller). */
+  canUndo: boolean;
+  canRedo: boolean;
   /** Streaming state of the agent's current turn; null when idle. */
   live: LiveTurn | null;
   notice: Notice | null;
@@ -51,6 +56,9 @@ export const useApp = create<AppState>(() => ({
   sidebarTab: "chat",
   assets: [],
   attachments: [],
+  overrides: [],
+  canUndo: false,
+  canRedo: false,
   live: null,
   notice: null,
   settings: loadSettings(),
