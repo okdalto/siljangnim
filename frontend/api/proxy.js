@@ -55,6 +55,14 @@ export default async function handler(req) {
     return new Response("Forbidden", { status: 403 });
   }
 
+  return handleProxy(req, corsOrigin);
+}
+
+/**
+ * Route a POST proxy request. The caller is responsible for the origin check;
+ * the desktop shell calls this directly for requests from its own renderer.
+ */
+export async function handleProxy(req, corsOrigin) {
   const url = new URL(req.url);
   const target = url.searchParams.get("target");
 
@@ -122,7 +130,7 @@ export default async function handler(req) {
         "Content-Type": "application/json",
         Authorization: req.headers.get("authorization") || "",
       },
-      body: req.body,
+      body: await req.arrayBuffer(),
     });
     return new Response(response.body, {
       status: response.status,
@@ -141,7 +149,7 @@ export default async function handler(req) {
     const response = await fetch(geminiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: req.body,
+      body: await req.arrayBuffer(),
     });
     return new Response(response.body, {
       status: response.status,
@@ -161,7 +169,7 @@ export default async function handler(req) {
         "Content-Type": "application/json",
         Authorization: req.headers.get("authorization") || "",
       },
-      body: req.body,
+      body: await req.arrayBuffer(),
     });
     return new Response(response.body, {
       status: response.status,
@@ -187,7 +195,7 @@ export default async function handler(req) {
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers,
-      body: req.body,
+      body: await req.arrayBuffer(),
     });
     return new Response(response.body, {
       status: response.status,
@@ -206,7 +214,7 @@ export default async function handler(req) {
       "x-api-key": req.headers.get("x-api-key") || "",
       "anthropic-version": req.headers.get("anthropic-version") || "2023-06-01",
     },
-    body: req.body,
+    body: await req.arrayBuffer(),
   });
 
   return new Response(response.body, {

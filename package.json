@@ -1,0 +1,16 @@
+{
+  "name": "siljangnim",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "postinstall": "npm --prefix frontend ci && npm --prefix desktop ci",
+    "dev": "npm --prefix desktop run dev",
+    "web": "npm --prefix frontend run dev",
+    "dist": "npm --prefix desktop run dist",
+    "test": "npm --prefix frontend test && node desktop/scripts/test-hub.mjs",
+    "smoke": "npm --prefix desktop run stage && npm --prefix desktop run smoke"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

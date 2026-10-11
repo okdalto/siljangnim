@@ -1,249 +1,142 @@
 <p align="center">
-  <img src="frontend/public/logo.svg" alt="Siljangnim" width="128" height="128" />
+  <img src="frontend/public/logo.svg" alt="Siljangnim" width="112" height="112" />
 </p>
 
 <h1 align="center">Siljangnim</h1>
 
 <p align="center">
-  AI-powered real-time graphics creation tool.<br/>
-  Describe visuals in natural language — AI generates WebGL2 shaders that render live in your browser.
+  A creative studio run by an agent.<br/>
+  Describe what you want to make. The agent picks the open-source tools for the job,<br/>
+  wires them together on your machine and renders the result live.
 </p>
 
 <p align="center">
-  <a href="https://siljangnim.vercel.app/">🌐 Try it online</a> · <a href="README.ko.md">한국어</a>
+  <a href="https://github.com/okdalto/siljangnim/releases">Download</a> ·
+  <a href="https://siljangnim.vercel.app/">Try on the web</a> ·
+  <a href="docs/architecture.md">Architecture</a> ·
+  <a href="README.ko.md">한국어</a>
 </p>
 
-![WebGL2](https://img.shields.io/badge/WebGL2-ES_3.0-blue)
-![License](https://img.shields.io/badge/license-GPLv3-green)
+---
 
-## What can it do?
+> **Siljangnim v2 is in progress.** The desktop app, the local runtime and the
+> MCP connection are being built in stages ([plan](docs/architecture.md#11-단계별-계획)).
+> Everything under **What works today** runs now; the rest is where it is going.
 
-**If you can imagine it, it can build it.** Need to load a 3D model? It writes the loader. Want audio-reactive visuals? It reads the file, analyzes the spectrum, and wires it to the shader. You don't write code — you describe what you want, and the agent figures out the rest.
+## What it is
 
-Chat with the AI agent in plain language — it writes WebGL2 shaders, builds UI panels, and wires everything together in real-time.
+*Siljangnim* (실장님) is what Korean design studios call the person who runs the
+floor: you tell them what you want, and they know which people and tools to bring
+in. This app plays that part for creative coding.
 
-### Visual Creation
+- **You describe the result** — "a hatching drawing of this photo, depth-aware, ready for an A3 plotter".
+- **The agent decides how** — which open-source projects fit (shaders, geometry libraries,
+  ML models, CLI tools), fetches them on your machine, and connects them.
+- **What worked becomes a recipe** — a short Markdown file describing how a tool was
+  installed and called. Next time it is instant, and other agents can reuse it.
+- **You share structure, not code** — a project exports as a Markdown document of its
+  pipeline and recipes. Another person's agent rebuilds it from that.
+- **Bring your own agent** — Claude Code, Codex, Cursor or your own can drive the app
+  over MCP, alongside the built-in agent.
 
-Tell it what you want to see:
+Open-source code is never bundled with the app; it is fetched on your machine when a
+project needs it, and every project records exactly what it used.
 
-> "Make blue waves slowly crossing the screen"
->
-> "Make a reaction-diffusion simulation with mouse interaction"
->
-> "Create a raymarched scene with a reflective sphere on an infinite plane"
+## What works today
 
-The agent writes GLSL shaders, compiles them, and renders them live — multi-pass buffers, 3D geometry, post-processing, all handled automatically.
+- **Live shader scenes** — WebGL2/WebGPU, multi-pass buffers, 3D, post-processing, written and debugged by the agent.
+- **Generated controls** — sliders, color pickers, pads, camera orbit, bound to uniforms with undo/redo.
+- **Inputs** — audio analysis, microphone, MIDI, OSC, webcam hand/pose/face tracking (MediaPipe).
+- **Assets** — images, video, fonts, SVG, audio and 3D models (OBJ, FBX, glTF with skeletal animation).
+- **Timeline** — keyframes with easing on any uniform; record to MP4, WebM or PNG sequences.
+- **Projects** — version tree with branches and comparison, multi-tab chat, GitHub save/load.
+- **Desktop app** — macOS (Apple Silicon) and Windows, with its own managed Python runtime.
+- **Providers** — Anthropic, OpenAI, Gemini, GLM, or any OpenAI-compatible server (vLLM, Ollama, …).
 
-### Auto-generated UI Controls
+## Download
 
-The agent creates interactive control panels based on what the scene needs:
+| Platform | File |
+|---|---|
+| macOS (Apple Silicon) | `Siljangnim-<version>-mac-arm64.dmg` |
+| Windows (x64) | `Siljangnim-<version>-win-x64.exe` |
 
-> "Add a control panel to adjust color and speed"
+Get them from [Releases](https://github.com/okdalto/siljangnim/releases). The builds are not
+code-signed yet:
 
-It generates sliders, color pickers, toggles, 2D pads, dropdowns, camera orbit controls, buffer previews, and more. All controls are linked to shader uniforms with undo/redo and keyframe animation support.
+- **macOS** — the first time, open the app, then go to *System Settings → Privacy & Security*
+  and choose **Open Anyway**.
+- **Windows** — on the SmartScreen prompt, choose **More info → Run anyway**.
 
-```
-┌─ Wave Controls ─────────────────┐
-│ Speed       ●━━━━━━━━━━━  0.8   │
-│ Amplitude   ━━━━●━━━━━━━  0.4   │
-│ Color       [■ #3b82f6]        │
-│ Wireframe   [  ○ OFF  ]        │
-│ Shape       [ Sphere ▾ ]       │
-└─────────────────────────────────┘
-```
+On first launch the app downloads a private Python runtime (about 120 MB on disk) into its
+own data folder. Nothing is installed system-wide.
 
-### Audio-reactive Visuals
+## Run from source
 
-Upload an audio file or use a URL — the agent analyzes bass/mid/treble, FFT, and waveform data in real-time:
-
-> "Create visuals that react to this music — circles grow on bass, colors shift on highs"
-
-### MediaPipe Hand/Pose/Face Tracking
-
-Webcam-based real-time tracking using MediaPipe Vision:
-
-> "Use the webcam for hand tracking — show a wireframe box when both hands pinch"
-
-Supports 33-point body pose, 21-point hand landmarks (2 hands), and 478-point face mesh — all available as GPU textures for shader consumption.
-
-### 3D Models & Skeletal Animation
-
-Upload `.obj`, `.fbx`, `.gltf`, `.glb` files — the agent auto-processes geometry, materials, textures, and skeletal animation data:
-
-> "Upload a character model and render it with rim lighting and idle animation"
-
-### File Processing & Upload
-
-Upload images, fonts, SVGs, audio, video, and 3D models. Each file is automatically processed into WebGL-ready derivatives (bitmap atlases, spectrograms, geometry JSON, etc.).
-
-### Recording & Export
-
-Record the viewport to MP4 (offline, frame-exact), WebM (realtime or offline), or PNG sequence (with optional alpha transparency) — configurable FPS, quality, and resolution.
-
-### Timeline & Keyframe Animation
-
-Animate any uniform over time with keyframes, cubic Hermite interpolation, and easing. Scrub, loop, and adjust duration from the timeline bar.
-
-## Supported AI Providers
-
-Siljangnim supports multiple AI providers. Choose one that fits your needs:
-
-| Provider | Models | Best for |
-|----------|--------|----------|
-| **Anthropic (Claude)** | Claude Opus 4.6, Claude Sonnet 4.6 | Best quality, recommended for complex scenes |
-| **OpenAI** | GPT-4.1 | Good alternative, strong tool calling |
-| **Google Gemini** | Gemini 2.5 Flash | Fast, large context window |
-| **Zhipu AI (GLM)** | GLM-4-Plus | Chinese language support |
-| **Custom (OpenAI-compatible)** | Any model | Self-hosted / local models |
-
-### Custom Model Setup (vLLM, Ollama, etc.)
-
-You can connect any OpenAI-compatible API server — vLLM, Ollama, TGI, LM Studio, etc.
-
-**Example: Running Qwen3.5-27B with vLLM**
-
-```bash
-# Start vLLM server
-vllm serve Qwen/Qwen3.5-27B \
-  --max-model-len 131072 \
-  --enable-auto-tool-choice \
-  --tool-call-parser hermes
-```
-
-Then in the app's API settings modal:
-1. Select **Custom** provider
-2. Set **Base URL** to your server (e.g. `http://localhost:8000/v1/`)
-3. Set **Model Name** (e.g. `Qwen/Qwen3.5-27B`)
-4. Set **Max Tokens** (e.g. `4096` — this is the max *output* length, not context size)
-5. API Key is optional for local servers
-
-> **Tip:** For best results with custom models, use models with 27B+ parameters that support tool calling. Smaller models may struggle with complex shader generation.
-
-> **Tip:** `--max-model-len` controls how much of the model's context window vLLM allocates. Set it as high as your GPU memory allows — it is *not* the same as `max_tokens` in the app settings.
-
-## Warnings
-
-> **Security** — The AI agent can execute arbitrary Python code on the host machine. There is no container or OS-level sandbox. **Do not expose this application to the public internet.** See [Security Notice](#security-notice) for details.
-
-> **Cost** — When using cloud APIs (Anthropic, OpenAI, Gemini, GLM), every chat message costs tokens. Complex scenes may trigger multiple tool-use rounds per prompt. A single conversation can easily use **$1–5+ of API credits**. Monitor your usage on your provider's dashboard. Self-hosted custom models have no per-token cost.
-
-## Quick Start
-
-**Prerequisites:** Python 3.10+, Node.js 18+, an API key from any [supported provider](#supported-ai-providers)
-
-**macOS / Linux:**
+You need **Node.js 22+**. That is all — Python is downloaded and managed by the app.
 
 ```bash
 git clone https://github.com/okdalto/siljangnim.git
 cd siljangnim
-chmod +x run.sh
-./run.sh
-```
-
-**Windows:**
-
-```powershell
-git clone https://github.com/okdalto/siljangnim.git
-cd siljangnim
-run.bat
-```
-
-Open **http://localhost:5173**. Enter your API key when prompted — it saves to `backend/.env` automatically.
-
-<details>
-<summary><strong>Manual setup</strong></summary>
-
-**macOS / Linux:**
-
-```bash
-# Backend
-cd backend
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-echo "ANTHROPIC_API_KEY=sk-ant-..." > .env   # optional
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-
-# Frontend (new terminal)
-cd frontend
 npm install
-npm run dev -- --host 0.0.0.0 --port 5173
+npm run dev
 ```
 
-**Windows:**
+`./run.sh` (macOS/Linux) and `run.bat` (Windows) do the same in one step.
 
-```powershell
-# Backend
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-echo ANTHROPIC_API_KEY=sk-ant-... > .env   # optional
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+| Command | What it does |
+|---|---|
+| `npm run dev` | Desktop app with hot reload |
+| `npm run web` | Browser-only version at http://localhost:5173 |
+| `npm test` | Frontend and hub tests |
+| `npm run smoke` | Build, launch, screenshot and check the desktop app |
+| `npm run dist` | Build the installer for the current platform into `desktop/release/` |
 
-# Frontend (new terminal)
-cd frontend
-npm install
-npm run dev -- --host 0.0.0.0 --port 5173
-```
+Installers for both platforms are built by GitHub Actions when a `v*` tag is pushed.
 
-</details>
-
-## Usage
-
-1. **Describe the visuals you want in the chat** — in any language
-2. **See results in the viewport** — shaders compile and render automatically
-3. **Adjust parameters** — via auto-generated control panels
-4. **Animate with the timeline** — keyframes, scrubbing, loop
-5. **Record or save** — export video or save the project for later
-
-| Key | Action |
-|-----|--------|
-| `Space` | Toggle play / pause |
-| `Ctrl/Cmd + Z` | Undo (uniforms, layout, keyframes) |
-| `Ctrl/Cmd + S` | Save project |
-
-## Project Structure
+## How it fits together
 
 ```
-siljangnim/
-├── backend/
-│   ├── main.py           # FastAPI server + WebSocket
-│   ├── agents.py         # Claude agent (shader generation + UI control)
-│   ├── workspace.py      # Sandboxed file I/O
-│   ├── projects.py       # Project save/load
-│   └── config.py         # API key management
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx       # Main app + state management
-│   │   ├── engine/       # GLEngine (WebGL2 renderer)
-│   │   ├── nodes/        # ReactFlow nodes (chat, viewport, inspector, etc.)
-│   │   └── components/   # Toolbar, Timeline, SnapGuides
-│   └── package.json
-├── .workspace/           # Runtime data (scenes, uploads, projects)
-├── run.sh                # One-click startup script (macOS/Linux)
-└── run.bat               # One-click startup script (Windows)
+Your agent (MCP)      Built-in agent
+        \                 /
+         ▼               ▼
+ ┌────────── Siljangnim desktop (Electron) ──────────┐
+ │ Renderer   node canvas · viewport · panels         │
+ │ Hub        local Python sidecar: MCP, runtime,     │
+ │            recipes, provenance, permissions        │
+ └────────────────────────────────────────────────────┘
+         │ fetched on demand, isolated per tool
+         ▼
+ Open-source projects: GLSL · JS/WASM · Python · CLI apps · ML models
 ```
 
-## Tech Stack
+Details, recipe and project formats, and the staged plan: [docs/architecture.md](docs/architecture.md).
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React 19, Vite, TailwindCSS v4, @xyflow/react |
-| Rendering | WebGL2 (ES 3.0), custom GLEngine |
-| Backend | FastAPI, WebSocket, Uvicorn |
-| AI | Anthropic Claude, OpenAI, Gemini, GLM, or any OpenAI-compatible API |
+## Repository layout
 
-## Security Notice
+```
+desktop/    Electron shell: window, app:// protocol, hub process, installers
+hub/        Python sidecar run by the app (uv-managed)
+frontend/   Renderer: React, node canvas, GL engine, built-in agent (also the web build)
+backend/    Legacy FastAPI server from v1; replaced by hub/ in stage 2
+docs/       Architecture and guides
+```
 
-The AI agent can execute arbitrary Python code and whitelisted shell commands (`pip`, `ffmpeg`, `ffprobe`, `convert`, `magick`) on the host machine via `run_python` and `run_command` tools. While execution is restricted to the `.workspace/` working directory and shell commands are limited to a whitelist, **the Python code runs with the same permissions as the backend process** — there is no container or OS-level sandbox.
+## The web version
 
-This means a prompt injection attack (e.g., via a maliciously crafted uploaded file) could potentially:
-- Read or write files accessible to the backend process
-- Install arbitrary packages via `pip`
-- Exfiltrate data through installed packages or network calls
+[siljangnim.vercel.app](https://siljangnim.vercel.app/) runs the renderer and the built-in
+agent in the browser. It covers shaders, panels, recording and in-browser ML. Tools that need
+a local runtime (Python packages, CLI apps, GPU models) need the desktop app.
 
-**Do not expose this application to the public internet.** It is designed for local, single-user use only. If you must run it on a shared network, place it behind authentication and consider running the backend inside a container.
+## Costs and security
+
+- **Cost** — cloud providers bill per token. A complex scene can take many tool-use rounds;
+  a single conversation can cost a few dollars. Self-hosted models have no per-token cost.
+- **Security** — the agent writes and runs code on your machine, and in later stages will
+  install open-source tools; those steps will ask for confirmation first. The hub listens on
+  127.0.0.1 only and requires a per-launch token. Do not expose any part of the app to the
+  network.
 
 ## License
 
-[GPLv3](LICENSE)
+[GPL-3.0](LICENSE). Open-source projects the agent fetches keep their own licenses; each
+project records what it used.
