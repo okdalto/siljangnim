@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createProject, deleteProject, openProject, renameProject, setSettingsOpen } from "../session";
+import { createProject, deleteProject, openProject, renameProject, setExamplesOpen, setSettingsOpen } from "../session";
 import { useApp } from "../state";
 import { ChevronIcon, GearIcon, Logo, PlusIcon, TrashIcon } from "./icons";
 
@@ -116,6 +116,17 @@ function ProjectMenu() {
             }}
           >
             <PlusIcon size={14} /> New project
+          </button>
+          <button
+            type="button"
+            data-testid="open-examples"
+            className="flex w-full items-center gap-2 border-t border-line px-3 py-2 text-left hover:bg-line/40"
+            onClick={() => {
+              setOpen(false);
+              setExamplesOpen(true);
+            }}
+          >
+            <span className="w-3.5 text-center text-faint">◇</span> Examples…
           </button>
         </div>
       )}

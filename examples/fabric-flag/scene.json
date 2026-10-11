@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "const gl = ctx.gl;\nconst image = await ctx.utils.loadTexture('poster-test.png', {flipY:true, wrap:'clamp', filter:'linear', mipmap:true});\nctx.state.texture = image.texture;\nctx.state.aspect = image.width / image.height;\nconst deformation = `\nvec3 cloth(vec2 uv) {\n  float t = u_time * u_speed;\n  float freeEdge = 0.18 + 0.82 * pow(1.0-uv.y, 0.8);\n  float x = (uv.x-0.5) * 4.8;\n  float y = (uv.y-0.5) * u_height;\n  float broad = sin(uv.x*7.3 - t*1.1 + uv.y*2.8);\n  float ripple = sin(uv.x*15.5 + uv.y*5.0 - t*1.65);\n  float cross = sin(uv.y*8.0 - uv.x*3.8 + t*0.65);\n  float z = u_flutter * freeEdge * (0.36*broad + 0.115*ripple + 0.07*cross);\n  z += 0.08 * sin(uv.x*3.14159265) * sin(uv.y*3.14159265);\n  y -= 0.065 * sin(uv.x*3.14159265) * (0.5+0.5*uv.y);\n  y += u_flutter * freeEdge * 0.028 * sin(uv.x*9.0-t*1.1);\n  x += u_flutter * freeEdge * 0.018 * sin(uv.y*6.0+t*0.7);\n  return vec3(x,y,z);\n}`;\nconst vs = `#version 300 es\nprecision highp float;\nlayout(location=0) in vec3 a_position;\nlayout(location=2) in vec2 a_uv;\nuniform mat4 u_mvp;\nuniform float u_time, u_speed, u_flutter, u_height;\nout vec2 v_uv;\nout vec3 v_normal;\nout vec3 v_pos;\n${deformation}\nvoid main(){\n  vec3 p = cloth(a_uv);\n  vec3 dx = cloth(a_uv + vec2(0.001,0.0)) - cloth(a_uv - vec2(0.001,0.0));\n  vec3 dy = cloth(a_uv + vec2(0.0,0.001)) - cloth(a_uv - vec2(0.0,0.001));\n  v_normal = normalize(cross(dx,dy));\n  v_uv = a_uv; v_pos = p;\n  gl_Position = u_mvp*vec4(p,1.0);\n}`;\nconst fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv;\nin vec3 v_normal;\nin vec3 v_pos;\nuniform sampler2D u_image;\nuniform float u_weave;\nout vec4 outColor;\nvoid main(){\n  vec3 n = normalize(v_normal);\n  if(!gl_FrontFacing) n = -n;\n  vec3 light = normalize(vec3(-0.5,0.75,1.2));\n  float diffuse = max(dot(n,light),0.0);\n  float illum = 0.58+0.48*diffuse;\n  vec3 color = texture(u_image,v_uv).rgb;\n  float thread = sin(v_uv.x*640.0*3.14159265)*sin(v_uv.y*400.0*3.14159265);\n  float weave = 1.0 + u_weave*0.035*thread;\n  float sheen = pow(max(dot(n,normalize(vec3(-0.22,0.38,1.0))),0.0),18.0)*0.025;\n  color = color*illum*weave + sheen;\n  // A fine stitched hem follows the edge of the printed fabric.\n  float edge = min(min(v_uv.x,1.0-v_uv.x),min(v_uv.y,1.0-v_uv.y));\n  float hem = 1.0-smoothstep(0.003,0.009,edge);\n  color *= 1.0-hem*0.045;\n  outColor = vec4(color,1.0);\n}`;\nctx.state.program = ctx.utils.createProgram(vs,fs);\nconst bg = `#version 300 es\nprecision highp float;\nin vec2 v_uv;\nuniform vec2 u_resolution;\nuniform vec2 u_span;\nout vec4 outColor;\nvoid main(){\n  vec2 p = (v_uv-0.5)*u_span;\n  vec3 color = mix(vec3(0.88,0.90,0.91),vec3(0.97,0.97,0.955),v_uv.y);\n  color -= 0.025*dot(v_uv-0.5,v_uv-0.5);\n  vec2 q = abs(p-vec2(0.12,-0.17))-vec2(2.29,1.37);\n  float d = length(max(q,0.0))+min(max(q.x,q.y),0.0);\n  float shadow = 1.0-smoothstep(-0.24,0.38,d);\n  color *= 1.0 - shadow*0.16;\n  outColor=vec4(color,1.0);\n}`;\nctx.state.background = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,bg);\nconst positions=[], uvs=[], indices=[];\nconst nx=180, ny=112;\nfor(let j=0;j<=ny;j++) for(let i=0;i<=nx;i++) { positions.push(i/nx-0.5,j/ny-0.5,0); uvs.push(i/nx,j/ny); }\nfor(let j=0;j<ny;j++) for(let i=0;i<nx;i++) {\n  const a=j*(nx+1)+i,b=a+1,c=a+nx+1,d=c+1;\n  indices.push(a,b,c,b,d,c);\n}\nctx.state.mesh = ctx.utils.createMesh({positions:new Float32Array(positions),uvs:new Float32Array(uvs),indices:new Uint32Array(indices)});",
+    "render": "const gl=ctx.gl;\nconst ratio=ctx.resolution[0]/ctx.resolution[1];\nconst h=4.8/ctx.state.aspect;\nconst fov=37;\nconst distance=Math.max(6.5,3.05/(Math.tan(fov*Math.PI/360)*ratio));\nconst spanY=2*distance*Math.tan(fov*Math.PI/360);\ngl.disable(gl.DEPTH_TEST);\ngl.disable(gl.BLEND);\nctx.utils.drawFullscreen(ctx.state.background,{u_span:[spanY*ratio,spanY]});\ngl.enable(gl.DEPTH_TEST);\ngl.clear(gl.DEPTH_BUFFER_BIT);\nconst view=ctx.utils.mat4.lookAt([0.16,0.07,distance],[0,0,0],[0,1,0]);\nconst proj=ctx.utils.mat4.perspective(fov,ratio,0.1,30);\nconst mvp=ctx.utils.mat4.multiply(proj,view);\ngl.useProgram(ctx.state.program);\nctx.utils.setStandardUniforms(ctx.state.program);\nctx.utils.setUniforms(ctx.state.program,{u_mvp:mvp,u_height:h});\nctx.utils.bindTexture(ctx.state.program,'u_image',ctx.state.texture,0);\nctx.state.mesh.draw();",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 1.23,
+      "min": 0,
+      "max": 1.8,
+      "step": 0.01,
+      "label": "Wind speed"
+    },
+    "u_flutter": {
+      "type": "float",
+      "value": 1.63,
+      "min": 0,
+      "max": 2,
+      "step": 0.01,
+      "label": "Flutter"
+    },
+    "u_weave": {
+      "type": "float",
+      "value": 0.33,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Weave"
+    }
+  },
+  "inputs": []
+}

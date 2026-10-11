@@ -74,6 +74,8 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 5173,
     strictPort: true,
+    // /examples lives next to the studio, outside its root.
+    fs: { allow: [resolve(import.meta.dirname, "..")] },
   },
   build: {
     target: "es2023",

@@ -1,0 +1,15 @@
+{
+  "order": 4,
+  "title": "Purple spiral",
+  "title_ko": "보라색 나선",
+  "description": "A slowly turning spiral with a rotation-speed knob.",
+  "description_ko": "천천히 도는 나선. 회전 속도를 노브로 조절한다.",
+  "prompt": "Siljangnim 뷰어에 천천히 회전하는 보라색 나선 셰이더를 만들어 줘. 회전 속도는 노브로 조절할 수 있게.",
+  "made_with": "Claude Code over MCP",
+  "features": [
+    "shader",
+    "knob",
+    "mcp"
+  ],
+  "mode": "live"
+}

@@ -2,6 +2,7 @@
 // viewer over MCP: the conversation happens in that agent's own app, and this
 // panel shows what it did here.
 import { useEffect, useRef } from "react";
+import { setExamplesOpen } from "../session";
 import { useApp, type ExternalAgent } from "../state";
 import { Spinner } from "./icons";
 import { ApprovalCard } from "./Approval";
@@ -22,7 +23,14 @@ export function Activity() {
     <div className="flex min-h-0 flex-1 flex-col" data-testid="activity">
       {external && <Status external={external} />}
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4 text-sm">
-        {!activity.length && <p className="pt-6 text-center text-xs text-faint">Ask your agent for a visual. What it does here shows up in this panel.</p>}
+        {!activity.length && (
+          <div className="pt-6 text-center text-xs text-faint">
+            <p>Ask your agent for a visual. What it does here shows up in this panel.</p>
+            <button type="button" onClick={() => setExamplesOpen(true)} className="mt-3 text-muted underline-offset-2 hover:text-fg hover:underline">
+              Or open an example
+            </button>
+          </div>
+        )}
         {activity.map((entry) => (
           <div key={entry.id} data-activity={entry.tool}>
             {entry.output ? (

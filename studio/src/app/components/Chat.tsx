@@ -4,7 +4,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { isStudioNote, STUDIO_NOTE_PREFIX } from "../../agent/context";
 import { ANTHROPIC_MODELS } from "../../agent/llm/anthropic";
 import type { MessageParam } from "../../agent/llm/types";
-import { answerQuestion, clearChat, detachAsset, dismissNotice, sendPrompt, stopAgent } from "../session";
+import { answerQuestion, clearChat, detachAsset, dismissNotice, sendPrompt, setExamplesOpen, stopAgent } from "../session";
 import { activeModel } from "../settings";
 import { useApp, type LiveTurn } from "../state";
 import { ApprovalCard } from "./Approval";
@@ -114,6 +114,9 @@ function Empty() {
           </button>
         ))}
       </div>
+      <button type="button" onClick={() => setExamplesOpen(true)} className="mt-5 text-xs text-muted underline-offset-2 hover:text-fg hover:underline">
+        Or open an example
+      </button>
     </div>
   );
 }

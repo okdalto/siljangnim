@@ -39,6 +39,7 @@ import {
   visionImage,
   type AssetInfo,
 } from "../project/assets";
+import { EXAMPLES } from "../project/examples";
 import { resolveVersionId, sameScene, versionMessage } from "../project/history";
 import { ProjectStore, SCENE_FILE, type Version } from "../project/store";
 import type { SceneHost } from "../scene/host";
@@ -142,6 +143,31 @@ export async function createProject(name = "Untitled"): Promise<void> {
   await store.writeFile(project.id, SCENE_FILE, JSON.stringify(DEFAULT_SCENE, null, 2));
   set({ projects: await store.listProjects() });
   await openProject(project.id);
+}
+
+/** A new project with an example's scene and assets (see /examples). */
+export async function openExample(slug: string): Promise<void> {
+  const example = EXAMPLES.find((e) => e.slug === slug);
+  if (!example) return;
+  set({ examplesOpen: false });
+  try {
+    const scene = await example.scene();
+    const project = await store.createProject(example.title);
+    await store.writeFile(project.id, SCENE_FILE, JSON.stringify(scene, null, 2));
+    // Assets go in before the project opens, so the first load already has them.
+    for (const asset of example.assets) {
+      const blob = await (await fetch(asset.url)).blob();
+      const typed = new Blob([blob], { type: assetMimeType(asset.name, blob.type) });
+      await store.writeFile(project.id, ASSET_DIR + asset.name, typed, await analyzeAsset(asset.name, typed));
+    }
+    await openProject(project.id);
+  } catch (err) {
+    set({ notice: { kind: "error", text: `Couldn't open the example: ${err instanceof Error ? err.message : String(err)}` } });
+  }
+}
+
+export function setExamplesOpen(open: boolean): void {
+  set({ examplesOpen: open });
 }
 
 export async function renameProject(name: string): Promise<void> {

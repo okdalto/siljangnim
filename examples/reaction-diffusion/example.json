@@ -1,0 +1,15 @@
+{
+  "order": 2,
+  "title": "Reaction–diffusion",
+  "title_ko": "반응-확산",
+  "description": "Gray–Scott simulation on ping-pong buffers. Drag in the viewport to stir it; R resets.",
+  "description_ko": "핑퐁 버퍼 위의 Gray-Scott 시뮬레이션. 뷰포트를 드래그해 휘젓고 R로 초기화한다.",
+  "prompt": "마우스로 휘저을 수 있는 반응-확산 시뮬레이션 만들어줘",
+  "made_with": "Built-in agent, GPT gpt-6.1-sol",
+  "features": [
+    "simulation",
+    "ping-pong",
+    "mouse"
+  ],
+  "mode": "live"
+}

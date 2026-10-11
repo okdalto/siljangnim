@@ -1,0 +1,14 @@
+{
+  "order": 8,
+  "title": "Swell (timeline)",
+  "title_ko": "너울 (타임라인)",
+  "description": "The ocean scene in Timeline mode: keyframes build the waves up and calm them down over 12 seconds.",
+  "description_ko": "바다 씬을 Timeline 모드로: 12초 동안 키프레임이 파도를 키웠다가 잔잔하게 만든다.",
+  "prompt": "(made by hand from the Ocean waves example: two keyframed controls)",
+  "made_with": "Ocean waves + keyframes",
+  "features": [
+    "timeline",
+    "keyframes"
+  ],
+  "mode": "timeline"
+}

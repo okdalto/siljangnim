@@ -74,6 +74,7 @@ export interface AppState {
   settings: Settings;
   keyStatus: Record<ProviderKeyId, boolean>;
   settingsOpen: boolean;
+  examplesOpen: boolean;
 }
 
 export const useApp = create<AppState>(() => ({
@@ -100,4 +101,5 @@ export const useApp = create<AppState>(() => ({
   settings: loadSettings(),
   keyStatus: { anthropic: false, openai: false },
   settingsOpen: false,
+  examplesOpen: false,
 }));

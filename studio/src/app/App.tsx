@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Controls } from "./components/Controls";
 import { DropOverlay } from "./components/DropOverlay";
+import { ExamplesDialog } from "./components/Examples";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
@@ -34,6 +35,7 @@ function useUndoShortcuts() {
 
 export function App() {
   const settingsOpen = useApp((s) => s.settingsOpen);
+  const examplesOpen = useApp((s) => s.examplesOpen);
   useUndoShortcuts();
   return (
     <div className="flex h-full flex-col">
@@ -48,6 +50,7 @@ export function App() {
       </div>
       <DropOverlay />
       {settingsOpen && <SettingsDialog />}
+      {examplesOpen && <ExamplesDialog />}
     </div>
   );
 }
