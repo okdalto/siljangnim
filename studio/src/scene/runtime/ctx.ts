@@ -25,6 +25,7 @@ import {
   type VideoTextureOptions,
 } from "../gl/helpers";
 import { FULLSCREEN_VERTEX_SHADER, MESH_VERTEX_SHADER, createProgram } from "../gl/shader";
+import type { MonitorValue } from "../protocol";
 import type { UniformValue } from "../schema";
 
 /** ES module CDNs scene scripts may import from (mirrored in the scene CSP). */
@@ -82,6 +83,8 @@ export interface SceneCtx {
   uniforms: Record<string, UniformValue>;
   /** Asset name → object URL. */
   assets: Record<string, string>;
+  /** Show a value in the app's monitor panel (FPS, particle count…). Cheap; call it every frame if you like. */
+  publish(name: string, value: MonitorValue): void;
   utils: SceneUtils;
 }
 
@@ -90,6 +93,7 @@ export function createCtx(
   canvas: HTMLCanvasElement,
   uniforms: Record<string, UniformValue>,
   assets: Record<string, string>,
+  publish: SceneCtx["publish"] = () => undefined,
 ): { ctx: SceneCtx; dispose(): void } {
   const quad = createFullscreenQuad(gl);
   const videos: VideoTexture[] = [];
@@ -112,6 +116,7 @@ export function createCtx(
     keys: new Set(),
     uniforms,
     assets,
+    publish,
     utils: undefined as unknown as SceneUtils,
   };
 

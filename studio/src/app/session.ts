@@ -36,6 +36,7 @@ const SAVE_DELAY_MS = 400;
 /** Controls idle this long become a version. */
 const CONTROL_VERSION_DELAY_MS = 1500;
 const THUMBNAIL_SIZE = 256;
+const MONITOR_HISTORY = 60;
 const THUMBNAIL_TIMEOUT_MS = 3000;
 
 const store = new ProjectStore();
@@ -151,10 +152,21 @@ export function attachSceneHost(next: SceneHost): () => void {
   host = next;
   const offStats = next.on("stats", (s) => set((st) => ({ runtime: { ...st.runtime, state: s.state, fps: s.fps, time: s.time } })));
   const offError = next.on("error", (e) => set((st) => ({ runtime: { ...st.runtime, errors: [...st.runtime.errors, e].slice(-20) } })));
+  const offMonitors = next.on("monitors", (values) =>
+    set((st) => ({
+      monitors: Object.fromEntries(
+        Object.entries(values).map(([name, value]) => {
+          const history = st.monitors[name]?.history ?? [];
+          return [name, { value, history: typeof value === "number" ? [...history, value].slice(-MONITOR_HISTORY) : [] }];
+        }),
+      ),
+    })),
+  );
   void loadIntoHost(get().scene);
   return () => {
     offStats();
     offError();
+    offMonitors();
     if (host === next) host = null;
   };
 }
@@ -191,6 +203,11 @@ export function setUniformValue(name: string, value: UniformValue): void {
   host?.setUniform(name, value);
   scheduleSave();
   noteControlChange(def.label ?? name, "adjusted");
+}
+
+/** Press a button widget: the uniform reads true for one frame. Not an edit, so no undo or version. */
+export function pulseUniform(name: string): void {
+  host?.setUniform(name, true);
 }
 
 export function transport(action: "play" | "pause"): void {

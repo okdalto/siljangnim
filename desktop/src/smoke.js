@@ -10,6 +10,9 @@ const TIMEOUT_MS = 240_000;
 const LLM_PROBE = "app://siljangnim/api/llm/anthropic/v1/messages";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const started = Date.now();
+// Progress on stdout, so a timeout shows which step hung.
+const log = (step) => console.log(`[smoke] ${((Date.now() - started) / 1000).toFixed(1)}s ${step}`);
 
 function waitForHub(hub) {
   return new Promise((resolve) => {
@@ -99,7 +102,9 @@ const UPLOAD_ASSETS = `(async () => {
 async function runAgentScenario(win, sceneFrame, keys) {
   keys.set("anthropic", process.env.SILJANGNIM_SMOKE_KEY);
   const finalText = process.env.SILJANGNIM_SMOKE_FINAL_TEXT ?? "";
+  log("uploading assets");
   const attached = await win.webContents.executeJavaScript(UPLOAD_ASSETS);
+  log("sending prompt");
   await win.webContents.executeJavaScript(TYPE_PROMPT);
   // The mock agent asks a question first; answer it the way a person would.
   let answered = false;
@@ -109,21 +114,33 @@ async function runAgentScenario(win, sceneFrame, keys) {
       `(() => { const b = document.querySelector('[data-question-option="Timeline"]'); b?.click(); return Boolean(b); })()`,
     );
   }
+  log(`question answered: ${answered}`);
   let replied = false;
   for (let i = 0; i < 120 && !replied; i++) {
     await wait(500);
     replied = await win.webContents.executeJavaScript(`document.body.innerText.includes(${JSON.stringify(finalText)})`);
   }
   await wait(500);
+  log(`agent replied: ${replied}`);
+  // Press the button widget twice; each press should count exactly one frame.
+  for (let i = 0; i < 2; i++) {
+    await win.webContents.executeJavaScript(`document.querySelector('[data-widget="button"]')?.click()`);
+    await wait(300);
+  }
+  await wait(300);
+  const bursts = await win.webContents.executeJavaScript(`document.querySelector('[data-monitor="bursts"] .tabular-nums')?.innerText`);
   const sample = sceneFrame ? await sceneFrame.executeJavaScript(SAMPLE_CANVAS).catch(() => null) : null;
   const chat = await win.webContents.executeJavaScript(`({
     chips: [...document.querySelectorAll("aside button")].map((b) => b.innerText).filter((t) => /scene|viewport/i.test(t)),
     images: document.querySelectorAll('aside img[alt="Viewport capture"]').length,
     keyMarks: [...document.querySelectorAll("[data-key-time]")].map((m) => m.title),
+    widgets: [...document.querySelectorAll("[data-widget]")].map((w) => w.dataset.widget),
+    groups: [...document.querySelectorAll('[data-testid="controls"] section > h3')].map((h) => h.textContent),
+    frames: Number(document.querySelector('[data-monitor="frames"] .tabular-nums')?.innerText ?? NaN),
     timelineMenu: document.querySelector('[data-testid="timeline-menu"]')?.innerText ?? null,
   })`);
   const [r, g, b] = sample?.meanRgb ?? [0, 0, 0];
-  return { attached, answered, replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
+  return { attached, answered, bursts, replied, meanRgb: sample?.meanRgb, blue: b > 150 && b > 2 * r && b > g, ...chat };
 }
 
 // Opens the History tab and describes its rows (oldest first).
@@ -215,7 +232,9 @@ export async function runSmokeTest(win, hub, keys, outDir) {
   );
 
   const agent = process.env.SILJANGNIM_SMOKE_KEY ? await runAgentScenario(win, sceneFrame, keys) : null;
+  log("history scenario");
   const history = agent ? await runHistoryScenario(win, sceneFrame) : null;
+  log("waiting for hub");
 
   await waitForHub(hub);
   let system = null;
@@ -242,6 +261,8 @@ export async function runSmokeTest(win, hub, keys, outDir) {
       ? {
           assetsUploaded: ["swatch.png", "data.json"].every((n) => agent.attached.includes(n)),
           questionShown: agent.answered,
+          panelWidgets: agent.widgets.includes("knob") && agent.widgets.includes("button") && agent.groups.join() === "Look,Other,Monitors",
+          monitorsShown: agent.frames > 0 && agent.bursts === "2",
           agentReplied: agent.replied,
           agentSceneApplied: agent.blue,
           agentShowsCapture: agent.images > 0,

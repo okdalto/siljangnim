@@ -3,7 +3,7 @@ import type { MessageParam } from "../agent/llm/types";
 import type { ProviderKeyId } from "../desktop";
 import type { AssetInfo } from "../project/assets";
 import type { ProjectMeta, Version } from "../project/store";
-import type { RuntimeState, SceneError } from "../scene/protocol";
+import type { MonitorValue, RuntimeState, SceneError } from "../scene/protocol";
 import { DEFAULT_SCENE, type Scene } from "../scene/schema";
 import { loadSettings, type Settings } from "./settings";
 
@@ -37,6 +37,8 @@ export interface AppState {
   assets: AssetInfo[];
   /** Assets uploaded since the last prompt; the next prompt tells the agent about them. */
   attachments: string[];
+  /** Values the scene publishes (ctx.publish), with recent numeric history for sparklines. */
+  monitors: Record<string, { value: MonitorValue; history: number[] }>;
   /** Keyed uniforms the person moved directly; the runtime holds them off their keyframes. */
   overrides: string[];
   /** Whether undo/redo have anything (the stacks themselves live in the session controller). */
@@ -63,6 +65,7 @@ export const useApp = create<AppState>(() => ({
   sidebarTab: "chat",
   assets: [],
   attachments: [],
+  monitors: {},
   overrides: [],
   canUndo: false,
   canRedo: false,

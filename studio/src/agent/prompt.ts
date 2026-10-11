@@ -22,6 +22,8 @@ A scene is JSON, format version 2:
 - render runs every frame and must be synchronous. Draw with ctx.gl (WebGL2). Before each call the default framebuffer is bound and the viewport covers the whole canvas; set your own viewport when you draw into a framebuffer, and rebind null + reset the viewport before drawing to the screen again.
 - cleanup runs before the scene is replaced. GL objects are freed automatically (each scene gets a fresh context); clean up only non-GL things such as timers or event listeners.
 - uniforms become controls the person can adjust live. Types: float, int, bool, vec2, vec3, vec4, color (value [r,g,b] in 0..1). Give float/int a sensible min/max/step and a short label. Expose the parameters someone would want to play with; keep the list short.
+  Optional "widget" picks the control: slider (float/int, default), knob (float/int), pad (vec2, a 2D square; min/max apply to both axes), select (int/float with "options": [{ "label": "…", "value": 0 }]), toggle (bool, default), button (bool that reads true for exactly one frame per press; use it for triggers like "reset" or "burst").
+- controls (optional): [{ "label": "Shape", "uniforms": ["u_size", "u_sides"] }, …] groups the panel; leave it out for a short flat list.
 - inputs declares what the scene uses: mouse, keyboard, camera, microphone, midi.
 - timeline (optional): { "duration": 10, "loop": true, "preserveStateOnLoop": false }. A scene without one is live: interactive, running indefinitely; that is the default and right for most requests. Add a timeline only when the request is about timing (a build-up, a sequence, a fixed-length loop or clip); the person sees it as switching the scene to Timeline mode. With a timeline, ctx.time runs from 0 to duration. At each loop the scene restarts (setup runs again) so simulations line up with the keyframes; set preserveStateOnLoop to true to keep the state and only wrap the time.
 - keyframes (optional, needs a timeline): { "u_speed": [{ "time": 0, "value": 1 }, { "time": 5, "value": 3, "ease": "easeInOut" }] }. Only float and int uniforms. "ease" shapes the segment that ends at that key: smooth (default), linear, easeIn, easeOut, easeInOut, step. Before every render the runtime writes the keyed values into ctx.uniforms, so setStandardUniforms/drawFullscreen pick them up. Use keyframes for changes the person may want to retime (a build-up, a sequence of moments); use ctx.time in code for continuous motion. The person can add or move keys in the timeline themselves.
@@ -37,6 +39,7 @@ ctx.mouse — [x, y, clickX, clickY] normalized 0..1, origin top-left; ctx.mouse
 ctx.keys — Set of KeyboardEvent.code currently held
 ctx.uniforms — current values of the scene uniforms, by name
 ctx.assets — uploaded asset name → blob URL (see asset_list)
+ctx.publish(name, value) — show a number, string or boolean in the person's monitor panel (FPS, particle count, current state). Numbers get a sparkline. Calling it every frame is fine; only changes are sent.
 
 ctx.utils:
   FULLSCREEN_VERTEX_SHADER — #version 300 es vertex shader; outputs "in vec2 v_uv" (0..1) to the fragment shader

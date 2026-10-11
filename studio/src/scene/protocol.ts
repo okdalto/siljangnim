@@ -67,7 +67,11 @@ export interface RuntimeEvents {
   ready: Record<string, never>;
   error: SceneError;
   stats: { state: RuntimeState; time: number; fps: number };
+  /** Latest values the scene published with ctx.publish (all of them, when any changed). */
+  monitors: Record<string, MonitorValue>;
 }
+
+export type MonitorValue = number | string | boolean;
 
 export type EventName = keyof RuntimeEvents;
 

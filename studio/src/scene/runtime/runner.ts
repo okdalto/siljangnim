@@ -5,7 +5,7 @@
 // reset by hand.
 import { evaluateTracks, sortKeys, type Keyframe } from "../gl/keyframes";
 import { ShaderError } from "../gl/shader";
-import type { CaptureResult, LoadResult, RuntimeState, RuntimeStatus, SceneError, SceneErrorSource } from "../protocol";
+import type { CaptureResult, LoadResult, MonitorValue, RuntimeState, RuntimeStatus, SceneError, SceneErrorSource } from "../protocol";
 import { uniformValues, type Scene, type Timeline, type UniformValue } from "../schema";
 import { createCtx, type SceneCtx } from "./ctx";
 
@@ -16,11 +16,13 @@ const FRAMES_BEFORE_LOADED = 3;
 const MAX_ERRORS = 20;
 const MAX_PIXEL_RATIO = 2;
 const GL_ERROR_CHECK_EVERY = 60;
+const MAX_MONITORS = 32;
+const MAX_MONITOR_TEXT = 200;
 
 // new Function() puts the body two lines below the header in V8.
 const FUNCTION_HEADER_LINES = 2;
 
-type Emit = (event: "error" | "stats", data: unknown) => void;
+type Emit = (event: "error" | "stats" | "monitors", data: unknown) => void;
 
 interface Loaded {
   generation: number;
@@ -66,6 +68,10 @@ export class SceneRunner {
   /** Keyed uniforms the person set directly; they win over keyframes until the keys change. */
   private readonly overrides = new Set<string>();
   private restarting = false;
+  private monitors: Record<string, MonitorValue> = {};
+  private monitorsChanged = false;
+  /** Button uniforms pressed since the last frame; they read true for one rendered frame. */
+  private readonly pulses = new Set<string>();
 
   constructor(container: HTMLElement, emit: Emit) {
     this.container = container;
@@ -82,6 +88,9 @@ export class SceneRunner {
     this.unload();
     this.source = { scene, assets };
     this.applyTimeline(scene.timeline, scene.keyframes);
+    this.monitors = {};
+    this.monitorsChanged = true;
+    this.pulses.clear();
     this.errors = [];
     this.state = "loading";
     this.time = 0;
@@ -110,7 +119,7 @@ export class SceneRunner {
       assetMap[name] = url;
     }
 
-    const { ctx, dispose } = createCtx(gl, canvas, uniformValues(scene), assetMap);
+    const { ctx, dispose } = createCtx(gl, canvas, uniformValues(scene), assetMap, (name, value) => this.publish(name, value));
     ctx.mouse = this.mouse;
     ctx.keys = this.keys;
 
@@ -148,6 +157,7 @@ export class SceneRunner {
     if (!this.current) return;
     this.current.ctx.uniforms[name] = value;
     if (this.tracks[name]) this.overrides.add(name);
+    if (value === true && this.source?.scene.uniforms[name]?.widget === "button") this.pulses.add(name);
     this.dirty = true;
   }
 
@@ -195,6 +205,20 @@ export class SceneRunner {
   }
 
   // --- internals ---
+
+  private publish(name: string, value: MonitorValue): void {
+    if (typeof name !== "string" || !name) return;
+    let v: MonitorValue;
+    if (typeof value === "number") {
+      if (!Number.isFinite(value)) return;
+      v = value;
+    } else if (typeof value === "boolean") v = value;
+    else v = String(value).slice(0, MAX_MONITOR_TEXT);
+    if (!(name in this.monitors) && Object.keys(this.monitors).length >= MAX_MONITORS) return;
+    if (this.monitors[name] === v) return;
+    this.monitors[name] = v;
+    this.monitorsChanged = true;
+  }
 
   private applyTimeline(timeline: Timeline | undefined, keyframes: Record<string, Keyframe[]>): void {
     this.timeline = timeline;
@@ -296,6 +320,8 @@ export class SceneRunner {
         }
         this.frame++;
         this.dirty = false;
+        for (const name of this.pulses) ctx.uniforms[name] = false;
+        this.pulses.clear();
         if (this.frame % GL_ERROR_CHECK_EVERY === 1) this.checkGlError(loaded.gl);
         this.framesRendered++;
         this.flushCaptures(loaded.canvas);
@@ -312,6 +338,10 @@ export class SceneRunner {
     if (now - this.lastStats > 100) {
       this.lastStats = now;
       this.emit("stats", { state: this.state, time: this.time, fps: Math.round(this.fps) });
+      if (this.monitorsChanged) {
+        this.monitorsChanged = false;
+        this.emit("monitors", { ...this.monitors });
+      }
     }
   }
 
