@@ -18,8 +18,8 @@
 </p>
 
 <p align="center">
-  <a href="media/siljangnim-short.mp4"><img src="media/siljangnim-short-poster.jpg" alt="▶ 30-second intro (Korean narration, Korean and English subtitles)" width="240" /></a><br/>
-  <a href="media/siljangnim-short.mp4">▶ 30-second intro (Korean narration, Korean and English subtitles)</a>
+  <a href="media/siljangnim-short.mp4"><img src="media/siljangnim-short-poster.jpg" alt="▶ 30-second intro (English narration, Korean and English subtitles)" width="240" /></a><br/>
+  <a href="media/siljangnim-short.mp4">▶ 30-second intro (English narration, Korean and English subtitles)</a>
 </p>
 
 ---
