@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "d3-contour"
-  ]
+  ],
+  "summary": "A colorful map of slowly moving hills and valleys, drawn with outlines like a hiking map.",
+  "summary_ko": "등산 지도처럼 높이 선이 그려진 컬러 지도 위로 언덕과 골짜기가 천천히 움직여요.",
+  "try": [
+    "Move the pointer to raise a hill under it",
+    "Set Pointer hill below zero to dig a hollow instead",
+    "Change Levels to draw more or fewer outlines"
+  ],
+  "try_ko": [
+    "포인터를 움직여 그 아래에 언덕을 솟게 해 보세요",
+    "Pointer hill을 0 아래로 내리면 언덕 대신 웅덩이가 파여요",
+    "Levels를 바꿔 등고선 수를 늘리거나 줄여 보세요"
+  ],
+  "tool_about": "d3-contour is part of D3, a JavaScript toolkit for charts and data pictures. It turns a grid of numbers into outlines and filled areas, like those on weather or elevation maps, and runs in the browser.",
+  "tool_about_ko": "d3-contour는 차트와 데이터 시각화 도구 모음인 D3의 한 부분이에요. 숫자 격자를 날씨 지도나 지형도 같은 등고선과 색 영역으로 바꿔 주며, 브라우저에서 돌아가요."
 }

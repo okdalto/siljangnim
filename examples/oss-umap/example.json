@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "umap-learn"
-  ]
+  ],
+  "summary": "1,797 handwritten digits sorted onto a map by look alone, so each digit gathers on its own island.",
+  "summary_ko": "손글씨 숫자 1,797개를 생김새만 보고 지도 위에 늘어놓았더니 0은 0끼리, 1은 1끼리 섬처럼 모였어요.",
+  "try": [
+    "Hover a dot to see the handwritten digit it stands for",
+    "Find dots far from their island: they are often digits that look like another number",
+    "Raise Point size to make the dots bigger"
+  ],
+  "try_ko": [
+    "점에 포인터를 올리면 그 점이 나타내는 손글씨 숫자가 보여요",
+    "자기 섬에서 멀리 떨어진 점을 찾아보세요. 다른 숫자처럼 생긴 글씨인 경우가 많아요",
+    "Point size를 올려 점을 키워 보세요"
+  ],
+  "tool_about": "UMAP (umap-learn) is a Python machine-learning tool that lays out complicated data on a flat map so that similar items end up close together. It runs on this computer through Python and is used to explore large datasets.",
+  "tool_about_ko": "UMAP(umap-learn)은 복잡한 데이터를 평평한 지도 위에 펼쳐서 비슷한 것끼리 가까이 모이게 해 주는 파이썬 머신러닝 도구예요. 이 컴퓨터에서 파이썬으로 돌아가며 큰 데이터를 살펴볼 때 쓰여요."
 }

@@ -151,6 +151,7 @@ export async function boot(): Promise<void> {
 
 export async function openProject(id: string): Promise<void> {
   stopAgent();
+  set({ exampleIntro: null });
   await flushControlVersion();
   await flushSave();
   const project = await store.getProject(id);
@@ -197,6 +198,7 @@ export async function openExample(slug: string): Promise<void> {
     // Recipe examples say how their assets were made, so project.md can tell another machine.
     if (example.pipeline) await store.writeFile(project.id, PIPELINE_FILE, JSON.stringify(example.pipeline, null, 2));
     await openProject(project.id);
+    set({ exampleIntro: example.slug });
   } catch (err) {
     set({ notice: { kind: "error", text: `Couldn't open the example: ${err instanceof Error ? err.message : String(err)}` } });
   }

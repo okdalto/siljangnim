@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "opencv"
-  ]
+  ],
+  "summary": "Hokusai's Great Wave is redrawn line by line, as if by an invisible pen, from edges a computer traced.",
+  "summary_ko": "컴퓨터가 따낸 윤곽선으로 호쿠사이의 〈큰 파도〉를 보이지 않는 펜이 한 줄씩 다시 그려요.",
+  "try": [
+    "Raise Photo to see the original painting behind the lines",
+    "Change Drawing time (s) to draw faster or slower",
+    "Pick new Ink and Paper colors"
+  ],
+  "try_ko": [
+    "Photo를 올려 선 뒤에 원래 그림이 비치게 해 보세요",
+    "Drawing time (s)을 바꿔 더 빠르게 또는 느리게 그려 보세요",
+    "Ink와 Paper 색을 새로 골라 보세요"
+  ],
+  "tool_about": "OpenCV is a big toolkit for working with pictures and video: finding edges, shapes, faces and motion. It runs on this computer through Python, not in the browser.",
+  "tool_about_ko": "OpenCV는 사진과 영상을 다루는 큰 도구 모음으로, 윤곽·모양·얼굴·움직임을 찾아내요. 브라우저가 아니라 이 컴퓨터의 파이썬에서 돌아가요."
 }

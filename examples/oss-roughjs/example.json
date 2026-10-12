@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "roughjs"
-  ]
+  ],
+  "summary": "A sunny countryside that looks drawn in pencil, its lines wiggling as if it were sketched again and again.",
+  "summary_ko": "연필로 그린 듯한 시골 풍경이에요. 계속 다시 그리는 것처럼 선이 꼬물꼬물 흔들려요.",
+  "try": [
+    "Move the pointer to fly the balloon around",
+    "Pick another Fill style, such as Cross-hatch or Dots",
+    "Turn the Roughness knob up for a messier sketch"
+  ],
+  "try_ko": [
+    "포인터를 움직여 풍선을 날려 보세요",
+    "Fill style을 Cross-hatch나 Dots 같은 다른 방식으로 바꿔 보세요",
+    "Roughness 노브를 올려 더 삐뚤빼뚤한 스케치로 만들어 보세요"
+  ],
+  "tool_about": "Rough.js is a JavaScript library that draws lines, boxes, circles and other shapes in a sketchy, hand-drawn style. It runs in the browser and is popular for diagrams and playful illustrations.",
+  "tool_about_ko": "Rough.js는 선, 사각형, 원 같은 도형을 손으로 쓱쓱 그린 듯한 스타일로 그려 주는 JavaScript 라이브러리예요. 브라우저에서 돌아가며 다이어그램이나 재미있는 일러스트에 많이 쓰여요."
 }

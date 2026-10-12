@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "jscad-modeling"
-  ]
+  ],
+  "summary": "A machined part built from simple solids: a rounded cube drilled with holes, on a twisted star stand.",
+  "summary_ko": "단순한 입체를 조합해 만든 기계 부품이에요. 구멍 뚫린 둥근 큐브가 비틀린 별 모양 받침 위에 놓여 있어요.",
+  "try": [
+    "Drag to look around the part",
+    "Change Bore radius to drill bigger or smaller holes",
+    "Change Notches to cut more or fewer slots around the middle"
+  ],
+  "try_ko": [
+    "드래그해서 부품을 여러 방향에서 보세요",
+    "Bore radius를 바꿔 구멍을 크게 또는 작게 뚫어 보세요",
+    "Notches를 바꿔 가운데 둘레의 홈 개수를 바꿔 보세요"
+  ],
+  "tool_about": "JSCAD is a JavaScript toolkit for designing 3D objects with code, such as parts to 3D print, by adding, cutting and overlapping simple shapes. Its modeling library runs in the browser.",
+  "tool_about_ko": "JSCAD는 단순한 도형을 더하고, 빼고, 겹치는 방식으로 3D 프린팅용 부품 같은 3D 물체를 코드로 설계하는 JavaScript 도구예요. 모델링 라이브러리가 브라우저에서 돌아가요."
 }

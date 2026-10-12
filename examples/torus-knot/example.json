@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "trimesh"
-  ]
+  ],
+  "summary": "A glossy pretzel-shaped knot slowly turns in the light, a 3D shape made in Python and loaded here.",
+  "summary_ko": "반짝이는 프레첼 모양 매듭이 빛을 받으며 천천히 돌아요. 파이썬으로 만든 3D 모양을 불러왔어요.",
+  "try": [
+    "Change Color to give the knot a new finish",
+    "Set Rotation speed to zero to study one side",
+    "Ask the agent to make a different knot with the same recipe"
+  ],
+  "try_ko": [
+    "Color를 바꿔 매듭에 새 색을 입혀 보세요",
+    "Rotation speed를 0으로 두고 한쪽 면을 자세히 보세요",
+    "에이전트에게 같은 레시피로 다른 매듭을 만들어 달라고 해 보세요"
+  ],
+  "tool_about": "trimesh is a Python library for making, fixing and saving 3D shapes (OBJ, GLB, STL files). It runs on this computer through Python, not in the browser.",
+  "tool_about_ko": "trimesh는 3D 모양을 만들고 고치고 OBJ·GLB·STL 파일로 저장하는 파이썬 라이브러리예요. 브라우저가 아니라 이 컴퓨터의 파이썬에서 돌아가요."
 }

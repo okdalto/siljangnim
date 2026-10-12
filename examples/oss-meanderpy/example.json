@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "meanderpy"
-  ]
+  ],
+  "summary": "A river wiggles across its valley over 300 years, its loops pinching off into horseshoe-shaped lakes.",
+  "summary_ko": "강이 300년 동안 골짜기를 구불구불 옮겨 다니고, 굽이가 끊겨 말굽 모양 호수로 남아요.",
+  "try": [
+    "Raise Zoom (mouse pans), then move the pointer left and right to travel along the river",
+    "Raise Fade (years) to keep old riverbeds visible longer",
+    "Turn the Years per second knob down to watch a loop pinch off"
+  ],
+  "try_ko": [
+    "Zoom (mouse pans)을 올린 뒤 포인터를 좌우로 움직여 강을 따라가 보세요",
+    "Fade (years)를 올리면 옛 물길이 더 오래 남아요",
+    "Years per second 노브를 낮춰 굽이가 끊기는 순간을 지켜보세요"
+  ],
+  "tool_about": "meanderpy is a Python model of how rivers bend and shift over time, made for geologists who study river deposits. It runs on this computer through Python.",
+  "tool_about_ko": "meanderpy는 강이 시간에 따라 어떻게 휘고 옮겨 가는지 계산하는 파이썬 모델로, 강 퇴적층을 연구하는 지질학자를 위해 만들어졌어요. 이 컴퓨터에서 파이썬으로 돌아가요."
 }

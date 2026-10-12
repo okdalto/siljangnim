@@ -52,6 +52,8 @@ export interface AppState {
   sidebarTab: "chat" | "activity" | "history" | "assets" | "jobs";
   /** Whether this session ran runtime jobs (shows the Jobs tab). */
   jobsUsed: boolean;
+  /** The example just opened, introduced over the viewport until dismissed. */
+  exampleIntro: string | null;
   /** The sidebar folded to a rail of icons, leaving the viewport the room. */
   sidebarCollapsed: boolean;
   /** Set when the viewer was opened by the MCP bridge: chat is replaced by the agent's activity. */
@@ -93,6 +95,7 @@ export const useApp = create<AppState>(() => ({
   versions: [],
   sidebarTab: "chat",
   jobsUsed: false,
+  exampleIntro: null,
   sidebarCollapsed: (() => {
     try {
       return localStorage.getItem("siljangnim.sidebarCollapsed") === "1";

@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "ngraph-forcelayout"
-  ]
+  ],
+  "summary": "About 2,000 connected dots untangle themselves in 3D and settle into glowing clusters linked by threads.",
+  "summary_ko": "약 2,000개의 연결된 점들이 3D 공간에서 스스로 풀려나며, 실로 이어진 빛나는 무리로 자리를 잡아요.",
+  "try": [
+    "Drag to turn the graph",
+    "Press New graph to grow a fresh one and watch it unfold",
+    "Change Spring length or Repulsion to loosen or tighten the clusters"
+  ],
+  "try_ko": [
+    "드래그해서 그래프를 돌려 보세요",
+    "New graph를 눌러 새 그래프가 펼쳐지는 걸 보세요",
+    "Spring length나 Repulsion을 바꿔 무리를 느슨하게 또는 촘촘하게 만들어 보세요"
+  ],
+  "tool_about": "ngraph.forcelayout is a JavaScript library that arranges a network of connected points in 2D or 3D: linked points pull together and the rest push apart. It runs in the browser and copes with large networks.",
+  "tool_about_ko": "ngraph.forcelayout은 연결된 점들의 네트워크를 2D나 3D로 배치해 주는 JavaScript 라이브러리예요. 이어진 점은 서로 당기고 나머지는 밀어내며, 큰 네트워크도 다룰 수 있어요. 브라우저에서 돌아가요."
 }

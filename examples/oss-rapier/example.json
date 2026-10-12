@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "rapier"
-  ]
+  ],
+  "summary": "Hundreds of dominoes laid out in a three-armed spiral topple one after another from the center outward.",
+  "summary_ko": "세 갈래 소용돌이로 늘어선 수백 개의 도미노가 가운데부터 바깥으로 차례차례 쓰러져요.",
+  "try": [
+    "Drag to look from another angle",
+    "Turn the Gravity knob: the dominoes stand up again and fall faster or slower",
+    "Press Restart to set them up again"
+  ],
+  "try_ko": [
+    "드래그해서 다른 각도에서 보세요",
+    "Gravity 노브를 돌리면 도미노가 다시 세워지고 더 빠르게, 또는 느리게 쓰러져요",
+    "Restart를 눌러 도미노를 다시 세워 보세요"
+  ],
+  "tool_about": "Rapier is a fast physics engine written in Rust for 2D and 3D games and simulations. Here it runs in the browser through WebAssembly.",
+  "tool_about_ko": "Rapier는 Rust로 만든 빠른 물리 엔진으로, 2D·3D 게임과 시뮬레이션에 쓰여요. 여기서는 WebAssembly로 브라우저에서 돌아가요."
 }

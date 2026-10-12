@@ -14,5 +14,17 @@
   "mode": "live",
   "uses": [
     "culori"
-  ]
+  ],
+  "summary": "Four stripes blend the same two colors in four ways, showing why some gradients look muddy and others don't.",
+  "summary_ko": "같은 두 색을 네 가지 방식으로 섞은 띠 네 줄이에요. 어떤 그라디언트는 왜 탁해지는지 한눈에 보여요.",
+  "try": [
+    "Pick a From and To color that sit across from each other, like blue and yellow, and compare the stripes",
+    "Set Hue turn (°/s) to zero to hold one pair still"
+  ],
+  "try_ko": [
+    "From과 To에 파랑과 노랑처럼 반대되는 색을 골라 띠들을 비교해 보세요",
+    "Hue turn (°/s)을 0으로 두면 한 쌍의 색에 멈춰서 볼 수 있어요"
+  ],
+  "tool_about": "culori is a color toolkit: it converts between ways of describing color and makes smooth gradients and palettes. It runs in the browser.",
+  "tool_about_ko": "culori는 색을 표현하는 여러 방식 사이를 변환하고 매끄러운 그라디언트와 팔레트를 만들어 주는 색 도구예요. 브라우저에서 돌아가요."
 }

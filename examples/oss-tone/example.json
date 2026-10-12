@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "tone-js"
-  ]
+  ],
+  "summary": "A gentle synth melody plays itself while a glowing ring wobbles with the sound and sprouts spikes.",
+  "summary_ko": "부드러운 신스 멜로디가 저절로 연주되고, 빛나는 고리가 소리에 맞춰 흔들리며 가시를 뻗어요.",
+  "try": [
+    "Click the viewport to start the music",
+    "Turn the Tempo (BPM) knob to play faster or slower",
+    "Change Color"
+  ],
+  "try_ko": [
+    "뷰포트를 클릭해 음악을 시작하세요",
+    "Tempo (BPM) 노브를 돌려 빠르게 또는 느리게 연주해 보세요",
+    "Color를 바꿔 보세요"
+  ],
+  "tool_about": "Tone.js makes music in the browser: synthesizers, effects like echo, and timing to play notes in rhythm.",
+  "tool_about_ko": "Tone.js는 브라우저에서 음악을 만드는 라이브러리로, 신시사이저와 메아리 같은 효과, 박자 맞춰 음을 내는 기능이 있어요."
 }

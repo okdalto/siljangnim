@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "librosa"
-  ]
+  ],
+  "summary": "Beat markers slide toward a center line and land right on each beat, as a ring pulses with the hit.",
+  "summary_ko": "비트 표시가 가운데 선으로 미끄러져 와 박자가 울리는 순간 정확히 닿고, 그때마다 고리가 맥박처럼 뛰어요.",
+  "try": [
+    "Click the viewport if you hear no sound",
+    "Turn Look ahead (s) up to see beats coming from farther away",
+    "Change Color"
+  ],
+  "try_ko": [
+    "소리가 안 나면 뷰포트를 클릭하세요",
+    "Look ahead (s)를 올려 더 멀리서 다가오는 비트를 보세요",
+    "Color를 바꿔 보세요"
+  ],
+  "tool_about": "librosa is a Python library for studying music: it finds the beat, tempo, notes and changes in a song. It runs on this computer through Python, not in the browser.",
+  "tool_about_ko": "librosa는 음악을 분석하는 파이썬 라이브러리로, 곡의 박자·템포·음·변화를 찾아내요. 브라우저가 아니라 이 컴퓨터의 파이썬에서 돌아가요."
 }

@@ -3,7 +3,7 @@
 // has no example yet, which the agent can be asked to build.
 import { useEffect, useMemo, useState } from "react";
 import { CATALOG, REFERENCES, REFERENCE_SOURCE, referenceFor, type CatalogEntry, type ReferenceEntry } from "../../catalog/catalog";
-import { EXAMPLES, type Example } from "../../project/examples";
+import { EXAMPLES, exampleText, type Example } from "../../project/examples";
 import { buildWithAgent, exampleLink, openExample, setExamplesOpen } from "../session";
 import { useApp } from "../state";
 import { CheckIcon, XIcon } from "./icons";
@@ -36,7 +36,7 @@ function useItems(): Item[] {
       return {
         key: e.slug,
         category: tools.length ? category(ref?.principle) : MADE_HERE,
-        text: [e.title, e.description, e.made_with, ...e.features, ...tools.flatMap((t) => [t.name, ...t.tags]), ref?.concept ?? ""].join(" ").toLowerCase(),
+        text: [e.title, e.title_ko ?? "", e.summary ?? "", e.summary_ko ?? "", e.description, e.made_with, ...e.features, ...tools.flatMap((t) => [t.name, ...t.tags]), ref?.concept ?? ""].join(" ").toLowerCase(),
         example: e,
         tools,
       };
@@ -59,11 +59,19 @@ export function ExamplesDialog() {
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<string | null>(null);
   const [showUnbuilt, setShowUnbuilt] = useState(true);
+  const [detail, setDetail] = useState<Item | null>(null);
   const gpu = typeof navigator !== "undefined" && "gpu" in navigator;
   const close = () => setExamplesOpen(false);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setExamplesOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      // Esc closes the detail first, then the view.
+      setDetail((d) => {
+        if (!d) setExamplesOpen(false);
+        return null;
+      });
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
@@ -82,7 +90,7 @@ export function ExamplesDialog() {
   return (
     // The backdrop closes the view (the smoke test relies on it too).
     <div className="absolute inset-x-0 bottom-0 top-11 z-40 flex bg-bg" onMouseDown={(e) => e.target === e.currentTarget && close()}>
-      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-col" data-testid="examples">
+      <div className="mx-auto flex min-h-0 w-full min-w-0 max-w-7xl flex-col" data-testid="examples">
         <div className="shrink-0 space-y-3 border-b border-line px-6 pb-3 pt-5">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -118,7 +126,7 @@ export function ExamplesDialog() {
           {examples.length > 0 && (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
               {examples.map((i) => (
-                <ExampleCard key={i.key} example={i.example!} tools={i.tools!} gpu={gpu} />
+                <ExampleCard key={i.key} example={i.example!} tools={i.tools!} gpu={gpu} onInfo={() => setDetail(i)} />
               ))}
             </div>
           )}
@@ -140,7 +148,66 @@ export function ExamplesDialog() {
           {!examples.length && !unbuilt.length && <p className="pt-10 text-center text-sm text-muted">Nothing matches "{query}".</p>}
         </div>
       </div>
+      {detail?.example && <Detail example={detail.example} tools={detail.tools!} onClose={() => setDetail(null)} />}
     </div>
+  );
+}
+
+/** Everything about one example, in plain words first. */
+function Detail({ example: e, tools, onClose }: { example: Example; tools: CatalogEntry[]; onClose: () => void }) {
+  const text = exampleText(e);
+  return (
+    <aside className="flex w-[380px] shrink-0 flex-col border-l border-line bg-panel" data-testid="example-detail">
+      <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
+        <span className="truncate text-sm font-medium text-fg">{text.title}</span>
+        <button type="button" onClick={onClose} className="rounded p-1 text-muted hover:bg-raised hover:text-fg" title="Close">
+          <XIcon size={14} />
+        </button>
+      </div>
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 text-sm">
+        {e.thumbnail && <img src={e.thumbnail} alt="" className="w-full rounded-md border border-line" />}
+        <p className="leading-relaxed text-fg">{text.summary}</p>
+        {text.tries.length > 0 && (
+          <section>
+            <h4 className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-faint">Try</h4>
+            <ul className="space-y-1 text-muted">
+              {text.tries.map((t) => (
+                <li key={t} className="flex gap-2">
+                  <span className="text-accent">•</span>
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {text.tool && (
+          <section>
+            <h4 className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-faint">{tools.length ? "The tool" : "How it was made"}</h4>
+            <p className="leading-relaxed text-muted">{text.tool}</p>
+            {tools.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {tools.map((t) => (
+                  <a key={t.id} href={t.repo} target="_blank" rel="noreferrer" className="rounded bg-raised px-1.5 py-0.5 text-[11px] text-muted hover:text-fg">
+                    {t.name} · {t.license} ↗
+                  </a>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+        <details className="text-xs text-faint">
+          <summary className="cursor-pointer select-none hover:text-muted">Technical details</summary>
+          <p className="mt-1.5 leading-relaxed">{text.details}</p>
+          <p className="mt-1.5">{e.made_with}</p>
+        </details>
+      </div>
+      <div className="flex items-center gap-2 border-t border-line p-3">
+        <button type="button" onClick={() => void openExample(e.slug)} className="flex-1 rounded-md bg-accent py-1.5 text-sm font-medium text-white hover:opacity-90" data-testid="example-open">
+          Open
+        </button>
+        <CopyLink slug={e.slug} />
+      </div>
+    </aside>
   );
 }
 
@@ -175,14 +242,15 @@ function CopyLink({ slug }: { slug: string }) {
   );
 }
 
-function ExampleCard({ example: e, tools, gpu }: { example: Example; tools: CatalogEntry[]; gpu: boolean }) {
+function ExampleCard({ example: e, tools, gpu, onInfo }: { example: Example; tools: CatalogEntry[]; gpu: boolean; onInfo: () => void }) {
+  const text = exampleText(e);
   return (
     <div className="overflow-hidden rounded-lg border border-line bg-panel transition-colors hover:border-faint">
       <button type="button" data-example={e.slug} data-requires={(e.requires ?? []).join(" ")} onClick={() => void openExample(e.slug)} className="block w-full text-left">
         {e.thumbnail ? <img src={e.thumbnail} alt="" loading="lazy" className="h-28 w-full bg-bg object-cover" /> : <div className="h-28 w-full bg-bg" />}
         <div className="p-2.5 pb-1.5">
           <div className="flex items-center justify-between gap-2">
-            <span className="truncate text-sm text-fg">{e.title}</span>
+            <span className="truncate text-sm text-fg">{text.title}</span>
             {e.mode === "timeline" && <span className="shrink-0 rounded bg-raised px-1.5 py-0.5 text-[10px] text-muted">Timeline</span>}
             {e.requires?.includes("webgpu") && (
               <span className="shrink-0 rounded bg-raised px-1.5 py-0.5 text-[10px] text-muted" title={gpu ? "Uses WebGPU" : "This browser has no WebGPU"}>
@@ -191,7 +259,7 @@ function ExampleCard({ example: e, tools, gpu }: { example: Example; tools: Cata
             )}
             {e.requires?.includes("camera") && <span className="shrink-0 rounded bg-raised px-1.5 py-0.5 text-[10px] text-muted">Camera</span>}
           </div>
-          <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-muted">{e.description}</p>
+          <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-muted">{text.summary}</p>
         </div>
       </button>
       <div className="flex items-center gap-1 px-2.5 pb-2">
@@ -213,6 +281,9 @@ function ExampleCard({ example: e, tools, gpu }: { example: Example; tools: Cata
             <span className="truncate text-[10px] text-faint">{e.made_with}</span>
           )}
         </div>
+        <button type="button" onClick={onInfo} title="About this example" data-example-info={e.slug} className="shrink-0 rounded px-1.5 py-0.5 text-[10px] text-faint hover:bg-raised hover:text-fg">
+          About
+        </button>
         <CopyLink slug={e.slug} />
       </div>
     </div>

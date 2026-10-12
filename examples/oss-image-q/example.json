@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "image-q"
-  ]
+  ],
+  "summary": "Hokusai's Great Wave redrawn with just a handful of colors, like on an old computer screen.",
+  "summary_ko": "호쿠사이의 〈가나가와 해변의 높은 파도〉를 몇 가지 색만으로 다시 그려요. 옛날 컴퓨터 화면처럼요.",
+  "try": [
+    "Move the pointer left and right to slide between the original and the few-color version",
+    "Set Colors to 4 and Dithering to Atkinson",
+    "Choose None (nearest) in Dithering to see flat patches of color"
+  ],
+  "try_ko": [
+    "포인터를 좌우로 움직여 원본과 몇 색짜리 그림을 비교해 보세요",
+    "Colors를 4로, Dithering을 Atkinson으로 맞춰 보세요",
+    "Dithering에서 None (nearest)를 고르면 평평한 색 덩어리가 보여요"
+  ],
+  "tool_about": "image-q is a JavaScript library that shrinks an image to a small set of colors and scatters dots to fake the missing shades. It runs in the browser and is used for GIFs, pixel art and retro looks.",
+  "tool_about_ko": "image-q는 그림을 적은 수의 색으로 줄이고, 빠진 색은 점을 흩뿌려 흉내 내는 자바스크립트 라이브러리예요. 브라우저에서 돌아가며 GIF, 픽셀 아트, 레트로 느낌을 낼 때 쓰여요."
 }

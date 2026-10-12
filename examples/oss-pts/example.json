@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "pts"
-  ]
+  ],
+  "summary": "A grid of glowing dots reaches toward a spinning line through the pointer, wrapped in a stretchy outline.",
+  "summary_ko": "빛나는 점 격자가 포인터를 지나며 도는 선 쪽으로 뻗어 나가고, 가까운 점들은 고무줄 같은 테두리로 감싸여요.",
+  "try": [
+    "Move the pointer to drag the line and the outline around",
+    "Raise Reach to pull in more dots",
+    "Turn the Line spin knob below zero to spin the line the other way"
+  ],
+  "try_ko": [
+    "포인터를 움직여 선과 테두리를 끌고 다녀 보세요",
+    "Reach를 올리면 더 많은 점이 끌려와요",
+    "Line spin 노브를 0 아래로 돌리면 선이 반대로 돌아요"
+  ],
+  "tool_about": "Pts is a JavaScript library for creative coding with points, lines and shapes: it handles the geometry math and the drawing so you can play with visual ideas. It runs in the browser.",
+  "tool_about_ko": "Pts는 점, 선, 도형으로 크리에이티브 코딩을 하는 자바스크립트 라이브러리예요. 기하 계산과 그리기를 맡아 줘서 시각적 아이디어를 가지고 놀기 좋아요. 브라우저에서 돌아가요."
 }

@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "chroma-js"
-  ]
+  ],
+  "summary": "Layered mountain ridges at sunset, each painted from one smooth color blend between three picked colors.",
+  "summary_ko": "노을 진 산등성이가 겹겹이 이어져요. 고른 세 색 사이를 매끄럽게 이은 색으로 한 겹씩 칠해요.",
+  "try": [
+    "Change Interpolation from Bézier (Lab) to RGB and compare the ridges",
+    "Raise Classes for more mountain layers",
+    "Pick new Far, Middle and Near colors"
+  ],
+  "try_ko": [
+    "Interpolation을 Bézier (Lab)에서 RGB로 바꿔 산 색이 어떻게 달라지는지 비교해 보세요",
+    "Classes를 올리면 산이 더 여러 겹이 돼요",
+    "Far, Middle, Near 색을 새로 골라 보세요"
+  ],
+  "tool_about": "chroma.js is a JavaScript color toolkit: it converts between color formats, blends colors and builds smooth color ranges for palettes and charts. It runs in the browser.",
+  "tool_about_ko": "chroma.js는 자바스크립트 색 도구 모음이에요. 색 형식을 바꾸고, 색을 섞고, 팔레트나 차트에 쓸 매끄러운 색 범위를 만들어 줘요. 브라우저에서 돌아가요."
 }

@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "manifold-3d"
-  ]
+  ],
+  "summary": "Invisible balls fly through a rounded block and carve holes in it live, like bites taken out of cheese.",
+  "summary_ko": "보이지 않는 공들이 둥근 블록을 뚫고 지나가며, 치즈를 베어 문 듯 실시간으로 구멍을 파내요.",
+  "try": [
+    "Drag to turn the block",
+    "Raise Cutters to carve with more balls",
+    "Raise Cutter size for bigger holes"
+  ],
+  "try_ko": [
+    "드래그해서 블록을 돌려 보세요",
+    "Cutters를 올려 더 많은 공으로 파 보세요",
+    "Cutter size를 올려 구멍을 더 크게 만들어 보세요"
+  ],
+  "tool_about": "Manifold is a fast library for adding and cutting 3D shapes that always gives a clean, solid result, ready for 3D printing. Written in C++, it runs here in the browser through WebAssembly.",
+  "tool_about_ko": "Manifold는 3D 도형을 더하고 빼는 작업을 빠르게 처리하고, 3D 프린팅에 바로 쓸 수 있는 깔끔한 입체를 돌려주는 라이브러리예요. C++로 만들어졌고, 여기서는 WebAssembly로 브라우저에서 돌아가요."
 }
