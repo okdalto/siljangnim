@@ -462,10 +462,11 @@ async function runExamplesScenario(win, examplesOut) {
     }
     await wait(1200);
     const frame = await findSceneFrame(win);
-    // Libraries come from a CDN with an empty cache here: give setup a few seconds to finish.
-    // Only a dark canvas is retried; a frame that doesn't answer has failed already.
+    // Libraries come from a CDN with an empty cache here, and heavy setups (reaction-diffusion's warm-up)
+    // crawl on CI's software GPU: give setup up to ~15 s. Only a dark canvas is retried; a frame that
+    // doesn't answer has failed already.
     let sample = null;
-    for (let i = 0; i < 8 && frame; i++) {
+    for (let i = 0; i < 20 && frame; i++) {
       if (i) await wait(750);
       sample = await inFrame(frame, SAMPLE_CANVAS, `sample ${slug}`, 10_000).catch(() => null);
       if (!sample || sample.litFraction > 0.02) break;
