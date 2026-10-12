@@ -6,7 +6,7 @@
   "author": "okdalto",
   "repository": {
     "type": "git",
-    "url": "https://github.com/okdalto/siljangnim.git"
+    "url": "git+https://github.com/okdalto/siljangnim.git"
   },
   "type": "module",
   "bin": {
