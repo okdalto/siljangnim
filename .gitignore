@@ -217,4 +217,7 @@ __marimo__/
 
 # siljangnim-mcp: built studio copied in when packing
 mcp/studio/
+mcp/hub/
+mcp/LICENSE
+mcp/THIRD_PARTY_NOTICES.md
 .env*

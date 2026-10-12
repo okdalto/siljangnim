@@ -1,5 +1,5 @@
 // C/D-grade open source: Python packages in isolated environments and CLIs
-// installed on the machine, run through the hub (docs/runtime.md).
+// installed on the machine, run through the hub.
 import { z } from "zod";
 import { defineTool, type RuntimeJob, type ToolDefinition, type ToolEnv, type ToolOutput } from "./tools";
 

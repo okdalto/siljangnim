@@ -3,6 +3,7 @@ import { AnthropicProvider, DEFAULT_ANTHROPIC_MODEL } from "../agent/llm/anthrop
 import { OpenAICompatibleProvider, listModels } from "../agent/llm/openai";
 import { OpenAIResponsesProvider } from "../agent/llm/responses";
 import type { Effort, LLMProvider } from "../agent/llm/types";
+import type { LanguageChoice } from "./language";
 import { apiBase, forwarderHeaders, keys } from "./platform";
 
 /** anthropic: Claude. openai: GPT on api.openai.com. custom: any OpenAI-compatible server (vLLM, Ollama…). */
@@ -17,6 +18,8 @@ export interface Settings {
   customModel: string;
   /** Output limit for GPT and custom servers. */
   openaiMaxTokens: number;
+  /** Language of example and reference descriptions; auto follows the system. */
+  language: LanguageChoice;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -27,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
   customBaseUrl: "",
   customModel: "",
   openaiMaxTokens: 8192,
+  language: "auto",
 };
 
 /** Settings saved before GPT and custom servers were separate choices. */

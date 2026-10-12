@@ -8,6 +8,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { createServer } from "node:net";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { ensureUv, works } from "./uv.js";
 
 const READY_TIMEOUT_MS = 60_000;
 // Keep in sync with hub/.python-version.
@@ -25,11 +26,14 @@ function freePort() {
   });
 }
 
-/** uv: SILJANGNIM_UV, the desktop's bundled copy in the repo, or uv on PATH. */
+/**
+ * uv: SILJANGNIM_UV or the desktop's bundled copy in the repo; null means "uv on PATH, or download it"
+ * (an installed package has no bundled copy), decided when the hub first starts.
+ */
 export function findUv(pkgDir) {
   if (process.env.SILJANGNIM_UV) return process.env.SILJANGNIM_UV;
   const bundled = join(pkgDir, "..", "desktop", "vendor", "bin", process.platform === "win32" ? "uv.exe" : "uv");
-  return existsSync(bundled) ? bundled : "uv";
+  return existsSync(bundled) ? bundled : null;
 }
 
 /** The hub's source: SILJANGNIM_HUB_DIR, a packaged copy in ./hub, or ../hub in the repo. */
@@ -53,6 +57,7 @@ export function createHubLauncher({ uv, hubDir, runtimeDir = join(homedir(), ".s
 
   async function start() {
     mkdirSync(runtimeDir, { recursive: true });
+    if (!uv) uv = (await works("uv")) ? "uv" : await ensureUv(join(runtimeDir, "uv"), log);
     const token = randomBytes(32).toString("hex");
     const env = {
       ...process.env,

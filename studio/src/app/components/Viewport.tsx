@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { formatSceneError } from "../../agent/sceneTools";
 import { SceneHost, sceneRuntimeUrl } from "../../scene/host";
 import { attachSceneHost } from "../session";
-import { useApp } from "../state";
-import { AlertIcon, XIcon } from "./icons";
+import { useApp, useLanguage } from "../state";
+import { AlertIcon, ExpandIcon, XIcon } from "./icons";
 import { EXAMPLES, exampleText } from "../../project/examples";
 import { Notice } from "./Chat";
 import { Controls } from "./Controls";
@@ -11,6 +11,8 @@ import { RecordingOverlay } from "./Record";
 
 export function Viewport() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [performInWindow, setPerformInWindow] = useState(false);
   const [runtime] = useState(() => {
     try {
       return { url: sceneRuntimeUrl(), error: null };
@@ -32,10 +34,15 @@ export function Viewport() {
   }, [runtime.url]);
 
   return (
-    <section className="relative min-h-0 flex-1 bg-black">
+    <section
+      ref={sectionRef}
+      className={`${performInWindow ? "fixed inset-0 z-50" : "relative min-h-0 flex-1"} select-none bg-black`}
+      data-perform={performInWindow ? "window" : undefined}
+    >
       <div ref={containerRef} className="absolute inset-0" />
       {hostError && <div className="absolute inset-0 grid place-items-center p-6 text-sm text-danger">{hostError}</div>}
       <StatusBar />
+      <PerformButton target={sectionRef} inWindow={performInWindow} setInWindow={setPerformInWindow} />
       {/* After the scene container: it is the page's first iframe. */}
       <Controls />
       <FoldedNotice />
@@ -48,9 +55,10 @@ export function Viewport() {
 /** Right after an example opens: what it is and what to try, in plain words. */
 function ExampleIntro() {
   const slug = useApp((s) => s.exampleIntro);
+  const korean = useLanguage() === "ko";
   const example = EXAMPLES.find((e) => e.slug === slug);
   if (!example) return null;
-  const text = exampleText(example);
+  const text = exampleText(example, korean);
   return (
     <div className="absolute bottom-10 left-2 z-20 w-80 rounded-lg border border-line/80 bg-panel/90 p-3 text-xs shadow-2xl backdrop-blur" data-testid="example-intro">
       <div className="mb-1 flex items-start justify-between gap-2">
@@ -62,15 +70,67 @@ function ExampleIntro() {
       <p className="leading-relaxed text-muted">{text.summary}</p>
       {text.tries.length > 0 && (
         <ul className="mt-2 space-y-0.5 text-muted">
-          {text.tries.map((t) => (
-            <li key={t} className="flex gap-1.5">
+          {text.tries.map((line) => (
+            <li key={line} className="flex gap-1.5">
               <span className="text-accent">•</span>
-              <span>{t}</span>
+              <span>{line}</span>
             </li>
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+/**
+ * Perform: the viewport alone, full screen, for a live set or a projector. The controls panel stays (it can be
+ * folded), and MIDI, OSC, audio and the keyboard keep driving the scene. Where full screen is refused (an
+ * embedded browser), the viewport fills the window instead. Esc leaves.
+ */
+function PerformButton({ target, inWindow, setInWindow }: { target: React.RefObject<HTMLElement | null>; inWindow: boolean; setInWindow: (v: boolean) => void }) {
+  const [full, setFull] = useState(false);
+  useEffect(() => {
+    const onChange = () => setFull(document.fullscreenElement === target.current);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setInWindow(false);
+    document.addEventListener("fullscreenchange", onChange);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [target, setInWindow]);
+  if (full) return null;
+  if (inWindow) {
+    // Esc doesn't reach the app while the scene has focus, so leaving needs a button too.
+    return (
+      <button
+        type="button"
+        onClick={() => setInWindow(false)}
+        className="absolute left-2 top-2 z-10 rounded-md bg-black/50 px-2 py-1 text-xs text-white/70 opacity-40 backdrop-blur transition-opacity hover:opacity-100"
+      >
+        Leave (Esc)
+      </button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      data-testid="perform"
+      title="Perform: the scene full screen (Esc to leave)"
+      onClick={() => {
+        const el = target.current;
+        if (!el) return;
+        // Refused, or still waiting on a permission prompt after a moment: fill the window instead.
+        const fallback = setTimeout(() => document.fullscreenElement || setInWindow(true), 800);
+        el.requestFullscreen().catch(() => {
+          clearTimeout(fallback);
+          setInWindow(true);
+        });
+      }}
+      className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-1 text-xs text-muted backdrop-blur hover:text-fg"
+    >
+      <ExpandIcon size={13} /> Perform
+    </button>
   );
 }
 
@@ -99,7 +159,8 @@ function StatusBar() {
 
   return (
     <>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-2">
+      {/* Right padding leaves room for the Perform button. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-2 pr-24">
         <div
           className="pointer-events-auto flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-1 text-xs text-muted backdrop-blur"
           title={runtime.state}

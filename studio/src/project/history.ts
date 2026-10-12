@@ -1,4 +1,4 @@
-// Pure helpers for the version tree (docs/m2.md#1-버전-히스토리).
+// Pure helpers for the version tree.
 import type { Scene } from "../scene/schema";
 
 interface TreeNode {

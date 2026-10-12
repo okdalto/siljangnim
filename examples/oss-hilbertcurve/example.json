@@ -20,12 +20,12 @@
   "summary_ko": "끊기지 않는 선 하나가 점점 더 촘촘한 미로로 접히며 격자의 모든 칸을 한 번씩 지나가요.",
   "try": [
     "Turn off Auto sweep and drag the Order slider yourself",
-    "Switch View to 3D curve and drag to turn it around",
+    "Switch View to 3D curve, then drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
     "Turn up the Flow knob to speed up the light running along the line"
   ],
   "try_ko": [
     "Auto sweep을 끄고 Order 슬라이더를 직접 움직여 보세요",
-    "View를 3D curve로 바꾸고 드래그해서 돌려 보세요",
+    "View를 3D curve로 바꾸고 드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
     "Flow 노브를 올리면 선을 따라 흐르는 빛이 빨라져요"
   ],
   "tool_about": "hilbertcurve is a small Python library that computes the Hilbert curve, a line that visits every cell of a grid while keeping neighboring steps close together. It runs on this computer through Python and is used for pen-plotter art and for sorting map data.",

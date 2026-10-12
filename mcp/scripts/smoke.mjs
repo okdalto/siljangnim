@@ -27,13 +27,14 @@ const timeout = setTimeout(() => {
 }, 180_000);
 const transport = new StdioClientTransport({
   command: process.execPath,
-  args: [join(mcpDir, "bin", "siljangnim-mcp.js")],
+  // SILJANGNIM_SMOKE_BIN: an installed package's bin instead of the repo's (checks a packed release).
+  args: [process.env.SILJANGNIM_SMOKE_BIN || join(mcpDir, "bin", "siljangnim-mcp.js")],
   env: {
     ...process.env,
     SILJANGNIM_OPEN: "0",
     SILJANGNIM_PORT: "47911",
     // Reuse the desktop smoke's Python install instead of setting one up in ~/.siljangnim.
-    SILJANGNIM_RUNTIME_ROOT: join(mcpDir, "..", "desktop", "release", "smoke-profile", "runtime"),
+    SILJANGNIM_RUNTIME_ROOT: process.env.SILJANGNIM_SMOKE_RUNTIME || join(mcpDir, "..", "desktop", "release", "smoke-profile", "runtime"),
     SILJANGNIM_RECIPES_DIR: join(out, "recipes"),
     // The repository's own registry folder stands in for the published one.
     SILJANGNIM_REGISTRY_URL: join(mcpDir, "..", "registry"),

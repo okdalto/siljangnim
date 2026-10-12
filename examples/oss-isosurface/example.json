@@ -19,12 +19,12 @@
   "summary": "Soft colored blobs drift around and melt together into one smooth, shiny shape.",
   "summary_ko": "말랑한 색 덩어리들이 떠다니다 하나의 매끈하고 반짝이는 모양으로 녹아 붙어요.",
   "try": [
-    "Drag to turn the shape",
+    "Drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
     "Change Balls to add or remove blobs",
     "Lower Grid for a chunkier, faceted look"
   ],
   "try_ko": [
-    "드래그해서 모양을 돌려 보세요",
+    "드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
     "Balls를 바꿔 덩어리를 늘리거나 줄여 보세요",
     "Grid를 낮추면 더 각진 모양이 돼요"
   ],

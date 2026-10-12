@@ -4,7 +4,7 @@
 // receive uniform/monitor values, through window.siljangnim.
 //
 // Messages use targetOrigin "*" (an opaque origin can't be named) and the
-// receiver checks e.source instead (docs/m2.md#4).
+// receiver checks e.source instead.
 import type { MonitorValue } from "../scene/protocol";
 import type { Scene, UniformValue } from "../scene/schema";
 

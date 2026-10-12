@@ -29,5 +29,14 @@
     "Motion 노브를 0으로 돌려 관계망을 멈춰 보세요"
   ],
   "tool_about": "NetworkX is a Python library for networks of connected things: it arranges them neatly, finds groups and shortest paths. It runs on this computer through Python, not in the browser.",
-  "tool_about_ko": "NetworkX는 서로 연결된 것들의 관계망을 다루는 파이썬 라이브러리로, 보기 좋게 배치하고 무리와 최단 경로를 찾아요. 브라우저가 아니라 이 컴퓨터의 파이썬에서 돌아가요."
+  "tool_about_ko": "NetworkX는 서로 연결된 것들의 관계망을 다루는 파이썬 라이브러리로, 보기 좋게 배치하고 무리와 최단 경로를 찾아요. 브라우저가 아니라 이 컴퓨터의 파이썬에서 돌아가요.",
+  "credits": [
+    {
+      "what": "Les Misérables co-occurrence network (shipped with NetworkX)",
+      "what_ko": "레 미제라블 등장인물 동시 출현 네트워크 (NetworkX에 포함된 데이터)",
+      "source": "Donald E. Knuth, The Stanford GraphBase (1993)",
+      "license": "Stanford GraphBase terms (free use with attribution)",
+      "url": "https://www-cs-faculty.stanford.edu/~knuth/sgb.html"
+    }
+  ]
 }

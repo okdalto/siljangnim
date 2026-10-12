@@ -43,7 +43,9 @@ import {
   visionImage,
   type AssetInfo,
 } from "../project/assets";
-import { EXAMPLES } from "../project/examples";
+import { EXAMPLES, exampleText } from "../project/examples";
+import { mixRequest } from "../project/mix";
+import { projectFolderName, sceneCodeFiles } from "../project/sceneFiles";
 import {
   PIPELINE_FILE,
   PROJECT_MD,
@@ -67,6 +69,7 @@ import { evaluateTrack, keyAt, removeKeyAt, upsertKey } from "../scene/gl/keyfra
 import { DEFAULT_SCENE, KEYFRAMABLE, parseScene, type Scene, type Timeline, type UniformValue } from "../scene/schema";
 import { bridge, bridgeToken, keys } from "./platform";
 import { createProvider, looksLikeApiKey, saveSettings, type Settings } from "./settings";
+import { resolveLanguage } from "./language";
 import { useApp, type AppState } from "./state";
 
 const ACTIVE_PROJECT_KEY = "siljangnim.activeProject";
@@ -187,7 +190,8 @@ export async function openExample(slug: string): Promise<void> {
   set({ examplesOpen: false });
   try {
     const scene = await example.scene();
-    const project = await store.createProject(example.title);
+    // Named in the language its descriptions are shown in, so the header matches the intro card.
+    const project = await store.createProject(exampleText(example, resolveLanguage(get().settings.language) === "ko").title);
     await store.writeFile(project.id, SCENE_FILE, JSON.stringify(scene, null, 2));
     // Assets go in before the project opens, so the first load already has them.
     for (const asset of example.assets) {
@@ -260,8 +264,34 @@ export function buildRequest(ref: { id: string; name: string; repo: string | nul
  * without an API key, the request is copied for the person to paste.
  */
 export async function buildWithAgent(ref: Parameters<typeof buildRequest>[0]): Promise<void> {
-  const request = buildRequest(ref);
   set({ examplesOpen: false });
+  await handToAgent(buildRequest(ref), ref.name, `${ref.name} (new)`);
+}
+
+/**
+ * Mix an example into the open project: its assets come over, and the agent is asked to combine its scene
+ * with the current one.
+ */
+export async function mixExample(slug: string): Promise<void> {
+  const example = EXAMPLES.find((e) => e.slug === slug);
+  const project = get().project;
+  if (!example || !project) return;
+  set({ examplesOpen: false });
+  try {
+    const files = await Promise.all(
+      example.assets.map(async (a) => new File([await (await fetch(a.url)).blob()], a.name)),
+    );
+    const { names } = await addAssetFiles(project.id, files, { attach: false });
+    const renamed = new Map(example.assets.map((a, i) => [a.name, names[i] ?? a.name] as const));
+    const title = exampleText(example, resolveLanguage(get().settings.language) === "ko").title;
+    await handToAgent(mixRequest(title, await example.scene(), renamed), title);
+  } catch (err) {
+    set({ notice: { kind: "error", text: `Couldn't mix in the example: ${err instanceof Error ? err.message : String(err)}` } });
+  }
+}
+
+/** Send a request to the built-in agent, or copy it for an external agent (or when no key is set yet). */
+async function handToAgent(request: string, what: string, newProject?: string): Promise<void> {
   const { external, settings } = get();
   const status = await keys.status();
   const ready = settings.provider === "custom" || (settings.provider === "anthropic" ? status.anthropic : status.openai);
@@ -275,13 +305,13 @@ export async function buildWithAgent(ref: Parameters<typeof buildRequest>[0]): P
       notice: {
         kind: "info",
         text: external
-          ? `Copied the request for ${ref.name}; paste it into ${external.client ?? "your agent"}'s chat.`
-          : `Copied the request for ${ref.name}. Add an API key in Settings (or connect Claude Code / Codex), then paste it into the chat.`,
+          ? `Copied the request for ${what}; paste it into ${external.client ?? "your agent"}'s chat.`
+          : `Copied the request for ${what}. Add an API key in Settings (or connect Claude Code / Codex), then paste it into the chat.`,
       },
     });
     return;
   }
-  await createProject(`${ref.name} (new)`);
+  if (newProject) await createProject(newProject);
   await sendPrompt(request);
 }
 
@@ -815,7 +845,7 @@ export async function cancelJob(id: string): Promise<void> {
   if (typeof c !== "string") await c.cancel(id);
 }
 
-// --- sharing: project.md (docs/project-md.md) ---
+// --- sharing: project.md ---
 
 async function sha256(blob: Blob): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
@@ -894,22 +924,50 @@ function projectController(projectId: string): ProjectController {
   };
 }
 
-/** Download the open project as a bundle: project.md, preview.png, assets/, recipes/. */
+/** The open project as files: project.md, preview.png, scene code, assets/, recipes/. */
+async function projectBundleFiles(projectId: string): Promise<{ files: { name: string; data: Uint8Array }[]; recipes: number }> {
+  const { doc, preview, recipeTexts } = await projectDocument(projectId, { includeAssets: true, preview: true });
+  const encode = (text: string) => new TextEncoder().encode(text);
+  const files = [{ name: PROJECT_MD, data: encode(renderProjectMd(doc)) }];
+  if (preview) files.push({ name: "preview.png", data: new Uint8Array(await preview.arrayBuffer()) });
+  // Readable copies of the scene; import goes by project.md, so these are for people and editors.
+  for (const file of sceneCodeFiles(doc.scene)) files.push({ name: file.path, data: encode(file.text) });
+  for (const [name, blob] of assetBlobs) files.push({ name: `assets/${name}`, data: new Uint8Array(await blob.arrayBuffer()) });
+  for (const [id, text] of recipeTexts) files.push({ name: `recipes/${id}/recipe.md`, data: encode(text) });
+  return { files, recipes: recipeTexts.size };
+}
+
+/** Download the open project as a bundle: project.md, preview.png, code/, assets/, recipes/. */
 export async function exportProjectBundle(): Promise<void> {
   const project = get().project;
   if (!project) return;
   try {
-    const { doc, preview, recipeTexts } = await projectDocument(project.id, { includeAssets: true, preview: true });
-    const encode = (text: string) => new TextEncoder().encode(text);
-    const files = [{ name: PROJECT_MD, data: encode(renderProjectMd(doc)) }];
-    if (preview) files.push({ name: "preview.png", data: new Uint8Array(await preview.arrayBuffer()) });
-    for (const [name, blob] of assetBlobs) files.push({ name: `assets/${name}`, data: new Uint8Array(await blob.arrayBuffer()) });
-    for (const [id, text] of recipeTexts) files.push({ name: `recipes/${id}/recipe.md`, data: encode(text) });
+    const { files, recipes } = await projectBundleFiles(project.id);
     const slug = project.name.trim().replace(/[^\p{L}\p{N}._-]+/gu, "-").replace(/^-+|-+$/g, "") || "project";
     download(storedZip(files), `${slug}.siljangnim.zip`);
-    set({ notice: { kind: "info", text: `Exported "${project.name}" with ${assetBlobs.size} asset${assetBlobs.size === 1 ? "" : "s"}${recipeTexts.size ? ` and ${recipeTexts.size} recipe${recipeTexts.size === 1 ? "" : "s"}` : ""}.` } });
+    set({ notice: { kind: "info", text: `Exported "${project.name}" with ${assetBlobs.size} asset${assetBlobs.size === 1 ? "" : "s"}${recipes ? ` and ${recipes} recipe${recipes === 1 ? "" : "s"}` : ""}.` } });
   } catch (err) {
     set({ notice: { kind: "error", text: `Couldn't export the project: ${err instanceof Error ? err.message : String(err)}` } });
+  }
+}
+
+/**
+ * The open project as a folder of plain files. On desktop it is written under
+ * ~/Siljangnim/projects/ and shown in Finder/Explorer; in a browser it downloads as a zip.
+ */
+export async function openProjectFolder(): Promise<void> {
+  const project = get().project;
+  if (!project) return;
+  if (!bridge?.project) return exportProjectBundle();
+  try {
+    const { files } = await projectBundleFiles(project.id);
+    const dir = await bridge.project.reveal(
+      projectFolderName(project.name, project.id),
+      files.map((f) => ({ path: f.name, data: f.data })),
+    );
+    set({ notice: { kind: "info", text: `Wrote "${project.name}" to ${dir}. It's a copy: edits there don't change the project.` } });
+  } catch (err) {
+    set({ notice: { kind: "error", text: `Couldn't write the project folder: ${err instanceof Error ? err.message : String(err)}` } });
   }
 }
 
@@ -1043,7 +1101,7 @@ function download(blob: Blob, name: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-// --- runtime: open-source tools through the hub (docs/runtime.md) ---
+// --- runtime: open-source tools through the hub ---
 
 const LOCK_FILE = "project.lock.json";
 /** Output files already saved as assets, by job id, so a second job_status doesn't save them twice. */

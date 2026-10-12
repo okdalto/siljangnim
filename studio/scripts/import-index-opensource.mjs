@@ -2,9 +2,9 @@
 // (index.opensource, by 현 @hyun2xyz): the reference list of open-source projects the catalog
 // starts from. Only facts and classification labels are kept (name, repository, license,
 // principle, output medium, key concept, field, input, keywords, index code), never the
-// site's own descriptions. Usage:
+// site's own descriptions. index.json carries the Korean labels for the same columns, kept as `ko`. Usage:
 //   curl -o en.json https://indexopensource.com/data/en.json
-//   curl -o index.json https://indexopensource.com/data/index.json   (for the issue date)
+//   curl -o index.json https://indexopensource.com/data/index.json   (issue date, Korean labels)
 //   node scripts/import-index-opensource.mjs en.json index.json
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -16,7 +16,10 @@ if (!source) {
   process.exit(2);
 }
 const data = JSON.parse(readFileSync(source, "utf8"));
-const meta = indexFile ? JSON.parse(readFileSync(indexFile, "utf8")).meta : null;
+const index = indexFile ? JSON.parse(readFileSync(indexFile, "utf8")) : null;
+const meta = index?.meta ?? null;
+// Same column order as en.json, keyed by index code.
+const korean = new Map((index?.rows ?? []).filter((r) => r.kind === "project").map((r) => [r.id, r]));
 const slug = (s) => s.toLowerCase().normalize("NFKD").replace(/[^\w]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
 const seen = new Set();
 const entries = Object.values(data.projects).map((p) => {
@@ -40,8 +43,16 @@ const entries = Object.values(data.projects).map((p) => {
       .map((k) => k.trim())
       .filter(Boolean),
     index: { no: Number(no), code },
+    ...koreanLabels(korean.get(code)),
   };
 });
+function koreanLabels(row) {
+  if (!row) return {};
+  const [, , principle, medium, concept, , area, , , , , input] = row.values;
+  const keywords = String(row.keywords ?? "").split(",").map((k) => k.trim()).filter(Boolean);
+  return { ko: { principle, medium, concept, area, input, keywords } };
+}
+
 const out = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "catalog", "index-opensource.json");
 writeFileSync(
   out,

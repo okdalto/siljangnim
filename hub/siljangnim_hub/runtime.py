@@ -8,7 +8,7 @@ the machine, found on PATH.
 Every job runs in its own directory: inputs are copied into ``in/``, the
 program writes results into ``out/``, and the hub reports those files back.
 Jobs run one at a time. This is isolation of files and dependencies, not an
-OS sandbox; the app asks the person before code runs (see docs/runtime.md).
+OS sandbox; the app asks the person before code runs.
 """
 
 from __future__ import annotations

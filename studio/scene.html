@@ -7,7 +7,8 @@
     <title>Siljangnim scene</title>
     <style>
       html, body, #stage { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
-      #stage { touch-action: none; }
+      /* Dragging to move the camera must not select (and tint) the canvas. */
+      #stage { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
       #stage canvas { display: block; width: 100%; height: 100%; }
     </style>
   </head>

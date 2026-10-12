@@ -18,12 +18,12 @@
   "summary": "A heavy ball smashes into a brick wall, the bricks tumble and pile up, and then the wall is rebuilt.",
   "summary_ko": "무거운 공이 벽돌 벽에 부딪히면 벽돌이 와르르 무너져 쌓이고, 그다음 벽이 다시 세워져요.",
   "try": [
-    "Drag to watch from another angle",
+    "Drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
     "Raise Shot speed or Ball mass for a harder hit",
     "Press Rebuild wall to stack the bricks again"
   ],
   "try_ko": [
-    "드래그해서 다른 각도에서 보세요",
+    "드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
     "Shot speed나 Ball mass를 올려 더 세게 부딪혀 보세요",
     "Rebuild wall을 눌러 벽돌을 다시 쌓아 보세요"
   ],

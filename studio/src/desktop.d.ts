@@ -25,6 +25,10 @@ export interface SiljangnimBridge {
     status(): Promise<Record<ProviderKeyId, boolean>>;
     set(provider: ProviderKeyId, key: string | null): Promise<void>;
   };
+  project: {
+    /** Writes the files under ~/Siljangnim/projects/<folder>/, opens the folder, and returns its path. */
+    reveal(folder: string, files: { path: string; data: Uint8Array | string }[]): Promise<string>;
+  };
   agent: {
     /** An agent's MCP bridge asks to use this window as its viewer. */
     onAttach(callback: (request: AgentAttach) => void): () => void;

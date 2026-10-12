@@ -10,7 +10,8 @@
     "test": "npm --prefix studio test && npm --prefix mcp test && node desktop/scripts/test-hub.mjs",
     "smoke": "npm --prefix desktop run stage && npm --prefix desktop run smoke && npm --prefix mcp run smoke",
     "dist": "npm --prefix desktop run dist",
-    "mcp": "node mcp/bin/siljangnim-mcp.js"
+    "mcp": "node mcp/bin/siljangnim-mcp.js",
+    "notices": "node scripts/notices.mjs"
   },
   "engines": {
     "node": ">=22"

@@ -37,7 +37,8 @@ const TOOL_LABELS: Record<string, string> = {
 
 const EXAMPLES = [
   "Slow blue waves drifting across the screen",
-  "A reaction-diffusion simulation I can disturb with the mouse",
+  "A reaction-diffusion field I can stir with the mouse and play from my MIDI controller",
+  "Particles that pulse with my microphone, for a live set",
   "레이마칭으로 무한 평면 위의 반사 구체",
 ];
 
@@ -93,7 +94,10 @@ function Empty() {
   return (
     <div className="pt-10 text-center">
       <p className="text-base font-medium">What should we make?</p>
-      <p className="mt-1 text-xs text-muted">Describe a visual. The agent writes it, runs it and checks the result.</p>
+      <p className="mt-1 text-xs text-muted">
+        Describe a visual and keep talking: change it, mix in another piece, play it live, record it. The agent writes the
+        code, runs it and checks the result.
+      </p>
       <div className="mt-6 space-y-2">
         {EXAMPLES.map((e) => (
           <button

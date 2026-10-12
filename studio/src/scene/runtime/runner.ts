@@ -81,6 +81,9 @@ export class SceneRunner {
   private captures: PendingCapture[] = [];
   private readonly mouse: [number, number, number, number] = [0.5, 0.5, 0.5, 0.5];
   private mouseDown = false;
+  /** Wheel, buttons and double-click for cameras (ctx.pointer); wheel and doubleClick last one frame. */
+  private readonly pointer = { wheel: 0, buttons: 0, doubleClick: false };
+  private lastPress: { at: number; x: number; y: number } | null = null;
   private readonly keys = new Set<string>();
   /** What the current scene was loaded from, for restarting on loop. */
   private source: { scene: Scene; assets: Record<string, Blob> } | null = null;
@@ -157,6 +160,7 @@ export class SceneRunner {
     const { ctx, dispose, surface } = made;
     const beforeFrame = made.beforeFrame ?? (() => undefined);
     ctx.mouse = this.mouse;
+    ctx.pointer = this.pointer;
     ctx.keys = this.keys;
 
     let setup: (ctx: AnyCtx) => Promise<void>;
@@ -389,6 +393,8 @@ export class SceneRunner {
     loaded.surface.beforeRender(loaded.canvas, check);
     const result = loaded.render(ctx);
     ctx.mousePrev.splice(0, 4, ...this.mouse);
+    this.pointer.wheel = 0;
+    this.pointer.doubleClick = false;
     if (result instanceof Promise) {
       throw new Error("render must be synchronous; do async work (loading, imports) in setup");
     }
@@ -620,6 +626,7 @@ export class SceneRunner {
       const [x, y] = toNormalized(e);
       this.mouse[0] = x;
       this.mouse[1] = y;
+      this.pointer.buttons = e.buttons;
       if (!this.playing) this.dirty = true;
     });
     this.container.addEventListener("pointerdown", (e) => {
@@ -628,11 +635,35 @@ export class SceneRunner {
       const [x, y] = toNormalized(e);
       this.mouse.splice(0, 4, x, y, x, y);
       this.mouseDown = true;
+      this.pointer.buttons = e.buttons;
+      // A second press soon after the first, near it, is a double-click (counted here rather than relying on
+      // dblclick, which not every input path delivers to the frame).
+      const now = performance.now();
+      const last = this.lastPress;
+      if (last && now - last.at < 400 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 8) {
+        this.pointer.doubleClick = true;
+        this.lastPress = null;
+      } else {
+        this.lastPress = { at: now, x: e.clientX, y: e.clientY };
+      }
       this.container.setPointerCapture(e.pointerId);
     });
-    const release = () => {
+    const release = (e: PointerEvent) => {
       this.mouseDown = false;
+      this.pointer.buttons = e.buttons;
     };
+    // Scroll zooms and right-drag pans the scene's camera, so the page shouldn't scroll or show a menu.
+    this.container.addEventListener(
+      "wheel",
+      (e) => {
+        e.preventDefault();
+        this.pointer.wheel += e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1);
+        if (!this.playing) this.dirty = true;
+      },
+      { passive: false },
+    );
+    this.container.addEventListener("contextmenu", (e) => e.preventDefault());
+
     this.container.addEventListener("pointerup", release);
     this.container.addEventListener("pointercancel", release);
     window.addEventListener("keydown", (e) => this.keys.add(e.code));

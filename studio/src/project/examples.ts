@@ -24,13 +24,12 @@ interface ExampleMeta {
   try_ko?: string[];
   tool_about?: string;
   tool_about_ko?: string;
+  /** Material from others in the example (fonts, images, data): what, from whom, license, link. */
+  credits?: Array<{ what: string; what_ko?: string; source: string; license: string; url: string }>;
 }
 
-/** Korean when the browser asks for it; examples carry both languages. */
-export const prefersKorean = (): boolean => typeof navigator !== "undefined" && /^ko\b/i.test(navigator.language);
-
 /** The example's plain-language text in the person's language (technical description as the fallback). */
-export function exampleText(e: ExampleMeta, korean = prefersKorean()): { title: string; summary: string; tries: string[]; tool: string; details: string } {
+export function exampleText(e: ExampleMeta, korean: boolean): { title: string; summary: string; tries: string[]; tool: string; details: string } {
   return {
     title: (korean && e.title_ko) || e.title,
     summary: (korean ? e.summary_ko : e.summary) || e.summary || (korean && e.description_ko) || e.description,

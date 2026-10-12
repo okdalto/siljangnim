@@ -29,5 +29,14 @@
     "Pull 노브를 내리면 점이 천천히 돌아와요"
   ],
   "tool_about": "opentype.js reads font files and turns letters into shapes you can draw, trace or animate. It runs in the browser.",
-  "tool_about_ko": "opentype.js는 폰트 파일을 읽어 글자를 그리거나 따라가거나 움직일 수 있는 도형으로 바꿔 줘요. 브라우저에서 돌아가요."
+  "tool_about_ko": "opentype.js는 폰트 파일을 읽어 글자를 그리거나 따라가거나 움직일 수 있는 도형으로 바꿔 줘요. 브라우저에서 돌아가요.",
+  "credits": [
+    {
+      "what": "Bungee font",
+      "what_ko": "Bungee 폰트",
+      "source": "The Bungee Project Authors (David Jonathan Ross)",
+      "license": "SIL Open Font License 1.1 (FONT-LICENSE.txt)",
+      "url": "https://github.com/djrrb/Bungee"
+    }
+  ]
 }

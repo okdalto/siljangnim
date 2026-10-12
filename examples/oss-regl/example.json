@@ -19,12 +19,12 @@
   "summary": "400,000 glowing dots trace a looping path in space, with bright pulses racing along it.",
   "summary_ko": "40만 개의 빛나는 점이 공간 속에 빙글빙글 도는 궤적을 그리고, 밝은 빛이 그 위를 달려요.",
   "try": [
-    "Drag to turn the view",
+    "Drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
     "Turn the Flow knob to speed up the pulses",
     "Raise Exposure to make it glow brighter"
   ],
   "try_ko": [
-    "드래그해서 시점을 돌려 보세요",
+    "드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
     "Flow 노브를 돌려 빛이 더 빨리 달리게 해 보세요",
     "Exposure를 올려 더 밝게 빛나게 해 보세요"
   ],

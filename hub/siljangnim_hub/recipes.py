@@ -1,7 +1,7 @@
 """Recipes: "this open-source tool, set up like this, worked on this machine".
 
 A recipe is one markdown file a person can read and an agent can follow
-(docs/recipes.md): YAML front matter with the machine-readable parts, then
+YAML front matter with the machine-readable parts, then
 sections for setup, the run code, verification and notes. This module is
 the only place that reads and writes the format.
 

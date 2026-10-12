@@ -57,7 +57,7 @@ export interface UserController {
   ask(question: string, options: QuestionOption[], signal: AbortSignal): Promise<string | null>;
 }
 
-/** A run of open-source code through the hub (docs/runtime.md). */
+/** A run of open-source code through the hub. */
 export interface RuntimeJob {
   id: string;
   state: "queued" | "installing" | "running" | "done" | "failed" | "cancelled";
@@ -140,13 +140,13 @@ export interface RecipeFields {
   notes?: string;
 }
 
-/** Recipes on this machine (docs/recipes.md), stored by the hub. */
+/** Recipes on this machine, stored by the hub. */
 export interface RecipeController {
   search(query: string): Promise<{ platform: string; recipes: RecipeSummary[] }>;
   read(id: string): Promise<RecipeDetail>;
   save(id: string, fields: RecipeFields): Promise<RecipeSummary>;
   setStatus(id: string, status: "verified" | "broken", log: string): Promise<RecipeSummary>;
-  /** The shared registry (docs/registry.md): recipes other people verified. */
+  /** The shared registry: recipes other people verified. */
   registrySearch(query: string): Promise<{ url: string; recipes: RegistryRecipe[] }>;
   /** Add one from the registry; it lands as an imported draft. */
   install(id: string): Promise<{ summary: RecipeSummary; kept: boolean }>;
@@ -163,7 +163,7 @@ export interface RegistryRecipe {
   verifiedOn: string[];
 }
 
-/** Sharing a project as project.md (docs/project-md.md). */
+/** Sharing a project as project.md. */
 export interface ProjectController {
   /** The open project as project.md. */
   exportMd(): Promise<string>;

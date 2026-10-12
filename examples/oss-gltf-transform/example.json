@@ -20,12 +20,12 @@
   "summary": "A smooth, lumpy pebble-like sculpture with soft painted colors slowly spins in the dark.",
   "summary_ko": "부드럽게 울퉁불퉁한 조약돌 같은 조형물이 은은한 색을 띠고 어둠 속에서 천천히 돌아요.",
   "try": [
-    "Drag to orbit around the sculpture",
+    "Drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
     "Turn the Spin knob to zero to stop it",
     "Raise Rim light for a glowing edge"
   ],
   "try_ko": [
-    "드래그해서 조형물 주위를 돌아보세요",
+    "드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
     "Spin 노브를 0으로 돌려 멈춰 보세요",
     "Rim light를 올려 가장자리가 빛나게 해 보세요"
   ],

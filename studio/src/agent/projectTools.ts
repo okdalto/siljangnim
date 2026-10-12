@@ -1,4 +1,4 @@
-// Sharing a project as project.md (docs/project-md.md): the scene plus how each
+// Sharing a project as project.md: the scene plus how each
 // generated asset was made, so another person's agent can rebuild it.
 import { z } from "zod";
 import { defineTool, type ToolDefinition } from "./tools";

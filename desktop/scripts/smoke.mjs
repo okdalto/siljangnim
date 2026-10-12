@@ -39,6 +39,8 @@ const status = await new Promise((resolveExit) => {
       SILJANGNIM_SMOKE_FINAL_TEXT: FINAL_TEXT,
       // Recipes go to the throwaway profile, not ~/Siljangnim.
       SILJANGNIM_RECIPES_DIR: join(profile, "recipes"),
+      // Assets → Show in Finder writes here, not to ~/Siljangnim/projects.
+      SILJANGNIM_PROJECTS_DIR: join(profile, "projects"),
       // The app's attach file, and the MCP bridge the smoke runs against it.
       SILJANGNIM_DESKTOP_FILE: join(profile, "desktop.json"),
       SILJANGNIM_SMOKE_MCP: join(desktopDir, "..", "mcp"),

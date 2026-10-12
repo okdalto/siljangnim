@@ -2,8 +2,7 @@
 
 An agent-run creative studio: people describe a visual, the built-in agent writes a live scene,
 checks it runs and looks right, and refines it. Being rebuilt as a desktop app (v2).
-Read `docs/architecture.md` (overall plan) and `docs/studio.md` (the app's design) before
-changing structure. Current work: `docs/m2.md`.
+`docs/` holds user guides only (Korean); the design lives in this file, the code and its comments.
 
 ## Layout
 
@@ -15,12 +14,12 @@ changing structure. Current work: `docs/m2.md`.
   - `server/llmForward.js` — LLM forwarder shared by the Vite dev server and the desktop main process.
 - `desktop/` — Electron shell: `app://` protocol, key storage, hub process, packaging, smoke test.
 - `mcp/` — `siljangnim-mcp`: MCP server for external agents (Claude Code, Codex). Serves the built studio on
-  localhost and relays tool calls to it over a token-checked WebSocket ([docs/mcp.md](docs/mcp.md)).
+  localhost and relays tool calls to it over a token-checked WebSocket.
   `src/spec.json` is generated from `studio/src/agent/external.ts` — run `npm --prefix studio run export-mcp`
   after changing tools or the prompt (a studio test fails otherwise).
 - `hub/` — Python sidecar (FastAPI, uv-managed): system info and the runtime — isolated uv venvs and a job queue
-  for C/D-grade open source (`python_run`, `command_run`; [docs/runtime.md](docs/runtime.md)), and recipes — saved
-  integrations in `~/Siljangnim/recipes/<id>/recipe.md`, read/written only by `recipes.py` ([docs/recipes.md](docs/recipes.md)).
+  for C/D-grade open source (`python_run`, `command_run`), and recipes — saved
+  integrations in `~/Siljangnim/recipes/<id>/recipe.md`, read/written only by `recipes.py`.
 - v1 (`frontend/`, `backend/`, `worker/`) was retired in M3; it lives in git history (before the
   v1-retirement commit) if you need to look up how something worked. v1 project exports still open via
   *Import v1 project*.
@@ -43,7 +42,7 @@ Run `check`, `test` and `smoke` before every push; CI runs the same (Linux needs
 ## Invariants — don't break these
 
 - **Scene code is untrusted.** It runs only in the scene iframe on a separate origin (`app://scene`;
-  `127.0.0.1` vs `localhost` in dev; `siljangnim-scene.vercel.app` on the web, see `docs/m3.md`) under the CSP in `studio/vite.config.ts`. Never run scene/agent
+  `127.0.0.1` vs `localhost` in dev; `siljangnim-scene.vercel.app` on the web, set by `VITE_SCENE_ORIGIN`) under the CSP in `studio/vite.config.ts`. Never run scene/agent
   code in the app window, never pass secrets (API keys, hub token, forwarder token) into the iframe,
   and never add `allow-same-origin` to anything served from the app's origin.
 - **API keys stay in the desktop main process** (`desktop/src/keys.js`, safeStorage). The renderer
@@ -90,5 +89,9 @@ Run `check`, `test` and `smoke` before every push; CI runs the same (Linux needs
   *why*, sparingly.
 - Every feature: unit tests for logic; extend the smoke scenario (`desktop/scripts/mockAnthropic.mjs`,
   `desktop/src/smoke.js`) when it adds an agent-visible capability.
-- Update `docs/` when a design decision changes. Docs are written in Korean; code and comments in English.
+- After adding an example, a catalog tool or a dependency, run `npm run notices` to regenerate
+  `THIRD_PARTY_NOTICES.md` (licenses and source links). Material from others in an example (fonts, images,
+  data) goes in its example.json `credits`.
+- Update `docs/` when something people use changes; keep it to what users need (no implementation notes,
+  test logs or plans). Docs are written in Korean; code and comments in English.
 - UI strings are English for now.

@@ -28,5 +28,14 @@
     "Ink와 Paper 색을 새로 골라 보세요"
   ],
   "tool_about": "OpenCV is a big toolkit for working with pictures and video: finding edges, shapes, faces and motion. It runs on this computer through Python, not in the browser.",
-  "tool_about_ko": "OpenCV는 사진과 영상을 다루는 큰 도구 모음으로, 윤곽·모양·얼굴·움직임을 찾아내요. 브라우저가 아니라 이 컴퓨터의 파이썬에서 돌아가요."
+  "tool_about_ko": "OpenCV는 사진과 영상을 다루는 큰 도구 모음으로, 윤곽·모양·얼굴·움직임을 찾아내요. 브라우저가 아니라 이 컴퓨터의 파이썬에서 돌아가요.",
+  "credits": [
+    {
+      "what": "The Great Wave off Kanagawa (Katsushika Hokusai, c. 1831)",
+      "what_ko": "가나가와 해변의 높은 파도 (가쓰시카 호쿠사이, 1831년경)",
+      "source": "Wikimedia Commons",
+      "license": "Public domain",
+      "url": "https://commons.wikimedia.org/wiki/File:Tsunami_by_hokusai_19th_century.jpg"
+    }
+  ]
 }
