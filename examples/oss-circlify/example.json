@@ -33,6 +33,7 @@
   "credits": [
     {
       "what": "Sizes of the Python standard library's modules",
+      "what_ko": "파이썬 표준 라이브러리 모듈의 크기",
       "source": "CPython",
       "license": "PSF License",
       "url": "https://github.com/python/cpython"

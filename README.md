@@ -21,6 +21,12 @@
 
 ## Get started
 
+> **We strongly recommend running it locally with an agent attached (A).** The web version is fine for
+> looking at the examples, but Siljangnim is built for an agent that can install and run open-source tools
+> on your machine — Python packages, ffmpeg, ML models, OSC — and the web can't do any of that. Locally,
+> your agent also keeps its own memory and files, and with Claude Code it runs on your Claude plan instead
+> of a separate API key.
+
 Pick one. Each takes about a minute.
 
 ### A. With Claude Code — recommended
@@ -81,7 +87,8 @@ Open **[siljangnim.vercel.app](https://siljangnim.vercel.app/)**, then:
    It stays in that browser tab and goes only to the model provider.
 3. Type what you want in the chat.
 
-The web version can't run tools on your computer (Python packages, ffmpeg, OSC). Use A or C for those.
+The web version can't run tools on your computer (Python packages, ffmpeg, ML models, OSC), so most of what
+the agent can do needs A or C. Use the web to look around; use A to make things.
 
 ### C. Desktop app
 

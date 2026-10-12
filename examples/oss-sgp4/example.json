@@ -33,6 +33,7 @@
   "credits": [
     {
       "what": "Two-line orbital elements (TLE) of the seven satellites",
+      "what_ko": "위성 7기의 궤도 요소(TLE)",
       "source": "CelesTrak",
       "license": "Public orbital data, redistributed as CelesTrak permits",
       "url": "https://celestrak.org"

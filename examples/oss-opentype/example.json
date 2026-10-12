@@ -33,6 +33,7 @@
   "credits": [
     {
       "what": "Bungee font",
+      "what_ko": "Bungee 폰트",
       "source": "The Bungee Project Authors (David Jonathan Ross)",
       "license": "SIL Open Font License 1.1 (FONT-LICENSE.txt)",
       "url": "https://github.com/djrrb/Bungee"

@@ -43,7 +43,7 @@ import {
   visionImage,
   type AssetInfo,
 } from "../project/assets";
-import { EXAMPLES } from "../project/examples";
+import { EXAMPLES, exampleText } from "../project/examples";
 import { projectFolderName, sceneCodeFiles } from "../project/sceneFiles";
 import {
   PIPELINE_FILE,
@@ -68,6 +68,7 @@ import { evaluateTrack, keyAt, removeKeyAt, upsertKey } from "../scene/gl/keyfra
 import { DEFAULT_SCENE, KEYFRAMABLE, parseScene, type Scene, type Timeline, type UniformValue } from "../scene/schema";
 import { bridge, bridgeToken, keys } from "./platform";
 import { createProvider, looksLikeApiKey, saveSettings, type Settings } from "./settings";
+import { resolveLanguage } from "./language";
 import { useApp, type AppState } from "./state";
 
 const ACTIVE_PROJECT_KEY = "siljangnim.activeProject";
@@ -188,7 +189,8 @@ export async function openExample(slug: string): Promise<void> {
   set({ examplesOpen: false });
   try {
     const scene = await example.scene();
-    const project = await store.createProject(example.title);
+    // Named in the language its descriptions are shown in, so the header matches the intro card.
+    const project = await store.createProject(exampleText(example, resolveLanguage(get().settings.language) === "ko").title);
     await store.writeFile(project.id, SCENE_FILE, JSON.stringify(scene, null, 2));
     // Assets go in before the project opens, so the first load already has them.
     for (const asset of example.assets) {

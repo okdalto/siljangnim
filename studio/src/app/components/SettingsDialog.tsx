@@ -32,6 +32,18 @@ export function SettingsDialog() {
           </button>
         </div>
 
+        <Field label="Language" hint="For example descriptions and the tool list. Auto follows your system language.">
+          <Segmented
+            options={[
+              { id: "auto", label: "Auto" },
+              { id: "en", label: "English" },
+              { id: "ko", label: "한국어" },
+            ]}
+            value={settings.language}
+            onChange={(language) => updateSettings({ language })}
+          />
+        </Field>
+
         <Field label="Provider">
           <Segmented options={PROVIDERS} value={provider} onChange={(p) => updateSettings({ provider: p })} />
         </Field>

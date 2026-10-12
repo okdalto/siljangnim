@@ -33,6 +33,7 @@
   "credits": [
     {
       "what": "Optical Recognition of Handwritten Digits (scikit-learn's digits)",
+      "what_ko": "손글씨 숫자 데이터셋 (scikit-learn digits)",
       "source": "UCI Machine Learning Repository (E. Alpaydin, C. Kaynak)",
       "license": "CC BY 4.0",
       "url": "https://archive.ics.uci.edu/dataset/80/optical+recognition+of+handwritten+digits"

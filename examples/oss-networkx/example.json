@@ -33,6 +33,7 @@
   "credits": [
     {
       "what": "Les Misérables co-occurrence network (shipped with NetworkX)",
+      "what_ko": "레 미제라블 등장인물 동시 출현 네트워크 (NetworkX에 포함된 데이터)",
       "source": "Donald E. Knuth, The Stanford GraphBase (1993)",
       "license": "Stanford GraphBase terms (free use with attribution)",
       "url": "https://www-cs-faculty.stanford.edu/~knuth/sgb.html"

@@ -29,6 +29,7 @@
   "credits": [
     {
       "what": "beat.wav",
+      "what_ko": "beat.wav (테스트용 비트)",
       "source": "synthesized for Siljangnim",
       "license": "GPL-3.0-or-later (this repository)",
       "url": "https://github.com/okdalto/siljangnim"
