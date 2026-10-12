@@ -83,5 +83,5 @@ npm에 배포하면 `npx -y siljangnim-mcp` 한 줄이 된다. 배포는 아직 
 ## 알려진 점
 
 - Codex의 비대화형 실행(`codex exec`)은 MCP 도구 호출에 승인이 필요하다. `mcp_servers.siljangnim.default_tools_approval_mode = "approve"`로 이 서버만 허용할 수 있다.
-- `@modelcontextprotocol/sdk`는 1.30.1로 고정했다. 이 버전에 OAuth 클라이언트 관련 권고(high)가 있지만 브리지는 서버와 stdio만 써서 해당하지 않는다. 수정 버전(1.32.1)이 2주 기준을 넘기는 2026-10-19 이후 올린다.
+- `@modelcontextprotocol/sdk`는 1.31.0으로 고정했다(2026-10-12). 1.30.x에 있던 OAuth 클라이언트 관련 권고(GHSA-6qxp-vccf-f47h, high)가 1.31.0에서 고쳐졌고, 이날로 2주 기준을 채웠다. 브리지는 서버와 stdio만 써서 원래도 해당하지 않았다. `npm audit` 0건.
 - 데스크톱 앱이 켜져 있어도 지금은 브라우저 뷰어를 연다. 데스크톱 앱에 붙는 경로와 Python 허브 런타임(C/D 등급)은 3단계에서 다룬다.
