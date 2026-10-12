@@ -1,0 +1,116 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// space-colonization by Nick Nikolov (MIT, https://github.com/nicknikolov/space-colonization), after Runions,\n// Lane & Prusinkiewicz, \"Modeling Trees with a Space Colonization Algorithm\" (2007). The npm package (0.2.0) is\n// imported unchanged from esm.sh: each call to its iterate function lets every living bud step towards the\n// average of the attractors (\"hormones\") it sees, sometimes splitting, and attractors die once a bud reaches\n// them. The scene seeds buds and attractors for a tree crown, a leaf blade and a root zone, mirrors the growing\n// bud graph into GPU buffers and draws it as capsules whose thickness follows the pipe model (more tips above a\n// branch = thicker), easing in so older wood visibly thickens.\nconst mod = await ctx.utils.import(\"https://esm.sh/space-colonization@0.2.0?deps=pex-math@1.0.1\");\nconst spaceColonization = mod.default;\nif (typeof spaceColonization !== \"function\") throw new Error(\"space-colonization: default export is not a function\");\n\nconst gl = ctx.gl, s = ctx.state;\nconst TAU = Math.PI * 2, WORLD_H = 4; // the world is 4 units tall; its width follows the canvas at seeding time\nconst rnd = (a, b) => a + Math.random() * (b - a);\n\n// The package returns parentIndex via buds.indexOf(parent) for every bud on every call, which is O(n^2).\n// While it runs we swap in an indexOf that answers object lookups from a Map (same results, O(n)).\nconst nativeIndexOf = Array.prototype.indexOf;\nlet memoArr = null, memoLen = -1, memoMap = null;\nfunction fastIndexOf(x, from) {\n  if (from !== undefined || this.length < 64 || (x !== undefined && (x === null || typeof x !== \"object\"))) {\n    return nativeIndexOf.call(this, x, from);\n  }\n  if (memoArr !== this || memoLen !== this.length) {\n    memoMap = new Map();\n    for (let i = this.length - 1; i >= 0; i--) memoMap.set(this[i], i);\n    memoArr = this; memoLen = this.length;\n  }\n  const i = memoMap.get(x);\n  return i === undefined ? -1 : i;\n}\nfunction runIterate(it, opts) {\n  Array.prototype.indexOf = fastIndexOf;\n  try { return it(opts); } finally { Array.prototype.indexOf = nativeIndexOf; memoArr = null; memoMap = null; }\n}\n\n// ---- shapes -------------------------------------------------------------------------------------------\n// leaf half-width at t in 0..1 along its length (used for seeding and, mirrored, in the background shader)\nconst leafW = (t) => (t <= 0 || t >= 1) ? 0 : Math.pow(Math.sin(Math.PI * Math.pow(t, 0.75)), 0.85);\nconst STYLES = [\"Tree\", \"Leaf veins\", \"Roots\"];\n\nfunction seedStyle(style, ww, n) {\n  const H = WORLD_H / 2, W = ww / 2;\n  const hormones = [];\n  if (style === 0) { // tree: a lumpy crown of attractors, plus a sparse column so the trunk can find it\n    const blobs = [];\n    const cw = Math.min(1.75, W * 0.86), cy = 0.45;\n    for (let i = 0; i < 7; i++) blobs.push([rnd(-cw * 0.55, cw * 0.55), cy + rnd(-0.45, 0.6), rnd(0.55, 0.95)]);\n    blobs.push([0, cy, 1.0]);\n    let guard = 0;\n    while (hormones.length < n && guard++ < n * 50) {\n      const x = rnd(-cw, cw), y = rnd(-1.1, 1.9);\n      const e = ((x / cw) ** 2) + ((y - cy) / 1.35) ** 2;\n      if (e > 1) continue;\n      if (!blobs.some(([bx, by, r]) => (x - bx) ** 2 + (y - by) ** 2 < r * r)) continue;\n      hormones.push([x, y, 0]);\n    }\n    for (let y = -1.75; y < -0.5; y += 0.12) hormones.push([rnd(-0.04, 0.04), y, 0]);\n    return { buds: [[0, -1.9, 0]], hormones, opts: { deadZone: 0.07, growthStep: 0.028, viewDistance: 0.32, viewAngle: 55, growthDirection: [0, 1, 0], growthBias: 0.0001 }, ground: -1.9, leaf: [0, 0, 0] };\n  }\n  if (style === 1) { // leaf: attractors fill the blade; the petiole bud sits at its base\n    const L = 3.6, y0 = -1.85, lw = Math.min(1.25, W * 0.8);\n    let guard = 0;\n    while (hormones.length < n && guard++ < n * 50) {\n      const t = Math.random(), x = rnd(-lw, lw);\n      if (Math.abs(x) > lw * leafW(t) * 0.97) continue;\n      hormones.push([x, y0 + t * L, 0]);\n    }\n    return { buds: [[0, y0 - 0.12, 0]], hormones, opts: { deadZone: 0.055, growthStep: 0.024, viewDistance: 0.42, viewAngle: 60, growthDirection: [0, 1, 0], growthBias: 0.04 }, ground: -9, leaf: [y0, L, lw] };\n  }\n  // roots: a soil volume below the surface, denser near the top, tapering with depth\n  const top = 1.55, rw = Math.min(2.2, W * 0.92);\n  let guard = 0;\n  while (hormones.length < n && guard++ < n * 50) {\n    const d = Math.pow(Math.random(), 1.25), y = top - 0.08 - d * 3.35;\n    const x = rnd(-rw, rw);\n    if (Math.abs(x) > rw * (1 - 0.55 * d) * (0.75 + 0.25 * Math.random())) continue;\n    hormones.push([x, y, 0]);\n  }\n  return { buds: [[0, top, 0]], hormones, opts: { deadZone: 0.08, growthStep: 0.03, viewDistance: 0.5, viewAngle: 55, growthDirection: [0, -1, 0], growthBias: 0.18 }, ground: top, leaf: [0, 0, 0] };\n}\n\nfunction burst(cx, cy, n) { // a seed planted by a click: attractors in a soft disc around it\n  const hormones = [];\n  for (let i = 0; i < n; i++) {\n    const a = Math.random() * TAU, r = 0.75 * Math.sqrt(Math.random());\n    hormones.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r, 0]);\n  }\n  return { buds: [[cx, cy, 0]], hormones, opts: { deadZone: 0.07, growthStep: 0.026, viewDistance: 0.45, viewAngle: 70, growthDirection: [0, 1, 0], growthBias: 0.0001 } };\n}\n\n// ---- colonies -----------------------------------------------------------------------------------------\nconst CAP = 24000, HCAP = 6000;\nfunction makeColony(seed, palette) {\n  const c = {\n    it: spaceColonization({ buds: seed.buds.map((b) => b.slice()), hormones: seed.hormones.map((h) => h.slice()), ...seed.opts }),\n    opts: seed.opts, palette, roots: seed.buds.length,\n    n: 0, px: new Float32Array(CAP), py: new Float32Array(CAP), par: new Int32Array(CAP), born: new Float32Array(CAP),\n    tips: new Float32Array(CAP), rad: new Float32Array(CAP), target: new Float32Array(CAP),\n    hn: 0, hdata: new Float32Array(HCAP * 3), hstate: new Uint8Array(HCAP), hobj: [],\n    alive: seed.buds.length, iters: 0, doneAt: -1, pending: [],\n    inst: new Float32Array(CAP * 8),\n    vbo: gl.createBuffer(), vao: gl.createVertexArray(), hvbo: gl.createBuffer(), hvao: gl.createVertexArray(),\n  };\n  for (const b of seed.buds) { c.px[c.n] = b[0]; c.py[c.n] = b[1]; c.par[c.n] = -1; c.born[c.n] = s.clock; c.n++; }\n  for (const h of seed.hormones) addHormoneMirror(c, h, null);\n  gl.bindVertexArray(c.vao);\n  gl.bindBuffer(gl.ARRAY_BUFFER, c.vbo);\n  gl.bufferData(gl.ARRAY_BUFFER, c.inst.byteLength, gl.DYNAMIC_DRAW);\n  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 32, 0); gl.vertexAttribDivisor(0, 1);\n  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 32, 16); gl.vertexAttribDivisor(1, 1);\n  gl.bindVertexArray(c.hvao);\n  gl.bindBuffer(gl.ARRAY_BUFFER, c.hvbo);\n  gl.bufferData(gl.ARRAY_BUFFER, c.hdata.byteLength, gl.DYNAMIC_DRAW);\n  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 12, 0);\n  gl.bindVertexArray(null);\n  return c;\n}\nfunction addHormoneMirror(c, h, obj) {\n  if (c.hn >= HCAP) return;\n  c.hdata[c.hn * 3] = h[0]; c.hdata[c.hn * 3 + 1] = h[1]; c.hdata[c.hn * 3 + 2] = -1;\n  c.hobj[c.hn] = obj; c.hn++;\n}\nfunction freeColony(c) {\n  gl.deleteBuffer(c.vbo); gl.deleteBuffer(c.hvbo); gl.deleteVertexArray(c.vao); gl.deleteVertexArray(c.hvao);\n}\n\n// One iteration of the package, then mirror what changed.\nfunction stepColony(c, u) {\n  if (c.alive === 0 || c.n >= CAP - 2000) { c.alive = 0; return; }\n  const extra = c.pending.length ? c.pending.splice(0) : null;\n  const res = runIterate(c.it, { splitChance: u.u_split, branchAngle: u.u_angle, ...(extra ? { hormones: extra } : {}) });\n  c.iters++;\n  const buds = res.buds, prev = c.n;\n  for (let i = prev; i < buds.length && c.n < CAP; i++) {\n    const p = buds[i].position;\n    let pi = buds[i].parentIndex;\n    if (pi < 0 && i >= c.roots) pi = 0; // the package reports parent 0 as -1 (`indexOf(...) || -1`)\n    c.px[c.n] = p[0]; c.py[c.n] = p[1]; c.par[c.n] = pi; c.born[c.n] = s.clock;\n    if (!Number.isFinite(p[0]) || !Number.isFinite(p[1])) { c.px[c.n] = c.px[Math.max(pi, 0)]; c.py[c.n] = c.py[Math.max(pi, 0)]; }\n    c.n++;\n  }\n  c.alive = buds.length - prev; // every bud alive before this call either grew (and died) or starved\n  // attractors: the first ones were mirrored at seeding time; later ones (added by dragging) arrive here\n  const hs = res.hormones;\n  for (let i = 0; i < hs.length && i < HCAP; i++) {\n    if (i >= c.hn) addHormoneMirror(c, hs[i].position, hs[i]);\n    if (!c.hstate[i] && hs[i].state !== 0) { c.hstate[i] = 1; c.hdata[i * 3 + 2] = s.clock; }\n  }\n  // pipe model: a branch carries as many \"pipes\" as there are tips above it\n  const tips = c.tips;\n  tips.fill(0, 0, c.n);\n  for (let i = c.n - 1; i >= 0; i--) {\n    if (tips[i] === 0) tips[i] = 1;\n    const p = c.par[i];\n    if (p >= 0) tips[p] += tips[i];\n  }\n}\n\n// ---- GL programs --------------------------------------------------------------------------------------\nconst VIEW = `uniform vec2 u_vs; uniform vec2 u_vc; uniform vec2 u_res;\nvec2 toClip(vec2 p) { return (p - u_vc) * u_vs / (0.5 * u_res); }`;\nconst segVS = `#version 300 es\nprecision highp float;\nlayout(location=0) in vec4 a_seg;\nlayout(location=1) in vec4 a_info;\n${VIEW}\nuniform float u_expand, u_px, u_time, u_sway, u_ground;\nout vec2 v_p; out vec4 v_seg; out vec4 v_info;\nvec2 sway(vec2 p) {\n  float h = max(p.y - u_ground, 0.0);\n  return p + vec2(u_sway * h * h * 0.012 * sin(u_time * 0.9 + p.y * 0.7) + u_sway * h * 0.004 * sin(u_time * 2.3 + p.x * 3.0), 0.0);\n}\nvoid main() {\n  vec2 a = sway(a_seg.xy), b = sway(a_seg.zw);\n  vec2 d = b - a; float l = length(d);\n  vec2 dir = l > 1e-6 ? d / l : vec2(1.0, 0.0), nrm = vec2(-dir.y, dir.x);\n  float r = max(a_info.x, a_info.y) + (u_expand > 1.5 ? min(max(a_info.x, a_info.y) * 3.0, 0.08) + 12.0 * u_px : 2.0 * u_px);\n  int id = gl_VertexID;\n  vec2 cr = vec2(id == 1 || id == 3 ? 1.0 : -1.0, id >= 2 ? 1.0 : -1.0);\n  vec2 p = (cr.x < 0.0 ? a - dir * r : b + dir * r) + nrm * cr.y * r;\n  v_p = p; v_seg = vec4(a, b); v_info = a_info;\n  gl_Position = vec4(toClip(p), 0.0, 1.0);\n}`;\nconst segFS = `#version 300 es\nprecision highp float;\nin vec2 v_p; in vec4 v_seg; in vec4 v_info;\nout vec4 outColor;\nuniform float u_halo, u_px, u_time, u_glow, u_fade;\nuniform vec3 u_old, u_young, u_hot;\nvoid main() {\n  vec2 a = v_seg.xy, b = v_seg.zw, pa = v_p - a, ba = b - a;\n  float h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-9), 0.0, 1.0);\n  float d = length(pa - ba * h);\n  float r = max(mix(v_info.x, v_info.y, h), 0.25 * u_px);\n  float age = u_time - v_info.z;\n  float fresh = exp(-age * 0.9);\n  float wood = clamp(log(v_info.w) / log(400.0), 0.0, 1.0);\n  vec3 col = mix(u_young, u_old, smoothstep(0.0, 1.0, wood));\n  if (u_halo > 0.5) {\n    float g = min(2.0 * r, 0.03) + 5.0 * u_px;\n    float k = exp(-pow(max(d - r, 0.0) / g, 2.0) * 2.5);\n    float amt = (0.05 + 0.5 * fresh) * pow(1.0 - wood, 2.0) * u_glow;\n    outColor = vec4(mix(col, u_hot, fresh) * k * amt * u_fade, 0.0);\n    return;\n  }\n  float cov = clamp(0.5 - (d - r) / u_px, 0.0, 1.0);\n  if (cov <= 0.0) discard;\n  float x = clamp(d / r, 0.0, 1.0);\n  float shade = 0.62 + 0.48 * sqrt(1.0 - x * x);\n  // depth = distance from the axis, so overlapping capsules merge into one smooth limb\n  gl_FragDepth = min(x, 1.0) * 0.98 + 0.01;\n  vec3 c = col * shade + u_hot * fresh * 0.7 * u_glow;\n  outColor = vec4(c * u_fade * cov, cov * u_fade);\n}`;\nconst dotVS = `#version 300 es\nprecision highp float;\nlayout(location=0) in vec3 a_h;\n${VIEW}\nuniform float u_px, u_time;\nout float v_a;\nvoid main() {\n  float dead = a_h.z;\n  float since = dead < 0.0 ? -1.0 : u_time - dead;\n  v_a = since < 0.0 ? 0.6 : exp(-since * 3.0) * 1.4;\n  gl_Position = vec4(since > 2.0 ? vec2(9.0) : toClip(a_h.xy), 0.0, 1.0);\n  gl_PointSize = max(2.0, u_px * (since < 0.0 ? 3.0 : 3.0 + 10.0 * min(since, 0.5)));\n}`;\nconst dotFS = `#version 300 es\nprecision highp float;\nin float v_a; out vec4 outColor;\nuniform vec3 u_hot; uniform float u_fade, u_dots;\nvoid main() {\n  float r = length(gl_PointCoord - 0.5) * 2.0;\n  float k = exp(-r * r * 4.0) * v_a * u_fade * u_dots;\n  outColor = vec4(u_hot * k, 0.0);\n}`;\nconst bgFS = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform vec2 u_vs; uniform vec2 u_vc; uniform vec2 u_res;\nuniform float u_style, u_ground, u_time, u_fade;\nuniform vec3 u_leaf; // y0, length, half width\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }\nfloat vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);\n  return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }\nfloat fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { s += a * vn(p); p *= 2.02; a *= 0.5; } return s; }\nfloat leafW(float t) { return (t <= 0.0 || t >= 1.0) ? 0.0 : pow(sin(3.14159265 * pow(t, 0.75)), 0.85); }\nvoid main() {\n  vec2 px = v_uv * u_res;\n  vec2 p = (px - 0.5 * u_res) / u_vs + u_vc; // world units\n  vec2 q = v_uv - 0.5; q.x *= u_res.x / u_res.y;\n  float vig = 1.0 - 0.55 * dot(q, q);\n  vec3 col;\n  float grain = (hash(px + fract(u_time) * 31.0) - 0.5) * 0.02;\n  if (u_style < 0.5) { // tree: dusk sky with a pale glow behind the crown, dark meadow below\n    col = mix(vec3(0.05, 0.07, 0.12), vec3(0.16, 0.20, 0.27), smoothstep(-2.5, 1.5, -p.y + 1.0) * 0.6);\n    col += vec3(0.30, 0.26, 0.20) * exp(-dot(p - vec2(0.0, 0.5), p - vec2(0.0, 0.5)) * 0.35) * 0.55;\n    float g = smoothstep(u_ground + 0.03, u_ground - 0.03, p.y + 0.06 * (fbm(vec2(p.x * 2.0, 0.0)) - 0.5));\n    col = mix(col, vec3(0.04, 0.05, 0.04) + 0.03 * fbm(p * 6.0), g);\n  } else if (u_style < 1.5) { // leaf blade\n    col = mix(vec3(0.02, 0.04, 0.035), vec3(0.06, 0.10, 0.08), fbm(p * 0.8));\n    float t = (p.y - u_leaf.x) / u_leaf.y;\n    float w = u_leaf.z * leafW(t);\n    float edge = max((abs(p.x) - w) / max(u_leaf.z, 1e-3), max(-t, t - 1.0) * 4.0);\n    float inside = smoothstep(0.012, -0.012, edge);\n    float tex = fbm(p * 9.0);\n    vec3 leaf = mix(vec3(0.07, 0.20, 0.08), vec3(0.20, 0.42, 0.12), clamp(0.35 + 0.5 * t + 0.2 * (tex - 0.5), 0.0, 1.0));\n    leaf *= 0.85 + 0.25 * smoothstep(0.0, -0.4, edge) - 0.2 * smoothstep(-0.12, 0.0, edge);\n    col = mix(col + vec3(0.02, 0.05, 0.02) * exp(-max(edge, 0.0) * 6.0), leaf, inside);\n  } else { // roots: sky above the surface, layered soil below\n    float soil = smoothstep(u_ground + 0.02, u_ground - 0.02, p.y + 0.05 * (fbm(vec2(p.x * 1.5, 3.0)) - 0.5));\n    vec3 sky = mix(vec3(0.10, 0.12, 0.16), vec3(0.32, 0.26, 0.24), smoothstep(u_ground + 1.0, u_ground, p.y));\n    float layers = fbm(vec2(p.x * 0.7, p.y * 4.0) + 5.0);\n    vec3 dirt = mix(vec3(0.10, 0.065, 0.045), vec3(0.17, 0.11, 0.07), layers) * (0.75 + 0.25 * smoothstep(-2.5, u_ground, p.y));\n    dirt += 0.03 * (fbm(p * 14.0) - 0.5);\n    col = mix(sky, dirt, soil);\n    col += vec3(0.25, 0.18, 0.1) * exp(-abs(p.y - u_ground) * 8.0) * 0.25;\n  }\n  outColor = vec4((col * vig + grain) * u_fade, 1.0);\n}`;\ns.segProg = ctx.utils.createProgram(segVS, segFS);\ns.dotProg = ctx.utils.createProgram(dotVS, dotFS);\ns.bgProg = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, bgFS);\ns.emptyVao = gl.createVertexArray();\n\nconst PALETTES = [\n  { old: [0.30, 0.20, 0.14], young: [0.62, 0.86, 0.42], hot: [0.95, 1.0, 0.65] },  // tree\n  { old: [0.78, 0.86, 0.48], young: [0.92, 0.98, 0.70], hot: [1.0, 1.0, 0.85] },    // leaf veins\n  { old: [0.72, 0.52, 0.32], young: [0.98, 0.86, 0.62], hot: [1.0, 0.85, 0.55] },   // roots\n  { old: [0.20, 0.55, 0.75], young: [0.55, 0.95, 1.0], hot: [0.75, 1.0, 1.0] },     // planted seeds\n];\n\ns.clock = 0;\ns.cycle = 0;\ns.colonies = [];\ns.seeds = [];\ns.startGrowth = (style) => {\n  for (const c of s.colonies) freeColony(c);\n  for (const c of s.seeds) freeColony(c);\n  s.colonies = []; s.seeds = [];\n  const [w, h] = ctx.resolution;\n  const aspect = Math.min(1.9, Math.max(0.5, w / h));\n  s.worldW = WORLD_H * aspect;\n  s.style = style;\n  const seed = seedStyle(style, s.worldW, Math.round(ctx.uniforms.u_count));\n  s.ground = seed.ground; s.leaf = seed.leaf;\n  s.colonies.push(makeColony(seed, PALETTES[style]));\n  s.phase = \"grow\"; s.phaseT = 0; s.acc = 0;\n};\ns.plant = (x, y) => {\n  if (s.seeds.length >= 4) freeColony(s.seeds.shift());\n  const c = makeColony(burst(x, y, 260), PALETTES[3]);\n  s.seeds.push(c);\n  return c;\n};\ns.upload = (c, dt) => {\n  const k = Math.min(1, dt * 1.6), base = 0.0055, I = c.inst;\n  for (let i = 0; i < c.n; i++) {\n    const t = base * Math.pow(c.tips[i], 0.5) * (c.palette === PALETTES[1] ? 0.55 : 1);\n    c.rad[i] += (Math.min(t, 0.16) - c.rad[i]) * k;\n  }\n  for (let i = 0; i < c.n; i++) {\n    const p = c.par[i], o = i * 8;\n    const pp = p >= 0 ? p : i;\n    I[o] = c.px[pp]; I[o + 1] = c.py[pp]; I[o + 2] = c.px[i]; I[o + 3] = c.py[i];\n    // an edge is as thick as the pipes of its child (a twig must not inherit the trunk's radius)\n    I[o + 4] = Math.min(c.rad[pp], c.rad[i] * 1.25); I[o + 5] = c.rad[i]; I[o + 6] = c.born[i]; I[o + 7] = c.tips[i];\n  }\n  gl.bindBuffer(gl.ARRAY_BUFFER, c.vbo);\n  gl.bufferSubData(gl.ARRAY_BUFFER, 0, I, 0, c.n * 8);\n  gl.bindBuffer(gl.ARRAY_BUFFER, c.hvbo);\n  gl.bufferSubData(gl.ARRAY_BUFFER, 0, c.hdata, 0, c.hn * 3);\n};\ns.STYLES = STYLES;\ns.stepColony = stepColony;\ns.startGrowth(0);\n",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst dt = Math.min(ctx.dt, 0.1);\ns.clock += dt;\ns.phaseT += dt;\nconst chosen = Math.round(u.u_style);\nif (u.u_new) s.startGrowth(chosen === 3 ? (s.style + 1) % 3 : chosen);\nelse if (chosen !== 3 && chosen !== s.style) s.startGrowth(chosen);\n\n// Fit the world (fixed when this growth was seeded) inside the canvas; never stretch.\nconst sc = Math.min(w / (s.worldW * 1.06), h / (4 * 1.06));\nconst toWorld = (m) => [(m[0] * w - w / 2) / sc, ((1 - m[1]) * h - h / 2) / sc];\n\n// Press to plant a seed; keep dragging to scatter attractors its branches chase.\nif (ctx.mouseDown && !s.wasDown) { s.drag = s.plant(...toWorld(ctx.mouse)); s.lastDrop = toWorld(ctx.mouse); }\nif (ctx.mouseDown && s.drag && s.seeds.includes(s.drag)) {\n  const [x, y] = toWorld(ctx.mouse);\n  if (Math.hypot(x - s.lastDrop[0], y - s.lastDrop[1]) > 0.05) {\n    for (let i = 0; i < 6; i++) {\n      const a = Math.random() * Math.PI * 2, r = 0.22 * Math.sqrt(Math.random());\n      s.drag.pending.push([x + Math.cos(a) * r, y + Math.sin(a) * r, 0]);\n    }\n    s.drag.alive = Math.max(s.drag.alive, 1);\n    s.lastDrop = [x, y];\n  }\n}\ns.wasDown = ctx.mouseDown;\n\n// Growth: a fixed number of package iterations per second, with a per-frame time cap.\ns.acc = Math.min(s.acc + dt * u.u_speed, 4);\nconst t0 = performance.now();\nwhile (s.acc >= 1 && performance.now() - t0 < 9) {\n  s.acc -= 1;\n  for (const c of s.colonies) s.stepColony(c, u);\n  for (const c of s.seeds) s.stepColony(c, u);\n}\nconst main = s.colonies[0];\nif (s.phase === \"grow\" && main.alive === 0) { s.phase = \"rest\"; s.phaseT = 0; }\nif (s.phase === \"rest\" && s.phaseT > 4 && u.u_auto) { s.phase = \"fade\"; s.phaseT = 0; }\nif (s.phase === \"fade\" && s.phaseT > 1.2) s.startGrowth(chosen === 3 ? (s.style + 1) % 3 : chosen);\nconst fadeIn = Math.min(1, s.phase === \"grow\" ? 0.15 + s.phaseT * 2 : 1);\nconst fade = s.phase === \"fade\" ? Math.max(0, 1 - s.phaseT / 1.2) : fadeIn;\n\nconst view = { u_vs: [sc, sc], u_vc: [0, 0], u_res: [w, h] };\ngl.disable(gl.DEPTH_TEST);\ngl.disable(gl.BLEND);\nctx.utils.drawFullscreen(s.bgProg, { ...view, u_style: s.style, u_ground: s.ground, u_time: s.clock, u_fade: fade, u_leaf: s.leaf });\n\ngl.enable(gl.BLEND);\nconst all = [...s.colonies, ...s.seeds];\nlet nodes = 0;\nfor (const c of all) {\n  s.upload(c, dt);\n  nodes += c.n;\n  const pal = c.palette;\n  const common = { ...view, u_px: 1 / sc, u_time: s.clock, u_glow: u.u_glow, u_fade: fade, u_old: pal.old, u_young: pal.young, u_hot: pal.hot,\n    u_sway: c === main && s.style === 0 ? 1 : 0, u_ground: s.ground };\n  gl.useProgram(s.dotProg);\n  ctx.utils.setUniforms(s.dotProg, { ...common, u_dots: u.u_dots ? 1 : 0 });\n  gl.blendFunc(gl.ONE, gl.ONE);\n  gl.bindVertexArray(c.hvao);\n  gl.drawArrays(gl.POINTS, 0, c.hn);\n  gl.useProgram(s.segProg);\n  gl.bindVertexArray(c.vao);\n  ctx.utils.setUniforms(s.segProg, { ...common, u_halo: 1, u_expand: 4 });\n  gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, c.n);\n  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);\n  ctx.utils.setUniforms(s.segProg, { u_halo: 0, u_expand: 1 });\n  gl.clear(gl.DEPTH_BUFFER_BIT);\n  gl.enable(gl.DEPTH_TEST);\n  gl.depthFunc(gl.LEQUAL);\n  gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, c.n);\n  gl.disable(gl.DEPTH_TEST);\n}\ngl.bindVertexArray(null);\ngl.disable(gl.BLEND);\nctx.publish(\"Style\", s.STYLES[s.style]);\nctx.publish(\"Branch nodes\", nodes);\nctx.publish(\"Growing tips\", main.alive);\n",
+    "cleanup": "// nothing to free: GL objects go with the context, and Array.prototype.indexOf is only swapped during an iterate call\n"
+  },
+  "uniforms": {
+    "u_style": {
+      "type": "int",
+      "value": 3,
+      "label": "Style",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Tree",
+          "value": 0
+        },
+        {
+          "label": "Leaf veins",
+          "value": 1
+        },
+        {
+          "label": "Roots",
+          "value": 2
+        },
+        {
+          "label": "Cycle",
+          "value": 3
+        }
+      ]
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 30,
+      "min": 4,
+      "max": 90,
+      "step": 1,
+      "label": "Growth speed"
+    },
+    "u_split": {
+      "type": "float",
+      "value": 0.4,
+      "min": 0.05,
+      "max": 0.9,
+      "step": 0.01,
+      "label": "Split chance"
+    },
+    "u_angle": {
+      "type": "float",
+      "value": 30,
+      "min": 5,
+      "max": 80,
+      "step": 1,
+      "label": "Branch angle"
+    },
+    "u_count": {
+      "type": "float",
+      "value": 900,
+      "min": 200,
+      "max": 2500,
+      "step": 50,
+      "label": "Attractors"
+    },
+    "u_glow": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.01,
+      "label": "Glow"
+    },
+    "u_dots": {
+      "type": "bool",
+      "value": true,
+      "label": "Show attractors"
+    },
+    "u_auto": {
+      "type": "bool",
+      "value": true,
+      "label": "Auto regrow"
+    },
+    "u_new": {
+      "type": "bool",
+      "value": false,
+      "label": "Grow new",
+      "widget": "button"
+    }
+  },
+  "controls": [
+    {
+      "label": "Growth",
+      "uniforms": [
+        "u_style",
+        "u_speed",
+        "u_split",
+        "u_angle",
+        "u_count"
+      ]
+    },
+    {
+      "label": "Look",
+      "uniforms": [
+        "u_glow",
+        "u_dots",
+        "u_auto",
+        "u_new"
+      ]
+    }
+  ],
+  "inputs": [
+    "mouse"
+  ]
+}

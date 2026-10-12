@@ -1,0 +1,177 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Physarum slime mould after Sebastian Lague's Slime-Simulation\n// (https://github.com/SebLague/Slime-Simulation, commit 6794cfd, GPL-3.0, Copyright Sebastian Lague).\n// Ported from Unity to WebGL2:\n//  - Assets/Scripts/Slime/SlimeSim.compute: the Update kernel (hash, sense, steering, move, bounce) becomes a\n//    fragment shader over a float texture of agents; its trail deposit becomes a pass that draws every agent as\n//    a 1-pixel point with additive blending; the Diffuse kernel (3x3 blur, decay) and UpdateColourMap are ported\n//    as fullscreen passes.\n//  - Assets/Scripts/Slime/Simulation.cs: spawn modes, species masks, fixed step (dt 0.02, 2 steps per fixed update).\n//  - Assets/Settings/A.asset .. D.asset: the four presets, values unchanged (one extra crowded preset added here).\n// Added for this scene: the pointer attracts or repels agents (a scent added to what they sense), presets cycle\n// on their own, and the simulation grid follows the canvas shape.\n// This port is GPL-3.0 like the original.\nconst gl = ctx.gl;\nif (!gl.getExtension(\"EXT_color_buffer_float\")) throw new Error(\"This scene needs float render targets (EXT_color_buffer_float).\");\n\n// Presets from Assets/Settings/*.asset. spawn: 0 Random, 1 Point, 2 InwardCircle, 3 RandomCircle.\n// species: [moveSpeed, turnSpeed, sensorAngleSpacing (deg), sensorOffsetDst, colour]\nconst PRESETS = [\n  // Not in the repo: three species with one shared rule, 300k agents, lighter trails.\n  { name: \"Tribes\", numAgents: 300000, spawn: 4, trailWeight: 3, decayRate: 0.4, diffuseRate: 3, species: [\n    [45, 20, 40, 25, [1.0, 0.25, 0.55]],\n    [45, 20, 40, 25, [0.2, 0.75, 1.0]],\n    [45, 20, 40, 25, [1.0, 0.8, 0.25]],\n  ] },\n  { name: \"A\", numAgents: 250000, spawn: 2, trailWeight: 5, decayRate: 0.2, diffuseRate: 3, species: [\n    [20, 2, 30, 35, [1, 1, 1]],\n  ] },\n  { name: \"D\", numAgents: 25000, spawn: 2, trailWeight: 12, decayRate: 0.5, diffuseRate: 3, species: [\n    [70, 30, 60, 20, [0.53608304, 0.062745094, 1]],\n    [50, -90, 112, 30, [0.10588236, 0.6240185, 0.83137256]],\n    [50, 50, 70, 30, [0.47160125, 0.8301887, 0.105731584]],\n  ] },\n  { name: \"B\", numAgents: 25000, spawn: 2, trailWeight: 8, decayRate: 0.5, diffuseRate: 3, species: [\n    [50, 30, 45, 20, [1, 0.06132078, 0.1610105]],\n    [50, -90, 112, 30, [0.47160125, 0.8301887, 0.105731584]],\n  ] },\n  { name: \"C\", numAgents: 250000, spawn: 1, trailWeight: 2, decayRate: 0.75, diffuseRate: 5, species: [\n    [30, -3, 112, 20, [0, 1, 0.31496096]],\n  ] },\n];\n\nconst HEAD = `#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2D;\n`;\n\n// SlimeSim.compute, kernel Update.\nconst updateFs = HEAD + `\nuniform sampler2D u_agents, u_trail;\nuniform int u_texW, u_numAgents, u_numSpecies;\nuniform ivec2 u_size;              // width, height of the trail map\nuniform float u_dt;\nuniform int u_step;\nuniform vec4 u_species[3];         // moveSpeed, turnSpeed, sensorAngleDegrees, sensorOffsetDst\nuniform vec4 u_pointer;            // x, y (trail pixels), radius, strength (+ attract, - repel, 0 off)\nout vec4 outColor;\n\n// Hash function www.cs.ubc.ca/~rbridson/docs/schechter-sca08-turbulence.pdf\nuint hash(uint state) {\n  state ^= 2747636419u;\n  state *= 2654435769u;\n  state ^= state >> 16;\n  state *= 2654435769u;\n  state ^= state >> 16;\n  state *= 2654435769u;\n  return state;\n}\nfloat scaleToRange01(uint state) { return float(state) / 4294967295.0; }\n\nvec3 maskOf(int species) {\n  return u_numSpecies == 1 ? vec3(1.0) : vec3(species == 0, species == 1, species == 2);\n}\n\nfloat sense(vec2 position, float angle, vec3 speciesMask, vec4 settings, float sensorAngleOffset) {\n  float sensorAngle = angle + sensorAngleOffset;\n  vec2 sensorDir = vec2(cos(sensorAngle), sin(sensorAngle));\n  vec2 sensorPos = position + sensorDir * settings.w;\n  int sensorCentreX = int(sensorPos.x);\n  int sensorCentreY = int(sensorPos.y);\n  float sum = 0.0;\n  vec3 senseWeight = speciesMask * 2.0 - 1.0;\n  for (int offsetX = -1; offsetX <= 1; offsetX++) {     // sensorSize is 1 in every preset\n    for (int offsetY = -1; offsetY <= 1; offsetY++) {\n      int sampleX = min(u_size.x - 1, max(0, sensorCentreX + offsetX));\n      int sampleY = min(u_size.y - 1, max(0, sensorCentreY + offsetY));\n      sum += dot(senseWeight, texelFetch(u_trail, ivec2(sampleX, sampleY), 0).rgb);\n    }\n  }\n  // The pointer smells like a strong trail (or a repellent).\n  vec2 d = sensorPos - u_pointer.xy;\n  sum += u_pointer.w * exp(-dot(d, d) / (u_pointer.z * u_pointer.z));\n  return sum;\n}\n\nvoid main() {\n  ivec2 cell = ivec2(gl_FragCoord.xy);\n  int idx = cell.y * u_texW + cell.x;\n  vec4 agent = texelFetch(u_agents, cell, 0);\n  if (idx >= u_numAgents) { outColor = agent; return; }\n  int speciesIndex = int(agent.w);\n  vec4 settings = u_species[speciesIndex];\n  vec2 pos = agent.xy;\n  float angle = agent.z;\n  uint id = uint(idx);\n  // hash(pos.y * width + pos.x + hash(id.x + time * 100000)), in wrapping integer math (a step counter for time).\n  uint random = hash(uint(pos.y) * uint(u_size.x) + uint(pos.x) + hash(id + uint(u_step) * 2000u));\n\n  // Steer based on sensory data\n  vec3 mask = maskOf(speciesIndex);\n  float sensorAngleRad = settings.z * (3.1415 / 180.0);\n  float weightForward = sense(pos, angle, mask, settings, 0.0);\n  float weightLeft = sense(pos, angle, mask, settings, sensorAngleRad);\n  float weightRight = sense(pos, angle, mask, settings, -sensorAngleRad);\n  float randomSteerStrength = scaleToRange01(random);\n  float turnSpeed = settings.y * 2.0 * 3.1415;\n  if (weightForward > weightLeft && weightForward > weightRight) {\n    angle += 0.0;\n  } else if (weightForward < weightLeft && weightForward < weightRight) {\n    angle += (randomSteerStrength - 0.5) * 2.0 * turnSpeed * u_dt;\n  } else if (weightRight > weightLeft) {\n    angle -= randomSteerStrength * turnSpeed * u_dt;\n  } else if (weightLeft > weightRight) {\n    angle += randomSteerStrength * turnSpeed * u_dt;\n  }\n\n  // Update position\n  vec2 direction = vec2(cos(agent.z), sin(agent.z));\n  vec2 newPos = pos + direction * u_dt * settings.x;\n  float deposit = 1.0;\n  // Clamp position to map boundaries, and pick new random move dir if hit boundary\n  if (newPos.x < 0.0 || newPos.x >= float(u_size.x) || newPos.y < 0.0 || newPos.y >= float(u_size.y)) {\n    random = hash(random);\n    angle = scaleToRange01(random) * 2.0 * 3.1415;\n    newPos.x = min(float(u_size.x) - 1.0, max(0.0, newPos.x));\n    newPos.y = min(float(u_size.y) - 1.0, max(0.0, newPos.y));\n    deposit = 0.0;                 // the original skips the trail deposit on a bounce\n  }\n  // Keep the angle bounded so float precision holds over long runs.\n  angle = mod(angle, 6.2831853);\n  outColor = vec4(newPos, angle, float(speciesIndex) + (deposit > 0.5 ? 0.0 : 0.5));\n}`;\n\n// The deposit half of the Update kernel: TrailMap[coord] = min(1, old + speciesMask * trailWeight * deltaTime),\n// as points blended additively (the min(1) is applied in the diffuse pass).\nconst depositVs = HEAD + `\nuniform sampler2D u_agents;\nuniform int u_texW, u_numSpecies;\nuniform vec2 u_size;\nuniform float u_amount;\nout vec3 v_add;\nvoid main() {\n  vec4 agent = texelFetch(u_agents, ivec2(gl_VertexID % u_texW, gl_VertexID / u_texW), 0);\n  int species = int(agent.w);\n  vec3 mask = u_numSpecies == 1 ? vec3(1.0) : vec3(species == 0, species == 1, species == 2);\n  bool bounced = fract(agent.w) > 0.25;\n  v_add = mask * u_amount;\n  gl_Position = bounced ? vec4(2.0, 2.0, 0.0, 1.0) : vec4((floor(agent.xy) + 0.5) / u_size * 2.0 - 1.0, 0.0, 1.0);\n  gl_PointSize = 1.0;\n}`;\nconst depositFs = HEAD + `\nin vec3 v_add;\nout vec4 outColor;\nvoid main() { outColor = vec4(v_add, 0.0); }`;\n\n// SlimeSim.compute, kernel Diffuse.\nconst diffuseFs = HEAD + `\nuniform sampler2D u_trail;\nuniform ivec2 u_size;\nuniform float u_dt, u_decayRate, u_diffuseRate;\nout vec4 outColor;\nvoid main() {\n  ivec2 id = ivec2(gl_FragCoord.xy);\n  vec3 sum = vec3(0.0);\n  vec3 originalCol = min(texelFetch(u_trail, id, 0).rgb, 1.0);\n  for (int offsetX = -1; offsetX <= 1; offsetX++) {\n    for (int offsetY = -1; offsetY <= 1; offsetY++) {\n      int sampleX = min(u_size.x - 1, max(0, id.x + offsetX));\n      int sampleY = min(u_size.y - 1, max(0, id.y + offsetY));\n      sum += min(texelFetch(u_trail, ivec2(sampleX, sampleY), 0).rgb, 1.0);\n    }\n  }\n  vec3 blurredCol = sum / 9.0;\n  float diffuseWeight = clamp(u_diffuseRate * u_dt, 0.0, 1.0);\n  blurredCol = originalCol * (1.0 - diffuseWeight) + blurredCol * diffuseWeight;\n  outColor = vec4(max(vec3(0.0), blurredCol - u_decayRate * u_dt), 1.0);\n}`;\n\n// SlimeSim.compute, kernel UpdateColourMap, plus a soft shoulder so dense veins glow instead of clipping.\nconst viewFs = HEAD + `\nin vec2 v_uv;\nuniform sampler2D u_trail;\nuniform vec3 u_colours[3];\nuniform int u_numSpecies;\nuniform float u_bright;\nout vec4 outColor;\nvoid main() {\n  vec3 map = texture(u_trail, v_uv).rgb;\n  vec3 colour = vec3(0.0);\n  for (int i = 0; i < 3; i++) {\n    if (i >= u_numSpecies) break;\n    vec3 mask = vec3(i == 0, i == 1, i == 2);\n    colour += u_colours[i] * dot(map, mask);\n  }\n  colour *= u_bright;\n  colour = 1.0 - exp(-colour * 1.4);\n  outColor = vec4(pow(colour, vec3(0.92)), 1.0);\n}`;\n\n// Rescale the trail map into a new size (when the canvas changes shape).\nconst copyFs = HEAD + `\nin vec2 v_uv;\nuniform sampler2D u_src;\nout vec4 outColor;\nvoid main() { outColor = texture(u_src, v_uv); }`;\n// Rescale agent positions with it.\nconst rescaleFs = HEAD + `\nuniform sampler2D u_agents;\nuniform vec2 u_scale, u_size;\nout vec4 outColor;\nvoid main() {\n  vec4 a = texelFetch(u_agents, ivec2(gl_FragCoord.xy), 0);\n  outColor = vec4(clamp(a.xy * u_scale, vec2(0.0), u_size - 1.0), a.zw);\n}`;\n\nconst FV = ctx.utils.FULLSCREEN_VERTEX_SHADER;\nObject.assign(ctx.state, {\n  PRESETS,\n  update: ctx.utils.createProgram(FV, updateFs),\n  deposit: ctx.utils.createProgram(depositVs, depositFs),\n  diffuse: ctx.utils.createProgram(FV, diffuseFs),\n  view: ctx.utils.createProgram(FV, viewFs),\n  copy: ctx.utils.createProgram(FV, copyFs),\n  rescale: ctx.utils.createProgram(FV, rescaleFs),\n  emptyVao: gl.createVertexArray(),\n  agents: null, trail: null, size: null, preset: -1, presetSince: 0, acc: 0, simTime: 0,\n});\n\n// Spawn agents as Simulation.cs Init() does.\nctx.state.spawn = (p, W, H) => {\n  const texW = 512, texH = Math.ceil(p.numAgents / texW), data = new Float32Array(texW * texH * 4);\n  const cx = W / 2, cy = H / 2, ns = p.species.length;\n  const insideUnitCircle = () => { for (;;) { const x = Math.random() * 2 - 1, y = Math.random() * 2 - 1; if (x * x + y * y <= 1) return [x, y]; } };\n  for (let i = 0; i < p.numAgents; i++) {\n    let x, y, angle;\n    const randomAngle = Math.random() * Math.PI * 2;\n    // The original sizes circles by the map height; use the shorter side so portrait canvases fit them too.\n    const m = Math.min(W, H);\n    if (p.spawn === 1) { x = cx; y = cy; angle = randomAngle; }\n    else if (p.spawn === 0) { x = Math.random() * W; y = Math.random() * H; angle = randomAngle; }\n    else if (p.spawn === 2) { const c = insideUnitCircle(); x = cx + c[0] * m * 0.5; y = cy + c[1] * m * 0.5; angle = Math.atan2(cy - y, cx - x); }\n    else if (p.spawn === 3) { const c = insideUnitCircle(); x = cx + c[0] * m * 0.15; y = cy + c[1] * m * 0.15; angle = randomAngle; }\n    // 4 (added here): each species fills its own slice of a disc, heading outward, so the colours start apart.\n    else { const a = ((i % ns) + Math.random()) / ns * Math.PI * 2, rr = m * 0.3 * Math.sqrt(Math.random()); x = cx + Math.cos(a) * rr; y = cy + Math.sin(a) * rr; angle = a + (Math.random() - 0.5) * 1.2; }\n    const species = ns === 1 ? 0 : p.spawn === 4 ? i % ns : Math.floor(Math.random() * ns);\n    data.set([x, y, angle, species], i * 4);\n  }\n  return { texW, texH, data };\n};\n",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst DT = 0.02;          // Unity's fixed timestep in the original project\nconst CYCLE = 26;         // seconds per preset when Auto cycle is on\n\n// The trail map follows the canvas shape at about the original's 1920×1080 cells.\nconst aspect = w / h, AREA = 1920 * 1080;\nconst W = Math.max(16, Math.round(Math.sqrt(AREA * aspect))), H = Math.max(16, Math.round(Math.sqrt(AREA / aspect)));\nconst trailOpts = { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT, filter: gl.LINEAR };\n\nconst load = (index) => {\n  const p = s.PRESETS[index];\n  const { texW, texH, data } = s.spawn(p, W, H);\n  if (!s.agents || s.agents.width !== texW || s.agents.height !== texH) {\n    s.agents = ctx.utils.createPingPong(texW, texH, { internalFormat: gl.RGBA32F, format: gl.RGBA, type: gl.FLOAT, filter: gl.NEAREST });\n  }\n  gl.bindTexture(gl.TEXTURE_2D, s.agents.read().texture);\n  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, texW, texH, gl.RGBA, gl.FLOAT, data);\n  for (const t of [s.trail.read(), s.trail.write()]) {\n    gl.bindFramebuffer(gl.FRAMEBUFFER, t.framebuffer);\n    gl.clearColor(0, 0, 0, 0);\n    gl.clear(gl.COLOR_BUFFER_BIT);\n  }\n  s.preset = index; s.texW = texW; s.presetSince = ctx.time;\n};\n\nif (!s.trail) {\n  s.trail = ctx.utils.createPingPong(W, H, trailOpts);\n  s.size = [W, H];\n} else if (s.size[0] !== W || s.size[1] !== H) {\n  // Canvas changed shape: stretch the trails and agents into the new grid so the network carries on.\n  const old = s.trail;\n  s.trail = ctx.utils.createPingPong(W, H, trailOpts);\n  gl.bindFramebuffer(gl.FRAMEBUFFER, s.trail.read().framebuffer);\n  gl.viewport(0, 0, W, H);\n  gl.useProgram(s.copy);\n  ctx.utils.bindTexture(s.copy, \"u_src\", old.read().texture, 0);\n  ctx.utils.drawFullscreen(s.copy);\n  old.dispose();\n  if (s.agents) {\n    gl.bindFramebuffer(gl.FRAMEBUFFER, s.agents.write().framebuffer);\n    gl.viewport(0, 0, s.agents.width, s.agents.height);\n    gl.useProgram(s.rescale);\n    ctx.utils.bindTexture(s.rescale, \"u_agents\", s.agents.read().texture, 0);\n    ctx.utils.drawFullscreen(s.rescale, { u_scale: [W / s.size[0], H / s.size[1]], u_size: [W, H] });\n    s.agents.swap();\n  }\n  s.size = [W, H];\n}\n\n// Preset: the person's pick, or the next one every CYCLE seconds while Auto cycle is on.\nconst picked = Math.round(u.u_preset);\nif (picked !== s.picked) { s.picked = picked; load(picked); }\nelse if (u.u_reseed) load(s.preset);\nelse if (u.u_auto && ctx.time - s.presetSince > CYCLE) load((s.preset + 1) % s.PRESETS.length);\nconst p = s.PRESETS[s.preset];\nconst ns = p.species.length;\n\n// Pointer in trail-map pixels; drag to attract (or repel; right-drag / Shift flips it).\nconst flip = (ctx.pointer.buttons & 2) || ctx.keys.has(\"ShiftLeft\") || ctx.keys.has(\"ShiftRight\");\nconst sign = (u.u_mouse === 1 ? -1 : 1) * (flip ? -1 : 1);\nconst pointer = ctx.mouseDown ? [ctx.mouse[0] * W, (1 - ctx.mouse[1]) * H, Math.min(W, H) * 0.06, sign * u.u_pull * 30] : [0, 0, 1, 0];\n\nconst species = new Float32Array(12), colours = new Float32Array(9);\np.species.forEach((sp, i) => {\n  species.set([sp[0] * u.u_moveSpeed, sp[1] * u.u_turnSpeed, sp[2] * u.u_sensorAngle, sp[3] * u.u_sensorOffset], i * 4);\n  colours.set(sp[4], i * 3);\n});\n\n// Two fixed steps per FixedUpdate at 50 Hz, as in the project: 100 steps per second of dt = 0.02.\ns.acc = Math.min(s.acc + Math.min(ctx.dt, 0.05) * 100 * u.u_simSpeed, 4);\nconst steps = Math.floor(s.acc);\ns.acc -= steps;\nconst n = p.numAgents, texH = s.agents.height;\nfor (let i = 0; i < steps; i++) {\n  s.step = (s.step || 0) + 1;\n  // Update kernel: sense, steer, move.\n  gl.bindFramebuffer(gl.FRAMEBUFFER, s.agents.write().framebuffer);\n  gl.viewport(0, 0, s.texW, texH);\n  gl.useProgram(s.update);\n  ctx.utils.bindTexture(s.update, \"u_agents\", s.agents.read().texture, 0);\n  ctx.utils.bindTexture(s.update, \"u_trail\", s.trail.read().texture, 1);\n  ctx.utils.drawFullscreen(s.update, {\n    u_texW: s.texW, u_numAgents: n, u_numSpecies: ns, u_size: [W, H], u_dt: DT, u_step: s.step % 1000000,\n    u_species: species, u_pointer: pointer,\n  });\n  s.agents.swap();\n  // Deposit: every agent adds its species mask * trailWeight * dt where it now stands.\n  gl.bindFramebuffer(gl.FRAMEBUFFER, s.trail.read().framebuffer);\n  gl.viewport(0, 0, W, H);\n  gl.enable(gl.BLEND);\n  gl.blendFunc(gl.ONE, gl.ONE);\n  gl.useProgram(s.deposit);\n  ctx.utils.bindTexture(s.deposit, \"u_agents\", s.agents.read().texture, 0);\n  ctx.utils.setUniforms(s.deposit, { u_texW: s.texW, u_numSpecies: ns, u_size: [W, H], u_amount: p.trailWeight * DT });\n  gl.bindVertexArray(s.emptyVao);\n  gl.drawArrays(gl.POINTS, 0, n);\n  gl.bindVertexArray(null);\n  gl.disable(gl.BLEND);\n  // Diffuse kernel: blur and decay into the other buffer.\n  gl.bindFramebuffer(gl.FRAMEBUFFER, s.trail.write().framebuffer);\n  gl.useProgram(s.diffuse);\n  ctx.utils.bindTexture(s.diffuse, \"u_trail\", s.trail.read().texture, 0);\n  ctx.utils.drawFullscreen(s.diffuse, { u_size: [W, H], u_dt: DT, u_decayRate: p.decayRate * u.u_decay, u_diffuseRate: p.diffuseRate * u.u_diffuse });\n  s.trail.swap();\n}\n\n// UpdateColourMap, drawn to the canvas (same shape as the trail map, so nothing stretches).\ngl.bindFramebuffer(gl.FRAMEBUFFER, null);\ngl.viewport(0, 0, w, h);\ngl.useProgram(s.view);\nctx.utils.bindTexture(s.view, \"u_trail\", s.trail.read().texture, 0);\nctx.utils.drawFullscreen(s.view, { u_colours: colours, u_numSpecies: ns, u_bright: u.u_brightness });\n\nctx.publish(\"agents\", n);\nctx.publish(\"preset\", p.name);\nctx.publish(\"trail map\", `${W}×${H}`);\n",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_preset": {
+      "type": "int",
+      "value": 0,
+      "label": "Preset",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Three tribes (300k agents)",
+          "value": 0
+        },
+        {
+          "label": "A · white veins (250k agents)",
+          "value": 1
+        },
+        {
+          "label": "D · three species (25k agents)",
+          "value": 2
+        },
+        {
+          "label": "B · red vs green (25k agents)",
+          "value": 3
+        },
+        {
+          "label": "C · green burst (250k agents)",
+          "value": 4
+        }
+      ]
+    },
+    "u_auto": {
+      "type": "bool",
+      "value": true,
+      "label": "Auto cycle"
+    },
+    "u_reseed": {
+      "type": "bool",
+      "value": false,
+      "label": "Respawn",
+      "widget": "button"
+    },
+    "u_simSpeed": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Simulation speed"
+    },
+    "u_moveSpeed": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Move speed ×"
+    },
+    "u_turnSpeed": {
+      "type": "float",
+      "value": 1,
+      "min": -2,
+      "max": 3,
+      "step": 0.01,
+      "label": "Turn speed ×"
+    },
+    "u_sensorAngle": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Sensor angle ×"
+    },
+    "u_sensorOffset": {
+      "type": "float",
+      "value": 1,
+      "min": 0.1,
+      "max": 3,
+      "step": 0.01,
+      "label": "Sensor offset ×"
+    },
+    "u_decay": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.01,
+      "label": "Decay ×"
+    },
+    "u_diffuse": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.01,
+      "label": "Diffuse ×"
+    },
+    "u_mouse": {
+      "type": "int",
+      "value": 0,
+      "label": "Drag",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Attracts",
+          "value": 0
+        },
+        {
+          "label": "Repels",
+          "value": 1
+        }
+      ]
+    },
+    "u_pull": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Drag strength"
+    },
+    "u_brightness": {
+      "type": "float",
+      "value": 1,
+      "min": 0.2,
+      "max": 3,
+      "step": 0.01,
+      "label": "Brightness"
+    }
+  },
+  "controls": [
+    {
+      "label": "Run",
+      "uniforms": [
+        "u_preset",
+        "u_auto",
+        "u_reseed",
+        "u_simSpeed"
+      ]
+    },
+    {
+      "label": "Agents",
+      "uniforms": [
+        "u_moveSpeed",
+        "u_turnSpeed",
+        "u_sensorAngle",
+        "u_sensorOffset"
+      ]
+    },
+    {
+      "label": "Trails",
+      "uniforms": [
+        "u_decay",
+        "u_diffuse",
+        "u_brightness"
+      ]
+    },
+    {
+      "label": "Pointer",
+      "uniforms": [
+        "u_mouse",
+        "u_pull"
+      ]
+    }
+  ],
+  "inputs": [
+    "mouse"
+  ]
+}

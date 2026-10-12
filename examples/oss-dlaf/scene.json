@@ -1,0 +1,146 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// dlaf by Michael Fogleman (MIT, https://github.com/fogleman/dlaf): diffusion-limited aggregation.\n// dlaf is C++ (one file, dlaf.cpp at commit fc684bd), so this is a port of its Model class to JS:\n// same parameters (ParticleSpacing, AttractionDistance, MinMoveDistance, Stubbornness, Stickiness), same\n// hooks (RandomStartingPosition, ShouldReset, ShouldJoin, PlaceParticle, MotionVector) and the same walk:\n// a particle jumps by max(MinMoveDistance, distance to the nearest particle - AttractionDistance), which is\n// what makes it fast. Boost's R-tree is replaced by a uniform grid; when nothing is found within the\n// searched rings the walk uses a lower bound of the distance instead (never overshoots the cluster).\n// Seed variants use dlaf's hooks the way its README suggests: the ring of seeds is the commented-out block\n// in dlaf.cpp's main() (particles released inside it grow the ring inward), and the coral mode seeds a\n// ground line with particles released above the tallest branch. 3D is dlaf's D = 3.\nconst gl = ctx.gl, s = ctx.state;\nconst MAXN = 60000;\nconst CELL = 4;\n\nfunction makeModel(dim, mode, u) {\n  const G = dim === 2 ? 512 : 96; // grid cells per axis\n  const cells = dim === 2 ? G * G : G * G * G;\n  const m = {\n    dim, mode, G, half: G / 2,\n    head: new Int32Array(cells).fill(-1), next: new Int32Array(MAXN),\n    pts: new Float32Array(MAXN * 3), parent: new Int32Array(MAXN), joins: new Int32Array(MAXN),\n    n: 0, uploaded: 0, maxLen: 0, boundingRadius: 0, walker: null, done: false, innerR: Infinity, topY: 0, width: 0,\n    ring: 0, spacing: u.u_spacing, attraction: u.u_attraction, minMove: u.u_minmove,\n    stubbornness: Math.round(u.u_stubborn), stickiness: u.u_sticky,\n  };\n  return m;\n}\nfunction cellOf(m, x, y, z) {\n  const cx = Math.floor(x / CELL) + m.half, cy = Math.floor(y / CELL) + m.half;\n  if (cx < 0 || cy < 0 || cx >= m.G || cy >= m.G) return -1;\n  if (m.dim === 2) return cy * m.G + cx;\n  const cz = Math.floor(z / CELL) + m.half;\n  if (cz < 0 || cz >= m.G) return -1;\n  return (cz * m.G + cy) * m.G + cx;\n}\n// Model::Add\nfunction add(m, x, y, z, parent) {\n  if (m.n >= MAXN) { m.done = true; return; }\n  const i = m.n++;\n  m.pts[i * 3] = x; m.pts[i * 3 + 1] = y; m.pts[i * 3 + 2] = z;\n  m.parent[i] = parent; m.joins[i] = 0;\n  const c = cellOf(m, x, y, z);\n  if (c >= 0) { m.next[i] = m.head[c]; m.head[c] = i; }\n  const len = Math.hypot(x, y, z);\n  m.maxLen = Math.max(m.maxLen, len);\n  m.boundingRadius = Math.max(m.boundingRadius, len + m.attraction);\n  if (parent >= 0) { m.innerR = Math.min(m.innerR, len); m.topY = Math.max(m.topY, y); }\n}\n// Model::Nearest, plus a distance. Returns index (or -1 with s.lb = lower bound of the distance).\nlet nearestD = 0;\nfunction nearest(m, x, y, z) {\n  const K = m.dim === 2 ? 6 : 3;\n  const cx = Math.floor(x / CELL) + m.half, cy = Math.floor(y / CELL) + m.half, cz = m.dim === 3 ? Math.floor(z / CELL) + m.half : 0;\n  let best = Infinity, bi = -1;\n  const G = m.G, P = m.pts, head = m.head, next = m.next;\n  for (let k = 0; k <= K; k++) {\n    const z0 = m.dim === 3 ? -k : 0, z1 = m.dim === 3 ? k : 0;\n    for (let dz = z0; dz <= z1; dz++) {\n      const zz = cz + dz;\n      if (zz < 0 || zz >= G) continue;\n      for (let dy = -k; dy <= k; dy++) {\n        const yy = cy + dy;\n        if (yy < 0 || yy >= G) continue;\n        const edgeYZ = Math.abs(dy) === k || Math.abs(dz) === k;\n        for (let dx = -k; dx <= k; dx += (edgeYZ ? 1 : 2 * k || 1)) {\n          const xx = cx + dx;\n          if (xx < 0 || xx >= G) continue;\n          let i = head[m.dim === 2 ? yy * G + xx : (zz * G + yy) * G + xx];\n          while (i >= 0) {\n            const ex = P[i * 3] - x, ey = P[i * 3 + 1] - y, ez = P[i * 3 + 2] - z;\n            const d2 = ex * ex + ey * ey + ez * ez;\n            if (d2 < best) { best = d2; bi = i; }\n            i = next[i];\n          }\n        }\n      }\n    }\n    // anything in ring k+1 or beyond is at least k*CELL away\n    if (bi >= 0 && Math.sqrt(best) <= k * CELL) break;\n  }\n  if (bi >= 0) { nearestD = Math.sqrt(best); return bi; }\n  // lower bound of the distance: K rings were empty, and every particle lies inside maxLen (below topY for coral)\n  nearestD = Math.max(K * CELL, m.mode === 3 ? y - m.topY : m.mode === 1 ? Math.min(m.innerR, m.ring) - Math.hypot(x, y) : Math.hypot(x, y, z) - m.maxLen);\n  return -1;\n}\n// RandomInUnitSphere\nconst unit = [0, 0, 0];\nfunction randomInUnitSphere(dim) {\n  for (;;) {\n    const x = Math.random() * 2 - 1, y = Math.random() * 2 - 1, z = dim === 2 ? 0 : Math.random() * 2 - 1;\n    const l2 = x * x + y * y + z * z;\n    if (l2 < 1 && l2 > 1e-9) { unit[0] = x; unit[1] = y; unit[2] = z; return unit; }\n  }\n}\nfunction normalize(v) { const l = Math.hypot(v[0], v[1], v[2]); v[0] /= l; v[1] /= l; v[2] /= l; return v; }\n// RandomStartingPosition: on the bounding sphere (dlaf's default); ring: anywhere inside the ring;\n// coral: just above the tallest branch\nfunction startPos(m, p) {\n  if (m.mode === 3) { p[0] = (Math.random() - 0.5) * m.width; p[1] = m.topY + m.attraction + 6; p[2] = 0; return; }\n  const v = normalize(randomInUnitSphere(m.dim));\n  const r = m.mode === 1 ? m.ring * 0.85 * Math.sqrt(Math.random()) : m.boundingRadius;\n  p[0] = v[0] * r; p[1] = v[1] * r; p[2] = v[2] * r;\n}\n// ShouldReset\nfunction shouldReset(m, p) {\n  if (m.mode === 3) return p[1] > m.topY + 60 || Math.abs(p[0]) > m.width * 0.5 + 4 || p[1] < -2;\n  const l = Math.hypot(p[0], p[1], p[2]);\n  return m.mode === 1 ? l > m.ring * 1.05 : l > m.boundingRadius * 2;\n}\n// ShouldJoin\nfunction shouldJoin(m, parent) {\n  m.joins[parent]++;\n  if (m.joins[parent] < m.stubbornness) return false;\n  return Math.random() <= m.stickiness;\n}\n// Lerp(a, b, d) = a + normalize(b - a) * d, written into p\nfunction lerpFrom(m, i, p, d) {\n  const ax = m.pts[i * 3], ay = m.pts[i * 3 + 1], az = m.pts[i * 3 + 2];\n  let dx = p[0] - ax, dy = p[1] - ay, dz = p[2] - az, l = Math.hypot(dx, dy, dz);\n  if (l < 1e-9) { const v = normalize(randomInUnitSphere(m.dim)); dx = v[0]; dy = v[1]; dz = v[2]; l = 1; }\n  p[0] = ax + dx / l * d; p[1] = ay + dy / l * d; p[2] = az + dz / l * d;\n}\n// One step of Model::AddParticle's loop; returns true when the particle joined.\nfunction walkStep(m) {\n  if (!m.walker) { m.walker = [0, 0, 0]; startPos(m, m.walker); }\n  const p = m.walker;\n  const parent = nearest(m, p[0], p[1], p[2]);\n  const d = nearestD;\n  if (parent >= 0 && d < m.attraction) {\n    if (!shouldJoin(m, parent)) { lerpFrom(m, parent, p, m.attraction + m.minMove); return false; }\n    lerpFrom(m, parent, p, m.spacing); // PlaceParticle\n    add(m, p[0], p[1], p[2], parent);\n    m.walker = null;\n    return true;\n  }\n  const step = Math.max(m.minMove, d - m.attraction);\n  const v = normalize(randomInUnitSphere(m.dim)); // MotionVector\n  p[0] += v[0] * step; p[1] += v[1] * step; p[2] += v[2] * step;\n  if (shouldReset(m, p)) startPos(m, p);\n  return false;\n}\n\n// ---- seeding ------------------------------------------------------------------------------------------\nconst MODES = [\"Point\", \"Ring\", \"3D\", \"Coral\"];\ns.newModel = (mode) => {\n  const u = ctx.uniforms, [w, h] = ctx.resolution;\n  const m = makeModel(mode === 2 ? 3 : 2, mode, u);\n  if (mode === 3) {\n    // coral: a ground line of seeds as wide as the canvas is (at seeding time), grown upward\n    const aspect = Math.min(2, Math.max(0.55, w / h));\n    m.width = 300 * Math.min(1.2, aspect);\n    m.height = Math.min(m.width / aspect, 330) * 0.92;\n    for (let x = -m.width / 2; x <= m.width / 2; x += m.spacing) add(m, x, 0, 0, -1);\n  } else if (mode === 1) {\n    // the ring of seeds from dlaf.cpp's main() (n = 3600, r = 1000 there), scaled to a 150-unit ring\n    m.ring = 150;\n    const n = Math.round(2 * Math.PI * m.ring / m.spacing);\n    for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; add(m, Math.cos(a) * m.ring, Math.sin(a) * m.ring, 0, -1); }\n    m.uploadFrom = 0;\n  } else {\n    add(m, 0, 0, 0, -1); // model.Add(Vector())\n  }\n  return m;\n};\ns.walk = (m, budgetMs, maxJoins) => {\n  const t0 = performance.now();\n  let joined = 0, steps = 0;\n  while (!m.done && joined < maxJoins) {\n    if (walkStep(m)) joined++;\n    if ((++steps & 255) === 0 && performance.now() - t0 > budgetMs) break;\n  }\n  return joined;\n};\ns.add = add;\ns.MODES = MODES;\ns.MAXN = MAXN;\n\n// ---- GL -----------------------------------------------------------------------------------------------\ns.vbo = gl.createBuffer();\ngl.bindBuffer(gl.ARRAY_BUFFER, s.vbo);\ngl.bufferData(gl.ARRAY_BUFFER, MAXN * 12, gl.DYNAMIC_DRAW);\ns.vao = gl.createVertexArray();\ngl.bindVertexArray(s.vao);\ngl.enableVertexAttribArray(0);\ngl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);\ngl.bindVertexArray(null);\n\nconst ptVS = `#version 300 es\nprecision highp float;\nlayout(location=0) in vec3 a_p;\nuniform mat4 u_mvp;\nuniform float u_is3d, u_count, u_size, u_halo, u_scale2d, u_newest;\nuniform vec2 u_res;\nuniform vec2 u_center;\nout float v_t; out float v_new; out float v_fog;\nvoid main() {\n  float id = float(gl_VertexID);\n  v_t = id / max(u_count - 1.0, 1.0);\n  v_new = exp(-(u_count - id) / u_newest);\n  float px;\n  if (u_is3d > 0.5) {\n    vec4 c = u_mvp * vec4(a_p, 1.0);\n    gl_Position = c;\n    px = u_size / c.w;\n    v_fog = clamp(1.6 - c.w * 0.32, 0.25, 1.0);\n  } else {\n    vec2 q = (a_p.xy - u_center) * u_scale2d / (0.5 * u_res);\n    gl_Position = vec4(q, 0.0, 1.0);\n    px = u_size;\n    v_fog = 1.0;\n  }\n  gl_PointSize = clamp(px * u_halo * (1.0 + 0.8 * v_new), 1.0, u_halo > 1.5 ? 36.0 : 14.0);\n}`;\nconst ptFS = `#version 300 es\nprecision highp float;\nin float v_t; in float v_new; in float v_fog;\nout vec4 outColor;\nuniform float u_halo, u_gain, u_palette;\nvec3 pal(float t) {\n  // old (deep) -> young (hot); three palettes\n  vec3 a, b, c, d;\n  if (u_palette < 0.5) { a = vec3(0.10, 0.02, 0.22); b = vec3(0.65, 0.10, 0.55); c = vec3(1.0, 0.45, 0.15); d = vec3(1.0, 0.92, 0.65); }\n  else if (u_palette < 1.5) { a = vec3(0.02, 0.08, 0.25); b = vec3(0.05, 0.45, 0.75); c = vec3(0.30, 0.95, 0.90); d = vec3(0.92, 1.0, 0.95); }\n  else if (u_palette < 2.5) { a = vec3(0.12, 0.04, 0.30); b = vec3(0.25, 0.30, 0.95); c = vec3(0.55, 0.85, 1.0); d = vec3(1.0, 0.95, 1.0); }\n  else { a = vec3(0.02, 0.12, 0.16); b = vec3(0.10, 0.45, 0.45); c = vec3(1.0, 0.42, 0.38); d = vec3(1.0, 0.88, 0.70); }\n  t = clamp(t, 0.0, 1.0);\n  return t < 0.4 ? mix(a, b, t / 0.4) : t < 0.8 ? mix(b, c, (t - 0.4) / 0.4) : mix(c, d, (t - 0.8) / 0.2);\n}\nvoid main() {\n  vec2 q = gl_PointCoord * 2.0 - 1.0;\n  float r2 = dot(q, q);\n  if (r2 > 1.0) discard;\n  float k = u_halo > 1.5 ? exp(-r2 * 5.0) * 0.07 : exp(-r2 * 3.0);\n  vec3 col = pal(pow(v_t, 0.8)) * (0.55 + 0.45 * v_t) + vec3(1.0, 0.95, 0.85) * v_new * 0.9;\n  outColor = vec4(col * k * u_gain * v_fog, 1.0);\n}`;\nconst outFS = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_hdr;\nuniform vec2 u_resolution;\nuniform float u_exposure, u_fade, u_palette;\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }\nvoid main() {\n  vec3 h = texture(u_hdr, v_uv).rgb;\n  // a cheap wide glow from a blurred mip\n  vec2 px = 1.0 / u_resolution;\n  vec3 g = vec3(0.0);\n  for (int i = 0; i < 8; i++) { // jittered taps of two blurred mips, so the glow has no blocky texels\n    float a = float(i) * 2.39996;\n    vec2 o = vec2(cos(a), sin(a)) * sqrt(float(i) + 0.5);\n    g += textureLod(u_hdr, v_uv + o * px * 12.0, 3.0).rgb * 0.08 + textureLod(u_hdr, v_uv + o * px * 40.0, 5.0).rgb * 0.1;\n  }\n  vec3 c = 1.0 - exp(-(h + g) * u_exposure);\n  vec2 q = v_uv - 0.5; q.x *= u_resolution.x / u_resolution.y;\n  vec3 bg = u_palette < 0.5 ? vec3(0.035, 0.015, 0.05) : u_palette < 1.5 ? vec3(0.01, 0.03, 0.05) : u_palette < 2.5 ? vec3(0.02, 0.02, 0.06)\n    : mix(vec3(0.0, 0.025, 0.04), vec3(0.01, 0.07, 0.09), v_uv.y);\n  bg *= 1.2 - 0.9 * dot(q, q);\n  c = (bg + c) * u_fade + (hash(v_uv * u_resolution) - 0.5) * 0.012;\n  outColor = vec4(c, 1.0);\n}`;\ns.ptProg = ctx.utils.createProgram(ptVS, ptFS);\ns.outProg = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, outFS);\ns.makeTarget = (w, h) => {\n  if (s.tex) { gl.deleteTexture(s.tex); gl.deleteFramebuffer(s.fbo); }\n  s.tex = gl.createTexture();\n  gl.bindTexture(gl.TEXTURE_2D, s.tex);\n  const levels = Math.floor(Math.log2(Math.max(w, h))) + 1;\n  gl.texStorage2D(gl.TEXTURE_2D, levels, gl.RGBA16F, w, h);\n  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);\n  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);\n  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);\n  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);\n  s.fbo = gl.createFramebuffer();\n  gl.bindFramebuffer(gl.FRAMEBUFFER, s.fbo);\n  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, s.tex, 0);\n  gl.bindFramebuffer(gl.FRAMEBUFFER, null);\n  s.tw = w; s.th = h;\n};\nif (!gl.getExtension(\"EXT_color_buffer_float\")) throw new Error(\"dlaf: needs EXT_color_buffer_float for the HDR glow buffer\");\ns.camera = ctx.utils.createOrbitCamera({ distance: 3.2, theta: 0.6, phi: 1.2, fov: 40, autoRotate: 0.25, minDistance: 1.2, maxDistance: 8 });\ns.cycleIndex = 0;\ns.start = (mode) => {\n  s.model = s.newModel(mode);\n  s.mode = mode;\n  s.phase = \"grow\"; s.phaseT = 0; s.acc = 0;\n  s.view = mode === 1 ? 165 : 14;\n};\ns.start(0);\n",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst dt = Math.min(ctx.dt, 0.1);\ns.phaseT += dt;\nconst chosen = Math.round(u.u_mode);\nconst CYCLE = [0, 3, 1, 2]; // point, coral, ring, 3D\nconst nextMode = () => (chosen === 4 ? CYCLE[(CYCLE.indexOf(s.mode) + 1) % 4] : chosen);\nif (u.u_restart) s.start(nextMode());\nelse if (chosen !== 4 && chosen !== s.mode) s.start(chosen);\nif (!s.tex || ctx.resized || s.tw !== w || s.th !== h) s.makeTarget(w, h);\n\nconst m = s.model;\n// dlaf's Model parameters, live\nm.spacing = u.u_spacing; m.attraction = u.u_attraction; m.minMove = u.u_minmove;\nm.stubbornness = Math.round(u.u_stubborn); m.stickiness = u.u_sticky;\n\n// 2D view: fit the cluster (a fixed simulation space) inside the shorter side, zooming out as it grows\nconst target = m.mode === 1 ? m.ring * 1.08 : m.mode === 2 ? Math.max(12, m.maxLen * 1.05 + 2) : Math.max(14, m.maxLen * 1.12 + 3);\ns.view += (target - s.view) * Math.min(1, dt * 4);\nlet scale2d = Math.min(w, h) * 0.5 / s.view, center = [0, 0];\nif (m.mode === 3) { scale2d = Math.min(w / (m.width * 1.06), h / (m.height * 1.1)); center = [0, m.height * 0.5]; }\n\n// press to drop a new seed particle there (2D); in 3D the press orbits the camera\nif (m.mode !== 2 && ctx.mouseDown && !s.wasDown && s.phase === \"grow\") {\n  const x = (ctx.mouse[0] * w - w / 2) / scale2d + center[0], y = ((1 - ctx.mouse[1]) * h - h / 2) / scale2d + center[1];\n  s.add(m, x, y, 0, -1);\n}\ns.wasDown = ctx.mouseDown;\nif (m.mode === 2) s.camera.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt);\n\nif (s.phase === \"grow\") {\n  // u_rate particles a second, slower while the cluster is tiny so its first branches can be seen forming\n  s.acc = Math.min((s.acc || 0) + dt * u.u_rate * Math.min(1, 0.1 + m.n / 1500), 4000);\n  s.acc -= s.walk(m, 8, Math.floor(s.acc));\n    const full = m.n >= Math.min(u.u_max, s.MAXN) || m.done ||\n    (m.mode === 0 && m.maxLen > 420) || (m.mode === 2 && m.maxLen > 85) || (m.mode === 1 && m.innerR < m.ring * 0.06) || (m.mode === 3 && m.topY > m.height);\n  if (full) { s.phase = \"rest\"; s.phaseT = 0; }\n} else if (s.phase === \"rest\" && s.phaseT > 3 && u.u_auto) { s.phase = \"fade\"; s.phaseT = 0; }\nelse if (s.phase === \"fade\" && s.phaseT > 1) s.start(nextMode());\n\nif (m.uploaded > m.n) m.uploaded = 0;\nif (m.uploaded < m.n) {\n  gl.bindBuffer(gl.ARRAY_BUFFER, s.vbo);\n  gl.bufferSubData(gl.ARRAY_BUFFER, m.uploaded * 12, m.pts, m.uploaded * 3, (m.n - m.uploaded) * 3);\n  m.uploaded = m.n;\n}\n\n// particles, additively into a half-float buffer\nconst aspect = w / h;\nconst is3d = m.mode === 2;\nlet mvp = ctx.utils.mat4.identity(), size = Math.max(1.3, m.spacing * scale2d * 1.25);\nif (is3d) {\n  const k = 1 / s.view;\n  mvp = ctx.utils.mat4.multiply(s.camera.getViewProjection(aspect), ctx.utils.mat4.fromScaling(k, k, k));\n  const fit = Math.min(1, aspect); // keep the cluster inside a portrait frame too\n  size = m.spacing * k * (h / 2) / Math.tan(20 * Math.PI / 180) * 1.25;\n  mvp = ctx.utils.mat4.multiply(ctx.utils.mat4.fromScaling(fit, fit, 1), mvp);\n  size *= fit;\n}\ngl.bindFramebuffer(gl.FRAMEBUFFER, s.fbo);\ngl.viewport(0, 0, w, h);\ngl.clearColor(0, 0, 0, 0);\ngl.clear(gl.COLOR_BUFFER_BIT);\ngl.enable(gl.BLEND);\ngl.blendFunc(gl.ONE, gl.ONE);\ngl.useProgram(s.ptProg);\nconst palette = m.mode;\nconst common = { u_mvp: mvp, u_is3d: is3d ? 1 : 0, u_count: m.n, u_res: [w, h], u_center: center, u_scale2d: scale2d,\n  u_newest: Math.max(10, m.n * 0.015), u_palette: palette, u_gain: Math.min(2.2, Math.max(1, 2.6 / size)) }; // tiny points get brighter so a big cluster doesn't dim\ngl.bindVertexArray(s.vao);\nctx.utils.setUniforms(s.ptProg, { ...common, u_size: size, u_halo: 4 });\ngl.drawArrays(gl.POINTS, 0, m.n);\nctx.utils.setUniforms(s.ptProg, { u_halo: 1 });\ngl.drawArrays(gl.POINTS, 0, m.n);\ngl.bindVertexArray(null);\ngl.disable(gl.BLEND);\ngl.bindTexture(gl.TEXTURE_2D, s.tex);\ngl.generateMipmap(gl.TEXTURE_2D);\n\ngl.bindFramebuffer(gl.FRAMEBUFFER, null);\ngl.viewport(0, 0, w, h);\nconst fade = s.phase === \"fade\" ? Math.max(0, 1 - s.phaseT) : Math.min(1, 0.3 + s.phaseT * 2);\ngl.useProgram(s.outProg);\nctx.utils.bindTexture(s.outProg, \"u_hdr\", s.tex, 0);\nctx.utils.drawFullscreen(s.outProg, { u_exposure: u.u_glow, u_fade: fade, u_palette: palette });\n\nctx.publish(\"Mode\", s.MODES[m.mode]);\nctx.publish(\"Particles\", m.n);\nctx.publish(\"Cluster radius\", Math.round(m.maxLen));\n",
+    "cleanup": "// nothing to free: GL objects go with the context\n"
+  },
+  "uniforms": {
+    "u_mode": {
+      "type": "int",
+      "value": 4,
+      "label": "Mode",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Point seed",
+          "value": 0
+        },
+        {
+          "label": "Ring seed",
+          "value": 1
+        },
+        {
+          "label": "3D",
+          "value": 2
+        },
+        {
+          "label": "Coral",
+          "value": 3
+        },
+        {
+          "label": "Cycle",
+          "value": 4
+        }
+      ]
+    },
+    "u_sticky": {
+      "type": "float",
+      "value": 1,
+      "min": 0.02,
+      "max": 1,
+      "step": 0.01,
+      "label": "Stickiness"
+    },
+    "u_attraction": {
+      "type": "float",
+      "value": 3,
+      "min": 1,
+      "max": 8,
+      "step": 0.1,
+      "label": "Attraction distance"
+    },
+    "u_spacing": {
+      "type": "float",
+      "value": 1,
+      "min": 0.5,
+      "max": 3,
+      "step": 0.05,
+      "label": "Particle spacing"
+    },
+    "u_minmove": {
+      "type": "float",
+      "value": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "label": "Min move distance"
+    },
+    "u_stubborn": {
+      "type": "int",
+      "value": 0,
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "label": "Stubbornness"
+    },
+    "u_rate": {
+      "type": "float",
+      "value": 2500,
+      "min": 100,
+      "max": 20000,
+      "step": 100,
+      "label": "Particles per second"
+    },
+    "u_max": {
+      "type": "float",
+      "value": 22000,
+      "min": 2000,
+      "max": 60000,
+      "step": 1000,
+      "label": "Max particles"
+    },
+    "u_glow": {
+      "type": "float",
+      "value": 1.2,
+      "min": 0.2,
+      "max": 3,
+      "step": 0.01,
+      "label": "Glow"
+    },
+    "u_auto": {
+      "type": "bool",
+      "value": true,
+      "label": "Auto restart"
+    },
+    "u_restart": {
+      "type": "bool",
+      "value": false,
+      "label": "Restart",
+      "widget": "button"
+    }
+  },
+  "controls": [
+    {
+      "label": "dlaf parameters",
+      "uniforms": [
+        "u_sticky",
+        "u_attraction",
+        "u_spacing",
+        "u_minmove",
+        "u_stubborn"
+      ]
+    },
+    {
+      "label": "Run",
+      "uniforms": [
+        "u_mode",
+        "u_rate",
+        "u_max",
+        "u_auto",
+        "u_restart"
+      ]
+    },
+    {
+      "label": "Look",
+      "uniforms": [
+        "u_glow"
+      ]
+    }
+  ],
+  "inputs": [
+    "mouse"
+  ]
+}

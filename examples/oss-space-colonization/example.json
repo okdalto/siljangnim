@@ -1,0 +1,57 @@
+{
+  "order": 28,
+  "title": "Growing branches (space-colonization)",
+  "title_ko": "자라나는 가지 (space-colonization)",
+  "description": "Nick Nikolov's space-colonization package (0.2.0, imported unchanged from esm.sh) implements Runions et al.'s space colonization algorithm: scattered attractor points pull the nearest living bud tips towards them, tips occasionally split, and attractors die once a branch reaches them. The scene seeds three settings in turn: a lumpy tree crown fed by a trunk column, a leaf blade grown from its petiole into veins, and a soil volume that roots spread down into. It calls the package's iterate function about 30 times a second, mirrors the growing bud graph into instanced capsules on WebGL2, and sizes each edge by the pipe model (thickness grows with the number of tips it feeds, eased in so older wood visibly thickens); depth from each capsule's axis merges the pieces into smooth limbs, fresh growth glows, and consumed attractors flash out. A finished growth rests, fades and the next one starts. Pressing plants a new seed, and dragging scatters attractors its branches chase. While the package runs, Array.prototype.indexOf is swapped for a Map lookup with identical results, because the package looks up every bud's parent with indexOf on each call.",
+  "description_ko": "Nick Nikolov의 space-colonization 패키지(0.2.0, esm.sh에서 고치지 않고 가져옴)는 Runions 등의 공간 군체화(space colonization) 알고리즘을 구현한다. 흩어진 끌개 점들이 가장 가까운 살아 있는 싹 끝을 끌어당기고, 싹은 가끔 둘로 갈라지며, 가지가 닿은 끌개는 사라진다. 씬은 세 가지 환경을 번갈아 심는다. 줄기 쪽 끌개 기둥과 이어진 울퉁불퉁한 나무 수관, 잎자루에서 잎맥이 자라 들어가는 잎 몸, 뿌리가 파고드는 흙 속이다. 패키지의 iterate 함수를 1초에 30번쯤 부르고, 자라는 싹 그래프를 WebGL2 인스턴스 캡슐로 옮겨 그린다. 각 가지의 굵기는 파이프 모델을 따라 그 가지가 먹여 살리는 끝의 수에 맞춰 커지고, 서서히 따라가므로 오래된 가지가 눈에 띄게 굵어진다. 캡슐 축에서의 거리를 깊이로 써서 조각들이 매끈한 가지로 합쳐지고, 새로 자란 부분은 빛나며, 먹힌 끌개는 반짝이고 사라진다. 다 자라면 잠시 머문 뒤 사라지고 다음 성장이 시작된다. 누르면 새 씨앗을 심고, 끌면 그 가지가 쫓아가는 끌개를 뿌린다. 패키지는 호출마다 indexOf로 모든 싹의 부모를 찾기 때문에, 패키지가 도는 동안에만 Array.prototype.indexOf를 결과가 똑같은 Map 조회로 바꿔 둔다.",
+  "prompt": "(open-source example: space-colonization imported in the scene)",
+  "made_with": "space-colonization 0.2.0 (with pex-math 1.0.1) via ctx.utils.import from esm.sh; instanced capsules on ctx.gl",
+  "features": [
+    "space colonization",
+    "procedural trees",
+    "leaf venation",
+    "growth animation",
+    "instanced rendering"
+  ],
+  "mode": "live",
+  "uses": [
+    "space-colonization"
+  ],
+  "summary": "A tree, the veins of a leaf and a tangle of roots grow branch by branch toward glowing seed points, thickening as they age.",
+  "summary_ko": "나무, 잎맥, 뿌리가 빛나는 점들을 향해 가지를 하나씩 뻗으며 자라고, 오래된 가지일수록 굵어져요.",
+  "try": [
+    "Press and drag across the empty sky to plant a seed and lead its branches along your path",
+    "Pick Leaf veins in Style, then raise Split chance for a denser web of veins",
+    "Turn Branch angle up and press Grow new for a wilder, wider tree"
+  ],
+  "try_ko": [
+    "빈 하늘을 누른 채 끌어 보세요. 씨앗이 심기고 가지가 그 길을 따라 자라요",
+    "Style에서 Leaf veins를 고르고 Split chance를 올리면 잎맥이 더 촘촘해져요",
+    "Branch angle을 올리고 Grow new를 누르면 더 넓게 퍼진 나무가 자라요"
+  ],
+  "tool_about": "space-colonization is a small JavaScript package by Nick Nikolov that grows trees the way a 2007 paper by Runions, Lane and Prusinkiewicz describes: you scatter points where you want growth, and branch tips repeatedly step toward the points they can see until every point is reached. The same idea draws trees, roots and leaf veins. It runs in the browser.",
+  "tool_about_ko": "space-colonization은 Nick Nikolov가 만든 작은 JavaScript 패키지로, Runions, Lane, Prusinkiewicz의 2007년 논문에 나온 방식으로 나무를 키워요. 자라났으면 하는 곳에 점을 흩뿌리면, 가지 끝이 보이는 점을 향해 조금씩 나아가다 점이 다 닿을 때까지 자라요. 같은 방법으로 나무, 뿌리, 잎맥을 그릴 수 있어요. 브라우저에서 돌아가요.",
+  "credits": [
+    {
+      "what": "space-colonization package (bud/attractor growth), imported and run unchanged",
+      "what_ko": "space-colonization 패키지(싹과 끌개 성장), 가져와서 그대로 실행",
+      "source": "Nick Nikolov, space-colonization 0.2.0",
+      "license": "MIT",
+      "url": "https://github.com/nicknikolov/space-colonization"
+    },
+    {
+      "what": "pex-math vector functions used by the package",
+      "what_ko": "패키지가 쓰는 pex-math 벡터 함수",
+      "source": "pex-gl, pex-math 1.0.1",
+      "license": "MIT",
+      "url": "https://github.com/pex-gl/pex-math"
+    },
+    {
+      "what": "The space colonization algorithm",
+      "what_ko": "공간 군체화 알고리즘",
+      "source": "Adam Runions, Brendan Lane, Przemyslaw Prusinkiewicz, \"Modeling Trees with a Space Colonization Algorithm\" (2007)",
+      "license": "Paper (algorithm only, no code used)",
+      "url": "https://algorithmicbotany.org/papers/colonization.egwnp2007.html"
+    }
+  ]
+}

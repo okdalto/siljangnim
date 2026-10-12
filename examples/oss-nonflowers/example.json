@@ -1,0 +1,43 @@
+{
+  "order": 26,
+  "title": "Paintings of flowers that don't exist (Nonflowers)",
+  "title_ko": "세상에 없는 꽃 그림 (Nonflowers)",
+  "description": "Lingdong Huang's Nonflowers (main.js) is fetched from a pinned commit and run unchanged in a Web Worker, with the page's DOM stubbed out, doing what its page does for ?seed=<n>: seed its PRNG, make the paper, then grow a woody or herbaceous plant from random parameters (stems, leaves with veins, pedicels and petals built from bent 3D ribbons) and apply its fade/wispy pixel filters and squircle border. Only its Layer helpers are swapped for equivalents that paint at 2x and skip empty pixels in the filters. Every polygon it paints is recorded; the scene reveals the finished painting through a mask redrawn from those polygons in the order they were painted, a constant number per second, so the plant grows stroke by stroke. Pressing on the sheet paints the strokes under the pointer first. A finished painting rests, its ink fades, and the next flower (already generated in the worker) begins.",
+  "description_ko": "Lingdong Huang의 Nonflowers(main.js)를 고정된 커밋에서 받아와 Web Worker 안에서 고치지 않고 돌린다. 페이지의 DOM만 대신 채워 두고, 원래 페이지가 ?seed=<n>에서 하는 일을 그대로 한다. PRNG를 시드하고 종이를 만든 뒤, 무작위 매개변수로 목본 또는 초본 식물(줄기, 잎맥 있는 잎, 꽃자루, 3D 리본을 구부려 만든 꽃잎)을 그리고, fade/wispy 픽셀 필터와 둥근 사각형 테두리를 입힌다. Layer 도우미만 2배 해상도로 그리고 필터에서 빈 픽셀을 건너뛰는 같은 동작의 함수로 바꿨다. 그리는 폴리곤을 모두 기록해 두고, 씬은 그 폴리곤을 그려진 순서대로 초당 일정한 개수씩 마스크에 다시 그려 완성된 그림을 드러낸다. 그래서 식물이 한 획씩 자라난다. 종이를 누르면 포인터 아래의 획부터 먼저 그려진다. 다 그린 그림은 잠시 머문 뒤 먹이 바래고, 워커가 미리 만들어 둔 다음 꽃이 시작된다.",
+  "prompt": "(open-source example: Nonflowers' generator fetched and run in a worker, revealed stroke by stroke)",
+  "made_with": "nonflowers (commit 03b653d) fetched from jsDelivr and run with new Function in a Web Worker on OffscreenCanvas; revealed through a Canvas 2D mask, composited on ctx.gl",
+  "features": [
+    "procedural painting",
+    "generative botany",
+    "stroke animation",
+    "web worker",
+    "canvas texture"
+  ],
+  "mode": "live",
+  "uses": [
+    "nonflowers"
+  ],
+  "summary": "A delicate Chinese-style painting of a flower that doesn't exist grows stroke by stroke on old paper, rests, fades, and a new one begins.",
+  "summary_ko": "세상에 없는 꽃이 동양화풍으로 오래된 종이 위에 한 획씩 그려지고, 잠시 머문 뒤 바래면 새로운 꽃이 시작돼요.",
+  "try": [
+    "Press and drag on the sheet to paint that part first (Brush size sets how wide)",
+    "Press New flower, or set Plant to Woody (branches) for a flowering shrub",
+    "Raise Painting speed, or type a Seed to get the same flower as the Nonflowers site"
+  ],
+  "try_ko": [
+    "종이를 누른 채 끌면 그 부분부터 먼저 그려져요 (Brush size로 붓 크기를 바꿔요)",
+    "New flower를 누르거나 Plant를 Woody (branches)로 바꿔 꽃나무를 그려 보세요",
+    "Painting speed를 올리거나 Seed를 입력하면 Nonflowers 사이트와 같은 꽃이 나와요"
+  ],
+  "tool_about": "Nonflowers is an artwork by Lingdong Huang that invents plants and paints them in the style of traditional Chinese flower paintings, entirely from code: every stem, leaf and petal is generated, so every flower is new. Its original source is downloaded and runs in the browser.",
+  "tool_about_ko": "Nonflowers는 Lingdong Huang이 만든 작품으로, 코드만으로 식물을 지어내 전통 동양 화조화 같은 느낌으로 그려요. 줄기, 잎, 꽃잎 하나하나를 만들어 내기 때문에 매번 처음 보는 꽃이 나와요. 원본 소스를 내려받아 브라우저에서 그대로 돌려요.",
+  "credits": [
+    {
+      "what": "Nonflowers plant and paper generator (main.js), fetched and run unchanged",
+      "what_ko": "Nonflowers 식물·종이 생성기(main.js), 받아와서 그대로 실행",
+      "source": "Lingdong Huang, nonflowers",
+      "license": "MIT",
+      "url": "https://github.com/LingDong-/nonflowers"
+    }
+  ]
+}

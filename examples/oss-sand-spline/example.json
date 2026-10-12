@@ -1,0 +1,43 @@
+{
+  "order": 30,
+  "title": "Sand-painted splines (sand-spline)",
+  "title_ko": "모래로 그린 곡선 (sand-spline)",
+  "description": "A port of Anders Hoff's sand-spline (Python, MIT) from modules/sandSpline.py, modules/helpers.py and the main-circles / main-circle / main-hlines layouts. Each spline is a ring or a line of control points; every iteration each point takes a random step whose size is itself a random walk scaled by the point's index, so one end stays put while the other end frays. Grains are scattered at random chord-length positions along the interpolating spline through the points and added with a tiny alpha into a half-float texture, building up like sand. The grains are generated on the GPU: control points sit in a float texture and the vertex shader evaluates a chord-length Catmull-Rom spline per grain (standing in for scipy's splprep/splev). Pieces cycle through lines, concentric rings and a grid of rings, on paper or dark ground; click to drop a new ring.",
+  "description_ko": "Anders Hoff의 sand-spline(Python, MIT)을 modules/sandSpline.py, modules/helpers.py와 main-circles / main-circle / main-hlines의 배치에서 옮겨 왔다. 곡선마다 고리나 직선 모양의 제어점이 있고, 반복마다 각 점이 무작위로 한 걸음씩 움직이는데, 그 보폭 자체가 점의 번호에 비례하는 랜덤 워크라서 한쪽 끝은 제자리에 있고 다른 쪽 끝은 풀어 헤쳐진다. 점들을 지나는 보간 스플라인 위의 무작위 위치(현 길이 기준)에 모래알을 뿌리고 아주 작은 알파로 half-float 텍스처에 더해 모래처럼 쌓는다. 모래알은 GPU에서 만든다. 제어점을 실수 텍스처에 두고 버텍스 셰이더가 모래알마다 현 길이 Catmull-Rom 스플라인을 계산한다(scipy의 splprep/splev 대신). 작품은 직선, 동심원, 원 격자를 종이나 어두운 바탕 위에서 번갈아 그리고, 클릭하면 새 고리를 떨어뜨린다.",
+  "prompt": "(open-source example: inconvergent's sand-spline ported to the scene)",
+  "made_with": "sand-spline (commit a54ef30) ported from Python to JS; grains generated in a WebGL2 vertex shader and accumulated in a half-float texture",
+  "features": [
+    "generative art",
+    "sand painting",
+    "splines",
+    "gpu points",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "sand-spline"
+  ],
+  "summary": "Lines and rings slowly fray as millions of faint grains pile up along them, like sand poured from a shaking hand.",
+  "summary_ko": "수많은 희미한 모래알이 쌓이면서 선과 고리가 천천히 풀어 헤쳐져요. 떨리는 손으로 모래를 흘린 것처럼요.",
+  "try": [
+    "Click anywhere to drop a new ring and watch it fray",
+    "Turn Drift up for wilder curves, or Grain density down for a finer haze",
+    "Pick a Layout and a Palette, or press New piece"
+  ],
+  "try_ko": [
+    "아무 데나 클릭해서 새 고리를 떨어뜨리고 풀어지는 걸 지켜보세요",
+    "Drift를 올리면 곡선이 더 거칠어지고, Grain density를 내리면 더 고운 안개처럼 돼요",
+    "Layout과 Palette를 골라 보거나 New piece를 눌러 보세요"
+  ],
+  "tool_about": "sand-spline is a small Python program by the generative artist Anders Hoff (inconvergent). It draws curves that slowly wander apart and paints them with countless faint grains, so the pictures look like they were made with sand. Its algorithm was rewritten here to run live in the browser.",
+  "tool_about_ko": "sand-spline은 제너러티브 아티스트 Anders Hoff(inconvergent)가 만든 작은 Python 프로그램이에요. 조금씩 흩어지는 곡선을 셀 수 없이 많은 희미한 모래알로 칠해서, 모래로 그린 것 같은 그림을 만들어요. 여기서는 그 알고리즘을 브라우저에서 실시간으로 돌도록 다시 썼어요.",
+  "credits": [
+    {
+      "what": "sand-spline algorithm (SandSpline noise walk, random spline sampling, circle / circles / hlines layouts), ported from Python to JS and GLSL",
+      "what_ko": "sand-spline 알고리즘(SandSpline 노이즈 워크, 스플라인 무작위 샘플링, circle / circles / hlines 배치), Python에서 JS와 GLSL로 옮김",
+      "source": "Anders Hoff (inconvergent), sand-spline",
+      "license": "MIT",
+      "url": "https://github.com/inconvergent/sand-spline"
+    }
+  ]
+}

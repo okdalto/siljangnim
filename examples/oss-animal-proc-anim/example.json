@@ -1,0 +1,43 @@
+{
+  "order": 25,
+  "title": "Procedurally animated fish, snake and lizard (animal-proc-anim)",
+  "title_ko": "절차적으로 움직이는 물고기, 뱀, 도마뱀 (animal-proc-anim)",
+  "description": "A JavaScript port of argonaut's Processing sketch animal-proc-anim. Each body is a chain of joints kept a fixed distance apart, with each joint's angle limited relative to the one before (Chain.pde, Util.pde); the lizard's four legs are two-joint chains solved with FABRIK, planting a foot and stepping when the body moves too far from it (Lizard.pde). Fish, snake and lizard keep the original's numbers, colours and draw order (Fish.pde, Snake.pde, Lizard.pde), with Processing's curveVertex Catmull-Rom outlines converted to Canvas 2D beziers. The original follows the mouse; here each animal also wanders by chasing a smoothly steered point that keeps it on screen and away from the others, and follows the pointer while it moves or is pressed. The 2D layer is drawn at screen resolution and composited on ctx.gl with soft blurred shadows.",
+  "description_ko": "argonaut의 Processing 스케치 animal-proc-anim을 JavaScript로 옮겼다. 몸은 서로 일정한 거리를 유지하는 관절 사슬이고, 각 관절의 각도는 앞 관절에 대해 일정 범위로 제한된다(Chain.pde, Util.pde). 도마뱀의 네 다리는 FABRIK으로 푸는 두 마디 사슬로, 발을 디뎌 두었다가 몸이 너무 멀어지면 한 걸음 내딛는다(Lizard.pde). 물고기, 뱀, 도마뱀은 원본의 수치, 색, 그리는 순서를 그대로 따르고(Fish.pde, Snake.pde, Lizard.pde), Processing의 curveVertex(캣멀-롬) 윤곽선은 Canvas 2D 베지어로 바꿨다. 원본은 마우스를 따라가지만, 여기서는 화면 안에 머물고 서로 떨어지도록 부드럽게 조향되는 점을 쫓아 스스로 돌아다니다가, 포인터가 움직이거나 눌리는 동안에는 포인터를 따라간다. 2D 레이어를 화면 해상도로 그려 ctx.gl 위에 부드럽게 번진 그림자와 함께 합성한다.",
+  "prompt": "(open-source example: animal-proc-anim's Processing sketch ported to JS)",
+  "made_with": "animal-proc-anim (commit cb171e8) Processing sources ported to JavaScript; drawn with Canvas 2D, composited on ctx.gl",
+  "features": [
+    "procedural animation",
+    "inverse kinematics",
+    "FABRIK",
+    "follow the pointer",
+    "canvas texture"
+  ],
+  "mode": "live",
+  "uses": [
+    "animal-proc-anim"
+  ],
+  "summary": "A koi, a long red snake and a little lizard swim and scurry around on their own, bending like real bodies; move the pointer and they follow it.",
+  "summary_ko": "잉어, 긴 빨간 뱀, 작은 도마뱀이 진짜 몸처럼 휘어지며 스스로 헤엄치고 기어다녀요. 포인터를 움직이면 따라와요.",
+  "try": [
+    "Move or drag the pointer around and watch them chase it",
+    "Pick one Creature, like Lizard, to watch its feet plant and step",
+    "Turn on Show skeleton to see the joint chains underneath, and change Speed"
+  ],
+  "try_ko": [
+    "포인터를 움직이거나 끌어서 동물들이 쫓아오게 해 보세요",
+    "Creature에서 Lizard 하나만 골라 발을 디디고 내딛는 모습을 보세요",
+    "Show skeleton을 켜서 몸속 관절 사슬을 보고, Speed도 바꿔 보세요"
+  ],
+  "tool_about": "animal-proc-anim is a small sketch by argonaut that brings a fish, a snake and a lizard to life with \"procedural animation\": no drawn frames, just a chain of points that follow each other with a few rules, plus a classic trick (FABRIK) for the legs. It was written in Processing; here it is translated to run in the browser.",
+  "tool_about_ko": "animal-proc-anim은 argonaut이 만든 작은 스케치로, 미리 그린 프레임 없이 서로를 따라가는 점 사슬과 몇 가지 규칙, 그리고 다리를 위한 고전적인 기법(FABRIK)만으로 물고기, 뱀, 도마뱀을 살아 움직이게 해요. 원래 Processing으로 쓰인 것을 브라우저에서 돌아가도록 옮겼어요.",
+  "credits": [
+    {
+      "what": "Chain, Util, Fish, Snake and Lizard (procedural animation, FABRIK legs, body outlines), ported from Processing to JavaScript",
+      "what_ko": "Chain, Util, Fish, Snake, Lizard(절차적 애니메이션, FABRIK 다리, 몸 윤곽선), Processing에서 JavaScript로 옮김",
+      "source": "argonaut, animal-proc-anim",
+      "license": "MIT",
+      "url": "https://github.com/argonautcode/animal-proc-anim"
+    }
+  ]
+}

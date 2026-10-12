@@ -1,0 +1,43 @@
+{
+  "order": 29,
+  "title": "Diffusion-limited growth (dlaf)",
+  "title_ko": "확산 제한 응집 (dlaf)",
+  "description": "A JavaScript port of Michael Fogleman's dlaf (C++, dlaf.cpp at commit fc684bd): particles random-walk until they come within the attraction distance of the cluster, then stick at the particle spacing from the particle they hit, building branching coral and lightning shapes. The port keeps dlaf's Model parameters (particle spacing, attraction distance, minimum move distance, stubbornness, stickiness), its hooks and its speed trick: each step jumps by the distance to the nearest particle minus the attraction distance. Boost's R-tree is replaced by a uniform grid that falls back to a lower bound of that distance when nothing is near. Four seedings run in turn: a single point (dlaf's default), coral rising from a ground line, a ring of seeds grown inward (the commented-out seeds in dlaf's main), and the 3D version (D = 3) under the orbit camera. Particles are drawn as additive point sprites into a half-float buffer, colored by age with the newest ones flashing, then tone-mapped with a soft mip glow. The 2D view zooms out as the cluster grows; a full cluster rests, fades and the next mode starts. Pressing in 2D drops a new seed particle.",
+  "description_ko": "Michael Fogleman의 dlaf(C++, 커밋 fc684bd의 dlaf.cpp)를 JavaScript로 옮긴 것이다. 입자는 무작위로 걷다가 덩어리에서 끌림 거리 안에 들어오면, 부딪힌 입자에서 입자 간격만큼 떨어진 자리에 붙어 산호와 번개 같은 가지 모양을 만든다. dlaf Model의 매개변수(입자 간격, 끌림 거리, 최소 이동 거리, 고집, 끈적임)와 훅, 그리고 속도의 비결인 '가장 가까운 입자까지의 거리에서 끌림 거리를 뺀 만큼 한 번에 뛰기'를 그대로 살렸다. Boost의 R-트리 대신 균일 격자를 쓰고, 가까이 아무것도 없으면 그 거리의 하한값으로 뛴다. 네 가지 씨앗을 번갈아 돌린다. 점 하나(dlaf 기본값), 바닥 선에서 솟아오르는 산호, 안쪽으로 자라는 고리(dlaf main에서 주석 처리된 씨앗), 궤도 카메라로 보는 3D 버전(D = 3)이다. 입자는 하프 플로트 버퍼에 더하기 블렌딩 점으로 그려지고, 나이에 따라 색이 바뀌며 가장 새 입자는 반짝인 뒤, 부드러운 밉맵 빛번짐과 함께 톤 매핑된다. 2D 화면은 덩어리가 커지는 만큼 물러나고, 다 자라면 잠시 머문 뒤 사라지고 다음 모드가 시작된다. 2D에서 누르면 그 자리에 새 씨앗 입자가 놓인다.",
+  "prompt": "(open-source example: dlaf ported to JavaScript in the scene)",
+  "made_with": "dlaf (commit fc684bd) ported from C++ to JS; point sprites into an RGBA16F buffer on ctx.gl",
+  "features": [
+    "diffusion-limited aggregation",
+    "random walk",
+    "spatial grid",
+    "point sprites",
+    "glow"
+  ],
+  "mode": "live",
+  "uses": [
+    "dlaf"
+  ],
+  "summary": "Glowing particles wander and stick one by one, growing coral, frost and lightning shapes that bloom outward in seconds.",
+  "summary_ko": "빛나는 입자들이 떠돌다 하나씩 달라붙어, 산호와 성에와 번개 같은 모양이 몇 초 만에 피어나요.",
+  "try": [
+    "Lower Stickiness to grow thicker, furrier branches",
+    "Press anywhere in a 2D mode to drop a new seed and watch the growth reach for it",
+    "Pick 3D in Mode and drag to orbit the growing cluster"
+  ],
+  "try_ko": [
+    "Stickiness를 낮추면 가지가 더 굵고 복슬복슬해져요",
+    "2D 모드에서 아무 곳이나 누르면 새 씨앗이 놓이고, 덩어리가 그쪽으로 뻗어 가요",
+    "Mode에서 3D를 고르고 끌어서 자라는 덩어리를 돌려 보세요"
+  ],
+  "tool_about": "dlaf is a small, very fast C++ program by Michael Fogleman for diffusion-limited aggregation: particles drift about at random and freeze when they touch a growing cluster, which is how frost, mineral dendrites and some corals form. Here its algorithm is rewritten in JavaScript so it runs in the browser.",
+  "tool_about_ko": "dlaf는 Michael Fogleman이 만든 작고 아주 빠른 C++ 프로그램으로, 확산 제한 응집을 계산해요. 입자가 무작위로 떠돌다 자라는 덩어리에 닿으면 그 자리에 굳는데, 성에나 광물 수지상 결정, 일부 산호가 이렇게 생겨나요. 여기서는 그 알고리즘을 JavaScript로 다시 써서 브라우저에서 돌려요.",
+  "credits": [
+    {
+      "what": "dlaf diffusion-limited aggregation (Model class, parameters, hooks, walk), ported from dlaf.cpp to JavaScript",
+      "what_ko": "dlaf 확산 제한 응집(Model 클래스, 매개변수, 훅, 걷기), dlaf.cpp에서 JavaScript로 옮김",
+      "source": "Michael Fogleman, dlaf (commit fc684bd)",
+      "license": "MIT",
+      "url": "https://github.com/fogleman/dlaf"
+    }
+  ]
+}

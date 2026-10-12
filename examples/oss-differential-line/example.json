@@ -1,0 +1,43 @@
+{
+  "order": 27,
+  "title": "Growing coral line (differential-line)",
+  "title_ko": "자라나는 산호 선 (differential-line)",
+  "description": "A port of Anders Hoff's differential-line (Python/Cython, MIT): optimize_position and __reject from src/differentialLine.pyx, split_edge and init_circle_segment from src/segments.pyx, the neighbour grid of src/zonemap.pxd and spawn() from modules/growth.py, with main_ani.py's parameters (nearl 0.002, farl 0.04, step 0.0004). A closed line of vertices: each is pulled toward its two neighbours when further than nearl and pushed away from every other vertex within farl; edges longer than nearl split at random. Neighbours come from a uniform grid rebuilt each step with a counting sort, and the scene runs as many steps per frame as fit in a few milliseconds. The live line is drawn as instanced quads coloured along its length, a snapshot every 0.3 s is laid into a half-float trail texture as growth rings, and the inside is filled with signed triangle fans. The frame edge acts as a wall; when the frame is full a new run fades in.",
+  "description_ko": "Anders Hoff의 differential-line(Python/Cython, MIT)을 옮겨 왔다. src/differentialLine.pyx의 optimize_position과 __reject, src/segments.pyx의 split_edge와 init_circle_segment, src/zonemap.pxd의 이웃 격자, modules/growth.py의 spawn()을 main_ani.py의 파라미터(nearl 0.002, farl 0.04, step 0.0004)로 돌린다. 닫힌 선 위의 꼭짓점마다 두 이웃이 nearl보다 멀면 끌어당기고, farl 안의 다른 모든 꼭짓점은 밀어낸다. nearl보다 긴 변은 무작위로 쪼개진다. 이웃은 스텝마다 계수 정렬로 다시 만드는 균일 격자에서 찾고, 프레임마다 몇 밀리초 안에 들어가는 만큼 스텝을 돌린다. 지금의 선은 길이 방향으로 색이 바뀌는 인스턴스 사각형으로 그리고, 0.3초마다 찍은 선을 half-float 트레일 텍스처에 나이테처럼 남기며, 안쪽은 부호 있는 삼각형 팬으로 채운다. 화면 가장자리는 벽 역할을 하고, 화면이 다 차면 새로 자라기 시작한다.",
+  "prompt": "(open-source example: inconvergent's differential-line ported to the scene)",
+  "made_with": "differential-line (commit d951ed4) ported from Python/Cython to JS with a grid neighbour search; drawn with WebGL2 instanced quads, a trail texture and triangle-fan fills",
+  "features": [
+    "differential growth",
+    "generative art",
+    "simulation",
+    "spatial hashing",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "differential-line"
+  ],
+  "summary": "A single loop of thread keeps growing and folding on itself into a glowing brain-coral, leaving rings of its past shapes behind.",
+  "summary_ko": "고리 모양의 실 한 가닥이 계속 자라고 접히면서 빛나는 뇌산호가 돼요. 지나온 모양은 나이테처럼 남아요.",
+  "try": [
+    "Click to plant a new seed and watch the colonies push against each other",
+    "Change Fold size for big lazy folds or fine wrinkles, and Growth for how eagerly it grows",
+    "Pick another Palette, raise Trails, or press Restart"
+  ],
+  "try_ko": [
+    "클릭해서 새 씨앗을 심고 무리끼리 서로 밀어내는 걸 지켜보세요",
+    "Fold size로 크고 느긋한 주름이나 잔주름을, Growth로 얼마나 빨리 자랄지 바꿔 보세요",
+    "Palette를 바꾸거나 Trails를 올리거나 Restart를 눌러 보세요"
+  ],
+  "tool_about": "differential-line is a program by the generative artist Anders Hoff (inconvergent) that grows a line the way coral, lettuce leaves or brain folds grow: every bit of the line pushes its neighbours away and keeps adding new bits, so it has to fold to fit. Its algorithm was rewritten here to run live in the browser.",
+  "tool_about_ko": "differential-line은 제너러티브 아티스트 Anders Hoff(inconvergent)가 만든 프로그램으로, 산호나 상추 잎, 뇌 주름이 자라는 방식으로 선을 키워요. 선의 조각마다 이웃을 밀어내면서 새 조각을 계속 보태니, 자리를 찾으려면 접힐 수밖에 없어요. 여기서는 그 알고리즘을 브라우저에서 실시간으로 돌도록 다시 썼어요.",
+  "credits": [
+    {
+      "what": "differential-line growth algorithm (attraction/rejection, edge splitting, spawn, neighbour grid), ported from Python/Cython to JS",
+      "what_ko": "differential-line 성장 알고리즘(끌어당김/밀어냄, 변 쪼개기, spawn, 이웃 격자), Python/Cython에서 JS로 옮김",
+      "source": "Anders Hoff (inconvergent), differential-line",
+      "license": "MIT",
+      "url": "https://github.com/inconvergent/differential-line"
+    }
+  ]
+}

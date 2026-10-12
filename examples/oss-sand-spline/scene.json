@@ -1,0 +1,99 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Sand Spline — a port of Anders Hoff's (inconvergent) sand-spline (MIT), Python → JS + WebGL2.\n// Ported from modules/sandSpline.py (SandSpline.__next__), modules/helpers.py (_rnd_interpolate) and the\n// layouts in main-circles.py (grid of rings), main-circle.py (concentric rings) and main-hlines.py (lines),\n// commit a54ef30. Every iteration each control point takes a random step whose size is its own random walk\n// (noise[i] += U(-1,1) * i * STP), so one end of a spline stays put while the other end frays; then grains\n// are scattered at random positions along the interpolating spline through the control points and painted\n// with a tiny alpha, building up like sand. Here the grains are generated on the GPU: control points live in\n// a float texture, the vertex shader picks a random arc-length position per grain and evaluates the curve.\n// (scipy's splprep/splev cubic spline is replaced by a chord-length Catmull-Rom spline — also interpolating.)\nconst gl = ctx.gl;\nconst s = ctx.state;\nconst floatOK = !!gl.getExtension(\"EXT_color_buffer_float\");\nconst MAXP = 160;      // control points per spline (originals use 4..150)\nconst MAXS = 512;      // splines per piece\n\n// --- programs ---------------------------------------------------------------------------------------------\nconst grainVs = `#version 300 es\nprecision highp float;\nprecision highp sampler2D;\nuniform sampler2D u_ctrl;     // row = spline, texel = control point: (x, y, cumulative chord length, -)\nuniform sampler2D u_info;     // texel x = spline: (point count, total length, color index, grain count)\nuniform int u_grains;         // grain slots per spline\nuniform float u_seed;\nuniform vec2 u_center;        // pixels\nuniform float u_unit;         // pixels per world unit\nuniform vec2 u_resolution;\nuniform vec3 u_pal[5];\nuniform float u_alpha;\nout vec4 v_col;\nuint hash(uint x) { x ^= x >> 16; x *= 0x7feb352du; x ^= x >> 15; x *= 0x846ca68bu; x ^= x >> 16; return x; }\nfloat rnd(uint a) { return float(hash(a) >> 8) / 16777216.0; }\nvec2 cp(int sp, int i, int n) { return texelFetch(u_ctrl, ivec2(clamp(i, 0, n - 1), sp), 0).xy; }\nfloat cl(int sp, int i) { return texelFetch(u_ctrl, ivec2(i, sp), 0).z; }\nvoid main() {\n  int sp = gl_VertexID / u_grains, g = gl_VertexID - sp * u_grains;\n  vec4 info = texelFetch(u_info, ivec2(sp, 0), 0);\n  int n = int(info.x);\n  gl_PointSize = 1.0;\n  if (n < 2 || float(g) >= info.w) { gl_Position = vec4(2.0, 2.0, 0.0, 1.0); return; }\n  // random position along the curve, uniform in chord length (splprep's u is chord-length too)\n  float u = rnd(uint(gl_VertexID) * 2654435761u ^ uint(u_seed)) * info.y;\n  int lo = 0, hi = n - 1;\n  for (int k = 0; k < 8; k++) { int mid = (lo + hi) / 2; if (cl(sp, mid) <= u) lo = mid; else hi = mid; }\n  float c0 = cl(sp, lo), c1 = cl(sp, lo + 1);\n  float t = c1 > c0 ? clamp((u - c0) / (c1 - c0), 0.0, 1.0) : 0.0;\n  vec2 p0 = cp(sp, lo - 1, n), p1 = cp(sp, lo, n), p2 = cp(sp, lo + 1, n), p3 = cp(sp, lo + 2, n);\n  vec2 p = 0.5 * (2.0 * p1 + (p2 - p0) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t * t + (3.0 * p1 - p0 - 3.0 * p2 + p3) * t * t * t);\n  vec2 px = u_center + p * u_unit;\n  gl_Position = vec4(px / u_resolution * 2.0 - 1.0, 0.0, 1.0);\n  v_col = vec4(u_pal[int(info.z) % 5] * u_alpha, u_alpha);\n}`;\nconst grainFs = `#version 300 es\nprecision highp float;\nin vec4 v_col;\nout vec4 outColor;\nvoid main() { outColor = v_col; }`;\n// The sand texture holds, per pixel, the sum of alpha*color (rgb) and alpha (a). On light paper the grains\n// absorb (1 - color) like pigment; on dark ground they glow.\nconst viewFs = `#version 300 es\nprecision highp float;\nin vec2 v_uv;\nout vec4 outColor;\nuniform sampler2D u_sand;\nuniform vec2 u_resolution;\nuniform float u_dark, u_fade, u_time;\nuniform vec3 u_paper;\nfloat h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }\nvoid main() {\n  vec4 a = texture(u_sand, v_uv) * u_fade;\n  vec2 q = (v_uv - 0.5) * vec2(u_resolution.x / u_resolution.y, 1.0);\n  float vig = 1.0 - 0.35 * dot(q, q);\n  float grainNoise = (h(gl_FragCoord.xy) - 0.5) * 0.03;\n  vec3 light = u_paper * vig * exp(-2.2 * max(a.a - a.rgb, vec3(0.0))) + grainNoise;\n  vec3 ground = vec3(0.035, 0.035, 0.045) * vig;\n  vec3 dark = ground + (1.0 - exp(-1.6 * a.rgb)) * 1.05 + grainNoise * 0.5;\n  outColor = vec4(mix(light, dark, u_dark), 1.0);\n}`;\ns.grainProg = ctx.utils.createProgram(grainVs, grainFs);\ns.viewProg = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, viewFs);\ns.vao = gl.createVertexArray();\ns.floatOK = floatOK;\ns.MAXP = MAXP; s.MAXS = MAXS;\ns.ctrlData = new Float32Array(MAXP * MAXS * 4);\ns.infoData = new Float32Array(MAXS * 4);\nconst texOpts = { internalFormat: gl.RGBA32F, format: gl.RGBA, type: gl.FLOAT, filter: gl.NEAREST };\ns.ctrlTex = ctx.utils.uploadDataTexture(gl, null, MAXP, MAXS, s.ctrlData, texOpts);\ns.infoTex = ctx.utils.uploadDataTexture(gl, null, MAXS, 1, s.infoData, texOpts);\ns.texOpts = texOpts;\n\n// --- palettes (on paper: inks; on dark ground: light) -------------------------------------------------------\ns.palettes = [\n  { name: \"Ink\", dark: 0, colors: [[0.0, 0.05, 0.12], [0.02, 0.32, 0.38], [0.05, 0.12, 0.25], [0.0, 0.0, 0.0], [0.1, 0.45, 0.5]] },\n  { name: \"Ember\", dark: 1, colors: [[1.0, 0.55, 0.2], [1.0, 0.85, 0.55], [0.95, 0.3, 0.25], [1.0, 0.7, 0.35], [0.9, 0.9, 0.85]] },\n  { name: \"Rust & indigo\", dark: 0, colors: [[0.55, 0.12, 0.05], [0.1, 0.12, 0.35], [0.75, 0.35, 0.1], [0.05, 0.05, 0.1], [0.3, 0.1, 0.25]] },\n  { name: \"Glacier\", dark: 1, colors: [[0.45, 0.85, 1.0], [0.8, 0.95, 1.0], [0.35, 0.55, 1.0], [0.7, 0.6, 1.0], [1.0, 1.0, 1.0]] },\n];\n\nconst TWOPI = Math.PI * 2;\nconst randint = (a, b) => a + Math.floor(Math.random() * (b - a));\n// A spline: fixed guide (where it is drawn), control points relative to the guide, per-point noise and scale.\nfunction makeSpline(gx, gy, path, stp, color, grains) {\n  const n = path.length / 2;\n  const scale = new Float64Array(n);\n  for (let i = 0; i < n; i++) scale[i] = i * stp; // scale = arange(pnum) * STP\n  return { gx, gy, path: Float64Array.from(path), noise: new Float64Array(n), scale, n, color, grains };\n}\nconst ring = (pnum, r) => {\n  const a0 = Math.random() * TWOPI, p = [];\n  for (let i = 0; i < pnum; i++) { const a = a0 + (i / (pnum - 1)) * TWOPI; p.push(Math.cos(a) * r, Math.sin(a) * r); }\n  return p;\n};\ns.ring = ring;\ns.makeSpline = makeSpline;\n// Layouts in world units: the short side of the canvas spans 1.0, centered at 0. STP values are scaled up\n// from the originals (which run for hours on 5000-10000 px canvases) so a piece unfolds in ~20 s.\ns.layouts = [\n  // main-circles.py: a grid of small rings, 10..150 control points each\n  (aw, ah, drift) => {\n    const EDGE = 0.08, short = Math.min(aw, ah), nShort = 7;\n    const step = (short * (1 - 2 * EDGE)) / (nShort - 1), leap = step * 0.5 * 0.75;\n    const nx = Math.max(1, Math.floor((aw - 2 * EDGE * short) / step + 1e-6) + 1);\n    const ny = Math.max(1, Math.floor((ah - 2 * EDGE * short) / step + 1e-6) + 1);\n    const ox = -((nx - 1) * step) / 2, oy = -((ny - 1) * step) / 2, out = [];\n    for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) {\n      const pnum = randint(10, 150);\n      out.push(makeSpline(ox + i * step, oy + j * step, ring(pnum, leap), (drift * leap) / 15000, (i + j * 3) % 5, 1600));\n    }\n    return out;\n  },\n  // main-circle.py: 30 concentric rings of 15..100 control points around one center\n  (aw, ah, drift) => {\n    const R = Math.min(aw, ah) * 0.5 * 0.86, out = [];\n    for (let k = 0; k < 30; k++) {\n      const pnum = randint(15, 100), r = R * (0.2 + Math.random() * 0.8);\n      out.push(makeSpline(0, 0, ring(pnum, r), 3e-6 * drift, k % 5, Math.round(9000 * r / R)));\n    }\n    return out;\n  },\n  // main-hlines.py: horizontal lines, the i-th with 4 + i control points, so lower lines fray more\n  (aw, ah, drift) => {\n    const EDGE = 0.08, rows = Math.round(48 * Math.sqrt(ah / Math.min(aw, ah))), out = [];\n    const half = (aw * (1 - 2 * EDGE)) / 2;\n    for (let i = 0; i < rows; i++) {\n      const y = (ah / 2) * (1 - 2 * EDGE) * (1 - (2 * i) / (rows - 1));\n      const pnum = 4 + Math.round(i * 60 / rows), p = [];\n      for (let k = 0; k < pnum; k++) p.push(-half + (2 * half * k) / (pnum - 1), 0);\n      out.push(makeSpline(0, y, p, 1.6e-6 * drift, i % 5, Math.round(5000 * aw / Math.min(aw, ah))));\n    }\n    return out;\n  },\n];\ns.layoutNames = [\"Grid of rings\", \"Concentric rings\", \"Lines\"];\n\n// One iteration of SandSpline.__next__: noise random-walks, every control point steps in a random direction.\ns.stepSpline = (sp) => {\n  const { path, noise, scale, n } = sp;\n  for (let i = 0; i < n; i++) {\n    noise[i] += (1 - 2 * Math.random()) * scale[i];\n    const a = Math.random() * TWOPI;\n    path[2 * i] += Math.cos(a) * noise[i];\n    path[2 * i + 1] += Math.sin(a) * noise[i];\n  }\n};\n\ns.started = false;\ns.piece = -1;\ns.wasDown = false;\ns.iter = 0;\ns.seed = 1;\n",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst S = Math.min(w, h), aw = w / S, ah = h / S;\nconst PIECE = 1300; // iterations per piece (~22 s at one iteration per frame)\n\nconst newPiece = () => {\n  s.piece++;\n  const mode = u.u_layout >= 0 && u.u_layout < 3 ? Math.round(u.u_layout) : [2, 1, 0][s.piece % 3];\n  // Auto: lines on dark first, then rings on paper, and so on\n  s.pal = u.u_palette >= 0 ? s.palettes[Math.round(u.u_palette)] : s.palettes[[1, 0, 2, 3][s.piece % 4]];\n  s.splines = s.layouts[mode](aw, ah, u.u_drift);\n  s.mode = mode;\n  s.iter = 0; s.phase = \"draw\"; s.phaseT = 0; s.fade = 1;\n  s.layoutKey = `${u.u_layout}|${u.u_palette}`;\n  s.clear = true;\n};\n\n// sand target: canvas-sized, rebuilt (and the piece re-laid out) when the size changes\nif (!s.sand || ctx.resized || s.sand.width !== w || s.sand.height !== h) {\n  const fmt = s.floatOK ? { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT, filter: gl.NEAREST }\n    : { internalFormat: gl.RGBA8, format: gl.RGBA, type: gl.UNSIGNED_BYTE, filter: gl.NEAREST };\n  if (!s.sand) s.sand = ctx.utils.createPingPong(w, h, fmt); else s.sand.resize(w, h);\n  s.piece = Math.max(-1, s.piece - 1);\n  newPiece();\n}\nif (u.u_new || s.layoutKey !== `${u.u_layout}|${u.u_palette}`) newPiece();\n\n// click: drop a new fraying ring where the pointer is (y down in ctx.mouse)\nif (ctx.mouseDown && !s.wasDown && s.splines.length < s.MAXS && s.phase === \"draw\") {\n  const r = 0.03 + Math.random() * 0.09, pnum = 40 + Math.floor(Math.random() * 110);\n  const sp = s.makeSpline((ctx.mouse[0] - 0.5) * aw, (0.5 - ctx.mouse[1]) * ah, s.ring(pnum, r), (u.u_drift * r) / 30000, Math.floor(Math.random() * 5), Math.round(1600 * r / 0.03));\n  s.splines.push(sp);\n  s.iter = Math.min(s.iter, PIECE - 400); // give it time to fray\n}\ns.wasDown = ctx.mouseDown;\n\nconst dt = Math.min(ctx.dt, 0.1);\ns.phaseT += dt;\nlet iters = 0;\nif (s.phase === \"draw\") {\n  // the first frame lays down half a second of iterations so the sand is visible at once\n  // 60 iterations a second times Speed, whatever the display rate\n  s.acc = Math.min((s.acc ?? 0) + dt * 60 * u.u_speed, 8);\n  iters = Math.floor(s.acc); s.acc -= iters;\n  if (s.iter === 0) iters = Math.max(iters, 30);\n  if (s.iter >= PIECE) { s.phase = \"hold\"; s.phaseT = 0; iters = 0; }\n} else if (s.phase === \"hold\") {\n  if (s.phaseT > 2.5) { s.phase = \"fade\"; s.phaseT = 0; }\n} else if (s.phase === \"fade\") {\n  s.fade = Math.max(0, 1 - s.phaseT / 1.2);\n  if (s.fade <= 0) newPiece();\n}\n\nconst ctrl = s.ctrlData, info = s.infoData, MAXP = s.MAXP, n = s.splines.length;\nlet maxG = 1;\nfor (const sp of s.splines) maxG = Math.max(maxG, sp.grains);\n// grains are drawn at canvas resolution: keep the look the same at any size\nconst alpha = 0.0016 * [0.7, 0.4, 1][s.mode] * u.u_grain * Math.pow(S / 720, 1.0);\n\ngl.bindFramebuffer(gl.FRAMEBUFFER, s.sand.read().framebuffer);\ngl.viewport(0, 0, w, h);\nif (s.clear) { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); s.clear = false; }\nif (iters > 0) {\n  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);\n  gl.useProgram(s.grainProg);\n  const pal = s.pal.colors.flat();\n  for (let it = 0; it < iters; it++) {\n    for (let k = 0; k < n; k++) {\n      const sp = s.splines[k];\n      s.stepSpline(sp);\n      let len = 0;\n      const base = k * MAXP * 4, p = sp.path;\n      for (let i = 0; i < sp.n; i++) {\n        if (i > 0) len += Math.hypot(p[2 * i] - p[2 * i - 2], p[2 * i + 1] - p[2 * i - 1]);\n        ctrl[base + i * 4] = sp.gx + p[2 * i];\n        ctrl[base + i * 4 + 1] = sp.gy + p[2 * i + 1];\n        ctrl[base + i * 4 + 2] = len;\n      }\n      info[k * 4] = sp.n; info[k * 4 + 1] = len; info[k * 4 + 2] = sp.color;\n      // more grains on a longer (frayed) curve, like INUM grains over a curve drawn at 10000 px\n      info[k * 4 + 3] = Math.min(maxG, sp.grains);\n    }\n    gl.bindTexture(gl.TEXTURE_2D, s.ctrlTex);\n    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, MAXP, n, gl.RGBA, gl.FLOAT, ctrl);\n    gl.bindTexture(gl.TEXTURE_2D, s.infoTex);\n    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, n, 1, gl.RGBA, gl.FLOAT, info);\n    ctx.utils.bindTexture(s.grainProg, \"u_ctrl\", s.ctrlTex, 0);\n    ctx.utils.bindTexture(s.grainProg, \"u_info\", s.infoTex, 1);\n    ctx.utils.setUniforms(s.grainProg, {\n      u_grains: maxG, u_seed: (s.seed = (s.seed * 1103515245 + 12345) % 16777213), u_center: [w / 2, h / 2], u_unit: S,\n      u_resolution: [w, h], u_pal: pal, u_alpha: alpha,\n    });\n    gl.bindVertexArray(s.vao);\n    gl.drawArrays(gl.POINTS, 0, n * maxG);\n    gl.bindVertexArray(null);\n    s.iter++;\n  }\n  gl.disable(gl.BLEND);\n}\ngl.bindFramebuffer(gl.FRAMEBUFFER, null);\ngl.viewport(0, 0, w, h);\ngl.useProgram(s.viewProg);\nctx.utils.bindTexture(s.viewProg, \"u_sand\", s.sand.read().texture, 0);\nctx.utils.drawFullscreen(s.viewProg, { u_dark: s.pal.dark, u_fade: s.fade, u_paper: [0.96, 0.94, 0.89] });\n\nctx.publish(\"layout\", s.layoutNames[s.mode]);\nctx.publish(\"palette\", s.pal.name);\nctx.publish(\"splines\", n);\nctx.publish(\"piece %\", Math.round((100 * s.iter) / PIECE));\n",
+    "cleanup": "const s = ctx.state, gl = ctx.gl;\ngl.deleteTexture(s.ctrlTex); gl.deleteTexture(s.infoTex);\ngl.deleteProgram(s.grainProg); gl.deleteProgram(s.viewProg);\ngl.deleteVertexArray(s.vao);\n"
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "label": "Speed"
+    },
+    "u_drift": {
+      "type": "float",
+      "value": 1,
+      "min": 0.2,
+      "max": 3,
+      "step": 0.05,
+      "label": "Drift",
+      "widget": "knob"
+    },
+    "u_grain": {
+      "type": "float",
+      "value": 1,
+      "min": 0.3,
+      "max": 3,
+      "step": 0.05,
+      "label": "Grain density",
+      "widget": "knob"
+    },
+    "u_layout": {
+      "type": "int",
+      "value": -1,
+      "label": "Layout",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Auto (cycle)",
+          "value": -1
+        },
+        {
+          "label": "Grid of rings",
+          "value": 0
+        },
+        {
+          "label": "Concentric rings",
+          "value": 1
+        },
+        {
+          "label": "Lines",
+          "value": 2
+        }
+      ]
+    },
+    "u_palette": {
+      "type": "int",
+      "value": -1,
+      "label": "Palette",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Auto",
+          "value": -1
+        },
+        {
+          "label": "Ink on paper",
+          "value": 0
+        },
+        {
+          "label": "Ember",
+          "value": 1
+        },
+        {
+          "label": "Rust & indigo",
+          "value": 2
+        },
+        {
+          "label": "Glacier",
+          "value": 3
+        }
+      ]
+    },
+    "u_new": {
+      "type": "bool",
+      "value": false,
+      "label": "New piece",
+      "widget": "button"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

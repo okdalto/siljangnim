@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated": "2026-10-11",
+ "updated": "2026-10-13",
  "entries": [
   {
    "id": "d3-delaunay",
@@ -2546,6 +2546,222 @@
     "cdn": "https://cdn.jsdelivr.net/gh/MaxBittker/sandspiel@9936e06b07a5/crate/src/species.rs"
    },
    "notes": "Rust→WASM original; the example ports species.rs/lib.rs rules and the sand.glsl palette to JavaScript/GLSL, with a simplified CPU wind field in place of the GPU fluid."
+  },
+  {
+   "id": "slime-simulation",
+   "name": "Slime-Simulation",
+   "repo": "https://github.com/SebLague/Slime-Simulation",
+   "license": "GPL-3.0",
+   "tier": "B",
+   "purpose": "Physarum slime mould agent simulation: agents sense, follow and deposit trails that diffuse and decay into vein networks, with several competing species (Unity compute shaders ported to WebGL2 in the scene).",
+   "tags": [
+    "physarum",
+    "slime mould",
+    "agent simulation",
+    "emergence",
+    "gpu",
+    "generative"
+   ],
+   "media": {
+    "in": [
+     "parameters",
+     "mouse"
+    ],
+    "out": [
+     "simulation",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/SebLague/Slime-Simulation@6794cfdf584f/Assets/Scripts/Slime/SlimeSim.compute"
+   },
+   "notes": "Unity/HLSL original; the example ports SlimeSim.compute's kernels to GLSL (agents in float textures, deposit as additive points) and uses the presets in Assets/Settings. GPL-3.0 (copyleft)."
+  },
+  {
+   "id": "black-hole-shader",
+   "name": "Black Hole Shader",
+   "repo": "https://github.com/ebruneton/black_hole_shader",
+   "license": "BSD-3-Clause",
+   "tier": "B",
+   "purpose": "Real-time Schwarzschild black hole: gravitational lensing of stars and an accretion disc with Doppler and beaming, via precomputed ray-deflection tables (ported to WebGL2 in the scene).",
+   "tags": [
+    "black hole",
+    "general relativity",
+    "gravitational lensing",
+    "ray tracing",
+    "shader",
+    "astronomy"
+   ],
+   "media": {
+    "in": [
+     "parameters"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/ebruneton/black_hole_shader@e72b3f293409/black_hole/functions.glsl"
+   },
+   "notes": "functions.glsl and model.glsl are ported into the example's shader; the C++ table precomputation (preprocess/functions.cc) is ported to JavaScript and runs at startup. The Gaia star maps are replaced by a procedural sky."
+  },
+  {
+   "id": "animal-proc-anim",
+   "name": "animal-proc-anim",
+   "repo": "https://github.com/argonautcode/animal-proc-anim",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Procedural animation of a fish, snake and lizard: distance-constrained joint chains with angle limits, FABRIK legs, smooth filled body outlines. A Processing (Java) sketch; port its few files to JS.",
+   "tags": [
+    "procedural animation",
+    "inverse kinematics",
+    "fabrik",
+    "creatures",
+    "processing"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/argonautcode/animal-proc-anim@cb171e8c386494a9d92dd47ea3422f84f7fbaa8d/Chain.pde"
+   },
+   "notes": "Processing source, not runnable in the browser: port Chain.pde/Util.pde (resolve, fabrikResolve, constrainAngle) and the creature classes; curveVertex is Catmull-Rom (bezier controls p1+(p2-p0)/6, p2-(p3-p1)/6). Resolves once per frame at 60 fps, so step it at a fixed 1/60 s."
+  },
+  {
+   "id": "nonflowers",
+   "name": "Nonflowers",
+   "repo": "https://github.com/LingDong-/nonflowers",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Procedurally generated paintings of nonexistent flowers in a Chinese painting style (woody or herbaceous plants, leaves, petals, paper texture) drawn with Canvas 2D; main.js is fetched from a pinned commit and run in a worker with the DOM stubbed.",
+   "tags": [
+    "procedural painting",
+    "generative",
+    "botany",
+    "flowers",
+    "canvas 2d",
+    "ink painting"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/LingDong-/nonflowers@03b653d220f16c6bed7ea9c7edc852f7e91846cb/main.js"
+   },
+   "notes": "Plain script that patches Array.prototype (.x/.y/.z/[-1]) and Math.random and uses document.createElement('canvas'); run it in a Web Worker via new Function with window/document/Math stubs and OffscreenCanvas. Its per-pixel Layer.filter/bound are slow (~1 s at 1200 px); skip transparent pixels. Seeds match the site's ?seed= when you paint the background paper first like its load()."
+  },
+  {
+   "id": "differential-line",
+   "name": "differential-line",
+   "repo": "https://github.com/inconvergent/differential-line",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Differential growth of a closed line: vertices attract their neighbours, repel nearby vertices and split long edges, folding into brain-coral shapes; Python/Cython, ported to JS in the example's scene.",
+   "tags": [
+    "differential growth",
+    "generative art",
+    "simulation",
+    "morphogenesis",
+    "inconvergent"
+   ],
+   "media": {
+    "in": [
+     "parameters"
+    ],
+    "out": [
+     "simulation",
+     "image",
+     "vector"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/inconvergent/differential-line@d951ed459a99fd87713b8b5a2aee06685119c007/src/differentialLine.pyx"
+   },
+   "notes": "Cython original (needs compiling); the scene ports optimize_position/__reject, split_edge, spawn and the zonemap grid to JS."
+  },
+  {
+   "id": "space-colonization",
+   "name": "space-colonization",
+   "repo": "https://github.com/nicknikolov/space-colonization",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Space colonization (Runions et al. 2007): bud tips grow toward scattered attractor points, splitting as they go, for trees, roots and leaf venation; returns the bud graph each iteration.",
+   "tags": [
+    "space colonization",
+    "procedural trees",
+    "branching",
+    "leaf venation",
+    "generative"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "vector"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/space-colonization@0.2.0?deps=pex-math@1.0.1"
+   },
+   "notes": "License is stated as MIT in the README and package.json (the repo has no LICENSE file). Its iterate() looks up parents with indexOf on every call (O(n^2)); keep bud counts in the low thousands or memoize indexOf during the call."
+  },
+  {
+   "id": "dlaf",
+   "name": "dlaf",
+   "repo": "https://github.com/fogleman/dlaf",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Fast diffusion-limited aggregation in 2D or 3D: random walkers stick to a growing cluster (coral, frost, lightning forms), with spacing, attraction distance, stickiness and stubbornness parameters and hooks for starting positions and motion.",
+   "tags": [
+    "diffusion-limited aggregation",
+    "dla",
+    "random walk",
+    "generative",
+    "particles",
+    "coral"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "vector"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/fogleman/dlaf@fc684bdb7900b23744c11bdd2fff93056f16bfbf/dlaf.cpp"
+   },
+   "notes": "C++ (needs Boost for its R-tree); not runnable in the browser as is. The dlaf example ports dlaf.cpp's Model to JavaScript with a uniform grid in place of the R-tree; reuse that port for scenes."
+  },
+  {
+   "id": "sand-spline",
+   "name": "sand-spline",
+   "repo": "https://github.com/inconvergent/sand-spline",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Anders Hoff's sand-painted splines: control points random-walk with growing noise while faint grains are scattered along the interpolating spline; Python, ported to JS/GLSL in the example's scene.",
+   "tags": [
+    "generative art",
+    "sand painting",
+    "splines",
+    "noise",
+    "inconvergent"
+   ],
+   "media": {
+    "in": [
+     "parameters"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/inconvergent/sand-spline@a54ef302d0327d121405cbf8987e61fdc5470a4a/modules/sandSpline.py"
+   },
+   "notes": "Python (numpy/scipy) original; the scene reimplements SandSpline and the circle/circles/hlines layouts, replacing scipy's splprep/splev with a chord-length Catmull-Rom spline."
   }
  ]
 }

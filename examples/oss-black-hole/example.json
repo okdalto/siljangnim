@@ -1,0 +1,58 @@
+{
+  "order": 24,
+  "title": "Black hole with a glowing disc (Black Hole Shader)",
+  "title_ko": "빛나는 원반을 두른 블랙홀 (Black Hole Shader)",
+  "description": "Eric Bruneton's real-time Schwarzschild black hole model, ported to a WebGL2 fragment shader. At startup the scene runs the repo's C++ preprocessing, ported to JavaScript: it integrates light paths around the hole into two float lookup tables (ray deflection D(e,u), 512×512, and ray inverse radius U(e,φ), 64×32) using the paper's texture mappings. Each pixel then traces its ray in constant time with the original TraceRay and SceneColor functions: bent starlight with lensing amplification, the primary and secondary images of the accretion disc, its orbiting particle density, and black-body colours shifted by the Doppler and gravitational factor (which also brightens the approaching side). Black-body colours come from Planck's law and the repo's CIE table; the disc noise texture is the repo's. The Gaia star maps are replaced by a procedural star field and Milky Way. The camera is a static observer that orbits slowly; bloom and the demo's tone map finish the image.",
+  "description_ko": "Eric Bruneton의 실시간 슈바르츠실트 블랙홀 모델을 WebGL2 프래그먼트 셰이더로 옮겼다. 시작할 때 저장소의 C++ 전처리를 JavaScript로 옮겨 돌려, 블랙홀 주변을 지나는 빛의 경로를 적분해 두 개의 실수 조회 텍스처(광선 휨 D(e,u) 512×512, 광선 역반지름 U(e,φ) 64×32)를 논문의 텍스처 좌표 매핑대로 만든다. 그다음 픽셀마다 원본 TraceRay와 SceneColor 함수로 광선을 상수 시간에 추적한다. 렌즈 증폭이 들어간 휘어진 별빛, 강착 원반의 1차·2차 상, 궤도를 도는 입자 밀도, 도플러·중력 인자로 이동한 흑체 색(다가오는 쪽이 더 밝아지는 효과 포함)이 모두 여기서 나온다. 흑체 색은 플랑크 법칙과 저장소의 CIE 표로 계산하고, 원반 노이즈 텍스처는 저장소의 것을 쓴다. Gaia 별 지도 대신 절차적으로 만든 별밭과 은하수를 쓴다. 카메라는 천천히 궤도를 도는 정지 관측자이고, 블룸과 데모의 톤 매핑으로 마무리한다.",
+  "prompt": "(open-source example: Black Hole Shader ported to WebGL2 in the scene)",
+  "made_with": "black_hole_shader (commit e72b3f2): functions.glsl and model.glsl ported to GLSL ES 3.00, its C++ table precomputation ported to JavaScript; CIE table and noise texture fetched from jsDelivr",
+  "features": [
+    "ray tracing",
+    "general relativity",
+    "gravitational lensing",
+    "precomputed lookup textures",
+    "bloom",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "black-hole-shader"
+  ],
+  "summary": "A black hole bends starlight and its own glowing disc into a halo around its shadow; one side of the disc blazes as it rushes toward you.",
+  "summary_ko": "블랙홀이 별빛과 빛나는 원반을 휘게 해 그림자 둘레에 고리를 만들어요. 우리 쪽으로 달려오는 원반 한쪽은 훨씬 더 밝게 타올라요.",
+  "try": [
+    "Drag to fly around the hole, or lower Camera distance to get close",
+    "Turn off Gravitational lensing to see what the disc would look like without bent light",
+    "Change Disc temperature, and switch off Doppler & beaming to even out both sides"
+  ],
+  "try_ko": [
+    "드래그해서 블랙홀 주위를 돌아보거나 Camera distance를 낮춰 가까이 다가가 보세요",
+    "Gravitational lensing을 끄면 빛이 휘지 않을 때 원반이 어떻게 보일지 알 수 있어요",
+    "Disc temperature를 바꿔 보고, Doppler & beaming을 끄면 원반 양쪽 밝기가 같아져요"
+  ],
+  "tool_about": "Black Hole Shader is Eric Bruneton's research code and paper for drawing a realistic black hole in real time. Instead of following each light ray step by step, it computes how much light bends once, stores the answers in small tables, and looks them up for every pixel. Here its shader code and table-building code run in the browser.",
+  "tool_about_ko": "Black Hole Shader는 Eric Bruneton이 실제 같은 블랙홀을 실시간으로 그리려고 만든 연구 코드와 논문이에요. 빛줄기를 한 걸음씩 따라가는 대신, 빛이 얼마나 휘는지를 미리 한 번 계산해 작은 표에 담아 두고 픽셀마다 찾아 써요. 여기서는 그 셰이더 코드와 표를 만드는 코드를 브라우저에서 돌려요.",
+  "credits": [
+    {
+      "what": "Ray deflection and accretion disc model: texture mappings, TraceRay, SceneColor, disc colour, star filtering and Doppler factors (ported from functions.glsl and model.glsl to GLSL ES 3.00)",
+      "what_ko": "광선 휨·강착 원반 모델: 텍스처 매핑, TraceRay, SceneColor, 원반 색, 별 필터링, 도플러 인자 (functions.glsl·model.glsl에서 GLSL ES 3.00으로 이식)",
+      "source": "Eric Bruneton, black_hole_shader, black_hole/functions.glsl and black_hole/model.glsl",
+      "license": "BSD-3-Clause",
+      "url": "https://github.com/ebruneton/black_hole_shader"
+    },
+    {
+      "what": "Lookup table precomputation (ported from C++ to JavaScript), disc particles, flat-space ray tracing toggle, camera frame and tone map",
+      "what_ko": "조회 텍스처 사전 계산(C++에서 JavaScript로 이식), 원반 입자, 렌즈 효과 끄기용 평면 공간 광선 추적, 카메라 기준틀과 톤 매핑",
+      "source": "Eric Bruneton, black_hole_shader, black_hole/preprocess/functions.cc, black_hole/demo/camera_view/*, black_hole/demo/model/model.js, bloom/bloom.js",
+      "license": "BSD-3-Clause",
+      "url": "https://github.com/ebruneton/black_hole_shader"
+    },
+    {
+      "what": "Black-body colours (Planck spectrum × CIE 1931 2° colour matching functions, clamped to sRGB; colors.inc fetched at runtime) and the disc noise texture (noise_texture.png fetched at runtime)",
+      "what_ko": "흑체 색(플랑크 스펙트럼 × CIE 1931 2° 등색 함수, sRGB로 클램프; colors.inc는 실행 중에 받아옴)과 원반 노이즈 텍스처(noise_texture.png는 실행 중에 받아옴)",
+      "source": "Eric Bruneton, black_hole_shader, color_maps/colors.cc, color_maps/colors.inc, color_maps/noise_texture.png",
+      "license": "BSD-3-Clause",
+      "url": "https://github.com/ebruneton/black_hole_shader/tree/master/color_maps"
+    }
+  ]
+}

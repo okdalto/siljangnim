@@ -1,0 +1,120 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// differential-line — a port of Anders Hoff's (inconvergent) differential-line (MIT), Python/Cython → JS + WebGL2.\n// A closed line of vertices: each is pulled toward its two neighbours, pushed away from every other vertex\n// within farl, and edges split at random once they are longer than nearl, so the line grows and folds into\n// brain-coral shapes. Ported from src/differentialLine.pyx (optimize_position, __reject), src/segments.pyx\n// (split_edge, init_circle_segment), src/zonemap.pxd (the neighbour grid) and modules/growth.py (spawn),\n// commit d951ed4; parameters from main_ani.py. Drawing (fading growth trails, filled interior, colour along\n// the line) is this scene's own.\n// with a counting sort, which is O(n) and cache-friendly.\nfunction createLine(cap) {\n  const L = {\n    cap, n: 0,\n    x: new Float64Array(cap), y: new Float64Array(cap),\n    nx: new Int32Array(cap), pv: new Int32Array(cap),   // next / previous vertex along the closed line\n    born: new Float32Array(cap),                         // step at which a vertex was born (for colour)\n    sx: new Float64Array(cap), sy: new Float64Array(cap),\n    cellOf: new Int32Array(cap), order: new Int32Array(cap),\n    cellStart: new Int32Array(1), gw: 0, gh: 0,\n    farl: 0.04, nearl: 0.002, stp: 0.0004,\n    steps: 0,\n  };\n  return L;\n}\n// init_circle_segment: a closed ring of vertices at sorted random angles\nfunction addRing(L, cx, cy, r, num) {\n  const angles = Array.from({ length: num }, () => Math.random() * Math.PI * 2).sort((a, b) => a - b);\n  const first = L.n;\n  if (L.n + num > L.cap) return;\n  for (let k = 0; k < num; k++) {\n    const i = L.n++;\n    L.x[i] = cx + Math.cos(angles[k]) * r; L.y[i] = cy + Math.sin(angles[k]) * r;\n    L.nx[i] = k === num - 1 ? first : i + 1;\n    L.pv[i] = k === 0 ? first + num - 1 : i - 1;\n    L.born[i] = L.steps;\n  }\n}\n// One optimize_position step: every vertex is pulled toward its two neighbours when further than nearl\n// and pushed away from every other vertex closer than farl, by (farl/d - 1) * d * step.\nfunction optimize(L, x0, y0, w, h) {\n  const { n, x, y, nx, pv, sx, sy, farl, nearl, stp } = L;\n  const gw = Math.max(1, Math.ceil(w / farl)), gh = Math.max(1, Math.ceil(h / farl)), cells = gw * gh;\n  if (L.cellStart.length < cells + 1) L.cellStart = new Int32Array(cells + 1);\n  const start = L.cellStart, cellOf = L.cellOf, order = L.order;\n  start.fill(0, 0, cells + 1);\n  for (let i = 0; i < n; i++) {\n    let cx = Math.floor((x[i] - x0) / farl), cy = Math.floor((y[i] - y0) / farl);\n    cx = cx < 0 ? 0 : cx >= gw ? gw - 1 : cx; cy = cy < 0 ? 0 : cy >= gh ? gh - 1 : cy;\n    const c = cx + cy * gw; cellOf[i] = c; start[c + 1]++;\n  }\n  for (let c = 0; c < cells; c++) start[c + 1] += start[c];\n  // fill order (use sx as a temporary write cursor would cost a copy; a second pass with a cursor array)\n  const cur = L.cur && L.cur.length >= cells ? L.cur : (L.cur = new Int32Array(cells));\n  cur.set(start.subarray(0, cells));\n  for (let i = 0; i < n; i++) order[cur[cellOf[i]]++] = i;\n  const farl2 = farl * farl;\n  for (let v = 0; v < n; v++) {\n    const xv = x[v], yv = y[v], v1 = nx[v], v2 = pv[v];\n    let rx = 0, ry = 0;\n    const c = cellOf[v], cx = c % gw, cy = (c - cx) / gw;\n    const ax = cx > 0 ? cx - 1 : 0, bx = cx < gw - 1 ? cx + 1 : cx;\n    const ay = cy > 0 ? cy - 1 : 0, by = cy < gh - 1 ? cy + 1 : cy;\n    for (let gy = ay; gy <= by; gy++) {\n      const row = gy * gw;\n      for (let k = start[row + ax], e = start[row + bx + 1]; k < e; k++) {\n        const j = order[k];\n        if (j === v || j === v1 || j === v2) continue;\n        const dx = xv - x[j], dy = yv - y[j], d2 = dx * dx + dy * dy;\n        if (d2 > farl2 || d2 <= 0) continue;\n        const f = (farl / Math.sqrt(d2) - 1) * stp;\n        rx += dx * f; ry += dy * f;\n      }\n    }\n    // linked neighbours: attract when further than nearl\n    for (const j of [v1, v2]) {\n      const dx = xv - x[j], dy = yv - y[j], d = Math.sqrt(dx * dx + dy * dy);\n      if (d < nearl || d <= 0) continue;\n      rx -= (dx / d) * stp; ry -= (dy / d) * stp;\n    }\n    sx[v] = rx; sy[v] = ry;\n  }\n  for (let v = 0; v < n; v++) { x[v] += sx[v]; y[v] += sy[v]; }\n  L.steps++;\n}\n// spawn(df, nearl, limit): each edge (v, next v) is split at its midpoint with probability `limit`\n// when it is at least nearl long.\nfunction spawn(L, limit) {\n  const n0 = L.n, { x, y, nx, pv } = L;\n  const nearl2 = L.nearl * L.nearl;\n  for (let v = 0; v < n0 && L.n < L.cap; v++) {\n    if (Math.random() >= limit) continue;\n    const w = nx[v], dx = x[w] - x[v], dy = y[w] - y[v];\n    if (dx * dx + dy * dy < nearl2) continue;\n    const m = L.n++;\n    x[m] = (x[v] + x[w]) * 0.5; y[m] = (y[v] + y[w]) * 0.5;\n    nx[v] = m; pv[m] = v; nx[m] = w; pv[w] = m;\n    L.born[m] = L.steps;\n  }\n}\n\n// --- drawing ------------------------------------------------------------------------------------------------\nconst gl = ctx.gl, s = ctx.state;\nconst floatOK = !!gl.getExtension(\"EXT_color_buffer_float\");\n// Segments as instanced quads: per instance (x1, y1, x2, y2, t), t = position along the ring for colour.\nconst segVs = `#version 300 es\nprecision highp float;\nlayout(location=0) in vec4 a_seg;\nlayout(location=1) in float a_t;\nuniform vec2 u_resolution, u_center;\nuniform float u_unit, u_lw;\nout float v_t;\nout float v_side;\nvoid main() {\n  vec2 a = u_center + a_seg.xy * u_unit, b = u_center + a_seg.zw * u_unit;\n  vec2 d = b - a; float len = length(d);\n  vec2 dir = len > 1e-5 ? d / len : vec2(1.0, 0.0), nrm = vec2(-dir.y, dir.x);\n  int id = gl_VertexID;                 // two triangles: (0,1,2) (2,1,3)\n  int c = id < 3 ? id : (id == 3 ? 2 : (id == 4 ? 1 : 3));\n  float along = (c & 1) == 0 ? 0.0 : 1.0, side = c < 2 ? -1.0 : 1.0;\n  float hw = u_lw * 0.5 + 0.5;\n  vec2 p = mix(a - dir * hw * 0.5, b + dir * hw * 0.5, along) + nrm * side * hw;\n  v_t = a_t; v_side = side * hw;\n  gl_Position = vec4(p / u_resolution * 2.0 - 1.0, 0.0, 1.0);\n}`;\nconst PAL = `\nuniform vec3 u_pa, u_pb, u_pc, u_pd;\nvec3 pal(float t) { return clamp(u_pa + u_pb * cos(6.28318 * (u_pc * t + u_pd)), 0.0, 1.0); }`;\nconst segFs = `#version 300 es\nprecision highp float;\nin float v_t; in float v_side;\nuniform float u_lw, u_alpha, u_mix;\nuniform vec3 u_solid;\nout vec4 outColor;\n${PAL}\nvoid main() {\n  float cov = clamp(u_lw * 0.5 + 0.5 - abs(v_side), 0.0, 1.0);\n  vec3 col = mix(pal(v_t), u_solid, u_mix);\n  float a = cov * u_alpha;\n  outColor = vec4(col * a, a);\n}`;\n// Signed triangle fans: inside a closed ring they sum to ±1, outside they cancel.\nconst fanVs = `#version 300 es\nprecision highp float;\nlayout(location=0) in vec3 a_p;\nuniform vec2 u_resolution, u_center;\nuniform float u_unit;\nout float v_s;\nvoid main() { v_s = a_p.z; gl_Position = vec4((u_center + a_p.xy * u_unit) / u_resolution * 2.0 - 1.0, 0.0, 1.0); }`;\nconst fanFs = `#version 300 es\nprecision highp float;\nin float v_s; out vec4 outColor;\nvoid main() { outColor = vec4(v_s, 0.0, 0.0, 0.0); }`;\nconst viewFs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_trailTex, u_fillTex;\nuniform vec2 u_resolution;\nuniform float u_dark, u_fillAmt, u_trailAmt;\nuniform vec3 u_ground;\n${PAL}\nfloat h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }\nvoid main() {\n  vec4 tr = texture(u_trailTex, v_uv) * u_trailAmt;\n  float inside = clamp(abs(texture(u_fillTex, v_uv).r), 0.0, 1.0);\n  vec2 q = (v_uv - 0.5) * vec2(u_resolution.x / u_resolution.y, 1.0);\n  float vig = 1.0 - 0.3 * dot(q, q);\n  vec3 tint = pal(0.15 + 0.5 * v_uv.y);\n  float n = (h(gl_FragCoord.xy) - 0.5) * 0.02;\n  vec3 light = u_ground * vig;\n  light = mix(light, light * mix(vec3(1.0), tint, 0.45), inside * u_fillAmt);\n  light *= exp(-1.6 * max(tr.a - tr.rgb, vec3(0.0)));\n  vec3 dark = u_ground * vig + tint * 0.22 * inside * u_fillAmt;\n  dark += (1.0 - exp(-1.4 * tr.rgb));\n  outColor = vec4(mix(light, dark, u_dark) + n, 1.0);\n}`;\nconst fadeFs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform float u_keep;\nvoid main() { outColor = vec4(u_keep); }`;\ns.segProg = ctx.utils.createProgram(segVs, segFs);\ns.fanProg = ctx.utils.createProgram(fanVs, fanFs);\ns.viewProg = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, viewFs);\ns.fadeProg = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fadeFs);\ns.floatOK = floatOK;\n\nconst CAP = 40000;\ns.L = createLine(CAP);\ns.segData = new Float32Array(CAP * 5);\ns.fanData = new Float32Array(CAP * 9);\ns.segBuf = gl.createBuffer(); s.fanBuf = gl.createBuffer();\ngl.bindBuffer(gl.ARRAY_BUFFER, s.segBuf); gl.bufferData(gl.ARRAY_BUFFER, s.segData.byteLength, gl.DYNAMIC_DRAW);\ngl.bindBuffer(gl.ARRAY_BUFFER, s.fanBuf); gl.bufferData(gl.ARRAY_BUFFER, s.fanData.byteLength, gl.DYNAMIC_DRAW);\ns.segVao = gl.createVertexArray();\ngl.bindVertexArray(s.segVao); gl.bindBuffer(gl.ARRAY_BUFFER, s.segBuf);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 20, 0); gl.vertexAttribDivisor(0, 1);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 20, 16); gl.vertexAttribDivisor(1, 1);\ns.fanVao = gl.createVertexArray();\ngl.bindVertexArray(s.fanVao); gl.bindBuffer(gl.ARRAY_BUFFER, s.fanBuf);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 12, 0);\ngl.bindVertexArray(null);\ns.visited = new Uint8Array(CAP);\n\n// cosine palettes (a + b cos 2π(c t + d)), with ground colour and the colour of the live line\ns.palettes = [\n  { name: \"Coral reef\", dark: 1, ground: [0.03, 0.045, 0.07], a: [0.65, 0.5, 0.45], b: [0.35, 0.35, 0.3], c: [1, 1, 1], d: [0.0, 0.12, 0.3], solid: [1, 0.96, 0.9], mix: 0.35 },\n  { name: \"Ink\", dark: 0, ground: [0.95, 0.93, 0.88], a: [0.25, 0.28, 0.35], b: [0.2, 0.2, 0.2], c: [1, 1, 1], d: [0.0, 0.1, 0.2], solid: [0.04, 0.05, 0.08], mix: 0.85 },\n  { name: \"Aurora\", dark: 1, ground: [0.02, 0.03, 0.05], a: [0.4, 0.65, 0.6], b: [0.4, 0.35, 0.4], c: [1, 1, 1], d: [0.55, 0.25, 0.0], solid: [0.85, 1, 0.95], mix: 0.3 },\n  { name: \"Tide\", dark: 0, ground: [0.94, 0.92, 0.86], a: [0.35, 0.35, 0.5], b: [0.35, 0.3, 0.25], c: [1, 1, 1], d: [0.5, 0.6, 0.7], solid: [0.1, 0.12, 0.3], mix: 0.5 },\n];\ns.run = -1;\ns.wasDown = false;\ns.fadeT = 1;\ns.sim = { addRing, optimize, spawn };\n",
+    "render": "const { addRing, optimize, spawn } = ctx.state.sim;\nconst s = ctx.state, gl = ctx.gl, u = ctx.uniforms, L = s.L, [w, h] = ctx.resolution;\nconst S = Math.min(w, h);\n// The simulation keeps the original's units (farl 0.04); Fold size sets how much of the screen one farl spans.\nconst sh = L.farl / u.u_fold, ww = (sh * w) / S, wh = (sh * h) / S, unit = S / sh;\nconst dt = Math.min(ctx.dt, 0.1);\n\nconst restart = () => {\n  s.run++;\n  s.pal = u.u_palette >= 0 ? s.palettes[Math.round(u.u_palette)] : s.palettes[s.run % s.palettes.length];\n  s.palKey = u.u_palette;\n  L.n = 0; L.steps = 0;\n  // one ring in the middle (main_ani.py: 40 vertices; a slightly larger radius so it reads at once), sometimes a few more around it\n  const r = L.farl * 0.9;\n  const extra = s.run === 0 ? 0 : Math.random() < 0.5 ? 0 : 1 + Math.floor(Math.random() * 3);\n  addRing(L, 0, 0, r, 40);\n  for (let k = 0; k < extra; k++) {\n    const a = Math.random() * Math.PI * 2, d = (0.22 + Math.random() * 0.12) * Math.min(ww, wh);\n    addRing(L, Math.cos(a) * d * (ww / Math.min(ww, wh)) * 0.8, Math.sin(a) * d, r, 40);\n  }\n  s.phase = \"grow\"; s.phaseT = 0; s.fadeT = 0;\n};\n\n// trail + fill targets follow the canvas size\nconst fmt = s.floatOK ? { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT, filter: gl.LINEAR }\n  : { internalFormat: gl.RGBA8, format: gl.RGBA, type: gl.UNSIGNED_BYTE, filter: gl.LINEAR };\nif (!s.trail) {\n  s.trail = ctx.utils.createPingPong(w, h, fmt);\n  s.fill = ctx.utils.createPingPong(w, h, fmt);\n  s.clearTrail = true;\n  restart();\n  s.fadeT = 1;\n} else if (ctx.resized || s.trail.width !== w || s.trail.height !== h) {\n  s.trail.resize(w, h); s.fill.resize(w, h); s.clearTrail = true;\n  // the frame is the wall: if the line no longer fits the new shape, start over\n  let out = false;\n  for (let i = 0; i < L.n && !out; i++) out = Math.abs(L.x[i]) > ww / 2 || Math.abs(L.y[i]) > wh / 2;\n  if (out) { restart(); s.fadeT = 1; }\n}\nif (u.u_restart) restart();\nif (s.palKey !== u.u_palette) { s.pal = u.u_palette >= 0 ? s.palettes[Math.round(u.u_palette)] : s.pal; s.palKey = u.u_palette; s.clearTrail = true; }\n\n// click: plant a new seed ring where the pointer is\nif (ctx.mouseDown && !s.wasDown && s.phase === \"grow\") {\n  addRing(L, (ctx.mouse[0] - 0.5) * ww, (0.5 - ctx.mouse[1]) * wh, L.farl * 0.625, 40);\n}\ns.wasDown = ctx.mouseDown;\n\n// --- grow: as many steps as fit in a few milliseconds (Speed scales the budget), so it starts fast\ns.phaseT += dt;\nlet stepsDone = 0;\nif (s.phase === \"grow\") {\n  const t0 = performance.now(), budget = 7 * u.u_speed, maxSteps = Math.round(24 * u.u_speed);\n  const x0 = -ww / 2, y0 = -wh / 2;\n  while (stepsDone < maxSteps && performance.now() - t0 < budget) {\n    optimize(L, x0, y0, ww, wh);\n    spawn(L, u.u_growth * 0.001);\n    stepsDone++;\n  }\n  // The original stops when a vertex reaches the boundary. Here the frame edge is a wall the line folds\n  // against, and a run ends once the frame is about full (vertex count for this area) or after 45 s.\n  const mx = ww / 2 - L.farl * 0.5, my = wh / 2 - L.farl * 0.5;\n  for (let i = 0; i < L.n; i++) {\n    if (L.x[i] > mx) L.x[i] = mx; else if (L.x[i] < -mx) L.x[i] = -mx;\n    if (L.y[i] > my) L.y[i] = my; else if (L.y[i] < -my) L.y[i] = -my;\n  }\n  const full = Math.min(L.cap - 64, 26000 * ww * wh * (0.04 / L.farl) ** 2);\n  if (L.n >= full || s.phaseT > 45) { s.phase = \"hold\"; s.phaseT = 0; }\n} else if (s.phase === \"hold\" && s.phaseT > 3) restart();\n\n// --- walk the rings: segments in order (t = position along the ring) and signed fans for the fill\nconst seg = s.segData, fan = s.fanData, vis = s.visited;\nvis.fill(0, 0, L.n);\nlet ns = 0, nf = 0;\nfor (let v0 = 0; v0 < L.n; v0++) {\n  if (vis[v0]) continue;\n  let count = 0, v = v0;\n  do { vis[v] = 1; count++; v = L.nx[v]; } while (v !== v0 && count <= L.n);\n  let i = 0; v = v0;\n  const fx = L.x[v0], fy = L.y[v0];\n  do {\n    const nv = L.nx[v];\n    seg[ns * 5] = L.x[v]; seg[ns * 5 + 1] = L.y[v]; seg[ns * 5 + 2] = L.x[nv]; seg[ns * 5 + 3] = L.y[nv];\n    seg[ns * 5 + 4] = i / count; ns++;\n    if (v !== v0 && nv !== v0) {\n      const sg = Math.sign((L.x[v] - fx) * (L.y[nv] - fy) - (L.y[v] - fy) * (L.x[nv] - fx));\n      const o = nf * 9;\n      fan[o] = fx; fan[o + 1] = fy; fan[o + 2] = sg; fan[o + 3] = L.x[v]; fan[o + 4] = L.y[v]; fan[o + 5] = sg;\n      fan[o + 6] = L.x[nv]; fan[o + 7] = L.y[nv]; fan[o + 8] = sg; nf++;\n    }\n    i++; v = nv;\n  } while (v !== v0 && i <= count);\n}\ngl.bindBuffer(gl.ARRAY_BUFFER, s.segBuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, seg, 0, ns * 5);\ngl.bindBuffer(gl.ARRAY_BUFFER, s.fanBuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, fan, 0, nf * 9);\n\nconst pal = s.pal;\nconst palU = { u_pa: pal.a, u_pb: pal.b, u_pc: pal.c, u_pd: pal.d };\nconst common = { u_resolution: [w, h], u_center: [w / 2, h / 2], u_unit: unit };\nconst drawSegs = (width, alpha, mixSolid) => {\n  gl.useProgram(s.segProg);\n  ctx.utils.setUniforms(s.segProg, { ...common, ...palU, u_lw: width, u_alpha: alpha, u_solid: pal.solid, u_mix: mixSolid });\n  gl.bindVertexArray(s.segVao);\n  gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, ns);\n  gl.bindVertexArray(null);\n};\n\n// trails: earlier states of the line stay behind, fading only when a new run starts\nconst T = s.trail.read();\ngl.bindFramebuffer(gl.FRAMEBUFFER, T.framebuffer); gl.viewport(0, 0, w, h);\nif (s.clearTrail) { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); s.clearTrail = false; }\ngl.enable(gl.BLEND);\nif (s.fadeT < 1) {\n  // a new growth has started: the old trails fade out underneath it\n  s.fadeT = Math.min(1, s.fadeT + dt / 1.5);\n  gl.blendFunc(gl.ZERO, gl.SRC_COLOR);\n  gl.useProgram(s.fadeProg);\n  ctx.utils.drawFullscreen(s.fadeProg, { u_keep: s.fadeT >= 1 ? 0 : Math.pow(0.02, dt / 1.5) });\n}\ngl.blendFunc(gl.ONE, gl.ONE);\n// a snapshot of the line every 0.3 s, so the trails read as growth rings\ns.snapT = (s.snapT ?? 0) + dt;\nif (s.phase === \"grow\" && s.snapT >= 0.3) { s.snapT = 0; drawSegs(Math.max(1, S / 1000), 0.22 * u.u_trail, 0); }\n\n// fill: winding number of the rings\nconst F = s.fill.read();\ngl.bindFramebuffer(gl.FRAMEBUFFER, F.framebuffer);\ngl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);\nif (u.u_fillAmt > 0 && nf > 0) {\n  gl.useProgram(s.fanProg);\n  ctx.utils.setUniforms(s.fanProg, common);\n  gl.bindVertexArray(s.fanVao);\n  gl.drawArrays(gl.TRIANGLES, 0, nf * 3);\n  gl.bindVertexArray(null);\n}\ngl.disable(gl.BLEND);\n\n// compose, then the live line on top\ngl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, w, h);\ngl.useProgram(s.viewProg);\nctx.utils.bindTexture(s.viewProg, \"u_trailTex\", T.texture, 0);\nctx.utils.bindTexture(s.viewProg, \"u_fillTex\", F.texture, 1);\nctx.utils.drawFullscreen(s.viewProg, { ...palU, u_dark: pal.dark, u_fillAmt: u.u_fillAmt, u_trailAmt: 1, u_ground: pal.ground });\ngl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);\ndrawSegs(Math.max(1.2, S / 420) * u.u_width, 0.95, pal.mix);\ngl.disable(gl.BLEND);\n\nctx.publish(\"vertices\", L.n);\nctx.publish(\"steps/frame\", stepsDone);\nctx.publish(\"palette\", pal.name);\n",
+    "cleanup": "const s = ctx.state, gl = ctx.gl;\nfor (const p of [s.segProg, s.fanProg, s.viewProg, s.fadeProg]) gl.deleteProgram(p);\ngl.deleteBuffer(s.segBuf); gl.deleteBuffer(s.fanBuf);\ngl.deleteVertexArray(s.segVao); gl.deleteVertexArray(s.fanVao);\n"
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0.25,
+      "max": 2.5,
+      "step": 0.05,
+      "label": "Speed"
+    },
+    "u_growth": {
+      "type": "float",
+      "value": 2,
+      "min": 0.5,
+      "max": 6,
+      "step": 0.1,
+      "label": "Growth"
+    },
+    "u_fold": {
+      "type": "float",
+      "value": 0.075,
+      "min": 0.04,
+      "max": 0.14,
+      "step": 0.005,
+      "label": "Fold size"
+    },
+    "u_trail": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.05,
+      "label": "Trails",
+      "widget": "knob"
+    },
+    "u_fillAmt": {
+      "type": "float",
+      "value": 0.6,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "label": "Fill",
+      "widget": "knob"
+    },
+    "u_width": {
+      "type": "float",
+      "value": 1,
+      "min": 0.3,
+      "max": 3,
+      "step": 0.05,
+      "label": "Line width",
+      "widget": "knob"
+    },
+    "u_palette": {
+      "type": "int",
+      "value": -1,
+      "label": "Palette",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Auto (cycle)",
+          "value": -1
+        },
+        {
+          "label": "Coral reef",
+          "value": 0
+        },
+        {
+          "label": "Ink",
+          "value": 1
+        },
+        {
+          "label": "Aurora",
+          "value": 2
+        },
+        {
+          "label": "Tide",
+          "value": 3
+        }
+      ]
+    },
+    "u_restart": {
+      "type": "bool",
+      "value": false,
+      "label": "Restart",
+      "widget": "button"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ],
+  "controls": [
+    {
+      "label": "Growth",
+      "uniforms": [
+        "u_speed",
+        "u_growth",
+        "u_fold",
+        "u_restart"
+      ]
+    },
+    {
+      "label": "Look",
+      "uniforms": [
+        "u_palette",
+        "u_trail",
+        "u_fillAmt",
+        "u_width"
+      ]
+    }
+  ]
+}

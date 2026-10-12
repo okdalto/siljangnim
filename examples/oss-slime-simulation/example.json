@@ -1,0 +1,50 @@
+{
+  "order": 23,
+  "title": "Slime mould networks (Slime-Simulation)",
+  "title_ko": "점균류 그물망 (Slime-Simulation)",
+  "description": "Sebastian Lague's Physarum slime mould simulation, ported from Unity compute shaders to WebGL2. Up to 300,000 agents live in a float texture; each step a fragment shader runs the original Update kernel (sense the trail map at three sensors ahead, steer by the same rules and hash, move, pick a random heading at the walls), a second pass draws every agent as a one-pixel point with additive blending to deposit its species' trail, and a third runs the Diffuse kernel (3×3 blur and decay). Species attract their own trail and avoid the others', which is what splits them into rival networks. The four presets are the repo's settings files unchanged (A–D), plus a crowded three-species preset; the step is the project's fixed 0.02 s, twice per 50 Hz update. Dragging adds a scent the agents sense (or a repellent), presets cycle on their own, and the trail grid follows the canvas shape.",
+  "description_ko": "Sebastian Lague의 점균류(Physarum) 시뮬레이션을 Unity 컴퓨트 셰이더에서 WebGL2로 옮겼다. 최대 30만 개의 에이전트가 실수 텍스처에 담겨 있고, 스텝마다 프래그먼트 셰이더가 원본 Update 커널을 그대로 돌린다(앞쪽 세 센서로 흔적 지도를 감지하고, 같은 규칙과 해시로 방향을 틀고, 이동하고, 벽에 닿으면 무작위 방향을 고른다). 두 번째 패스는 모든 에이전트를 1픽셀 점으로 그리면서 가산 블렌딩으로 종별 흔적을 남기고, 세 번째 패스는 Diffuse 커널(3×3 블러와 감쇠)을 돌린다. 각 종은 자기 흔적에는 끌리고 다른 종의 흔적은 피해서, 서로 경쟁하는 그물망으로 갈라진다. 프리셋 네 개(A–D)는 저장소의 설정 파일 값을 그대로 쓰고, 세 종이 북적이는 프리셋을 하나 더했다. 시간 간격은 원본 프로젝트의 고정 0.02초를 50Hz 업데이트마다 두 번 쓴다. 드래그하면 에이전트가 감지하는 냄새(또는 기피제)가 생기고, 프리셋은 저절로 돌아가며, 흔적 격자는 캔버스 모양을 따른다.",
+  "prompt": "(open-source example: Slime-Simulation ported to WebGL2 in the scene)",
+  "made_with": "Slime-Simulation (commit 6794cfd): SlimeSim.compute kernels ported to GLSL ES 3.00 (agents in float textures, deposit as additive points), presets from Assets/Settings",
+  "features": [
+    "agent simulation",
+    "physarum",
+    "gpu simulation",
+    "emergent networks",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "slime-simulation"
+  ],
+  "summary": "Hundreds of thousands of tiny slime agents follow each other's trails and grow glowing vein networks; rival colours carve out their own turf.",
+  "summary_ko": "수십만 개의 작은 점균 에이전트가 서로의 흔적을 따라가며 빛나는 그물망을 키워요. 색이 다른 무리는 저마다 자기 영역을 만들어요.",
+  "try": [
+    "Drag across the screen to lure the agents; set Drag to Repels (or right-drag) to scatter them",
+    "Pick another Preset, like A · white veins, or press Respawn",
+    "Play with Sensor angle × and Turn speed × to turn veins into worms or spirals"
+  ],
+  "try_ko": [
+    "화면을 드래그해서 에이전트를 끌어당겨 보세요. Drag를 Repels로 바꾸거나 오른쪽 드래그하면 흩어져요",
+    "A · white veins 같은 다른 Preset을 고르거나 Respawn을 눌러 보세요",
+    "Sensor angle ×와 Turn speed ×를 바꾸면 그물망이 지렁이나 소용돌이 모양으로 변해요"
+  ],
+  "tool_about": "Slime-Simulation is Sebastian Lague's Unity project from his video about slime moulds. Each tiny agent only smells the trail in front of it, turns toward the strongest scent, moves and leaves its own trail, yet together they build networks like real Physarum. Its GPU code was rewritten here to run in the browser; it is GPL-3.0 licensed.",
+  "tool_about_ko": "Slime-Simulation은 Sebastian Lague가 점균류 영상에서 만든 Unity 프로젝트예요. 작은 에이전트 하나하나는 앞쪽 흔적의 냄새만 맡고, 가장 강한 쪽으로 돌아 움직이며 자기 흔적을 남기는데, 모두 모이면 진짜 황색망사점균처럼 그물망을 만들어요. 여기서는 GPU 코드를 브라우저에서 돌도록 다시 썼고, 라이선스는 GPL-3.0이에요.",
+  "credits": [
+    {
+      "what": "Slime agent update (hash, sensing, steering, movement, wall bounce), trail deposit, diffuse/decay and colour map kernels (ported from HLSL compute shaders to GLSL ES 3.00)",
+      "what_ko": "점균 에이전트 갱신(해시, 감지, 방향 전환, 이동, 벽 반사), 흔적 남기기, 확산·감쇠, 색 지도 커널 (HLSL 컴퓨트 셰이더에서 GLSL ES 3.00으로 이식)",
+      "source": "Sebastian Lague, Slime-Simulation, Assets/Scripts/Slime/SlimeSim.compute",
+      "license": "GPL-3.0",
+      "url": "https://github.com/SebLague/Slime-Simulation"
+    },
+    {
+      "what": "Spawn modes, species masks and fixed time step (ported from C#), and the four presets A–D (values unchanged)",
+      "what_ko": "생성 방식, 종 마스크, 고정 시간 간격(C#에서 이식)과 프리셋 A–D(값 그대로)",
+      "source": "Sebastian Lague, Slime-Simulation, Assets/Scripts/Slime/Simulation.cs and Assets/Settings/A.asset–D.asset",
+      "license": "GPL-3.0",
+      "url": "https://github.com/SebLague/Slime-Simulation/tree/main/Assets/Settings"
+    }
+  ]
+}
