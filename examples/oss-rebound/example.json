@@ -1,0 +1,19 @@
+{
+  "order": 203,
+  "title": "Stellar flyby (REBOUND)",
+  "title_ko": "스쳐 가는 별 (REBOUND)",
+  "description": "REBOUND integrated a star, its disk of 500 particles and a second star passing on a hyperbolic orbit on this computer (recipe rebound.disk-flyby); the scene replays the snapshots with trails as the flyby pulls the disk into tidal tails and steals part of it. Drag to orbit.",
+  "description_ko": "REBOUND가 이 컴퓨터에서 별 하나와 그 주위 입자 500개의 원반, 쌍곡선 궤도로 스쳐 가는 두 번째 별을 적분했다(레시피 rebound.disk-flyby). 씬은 스냅샷을 꼬리와 함께 재생한다. 지나가는 별이 원반을 조석 꼬리로 끌어내고 일부를 빼앗아 간다. 드래그로 돌려 볼 수 있다.",
+  "prompt": "(open-source example: REBOUND run through the runtime, recipe included)",
+  "made_with": "rebound 5.2.0 via recipe rebound.disk-flyby (python_run)",
+  "features": [
+    "n-body",
+    "gravity",
+    "simulation",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "rebound"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "order": 200,
+  "title": "Gyroid sphere (PyMCubes)",
+  "title_ko": "자이로이드 구 (PyMCubes)",
+  "description": "PyMCubes ran marching cubes over an implicit field — a thickened gyroid carved into a sphere — on this computer (recipe pymcubes.gyroid-mesh); the scene draws the mesh with a slice plane that opens it up. Drag to orbit; change the field in the recipe for any other implicit shape.",
+  "description_ko": "PyMCubes가 이 컴퓨터에서 음함수 필드(두께를 준 자이로이드를 구 모양으로 깎은 것)에 마칭 큐브를 돌려 메시를 만들었다(레시피 pymcubes.gyroid-mesh). 씬은 메시를 그리고 단면 슬라이더로 속을 열어 보인다. 드래그로 돌려 볼 수 있고, 레시피의 필드를 바꾸면 다른 음함수 형태도 만들 수 있다.",
+  "prompt": "(open-source example: PyMCubes run through the runtime, recipe included)",
+  "made_with": "PyMCubes 0.1.6 via recipe pymcubes.gyroid-mesh (python_run)",
+  "features": [
+    "mesh",
+    "marching cubes",
+    "implicit surface",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "pymcubes"
+  ]
+}

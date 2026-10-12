@@ -1,0 +1,19 @@
+{
+  "order": 128,
+  "title": "Low-poly light (Trianglify)",
+  "title_ko": "로우폴리 빛 (Trianglify)",
+  "description": "Trianglify generates a low-poly pattern: jittered points, Delaunay triangles and a ColorBrewer gradient. The scene keeps its triangles and colours, sways the points and lights each facet from the pointer. Change palette, cell size or seed for a new pattern.",
+  "description_ko": "Trianglify가 로우폴리 패턴을 만든다. 흩뜨린 격자 점, 들로네 삼각형, ColorBrewer 그라디언트 색이다. 씬은 그 삼각형과 색을 받아 점을 흔들고, 포인터 쪽에서 비추는 빛으로 면마다 음영을 준다. 팔레트, 셀 크기, 시드를 바꾸면 새 패턴이 된다.",
+  "prompt": "(open-source example: Trianglify imported in the scene)",
+  "made_with": "trianglify 4.1.1 (browser bundle) via ctx.utils.import",
+  "features": [
+    "low-poly",
+    "pattern",
+    "lighting",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "trianglify"
+  ]
+}

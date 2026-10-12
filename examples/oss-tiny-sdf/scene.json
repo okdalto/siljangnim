@@ -1,0 +1,100 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// @mapbox/tiny-sdf renders each glyph to a signed distance field. The glyph fields are merged into one\n// field for the whole word (max of distances = union of shapes), uploaded as a single-channel\n// texture, and the shader turns distance into fill, outlines, glow and a shadow that follows the pointer.\nconst mod = await ctx.utils.import(\"https://esm.sh/@mapbox/tiny-sdf@2.2.0\");\nconst TinySDF = mod.default ?? mod;\nconst FONT = 128, BUF = 64, RADIUS = 96;\nconst sdf = new TinySDF({ fontSize: FONT, buffer: BUF, radius: RADIUS, cutoff: 0.25, fontFamily: \"Helvetica Neue, Arial, sans-serif\", fontWeight: \"800\" });\nconst WORDS = [\"SILJANGNIM\", \"Tiny SDF\", \"glyph\", \"\uc2e4\uc7a5\ub2d8\"];\nconst gl = ctx.gl, tex = gl.createTexture();\ngl.bindTexture(gl.TEXTURE_2D, tex);\nfor (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);\n// Lay out a word: each glyph's field goes in at its pen position; overlaps keep the larger value.\nconst layout = (text) => {\n  const glyphs = [...text].map((ch) => sdf.draw(ch));\n  const width = Math.ceil(glyphs.reduce((a, g) => a + g.glyphAdvance, 0)) + BUF * 4;\n  const height = Math.ceil(FONT * 1.3) + BUF * 2, base = Math.round(FONT * 0.98) + BUF;\n  const field = new Uint8Array(width * height);\n  let pen = BUF * 2;\n  for (const g of glyphs) {\n    const x0 = Math.round(pen + g.glyphLeft - BUF), y0 = base - g.glyphTop - BUF;\n    for (let y = 0; y < g.height; y++) for (let x = 0; x < g.width; x++) {\n      const X = x0 + x, Y = y0 + y;\n      if (X < 0 || Y < 0 || X >= width || Y >= height) continue;\n      const i = Y * width + X, v = g.data[y * g.width + x];\n      if (v > field[i]) field[i] = v;\n    }\n    pen += g.glyphAdvance;\n  }\n  return { field, width, height };\n};\nconst fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_sdf; uniform vec2 u_fit; uniform vec2 u_texSize; uniform vec2 u_resolution; uniform vec4 u_mouse; uniform float u_time;\nuniform float u_radius; uniform float u_reach; uniform float u_weight; uniform float u_outline; uniform float u_glow; uniform float u_wave;\nuniform vec3 u_fill; uniform vec3 u_line; uniform vec3 u_glowColor;\n// signed distance in field pixels, positive inside\nfloat dist(vec2 q) { return (texture(u_sdf, vec2(q.x, 1.0 - q.y)).r - 0.75) * u_radius; }\nvoid main() {\n  vec2 q = (v_uv - 0.5) / u_fit + 0.5;\n  q.y += u_wave * 0.04 * sin(q.x * 12.0 - u_time * 2.0);\n  float px = 1.0 / (u_fit.x * u_resolution.x / u_texSize.x); // field pixels per screen pixel\n  float d = dist(q) + u_weight;\n  vec3 bg = mix(vec3(0.05, 0.04, 0.09), vec3(0.11, 0.07, 0.16), v_uv.y);\n  vec3 c = bg;\n  // glow: falls off with distance outside the glyphs, pulsing\n  float pulse = 0.75 + 0.25 * sin(u_time * 2.5);\n  // glyph images only reach BUF pixels past the ink, so fade out before that\n  float reach = u_reach;\n  c += u_glowColor * u_glow * pulse * 1.6 * pow(clamp(1.0 + d / reach, 0.0, 1.0), 1.6) * step(d, 0.0);\n  // shadow, offset away from the pointer\n  vec2 m = u_mouse.xy / u_resolution - 0.5;\n  vec2 off = -normalize(m + vec2(1e-4, -1e-4)) * min(length(m), 0.5) * 0.05;\n  float ds = dist(q - off / u_fit) + u_weight;\n  c = mix(c, vec3(0.0), smoothstep(-6.0, 4.0, ds) * 0.55 * step(d, 0.0));\n  // outline band outside the fill\n  float ol = smoothstep(-u_outline - px, -u_outline + px, d);\n  c = mix(c, u_line, ol);\n  // fill with a vertical gradient and a gap before the outline\n  float fill = smoothstep(-px, px, d);\n  float gap = smoothstep(-px, px, d + min(u_outline * 0.4, 4.0)) - fill;\n  vec3 fc = mix(u_fill, u_fill * 0.55 + 0.45, smoothstep(0.2, 0.9, q.y));\n  c = mix(c, bg, gap * step(0.5, u_outline));\n  c = mix(c, fc, fill);\n  outColor = vec4(c, 1.0);\n}`;\nObject.assign(ctx.state, { layout, WORDS, tex, word: -1, size: [1, 1], RADIUS, BUF, p: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fs) });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst word = Math.max(0, Math.min(s.WORDS.length - 1, u.u_word | 0));\nif (word !== s.word) {\n  s.word = word;\n  const { field, width, height } = s.layout(s.WORDS[word]);\n  gl.bindTexture(gl.TEXTURE_2D, s.tex);\n  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);\n  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\n  gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, width, height, 0, gl.RED, gl.UNSIGNED_BYTE, field);\n  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);\n  s.size = [width, height];\n  ctx.publish(\"field size\", `${width}\u00d7${height}`);\n}\nconst img = s.size[0] / s.size[1], view = w / h;\nconst fit = img > view ? [0.96, 0.96 * view / img] : [0.96 * img / view, 0.96];\ngl.useProgram(s.p);\nctx.utils.bindTexture(s.p, \"u_sdf\", s.tex, 0);\nctx.utils.drawFullscreen(s.p, { u_fit: fit, u_texSize: s.size, u_radius: s.RADIUS, u_reach: s.BUF - 6 });",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_word": {
+      "type": "int",
+      "value": 0,
+      "label": "Text",
+      "widget": "select",
+      "options": [
+        {
+          "label": "SILJANGNIM",
+          "value": 0
+        },
+        {
+          "label": "Tiny SDF",
+          "value": 1
+        },
+        {
+          "label": "glyph",
+          "value": 2
+        },
+        {
+          "label": "\uc2e4\uc7a5\ub2d8",
+          "value": 3
+        }
+      ]
+    },
+    "u_weight": {
+      "type": "float",
+      "value": 0,
+      "min": -6,
+      "max": 10,
+      "step": 0.1,
+      "label": "Weight",
+      "widget": "knob"
+    },
+    "u_outline": {
+      "type": "float",
+      "value": 12,
+      "min": 0,
+      "max": 20,
+      "step": 0.1,
+      "label": "Outline",
+      "widget": "knob"
+    },
+    "u_glow": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.01,
+      "label": "Glow"
+    },
+    "u_wave": {
+      "type": "float",
+      "value": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Wave"
+    },
+    "u_fill": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.86,
+        0.35
+      ],
+      "label": "Fill"
+    },
+    "u_line": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.36,
+        0.55
+      ],
+      "label": "Outline color"
+    },
+    "u_glowColor": {
+      "type": "color",
+      "value": [
+        0.35,
+        0.45,
+        1.0
+      ],
+      "label": "Glow color"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

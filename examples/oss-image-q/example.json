@@ -1,0 +1,19 @@
+{
+  "order": 183,
+  "title": "Palette quantization (image-q)",
+  "title_ko": "팔레트 양자화 (image-q)",
+  "description": "image-q picks a small palette for Hokusai's The Great Wave (public domain) and redraws it with only those colors, dithered. Move the pointer to slide between the original and the quantized image; the strip at the bottom is the palette. Try 4 colors with Atkinson.",
+  "description_ko": "image-q가 호쿠사이의 〈가나가와 해변의 높은 파도 아래〉(퍼블릭 도메인)에서 작은 팔레트를 골라 그 색만으로 디더링해 다시 그린다. 포인터를 움직이면 원본과 양자화한 그림 사이 경계가 따라 움직이고, 아래 띠가 팔레트다. 4색에 Atkinson을 골라 보자.",
+  "prompt": "(open-source example: image-q imported in the scene, with an image asset)",
+  "made_with": "image-q 4.0.0 via ctx.utils.import; The Great Wave off Kanagawa (public domain)",
+  "features": [
+    "image",
+    "palette",
+    "dithering",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "image-q"
+  ]
+}

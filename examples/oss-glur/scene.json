@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// glur blurs RGBA pixel arrays on the CPU (an IIR Gaussian, so its cost does not depend on the radius).\n// Every frame the scene paints a night city on a 2D canvas, glur blurs a half-size copy, and the\n// shader mixes sharp and blurred: a tilt-shift focus band that follows the pointer, plus bloom.\nconst { blurRGBA } = await ctx.utils.import(\"https://esm.sh/glur@2.0.0\");\nconst [w, h] = ctx.resolution, CH = 720, CW = Math.round((CH * w) / h);\nconst BW = Math.round(CW / 2), BH = CH / 2;\nconst sharp = new OffscreenCanvas(CW, CH), sc = sharp.getContext(\"2d\");\nconst small = new OffscreenCanvas(BW, BH), smc = small.getContext(\"2d\", { willReadFrequently: true });\n// The skyline is painted once; windows and traffic are added every frame.\nconst city = new OffscreenCanvas(CW, CH), cc = city.getContext(\"2d\");\nlet seed = 7;\nconst rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);\nconst sky = cc.createLinearGradient(0, 0, 0, CH);\nsky.addColorStop(0, \"#070a1c\"); sky.addColorStop(0.6, \"#1b1840\"); sky.addColorStop(1, \"#3a2240\");\ncc.fillStyle = sky; cc.fillRect(0, 0, CW, CH);\nfor (let i = 0; i < 160; i++) { cc.fillStyle = `rgba(255,255,255,${0.2 + 0.6 * rnd()})`; cc.fillRect(rnd() * CW, rnd() * CH * 0.45, 1.5, 1.5); }\nconst windows = [];\n[[0.42, 0.55, \"#141530\"], [0.52, 0.42, \"#0e0f24\"], [0.64, 0.3, \"#08091a\"]].forEach(([top, var_, col], row) => {\n  let x = -20;\n  while (x < CW) {\n    const bw = 40 + rnd() * 90, bh = CH * (1 - top) * (0.4 + var_ * rnd() * 1.4), y = CH * 0.82 - bh;\n    cc.fillStyle = col; cc.fillRect(x, y, bw, bh + CH);\n    for (let wy = y + 8; wy < CH * 0.8; wy += 12) for (let wx = x + 6; wx < x + bw - 8; wx += 10)\n      if (rnd() < 0.45) windows.push([wx, wy, rnd() < 0.8 ? [255, 200 + rnd() * 40, 120 + rnd() * 60] : [140, 200, 255], rnd() * 100, row]);\n    x += bw + 2 + rnd() * 10;\n  }\n});\ncc.fillStyle = \"#0a0a14\"; cc.fillRect(0, CH * 0.82, CW, CH);\ncc.fillStyle = \"#3a3a50\"; for (let x = 0; x < CW; x += 40) cc.fillRect(x, CH * 0.89, 20, 2);\nconst cars = Array.from({ length: 40 }, () => ({ x: rnd() * CW, lane: rnd() < 0.5 ? 0 : 1, v: 40 + rnd() * 80 }));\nconst gl = ctx.gl;\nconst tex = () => {\n  const t = gl.createTexture();\n  gl.bindTexture(gl.TEXTURE_2D, t);\n  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);\n  return t;\n};\nconst fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_sharp; uniform sampler2D u_blur; uniform float u_focus; uniform float u_band; uniform float u_bloom; uniform bool u_showBand;\nvoid main() {\n  vec2 uv = vec2(v_uv.x, 1.0 - v_uv.y);\n  vec3 a = texture(u_sharp, uv).rgb, b = texture(u_blur, uv).rgb;\n  float k = smoothstep(u_band * 0.5, u_band * 0.5 + 0.18, abs(v_uv.y - u_focus));\n  vec3 c = mix(a, b, k) + b * b * u_bloom;\n  if (u_showBand) c += vec3(0.25, 0.2, 0.0) * (1.0 - smoothstep(0.0, 0.002, abs(abs(v_uv.y - u_focus) - u_band * 0.5)));\n  // a touch of saturation, as tilt-shift photos usually have\n  float l = dot(c, vec3(0.299, 0.587, 0.114));\n  outColor = vec4(mix(vec3(l), c, 1.25), 1.0);\n}`;\nObject.assign(ctx.state, { blurRGBA, CW, CH, BW, BH, sharp, sc, small, smc, city, windows, cars, sharpTex: tex(), blurTex: tex(), moved: false,\n  prog: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fs) });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, { sc, CW, CH } = s, t = ctx.time;\n// 1. paint the sharp frame\nsc.drawImage(s.city, 0, 0);\nfor (const [x, y, c, ph, row] of s.windows) {\n  const on = Math.sin(t * 0.3 + ph) > -0.7;\n  if (!on) continue;\n  sc.fillStyle = `rgba(${c[0]},${c[1] | 0},${c[2] | 0},${0.55 + 0.35 * (row === 0 ? 1 : 0.6)})`;\n  sc.fillRect(x, y, 4, 6);\n}\nfor (const car of s.cars) {\n  car.x = (car.x + (car.lane ? -1 : 1) * car.v * ctx.dt + CW + 40) % (CW + 40) - 20;\n  const y = CH * (car.lane ? 0.86 : 0.93);\n  sc.fillStyle = car.lane ? \"#ff4030\" : \"#fff4d0\";\n  sc.beginPath(); sc.arc(car.x, y, 4, 0, Math.PI * 2); sc.arc(car.x + 14, y, 4, 0, Math.PI * 2); sc.fill();\n}\n// 2. half-size copy, blurred by glur\nconst t0 = performance.now();\ns.smc.drawImage(s.sharp, 0, 0, s.BW, s.BH);\nconst img = s.smc.getImageData(0, 0, s.BW, s.BH);\ns.blurRGBA(img.data, s.BW, s.BH, u.u_radius);\nctx.publish(\"blur ms\", +(performance.now() - t0).toFixed(1));\ngl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\ngl.bindTexture(gl.TEXTURE_2D, s.sharpTex);\ngl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, s.sharp);\ngl.bindTexture(gl.TEXTURE_2D, s.blurTex);\ngl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);\n// 3. focus band follows the pointer (or drifts until it moves)\ns.moved ||= ctx.mouse[0] !== 0.5 || ctx.mouse[1] !== 0.5;\nconst focus = s.moved ? 1 - ctx.mouse[1] : 0.2 + 0.08 * Math.sin(t * 0.35);\ngl.useProgram(s.prog);\nctx.utils.bindTexture(s.prog, \"u_sharp\", s.sharpTex, 0);\nctx.utils.bindTexture(s.prog, \"u_blur\", s.blurTex, 1);\nctx.utils.drawFullscreen(s.prog, { u_focus: focus });",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_radius": {
+      "type": "float",
+      "value": 12,
+      "min": 0,
+      "max": 40,
+      "step": 0.5,
+      "label": "Blur radius"
+    },
+    "u_band": {
+      "type": "float",
+      "value": 0.12,
+      "min": 0,
+      "max": 0.6,
+      "step": 0.01,
+      "label": "Focus band"
+    },
+    "u_bloom": {
+      "type": "float",
+      "value": 0.6,
+      "min": 0,
+      "max": 2,
+      "step": 0.01,
+      "label": "Bloom",
+      "widget": "knob"
+    },
+    "u_showBand": {
+      "type": "bool",
+      "value": false,
+      "label": "Show band"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "order": 188,
+  "title": "Perpendiculars (Pts)",
+  "title_ko": "수선의 발 (Pts)",
+  "description": "Pts makes a grid of points and joins each to its perpendicular foot on a line that swings through the pointer; points within reach stretch toward it and Pts wraps them in a convex hull. Pts' CanvasForm draws on an offscreen 2D canvas, which the scene shows with a soft glow.",
+  "description_ko": "Pts가 점 격자를 만들고, 포인터를 지나며 천천히 도는 직선 위로 각 점에서 수선을 내린다. 포인터 가까운 점은 직선 쪽으로 길게 뻗고, Pts가 그 점들을 볼록 껍질로 감싼다. Pts의 CanvasForm이 화면 밖 2D 캔버스에 그리고, 씬이 이를 은은한 글로와 함께 보여 준다.",
+  "prompt": "(open-source example: Pts imported in the scene)",
+  "made_with": "pts 1.0.1 via ctx.utils.import",
+  "features": [
+    "creative coding",
+    "geometry",
+    "convex hull",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "pts"
+  ]
+}

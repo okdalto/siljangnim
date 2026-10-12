@@ -1,0 +1,18 @@
+{
+  "order": 180,
+  "title": "Palette ridges (chroma.js)",
+  "title_ko": "팔레트 능선 (chroma.js)",
+  "description": "chroma.js turns three colors into a scale (in RGB, Lab, LCh, OKLCH or as a Bézier curve, with lightness evened out) and cuts it into classes, one per mountain ridge. The strip at the bottom shows the continuous scale above its classes.",
+  "description_ko": "chroma.js가 세 색으로 스케일을 만들고(RGB, Lab, LCh, OKLCH 또는 베지어 곡선, 밝기 보정 포함) 단계별로 잘라 산 능선마다 하나씩 칠한다. 아래 띠는 위에 연속 스케일, 아래에 나눈 단계를 보여 준다.",
+  "prompt": "(open-source example: chroma.js imported in the scene)",
+  "made_with": "chroma-js 3.2.0 via ctx.utils.import",
+  "features": [
+    "color",
+    "palette",
+    "color scale"
+  ],
+  "mode": "live",
+  "uses": [
+    "chroma-js"
+  ]
+}

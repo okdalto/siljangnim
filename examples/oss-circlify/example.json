@@ -1,0 +1,19 @@
+{
+  "order": 201,
+  "title": "Standard library bubbles (circlify)",
+  "title_ko": "표준 라이브러리 버블 (circlify)",
+  "description": "circlify packed Python's own standard library into nested circles — folders around modules, each sized by its lines of code — on this computer (recipe circlify.stdlib-packing). Hover to read a module, click a folder to zoom in and outside it to zoom out.",
+  "description_ko": "circlify가 이 컴퓨터에 있는 파이썬 표준 라이브러리를 원 안의 원으로 채워 넣었다(레시피 circlify.stdlib-packing). 폴더가 모듈을 감싸고, 원의 크기는 코드 줄 수다. 마우스를 올리면 모듈 이름이 보이고, 폴더를 누르면 확대, 바깥을 누르면 축소된다.",
+  "prompt": "(open-source example: circlify run through the runtime, recipe included)",
+  "made_with": "circlify 0.15.1 via recipe circlify.stdlib-packing (python_run)",
+  "features": [
+    "circle packing",
+    "hierarchy",
+    "zoom",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "circlify"
+  ]
+}

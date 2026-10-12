@@ -1,0 +1,18 @@
+{
+  "order": 126,
+  "title": "Morphing tiles (TactileJS)",
+  "title_ko": "변하는 타일 (TactileJS)",
+  "description": "TactileJS describes the isohedral tiling types: which tile edges must match and how copies cover the plane. The scene bends the edges with animated curves, so the tile keeps changing shape and still tiles; it cycles through types and highlights the tile under the pointer.",
+  "description_ko": "TactileJS가 등면 타일링(isohedral tiling) 유형을 기술한다. 어떤 변끼리 맞물려야 하는지, 복사본이 평면을 어떻게 덮는지를 준다. 씬이 변을 움직이는 곡선으로 휘게 해서 타일 모양이 계속 바뀌어도 빈틈없이 맞물린다. 유형을 돌아가며 보여 주고, 포인터 아래 타일을 강조한다.",
+  "prompt": "(open-source example: TactileJS imported in the scene)",
+  "made_with": "tactile-js 1.0.0 via ctx.utils.import",
+  "features": [
+    "tiling",
+    "tessellation",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "tactile-js"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// poisson-disk-sampling places points one at a time, never closer than a distance that varies\n// over the canvas (a ripple pattern here); each point becomes a dot sized to its spacing.\nconst mod = await ctx.utils.import(\"https://esm.sh/poisson-disk-sampling@2.3.1\");\nconst PoissonDiskSampling = mod.default ?? mod;\nconst gl = ctx.gl;\nconst H = 100;\nconst s = ctx.state;\ns.start = (cx, cy) => {\n  const [w, h] = ctx.resolution, W = H * w / h;\n  const u = ctx.uniforms, phase = Math.random() * 6.283;\n  // 0 → densest, 1 → sparsest: rings around (cx, cy) bent by a slow wave.\n  const density = (p) => {\n    const d = Math.hypot(p[0] - cx, p[1] - cy);\n    return Math.pow(0.5 + 0.5 * Math.sin(d * u.u_rings * 0.06 + Math.sin(p[0] * 0.05 + phase) * 1.2 - phase), 1.5);\n  };\n  s.pds = new PoissonDiskSampling({ shape: [W, H], minDistance: u.u_min, maxDistance: u.u_min * u.u_ratio, tries: 20, distanceFunction: density });\n  s.pds.addPoint([cx, cy]);\n  s.density = density; s.W = W; s.cx = cx; s.cy = cy;\n  s.count = 0; s.data = new Float32Array(4 * 40000); s.done = 0;\n};\ns.prog = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec4 a_point; // x, y, spacing, birth time\nuniform vec2 u_scale; uniform float u_now; uniform float u_px;\nout float v_age; out float v_f;\nvoid main(){\n  v_age = u_now - a_point.w; v_f = a_point.z;\n  gl_Position = vec4(a_point.xy * u_scale - 1.0, 0.0, 1.0);\n  float grow = smoothstep(0.0, 0.35, v_age);\n  gl_PointSize = a_point.z * u_px * grow;\n}`, `#version 300 es\nprecision highp float; in float v_age; in float v_f; out vec4 outColor;\nuniform vec3 u_dense; uniform vec3 u_sparse; uniform float u_maxf;\nvoid main(){\n  float d = length(gl_PointCoord - 0.5) * 2.0;\n  float a = 1.0 - smoothstep(0.74, 0.82, d);\n  if (a <= 0.0) discard;\n  vec3 c = mix(u_dense, u_sparse, clamp(v_f / u_maxf, 0.0, 1.0));\n  c += vec3(1.0, 0.9, 0.7) * exp(-v_age * 4.0) * 0.8; // fresh points flash\n  outColor = vec4(c * a, 1.0);\n}`);\ns.vao = gl.createVertexArray(); s.buf = gl.createBuffer();\ngl.bindVertexArray(s.vao); gl.bindBuffer(gl.ARRAY_BUFFER, s.buf);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 16, 0);\ngl.bindVertexArray(null);\nconst [w, h] = ctx.resolution;\ns.start(H * w / h * 0.5, H * 0.5);\ns.wasDown = false;",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms;\nconst [w, h] = ctx.resolution;\n// Click to restart the sampling around the pointer; the reset button restarts at the center.\nconst click = ctx.mouseDown && !s.wasDown;\ns.wasDown = ctx.mouseDown;\nif (click) s.start(ctx.mouse[0] * s.W, (1 - ctx.mouse[1]) * 100);\nelse if (u.u_reset || Math.abs(s.W - 100 * w / h) > 0.5) s.start(50 * w / h, 50);\n// Grow the set a few points per frame so the fill is visible.\nlet added = 0;\nwhile (added < u.u_rate && s.count < 40000) {\n  const p = s.pds.next();\n  if (!p) break;\n  const f = u.u_min + (u.u_min * u.u_ratio - u.u_min) * s.density(p);\n  s.data.set([p[0], p[1], f, ctx.time], s.count * 4);\n  s.count++; added++;\n}\nif (!added) s.done += ctx.dt;\n// Once full, wait, then start again around a drifting center.\nif (s.done > 3 && u.u_loop) s.start(s.W * (0.3 + 0.4 * Math.random()), 100 * (0.3 + 0.4 * Math.random()));\ngl.clearColor(0.035, 0.035, 0.05, 1); gl.clear(gl.COLOR_BUFFER_BIT);\ngl.useProgram(s.prog);\nctx.utils.setUniforms(s.prog, { u_scale: [2 / s.W, 2 / 100], u_now: ctx.time, u_px: h / 100, u_dense: u.u_dense, u_sparse: u.u_sparse, u_maxf: u.u_min * u.u_ratio });\ngl.bindVertexArray(s.vao); gl.bindBuffer(gl.ARRAY_BUFFER, s.buf);\ngl.bufferData(gl.ARRAY_BUFFER, s.data.subarray(0, s.count * 4), gl.DYNAMIC_DRAW);\ngl.drawArrays(gl.POINTS, 0, s.count);\ngl.bindVertexArray(null);\nctx.publish(\"points\", s.count);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_min": {
+      "type": "float",
+      "value": 0.9,
+      "min": 0.5,
+      "max": 3,
+      "step": 0.05,
+      "label": "Min spacing"
+    },
+    "u_ratio": {
+      "type": "float",
+      "value": 5,
+      "min": 1,
+      "max": 10,
+      "step": 0.1,
+      "label": "Max / min",
+      "widget": "knob"
+    },
+    "u_rings": {
+      "type": "float",
+      "value": 3,
+      "min": 0.5,
+      "max": 8,
+      "step": 0.1,
+      "label": "Ripples",
+      "widget": "knob"
+    },
+    "u_rate": {
+      "type": "int",
+      "value": 40,
+      "min": 1,
+      "max": 400,
+      "step": 1,
+      "label": "Points per frame"
+    },
+    "u_loop": {
+      "type": "bool",
+      "value": true,
+      "label": "Restart when full"
+    },
+    "u_reset": {
+      "type": "bool",
+      "value": false,
+      "label": "Restart",
+      "widget": "button"
+    },
+    "u_dense": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.55,
+        0.3
+      ],
+      "label": "Dense"
+    },
+    "u_sparse": {
+      "type": "color",
+      "value": [
+        0.25,
+        0.45,
+        0.95
+      ],
+      "label": "Sparse"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

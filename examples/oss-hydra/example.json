@@ -1,0 +1,19 @@
+{
+  "order": 186,
+  "title": "Video synth (Hydra)",
+  "title_ko": "비디오 신스 (Hydra)",
+  "description": "hydra-synth, the live-coding video synth, renders on its own offscreen canvas; the scene ticks it every frame and draws the result with a slight color split. Four patches: kaleidoscope, feedback, voronoi, and one that feeds a 2D canvas the scene draws into Hydra as a source. The pointer bends each patch.",
+  "description_ko": "라이브 코딩 비디오 신스 hydra-synth가 화면 밖 자체 캔버스에 그린다. 씬은 매 프레임 Hydra를 한 번씩 돌리고 결과를 약간의 색 분리와 함께 그린다. 패치는 네 가지다. 만화경, 피드백, 보로노이, 그리고 씬이 그린 2D 캔버스를 Hydra 소스로 넣는 패치. 포인터로 패치를 휘게 할 수 있다.",
+  "prompt": "(open-source example: hydra-synth imported in the scene)",
+  "made_with": "hydra-synth 1.4.0 via ctx.utils.import",
+  "features": [
+    "video synth",
+    "live coding",
+    "feedback",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "hydra-synth"
+  ]
+}

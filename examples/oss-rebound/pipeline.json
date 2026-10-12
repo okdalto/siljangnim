@@ -1,0 +1,24 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "rebound.disk-flyby@1",
+      "packages": [
+        "rebound==5.2.0"
+      ],
+      "resolved": [
+        "rebound==5.2.0"
+      ],
+      "inputs": [],
+      "params": {
+        "particles": 500,
+        "frames": 220,
+        "t_end": 55,
+        "seed": 3
+      },
+      "outputs": [
+        "orbits.json"
+      ]
+    }
+  ]
+}

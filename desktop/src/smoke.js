@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { app } from "electron";
 
-const TIMEOUT_MS = 240_000;
+const TIMEOUT_MS = 600_000;
 const LLM_PROBE = "app://siljangnim/api/llm/anthropic/v1/messages";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));

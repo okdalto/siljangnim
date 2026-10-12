@@ -1,0 +1,18 @@
+{
+  "order": 122,
+  "title": "Ink strokes (Perfect Freehand)",
+  "title_ko": "잉크 붓질 (Perfect Freehand)",
+  "description": "Draw with the mouse: Perfect Freehand turns the pointer path into a stroke outline whose width follows the drawing speed, and WebGL fills it. Changing size, thinning or smoothing redraws every stroke.",
+  "description_ko": "마우스로 그린다. Perfect Freehand가 포인터 경로를 굵기가 그리는 속도를 따르는 획의 윤곽으로 바꾸고, WebGL이 그 안을 칠한다. 크기, 가늘어짐, 매끄러움을 바꾸면 모든 획이 다시 그려진다.",
+  "prompt": "(open-source example: Perfect Freehand imported in the scene)",
+  "made_with": "perfect-freehand 1.2.3 via ctx.utils.import",
+  "features": [
+    "drawing",
+    "strokes",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "perfect-freehand"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "order": 149,
+  "title": "Ray scanner (three-mesh-bvh)",
+  "title_ko": "광선 스캐너 (three-mesh-bvh)",
+  "description": "three-mesh-bvh builds a bounding volume hierarchy over a 200k-triangle knot, so three emitters can cast thousands of rays at it every frame; the hits paint the surface and slowly fade, and Three.js draws the beams. The monitor shows the raycast time. Drag to orbit.",
+  "description_ko": "three-mesh-bvh가 삼각형 20만 개짜리 매듭에 경계 볼륨 계층(BVH)을 만들어, 세 발광체가 매 프레임 수천 개의 광선을 쏠 수 있다. 맞은 자리는 표면에 물감처럼 묻었다가 천천히 사라지고, 광선은 Three.js가 그린다. 모니터에 레이캐스트 시간이 나온다. 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: three-mesh-bvh imported in the scene)",
+  "made_with": "three-mesh-bvh 0.9.15 and three 0.186.0 via ctx.utils.import",
+  "features": [
+    "raycasting",
+    "bvh",
+    "three.js",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "three-mesh-bvh",
+    "three-js"
+  ]
+}

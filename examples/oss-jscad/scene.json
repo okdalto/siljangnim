@@ -1,0 +1,66 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// @jscad/modeling builds the solids with constructive solid geometry: a sphere\n// intersected with a cube, three cylinders cut through it, on a twisted star\n// extrusion. Its polygons become a flat-shaded mesh; the cuts follow the controls.\nconst mod = await ctx.utils.import(\"https://esm.sh/@jscad/modeling@2.13.0\");\nconst J = mod.default ?? mod;\nconst { primitives: P, booleans: B, extrusions: E, transforms: T, geometries: G } = J;\nconst toMesh = (geom) => {\n  const pos = [], nor = [];\n  for (const poly of G.geom3.toPolygons(geom)) {\n    const v = poly.vertices;\n    // Flat shading: one normal per polygon (jscad is Z-up; swap to Y-up here).\n    const a = v[0], b = v[1], c = v[2];\n    const e1 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], e2 = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];\n    let n = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]];\n    const l = Math.hypot(...n) || 1; n = [n[0] / l, n[2] / l, -n[1] / l];\n    for (let i = 1; i + 1 < v.length; i++) for (const p of [v[0], v[i], v[i + 1]]) { pos.push(p[0], p[2], -p[1]); nor.push(...n); }\n  }\n  return ctx.utils.createMesh({ positions: new Float32Array(pos), normals: new Float32Array(nor) });\n};\nconst build = (hole, round, cuts) => {\n  const t0 = performance.now();\n  const core = B.intersect(P.cuboid({ size: [2, 2, 2] }), P.sphere({ radius: round, segments: 48 }));\n  const r = hole, h = 3;\n  const bores = [\n    P.cylinder({ radius: r, height: h, segments: 40 }),\n    T.rotateX(Math.PI / 2, P.cylinder({ radius: r, height: h, segments: 40 })),\n    T.rotateY(Math.PI / 2, P.cylinder({ radius: r, height: h, segments: 40 })),\n  ];\n  // Extra notches around the equator.\n  for (let i = 0; i < cuts; i++) bores.push(T.rotateZ(i / cuts * Math.PI * 2, T.translate([1.15, 0, 0], P.cuboid({ size: [0.5, 0.18, 2.4] }))));\n  const piece = B.subtract(core, ...bores);\n  const ms = performance.now() - t0;\n  ctx.publish(\"csg ms\", Math.round(ms));\n  ctx.publish(\"polygons\", G.geom3.toPolygons(piece).length);\n  return toMesh(T.translate([0, 0, 0.2], piece));\n};\nconst star = E.extrudeLinear({ height: 0.45, twistAngle: Math.PI / 7, twistSteps: 8 }, P.star({ vertices: 7, outerRadius: 1.35, innerRadius: 0.9 }));\nconst base = toMesh(T.translate([0, 0, -2.25], B.subtract(star, P.cylinder({ radius: 0.55, height: 3, segments: 32 }))));\nconst prog = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec3 a_position; layout(location=1) in vec3 a_normal;\nuniform mat4 u_vp, u_model; out vec3 v_n; out vec3 v_w;\nvoid main() { vec4 w = u_model * vec4(a_position, 1.0); v_w = w.xyz; v_n = mat3(u_model) * a_normal; gl_Position = u_vp * w; }`, `#version 300 es\nprecision highp float; in vec3 v_n; in vec3 v_w; out vec4 outColor; uniform vec3 u_color, u_eye;\nvoid main() {\n  vec3 n = normalize(v_n), v = normalize(u_eye - v_w);\n  vec3 l1 = normalize(vec3(0.5, 0.9, 0.4)), l2 = normalize(vec3(-0.7, 0.2, -0.5));\n  float d = max(dot(n, l1), 0.0), d2 = max(dot(n, l2), 0.0);\n  float sp = pow(max(dot(n, normalize(l1 + v)), 0.0), 60.0);\n  vec3 c = u_color * (0.08 + 0.85 * d) + vec3(0.3, 0.45, 0.8) * d2 * 0.35 + sp * 0.6;\n  outColor = vec4(pow(c, vec3(0.4545)), 1.0);\n}`);\nObject.assign(ctx.state, { build, base, prog, key: \"\", piece: null,\n  camera: ctx.utils.createOrbitCamera({ distance: 8, theta: 0.6, phi: 1.2, target: [0, -0.4, 0] }) });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, { mat4 } = ctx.utils, [w, h] = ctx.resolution;\n// Rebuild the solid only when a shape control changed.\nconst key = [u.u_hole, u.u_round, u.u_cuts].join();\nif (key !== s.key) { s.key = key; s.piece = s.build(u.u_hole, u.u_round, u.u_cuts); }\ns.camera.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt);\nconst eye = s.camera.getEye();\nconst vp = mat4.multiply(s.camera.getProjectionMatrix(w / h, 35, 0.1, 50), s.camera.getViewMatrix());\ngl.enable(gl.DEPTH_TEST);\ngl.clearColor(0.05, 0.05, 0.07, 1);\ngl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);\ngl.useProgram(s.prog);\nconst spin = mat4.fromYRotation(ctx.time * u.u_spin);\nctx.utils.setUniforms(s.prog, { u_vp: vp, u_eye: eye, u_model: mat4.multiply(spin, mat4.fromXRotation(Math.sin(ctx.time * 0.4) * 0.25)), u_color: u.u_color });\ns.piece.draw();\nctx.utils.setUniforms(s.prog, { u_model: mat4.fromYRotation(-ctx.time * u.u_spin * 0.3), u_color: u.u_base });\ns.base.draw();",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_hole": {
+      "type": "float",
+      "value": 0.45,
+      "min": 0.1,
+      "max": 0.85,
+      "step": 0.01,
+      "label": "Bore radius"
+    },
+    "u_round": {
+      "type": "float",
+      "value": 1.32,
+      "min": 1.0,
+      "max": 1.75,
+      "step": 0.01,
+      "label": "Rounding"
+    },
+    "u_cuts": {
+      "type": "int",
+      "value": 8,
+      "min": 0,
+      "max": 16,
+      "step": 1,
+      "label": "Notches"
+    },
+    "u_spin": {
+      "type": "float",
+      "value": 0.4,
+      "min": 0,
+      "max": 2,
+      "step": 0.01,
+      "label": "Spin",
+      "widget": "knob"
+    },
+    "u_color": {
+      "type": "color",
+      "value": [
+        0.9,
+        0.5,
+        0.25
+      ],
+      "label": "Solid"
+    },
+    "u_base": {
+      "type": "color",
+      "value": [
+        0.2,
+        0.24,
+        0.34
+      ],
+      "label": "Base"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "order": 189,
+  "title": "Tilt-shift city (glur)",
+  "title_ko": "틸트 시프트 도시 (glur)",
+  "description": "Every frame the scene paints a night city with flickering windows and traffic, and glur blurs a half-size copy of it on the CPU (an IIR Gaussian: the cost does not grow with the radius). The shader keeps a band in focus at the pointer and blurs the rest, for a miniature look, plus a little bloom.",
+  "description_ko": "씬이 매 프레임 창문이 깜박이고 차가 달리는 밤 도시를 그리고, glur가 그 절반 크기 사본을 CPU에서 블러한다(IIR 가우시안이라 반경이 커져도 비용이 같다). 셰이더는 포인터 높이의 띠만 초점을 맞추고 나머지를 흐려 미니어처처럼 보이게 하고, 빛 번짐을 조금 더한다.",
+  "prompt": "(open-source example: glur imported in the scene)",
+  "made_with": "glur 2.0.0 via ctx.utils.import",
+  "features": [
+    "blur",
+    "tilt-shift",
+    "bloom",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "glur"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "order": 120,
+  "title": "Ripple stipple (poisson-disk-sampling)",
+  "title_ko": "물결 점묘 (poisson-disk-sampling)",
+  "description": "poisson-disk-sampling fills the canvas point by point, keeping each new point a minimum distance from the others; the distance follows a ripple pattern, so the dots form rings of dense and sparse stipple. Click to start again around the pointer.",
+  "description_ko": "poisson-disk-sampling이 점을 하나씩 채워 넣으며, 새 점은 다른 점과 최소 거리를 지킨다. 그 거리가 물결 모양으로 바뀌어 촘촘한 점묘와 성긴 점묘가 고리를 이룬다. 클릭하면 포인터 주변에서 다시 시작한다.",
+  "prompt": "(open-source example: poisson-disk-sampling imported in the scene)",
+  "made_with": "poisson-disk-sampling 2.3.1 via ctx.utils.import",
+  "features": [
+    "sampling",
+    "stipple",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "poisson-disk-sampling"
+  ]
+}

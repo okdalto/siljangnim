@@ -1,0 +1,153 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "// tween.js drives every dot: each move is one Tween per dot (position, turn, size, color)\n// with a staggered delay and the chosen easing. The inset plots that easing curve.\nconst mod = await ctx.utils.import(\"https://esm.sh/@tweenjs/tween.js@25.0.0\");\nconst { Tween, Group, Easing } = mod.Tween ? mod : (mod.default ?? mod);\nconst COLS = 12, ROWS = 8, M = COLS * ROWS;\nconst dots = Array.from({ length: M }, (_, i) => ({ x: 0, y: 0, rot: 0, size: 0, hue: 0, i }));\nconst EASINGS = [\n  [\"Elastic.Out\", Easing.Elastic.Out], [\"Back.InOut\", Easing.Back.InOut], [\"Bounce.Out\", Easing.Bounce.Out],\n  [\"Exponential.InOut\", Easing.Exponential.InOut], [\"Cubic.InOut\", Easing.Cubic.InOut], [\"Circular.InOut\", Easing.Circular.InOut],\n  [\"Sinusoidal.InOut\", Easing.Sinusoidal.InOut], [\"Quintic.Out\", Easing.Quintic.Out], [\"Linear\", Easing.Linear.None],\n];\n// Formations, in a 1000-unit-tall frame centered on the origin.\nconst FORMATIONS = [\n  (i) => ({ x: ((i % COLS) - (COLS - 1) / 2) * 62, y: (Math.floor(i / COLS) - (ROWS - 1) / 2) * 62, rot: 0, size: 1, hue: ((i % COLS) + Math.floor(i / COLS)) / (COLS + ROWS - 2) }),\n  (i) => { const a = i / M * Math.PI * 2; return { x: Math.cos(a) * 380, y: Math.sin(a) * 380, rot: a, size: 0.5, hue: i / M }; },\n  (i) => { const a = i * 2.39996, r = 34 * Math.sqrt(i + 1); return { x: Math.cos(a) * r, y: Math.sin(a) * r, rot: a, size: 0.45 + i / M * 0.75, hue: 1 - i / M }; },\n  (i) => { const t = i / (M - 1); return { x: (t - 0.5) * 1150, y: Math.sin(t * Math.PI * 4) * 190 + (i % 2 ? 40 : -40), rot: t * Math.PI * 4, size: 0.7, hue: t }; },\n  (i) => { const ring = i % 3, k = Math.floor(i / 3), n = M / 3, a = k / n * Math.PI * 2 + ring * 0.2; const r = 120 + ring * 120; return { x: Math.cos(a) * r, y: Math.sin(a) * r, rot: -a, size: 0.45 + ring * 0.25, hue: 0.15 + ring * 0.35 }; },\n];\nconst gl = ctx.gl;\nconst vao = gl.createVertexArray(), buffer = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 20, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 20, 8);\ngl.bindVertexArray(null);\nconst lineVao = gl.createVertexArray(), lineBuffer = gl.createBuffer();\ngl.bindVertexArray(lineVao); gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);\ngl.bindVertexArray(null);\nconst program = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec2 a_position; layout(location=1) in vec3 a_info;\nuniform vec2 u_view; uniform float u_px; out float v_rot; out float v_hue;\nvoid main(){\n  v_rot = a_info.x; v_hue = a_info.z;\n  gl_Position = vec4(a_position / u_view * 2.0, 0.0, 1.0);\n  gl_PointSize = max(a_info.y, 0.0) * u_px;\n}`, `#version 300 es\nprecision highp float; in float v_rot; in float v_hue; out vec4 outColor;\nuniform vec3 u_colors[5];\nvoid main(){\n  // A rounded square, turned by the tweened angle.\n  vec2 p = gl_PointCoord * 2.0 - 1.0;\n  float c = cos(v_rot), s = sin(v_rot);\n  p = mat2(c, -s, s, c) * p * 1.42;\n  vec2 q = abs(p) - vec2(0.62);\n  float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - 0.3;\n  if (d > 0.0) discard;\n  float h = clamp(v_hue, 0.0, 1.0) * 4.0; int k = int(min(floor(h), 3.0));\n  vec3 col = mix(u_colors[k], u_colors[k + 1], h - float(k));\n  outColor = vec4(col * (0.8 + 0.35 * smoothstep(-0.25, 0.0, -d) * (0.5 + 0.5 * p.y)), 1.0);\n}`);\nconst lines = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec2 a_position; uniform vec2 u_offset;\nvoid main(){ gl_Position = vec4(a_position + u_offset, 0.0, 1.0); gl_PointSize = 9.0; }`, `#version 300 es\nprecision highp float; out vec4 outColor; uniform vec3 u_color;\nvoid main(){ outColor = vec4(u_color, 1.0); }`);\nObject.assign(ctx.state, { Tween, Group, group: new Group(), EASINGS, FORMATIONS, dots, M, vao, buffer, lineVao, lineBuffer, program, lines,\n  data: new Float32Array(M * 5), formation: -1, nextAt: 0, moveStart: 0, moveLength: 1, easing: 0, moves: 0 });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst now = ctx.time * 1000 + 1; // tween.js reads 0 as \"use the clock\", so never pass 0\n// Time for the next move: one Tween per dot, staggered by index or by distance from the middle.\nif (now >= s.nextAt) {\n  s.formation = (s.formation + 1) % s.FORMATIONS.length;\n  s.easing = u.u_easing > 0 ? u.u_easing - 1 : s.moves % s.EASINGS.length;\n  s.moves++;\n  const ease = s.EASINGS[s.easing][1], dur = u.u_duration * 1000, step = u.u_stagger * 1000;\n  const fromCenter = s.formation % 2 === 1;\n  s.group.removeAll();\n  let longest = 0;\n  for (const d of s.dots) {\n    const target = s.FORMATIONS[s.formation](d.i);\n    if (s.formation === 0) target.rot = d.rot - (d.rot % (Math.PI / 2)) + Math.PI / 2; // grid: a quarter turn\n    const delay = fromCenter ? Math.hypot(d.x, d.y) / 25 * step : d.i * step;\n    longest = Math.max(longest, delay);\n    new s.Tween(d, s.group).to(target, dur).easing(ease).delay(delay).start(now);\n  }\n  s.moveStart = now; s.moveLength = longest + dur;\n  s.nextAt = now + s.moveLength + u.u_pause * 1000;\n}\ns.group.update(now);\ns.dots.forEach((d, i) => s.data.set([d.x, d.y, d.rot, d.size * 46 * u.u_scale, d.hue], i * 5));\nconst H = 1000, W = H * w / h;\ngl.clearColor(0.035, 0.035, 0.05, 1); gl.clear(gl.COLOR_BUFFER_BIT);\ngl.useProgram(s.program);\nctx.utils.setUniforms(s.program, { u_view: [W, H], u_px: h / H, u_colors: [u.u_c1, u.u_c2, u.u_c3, u.u_c4, u.u_c1].flat() });\ngl.bindVertexArray(s.vao); gl.bindBuffer(gl.ARRAY_BUFFER, s.buffer);\ngl.bufferData(gl.ARRAY_BUFFER, s.data, gl.DYNAMIC_DRAW);\ngl.drawArrays(gl.POINTS, 0, s.M);\n// Inset: the current easing curve, with a dot riding it for the first dot's tween.\nconst [name, ease] = s.EASINGS[s.easing];\nconst bw = 0.22 * h / w * 2, bh = 0.22 * 2, x0 = -1 + 0.05 * h / w * 2, y0 = -1 + 0.08;\nconst sx = (t) => x0 + t * bw, sy = (v) => y0 + 0.2 * bh + v * bh * 0.6;\nconst curve = [];\nfor (let k = 0; k <= 120; k++) { const t = k / 120; curve.push(sx(t), sy(ease(t))); }\nconst frame = [sx(0), sy(0), sx(1), sy(0), sx(0), sy(0), sx(0), sy(1), sx(0), sy(1), sx(1), sy(1)];\nconst tFirst = Math.min(1, Math.max(0, (now - s.moveStart) / (u.u_duration * 1000)));\ngl.useProgram(s.lines);\ngl.bindVertexArray(s.lineVao); gl.bindBuffer(gl.ARRAY_BUFFER, s.lineBuffer);\nconst draw = (pts, mode, color) => {\n  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pts), gl.DYNAMIC_DRAW);\n  ctx.utils.setUniforms(s.lines, { u_color: color });\n  // WebGL lines are 1 px; shifted passes thicken them.\n  for (const o of [[0, 0], [2 / w, 0], [0, 2 / h], [2 / w, 2 / h]]) { ctx.utils.setUniforms(s.lines, { u_offset: o }); gl.drawArrays(mode, 0, pts.length / 2); }\n};\ndraw(frame, gl.LINES, [0.2, 0.21, 0.27]);\ndraw(curve, gl.LINE_STRIP, u.u_c2);\ndraw([sx(tFirst), sy(ease(tFirst))], gl.POINTS, [1, 1, 1]);\ngl.bindVertexArray(null);\nctx.publish(\"easing\", name);",
+    "cleanup": "ctx.state.group?.removeAll();"
+  },
+  "uniforms": {
+    "u_easing": {
+      "type": "int",
+      "value": 0,
+      "min": 0,
+      "max": 9,
+      "label": "Easing",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Cycle through all",
+          "value": 0
+        },
+        {
+          "label": "Elastic.Out",
+          "value": 1
+        },
+        {
+          "label": "Back.InOut",
+          "value": 2
+        },
+        {
+          "label": "Bounce.Out",
+          "value": 3
+        },
+        {
+          "label": "Exponential.InOut",
+          "value": 4
+        },
+        {
+          "label": "Cubic.InOut",
+          "value": 5
+        },
+        {
+          "label": "Circular.InOut",
+          "value": 6
+        },
+        {
+          "label": "Sinusoidal.InOut",
+          "value": 7
+        },
+        {
+          "label": "Quintic.Out",
+          "value": 8
+        },
+        {
+          "label": "Linear",
+          "value": 9
+        }
+      ]
+    },
+    "u_duration": {
+      "type": "float",
+      "value": 1.4,
+      "min": 0.2,
+      "max": 4,
+      "step": 0.01,
+      "label": "Duration (s)"
+    },
+    "u_stagger": {
+      "type": "float",
+      "value": 0.012,
+      "min": 0,
+      "max": 0.05,
+      "step": 0.001,
+      "label": "Stagger (s)",
+      "widget": "knob"
+    },
+    "u_pause": {
+      "type": "float",
+      "value": 0.7,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Pause (s)"
+    },
+    "u_scale": {
+      "type": "float",
+      "value": 1,
+      "min": 0.3,
+      "max": 2,
+      "step": 0.01,
+      "label": "Dot size"
+    },
+    "u_c1": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.45,
+        0.4
+      ],
+      "label": "Color 1"
+    },
+    "u_c2": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.8,
+        0.35
+      ],
+      "label": "Color 2"
+    },
+    "u_c3": {
+      "type": "color",
+      "value": [
+        0.35,
+        0.85,
+        0.7
+      ],
+      "label": "Color 3"
+    },
+    "u_c4": {
+      "type": "color",
+      "value": [
+        0.45,
+        0.55,
+        1.0
+      ],
+      "label": "Color 4"
+    }
+  },
+  "inputs": [],
+  "keyframes": {},
+  "controls": [
+    {
+      "label": "Motion",
+      "uniforms": [
+        "u_easing",
+        "u_duration",
+        "u_stagger",
+        "u_pause"
+      ]
+    },
+    {
+      "label": "Look",
+      "uniforms": [
+        "u_scale",
+        "u_c1",
+        "u_c2",
+        "u_c3",
+        "u_c4"
+      ]
+    }
+  ]
+}

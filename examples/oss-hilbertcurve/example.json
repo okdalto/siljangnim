@@ -1,0 +1,19 @@
+{
+  "order": 205,
+  "title": "Hilbert curve (hilbertcurve)",
+  "title_ko": "힐베르트 곡선 (hilbertcurve)",
+  "description": "hilbertcurve computed Hilbert curves of orders 1 to 7, plus a 3D one, on this computer (recipe hilbertcurve.orders); the scene morphs each order into the next — every point splits into four — with color running along the path. One unbroken line visits every cell.",
+  "description_ko": "hilbertcurve가 이 컴퓨터에서 1차부터 7차까지의 힐베르트 곡선과 3D 곡선 하나를 계산했다(레시피 hilbertcurve.orders). 씬은 한 차수를 다음 차수로 변형하며(점 하나가 넷으로 갈라진다) 경로를 따라 색이 흐른다. 끊기지 않는 선 하나가 모든 칸을 지난다.",
+  "prompt": "(open-source example: hilbertcurve run through the runtime, recipe included)",
+  "made_with": "hilbertcurve 2.0.5 via recipe hilbertcurve.orders (python_run)",
+  "features": [
+    "space-filling curve",
+    "morph",
+    "plotter",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "hilbertcurve"
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "// spectral.js mixes the three paints like real pigments (Kubelka–Munk) into a lookup table;\n// a GPU simulation swirls the paint amounts and the display shader reads the mixed color.\nconst mod = await ctx.utils.import(\"https://esm.sh/spectral.js@3.0.0\");\nconst spectral = mod.default ?? mod;\nconst gl = ctx.gl;\ngl.getExtension(\"EXT_color_buffer_float\");\nconst N = 33, LAYERS = 9;\nconst lut = gl.createTexture();\ngl.bindTexture(gl.TEXTURE_3D, lut);\ngl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA8, N, N, LAYERS, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);\nfor (const p of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_3D, p, gl.LINEAR);\nfor (const p of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T, gl.TEXTURE_WRAP_R]) gl.texParameteri(gl.TEXTURE_3D, p, gl.CLAMP_TO_EDGE);\n// The table: x = share of paint A, y = share of B (C gets the rest), z = how much paint covers the paper.\nconst buildLut = (a, b, c, paper) => {\n  const C = (rgb) => new spectral.Color(rgb.map((v) => v * 255));\n  const A = C(a), B = C(b), Cc = C(c), Paper = C(paper);\n  const data = new Uint8Array(N * N * LAYERS * 4);\n  for (let k = 0; k < LAYERS; k++) for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {\n    let wa = i / (N - 1), wb = j / (N - 1);\n    if (wa + wb > 1) { const t = wa + wb; wa /= t; wb /= t; }\n    const cover = k / (LAYERS - 1);\n    const rgb = spectral.mix([A, wa * cover], [B, wb * cover], [Cc, (1 - wa - wb) * cover], [Paper, 1 - cover]).sRGB;\n    // Mixes can land slightly outside sRGB (e.g. 259); clamp so bytes don't wrap around.\n    data.set([...rgb.map((v) => Math.min(255, Math.max(0, Math.round(v)))), 255], ((k * N + j) * N + i) * 4);\n  }\n  gl.bindTexture(gl.TEXTURE_3D, lut);\n  gl.texSubImage3D(gl.TEXTURE_3D, 0, 0, 0, 0, N, N, LAYERS, gl.RGBA, gl.UNSIGNED_BYTE, data);\n};\nconst sim = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_prev; uniform vec2 u_resolution; uniform float u_time; uniform float u_dt;\nuniform float u_flow; uniform float u_init; uniform vec4 u_pen; uniform vec2 u_penVel; uniform vec4 u_drop;\n` + ctx.utils.glsl.SIMPLEX_3D + `\nvec2 aspect() { return vec2(u_resolution.x / u_resolution.y, 1.0); }\nfloat blob(vec2 p, vec2 c, float r) { vec2 d = (p - c) * aspect(); return exp(-dot(d, d) / (r * r)); }\nfloat disc(vec2 p, vec2 c, float r) { return smoothstep(r, r * 0.8, length((p - c) * aspect())); }\nvec3 onehot(float i) { return vec3(i < 0.5 ? 1.0 : 0.0, abs(i - 1.0) < 0.5 ? 1.0 : 0.0, i > 1.5 ? 1.0 : 0.0); }\nvoid main(){\n  vec2 uv = v_uv;\n  if (u_init > 0.5) {\n    vec3 c = vec3(disc(uv, vec2(0.4, 0.58), 0.22), disc(uv, vec2(0.6, 0.58), 0.22), disc(uv, vec2(0.5, 0.4), 0.21)) * 1.2;\n    outColor = vec4(c, 1.0); return;\n  }\n  // A slow curl-noise swirl moves the paint around; the brush drags it along.\n  vec3 q = vec3(uv * aspect() * 2.6, u_time * 0.05);\n  float e = 0.01;\n  vec2 vel = vec2(snoise(q + vec3(0, e, 0)) - snoise(q - vec3(0, e, 0)), -(snoise(q + vec3(e, 0, 0)) - snoise(q - vec3(e, 0, 0)))) / (2.0 * e);\n  vel *= 0.02 * u_flow;\n  float brush = u_pen.z > 0.0 ? blob(uv, u_pen.xy, u_pen.z) : 0.0;\n  vel += u_penVel * brush;\n  vec2 back = uv - vel * u_dt / aspect();\n  vec2 px = 1.0 / u_resolution;\n  vec3 c = texture(u_prev, back).rgb;\n  vec3 around = (texture(u_prev, back + vec2(px.x, 0)).rgb + texture(u_prev, back - vec2(px.x, 0)).rgb + texture(u_prev, back + vec2(0, px.y)).rgb + texture(u_prev, back - vec2(0, px.y)).rgb) * 0.25;\n  c = mix(c, around, 0.02);\n  if (u_pen.w >= 0.0 && u_pen.w < 2.5) c += onehot(u_pen.w) * brush * u_dt * 6.0;\n  if (u_drop.z > 0.0) c += onehot(u_drop.w) * disc(uv, u_drop.xy, u_drop.z) * 1.2;\n  c *= 1.0 - 0.012 * u_dt;\n  float sum = c.r + c.g + c.b;\n  if (sum > 2.5) c *= 2.5 / sum;\n  outColor = vec4(max(c, 0.0), 1.0);\n}`);\nconst show = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; precision highp sampler3D; in vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_field; uniform sampler3D u_lut; uniform vec2 u_resolution; uniform bool u_compare;\nuniform vec3 u_paintA; uniform vec3 u_paintB; uniform vec3 u_paintC; uniform vec3 u_paper;\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }\nvoid main(){\n  vec3 c = texture(u_field, v_uv).rgb;\n  float sum = c.r + c.g + c.b;\n  vec3 wgt = sum > 1e-4 ? c / sum : vec3(0.0, 0.0, 1.0);\n  float cover = 1.0 - exp(-sum * 2.2);\n  vec3 col;\n  bool rgbSide = u_compare && v_uv.x > 0.5;\n  if (rgbSide) {\n    // Plain RGB averaging, for comparison: blue + yellow goes grey instead of green.\n    col = mix(u_paper, wgt.r * u_paintA + wgt.g * u_paintB + wgt.b * u_paintC, cover);\n  } else {\n    const float N = 33.0, L = 9.0;\n    col = texture(u_lut, vec3((wgt.r * (N - 1.0) + 0.5) / N, (wgt.g * (N - 1.0) + 0.5) / N, (cover * (L - 1.0) + 0.5) / L)).rgb;\n  }\n  // Wet sheen from the paint's thickness, and a little paper grain.\n  vec2 px = 1.0 / u_resolution;\n  float sx = dot(texture(u_field, v_uv + vec2(px.x * 2.0, 0)).rgb - texture(u_field, v_uv - vec2(px.x * 2.0, 0)).rgb, vec3(1));\n  float sy = dot(texture(u_field, v_uv + vec2(0, px.y * 2.0)).rgb - texture(u_field, v_uv - vec2(0, px.y * 2.0)).rgb, vec3(1));\n  float light = clamp(0.5 + (sx * -0.6 + sy * 0.8) * 3.0, 0.0, 1.0);\n  col *= 0.92 + 0.16 * light * cover;\n  col += pow(light, 6.0) * 0.12 * cover;\n  col *= 0.97 + 0.03 * hash(floor(v_uv * u_resolution / 2.0));\n  if (u_compare && abs(v_uv.x - 0.5) < px.x * 1.5) col = vec3(0.1);\n  outColor = vec4(col, 1.0);\n}`);\nObject.assign(ctx.state, { buildLut, lut, sim, show, field: null, lutKey: \"\", drop: 0, moved: false });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\n// Rebuild the spectral mixing table when a paint color changes (about 10k mixes).\nconst key = JSON.stringify([u.u_paintA, u.u_paintB, u.u_paintC, u.u_paper]);\nif (key !== s.lutKey) { s.lutKey = key; s.buildLut(u.u_paintA, u.u_paintB, u.u_paintC, u.u_paper); }\nconst fw = Math.max(1, Math.floor(w / 2)), fh = Math.max(1, Math.floor(h / 2));\nlet init = 0;\nif (!s.field || s.field.width !== fw || s.field.height !== fh) {\n  s.field = ctx.utils.createPingPong(fw, fh, { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT, filter: gl.LINEAR });\n  init = 1;\n}\n// Brush: hold the button and drag to lay down (or just smear) paint.\ns.moved ||= ctx.mouse[0] !== 0.5 || ctx.mouse[1] !== 0.5;\nconst dt = Math.min(ctx.dt, 1 / 30);\nconst painting = s.moved && ctx.mouseDown;\nconst brush = [ctx.mouse[0], 1 - ctx.mouse[1], painting ? u.u_size : 0, u.u_brush === 3 ? -1 : u.u_brush];\nconst vel = painting ? [(ctx.mouse[0] - ctx.mousePrev[0]) / Math.max(ctx.dt, 1e-3) * w / h, -(ctx.mouse[1] - ctx.mousePrev[1]) / Math.max(ctx.dt, 1e-3)] : [0, 0];\n// Now and then a fresh drop of paint lands somewhere.\nlet drop = [0, 0, 0, 0];\ns.drop -= dt * u.u_drops;\nif (s.drop <= 0 && !init) { s.drop = 1; drop = [0.15 + Math.random() * 0.7, 0.15 + Math.random() * 0.7, 0.04 + Math.random() * 0.06, Math.floor(Math.random() * 3)]; }\nconst read = s.field.read(), write = s.field.write();\ngl.bindFramebuffer(gl.FRAMEBUFFER, write.framebuffer);\ngl.viewport(0, 0, fw, fh);\ngl.useProgram(s.sim);\nctx.utils.bindTexture(s.sim, \"u_prev\", read.texture, 0);\nctx.utils.drawFullscreen(s.sim, { u_resolution: [fw, fh], u_dt: dt, u_init: init, u_pen: brush, u_penVel: vel, u_drop: drop, u_flow: u.u_flow });\ns.field.swap();\ngl.bindFramebuffer(gl.FRAMEBUFFER, null);\ngl.viewport(0, 0, w, h);\ngl.useProgram(s.show);\nctx.utils.bindTexture(s.show, \"u_field\", s.field.read().texture, 0);\ngl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_3D, s.lut);\nctx.utils.setUniforms(s.show, { u_lut: 1 });\nctx.utils.drawFullscreen(s.show, { u_lut: 1 });",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_paintA": {
+      "type": "color",
+      "value": [
+        0.02,
+        0.16,
+        0.55
+      ],
+      "label": "Paint A"
+    },
+    "u_paintB": {
+      "type": "color",
+      "value": [
+        0.99,
+        0.82,
+        0.0
+      ],
+      "label": "Paint B"
+    },
+    "u_paintC": {
+      "type": "color",
+      "value": [
+        0.86,
+        0.08,
+        0.32
+      ],
+      "label": "Paint C"
+    },
+    "u_paper": {
+      "type": "color",
+      "value": [
+        0.97,
+        0.95,
+        0.9
+      ],
+      "label": "Paper"
+    },
+    "u_brush": {
+      "type": "int",
+      "value": 0,
+      "min": 0,
+      "max": 3,
+      "label": "Brush",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Paint A",
+          "value": 0
+        },
+        {
+          "label": "Paint B",
+          "value": 1
+        },
+        {
+          "label": "Paint C",
+          "value": 2
+        },
+        {
+          "label": "Smear only",
+          "value": 3
+        }
+      ]
+    },
+    "u_size": {
+      "type": "float",
+      "value": 0.05,
+      "min": 0.01,
+      "max": 0.2,
+      "step": 0.001,
+      "label": "Brush size"
+    },
+    "u_flow": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.01,
+      "label": "Swirl",
+      "widget": "knob"
+    },
+    "u_drops": {
+      "type": "float",
+      "value": 0.6,
+      "min": 0,
+      "max": 4,
+      "step": 0.01,
+      "label": "Drops / s"
+    },
+    "u_compare": {
+      "type": "bool",
+      "value": false,
+      "label": "Compare with RGB (right half)"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ],
+  "keyframes": {},
+  "controls": [
+    {
+      "label": "Paints",
+      "uniforms": [
+        "u_paintA",
+        "u_paintB",
+        "u_paintC",
+        "u_paper"
+      ]
+    },
+    {
+      "label": "Brush and flow",
+      "uniforms": [
+        "u_brush",
+        "u_size",
+        "u_flow",
+        "u_drops",
+        "u_compare"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "order": 143,
+  "title": "Flip knot (glMatrix)",
+  "title_ko": "뒤집히는 매듭 (glMatrix)",
+  "description": "glMatrix does the transform math: 2,080 tiles sit on a trefoil knot, each oriented by a quaternion from the curve's frame, and a wave flips them over as it travels. All the matrices go into one instanced draw. Drag to orbit.",
+  "description_ko": "glMatrix가 변환 계산을 맡는다. 세잎 매듭 위의 타일 2,080개가 곡선의 좌표계에서 얻은 쿼터니언으로 방향을 잡고, 지나가는 물결이 타일을 뒤집는다. 행렬은 모두 인스턴싱 한 번으로 그린다. 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: gl-matrix imported in the scene)",
+  "made_with": "gl-matrix 3.4.4 via ctx.utils.import",
+  "features": [
+    "math",
+    "quaternions",
+    "instancing",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "gl-matrix"
+  ]
+}

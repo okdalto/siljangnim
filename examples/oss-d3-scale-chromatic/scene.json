@@ -1,0 +1,107 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// d3-scale-chromatic supplies the color maps; each is sampled into a 256-texel lookup texture that\n// colors a drifting scalar field (warped noise plus a bump that follows the pointer).\nconst d3 = await ctx.utils.import(\"https://esm.sh/d3-scale-chromatic@3.1.0\");\nconst MAPS = [\"Viridis\", \"Magma\", \"Inferno\", \"Plasma\", \"Cividis\", \"Turbo\", \"Spectral\", \"RdBu\", \"PuOr\", \"Sinebow\", \"Rainbow\", \"YlGnBu\"];\nconst gl = ctx.gl, lut = gl.createTexture();\ngl.bindTexture(gl.TEXTURE_2D, lut);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);\n// Interpolators return \"#rrggbb\" or \"rgb(r, g, b)\" depending on the map.\nconst parse = (c) => c[0] === \"#\" ? [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16)) : c.match(/[\\d.]+/g).slice(0, 3).map(Number);\nconst fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_lut; uniform vec2 u_resolution; uniform vec4 u_mouse; uniform float u_time;\nuniform float u_speed; uniform float u_scale; uniform float u_bands; uniform bool u_lines; uniform bool u_reverse;\nvec2 h2(vec2 p) { p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))); return fract(sin(p) * 43758.5453) * 2.0 - 1.0; }\nfloat gnoise(vec2 p) {\n  vec2 i = floor(p), f = fract(p), u = f * f * (3.0 - 2.0 * f);\n  return mix(mix(dot(h2(i), f), dot(h2(i + vec2(1, 0)), f - vec2(1, 0)), u.x),\n             mix(dot(h2(i + vec2(0, 1)), f - vec2(0, 1)), dot(h2(i + vec2(1, 1)), f - vec2(1, 1)), u.x), u.y);\n}\nfloat fbm(vec2 p) { float a = 0.0, m = 0.5; for (int i = 0; i < 4; i++) { a += m * gnoise(p); p = p * 1.97 + 3.1; m *= 0.42; } return a; }\nfloat field(vec2 p) {\n  float t = u_time * u_speed;\n  vec2 q = vec2(fbm(p + vec2(0.0, t * 0.1)), fbm(p + vec2(5.2, 1.3) - t * 0.08));\n  float v = fbm(p + 2.2 * q + vec2(t * 0.05, 0.0));\n  return 0.5 + 2.6 * v;\n}\nvoid main() {\n  float aspect = u_resolution.x / u_resolution.y;\n  float bar = 0.06;\n  if (v_uv.x > 1.0 - bar) {\n    // color bar on the right\n    float x = (v_uv.x - (1.0 - bar)) / bar;\n    float t = (v_uv.y - 0.08) / 0.84;\n    vec3 c = vec3(0.07);\n    if (x > 0.3 && x < 0.75 && t >= 0.0 && t <= 1.0) {\n      c = texture(u_lut, vec2(u_reverse ? 1.0 - t : t, 0.5)).rgb;\n      if (u_lines && abs(fract(t * u_bands + 0.5) - 0.5) < 0.06) c = mix(c, vec3(0.0), 0.5);\n    }\n    outColor = vec4(c, 1.0); return;\n  }\n  vec2 p = vec2(v_uv.x * aspect, v_uv.y) * u_scale;\n  vec2 m = vec2(u_mouse.x / u_resolution.y, u_mouse.y / u_resolution.y) * u_scale;\n  float v = field(p) + 0.3 * exp(-dot(p - m, p - m) * 4.0 / (u_scale * u_scale));\n  v = clamp(v, 0.0, 1.0);\n  vec3 c = texture(u_lut, vec2(u_reverse ? 1.0 - v : v, 0.5)).rgb;\n  if (u_lines) {\n    // isolines: band edges, kept one pixel wide with fwidth\n    float b = v * u_bands, w = fwidth(b);\n    float line = 1.0 - smoothstep(0.0, w * 1.2, abs(fract(b + 0.5) - 0.5));\n    c = mix(c, c * 0.35, line * 0.8);\n  }\n  outColor = vec4(c, 1.0);\n}`;\nObject.assign(ctx.state, { d3, MAPS, lut, parse, map: -1, p: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fs) });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms;\nconst map = Math.max(0, Math.min(s.MAPS.length - 1, u.u_map | 0));\nif (map !== s.map) {\n  s.map = map;\n  const f = s.d3[\"interpolate\" + s.MAPS[map]], px = new Uint8Array(256 * 4);\n  for (let i = 0; i < 256; i++) { px.set(s.parse(f(i / 255)), i * 4); px[i * 4 + 3] = 255; }\n  gl.bindTexture(gl.TEXTURE_2D, s.lut);\n  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\n  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 256, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, px);\n  ctx.publish(\"color map\", \"interpolate\" + s.MAPS[map]);\n}\ngl.useProgram(s.p);\nctx.utils.bindTexture(s.p, \"u_lut\", s.lut, 0);\nctx.utils.drawFullscreen(s.p);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_map": {
+      "type": "int",
+      "value": 0,
+      "label": "Color map",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Viridis",
+          "value": 0
+        },
+        {
+          "label": "Magma",
+          "value": 1
+        },
+        {
+          "label": "Inferno",
+          "value": 2
+        },
+        {
+          "label": "Plasma",
+          "value": 3
+        },
+        {
+          "label": "Cividis",
+          "value": 4
+        },
+        {
+          "label": "Turbo",
+          "value": 5
+        },
+        {
+          "label": "Spectral",
+          "value": 6
+        },
+        {
+          "label": "RdBu",
+          "value": 7
+        },
+        {
+          "label": "PuOr",
+          "value": 8
+        },
+        {
+          "label": "Sinebow",
+          "value": 9
+        },
+        {
+          "label": "Rainbow",
+          "value": 10
+        },
+        {
+          "label": "YlGnBu",
+          "value": 11
+        }
+      ]
+    },
+    "u_reverse": {
+      "type": "bool",
+      "value": false,
+      "label": "Reverse"
+    },
+    "u_lines": {
+      "type": "bool",
+      "value": true,
+      "label": "Contour lines"
+    },
+    "u_bands": {
+      "type": "float",
+      "value": 12,
+      "min": 3,
+      "max": 30,
+      "step": 1,
+      "label": "Contours"
+    },
+    "u_scale": {
+      "type": "float",
+      "value": 1.4,
+      "min": 0.5,
+      "max": 6,
+      "step": 0.01,
+      "label": "Zoom",
+      "widget": "knob"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.01,
+      "label": "Speed",
+      "widget": "knob"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

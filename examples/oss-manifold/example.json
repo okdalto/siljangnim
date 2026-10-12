@@ -1,0 +1,19 @@
+{
+  "order": 145,
+  "title": "Live booleans (Manifold)",
+  "title_ko": "실시간 불리언 (Manifold)",
+  "description": "manifold-3d, a WebAssembly CSG kernel, subtracts a swarm of orbiting spheres from a rounded block every frame; the result is always a watertight mesh. Carved surfaces are tinted by depth. Change the number and size of cutters; drag to orbit.",
+  "description_ko": "WebAssembly CSG 커널인 manifold-3d가 매 프레임 둥근 블록에서 궤도를 도는 구 무리를 빼낸다. 결과는 항상 빈틈없는 메시다. 깎인 면은 깊이에 따라 색이 입혀진다. 커터 수와 크기를 바꿔 보고, 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: manifold-3d imported in the scene)",
+  "made_with": "manifold-3d 3.5.3 via ctx.utils.import",
+  "features": [
+    "csg",
+    "wasm",
+    "dynamic mesh",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "manifold-3d"
+  ]
+}

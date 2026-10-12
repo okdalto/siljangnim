@@ -1,0 +1,19 @@
+{
+  "order": 202,
+  "title": "Digits map (UMAP)",
+  "title_ko": "손글씨 숫자 지도 (UMAP)",
+  "description": "umap-learn laid out scikit-learn's 1,797 handwritten digits (8×8 pixels each) on a plane on this computer (recipe umap.digits-embedding); similar digits land near each other without the model ever seeing the labels. Hover a point to see its digit; its class lights up.",
+  "description_ko": "umap-learn이 이 컴퓨터에서 scikit-learn의 손글씨 숫자 1,797개(각 8×8 픽셀)를 평면에 펼쳤다(레시피 umap.digits-embedding). 라벨을 보지 않았는데도 비슷한 숫자끼리 모인다. 점에 마우스를 올리면 그 숫자 이미지가 보이고 같은 숫자들이 밝아진다.",
+  "prompt": "(open-source example: UMAP run through the runtime, recipe included)",
+  "made_with": "umap-learn 0.5.12 via recipe umap.digits-embedding (python_run)",
+  "features": [
+    "dimensionality reduction",
+    "scatter",
+    "machine learning",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "umap-learn"
+  ]
+}

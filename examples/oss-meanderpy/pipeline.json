@@ -1,0 +1,46 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "meanderpy.migration@1",
+      "packages": [
+        "meanderpy==0.2.0",
+        "h5py"
+      ],
+      "resolved": [
+        "contourpy==1.4.0",
+        "cycler==0.12.1",
+        "fonttools==4.66.1",
+        "h5py==3.16.0",
+        "imageio==2.38.1",
+        "kiwisolver==1.5.1",
+        "lazy-loader==0.6",
+        "llvmlite==0.50.0",
+        "matplotlib==3.11.2",
+        "meanderpy==0.2.0",
+        "networkx==3.7",
+        "numba==0.68.0",
+        "numpy==2.5.4",
+        "packaging==26.3",
+        "pillow==12.3.0",
+        "pyparsing==3.3.3",
+        "python-dateutil==2.9.0.post0",
+        "scikit-image==0.26.0",
+        "scipy==1.18.1",
+        "six==1.17.0",
+        "tifffile==2026.9.20",
+        "tqdm==4.70.1"
+      ],
+      "inputs": [],
+      "params": {
+        "iterations": 3000,
+        "save_every": 25,
+        "bends": 16,
+        "seed": 5
+      },
+      "outputs": [
+        "river.json"
+      ]
+    }
+  ]
+}

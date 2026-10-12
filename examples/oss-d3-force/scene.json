@@ -1,0 +1,126 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "// d3-force runs the simulation (collision, centering, group pulls); the scene ticks it\n// once per frame and draws every node as a shaded disc. The pointer pushes nodes away.\nconst d3 = await ctx.utils.import(\"https://esm.sh/d3-force@3.0.0\");\nconst N = 900, GROUPS = 5;\nconst nodes = Array.from({ length: N }, (_, i) => {\n  const a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * 420;\n  return { x: Math.cos(a) * d, y: Math.sin(a) * d, r: 5 + Math.pow(Math.random(), 3) * 26, group: i % GROUPS };\n});\n// The pointer is a node of its own: fixed (fx/fy) where the pointer is, far away until it moves.\nconst pointer = { x: 1e5, y: 1e5, fx: 1e5, fy: 1e5, r: 0, group: -1 };\nconst sim = d3.forceSimulation([...nodes, pointer])\n  .alphaDecay(0.01).alphaTarget(0.05).velocityDecay(0.3)\n  .force(\"collide\", d3.forceCollide((n) => n.r + 1.5).strength(0.9).iterations(2))\n  .force(\"x\", d3.forceX(0).strength(0.03))\n  .force(\"y\", d3.forceY(0).strength(0.03))\n  .force(\"radial\", null)\n  .stop();\nconst gl = ctx.gl;\nconst vao = gl.createVertexArray(), buffer = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);\ngl.bindVertexArray(null);\nconst program = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec2 a_position; layout(location=1) in vec2 a_info;\nuniform vec2 u_scale; uniform float u_px; out float v_group; out float v_r;\nvoid main(){\n  v_group = a_info.y; v_r = a_info.x;\n  gl_Position = vec4(a_position * u_scale, 0.0, 1.0);\n  gl_PointSize = a_info.x * 2.0 * u_px;\n}`, `#version 300 es\nprecision highp float; in float v_group; in float v_r; out vec4 outColor;\nuniform vec3 u_palette[5];\nvoid main(){\n  vec2 p = gl_PointCoord * 2.0 - 1.0; p.y = -p.y;\n  float d = length(p); if (d > 1.0) discard;\n  vec3 c = u_palette[int(v_group + 0.5)];\n  // A soft sphere lit from the top left, with a darker rim.\n  vec3 n = vec3(p, sqrt(max(0.0, 1.0 - d * d)));\n  float light = 0.35 + 0.65 * max(dot(n, normalize(vec3(-0.5, 0.6, 0.8))), 0.0);\n  float spec = pow(max(dot(reflect(-normalize(vec3(-0.5, 0.6, 0.8)), n), vec3(0, 0, 1)), 0.0), 24.0);\n  vec3 col = c * light + spec * 0.35;\n  col *= smoothstep(1.0, 0.86, d) * 0.4 + 0.6;\n  outColor = vec4(col, smoothstep(1.0, 0.93, d));\n}`);\nObject.assign(ctx.state, { d3, sim, nodes, pointer, N, GROUPS, vao, buffer, program, data: new Float32Array(N * 4), layout: -1, moved: false });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, d3 = s.d3;\nconst [w, h] = ctx.resolution, H = 1150, W = H * w / h;\n// Switching the layout swaps the forces and reheats the simulation.\nif (u.u_layout !== s.layout || u.u_shake) {\n  s.layout = u.u_layout;\n  const ring = 300, centers = Array.from({ length: s.GROUPS }, (_, g) => [Math.cos(g / s.GROUPS * 6.283 + 0.6) * ring * 1.15, Math.sin(g / s.GROUPS * 6.283 + 0.6) * ring]);\n  const byGroup = s.layout === 1;\n  s.sim.force(\"x\", d3.forceX((n) => byGroup && n.group >= 0 ? centers[n.group][0] : 0).strength(s.layout === 2 ? 0.005 : 0.035));\n  s.sim.force(\"y\", d3.forceY((n) => byGroup && n.group >= 0 ? centers[n.group][1] : 0).strength(s.layout === 2 ? 0.005 : 0.035));\n  s.sim.force(\"radial\", s.layout === 2 ? d3.forceRadial((n) => 120 + n.group * 70, 0, 0).strength(0.08) : null);\n  if (u.u_shake) for (const n of s.nodes) { n.vx += (Math.random() - 0.5) * 60; n.vy += (Math.random() - 0.5) * 60; }\n  s.sim.alpha(0.6);\n}\ns.sim.force(\"collide\").strength(u.u_stiffness);\n// The pointer acts only after it has moved away from the default center.\ns.moved ||= ctx.mouse[0] !== 0.5 || ctx.mouse[1] !== 0.5;\nconst p = s.pointer;\nif (s.moved) {\n  p.fx = (ctx.mouse[0] - 0.5) * W; p.fy = (0.5 - ctx.mouse[1]) * H;\n  p.r = u.u_push * (ctx.mouseDown ? 2.2 : 1);\n}\ns.sim.tick();\ns.nodes.forEach((n, i) => s.data.set([n.x, n.y, n.r, n.group], i * 4));\ngl.clearColor(0.035, 0.037, 0.05, 1); gl.clear(gl.COLOR_BUFFER_BIT);\ngl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);\ngl.useProgram(s.program);\nctx.utils.setUniforms(s.program, { u_scale: [2 / W, 2 / H], u_px: h / H, u_palette: [u.u_color1, u.u_color2, u.u_color3, u.u_color4, u.u_color5].flat() });\ngl.bindVertexArray(s.vao); gl.bindBuffer(gl.ARRAY_BUFFER, s.buffer);\ngl.bufferData(gl.ARRAY_BUFFER, s.data, gl.DYNAMIC_DRAW);\ngl.drawArrays(gl.POINTS, 0, s.N);\ngl.bindVertexArray(null); gl.disable(gl.BLEND);\nctx.publish(\"alpha\", +s.sim.alpha().toFixed(3));",
+    "cleanup": "ctx.state.sim?.stop();"
+  },
+  "uniforms": {
+    "u_layout": {
+      "type": "int",
+      "value": 1,
+      "min": 0,
+      "max": 2,
+      "label": "Layout",
+      "widget": "select",
+      "options": [
+        {
+          "label": "One cluster",
+          "value": 0
+        },
+        {
+          "label": "By group",
+          "value": 1
+        },
+        {
+          "label": "Rings",
+          "value": 2
+        }
+      ]
+    },
+    "u_push": {
+      "type": "float",
+      "value": 90,
+      "min": 0,
+      "max": 250,
+      "step": 1,
+      "label": "Pointer push",
+      "widget": "knob"
+    },
+    "u_stiffness": {
+      "type": "float",
+      "value": 0.9,
+      "min": 0.1,
+      "max": 1,
+      "step": 0.01,
+      "label": "Collision"
+    },
+    "u_shake": {
+      "type": "bool",
+      "value": false,
+      "label": "Shake",
+      "widget": "button"
+    },
+    "u_color1": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.42,
+        0.36
+      ],
+      "label": "Color 1"
+    },
+    "u_color2": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.78,
+        0.3
+      ],
+      "label": "Color 2"
+    },
+    "u_color3": {
+      "type": "color",
+      "value": [
+        0.35,
+        0.85,
+        0.65
+      ],
+      "label": "Color 3"
+    },
+    "u_color4": {
+      "type": "color",
+      "value": [
+        0.35,
+        0.6,
+        1.0
+      ],
+      "label": "Color 4"
+    },
+    "u_color5": {
+      "type": "color",
+      "value": [
+        0.8,
+        0.5,
+        1.0
+      ],
+      "label": "Color 5"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ],
+  "keyframes": {},
+  "controls": [
+    {
+      "label": "Simulation",
+      "uniforms": [
+        "u_layout",
+        "u_push",
+        "u_stiffness",
+        "u_shake"
+      ]
+    },
+    {
+      "label": "Colors",
+      "uniforms": [
+        "u_color1",
+        "u_color2",
+        "u_color3",
+        "u_color4",
+        "u_color5"
+      ]
+    }
+  ]
+}

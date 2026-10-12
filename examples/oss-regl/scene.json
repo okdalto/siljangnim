@@ -1,0 +1,58 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "// regl wraps the scene's WebGL context: one declarative draw command renders\n// 400k points of the Aizawa attractor with additive blending.\nconst mod = await ctx.utils.import(\"https://esm.sh/regl@2.1.1\");\nconst createREGL = mod.default ?? mod;\nconst regl = createREGL({ gl: ctx.gl });\nconst N = 400000, pos = new Float32Array(N * 3), info = new Float32Array(N * 2);\n// Integrate the attractor once; each point keeps its place along the orbit (t) and its speed.\nlet x = 0.1, y = 0, z = 0;\nconst a = 0.95, b = 0.7, c = 0.6, d = 3.5, e = 0.25, f = 0.1, dt = 0.004;\nfor (let i = -2000; i < N; i++) {\n  const dx = (z - b) * x - d * y, dy = d * x + (z - b) * y;\n  const dz = c + a * z - z * z * z / 3 - (x * x + y * y) * (1 + e * z) + f * z * x * x * x;\n  x += dx * dt; y += dy * dt; z += dz * dt;\n  if (i < 0) continue;\n  pos.set([x, z - 0.6, y], i * 3);\n  info.set([i / N, Math.min(1, Math.hypot(dx, dy, dz) / 4)], i * 2);\n}\nconst draw = regl({\n  vert: `\n  precision highp float;\n  attribute vec3 position; attribute vec2 info;\n  uniform mat4 mvp; uniform float time, flow, size;\n  varying float vSpeed, vGlow;\n  void main() {\n    gl_Position = mvp * vec4(position, 1.0);\n    // Bright pulses run along the orbit in integration order.\n    vGlow = pow(fract(info.x * 60.0 - time * flow), 8.0);\n    vSpeed = info.y;\n    gl_PointSize = size * (1.0 + 1.5 * vGlow) / gl_Position.w;\n  }`,\n  frag: `\n  precision highp float;\n  uniform vec3 slow, fast; uniform float exposure;\n  varying float vSpeed, vGlow;\n  void main() {\n    vec2 q = gl_PointCoord - 0.5;\n    float fall = smoothstep(0.25, 0.0, dot(q, q));\n    vec3 col = mix(slow, fast, vSpeed) * (0.25 + 2.0 * vGlow);\n    gl_FragColor = vec4(col * fall * exposure, 1.0);\n  }`,\n  attributes: { position: pos, info },\n  uniforms: {\n    mvp: regl.prop(\"mvp\"), time: regl.prop(\"time\"), flow: regl.prop(\"flow\"), size: regl.prop(\"size\"),\n    slow: regl.prop(\"slow\"), fast: regl.prop(\"fast\"), exposure: regl.prop(\"exposure\"),\n  },\n  blend: { enable: true, func: { src: \"one\", dst: \"one\" } },\n  depth: { enable: false },\n  primitive: \"points\",\n  count: N,\n});\nObject.assign(ctx.state, { regl, draw, camera: ctx.utils.createOrbitCamera({ distance: 4.7, theta: 0.5, phi: 1.25 }) });\nctx.publish(\"points\", N);",
+    "render": "const s = ctx.state, u = ctx.uniforms, { mat4 } = ctx.utils, [w, h] = ctx.resolution;\ns.camera.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt);\nconst model = mat4.fromYRotation(ctx.time * 0.15);\nconst mvp = mat4.multiply(s.camera.getProjectionMatrix(w / h, 40, 0.1, 50), mat4.multiply(s.camera.getViewMatrix(), model));\n// regl caches GL state; the runtime changed some of it since the last frame.\ns.regl._refresh();\ns.regl.clear({ color: [0.012, 0.012, 0.02, 1], depth: 1 });\ns.draw({ mvp, time: ctx.time, flow: u.u_flow, size: u.u_size * h / 900, slow: u.u_slow, fast: u.u_fast, exposure: u.u_exposure });",
+    "cleanup": "ctx.state.regl?.destroy();"
+  },
+  "uniforms": {
+    "u_flow": {
+      "type": "float",
+      "value": 0.5,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Flow",
+      "widget": "knob"
+    },
+    "u_size": {
+      "type": "float",
+      "value": 6,
+      "min": 1,
+      "max": 20,
+      "step": 0.1,
+      "label": "Point size"
+    },
+    "u_exposure": {
+      "type": "float",
+      "value": 0.18,
+      "min": 0.02,
+      "max": 1,
+      "step": 0.01,
+      "label": "Exposure"
+    },
+    "u_slow": {
+      "type": "color",
+      "value": [
+        0.2,
+        0.35,
+        1.0
+      ],
+      "label": "Slow"
+    },
+    "u_fast": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.45,
+        0.2
+      ],
+      "label": "Fast"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ],
+  "keyframes": {}
+}

@@ -1,0 +1,102 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "// 3,500 boids; every frame Flatbush indexes their positions and each boid asks it for the\n// flockmates within its view box, so the flocking rules never compare every pair.\nconst mod = await ctx.utils.import(\"https://esm.sh/flatbush@4.6.2\");\nconst Flatbush = mod.default ?? mod;\nconst N = 3500;\nconst [w0, h0] = ctx.resolution;\nconst H = 1000, W = H * w0 / h0;\nconst px = new Float32Array(N), py = new Float32Array(N), vx = new Float32Array(N), vy = new Float32Array(N);\nfor (let i = 0; i < N; i++) {\n  px[i] = Math.random() * W; py[i] = Math.random() * H;\n  const a = Math.random() * Math.PI * 2; vx[i] = Math.cos(a) * 80; vy[i] = Math.sin(a) * 80;\n}\nconst gl = ctx.gl;\nconst vao = gl.createVertexArray(), buffer = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);\ngl.bindVertexArray(null);\nconst lineVao = gl.createVertexArray(), lineBuffer = gl.createBuffer();\ngl.bindVertexArray(lineVao); gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);\ngl.bindVertexArray(null);\nconst program = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec2 a_position; layout(location=1) in vec2 a_info;\nuniform vec2 u_view; uniform vec2 u_offset; out vec2 v_info;\nvoid main(){ v_info = a_info; gl_Position = vec4(a_position / u_view * 2.0 - 1.0 + u_offset, 0.0, 1.0); }`, `#version 300 es\nprecision highp float; in vec2 v_info; out vec4 outColor; uniform vec3 u_colorA; uniform vec3 u_colorB;\nvoid main(){\n  // x: heading (0..1 around the circle), y: brightness (lines use y > 1 for white).\n  if (v_info.y > 1.5) { outColor = vec4(vec3(1.0, 0.95, 0.8) * (v_info.y - 1.5), 1.0); return; }\n  float t = 0.5 + 0.5 * cos(v_info.x * 6.2831853);\n  outColor = vec4(mix(u_colorA, u_colorB, t) * v_info.y, 1.0);\n}`);\nObject.assign(ctx.state, { Flatbush, N, W, H, px, py, vx, vy, vao, buffer, lineVao, lineBuffer, program, tris: new Float32Array(N * 12), moved: false, watched: 0 });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst { N, W, H, px, py, vx, vy } = s;\nconst dt = Math.min(ctx.dt, 1 / 30);\n// Index this frame's positions.\nconst index = new s.Flatbush(N);\nfor (let i = 0; i < N; i++) index.add(px[i], py[i]);\nindex.finish();\ns.moved ||= ctx.mouse[0] !== 0.5 || ctx.mouse[1] !== 0.5;\nconst mx = ctx.mouse[0] * W, my = (1 - ctx.mouse[1]) * H;\n// Hover picks the boid to inspect (Flatbush's nearest-neighbor query); the button scares the flock.\nif (s.moved) s.watched = index.neighbors(mx, my, 1)[0] ?? s.watched;\nconst R = u.u_radius, sep = R * 0.4, speed = 90 * u.u_speed;\nlet watchedMates = [];\nfor (let i = 0; i < N; i++) {\n  const mates = index.search(px[i] - R, py[i] - R, px[i] + R, py[i] + R);\n  let ax = 0, ay = 0, cx = 0, cy = 0, sxp = 0, syp = 0, n = 0;\n  for (const j of mates) {\n    if (j === i) continue;\n    const dx = px[j] - px[i], dy = py[j] - py[i], d2 = dx * dx + dy * dy;\n    if (d2 > R * R) continue;\n    n++; ax += vx[j]; ay += vy[j]; cx += dx; cy += dy;\n    if (d2 < sep * sep) { const k = 1 / Math.max(d2, 1); sxp -= dx * k; syp -= dy * k; }\n    if (i === s.watched) watchedMates.push(j);\n  }\n  let fx = 0, fy = 0;\n  if (n) {\n    fx += (ax / n - vx[i]) * u.u_align + cx / n * u.u_cohesion + sxp * sep * 60 * u.u_separation;\n    fy += (ay / n - vy[i]) * u.u_align + cy / n * u.u_cohesion + syp * sep * 60 * u.u_separation;\n  }\n  if (s.moved && ctx.mouseDown) {\n    const dx = px[i] - mx, dy = py[i] - my, d2 = dx * dx + dy * dy;\n    if (d2 < 160 * 160) { const k = 9000 / Math.max(d2, 100); fx += dx * k * 0.1; fy += dy * k * 0.1; }\n  }\n  vx[i] += fx * dt; vy[i] += fy * dt;\n  const v = Math.hypot(vx[i], vy[i]) || 1, target = Math.min(Math.max(v, speed * 0.6), speed * 1.6);\n  vx[i] *= target / v; vy[i] *= target / v;\n}\n// Move and wrap around; then a small triangle per boid, pointing along its velocity.\nconst boid = 6 * u.u_size;\nfor (let i = 0; i < N; i++) {\n  px[i] = (px[i] + vx[i] * dt + W) % W; py[i] = (py[i] + vy[i] * dt + H) % H;\n  const v = Math.hypot(vx[i], vy[i]) || 1, dx = vx[i] / v, dy = vy[i] / v;\n  const heading = Math.atan2(dy, dx) / (Math.PI * 2) + 0.5;\n  const lit = i === s.watched ? 1.4 : 0.95, size = i === s.watched ? boid * 2.2 : boid;\n  s.tris.set([px[i] + dx * size * 1.6, py[i] + dy * size * 1.6, heading, lit,\n    px[i] - dx * size - dy * size * 0.7, py[i] - dy * size + dx * size * 0.7, heading, lit * 0.5,\n    px[i] - dx * size + dy * size * 0.7, py[i] - dy * size - dx * size * 0.7, heading, lit * 0.5], i * 12);\n}\n// The inspected boid: its query box and lines to the flockmates the index returned.\nconst q = s.watched, lines = [];\nconst L = (x0, y0, x1, y1, b) => lines.push(x0, y0, 0, b, x1, y1, 0, b);\nL(px[q] - R, py[q] - R, px[q] + R, py[q] - R, 2.6); L(px[q] + R, py[q] - R, px[q] + R, py[q] + R, 2.6);\nL(px[q] + R, py[q] + R, px[q] - R, py[q] + R, 2.6); L(px[q] - R, py[q] + R, px[q] - R, py[q] - R, 2.6);\nfor (const j of watchedMates) L(px[q], py[q], px[j], py[j], 2.4);\ngl.clearColor(0.025, 0.028, 0.04, 1); gl.clear(gl.COLOR_BUFFER_BIT);\ngl.useProgram(s.program);\nctx.utils.setUniforms(s.program, { u_view: [W, H], u_offset: [0, 0], u_colorA: u.u_colorA, u_colorB: u.u_colorB });\ngl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);\ngl.bindVertexArray(s.vao); gl.bindBuffer(gl.ARRAY_BUFFER, s.buffer);\ngl.bufferData(gl.ARRAY_BUFFER, s.tris, gl.DYNAMIC_DRAW);\ngl.drawArrays(gl.TRIANGLES, 0, N * 3);\ngl.bindVertexArray(s.lineVao); gl.bindBuffer(gl.ARRAY_BUFFER, s.lineBuffer);\ngl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lines), gl.DYNAMIC_DRAW);\n// WebGL lines are 1 px; two shifted passes make them read at any size.\nfor (const o of [[0, 0], [1.5 / w, 1.5 / h]]) { ctx.utils.setUniforms(s.program, { u_offset: o }); gl.drawArrays(gl.LINES, 0, lines.length / 4); }\ngl.disable(gl.BLEND);\ngl.bindVertexArray(null);\nctx.publish(\"flockmates\", watchedMates.length);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_radius": {
+      "type": "float",
+      "value": 34,
+      "min": 8,
+      "max": 80,
+      "step": 0.5,
+      "label": "View radius",
+      "widget": "knob"
+    },
+    "u_align": {
+      "type": "float",
+      "value": 2.4,
+      "min": 0,
+      "max": 5,
+      "step": 0.01,
+      "label": "Alignment"
+    },
+    "u_cohesion": {
+      "type": "float",
+      "value": 1.5,
+      "min": 0,
+      "max": 5,
+      "step": 0.01,
+      "label": "Cohesion"
+    },
+    "u_separation": {
+      "type": "float",
+      "value": 1.6,
+      "min": 0,
+      "max": 4,
+      "step": 0.01,
+      "label": "Separation"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0.2,
+      "max": 3,
+      "step": 0.01,
+      "label": "Speed"
+    },
+    "u_size": {
+      "type": "float",
+      "value": 1,
+      "min": 0.4,
+      "max": 3,
+      "step": 0.01,
+      "label": "Boid size"
+    },
+    "u_colorA": {
+      "type": "color",
+      "value": [
+        0.25,
+        0.65,
+        1.0
+      ],
+      "label": "Heading A"
+    },
+    "u_colorB": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.45,
+        0.35
+      ],
+      "label": "Heading B"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ],
+  "keyframes": {},
+  "controls": [
+    {
+      "label": "Flocking",
+      "uniforms": [
+        "u_radius",
+        "u_align",
+        "u_cohesion",
+        "u_separation",
+        "u_speed"
+      ]
+    },
+    {
+      "label": "Look",
+      "uniforms": [
+        "u_size",
+        "u_colorA",
+        "u_colorB"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "order": 140,
+  "title": "Ripple columns (Three.js)",
+  "title_ko": "물결 기둥 (Three.js)",
+  "description": "Three.js renders straight into the scene's WebGL2 context: an instanced field of 1,156 metal columns rippling like interfering waves, with an environment map, soft shadows and fog. Drag to orbit.",
+  "description_ko": "Three.js가 씬의 WebGL2 컨텍스트에 바로 그린다. 1,156개의 금속 기둥이 인스턴싱으로 겹친 물결처럼 출렁이고, 환경 맵과 부드러운 그림자, 안개가 깔린다. 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: three imported in the scene)",
+  "made_with": "three 0.186.0 via ctx.utils.import",
+  "features": [
+    "three.js",
+    "instancing",
+    "shadows",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "three-js"
+  ]
+}

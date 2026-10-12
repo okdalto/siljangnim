@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// PyMCubes ran marching cubes over a gyroid field carved into a sphere (recipe\n// pymcubes.gyroid-mesh → mesh.json); the scene uploads the quantized buffers as they are.\nconst data = await (await fetch(ctx.assets[\"mesh.json\"])).json();\nconst bytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));\nconst gl = ctx.gl, vao = gl.createVertexArray();\ngl.bindVertexArray(vao);\nconst attribute = (location, array, size, type) => {\n  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());\n  gl.bufferData(gl.ARRAY_BUFFER, array, gl.STATIC_DRAW);\n  gl.enableVertexAttribArray(location);\n  gl.vertexAttribPointer(location, size, type, true, 0, 0);\n};\nattribute(0, new Uint16Array(bytes(data.positions).buffer), 3, gl.UNSIGNED_SHORT);\nattribute(1, new Int8Array(bytes(data.normals).buffer), 3, gl.BYTE);\nattribute(2, bytes(data.shell), 1, gl.UNSIGNED_BYTE);\ngl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());\ngl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(bytes(data.indices).buffer), gl.STATIC_DRAW);\ngl.bindVertexArray(null);\nconst vs = `#version 300 es\nlayout(location=0) in vec3 a_position; layout(location=1) in vec3 a_normal; layout(location=2) in float a_shell;\nuniform mat4 u_mvp, u_model; out vec3 v_n; out vec3 v_p; out vec3 v_world; out float v_shell;\nvoid main(){ vec3 p = a_position * 2.0 - 1.0; v_p = p; v_n = mat3(u_model) * a_normal; v_world = (u_model * vec4(p, 1.0)).xyz;\n  v_shell = a_shell; gl_Position = u_mvp * vec4(p, 1.0); }`;\nconst fs = `#version 300 es\nprecision highp float;\nin vec3 v_n; in vec3 v_p; in vec3 v_world; in float v_shell; out vec4 outColor;\nuniform vec3 u_eye; uniform float u_cut; uniform float u_time; uniform vec3 u_outer; uniform vec3 u_inner;\nvoid main(){\n  if (v_p.z > u_cut) discard;\n  vec3 n = normalize(v_n); vec3 view = normalize(u_eye - v_world);\n  if (!gl_FrontFacing) n = -n;\n  vec3 light = normalize(vec3(0.6, 0.9, 0.5));\n  float diff = max(dot(n, light), 0.0), fill = max(dot(n, normalize(vec3(-0.7, -0.2, -0.6))), 0.0);\n  float spec = pow(max(dot(n, normalize(light + view)), 0.0), 48.0);\n  float rim = pow(1.0 - max(dot(n, view), 0.0), 3.0);\n  vec3 base = mix(u_outer, u_inner, smoothstep(0.0, 0.9, v_shell));\n  float bands = 0.5 + 0.5 * sin(length(v_p) * 40.0 - u_time * 2.0);\n  base *= 0.85 + 0.15 * bands;\n  float ao = mix(0.45, 1.0, 1.0 - v_shell * 0.6);\n  vec3 c = base * (0.12 + 0.75 * diff + 0.2 * fill) * ao + spec * 0.55 + rim * 0.35 * u_inner;\n  outColor = vec4(pow(c, vec3(0.9)), 1.0);\n}`;\nconst bg = `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor;\nvoid main(){ vec2 q = v_uv - 0.5; float v = 1.0 - dot(q, q) * 1.6; outColor = vec4(vec3(0.035, 0.04, 0.06) * v + vec3(0.02, 0.018, 0.03), 1.0); }`;\nObject.assign(ctx.state, {\n  vao, count: data.triangleCount * 3,\n  camera: ctx.utils.createOrbitCamera({ distance: 3.4, theta: 0.7, phi: 1.15 }),\n  p: ctx.utils.createProgram(vs, fs),\n  bg: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, bg),\n});\nctx.publish(\"triangles\", data.triangleCount);",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, { mat4 } = ctx.utils, [w, h] = ctx.resolution;\ns.camera.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt);\nconst model = mat4.multiply(mat4.fromYRotation(ctx.time * u.u_spin), mat4.fromXRotation(0.35));\nconst mvp = mat4.multiply(s.camera.getProjectionMatrix(w / h, 40, 0.1, 50), mat4.multiply(s.camera.getViewMatrix(), model));\ngl.disable(gl.DEPTH_TEST);\nctx.utils.drawFullscreen(s.bg);\ngl.enable(gl.DEPTH_TEST);\ngl.clear(gl.DEPTH_BUFFER_BIT);\ngl.useProgram(s.p);\nctx.utils.setStandardUniforms(s.p);\nctx.utils.setUniforms(s.p, { u_mvp: mvp, u_model: model, u_eye: s.camera.getEye() });\ngl.bindVertexArray(s.vao);\ngl.drawElements(gl.TRIANGLES, s.count, gl.UNSIGNED_INT, 0);\ngl.bindVertexArray(null);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_cut": {
+      "type": "float",
+      "value": 0.35,
+      "min": -1,
+      "max": 1.05,
+      "step": 0.01,
+      "label": "Slice",
+      "widget": "slider"
+    },
+    "u_spin": {
+      "type": "float",
+      "value": 0.2,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.01,
+      "label": "Spin",
+      "widget": "knob"
+    },
+    "u_outer": {
+      "type": "color",
+      "value": [
+        0.95,
+        0.62,
+        0.36
+      ],
+      "label": "Surface"
+    },
+    "u_inner": {
+      "type": "color",
+      "value": [
+        0.32,
+        0.55,
+        1
+      ],
+      "label": "Core"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

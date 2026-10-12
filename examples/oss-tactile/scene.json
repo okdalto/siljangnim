@@ -1,0 +1,81 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// TactileJS describes the 81 isohedral tiling types: it gives the tile's edges (and which\n// edges must match), places the copies over the plane and colours them. The scene bends the edges\n// with animated Bezier curves, so the tile shape keeps changing while still tiling the plane.\nconst { IsohedralTiling, tilingTypes, EdgeShape, mul } = await ctx.utils.import(\"https://esm.sh/tactile-js@1.0.0\");\nconst gl = ctx.gl;\ngl.getExtension(\"EXT_color_buffer_float\");\nconst flat = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec2 a_position; layout(location=1) in vec4 a_color;\nuniform vec2 u_px; out vec4 v_color;\nvoid main(){ v_color = a_color; gl_Position = vec4(a_position / u_px * 2.0 - 1.0, 0.0, 1.0); }`, `#version 300 es\nprecision highp float; in vec4 v_color; out vec4 outColor;\nvoid main(){ outColor = v_color; }`);\nconst vao = gl.createVertexArray(), vbo = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 24, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 24, 8);\ngl.bindVertexArray(null);\nconst kit = {\n  // Draws a flat (x, y, r, g, b, a) triangle list.\n  draw(arr) {\n    if (!arr.length) return;\n    gl.useProgram(flat);\n    ctx.utils.setUniforms(flat, { u_px: ctx.resolution });\n    gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);\n    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.DYNAMIC_DRAW);\n    gl.drawArrays(gl.TRIANGLES, 0, arr.length / 6);\n    gl.bindVertexArray(null);\n  },\n  // Signed triangle fan: inside a closed ring the triangles add up to ±c, outside they cancel.\n  // Summed with additive blending, this fills any polygon (holes, self-overlaps) exactly.\n  fan(ring, c, out) {\n    const x0 = ring[0], y0 = ring[1];\n    for (let i = 2; i + 3 < ring.length; i += 2) {\n      const s = Math.sign((ring[i] - x0) * (ring[i + 3] - y0) - (ring[i + 1] - y0) * (ring[i + 2] - x0));\n      if (!s) continue;\n      out.push(x0, y0, c[0] * s, c[1] * s, c[2] * s, c[3] * s,\n        ring[i], ring[i + 1], c[0] * s, c[1] * s, c[2] * s, c[3] * s,\n        ring[i + 2], ring[i + 3], c[0] * s, c[1] * s, c[2] * s, c[3] * s);\n    }\n  },\n  // Thick polyline as quads (WebGL lines are 1 px); square ends overlap at the joints.\n  line(pts, closed, width, c, out) {\n    const n = pts.length / 2, hw = width / 2;\n    for (let i = 0; i < (closed ? n : n - 1); i++) {\n      const j = (i + 1) % n;\n      const ax = pts[i * 2], ay = pts[i * 2 + 1], bx = pts[j * 2], by = pts[j * 2 + 1];\n      const len = Math.hypot(bx - ax, by - ay);\n      if (len < 1e-6) continue;\n      const dx = (bx - ax) / len * hw, dy = (by - ay) / len * hw;\n      const p = [ax - dx - dy, ay - dy + dx, ax - dx + dy, ay - dy - dx, bx + dx + dy, by + dy - dx, bx + dx - dy, by + dy + dx];\n      for (const k of [0, 1, 2, 0, 2, 3]) out.push(p[k * 2], p[k * 2 + 1], c[0], c[1], c[2], c[3]);\n    }\n  },\n  // Disc made of triangles.\n  dot(x, y, r, c, out, seg = 16) {\n    for (let i = 0; i < seg; i++) {\n      const a0 = i / seg * 6.2832, a1 = (i + 1) / seg * 6.2832;\n      out.push(x, y, ...c, x + Math.cos(a0) * r, y + Math.sin(a0) * r, ...c, x + Math.cos(a1) * r, y + Math.sin(a1) * r, ...c);\n    }\n  },\n  acc: null,\n  // Renders signed fans additively into a half-float target at up to 2x the canvas size\n  // (sampling it back with linear filtering smooths the edges). Returns the texture.\n  accumulate(arr) {\n    const [w, h] = ctx.resolution, k = Math.min(2, 4096 / Math.max(w, h));\n    const tw = Math.round(w * k), th = Math.round(h * k);\n    if (!kit.acc) kit.acc = ctx.utils.createPingPong(tw, th, { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT });\n    else if (kit.acc.width !== tw || kit.acc.height !== th) kit.acc.resize(tw, th);\n    const t = kit.acc.read();\n    gl.bindFramebuffer(gl.FRAMEBUFFER, t.framebuffer); gl.viewport(0, 0, tw, th);\n    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);\n    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);\n    kit.draw(arr);\n    gl.disable(gl.BLEND);\n    gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, w, h);\n    return t.texture;\n  },\n};\nconst s = ctx.state;\nObject.assign(s, { kit, IsohedralTiling, tilingTypes, EdgeShape, mul, type: -1, tiling: null, base: null });\ns.show = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_fill;\nvoid main(){\n  vec4 t = texture(u_fill, v_uv);\n  // Tiles don't overlap, so colour / coverage gives each tile its own colour.\n  vec3 c = abs(t.a) > 1e-3 ? t.rgb / t.a : vec3(0.0);\n  outColor = vec4(c * min(abs(t.a), 1.0), 1.0);\n}`);",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, kit = s.kit, ES = s.EdgeShape, mul = s.mul;\nconst [w, h] = ctx.resolution, t = ctx.time * u.u_speed;\nconst n = s.tilingTypes.length;\nconst type = u.u_auto ? (Math.floor(ctx.time / 6) * 7 + u.u_type) % n : u.u_type % n;\nif (type !== s.type) {\n  s.type = type;\n  s.tiling = new s.IsohedralTiling(s.tilingTypes[type]);\n  s.base = s.tiling.getParameters();\n  s.phases = Array.from({ length: 16 }, () => [Math.random() * 6.283, Math.random() * 6.283, 0.5 + Math.random()]);\n}\nconst tiling = s.tiling;\n// Breathe the tiling's own parameters (vertex positions) a little around their defaults.\nif (s.base.length) tiling.setParameters(s.base.map((v, i) => v + Math.sin(t * 0.7 + i * 1.7) * 0.08 * u.u_wild));\n// Edge curves, with the symmetry each edge shape requires (J: any, U: mirror, S: point, I: straight).\nconst edges = [];\nfor (let i = 0; i < tiling.numEdgeShapes(); i++) {\n  const shp = tiling.getEdgeShape(i), [p1, p2, f] = s.phases[i % 16];\n  const a = { x: 0.3 + 0.15 * Math.sin(t * f + p1), y: u.u_wild * Math.sin(t * 0.9 * f + p2) };\n  if (shp === ES.I) edges.push(null);\n  else if (shp === ES.J) edges.push([a, { x: 0.7 + 0.15 * Math.cos(t * f + p2), y: u.u_wild * Math.cos(t * 0.8 * f + p1) }]);\n  else if (shp === ES.S) edges.push([a, { x: 1 - a.x, y: -a.y }]);\n  else edges.push([a, { x: 1 - a.x, y: a.y }]);\n}\n// One tile outline in tiling coordinates.\nconst outline = [];\nfor (const part of tiling.shape()) {\n  const ej = edges[part.id];\n  let seg = [mul(part.T, { x: 0, y: 0 })];\n  if (ej) seg.push(mul(part.T, ej[0]), mul(part.T, ej[1]));\n  seg.push(mul(part.T, { x: 1, y: 0 }));\n  if (part.rev) seg = seg.reverse();\n  const steps = ej ? 10 : 1;\n  for (let k = 0; k < steps; k++) {\n    const q = k / steps, m = 1 - q;\n    if (!ej) { outline.push(seg[0].x, seg[0].y); continue; }\n    outline.push(m * m * m * seg[0].x + 3 * m * m * q * seg[1].x + 3 * m * q * q * seg[2].x + q * q * q * seg[3].x,\n      m * m * m * seg[0].y + 3 * m * m * q * seg[1].y + 3 * m * q * q * seg[2].y + q * q * q * seg[3].y);\n  }\n}\n// Screen transform: scale and a slow pan.\nconst S = h * u.u_scale, ox = w / 2 + Math.sin(t * 0.13) * S * 2, oy = h / 2 + t * S * 0.15;\nconst pal = [u.u_color1, u.u_color2, u.u_color3];\nconst [mx, my] = ctx.mouse, mp = [mx * w, (1 - my) * h];\ns.moved ||= mx !== 0.5 || my !== 0.5;\nconst inside = (ring, x, y) => {\n  let c = false;\n  for (let i = 0, j = ring.length - 2; i < ring.length; j = i, i += 2)\n    if ((ring[i + 1] > y) !== (ring[j + 1] > y) && x < (ring[j] - ring[i]) * (y - ring[i + 1]) / (ring[j + 1] - ring[i + 1]) + ring[i]) c = !c;\n  return c;\n};\nconst fills = [], lines = [];\nconst lw = Math.max(1, h * 0.0025);\nlet tiles = 0, hover = null;\nfor (const inst of tiling.fillRegionBounds((-ox) / S - 2, (-oy) / S - 2, (w - ox) / S + 2, (h - oy) / S + 2)) {\n  const T = inst.T, ring = new Array(outline.length);\n  for (let i = 0; i < outline.length; i += 2) {\n    const x = T[0] * outline[i] + T[1] * outline[i + 1] + T[2], y = T[3] * outline[i] + T[4] * outline[i + 1] + T[5];\n    ring[i] = x * S + ox; ring[i + 1] = y * S + oy;\n  }\n  const c = pal[tiling.getColour(inst.t1, inst.t2, inst.aspect) % 3];\n  // A little per-tile variation in brightness.\n  const v = 0.85 + 0.15 * Math.sin(inst.t1 * 1.7 + inst.t2 * 2.3 + inst.aspect);\n  const lit = s.moved && !hover && inside(ring, mp[0], mp[1]);\n  if (lit) hover = ring;\n  const k = lit ? 1.35 : v;\n  kit.fan(ring, [c[0] * k, c[1] * k, c[2] * k, 1], fills);\n  kit.line(ring, true, lw, [0.06, 0.06, 0.08, 1], lines);\n  tiles++;\n}\nif (hover) kit.line(hover, true, lw * 2.5, [1, 1, 1, 1], lines);\nconst tex = kit.accumulate(fills);\ngl.useProgram(s.show);\nctx.utils.bindTexture(s.show, \"u_fill\", tex, 0);\nctx.utils.drawFullscreen(s.show);\nkit.draw(lines);\nctx.publish(\"tiling type\", \"IH\" + String(s.tilingTypes[type]).padStart(2, \"0\"));\nctx.publish(\"tiles\", tiles);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_type": {
+      "type": "int",
+      "value": 6,
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "label": "Tiling type"
+    },
+    "u_auto": {
+      "type": "bool",
+      "value": true,
+      "label": "Cycle types"
+    },
+    "u_wild": {
+      "type": "float",
+      "value": 0.5,
+      "min": 0,
+      "max": 0.7,
+      "step": 0.01,
+      "label": "Edge bend",
+      "widget": "knob"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 0.8,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Speed",
+      "widget": "knob"
+    },
+    "u_scale": {
+      "type": "float",
+      "value": 0.11,
+      "min": 0.04,
+      "max": 0.3,
+      "step": 0.005,
+      "label": "Tile size"
+    },
+    "u_color1": {
+      "type": "color",
+      "value": [
+        0.95,
+        0.55,
+        0.3
+      ],
+      "label": "Color 1"
+    },
+    "u_color2": {
+      "type": "color",
+      "value": [
+        0.2,
+        0.5,
+        0.65
+      ],
+      "label": "Color 2"
+    },
+    "u_color3": {
+      "type": "color",
+      "value": [
+        0.95,
+        0.85,
+        0.6
+      ],
+      "label": "Color 3"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

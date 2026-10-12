@@ -1,0 +1,19 @@
+{
+  "order": 181,
+  "title": "Color maps (d3-scale-chromatic)",
+  "title_ko": "컬러맵 (d3-scale-chromatic)",
+  "description": "d3-scale-chromatic supplies scientific color maps (Viridis, Magma, Cividis, Turbo, diverging RdBu and more); the chosen one becomes a lookup texture that colors a drifting noise field with contour lines. The pointer raises a bump; the bar on the right shows the map.",
+  "description_ko": "d3-scale-chromatic이 과학 시각화용 컬러맵(Viridis, Magma, Cividis, Turbo, 발산형 RdBu 등)을 준다. 고른 맵을 룩업 텍스처로 만들어 흐르는 노이즈 필드와 등고선을 칠한다. 포인터를 대면 그 자리가 솟아오르고, 오른쪽 막대가 맵을 보여 준다.",
+  "prompt": "(open-source example: d3-scale-chromatic imported in the scene)",
+  "made_with": "d3-scale-chromatic 3.1.0 via ctx.utils.import",
+  "features": [
+    "color map",
+    "scientific visualization",
+    "contours",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-scale-chromatic"
+  ]
+}
