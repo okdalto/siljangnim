@@ -218,9 +218,10 @@ const jobsPanel = await inPage(`(async () => {
 const longAfter = longId ? await client.callTool({ name: "job_status", arguments: { id: longId, wait_s: 5 } }) : null;
 const exported = await call("project_export_md");
 const md = text(exported);
+// The menu may take a moment to render: wait for the button rather than a fixed delay.
 await inPage(`(async () => {
   document.querySelector('[title="Projects"]').click();
-  await new Promise((r) => setTimeout(r, 200));
+  for (let i = 0; i < 50 && !document.querySelector('[data-testid="export-project"]'); i++) await new Promise((r) => setTimeout(r, 100));
   document.querySelector('[data-testid="export-project"]').click();
 })()`);
 let bundle = null;
