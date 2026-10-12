@@ -100,7 +100,10 @@ export function ExamplesDialog() {
                 <a href="https://indexopensource.com/index" target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
                   index.opensource
                 </a>{" "}
-                that don't have an example yet: the agent can build one.
+                that don't have an example yet: the agent can build one.{" "}
+                <a href={NOTICES_URL} target="_blank" rel="noreferrer" className="text-faint underline-offset-2 hover:text-muted hover:underline">
+                  Credits and licenses
+                </a>
               </p>
             </div>
             <button type="button" onClick={close} className="shrink-0 rounded-md p-1 text-muted hover:bg-raised hover:text-fg" title="Back to the studio (Esc)">
@@ -195,6 +198,7 @@ function Detail({ example: e, tools, onClose }: { example: Example; tools: Catal
             )}
           </section>
         )}
+        <Credits example={e} tools={tools} />
         <details className="text-xs text-faint">
           <summary className="cursor-pointer select-none hover:text-muted">Technical details</summary>
           <p className="mt-1.5 leading-relaxed">{text.details}</p>
@@ -208,6 +212,45 @@ function Detail({ example: e, tools, onClose }: { example: Example; tools: Catal
         <CopyLink slug={e.slug} />
       </div>
     </aside>
+  );
+}
+
+const NOTICES_URL = "https://github.com/okdalto/siljangnim/blob/main/THIRD_PARTY_NOTICES.md";
+
+/** Who made what this example uses: each tool's repository and license, and any outside material. */
+function Credits({ example: e, tools }: { example: Example; tools: CatalogEntry[] }) {
+  if (!tools.length && !e.credits?.length) return null;
+  return (
+    <section className="text-xs" data-testid="example-credits">
+      <h4 className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-faint">Credits</h4>
+      <ul className="space-y-1 text-muted">
+        {tools.map((t) => {
+          const ref = referenceFor(t);
+          return (
+            <li key={t.id}>
+              <a href={t.repo} target="_blank" rel="noreferrer" className="text-fg underline-offset-2 hover:underline">
+                {t.name}
+              </a>{" "}
+              · {t.license}
+              {ref && <span className="text-faint"> · index.opensource #{ref.index.no}</span>}
+              <div className="truncate text-[10px] text-faint">{t.repo.replace("https://", "")}</div>
+            </li>
+          );
+        })}
+        {e.credits?.map((c) => (
+          <li key={c.what}>
+            {c.what} —{" "}
+            <a href={c.url} target="_blank" rel="noreferrer" className="text-fg underline-offset-2 hover:underline">
+              {c.source}
+            </a>{" "}
+            · {c.license}
+          </li>
+        ))}
+      </ul>
+      <a href={NOTICES_URL} target="_blank" rel="noreferrer" className="mt-1.5 inline-block text-[10px] text-faint hover:text-muted hover:underline">
+        All third-party notices ↗
+      </a>
+    </section>
   );
 }
 

@@ -29,5 +29,13 @@
     "Dithering에서 None (nearest)를 고르면 평평한 색 덩어리가 보여요"
   ],
   "tool_about": "image-q is a JavaScript library that shrinks an image to a small set of colors and scatters dots to fake the missing shades. It runs in the browser and is used for GIFs, pixel art and retro looks.",
-  "tool_about_ko": "image-q는 그림을 적은 수의 색으로 줄이고, 빠진 색은 점을 흩뿌려 흉내 내는 자바스크립트 라이브러리예요. 브라우저에서 돌아가며 GIF, 픽셀 아트, 레트로 느낌을 낼 때 쓰여요."
+  "tool_about_ko": "image-q는 그림을 적은 수의 색으로 줄이고, 빠진 색은 점을 흩뿌려 흉내 내는 자바스크립트 라이브러리예요. 브라우저에서 돌아가며 GIF, 픽셀 아트, 레트로 느낌을 낼 때 쓰여요.",
+  "credits": [
+    {
+      "what": "The Great Wave off Kanagawa (Katsushika Hokusai, c. 1831)",
+      "source": "Wikimedia Commons",
+      "license": "Public domain",
+      "url": "https://commons.wikimedia.org/wiki/File:Tsunami_by_hokusai_19th_century.jpg"
+    }
+  ]
 }

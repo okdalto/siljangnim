@@ -29,5 +29,13 @@
     "Gap을 올려 거품 사이를 띄워 보세요"
   ],
   "tool_about": "circlify is a Python library that packs circles inside circles without overlap, sized by your numbers, for bubble charts of nested data. It runs on this computer through Python.",
-  "tool_about_ko": "circlify는 숫자 크기에 맞춰 원 안에 원을 겹치지 않게 채워 넣는 파이썬 라이브러리로, 계층 데이터를 거품 차트로 그릴 때 써요. 이 컴퓨터에서 파이썬으로 돌아가요."
+  "tool_about_ko": "circlify는 숫자 크기에 맞춰 원 안에 원을 겹치지 않게 채워 넣는 파이썬 라이브러리로, 계층 데이터를 거품 차트로 그릴 때 써요. 이 컴퓨터에서 파이썬으로 돌아가요.",
+  "credits": [
+    {
+      "what": "Sizes of the Python standard library's modules",
+      "source": "CPython",
+      "license": "PSF License",
+      "url": "https://github.com/python/cpython"
+    }
+  ]
 }

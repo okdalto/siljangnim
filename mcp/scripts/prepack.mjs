@@ -20,4 +20,6 @@ for (const name of ["pyproject.toml", "uv.lock", ".python-version", "siljangnim_
   if (!existsSync(from)) throw new Error(`hub/${name} is missing`);
   cpSync(from, join(mcpDir, "hub", name), { recursive: true, filter: (p) => !p.includes("__pycache__") });
 }
-console.log("[prepack] studio build and hub source copied into the package");
+// The license and the third-party notices travel with the package.
+for (const name of ["LICENSE", "THIRD_PARTY_NOTICES.md"]) cpSync(join(repo, name), join(mcpDir, name));
+console.log("[prepack] studio build, hub source, license and notices copied into the package");

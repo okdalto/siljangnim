@@ -175,5 +175,8 @@ v1 웹 앱은 은퇴했고, v1에서 내보낸 프로젝트는 *Import v1 projec
 
 ## 라이선스
 
+가져다 쓴 코드·도구·자료의 라이선스와 출처 링크는 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 있습니다.
+오픈소스 카탈로그는 현(@hyun2xyz)의 [index.opensource](https://indexopensource.com/index)에서 시작했습니다.
+
 [GPL-3.0](LICENSE). 에이전트가 받아 오는 오픈소스는 각자의 라이선스를 따르며, 프로젝트마다
 무엇을 썼는지 기록됩니다.
