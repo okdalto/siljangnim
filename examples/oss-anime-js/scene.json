@@ -1,0 +1,198 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "// Anime.js choreographs plain JS objects: one createTimeline() of seven acts, each a staggered\n// animation over 153 tile objects (position, scale, turn, roundness, ring, hue) with stagger({ grid }).\n// The timeline is paused and seeked from the scene clock every frame; WebGL draws the tiles, the easing\n// curve of the current act and a progress bar of the timeline.\nconst anime = await ctx.utils.import(\"https://esm.sh/animejs@4.5.0\");\nconst { createTimeline, stagger, eases, cubicBezier, steps } = anime;\nconst COLS = 17, ROWS = 9, N = COLS * ROWS, GAP = 60;\n\nconst EASES = [\n  [\"outElastic(1, .55)\", eases.outElastic(1, 0.55)],\n  [\"inOutExpo\", eases.inOutExpo],\n  [\"outBack(2.2)\", eases.outBack(2.2)],\n  [\"outBounce\", eases.outBounce],\n  [\"inOutCirc\", eases.inOutCirc],\n  [\"cubicBezier(.8, 0, .2, 1)\", cubicBezier(0.8, 0, 0.2, 1)],\n  [\"inOutQuint\", eases.inOutQuint],\n  [\"steps(6)\", steps(6)],\n  [\"linear\", eases.linear],\n];\nconst ORIGINS = [\"center\", \"first\", \"last\", \"random\"];\n\nconst gridPos = (i) => ({ x: ((i % COLS) - (COLS - 1) / 2) * GAP, y: ((ROWS - 1) / 2 - Math.floor(i / COLS)) * GAP });\nconst tiles = Array.from({ length: N }, (_, i) => {\n  const g = gridPos(i);\n  return { i, gx: g.x, gy: g.y, x: g.x, y: g.y, s: 0, rot: 0, round: 1, ring: 0, hue: 0 };\n});\nconst dist = (t) => Math.hypot(t.gx / (GAP * COLS / 2), t.gy / (GAP * ROWS / 2)) / Math.SQRT2;\nconst sunflower = (t) => { const a = t.i * 2.39996 + 0.6, r = 29 * Math.sqrt(t.i + 0.6); return { x: Math.cos(a) * r, y: Math.sin(a) * r }; };\n\n// Seven acts. With \"Cycle\" each act gets its own easing (the index into EASES); otherwise all use the pick.\nconst ACTS = [\n  { name: \"Bloom\", ease: 0, dur: 1000, gap: 0, params: () => ({ s: [0, 1], rot: [-Math.PI / 2, 0], hue: (t) => dist(t) * 0.55 }) },\n  { name: \"Turn\", ease: 1, dur: 900, gap: 250, params: () => ({ rot: Math.PI / 4, round: 0.18, s: 0.82 }) },\n  { name: \"Wave\", ease: 4, dur: 1100, gap: 150, axis: \"x\", params: () => ({ y: (t) => t.gy * 0.55 + Math.sin(t.gx / GAP * 0.62) * 150, rot: (t) => Math.PI / 4 + Math.cos(t.gx / GAP * 0.62) * 0.9, s: 0.7, hue: (t) => 0.15 + (t.gx / (GAP * COLS) + 0.5) * 0.85 }) },\n  { name: \"Spiral\", ease: 2, dur: 1300, gap: 250, params: () => ({ x: (t) => sunflower(t).x, y: (t) => sunflower(t).y, s: (t) => 0.35 + (t.i / N) * 0.75, round: 1, rot: 0, hue: (t) => 1 - t.i / N }) },\n  { name: \"Rings\", ease: 5, dur: 900, gap: 300, params: () => ({ ring: 1, s: (t) => 0.5 + (t.i / N) * 1.05, hue: (t) => (1 - t.i / N) * 0.6 + 0.4 }) },\n  { name: \"Home\", ease: 3, dur: 1300, gap: 350, params: () => ({ x: (t) => t.gx, y: (t) => t.gy, s: 0.9, ring: 0, round: 0.5, rot: Math.PI / 2, hue: (t) => dist(t) * 0.55 }) },\n  { name: \"Fold\", ease: 6, dur: 800, gap: 500, params: () => ({ s: 0, rot: Math.PI, round: 1 }) },\n];\n\nconst s = ctx.state;\nObject.assign(s, { anime, createTimeline, stagger, EASES, ORIGINS, ACTS, tiles, N, COLS, ROWS, playhead: 0, key: \"\", labelKey: \"\" });\n\ns.build = (easing, origin, staggerMs) => {\n  s.tl?.cancel?.();\n  for (const t of s.tiles) Object.assign(t, { x: t.gx, y: t.gy, s: 0, rot: 0, round: 1, ring: 0, hue: 0 });\n  const from = s.ORIGINS[origin] ?? \"center\";\n  const tl = s.createTimeline({ autoplay: false });\n  const acts = [];\n  let at = 0;\n  for (const act of s.ACTS) {\n    at = act.gap ? tl.duration + act.gap : 0;\n    const easeIndex = easing > 0 ? easing - 1 : act.ease;\n    const delay = s.stagger(staggerMs, { grid: [s.COLS, s.ROWS], from, axis: act.axis, seed: from === \"random\" ? 7 : undefined });\n    tl.add(s.tiles, { ...act.params(), duration: act.dur, ease: s.EASES[easeIndex][1], delay }, at);\n    acts.push({ name: act.name, start: at, dur: act.dur, ease: easeIndex });\n  }\n  s.tl = tl; s.acts = acts; s.total = tl.duration + 700; // a short rest before it loops\n  tl.seek(0);\n};\n\n// Every instance is a rounded box: center (2), size (2), turn, roundness, ring, rgba (4).\nconst gl = ctx.gl, FLOATS = 11;\nconst quad = gl.createBuffer();\ngl.bindBuffer(gl.ARRAY_BUFFER, quad);\ngl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);\nconst vao = gl.createVertexArray(), buffer = gl.createBuffer();\ngl.bindVertexArray(vao);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);\ngl.bindBuffer(gl.ARRAY_BUFFER, buffer);\nconst attr = (loc, n, off) => { gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, n, gl.FLOAT, false, FLOATS * 4, off * 4); gl.vertexAttribDivisor(loc, 1); };\nattr(1, 4, 0); attr(2, 3, 4); attr(3, 4, 7);\ngl.bindVertexArray(null);\nconst program = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec2 a_position;\nlayout(location=1) in vec4 a_box;   // center xy, size wh (frame units)\nlayout(location=2) in vec3 a_shape; // turn, roundness, ring\nlayout(location=3) in vec4 a_color;\nuniform vec2 u_view;\nout vec2 v_local; out vec2 v_half; out vec3 v_shape; out vec4 v_color;\nvoid main() {\n  v_half = a_box.zw * 0.5; v_shape = a_shape; v_color = a_color;\n  vec2 local = a_position * (v_half + 3.0); // margin for the antialiased edge\n  v_local = local;\n  float c = cos(a_shape.x), s = sin(a_shape.x);\n  vec2 p = a_box.xy + mat2(c, s, -s, c) * local;\n  gl_Position = vec4(p / u_view * 2.0, 0.0, 1.0);\n}`, `#version 300 es\nprecision highp float;\nin vec2 v_local; in vec2 v_half; in vec3 v_shape; in vec4 v_color;\nout vec4 outColor;\nvoid main() {\n  float m = min(v_half.x, v_half.y);\n  float r = v_shape.y * m;\n  vec2 q = abs(v_local) - v_half + r;\n  float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;\n  float thick = mix(m * 2.0, m * 0.22, v_shape.z); // ring 0 = solid, 1 = thin outline\n  d = max(d, -(d + thick));\n  float aa = fwidth(d);\n  float a = 1.0 - smoothstep(-aa, aa, d);\n  if (a <= 0.0) discard;\n  float light = 1.0 + 0.12 * (v_local.y / max(v_half.y, 1.0)); // a soft top light\n  outColor = vec4(v_color.rgb * light * v_color.a * a, v_color.a * a);\n}`);\n\n// Text (act and easing names) goes through a 2D canvas texture, redrawn only when it changes.\nconst label = document.createElement(\"canvas\");\nconst textTex = gl.createTexture();\ngl.bindTexture(gl.TEXTURE_2D, textTex);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);\nconst textProgram = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; uniform sampler2D u_text; out vec4 outColor;\nvoid main() { outColor = texture(u_text, vec2(v_uv.x, 1.0 - v_uv.y)); }`);\nObject.assign(s, { vao, buffer, program, FLOATS, data: new Float32Array((N + 400) * FLOATS), label, textTex, textProgram });\n",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\n\n// Rebuild the timeline when the easing, origin or stagger changes; keep the playhead where it was.\nconst key = `${u.u_easing}|${u.u_origin}|${Math.round(u.u_stagger)}`;\nif (key !== s.key) { s.key = key; s.build(u.u_easing, u.u_origin, u.u_stagger); }\nif (u.u_replay) s.playhead = 0;\ns.playhead += ctx.dt * 1000 * u.u_speed;\nif (s.playhead > s.total) s.playhead = 0;\ns.tl.seek(Math.min(s.playhead, s.tl.duration));\n\nlet actIndex = 0;\ns.acts.forEach((a, i) => { if (s.playhead >= a.start) actIndex = i; });\nconst act = s.acts[actIndex];\nconst [easeName, easeFn] = s.EASES[act.ease];\n\n// Frame: 1000 units tall, centered on the origin.\nconst H = 1000, W = H * w / h;\nconst palette = [u.u_c1, u.u_c2, u.u_c3, u.u_c4, u.u_c1];\nconst paint = (t) => {\n  const x = ((t % 1) + 1) % 1 * 4, k = Math.min(Math.floor(x), 3), f = x - k;\n  return [0, 1, 2].map((c) => palette[k][c] + (palette[k + 1][c] - palette[k][c]) * f);\n};\nconst ink = u.u_ink;\nlet n = 0;\nconst push = (x, y, bw, bh, rot, round, ring, rgb, alpha) => {\n  s.data.set([x, y, bw, bh, rot, round, ring, rgb[0], rgb[1], rgb[2], alpha], n++ * s.FLOATS);\n};\nfor (const t of s.tiles) {\n  const size = Math.max(t.s, 0) * 46 * u.u_size;\n  if (size > 0.01) push(t.x, t.y + 40, size, size, t.rot, Math.min(Math.max(t.round, 0), 1), Math.min(Math.max(t.ring, 0), 1), paint(t.hue), 1);\n}\n\n// The easing curve of the current act, drawn as a dense run of dots, with the leading tile riding it.\nconst box = 140, left = -W / 2 + 70, bottom = -H / 2 + 70;\npush(left + box / 2, bottom, box, 2, 0, 1, 0, ink, 0.16);\npush(left + box / 2, bottom + box, box, 2, 0, 1, 0, ink, 0.16);\nfor (let i = 0; i <= 120; i++) {\n  const p = i / 120;\n  push(left + p * box, bottom + easeFn(p) * box, 4.5, 4.5, 0, 1, 0, ink, 0.85);\n}\nconst p = Math.min(Math.max((s.playhead - act.start) / act.dur, 0), 1);\npush(left + p * box, bottom + easeFn(p) * box, 15, 15, 0, 1, 0, u.u_c1, 1);\n\n// Timeline: a track, the played part, a tick per act, the playhead.\nconst barL = left + box + 70, barR = W / 2 - 70, barY = bottom, span = barR - barL;\nconst at = (ms) => barL + Math.min(ms / s.total, 1) * span;\npush((barL + barR) / 2, barY, span, 3, 0, 1, 0, ink, 0.16);\npush((barL + at(s.playhead)) / 2, barY, at(s.playhead) - barL, 3, 0, 1, 0, ink, 0.7);\ns.acts.forEach((a, i) => push(at(a.start), barY, 9, 9, 0, 1, i === actIndex ? 0 : 1, i <= actIndex ? ink : [0.5, 0.5, 0.55], 1));\npush(at(s.playhead), barY, 14, 14, 0, 1, 0, u.u_c1, 1);\n\ngl.clearColor(u.u_background[0], u.u_background[1], u.u_background[2], 1);\ngl.clear(gl.COLOR_BUFFER_BIT);\ngl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);\ngl.useProgram(s.program);\nctx.utils.setUniforms(s.program, { u_view: [W, H] });\ngl.bindVertexArray(s.vao);\ngl.bindBuffer(gl.ARRAY_BUFFER, s.buffer);\ngl.bufferData(gl.ARRAY_BUFFER, s.data.subarray(0, n * s.FLOATS), gl.DYNAMIC_DRAW);\ngl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, n);\ngl.bindVertexArray(null);\n\n// Labels: redraw the text canvas only when the act, easing or canvas size changes.\nconst labelKey = `${actIndex}|${easeName}|${w}x${h}|${ink.join()}`;\nif (labelKey !== s.labelKey) {\n  s.labelKey = labelKey;\n  const c = s.label2d ??= s.label.getContext(\"2d\");\n  s.label.width = w; s.label.height = h;\n  const px = h / H, toX = (x) => (x + W / 2) * px, toY = (y) => (H / 2 - y) * px;\n  const css = `rgb(${ink.map((v) => Math.round(v * 255)).join(\",\")})`;\n  c.clearRect(0, 0, w, h);\n  c.fillStyle = css; c.textBaseline = \"alphabetic\";\n  c.font = `600 ${Math.round(22 * px)}px ui-sans-serif, system-ui, -apple-system, \"Helvetica Neue\", sans-serif`;\n  c.fillText(`${String(actIndex + 1).padStart(2, \"0\")}  ${act.name.toUpperCase()}`, toX(barL), toY(barY + 26));\n  c.globalAlpha = 0.6;\n  c.font = `500 ${Math.round(17 * px)}px ui-monospace, \"SF Mono\", Menlo, monospace`;\n  c.textAlign = \"right\";\n  c.fillText(`/ ${String(s.acts.length).padStart(2, \"0\")}`, toX(barR), toY(barY + 26));\n  c.textAlign = \"left\";\n  c.fillText(easeName, toX(left), toY(bottom + box + 46));\n  c.globalAlpha = 1;\n  gl.bindTexture(gl.TEXTURE_2D, s.textTex);\n  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);\n  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, s.label);\n  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);\n}\ngl.useProgram(s.textProgram);\nctx.utils.bindTexture(s.textProgram, \"u_text\", s.textTex, 0);\nctx.utils.drawFullscreen(s.textProgram);\ngl.disable(gl.BLEND);\n\nctx.publish(\"act\", `${actIndex + 1}/${s.acts.length} ${act.name}`);\nctx.publish(\"easing\", easeName);\n",
+    "cleanup": "ctx.state.tl?.cancel?.();"
+  },
+  "uniforms": {
+    "u_easing": {
+      "type": "int",
+      "value": 0,
+      "min": 0,
+      "max": 9,
+      "label": "Easing",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Cycle (one per act)",
+          "value": 0
+        },
+        {
+          "label": "outElastic(1, .55)",
+          "value": 1
+        },
+        {
+          "label": "inOutExpo",
+          "value": 2
+        },
+        {
+          "label": "outBack(2.2)",
+          "value": 3
+        },
+        {
+          "label": "outBounce",
+          "value": 4
+        },
+        {
+          "label": "inOutCirc",
+          "value": 5
+        },
+        {
+          "label": "cubicBezier(.8, 0, .2, 1)",
+          "value": 6
+        },
+        {
+          "label": "inOutQuint",
+          "value": 7
+        },
+        {
+          "label": "steps(6)",
+          "value": 8
+        },
+        {
+          "label": "linear",
+          "value": 9
+        }
+      ]
+    },
+    "u_origin": {
+      "type": "int",
+      "value": 0,
+      "min": 0,
+      "max": 3,
+      "label": "Stagger from",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Center",
+          "value": 0
+        },
+        {
+          "label": "First",
+          "value": 1
+        },
+        {
+          "label": "Last",
+          "value": 2
+        },
+        {
+          "label": "Random",
+          "value": 3
+        }
+      ]
+    },
+    "u_stagger": {
+      "type": "float",
+      "value": 40,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "label": "Stagger (ms)",
+      "widget": "knob"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0.1,
+      "max": 3,
+      "step": 0.01,
+      "label": "Speed"
+    },
+    "u_replay": {
+      "type": "bool",
+      "value": false,
+      "label": "Replay",
+      "widget": "button"
+    },
+    "u_size": {
+      "type": "float",
+      "value": 1,
+      "min": 0.4,
+      "max": 1.6,
+      "step": 0.01,
+      "label": "Tile size"
+    },
+    "u_c1": {
+      "type": "color",
+      "value": [
+        1,
+        0.42,
+        0.36
+      ],
+      "label": "Color 1"
+    },
+    "u_c2": {
+      "type": "color",
+      "value": [
+        1,
+        0.76,
+        0.32
+      ],
+      "label": "Color 2"
+    },
+    "u_c3": {
+      "type": "color",
+      "value": [
+        0.4,
+        0.85,
+        0.72
+      ],
+      "label": "Color 3"
+    },
+    "u_c4": {
+      "type": "color",
+      "value": [
+        0.47,
+        0.55,
+        1
+      ],
+      "label": "Color 4"
+    },
+    "u_ink": {
+      "type": "color",
+      "value": [
+        0.94,
+        0.91,
+        0.85
+      ],
+      "label": "Ink"
+    },
+    "u_background": {
+      "type": "color",
+      "value": [
+        0.055,
+        0.06,
+        0.085
+      ],
+      "label": "Background"
+    }
+  },
+  "inputs": [],
+  "keyframes": {},
+  "controls": [
+    {
+      "label": "Timeline",
+      "uniforms": [
+        "u_easing",
+        "u_origin",
+        "u_stagger",
+        "u_speed",
+        "u_replay"
+      ]
+    },
+    {
+      "label": "Look",
+      "uniforms": [
+        "u_size",
+        "u_c1",
+        "u_c2",
+        "u_c3",
+        "u_c4",
+        "u_ink",
+        "u_background"
+      ]
+    }
+  ]
+}

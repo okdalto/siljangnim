@@ -1,0 +1,35 @@
+{
+  "order": 210,
+  "title": "Material study (Babylon.js)",
+  "title_ko": "재질 연구 (Babylon.js)",
+  "description": "Babylon.js renders straight into the scene's WebGL2 context: an iridescent metal knot and a ring of spheres, each showing a PBR feature (gold, clear-coat paint, anisotropic brushed copper, sheen velvet, refractive glass, chrome, ceramic). A procedural studio of softboxes is captured once by a reflection probe and used as the environment for image-based lighting. GPU particles drift through noise, with soft shadows and the default post pipeline (MSAA, bloom, ACES tone mapping, vignette, grain). Drag to orbit.",
+  "description_ko": "Babylon.js가 씬의 WebGL2 컨텍스트에 바로 그린다. 무지갯빛 금속 매듭과 그 둘레의 구슬들이 각각 PBR 기능 하나씩을 보여 준다(금, 클리어코트 도장, 이방성 브러시드 구리, 시어 벨벳, 굴절 유리, 크롬, 도자기). 소프트박스로 만든 절차적 스튜디오를 반사 프로브가 한 번 찍어 이미지 기반 조명(IBL)의 환경으로 쓴다. GPU 입자가 노이즈를 따라 떠다니고, 부드러운 그림자와 기본 후처리 파이프라인(MSAA, 블룸, ACES 톤 매핑, 비네트, 그레인)이 더해진다. 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: @babylonjs/core imported in the scene)",
+  "made_with": "@babylonjs/core 9.28.0 via ctx.utils.import",
+  "features": [
+    "babylon.js",
+    "pbr",
+    "image-based lighting",
+    "gpu particles",
+    "post-processing",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "babylon-js"
+  ],
+  "summary": "A shimmering metal knot surrounded by gold, glass, velvet and painted spheres, lit like a photo studio while warm sparks float by.",
+  "summary_ko": "반짝이는 금속 매듭 둘레에 금, 유리, 벨벳, 도장한 구슬이 놓여 있어요. 사진 스튜디오처럼 조명을 받고, 따뜻한 불티가 떠다녀요.",
+  "try": [
+    "Drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
+    "Slide Roughness to turn the metals from mirror to satin",
+    "Pick a new Accent color: it repaints the red sphere and the rim light"
+  ],
+  "try_ko": [
+    "드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
+    "Roughness를 움직여 금속을 거울에서 새틴처럼 바꿔 보세요",
+    "Accent 색을 새로 골라 보세요. 빨간 구슬과 가장자리 조명 색이 함께 바뀌어요"
+  ],
+  "tool_about": "Babylon.js is a full 3D engine for the web from Microsoft: realistic (PBR) materials, lighting from environment images, shadows, particles, post effects and physics, all in the browser.",
+  "tool_about_ko": "Babylon.js는 Microsoft가 만든 웹용 3D 엔진이에요. 사실적인(PBR) 재질, 환경 이미지로 비추는 조명, 그림자, 입자, 후처리 효과, 물리까지 브라우저 안에서 다 할 수 있어요."
+}

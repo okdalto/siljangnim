@@ -1,0 +1,49 @@
+{
+  "order": 217,
+  "title": "Gliding creatures (Lenia)",
+  "title_ko": "헤엄치는 생명체 (Lenia)",
+  "description": "Lenia, a continuous cellular automaton, runs on the GPU: each step convolves a float world (a torus, R32F ping-pong textures) with Lenia's bump-shaped ring kernel of radius 13 and adds dt times the Gaussian growth function. The world is seeded with a school of Orbium unicaudatus, decoded from the repo's animals.json with its own parameters (R=13, μ=0.15, σ=0.015, T=10), and colored with Lenia's colormaps. Drag paints matter, right-drag or Shift+drag erases; the scene weighs the world twice a second and reseeds when everything has died or blown up.",
+  "description_ko": "연속 셀룰러 오토마톤 Lenia를 GPU에서 돌린다. 스텝마다 실수 세계(토러스, R32F 핑퐁 텍스처)를 Lenia의 종 모양 고리 커널(반지름 13)로 합성곱하고, 가우스 성장 함수에 dt를 곱해 더한다. 세계에는 저장소의 animals.json에서 풀어낸 Orbium unicaudatus 무리를 원래 파라미터(R=13, μ=0.15, σ=0.015, T=10) 그대로 뿌리고, 색은 Lenia의 컬러맵을 쓴다. 드래그하면 물질을 칠하고, 오른쪽 드래그나 Shift+드래그로 지운다. 1초에 두 번 세계의 질량을 재서, 모두 죽거나 폭발하면 다시 뿌린다.",
+  "prompt": "(open-source example: Lenia implemented on the GPU in the scene)",
+  "made_with": "Lenia's update rule, kernel and colormaps reimplemented as WebGL2 shaders; Orbium pattern and parameters from the repo",
+  "features": [
+    "cellular automata",
+    "artificial life",
+    "gpu simulation",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "lenia"
+  ],
+  "summary": "Soft, glowing creatures born from one simple growth rule glide together like a school of jellyfish; paint new matter for them.",
+  "summary_ko": "단순한 성장 규칙 하나로만 이루어진 부드럽게 빛나는 생명체들이 해파리 떼처럼 함께 헤엄쳐요. 직접 물질을 칠해 줄 수도 있어요.",
+  "try": [
+    "Nudge Growth center μ or Growth width σ and watch the creatures swell, change shape or dissolve",
+    "Drag to paint matter with the Brush; right-drag to erase",
+    "Pick another Colormap, or press Reseed for a new school"
+  ],
+  "try_ko": [
+    "Growth center μ나 Growth width σ를 살짝 움직여 보세요. 생명체가 부풀거나 모양이 바뀌거나 녹아 없어져요",
+    "드래그해서 Brush로 물질을 칠해 보세요. 오른쪽 드래그로 지울 수 있어요",
+    "Colormap을 바꾸거나 Reseed를 눌러 새 무리를 띄워 보세요"
+  ],
+  "tool_about": "Lenia is a family of cellular automata with smooth states, space and time, discovered by Bert Chan. Each spot looks at a ring of neighbors and grows or fades depending on how much it sees, and from that alone hundreds of lifelike \"species\" appear. The repo has the reference programs and a catalog of species; here its rule runs as shaders in the browser.",
+  "tool_about_ko": "Lenia는 Bert Chan이 찾아낸 셀룰러 오토마톤의 한 갈래로, 상태·공간·시간이 모두 연속적이에요. 각 자리가 주변 고리 모양의 이웃을 보고 그 양에 따라 자라거나 옅어지는데, 이것만으로 생물 같은 '종'이 수백 가지나 나타나요. 저장소에는 기준 프로그램과 종 목록이 있고, 여기서는 그 규칙을 셰이더로 옮겨 브라우저에서 돌려요.",
+  "credits": [
+    {
+      "what": "Lenia update rule, kernel and growth functions, RLE pattern format and colormaps (reimplemented in GLSL/JavaScript)",
+      "what_ko": "Lenia 갱신 규칙, 커널·성장 함수, RLE 패턴 형식, 컬러맵 (GLSL/JavaScript로 다시 구현)",
+      "source": "Chakazul/Lenia (Bert Wang-Chak Chan), Python/LeniaND.py",
+      "license": "MIT",
+      "url": "https://github.com/Chakazul/Lenia"
+    },
+    {
+      "what": "Orbium unicaudatus pattern and parameters (code O2u)",
+      "what_ko": "Orbium unicaudatus 패턴과 파라미터 (코드 O2u)",
+      "source": "Chakazul/Lenia (Bert Wang-Chak Chan), Python/animals.json",
+      "license": "MIT",
+      "url": "https://github.com/Chakazul/Lenia/blob/master/Python/animals.json"
+    }
+  ]
+}

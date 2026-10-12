@@ -1,0 +1,42 @@
+{
+  "order": 215,
+  "title": "Plotter fish (fishdraw)",
+  "title_ko": "플로터 물고기 (fishdraw)",
+  "description": "Lingdong Huang's fishdraw is fetched from a pinned commit and run unchanged: each fish (body, scales, fins, eye, and its invented Latin name lettered underneath) comes out as plotter polylines. The scene plays them back like a pen plotter at a constant pen speed in fishdraw's own stroke order, with quicker pen-up moves between strokes, drawing into an offscreen Canvas 2D that becomes a mipmapped texture; the shader adds paper fibre, a faint ink halo and the pen nib with its shadow. A finished sheet rests, slides away, and the next fish begins.",
+  "description_ko": "Lingdong Huang의 fishdraw를 고정된 커밋에서 받아와 고치지 않고 돌린다. 물고기마다 몸통, 비늘, 지느러미, 눈, 그리고 아래에 적힌 지어낸 라틴어 학명까지 플로터용 폴리라인으로 나온다. 씬은 이를 펜 플로터처럼 fishdraw의 획 순서대로 일정한 펜 속도로 다시 그리고, 획 사이에서는 펜을 든 채 더 빨리 옮긴다. 그림은 화면 밖 Canvas 2D에 그려져 밉맵 텍스처가 되고, 셰이더가 종이 섬유결, 은은한 잉크 번짐, 그림자 진 펜촉을 더한다. 다 그린 종이는 잠시 머문 뒤 옆으로 밀려나고 다음 물고기가 시작된다.",
+  "prompt": "(open-source example: fishdraw fetched and run in the scene)",
+  "made_with": "fishdraw (commit a514372) fetched from jsDelivr and run with new Function; drawn with Canvas 2D, shown on ctx.gl",
+  "features": [
+    "procedural drawing",
+    "pen plotter",
+    "stroke animation",
+    "canvas texture"
+  ],
+  "mode": "live",
+  "uses": [
+    "fishdraw"
+  ],
+  "summary": "An invisible pen draws a brand-new, made-up fish line by line, signs its Latin name, then slides the sheet away and starts another.",
+  "summary_ko": "보이지 않는 펜이 세상에 없는 물고기를 한 줄 한 줄 그리고 라틴어 이름까지 적은 뒤, 종이를 밀어내고 다음 물고기를 그려요.",
+  "try": [
+    "Press New fish to skip to the next one",
+    "Lower Speed to watch every scale being drawn",
+    "Turn Line weight up and pick a new Ink and Paper"
+  ],
+  "try_ko": [
+    "New fish를 눌러 바로 다음 물고기로 넘어가 보세요",
+    "Speed를 낮추면 비늘 하나하나 그려지는 걸 볼 수 있어요",
+    "Line weight를 올리고 Ink와 Paper 색도 바꿔 보세요"
+  ],
+  "tool_about": "fishdraw is a small program by Lingdong Huang that invents fish, every one different, and draws them as lines a pen plotter can draw, complete with a made-up scientific name. Its original source is downloaded and runs in the browser.",
+  "tool_about_ko": "fishdraw는 Lingdong Huang이 만든 작은 프로그램으로, 매번 다른 물고기를 지어내 펜 플로터가 그릴 수 있는 선으로 그려요. 지어낸 학명까지 붙여 줘요. 원본 소스를 내려받아 브라우저에서 그대로 돌려요.",
+  "credits": [
+    {
+      "what": "fishdraw procedural fish generator (polylines and binomial names), fetched and run unchanged",
+      "what_ko": "fishdraw 물고기 생성기(폴리라인과 학명), 받아와서 그대로 실행",
+      "source": "Lingdong Huang, fishdraw",
+      "license": "MIT",
+      "url": "https://github.com/LingDong-/fishdraw"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Lenia (Bert Wang-Chak Chan, Chakazul/Lenia, MIT) on the GPU: ring-kernel convolution and Gaussian growth\n// as shaders over a float ping-pong world, seeded with Orbium unicaudatus from the repo's animals.json.\nconst gl = ctx.gl;\nif (!gl.getExtension(\"EXT_color_buffer_float\")) {\n  throw new Error(\"Lenia needs float render targets (EXT_color_buffer_float), which this GPU/browser doesn't offer.\");\n}\n// Orbium unicaudatus (code O2u), params R=13, T=10, m=0.15, s=0.015, b=1, kernel/growth type 1 — verbatim from animals.json.\nconst ORBIUM = \"7.MD6.qL$6.pKqEqFURpApBRAqQ$5.VqTrSsBrOpXpWpTpWpUpCrQ$4.CQrQsTsWsApITNPpGqGvL$3.IpIpWrOsGsBqXpJ4.LsFrL$A.DpKpSpJpDqOqUqSqE5.ExD$qL.pBpTT2.qCrGrVrWqM5.sTpP$.pGpWpD3.qUsMtItQtJ6.tL$.uFqGH3.pXtOuR2vFsK5.sM$.tUqL4.GuNwAwVxBwNpC4.qXpA$2.uH5.vBxGyEyMyHtW4.qIpL$2.wV5.tIyG3yOxQqW2.FqHpJ$2.tUS4.rM2yOyJyOyHtVpPMpFqNV$2.HsR4.pUxAyOxLxDxEuVrMqBqGqKJ$3.sLpE3.pEuNxHwRwGvUuLsHrCqTpR$3.TrMS2.pFsLvDvPvEuPtNsGrGqIP$4.pRqRpNpFpTrNtGtVtStGsMrNqNpF$5.pMqKqLqRrIsCsLsIrTrFqJpHE$6.RpSqJqPqVqWqRqKpRXE$8.OpBpIpJpFTK!\";\nconst R = 13;\n\n// Lenia's RLE (Board.rle2arr / ch2val in LeniaND.py), 2D: '.' = 0, A..X = 1..24, pA..yO = 25..255, '$' ends a row.\nfunction rle2arr(st) {\n  const ch2val = (c) => (c === \".\" || c === \"b\" ? 0 : c === \"o\" ? 255 : c.length === 1 ? c.charCodeAt(0) - 64 : (c.charCodeAt(0) - 112) * 24 + (c.charCodeAt(1) - 65 + 25));\n  const rows = [];\n  let row = [], last = \"\", count = \"\";\n  for (const ch of st.replace(/!$/, \"\") + \"$\") {\n    if (/\\d/.test(ch)) count += ch;\n    else if (\"pqrstuvwxy@\".includes(ch)) last = ch;\n    else {\n      const n = count ? parseInt(count, 10) : 1;\n      if (ch === \"$\") { rows.push(row); for (let k = 1; k < n; k++) rows.push([]); row = []; }\n      else for (let k = 0; k < n; k++) row.push(ch2val(last + ch) / 255);\n      last = \"\"; count = \"\";\n    }\n  }\n  const w = Math.max(...rows.map((r) => r.length));\n  return { w, h: rows.length, data: rows.map((r) => [...r, ...Array(w - r.length).fill(0)]) };\n}\n\n// Kernel: bump4 core exp(4 - 1/(r(1-r))) on a single shell of radius R, normalized to sum 1 (kernel_core[1]).\nconst KS = 2 * R + 1, kernel = new Float32Array(KS * KS);\nlet ksum = 0;\nfor (let y = 0; y < KS; y++) for (let x = 0; x < KS; x++) {\n  const r = Math.hypot(x - R, y - R) / R;\n  const k = r > 0 && r < 1 ? Math.exp(4 - 1 / (r * (1 - r))) : 0;\n  kernel[x + y * KS] = k; ksum += k;\n}\nfor (let i = 0; i < kernel.length; i++) kernel[i] /= ksum;\nconst kernelTex = ctx.utils.uploadDataTexture(gl, null, KS, KS, kernel, { internalFormat: gl.R32F, format: gl.RED, type: gl.FLOAT, filter: gl.NEAREST });\n\n// Colormaps from LeniaND.py (create_colormap), colors in eighths, interpolated into a 256-wide LUT.\nconst MAPS = [\n  [[0,0,4],[0,0,8],[0,4,8],[0,8,8],[4,8,4],[8,8,0],[8,4,0],[8,0,0],[4,0,0]],\n  [[7,6,7],[5,4,5],[4,1,4],[1,3,6],[3,4,6],[4,5,7],[2,6,3],[5,6,4],[6,7,5],[8,8,3],[8,6,2],[8,5,1],[7,0,0]],\n  [[0,2,0],[0,4,0],[4,6,0],[8,8,0],[8,4,4],[8,0,8],[4,0,8],[0,0,8],[0,0,4]],\n  [[4,0,2],[8,0,4],[8,0,6],[8,0,8],[4,4,4],[0,8,0],[0,6,0],[0,4,0],[0,2,0]],\n  [[0,0,0],[3,3,3],[5,5,5],[7,7,7],[8,8,8]],\n];\nconst lut = new Uint8Array(256 * MAPS.length * 4);\nMAPS.forEach((cols, m) => {\n  for (let i = 0; i < 256; i++) {\n    const t = (i / 255) * (cols.length - 1), a = Math.floor(t), b = Math.min(cols.length - 1, a + 1), f = t - a;\n    for (let c = 0; c < 3; c++) lut[(m * 256 + i) * 4 + c] = Math.round(((cols[a][c] * (1 - f) + cols[b][c] * f) / 8) * 255);\n    lut[(m * 256 + i) * 4 + 3] = 255;\n  }\n});\nconst lutTex = ctx.utils.uploadDataTexture(gl, null, 256, MAPS.length, lut, { internalFormat: gl.RGBA8, format: gl.RGBA, type: gl.UNSIGNED_BYTE, filter: gl.LINEAR });\n\nconst HEAD = `#version 300 es\nprecision highp float;\nprecision highp sampler2D;\nin vec2 v_uv;\nout vec4 outColor;\n`;\n// One Lenia step: U = K * A (toroidal), A' = clip(A + dt * G(U), 0, 1) with G = 2 exp(-(U-m)^2 / 2s^2) - 1.\nconst stepFs = HEAD + `\n#define R ${R}\nuniform sampler2D u_state, u_kernel;\nuniform float u_mu, u_sigma, u_step;\nuniform vec3 u_pen;       // x, y in cells, radius (0 = off)\nuniform float u_penMode; // 1 paint, -1 erase\nuniform float u_seed;\nfloat hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32 + u_seed); return fract(p.x * p.y); }\nvoid main() {\n  ivec2 size = textureSize(u_state, 0), p = ivec2(gl_FragCoord.xy);\n  float u = 0.0;\n  for (int dy = -R; dy <= R; dy++) {\n    for (int dx = -R; dx <= R; dx++) {\n      float k = texelFetch(u_kernel, ivec2(dx + R, dy + R), 0).r;\n      if (k == 0.0) continue;\n      ivec2 q = (p + ivec2(dx, dy) + size) % size;\n      u += k * texelFetch(u_state, q, 0).r;\n    }\n  }\n  float a = texelFetch(u_state, p, 0).r;\n  float g = 2.0 * exp(-(u - u_mu) * (u - u_mu) / (2.0 * u_sigma * u_sigma)) - 1.0;\n  a = clamp(a + u_step * g, 0.0, 1.0);\n  if (u_pen.z > 0.0) {\n    vec2 d = vec2(p) + 0.5 - u_pen.xy;\n    d -= vec2(size) * round(d / vec2(size));   // wrap around the torus\n    float f = exp(-dot(d, d) / (u_pen.z * u_pen.z * 0.35));\n    if (u_penMode > 0.0) a = max(a, f * (0.55 + 0.45 * hash(vec2(p))));\n    else a *= 1.0 - f;\n  }\n  outColor = vec4(a, 0.0, 0.0, 1.0);\n}`;\nconst viewFs = HEAD + `\nuniform sampler2D u_state, u_lut;\nuniform vec2 u_resolution, u_world, u_offset;\nuniform float u_scale, u_map, u_maps;\nfloat at(ivec2 q) { ivec2 s = ivec2(u_world); return texelFetch(u_state, (q % s + s) % s, 0).r; }\nvoid main() {\n  // Cover-fit the world, then sample it bilinearly by hand (R32F isn't filterable everywhere).\n  vec2 c = (gl_FragCoord.xy - u_offset) / u_scale - 0.5;\n  vec2 i = floor(c), f = fract(c);\n  ivec2 q = ivec2(i);\n  float a = mix(mix(at(q), at(q + ivec2(1, 0)), f.x), mix(at(q + ivec2(0, 1)), at(q + ivec2(1, 1)), f.x), f.y);\n  vec3 col = texture(u_lut, vec2((a * 255.0 + 0.5) / 256.0, (u_map + 0.5) / u_maps)).rgb;\n  vec2 p = gl_FragCoord.xy / u_resolution - 0.5;\n  col *= 1.0 - 0.35 * dot(p, p);\n  outColor = vec4(col, 1.0);\n}`;\nObject.assign(ctx.state, {\n  R, orbium: rle2arr(ORBIUM), kernelTex, lutTex, maps: MAPS.length,\n  step: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, stepFs),\n  view: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, viewFs),\n  world: null, acc: 0,\n});\n// Scatter Orbia heading roughly the same way, like a school: on the torus they glide without colliding\n// (collisions between Orbia often blow up into a field of worms).\nctx.state.seedWorld = (W, H) => {\n  const data = new Float32Array(W * H), o = ctx.state.orbium;\n  const count = Math.round((W * H) / 1500), placed = [], heading = Math.floor(Math.random() * 4) * Math.PI / 2;\n  for (let n = 0, tries = 0; n < count && tries < 2000; tries++) {\n    const cx = Math.round(Math.random() * W), cy = Math.round(Math.random() * H);\n    const near = ([x, y]) => { const dx = Math.min(Math.abs(x - cx), W - Math.abs(x - cx)), dy = Math.min(Math.abs(y - cy), H - Math.abs(y - cy)); return Math.hypot(dx, dy) < 40; };\n    if (placed.some(near)) continue;\n    placed.push([cx, cy]); n++;\n    const th = heading + (Math.random() - 0.5) * 0.25, cs = Math.cos(th), sn = Math.sin(th);\n    const rad = Math.ceil(Math.hypot(o.w, o.h) / 2) + 1;\n    const g = (x, y) => (x >= 0 && y >= 0 && x < o.w && y < o.h ? o.data[y][x] : 0);\n    for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++) {\n      // Inverse-rotate into the pattern and sample bilinearly, centered on whole cells\n      // (a half-cell offset blurs it enough to kill it).\n      const px = cs * dx + sn * dy + o.w / 2, py = -sn * dx + cs * dy + o.h / 2;\n      const x0 = Math.floor(px), y0 = Math.floor(py), fx = px - x0, fy = py - y0;\n      const v = (g(x0, y0) * (1 - fx) + g(x0 + 1, y0) * fx) * (1 - fy) + (g(x0, y0 + 1) * (1 - fx) + g(x0 + 1, y0 + 1) * fx) * fy;\n      if (v <= 0) continue;\n      const i = ((cx + dx) % W + W) % W + (((cy + dy) % H + H) % H) * W;\n      data[i] = Math.max(data[i], v);\n    }\n  }\n  return data;\n};\n",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst reseed = () => {\n  const data = s.seedWorld(s.W, s.H);\n  for (const t of [s.world.read(), s.world.write()]) {\n    gl.bindTexture(gl.TEXTURE_2D, t.texture);\n    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, s.W, s.H, gl.RED, gl.FLOAT, data);\n  }\n};\nif (!s.world) {\n  // The world (a torus) takes the canvas's shape once; later resizes cover-fit it.\n  s.H = 120; s.W = Math.round(s.H * Math.min(3, Math.max(0.5, w / h)));\n  s.world = ctx.utils.createPingPong(s.W, s.H, { internalFormat: gl.R32F, format: gl.RED, type: gl.FLOAT, filter: gl.NEAREST });\n  reseed();\n}\nif (u.u_reseed) reseed();\nconst scale = Math.max(w / s.W, h / s.H), ox = (w - s.W * scale) / 2, oy = (h - s.H * scale) / 2;\nconst toCell = (m) => [(m[0] * w - ox) / scale, ((1 - m[1]) * h - oy) / scale];\n\n// Fixed 60 steps a second of simulated time dt each, whatever the display rate.\ns.acc = Math.min(s.acc + Math.min(ctx.dt, 0.05) * 60, 3);\nconst steps = Math.floor(s.acc);\ns.acc -= steps;\n// Drag paints matter; right-drag or Shift+drag erases. Strokes are interpolated across this frame's steps.\nconst painting = ctx.mouseDown, mode = ctx.pointer.buttons & 2 || ctx.keys.has(\"ShiftLeft\") || ctx.keys.has(\"ShiftRight\") ? -1 : 1;\nconst b = toCell(ctx.mouse), a = s.wasDown ? toCell(ctx.mousePrev) : b;\ns.wasDown = painting;\ngl.useProgram(s.step);\nfor (let i = 0; i < steps; i++) {\n  const t = (i + 1) / steps, read = s.world.read(), write = s.world.write();\n  gl.bindFramebuffer(gl.FRAMEBUFFER, write.framebuffer);\n  gl.viewport(0, 0, s.W, s.H);\n  ctx.utils.bindTexture(s.step, \"u_state\", read.texture, 0);\n  ctx.utils.bindTexture(s.step, \"u_kernel\", s.kernelTex, 1);\n  ctx.utils.drawFullscreen(s.step, {\n    u_mu: u.u_mu, u_sigma: u.u_sigma, u_step: u.u_step, u_seed: Math.random() * 100,\n    u_pen: painting ? [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, u.u_brush] : [0, 0, 0], u_penMode: mode,\n  });\n  s.world.swap();\n}\ngl.bindFramebuffer(gl.FRAMEBUFFER, null);\ngl.viewport(0, 0, w, h);\ngl.useProgram(s.view);\nctx.utils.bindTexture(s.view, \"u_state\", s.world.read().texture, 0);\nctx.utils.bindTexture(s.view, \"u_lut\", s.lutTex, 1);\nctx.utils.drawFullscreen(s.view, { u_world: [s.W, s.H], u_offset: [ox, oy], u_scale: scale, u_map: Math.round(u.u_colormap), u_maps: s.maps });\n// Twice a second, weigh the world: an Orbium has a mass of about 71. Start over when everything has died\n// or blown up into worms for a few seconds (if Auto reseed is on).\nif (ctx.frame % 30 === 0) {\n  s.px ??= new Float32Array(s.W * s.H * 4);\n  gl.bindFramebuffer(gl.FRAMEBUFFER, s.world.read().framebuffer);\n  gl.readPixels(0, 0, s.W, s.H, gl.RGBA, gl.FLOAT, s.px);\n  gl.bindFramebuffer(gl.FRAMEBUFFER, null);\n  let mass = 0;\n  for (let i = 0; i < s.px.length; i += 4) mass += s.px[i];\n  s.mass = mass;\n  const bad = mass < 5 || mass / (s.W * s.H) > 0.08;\n  s.badSince = bad ? s.badSince ?? ctx.time : null;\n  if (u.u_auto && bad && ctx.time - s.badSince > (mass < 5 ? 1.5 : 4)) { reseed(); s.badSince = null; }\n}\nctx.publish(\"world\", `${s.W}×${s.H}`);\nctx.publish(\"mass\", Math.round(s.mass ?? 0));\nctx.publish(\"orbia (≈ mass / 71)\", Math.round((s.mass ?? 0) / 71));\n",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_mu": {
+      "type": "float",
+      "value": 0.15,
+      "min": 0.1,
+      "max": 0.2,
+      "step": 0.001,
+      "label": "Growth center μ"
+    },
+    "u_sigma": {
+      "type": "float",
+      "value": 0.015,
+      "min": 0.005,
+      "max": 0.03,
+      "step": 0.0005,
+      "label": "Growth width σ"
+    },
+    "u_step": {
+      "type": "float",
+      "value": 0.1,
+      "min": 0.01,
+      "max": 0.5,
+      "step": 0.01,
+      "label": "Time step"
+    },
+    "u_brush": {
+      "type": "float",
+      "value": 9,
+      "min": 2,
+      "max": 30,
+      "step": 0.5,
+      "label": "Brush"
+    },
+    "u_colormap": {
+      "type": "int",
+      "value": 0,
+      "label": "Colormap",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Lenia (BCYR)",
+          "value": 0
+        },
+        {
+          "label": "Rainbow",
+          "value": 1
+        },
+        {
+          "label": "Forest (GYPB)",
+          "value": 2
+        },
+        {
+          "label": "Orchid (PPGG)",
+          "value": 3
+        },
+        {
+          "label": "Grayscale",
+          "value": 4
+        }
+      ]
+    },
+    "u_auto": {
+      "type": "bool",
+      "value": true,
+      "label": "Auto reseed"
+    },
+    "u_reseed": {
+      "type": "bool",
+      "value": false,
+      "label": "Reseed",
+      "widget": "button"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

@@ -39,7 +39,7 @@ describe("catalog", () => {
     // d3-delaunay is curated, so the reference copy is dropped and linked instead.
     expect(REFERENCES.some((r) => r.name === "d3-delaunay")).toBe(false);
     expect(referenceFor(CATALOG.find((e) => e.id === "d3-delaunay")!)?.index.no).toBe(2);
-    expect(searchReferences("wave function collapse").map((r) => r.name)).toContain("WaveFunctionCollapse");
+    expect(searchReferences("context free").map((r) => r.name)).toContain("Context Free");
     expect(searchReferences("")).toEqual([]);
   });
 
@@ -50,7 +50,7 @@ describe("catalog", () => {
     const text = String((await search.run(search.input.parse({ query: "streamlines" }), stubEnv())).content);
     expect(text).toContain("From the reference list (index.opensource");
     const get = CATALOG_TOOLS.find((t) => t.name === "catalog_get")!;
-    const ref = REFERENCES.find((r) => r.name === "WaveFunctionCollapse")!;
+    const ref = REFERENCES.find((r) => r.name === "Context Free")!;
     expect(String((await get.run({ id: ref.id }, stubEnv())).content)).toContain("Not set up in Siljangnim yet");
   });
 });

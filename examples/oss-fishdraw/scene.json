@@ -1,0 +1,60 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// fishdraw by Lingdong Huang (MIT, https://github.com/LingDong-/fishdraw): procedurally generated\n// fish as plotter polylines, with a made-up Latin name lettered underneath. The source is fetched\n// from a pinned commit and run as-is; this scene plays each drawing back like a pen plotter,\n// stroke by stroke in fishdraw's own order, then lifts the sheet away and starts the next fish.\nconst SRC = \"https://cdn.jsdelivr.net/gh/LingDong-/fishdraw@a514372de1d05b4aa32a9e35aadec9a5299689a2/fishdraw.js\";\nconst res = await fetch(SRC);\nif (!res.ok) throw new Error(`couldn't fetch fishdraw (HTTP ${res.status}) from ${SRC}`);\nconst lib = new Function(await res.text() +\n  \"\\nreturn { main, binomen, setSeed: function (v) { jsr = v; } };\")();\n\nconst SW = 520, SH = 320, K = 4; // sheet size (fishdraw's SVG) and canvas pixels per unit\nconst cv = new OffscreenCanvas(SW * K, SH * K);\nconst g = cv.getContext(\"2d\");\n\n// A fish as one pen path: [x0, y0, x1, y1, startDistance] per segment, plus pen-up moves.\nfunction makeFish(name) {\n  const t0 = performance.now();\n  const lines = lib.main(name);\n  const ms = performance.now() - t0;\n  const segs = [];\n  let d = 0, [px, py] = lines[0][0];\n  for (const pl of lines) {\n    d += Math.hypot(pl[0][0] - px, pl[0][1] - py) * 0.25; // pen-up travel is quicker\n    for (let j = 1; j < pl.length; j++) {\n      const [ax, ay] = pl[j - 1], [bx, by] = pl[j];\n      const l = Math.hypot(bx - ax, by - ay);\n      segs.push([ax + 10, ay + 10, bx + 10, by + 10, d, l]);\n      d += l;\n    }\n    [px, py] = pl[pl.length - 1];\n  }\n  return { name, segs, total: d, ms, drawn: 0, i: 0, pen: [10, 10], down: false };\n}\n\nfunction randomName() {\n  lib.setSeed(1 + Math.floor(Math.random() * 1e9));\n  return lib.binomen();\n}\n\nfunction clear() {\n  g.setTransform(1, 0, 0, 1, 0, 0);\n  g.fillStyle = \"#000\";\n  g.fillRect(0, 0, cv.width, cv.height);\n}\n\n// Draw the pen path from f.drawn up to distance d.\nfunction drawTo(f, d, weight) {\n  g.setTransform(K, 0, 0, K, 0, 0);\n  g.strokeStyle = \"#fff\";\n  g.lineWidth = weight;\n  g.lineCap = \"round\";\n  g.lineJoin = \"round\";\n  g.beginPath();\n  const segs = f.segs;\n  while (f.i < segs.length) {\n    const [ax, ay, bx, by, s0, l] = segs[f.i];\n    if (s0 >= d) { f.down = false; break; }\n    const a = Math.max(0, f.drawn - s0) / (l || 1), b = Math.min(1, (d - s0) / (l || 1));\n    const x0 = ax + (bx - ax) * a, y0 = ay + (by - ay) * a, x1 = ax + (bx - ax) * b, y1 = ay + (by - ay) * b;\n    g.moveTo(x0, y0); g.lineTo(x1, y1);\n    f.pen = [x1, y1]; f.down = true;\n    if (b < 1) break;\n    f.i++;\n  }\n  g.stroke();\n  // between strokes the pen travels in the air towards the next one\n  if (!f.down && f.i < segs.length) {\n    const [nx, ny] = segs[f.i], prev = f.i > 0 ? segs[f.i - 1] : [10, 10, 10, 10];\n    const gap = segs[f.i][4] - (f.i > 0 ? prev[4] + prev[5] : 0);\n    const t = gap > 0 ? Math.min(1, Math.max(0, (d - (segs[f.i][4] - gap)) / gap)) : 1;\n    f.pen = [prev[2] + (nx - prev[2]) * t, prev[3] + (ny - prev[3]) * t];\n  }\n  f.drawn = Math.min(d, f.total);\n}\n\nconst gl = ctx.gl, tex = gl.createTexture();\ngl.bindTexture(gl.TEXTURE_2D, tex);\nfor (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);\n\nconst fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_inkTex;\nuniform vec2 u_resolution, u_penPos;\nuniform vec3 u_paper, u_inkColor;\nuniform float u_fade, u_penOn, u_penDown, u_slide;\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }\nfloat vnoise(vec2 p) {\n  vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);\n  return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);\n}\nfloat fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { s += a * vnoise(p); p *= 2.03; a *= 0.5; } return s; }\nvoid main() {\n  vec2 px = v_uv * u_resolution;\n  float sc = min(u_resolution.x / 480.0, u_resolution.y / 290.0) * 0.98;\n  vec2 origin = 0.5 * (u_resolution - vec2(520.0, 320.0) * sc);\n  vec2 sp = (vec2(px.x, u_resolution.y - px.y) - origin) / sc; // sheet units, y down\n  sp.x += u_slide * 800.0;\n  vec2 uv = sp / vec2(520.0, 320.0);\n  float inside = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);\n  float c = texture(u_inkTex, uv).r * inside;\n  // a faint wet halo around the lines\n  float halo = textureLod(u_inkTex, uv, 3.0).r * inside;\n  c = max(c, halo * 0.18);\n  c *= u_fade;\n  vec2 q = px / u_resolution.y * 9.0;\n  float mott = fbm(q * 0.7) - 0.5, fib = fbm(vec2(q.x * 5.0, q.y * 0.6) + 7.0) - 0.5;\n  float grain = hash(floor(px)) - 0.5;\n  vec3 paper = u_paper * (1.0 + mott * 0.06 + fib * 0.03 + grain * 0.03);\n  // ink pools slightly darker where the paper is rougher\n  vec3 ink = u_inkColor * (1.0 - 0.15 * fib);\n  vec3 col = mix(paper, ink, clamp(c, 0.0, 1.0) * (0.9 + 0.1 * grain));\n  // the pen: a nib that presses down while drawing and hovers (with a soft shadow) in between\n  vec2 pp = (u_penPos - vec2(u_slide * 800.0, 0.0)) * sc + origin;\n  pp.y = u_resolution.y - pp.y;\n  float r = length(px - pp) / sc;\n  float shadowOff = mix(4.0, 1.0, u_penDown);\n  float sh = length(px - pp - vec2(shadowOff, -shadowOff) * sc) / sc;\n  col *= 1.0 - u_penOn * 0.18 * smoothstep(5.0, 0.0, sh);\n  col = mix(col, u_inkColor * 0.8, u_penOn * smoothstep(2.4, 1.6, r));\n  col = mix(col, vec3(1.0), u_penOn * 0.35 * smoothstep(0.9, 0.3, length(px - pp + vec2(0.6, -0.6) * sc) / sc));\n  float vig = 1.0 - 0.25 * pow(length((v_uv - 0.5) * vec2(1.0, 0.8)) * 1.35, 2.6);\n  outColor = vec4(col * vig, 1.0);\n}`;\n\nclear();\nconst first = makeFish(\"Hepateras austti\");\nObject.assign(ctx.state, {\n  makeFish, randomName, clear, drawTo, cv, tex, fish: first, phase: \"draw\", phaseT: 0, weight: null, dirty: true,\n  prog: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fs),\n});\n",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms;\nconst dt = Math.min(ctx.dt, 0.1);\nlet f = s.fish;\nif (u.u_new && (s.phase === \"draw\" || s.phase === \"hold\")) { s.phase = \"out\"; s.phaseT = 0; }\n// line weight changed: redraw what is already on the sheet\nif (s.weight !== u.u_weight) {\n  s.weight = u.u_weight;\n  const d = f.drawn;\n  s.clear(); f.drawn = 0; f.i = 0;\n  if (d > 0) s.drawTo(f, d, s.weight);\n  s.dirty = true;\n}\ns.phaseT += dt;\nlet slide = 0;\nif (s.phase === \"draw\") {\n  s.drawTo(f, f.drawn + u.u_speed * dt, s.weight);\n  s.dirty = true;\n  if (f.drawn >= f.total) { s.phase = \"hold\"; s.phaseT = 0; }\n} else if (s.phase === \"hold\") {\n  if (s.phaseT > 4) { s.phase = \"out\"; s.phaseT = 0; }\n} else if (s.phase === \"out\") {\n  const t = Math.min(1, s.phaseT / 1.4);\n  slide = t * t * (3 - 2 * t);\n  if (t >= 1) {\n    f = s.fish = s.makeFish(s.randomName());\n    s.clear(); s.dirty = true;\n    s.phase = \"in\"; s.phaseT = 0; slide = -1;\n  }\n} else if (s.phase === \"in\") {\n  const t = Math.min(1, s.phaseT / 1.0);\n  slide = -1 + t * t * (3 - 2 * t);\n  if (t >= 1) { s.phase = \"draw\"; s.phaseT = 0; slide = 0; }\n}\nif (s.dirty) {\n  gl.bindTexture(gl.TEXTURE_2D, s.tex);\n  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\n  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, s.cv);\n  gl.generateMipmap(gl.TEXTURE_2D);\n  s.dirty = false;\n}\nctx.publish(\"fish\", f.name);\nctx.publish(\"drawn %\", Math.round((100 * f.drawn) / f.total));\n\ngl.useProgram(s.prog);\nctx.utils.setUniforms(s.prog, {\n  u_resolution: ctx.resolution, u_penPos: f.pen, u_paper: u.u_paper, u_inkColor: u.u_ink,\n  u_fade: 1, u_penOn: u.u_pen && s.phase === \"draw\" ? 1 : 0, u_penDown: f.down ? 1 : 0, u_slide: slide,\n});\nctx.utils.bindTexture(s.prog, \"u_inkTex\", s.tex, 0);\nctx.utils.drawFullscreen(s.prog);\n",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 2400,
+      "min": 100,
+      "max": 8000,
+      "step": 10,
+      "label": "Speed"
+    },
+    "u_new": {
+      "type": "bool",
+      "value": false,
+      "label": "New fish",
+      "widget": "button"
+    },
+    "u_weight": {
+      "type": "float",
+      "value": 1,
+      "min": 0.2,
+      "max": 3,
+      "step": 0.05,
+      "label": "Line weight",
+      "widget": "knob"
+    },
+    "u_ink": {
+      "type": "color",
+      "value": [
+        0.1,
+        0.12,
+        0.2
+      ],
+      "label": "Ink"
+    },
+    "u_paper": {
+      "type": "color",
+      "value": [
+        0.97,
+        0.94,
+        0.87
+      ],
+      "label": "Paper"
+    },
+    "u_pen": {
+      "type": "bool",
+      "value": true,
+      "label": "Show pen",
+      "widget": "toggle"
+    }
+  },
+  "inputs": []
+}

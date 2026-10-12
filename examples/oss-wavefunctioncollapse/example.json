@@ -1,0 +1,33 @@
+{
+  "order": 211,
+  "title": "Tile collapse (WaveFunctionCollapse)",
+  "title_ko": "타일 붕괴 (WaveFunctionCollapse)",
+  "description": "WaveFunctionCollapse (kchapelier's JavaScript port of mxgmn's algorithm, SimpleTiledModel) fills a grid with tiles live: it observes the lowest-entropy cell, picks a tile and propagates the edge rules, a few steps a frame. Three tilesets are drawn in the scene with canvas 2D (knotted tubes, a circuit board, rivers and roads) and their neighbor rules come from edge sockets. Unsolved cells show the library's superposition image and an entropy marker that glows hotter as options run out; finished grids hold, then start over.",
+  "description_ko": "WaveFunctionCollapse(mxgmn의 알고리즘을 kchapelier가 JavaScript로 옮긴 것, SimpleTiledModel)가 격자를 실시간으로 타일로 채운다. 엔트로피가 가장 낮은 칸을 골라 타일을 정하고 가장자리 규칙을 전파하는 과정을 프레임마다 몇 번씩 돌린다. 타일셋 세 가지(얽힌 관, 회로 기판, 강과 길)는 씬에서 canvas 2D로 그리고, 이웃 규칙은 가장자리 소켓에서 만든다. 아직 안 정해진 칸은 라이브러리의 중첩 이미지와, 남은 선택지가 줄수록 뜨겁게 빛나는 엔트로피 표시로 보인다. 다 채워지면 잠시 멈췄다가 다시 시작한다.",
+  "prompt": "(open-source example: wavefunctioncollapse imported in the scene)",
+  "made_with": "wavefunctioncollapse 2.1.0 via ctx.utils.import",
+  "features": [
+    "procedural generation",
+    "constraint solving",
+    "tiles",
+    "entropy"
+  ],
+  "mode": "live",
+  "uses": [
+    "wavefunctioncollapse"
+  ],
+  "summary": "A grid of tiles solves itself like a puzzle: cells settle one by one until pipes, circuits or rivers join up seamlessly.",
+  "summary_ko": "타일 격자가 퍼즐처럼 스스로 풀려요. 칸이 하나씩 정해지면서 관, 회로, 강이 끊김 없이 이어져요.",
+  "try": [
+    "Pick another Tileset: Knots, Circuit or Rivers",
+    "Turn Speed down to watch each cell collapse",
+    "Press Restart, or choose more Rows for a finer grid"
+  ],
+  "try_ko": [
+    "Tileset에서 Knots, Circuit, Rivers를 바꿔 골라 보세요",
+    "Speed를 내리면 칸이 하나씩 정해지는 걸 볼 수 있어요",
+    "Restart를 누르거나 Rows를 늘려 더 촘촘한 격자를 만들어 보세요"
+  ],
+  "tool_about": "WaveFunctionCollapse generates images and maps that follow local rules, like which tile may sit next to which, by repeatedly fixing the most certain spot and passing the consequences on. This is a JavaScript port that runs in the browser.",
+  "tool_about_ko": "WaveFunctionCollapse는 어떤 타일이 어떤 타일 옆에 올 수 있는지 같은 국소 규칙을 지키는 그림과 지도를 만들어요. 가장 확실한 자리부터 정하고 그 결과를 주변에 전해 가는 방식이에요. 여기서는 브라우저에서 돌아가는 JavaScript 버전을 써요."
+}

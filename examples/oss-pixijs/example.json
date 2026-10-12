@@ -1,0 +1,34 @@
+{
+  "order": 209,
+  "title": "Silk flow (PixiJS)",
+  "title_ko": "비단 흐름 (PixiJS)",
+  "description": "PixiJS renders straight into the scene's WebGL2 context: up to 30,000 particles in one batched ParticleContainer with additive blending drift through a curl-noise flow field. They paint into a render texture that keeps trails, which is drawn twice, sharp and through a BlurFilter for glow, under an animated DisplacementFilter. The pointer stirs a vortex; hold the button to stir harder.",
+  "description_ko": "PixiJS가 씬의 WebGL2 컨텍스트에 바로 그린다. 최대 3만 개의 입자가 하나로 묶인(batched) ParticleContainer 안에서 더하기(additive) 블렌딩으로 curl noise 흐름장을 따라 떠다닌다. 입자는 잔상을 남기는 렌더 텍스처에 그려지고, 그 텍스처를 선명하게 한 번, BlurFilter로 번지게 한 번 겹쳐 빛나게 한 뒤 움직이는 DisplacementFilter로 일렁이게 한다. 포인터 주위에 소용돌이가 생기고, 버튼을 누르고 있으면 더 세게 휘젓는다.",
+  "prompt": "(open-source example: pixi.js imported in the scene)",
+  "made_with": "pixi.js 8.21.0 via ctx.utils.import",
+  "features": [
+    "pixijs",
+    "particles",
+    "blend modes",
+    "filters",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "pixijs"
+  ],
+  "summary": "Thousands of glowing specks stream like silk threads, leaving soft trails, and swirl around your pointer.",
+  "summary_ko": "수천 개의 빛나는 점이 비단실처럼 흐르며 부드러운 잔상을 남기고, 포인터 주위에서 소용돌이쳐요.",
+  "try": [
+    "Move the pointer to stir a whirlpool, and hold the button to stir harder",
+    "Raise Count and Trail for denser, longer threads",
+    "Turn up Glow and Warp, then pick new Slow and Fast colors"
+  ],
+  "try_ko": [
+    "포인터를 움직여 소용돌이를 만들어 보고, 버튼을 누르고 있으면 더 세게 휘저어져요",
+    "Count와 Trail을 올려 더 촘촘하고 긴 실을 만들어 보세요",
+    "Glow와 Warp를 올린 뒤 Slow와 Fast 색을 새로 골라 보세요"
+  ],
+  "tool_about": "PixiJS is a fast 2D graphics library for the web: it draws sprites, shapes, text and particles on the GPU, batching thousands of them into a few draw calls, with blend modes and filters like blur and displacement. It runs in the browser.",
+  "tool_about_ko": "PixiJS는 웹용 빠른 2D 그래픽 라이브러리예요. 스프라이트, 도형, 글자, 입자를 GPU로 그리는데, 수천 개를 몇 번의 그리기로 묶어 처리하고 블렌드 모드나 블러, 일렁임(displacement) 같은 필터도 쓸 수 있어요. 브라우저에서 돌아가요."
+}

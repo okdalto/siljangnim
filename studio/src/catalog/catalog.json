@@ -2193,6 +2193,275 @@
      "h5py"
     ]
    }
+  },
+  {
+   "id": "webgl-fluid-simulation",
+   "name": "WebGL Fluid Simulation",
+   "repo": "https://github.com/PavelDoGreat/WebGL-Fluid-Simulation",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "GPU stable-fluids shaders (advection, pressure, vorticity, splats, bloom) for interactive ink-in-water simulations; adapted into the scene rather than imported.",
+   "tags": [
+    "fluid simulation",
+    "navier-stokes",
+    "webgl",
+    "shaders",
+    "bloom",
+    "interaction"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/PavelDoGreat/WebGL-Fluid-Simulation@a2d292931f19/script.js"
+   },
+   "notes": "The shaders are ported into the scene (see the example); the CDN link is the source they come from."
+  },
+  {
+   "id": "anime-js",
+   "name": "Anime.js",
+   "repo": "https://github.com/juliangarnier/anime",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Animates values of any JS object with timelines, staggered delays (grids, origins) and a large set of easings.",
+   "tags": [
+    "animation",
+    "timeline",
+    "easing",
+    "stagger",
+    "motion design"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/animejs@4.5.0"
+   }
+  },
+  {
+   "id": "pixijs",
+   "name": "PixiJS",
+   "repo": "https://github.com/pixijs/pixijs",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Fast GPU 2D renderer (batched sprites and particles, blend modes, blur/displacement filters, render textures) that can render into the scene's own WebGL2 context.",
+   "tags": [
+    "2d",
+    "renderer",
+    "sprites",
+    "particles",
+    "filters",
+    "blend modes",
+    "batching"
+   ],
+   "media": {
+    "in": [
+     "image",
+     "geometry"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs"
+   },
+   "notes": "Import the jsDelivr build: esm.sh's build drops PixiJS's side-effect modules, so particles and filters never register."
+  },
+  {
+   "id": "babylon-js",
+   "name": "Babylon.js",
+   "repo": "https://github.com/BabylonJS/Babylon.js",
+   "license": "Apache-2.0",
+   "tier": "B",
+   "purpose": "Full 3D engine (PBR materials, image-based lighting, shadows, GPU particles, post-processing pipeline) that can render into the scene's own WebGL2 context.",
+   "tags": [
+    "3d",
+    "engine",
+    "pbr",
+    "ibl",
+    "gpu particles",
+    "post-processing",
+    "shadows"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "model"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/@babylonjs/core@9.28.0"
+   }
+  },
+  {
+   "id": "wavefunctioncollapse",
+   "name": "WaveFunctionCollapse",
+   "repo": "https://github.com/mxgmn/WaveFunctionCollapse",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Fills a grid with tiles or pixels that follow local adjacency rules, collapsing the lowest-entropy cell and propagating constraints (JS port of mxgmn's algorithm).",
+   "tags": [
+    "procedural generation",
+    "tiles",
+    "constraint solving",
+    "wave function collapse",
+    "entropy"
+   ],
+   "media": {
+    "in": [
+     "image",
+     "parameters"
+    ],
+    "out": [
+     "grid",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/wavefunctioncollapse@2.1.0"
+   }
+  },
+  {
+   "id": "lottie-web",
+   "name": "Lottie Web",
+   "repo": "https://github.com/airbnb/lottie-web",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Plays Lottie (After Effects/Bodymovin JSON) vector animations, rendering to SVG or canvas frame by frame.",
+   "tags": [
+    "lottie",
+    "vector animation",
+    "motion graphics",
+    "after effects",
+    "canvas"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "svg"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/npm/lottie-web@5.13.0/build/player/esm/lottie_light_canvas.min.js"
+   }
+  },
+  {
+   "id": "shan-shui-infinite",
+   "name": "Shan Shui Infinite",
+   "repo": "https://github.com/LingDong-/shan-shui-inf",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Procedural, infinitely scrolling Chinese landscape painting (mountains, trees, architecture, boats) generated as SVG polylines; its generator is fetched from a pinned commit and run in the scene.",
+   "tags": [
+    "procedural landscape",
+    "ink painting",
+    "generative",
+    "svg",
+    "infinite scroll"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/LingDong-/shan-shui-inf@9f754d2b2e73495db7883d4d4055a7b0903b0454/index.html"
+   }
+  },
+  {
+   "id": "fishdraw",
+   "name": "fishdraw",
+   "repo": "https://github.com/LingDong-/fishdraw",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Procedurally generated fish (body, scales, fins, eye and a made-up binomial name) as pen-plotter polylines; fetched from a pinned commit and run in the scene.",
+   "tags": [
+    "procedural drawing",
+    "pen plotter",
+    "polylines",
+    "generative",
+    "fish"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "image",
+     "vector"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/LingDong-/fishdraw@a514372de1d05b4aa32a9e35aadec9a5299689a2/fishdraw.js"
+   }
+  },
+  {
+   "id": "markovjunior",
+   "name": "MarkovJunior",
+   "repo": "https://github.com/mxgmn/MarkovJunior",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Probabilistic programming language of grid rewrite rules that grows mazes, rivers, dungeons and plants (core ported to JS in the scene).",
+   "tags": [
+    "rewrite rules",
+    "procedural generation",
+    "cellular",
+    "maze",
+    "pixel art"
+   ],
+   "media": {
+    "in": [
+     "parameters"
+    ],
+    "out": [
+     "grid",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/mxgmn/MarkovJunior@42aaf24bcf54/models.xml"
+   },
+   "notes": "The interpreter is ported into the example's scene; its models come from the repository's models/ folder."
+  },
+  {
+   "id": "lenia",
+   "name": "Lenia",
+   "repo": "https://github.com/Chakazul/Lenia",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Continuous cellular automata with lifelike gliding creatures; rule and species catalog (run as GPU shaders in the scene).",
+   "tags": [
+    "cellular automata",
+    "artificial life",
+    "simulation",
+    "gpu",
+    "creatures"
+   ],
+   "media": {
+    "in": [
+     "parameters"
+    ],
+    "out": [
+     "simulation",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/Chakazul/Lenia@adfc54293926/Python/animals.json"
+   },
+   "notes": "The update rule runs as shaders in the example's scene; species (e.g. Orbium) come from animals.json."
   }
  ]
 }

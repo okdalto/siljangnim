@@ -1,0 +1,42 @@
+{
+  "order": 207,
+  "title": "Ink in water (WebGL Fluid Simulation)",
+  "title_ko": "물속의 잉크 (WebGL Fluid Simulation)",
+  "description": "A stable-fluids solver on the scene's WebGL2 context, with shaders adapted from Pavel Dobryakov's WebGL-Fluid-Simulation: curl and vorticity confinement, divergence, 20 Jacobi pressure iterations, gradient subtraction and semi-Lagrangian advection on half-float ping-pong targets (velocity at 128, dye at 1024), then front-lit shading and a mip-chain bloom. Drag to push dye; two brushes circle and a splat lands every 0.7 s so it stays alive untouched.",
+  "description_ko": "씬의 WebGL2 컨텍스트에서 도는 stable-fluids 솔버로, 셰이더는 Pavel Dobryakov의 WebGL-Fluid-Simulation에서 가져와 고쳤다. 컬과 소용돌이 보존(vorticity confinement), 발산, 압력 야코비 반복 20회, 기울기 빼기, 세미 라그랑지안 이류를 half-float 핑퐁 타깃(속도 128, 염료 1024)에서 돌리고, 정면 조명 셰이딩과 밉 체인 블룸을 얹는다. 드래그하면 염료를 밀 수 있고, 붓 두 개가 맴돌며 0.7초마다 방울이 떨어져 손대지 않아도 계속 움직인다.",
+  "prompt": "(open-source example: WebGL-Fluid-Simulation shaders adapted into the scene)",
+  "made_with": "shaders adapted from PavelDoGreat/WebGL-Fluid-Simulation (MIT), ported to GLSL ES 3.00 on ctx.gl",
+  "features": [
+    "fluid simulation",
+    "ping-pong",
+    "bloom",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "webgl-fluid-simulation"
+  ],
+  "summary": "Glowing colored ink swirls and curls like dye dropped in water, and you can stir it with the mouse.",
+  "summary_ko": "빛나는 색 잉크가 물에 떨어뜨린 물감처럼 소용돌이치고, 마우스로 휘저을 수 있어요.",
+  "try": [
+    "Drag across the screen to stir the ink",
+    "Press Splash! a few times, then raise Swirl (curl) for tighter curls",
+    "Lower Dye fade so the colors linger longer"
+  ],
+  "try_ko": [
+    "화면을 드래그해서 잉크를 휘저어 보세요",
+    "Splash!를 몇 번 누른 뒤 Swirl (curl)을 올리면 소용돌이가 더 촘촘해져요",
+    "Dye fade를 내리면 색이 더 오래 남아요"
+  ],
+  "tool_about": "WebGL Fluid Simulation is a well-known open-source demo that simulates liquid on the graphics card, right in the browser. Its shaders were adapted here, so nothing extra is downloaded.",
+  "tool_about_ko": "WebGL Fluid Simulation은 그래픽 카드로 액체를 흉내 내는, 브라우저에서 바로 도는 유명한 오픈소스 데모예요. 그 셰이더를 가져와 고쳐 썼기 때문에 따로 내려받는 건 없어요.",
+  "credits": [
+    {
+      "what": "Fluid simulation shaders (advection, divergence, curl, vorticity, pressure, splat, bloom), adapted",
+      "what_ko": "유체 시뮬레이션 셰이더(이류, 발산, 컬, 소용돌이, 압력, 스플랫, 블룸), 고쳐서 사용",
+      "source": "Pavel Dobryakov, WebGL-Fluid-Simulation",
+      "license": "MIT",
+      "url": "https://github.com/PavelDoGreat/WebGL-Fluid-Simulation"
+    }
+  ]
+}

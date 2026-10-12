@@ -1,0 +1,45 @@
+{
+  "order": 213,
+  "title": "Letters in the wind (opentype.js × simplex-noise)",
+  "title_ko": "바람 속 글자 (opentype.js × simplex-noise)",
+  "description": "A remix of two examples, Type particles (opentype.js) and Flow field (simplex-noise), combined by Claude Code over MCP: gusts scatter the letters into streams along a simplex-noise flow field; when the wind drops, 14,000 particles find their way back into the word, leaving trails. Hold the mouse button for wind.",
+  "description_ko": "두 예제, 글자 입자(opentype.js)와 흐름장(simplex-noise)을 Claude Code가 MCP로 섞어 만든 리믹스. 바람이 불면 글자가 simplex-noise 흐름장을 따라 흩어지고, 바람이 멎으면 14,000개의 입자가 궤적을 남기며 다시 글자로 모인다. 마우스를 누르고 있으면 바람이 분다.",
+  "prompt": "Mix Type particles (opentype.js) with Flow field (simplex-noise): let the wind blow the letters apart along the flow field, then gather them back into the word.",
+  "made_with": "Claude Code over MCP (Mix in): opentype.js 1.3.4 and simplex-noise 4.0.3 via ctx.utils.import",
+  "features": [
+    "remix",
+    "opentype.js",
+    "simplex-noise",
+    "particles",
+    "trails",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "opentype-js",
+    "simplex-noise"
+  ],
+  "summary": "Two examples mixed into one: letters dissolve into windblown streams, then gather back into words.",
+  "summary_ko": "예제 두 개를 하나로 섞었어요. 글자가 바람에 실려 물줄기처럼 흩어졌다가 다시 단어로 모여요.",
+  "try": [
+    "Hold the mouse button down to make it blow",
+    "Turn off Gusts on their own and slide Wind by hand",
+    "Change Field scale for wider or tighter swirls"
+  ],
+  "try_ko": [
+    "마우스 버튼을 누르고 있으면 바람이 불어요",
+    "Gusts on their own을 끄고 Wind 슬라이더를 직접 움직여 보세요",
+    "Field scale을 바꾸면 소용돌이가 넓어지거나 촘촘해져요"
+  ],
+  "tool_about": "This is a remix: opentype.js reads the font's letter outlines and simplex-noise makes the smooth, swirling wind. Open the two original examples to see each on its own, or press Mix in on any example to make your own.",
+  "tool_about_ko": "리믹스 예제예요. opentype.js가 폰트에서 글자 윤곽을 읽고, simplex-noise가 부드럽게 휘도는 바람을 만들어요. 원래 예제 두 개를 따로 열어 보거나, 아무 예제에서나 섞기(Mix in)를 눌러 나만의 리믹스를 만들어 보세요.",
+  "credits": [
+    {
+      "what": "Bungee font",
+      "what_ko": "Bungee 폰트",
+      "source": "The Bungee Project Authors (David Jonathan Ross)",
+      "license": "SIL Open Font License 1.1 (FONT-LICENSE.txt)",
+      "url": "https://github.com/djrrb/Bungee"
+    }
+  ]
+}

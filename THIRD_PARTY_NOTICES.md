@@ -14,6 +14,8 @@ Each example is built around these tools. None of them is copied into this repos
 
 | Tool | License | Source | Examples | How it is used |
 |---|---|---|---|---|
+| Anime.js (index.opensource #252) | MIT | [github.com/juliangarnier/anime](https://github.com/juliangarnier/anime) | [oss-anime-js](examples/oss-anime-js/) | fetched from a CDN by the scene at run time (not bundled) |
+| Babylon.js (index.opensource #335) | Apache-2.0 | [github.com/BabylonJS/Babylon.js](https://github.com/BabylonJS/Babylon.js) | [oss-babylonjs](examples/oss-babylonjs/) | fetched from a CDN by the scene at run time (not bundled) |
 | Bezier.js (index.opensource #23) | MIT | [github.com/Pomax/bezierjs](https://github.com/Pomax/bezierjs) | [oss-bezier-js](examples/oss-bezier-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | cannon-es | MIT | [github.com/pmndrs/cannon-es](https://github.com/pmndrs/cannon-es) | [oss-cannon-es](examples/oss-cannon-es/) | fetched from a CDN by the scene at run time (not bundled) |
 | chroma.js (index.opensource #208) | BSD-3-Clause AND Apache-2.0 | [github.com/gka/chroma.js](https://github.com/gka/chroma.js) | [oss-chroma](examples/oss-chroma/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -26,6 +28,7 @@ Each example is built around these tools. None of them is copied into this repos
 | d3-hexbin (index.opensource #102) | BSD-3-Clause | [github.com/d3/d3-hexbin](https://github.com/d3/d3-hexbin) | [oss-d3-hexbin](examples/oss-d3-hexbin/) | fetched from a CDN by the scene at run time (not bundled) |
 | d3-scale-chromatic (index.opensource #207) | ISC | [github.com/d3/d3-scale-chromatic](https://github.com/d3/d3-scale-chromatic) | [oss-d3-scale-chromatic](examples/oss-d3-scale-chromatic/) | fetched from a CDN by the scene at run time (not bundled) |
 | FFmpeg (index.opensource #228) | LGPL-2.1-or-later | [github.com/FFmpeg/FFmpeg](https://github.com/FFmpeg/FFmpeg) | [oss-ffmpeg](examples/oss-ffmpeg/) | an installed program, run by a recipe (not bundled) |
+| fishdraw (index.opensource #115) | MIT | [github.com/LingDong-/fishdraw](https://github.com/LingDong-/fishdraw) | [oss-fishdraw](examples/oss-fishdraw/) | fetched from a CDN by the scene at run time (not bundled) |
 | Flatbush (index.opensource #311) | ISC | [github.com/mourner/flatbush](https://github.com/mourner/flatbush) | [oss-flatbush](examples/oss-flatbush/) | fetched from a CDN by the scene at run time (not bundled) |
 | Flubber (index.opensource #247) | MIT | [github.com/veltman/flubber](https://github.com/veltman/flubber) | [oss-flubber](examples/oss-flubber/) | fetched from a CDN by the scene at run time (not bundled) |
 | glMatrix (index.opensource #82) | MIT | [github.com/toji/gl-matrix](https://github.com/toji/gl-matrix) | [oss-gl-matrix](examples/oss-gl-matrix/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -38,9 +41,12 @@ Each example is built around these tools. None of them is copied into this repos
 | imagetracerjs (index.opensource #177) | Unlicense | [github.com/jankovicsandras/imagetracerjs](https://github.com/jankovicsandras/imagetracerjs) | [oss-imagetracerjs](examples/oss-imagetracerjs/) | fetched from a CDN by the scene at run time (not bundled) |
 | isosurface (index.opensource #72) | MIT | [github.com/mikolalysenko/isosurface](https://github.com/mikolalysenko/isosurface) | [oss-isosurface](examples/oss-isosurface/) | fetched from a CDN by the scene at run time (not bundled) |
 | JSCAD modeling (index.opensource #91) | MIT | [github.com/jscad/OpenJSCAD.org](https://github.com/jscad/OpenJSCAD.org) | [oss-jscad](examples/oss-jscad/) | fetched from a CDN by the scene at run time (not bundled) |
+| Lenia (index.opensource #134) | MIT | [github.com/Chakazul/Lenia](https://github.com/Chakazul/Lenia) | [oss-lenia](examples/oss-lenia/) | fetched from a CDN by the scene at run time (not bundled) |
 | librosa (index.opensource #237) | ISC | [github.com/librosa/librosa](https://github.com/librosa/librosa) | [oss-librosa](examples/oss-librosa/) | installed with pip on the person's computer by a recipe (not bundled) |
 | lindenmayer (index.opensource #118) | MIT | [github.com/nylki/lindenmayer](https://github.com/nylki/lindenmayer) | [oss-lindenmayer](examples/oss-lindenmayer/) | fetched from a CDN by the scene at run time (not bundled) |
+| Lottie Web (index.opensource #255) | MIT | [github.com/airbnb/lottie-web](https://github.com/airbnb/lottie-web) | [oss-lottie-web](examples/oss-lottie-web/) | fetched from a CDN by the scene at run time (not bundled) |
 | Manifold (index.opensource #64) | Apache-2.0 | [github.com/elalish/manifold](https://github.com/elalish/manifold) | [oss-manifold](examples/oss-manifold/) | fetched from a CDN by the scene at run time (not bundled) |
+| MarkovJunior (index.opensource #131) | MIT | [github.com/mxgmn/MarkovJunior](https://github.com/mxgmn/MarkovJunior) | [oss-markovjunior](examples/oss-markovjunior/) | fetched from a CDN by the scene at run time (not bundled) |
 | Matter.js (index.opensource #168) | MIT | [github.com/liabru/matter-js](https://github.com/liabru/matter-js) | [oss-matter-js](examples/oss-matter-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | meanderpy (index.opensource #398) | Apache-2.0 | [github.com/zsylvester/meanderpy](https://github.com/zsylvester/meanderpy) | [oss-meanderpy](examples/oss-meanderpy/) | installed with pip on the person's computer by a recipe (not bundled) |
 | MediaPipe Tasks Vision (index.opensource #274) | Apache-2.0 | [github.com/google-ai-edge/mediapipe](https://github.com/google-ai-edge/mediapipe) | [hand-tracking](examples/hand-tracking/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -49,11 +55,12 @@ Each example is built around these tools. None of them is copied into this repos
 | ngraph.forcelayout (index.opensource #171) | BSD-3-Clause | [github.com/anvaka/ngraph.forcelayout](https://github.com/anvaka/ngraph.forcelayout) | [oss-ngraph-forcelayout](examples/oss-ngraph-forcelayout/) | fetched from a CDN by the scene at run time (not bundled) |
 | OGL (index.opensource #336) | Unlicense | [github.com/oframe/ogl](https://github.com/oframe/ogl) | [oss-ogl](examples/oss-ogl/) | fetched from a CDN by the scene at run time (not bundled) |
 | OpenCV (opencv-python-headless) (index.opensource #227) | Apache-2.0 | [github.com/opencv/opencv](https://github.com/opencv/opencv) | [oss-opencv](examples/oss-opencv/) | installed with pip on the person's computer by a recipe (not bundled) |
-| opentype.js | MIT | [github.com/opentypejs/opentype.js](https://github.com/opentypejs/opentype.js) | [oss-opentype](examples/oss-opentype/) | fetched from a CDN by the scene at run time (not bundled) |
+| opentype.js | MIT | [github.com/opentypejs/opentype.js](https://github.com/opentypejs/opentype.js) | [oss-opentype](examples/oss-opentype/), [mix-opentype-flow](examples/mix-opentype-flow/) | fetched from a CDN by the scene at run time (not bundled) |
 | p5.js (index.opensource #330) | LGPL-2.1 | [github.com/processing/p5.js](https://github.com/processing/p5.js) | [oss-p5](examples/oss-p5/) | fetched from a CDN by the scene at run time (not bundled) |
 | Paper.js (index.opensource #10) | MIT | [github.com/paperjs/paper.js](https://github.com/paperjs/paper.js) | [oss-paperjs](examples/oss-paperjs/) | fetched from a CDN by the scene at run time (not bundled) |
 | PathFinding.js (index.opensource #318) | MIT | [github.com/qiao/PathFinding.js](https://github.com/qiao/PathFinding.js) | [oss-pathfinding](examples/oss-pathfinding/) | fetched from a CDN by the scene at run time (not bundled) |
 | Perfect Freehand (index.opensource #26) | MIT | [github.com/steveruizok/perfect-freehand](https://github.com/steveruizok/perfect-freehand) | [oss-perfect-freehand](examples/oss-perfect-freehand/) | fetched from a CDN by the scene at run time (not bundled) |
+| PixiJS (index.opensource #339) | MIT | [github.com/pixijs/pixijs](https://github.com/pixijs/pixijs) | [oss-pixijs](examples/oss-pixijs/) | fetched from a CDN by the scene at run time (not bundled) |
 | planck.js | MIT | [github.com/piqnt/planck.js](https://github.com/piqnt/planck.js) | [oss-planck](examples/oss-planck/) | fetched from a CDN by the scene at run time (not bundled) |
 | poisson-disk-sampling (index.opensource #3) | MIT | [github.com/kchapelier/poisson-disk-sampling](https://github.com/kchapelier/poisson-disk-sampling) | [oss-poisson-disk-sampling](examples/oss-poisson-disk-sampling/) | fetched from a CDN by the scene at run time (not bundled) |
 | Pts (index.opensource #59) | Apache-2.0 | [github.com/williamngan/pts](https://github.com/williamngan/pts) | [oss-pts](examples/oss-pts/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -63,8 +70,9 @@ Each example is built around these tools. None of them is copied into this repos
 | REBOUND (index.opensource #357) | GPL-3.0-only | [github.com/hannorein/rebound](https://github.com/hannorein/rebound) | [oss-rebound](examples/oss-rebound/) | installed with pip on the person's computer by a recipe (not bundled) |
 | regl (index.opensource #338) | MIT | [github.com/regl-project/regl](https://github.com/regl-project/regl) | [oss-regl](examples/oss-regl/) | fetched from a CDN by the scene at run time (not bundled) |
 | Rough.js (index.opensource #116) | MIT | [github.com/rough-stuff/rough](https://github.com/rough-stuff/rough) | [oss-roughjs](examples/oss-roughjs/) | fetched from a CDN by the scene at run time (not bundled) |
+| Shan Shui Infinite (index.opensource #123) | MIT | [github.com/LingDong-/shan-shui-inf](https://github.com/LingDong-/shan-shui-inf) | [oss-shan-shui](examples/oss-shan-shui/) | fetched from a CDN by the scene at run time (not bundled) |
 | Shapely (index.opensource #58) | BSD-3-Clause | [github.com/shapely/shapely](https://github.com/shapely/shapely) | [oss-shapely](examples/oss-shapely/) | installed with pip on the person's computer by a recipe (not bundled) |
-| simplex-noise (index.opensource #129) | MIT | [github.com/jwagner/simplex-noise.js](https://github.com/jwagner/simplex-noise.js) | [oss-simplex-noise](examples/oss-simplex-noise/) | fetched from a CDN by the scene at run time (not bundled) |
+| simplex-noise (index.opensource #129) | MIT | [github.com/jwagner/simplex-noise.js](https://github.com/jwagner/simplex-noise.js) | [oss-simplex-noise](examples/oss-simplex-noise/), [mix-opentype-flow](examples/mix-opentype-flow/) | fetched from a CDN by the scene at run time (not bundled) |
 | spectral.js (index.opensource #142) | MIT | [github.com/rvanwijnen/spectral.js](https://github.com/rvanwijnen/spectral.js) | [oss-spectral](examples/oss-spectral/) | fetched from a CDN by the scene at run time (not bundled) |
 | SunCalc (index.opensource #315) | BSD-2-Clause | [github.com/mourner/suncalc](https://github.com/mourner/suncalc) | [oss-suncalc](examples/oss-suncalc/) | fetched from a CDN by the scene at run time (not bundled) |
 | TactileJS (index.opensource #7) | BSD-3-Clause | [github.com/isohedral/tactile-js](https://github.com/isohedral/tactile-js) | [oss-tactile](examples/oss-tactile/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -76,6 +84,8 @@ Each example is built around these tools. None of them is copied into this repos
 | trimesh (index.opensource #92) | MIT | [github.com/mikedh/trimesh](https://github.com/mikedh/trimesh) | [torus-knot](examples/torus-knot/), [oss-gltf-transform](examples/oss-gltf-transform/) | installed with pip on the person's computer by a recipe (not bundled) |
 | tween.js (index.opensource #253) | MIT | [github.com/tweenjs/tween.js](https://github.com/tweenjs/tween.js) | [oss-tween-js](examples/oss-tween-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | UMAP (index.opensource #410) | BSD-3-Clause | [github.com/lmcinnes/umap](https://github.com/lmcinnes/umap) | [oss-umap](examples/oss-umap/) | installed with pip on the person's computer by a recipe (not bundled) |
+| WaveFunctionCollapse (index.opensource #113) | MIT | [github.com/mxgmn/WaveFunctionCollapse](https://github.com/mxgmn/WaveFunctionCollapse) | [oss-wavefunctioncollapse](examples/oss-wavefunctioncollapse/) | fetched from a CDN by the scene at run time (not bundled) |
+| WebGL Fluid Simulation (index.opensource #162) | MIT | [github.com/PavelDoGreat/WebGL-Fluid-Simulation](https://github.com/PavelDoGreat/WebGL-Fluid-Simulation) | [oss-webgl-fluid](examples/oss-webgl-fluid/) | fetched from a CDN by the scene at run time (not bundled) |
 
 ## Material in the examples
 
@@ -90,6 +100,14 @@ Each example is built around these tools. None of them is copied into this repos
 | Sizes of the Python standard library's modules | [CPython](https://github.com/python/cpython) | PSF License | [oss-circlify](examples/oss-circlify/) |
 | Optical Recognition of Handwritten Digits (scikit-learn's digits) | [UCI Machine Learning Repository (E. Alpaydin, C. Kaynak)](https://archive.ics.uci.edu/dataset/80/optical+recognition+of+handwritten+digits) | CC BY 4.0 | [oss-umap](examples/oss-umap/) |
 | Two-line orbital elements (TLE) of the seven satellites | [CelesTrak](https://celestrak.org) | Public orbital data, redistributed as CelesTrak permits | [oss-sgp4](examples/oss-sgp4/) |
+| Fluid simulation shaders (advection, divergence, curl, vorticity, pressure, splat, bloom), adapted | [Pavel Dobryakov, WebGL-Fluid-Simulation](https://github.com/PavelDoGreat/WebGL-Fluid-Simulation) | MIT | [oss-webgl-fluid](examples/oss-webgl-fluid/) |
+| Bungee font | [The Bungee Project Authors (David Jonathan Ross)](https://github.com/djrrb/Bungee) | SIL Open Font License 1.1 (FONT-LICENSE.txt) | [mix-opentype-flow](examples/mix-opentype-flow/) |
+| Shan Shui Infinite landscape generator (trees, mountains, architecture, boats, planner), fetched and run unchanged | [Lingdong Huang, shan-shui-inf](https://github.com/LingDong-/shan-shui-inf) | MIT | [oss-shan-shui](examples/oss-shan-shui/) |
+| fishdraw procedural fish generator (polylines and binomial names), fetched and run unchanged | [Lingdong Huang, fishdraw](https://github.com/LingDong-/fishdraw) | MIT | [oss-fishdraw](examples/oss-fishdraw/) |
+| MarkovJunior interpreter (rule matching, one/all/prl, sequence/markov, symmetries), ported to JavaScript | [mxgmn/MarkovJunior (Maxim Gumin)](https://github.com/mxgmn/MarkovJunior) | MIT | [oss-markovjunior](examples/oss-markovjunior/) |
+| Models MazeGrowth, MazeBacktracker, River, Flowers, BasicSnake and the color palette | [mxgmn/MarkovJunior models/ and resources/palette.xml (Maxim Gumin)](https://github.com/mxgmn/MarkovJunior/tree/main/models) | MIT | [oss-markovjunior](examples/oss-markovjunior/) |
+| Lenia update rule, kernel and growth functions, RLE pattern format and colormaps (reimplemented in GLSL/JavaScript) | [Chakazul/Lenia (Bert Wang-Chak Chan), Python/LeniaND.py](https://github.com/Chakazul/Lenia) | MIT | [oss-lenia](examples/oss-lenia/) |
+| Orbium unicaudatus pattern and parameters (code O2u) | [Chakazul/Lenia (Bert Wang-Chak Chan), Python/animals.json](https://github.com/Chakazul/Lenia/blob/master/Python/animals.json) | MIT | [oss-lenia](examples/oss-lenia/) |
 
 ## Studio (the app's web code): bundled npm packages
 

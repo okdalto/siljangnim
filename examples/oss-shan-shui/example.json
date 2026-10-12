@@ -1,0 +1,42 @@
+{
+  "order": 214,
+  "title": "Endless landscape scroll (Shan Shui Infinite)",
+  "title_ko": "끝없는 산수화 두루마리 (Shan Shui Infinite)",
+  "description": "Lingdong Huang's Shan Shui Infinite generator (PRNG, Perlin noise, trees, mountains, pavilions, boats and its mountain planner) is fetched from a pinned commit and run unchanged in the scene, one generated item per step so the frame rate holds. Its SVG polylines are drawn with Canvas 2D into 512-unit tiles, written into a ring-buffer strip texture and scrolled forever; a shader tints the ink, lets it bleed a little and lays it on mottled, fibrous paper.",
+  "description_ko": "Lingdong Huang의 Shan Shui Infinite 생성기(PRNG, 펄린 노이즈, 나무, 산, 정자, 배, 산 배치기)를 고정된 커밋에서 받아와 씬 안에서 고치지 않고 돌린다. 프레임이 끊기지 않도록 한 단계에 하나씩 생성한다. 생성된 SVG 폴리라인을 Canvas 2D로 512단위 타일에 그리고, 링 버퍼처럼 도는 띠 텍스처에 써서 끝없이 흘려보낸다. 셰이더가 먹색을 입히고 살짝 번지게 한 뒤 얼룩과 섬유결이 있는 종이 위에 올린다.",
+  "prompt": "(open-source example: Shan Shui Infinite's generator fetched and run in the scene)",
+  "made_with": "shan-shui-inf (commit 9f754d2) fetched from jsDelivr and run with new Function; drawn with Canvas 2D, shown on ctx.gl",
+  "features": [
+    "procedural landscape",
+    "infinite scroll",
+    "ink painting",
+    "canvas texture"
+  ],
+  "mode": "live",
+  "uses": [
+    "shan-shui-infinite"
+  ],
+  "summary": "A traditional Chinese ink landscape of mountains, pines, pavilions and little boats keeps painting itself as it scrolls by, forever.",
+  "summary_ko": "산과 소나무, 정자, 작은 배가 있는 수묵 산수화가 옆으로 흘러가며 끝없이 새로 그려져요.",
+  "try": [
+    "Press New landscape for a whole new range of mountains",
+    "Raise Scroll speed to travel faster along the scroll",
+    "Pick an indigo or sepia Ink tone and a different Paper"
+  ],
+  "try_ko": [
+    "New landscape를 눌러 완전히 새로운 산줄기를 만들어 보세요",
+    "Scroll speed를 올리면 두루마리를 더 빨리 따라가요",
+    "Ink tone을 쪽빛이나 갈색으로, Paper도 다른 색으로 골라 보세요"
+  ],
+  "tool_about": "Shan Shui Infinite is an artwork by Lingdong Huang that paints an endless Chinese landscape (shan shui means \"mountain water\") entirely from code, with no images. Its original source is downloaded and runs in the browser.",
+  "tool_about_ko": "Shan Shui Infinite는 Lingdong Huang이 만든 작품으로, 그림 파일 하나 없이 코드만으로 끝없는 산수화(산수, 山水)를 그려요. 원본 소스를 내려받아 브라우저에서 그대로 돌려요.",
+  "credits": [
+    {
+      "what": "Shan Shui Infinite landscape generator (trees, mountains, architecture, boats, planner), fetched and run unchanged",
+      "what_ko": "Shan Shui Infinite 산수화 생성기(나무, 산, 건축물, 배, 배치기), 받아와서 그대로 실행",
+      "source": "Lingdong Huang, shan-shui-inf",
+      "license": "MIT",
+      "url": "https://github.com/LingDong-/shan-shui-inf"
+    }
+  ]
+}
