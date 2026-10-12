@@ -1,0 +1,65 @@
+{
+  "order": 22,
+  "title": "Creature in the current (Growing NCA × WebGL Fluid)",
+  "title_ko": "물살 속 생명체 (Growing NCA × WebGL Fluid)",
+  "description": "A remix of two examples, Regrowing creatures (Growing NCA) and Fluid (WebGL-Fluid-Simulation): the creature lives in the water. Every frame the fluid's velocity carries all 16 channels of every cell along, so gusts tear the creature into streaks; its colors seep into the dye as ink, and the trained network in each cell keeps growing it back. Drag to stir the water.",
+  "description_ko": "두 예제, 다시 자라는 생명체(Growing NCA)와 유체(WebGL-Fluid-Simulation)를 섞은 리믹스. 생명체가 물속에 산다. 매 프레임 유체의 속도가 모든 셀의 16개 채널을 실어 나르기 때문에 물살이 생명체를 찢어 흩뜨리고, 생명체의 색은 잉크처럼 물에 번진다. 셀마다 들어 있는 학습된 신경망은 그래도 계속 몸을 다시 키운다. 드래그하면 물을 휘저을 수 있다.",
+  "prompt": "Mix Regrowing creatures (Growing NCA) with Fluid (WebGL Fluid): put the creature in the water so the current tears it apart and it grows back, bleeding its colors into the water as ink.",
+  "made_with": "The Growing NCA shaders and weights from the Regrowing creatures example and the stable-fluids passes from the Fluid example (adapted from PavelDoGreat/WebGL-Fluid-Simulation, MIT), joined by an advection pass for the cells and an ink pass for the dye",
+  "features": [
+    "remix",
+    "neural cellular automata",
+    "fluid simulation",
+    "gpu simulation",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "growing-neural-cellular-automata",
+    "webgl-fluid-simulation"
+  ],
+  "summary": "Two examples mixed into one: a self-repairing creature caught in a fluid current, torn into ink and growing back again.",
+  "summary_ko": "예제 두 개를 하나로 섞었어요. 스스로 아무는 생명체가 물살에 찢겨 잉크로 번지고, 다시 자라나요.",
+  "try": [
+    "Drag across the creature to stir the water and tear it apart",
+    "Raise Current strength, or turn off Gusts and stir by hand",
+    "Pick another Creature, or press Splash! for a burst of currents"
+  ],
+  "try_ko": [
+    "생명체 위를 드래그해 물을 휘저어 보세요. 몸이 찢겼다가 다시 자라요",
+    "Current strength를 올리거나, Gusts on their own을 끄고 직접 휘저어 보세요",
+    "Creature를 바꾸거나 Splash!를 눌러 물살을 한꺼번에 일으켜 보세요"
+  ],
+  "tool_about": "This is a remix: Growing Neural Cellular Automata (Google research) grows the creature from a seed with a small trained network in every cell, and WebGL-Fluid-Simulation moves the water. Open the two original examples to see each on its own, or press Mix in on any example to make your own.",
+  "tool_about_ko": "리믹스 예제예요. Growing Neural Cellular Automata(Google 연구)는 셀마다 들어 있는 작은 학습된 신경망으로 씨앗에서 생명체를 키우고, WebGL-Fluid-Simulation은 물을 움직여요. 원래 예제 두 개를 따로 열어 보거나, 아무 예제에서나 섞기(Mix in)를 눌러 나만의 리믹스를 만들어 보세요.",
+  "credits": [
+    {
+      "what": "Pretrained Growing NCA models, regenerating runs for 10 emoji (use_sample_pool_1 damage_n_3, run_index_0), extracted to nca-weights.bin",
+      "what_ko": "사전 학습된 Growing NCA 모델, 이모지 10개의 재생 학습 실행본(use_sample_pool_1 damage_n_3, run_index_0)을 nca-weights.bin으로 추출",
+      "source": "google-research/self-organising-systems, assets/growing_ca/models.zip (commit 3d5547c)",
+      "license": "Apache-2.0",
+      "url": "https://github.com/google-research/self-organising-systems/tree/3d5547ca48b60ecac459834e2c05c9ff5df87991/assets/growing_ca"
+    },
+    {
+      "what": "Growing NCA model: perception (identity + Sobel), update network, stochastic update and alive masking (reimplemented in GLSL)",
+      "what_ko": "Growing NCA 모델: 감지(항등 + 소벨), 갱신 신경망, 확률적 갱신, alive 마스킹 (GLSL로 다시 구현)",
+      "source": "Mordvintsev, Randazzo, Niklasson, Levin, \"Growing Neural Cellular Automata\" (Distill 2020); google-research/self-organising-systems, notebooks/growing_ca.ipynb",
+      "license": "Apache-2.0",
+      "url": "https://github.com/google-research/self-organising-systems/blob/3d5547ca48b60ecac459834e2c05c9ff5df87991/notebooks/growing_ca.ipynb"
+    },
+    {
+      "what": "Target emoji the models were trained to grow (Noto Color Emoji)",
+      "what_ko": "모델이 키우도록 학습된 목표 이모지 (Noto Color Emoji)",
+      "source": "googlefonts/noto-emoji",
+      "license": "Apache-2.0",
+      "url": "https://github.com/googlefonts/noto-emoji"
+    },
+    {
+      "what": "Fluid simulation shaders (advection, divergence, curl, vorticity, pressure, splat, bloom), adapted",
+      "what_ko": "유체 시뮬레이션 셰이더(이류, 발산, 컬, 소용돌이, 압력, 스플랫, 블룸), 고쳐서 사용",
+      "source": "Pavel Dobryakov, WebGL-Fluid-Simulation",
+      "license": "MIT",
+      "url": "https://github.com/PavelDoGreat/WebGL-Fluid-Simulation"
+    }
+  ]
+}
