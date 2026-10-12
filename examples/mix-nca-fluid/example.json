@@ -23,12 +23,12 @@
   "try": [
     "Drag across the creature to stir the water and tear it apart",
     "Raise Current strength, or turn off Gusts and stir by hand",
-    "Pick another Creature, or press Splash! for a burst of currents"
+    "Pick another Creature, switch Palette to Sunset neon, or press Splash! for a burst of currents"
   ],
   "try_ko": [
     "생명체 위를 드래그해 물을 휘저어 보세요. 몸이 찢겼다가 다시 자라요",
     "Current strength를 올리거나, Gusts on their own을 끄고 직접 휘저어 보세요",
-    "Creature를 바꾸거나 Splash!를 눌러 물살을 한꺼번에 일으켜 보세요"
+    "Creature를 바꾸거나, Palette를 Sunset neon으로 바꾸거나, Splash!를 눌러 물살을 한꺼번에 일으켜 보세요"
   ],
   "tool_about": "This is a remix: Growing Neural Cellular Automata (Google research) grows the creature from a seed with a small trained network in every cell, and WebGL-Fluid-Simulation moves the water. Open the two original examples to see each on its own, or press Mix in on any example to make your own.",
   "tool_about_ko": "리믹스 예제예요. Growing Neural Cellular Automata(Google 연구)는 셀마다 들어 있는 작은 학습된 신경망으로 씨앗에서 생명체를 키우고, WebGL-Fluid-Simulation은 물을 움직여요. 원래 예제 두 개를 따로 열어 보거나, 아무 예제에서나 섞기(Mix in)를 눌러 나만의 리믹스를 만들어 보세요.",
