@@ -18,8 +18,8 @@
 </p>
 
 <p align="center">
-  <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@main/media/siljangnim-short.mp4"><img src="media/siljangnim-short-preview.gif" alt="Siljangnim intro" width="270" /></a><br/>
-  <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@main/media/siljangnim-short.mp4">▶ 소리와 함께 보기 (30초, 영어 내레이션, 한/영 자막)</a>
+  <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@df9822e1e6/media/siljangnim-short.mp4"><img src="media/siljangnim-short-preview.gif" alt="Siljangnim intro" width="270" /></a><br/>
+  <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@df9822e1e6/media/siljangnim-short.mp4">▶ 소리와 함께 보기 (39초, 영어 내레이션, 한/영 자막)</a>
 </p>
 
 ---

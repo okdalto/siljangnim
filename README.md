@@ -18,8 +18,8 @@
 </p>
 
 <p align="center">
-  <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@main/media/siljangnim-short.mp4"><img src="media/siljangnim-short-preview.gif" alt="Siljangnim intro" width="270" /></a><br/>
-  <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@main/media/siljangnim-short.mp4">▶ Watch with sound (30 s, English narration, Korean and English subtitles)</a>
+  <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@df9822e1e6/media/siljangnim-short.mp4"><img src="media/siljangnim-short-preview.gif" alt="Siljangnim intro" width="270" /></a><br/>
+  <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@df9822e1e6/media/siljangnim-short.mp4">▶ Watch with sound (39 s, English narration, Korean and English subtitles)</a>
 </p>
 
 ---
