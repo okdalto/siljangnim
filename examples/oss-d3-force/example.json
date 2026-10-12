@@ -1,0 +1,18 @@
+{
+  "order": 160,
+  "title": "Bubble swarm (d3-force)",
+  "title_ko": "거품 무리 (d3-force)",
+  "description": "d3-force packs 900 bubbles with collision and pulls them into one cluster, five groups or rings. The pointer shoves them aside (harder while the button is held); Shake stirs them up.",
+  "description_ko": "d3-force가 거품 900개를 충돌 처리하며 한 덩어리, 다섯 무리, 고리 모양으로 모은다. 포인터가 거품을 밀어내고(버튼을 누르고 있으면 더 세게), Shake 버튼은 한 번 흔들어 놓는다.",
+  "prompt": "(open-source example: d3-force imported in the scene)",
+  "made_with": "d3-force 3.0.0 via ctx.utils.import",
+  "features": [
+    "force simulation",
+    "collision",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-force"
+  ]
+}

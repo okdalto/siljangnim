@@ -1,0 +1,19 @@
+{
+  "order": 184,
+  "title": "Raster to vector (imagetracerjs)",
+  "title_ko": "래스터를 벡터로 (imagetracerjs)",
+  "description": "Every frame a 120×80 pixel image of drifting metaballs is traced by imagetracerjs into vector paths (lines and quadratic curves), drawn large and smooth. The loupe at the pointer shows the pixels the paths came from; raise the curve tolerance for fewer, looser segments.",
+  "description_ko": "매 프레임 떠다니는 메타볼을 120×80 픽셀 그림으로 그리고, imagetracerjs가 이를 벡터 경로(직선과 2차 곡선)로 따서 크고 매끄럽게 그린다. 포인터의 돋보기 안에는 경로의 원본 픽셀이 보인다. 곡선 허용 오차를 올리면 선분이 적고 느슨해진다.",
+  "prompt": "(open-source example: imagetracerjs imported in the scene)",
+  "made_with": "imagetracerjs 1.2.6 via ctx.utils.import",
+  "features": [
+    "vectorize",
+    "image tracing",
+    "paths",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "imagetracerjs"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "order": 167,
+  "title": "Boid flock (Flatbush)",
+  "title_ko": "보이드 떼 (Flatbush)",
+  "description": "3,500 boids flock by alignment, cohesion and separation. Each frame Flatbush indexes their positions, so every boid finds its flockmates with a box query instead of checking all the others. Hover to inspect a boid (its query box and mates light up); hold the button to scatter them.",
+  "description_ko": "보이드 3,500마리가 정렬, 응집, 분리 규칙으로 무리를 짓는다. 매 프레임 Flatbush가 위치를 색인해서, 각 보이드는 다른 모두와 비교하지 않고 상자 질의로 이웃을 찾는다. 포인터를 올리면 가장 가까운 보이드의 질의 상자와 이웃이 빛나고, 버튼을 누르고 있으면 흩어진다.",
+  "prompt": "(open-source example: Flatbush imported in the scene)",
+  "made_with": "flatbush 4.6.2 via ctx.utils.import",
+  "features": [
+    "spatial index",
+    "boids",
+    "flocking",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "flatbush"
+  ]
+}

@@ -2,6 +2,19 @@
   "version": 1,
   "recipes": [
     {
+      "id": "circlify.stdlib-packing",
+      "version": 1,
+      "title": "Circle packing of the Python standard library by lines of code (circlify)",
+      "capability": "layout circle packing hierarchy treemap bubble chart json",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/circlify.stdlib-packing/recipe.md",
+      "sha256": "1271d82841f69db0f8286a604a7ceb2d498e2778f5accdb903af17cdc4068999"
+    },
+    {
       "id": "ffmpeg.mandelbrot-zoom",
       "version": 2,
       "title": "Mandelbrot zoom video from ffmpeg's lavfi source",
@@ -15,6 +28,19 @@
       "sha256": "b23b25a3ede0a9298ab98c73ffb4c896d6f8b2788e75332ded29438d6f77c5be"
     },
     {
+      "id": "hilbertcurve.orders",
+      "version": 1,
+      "title": "Hilbert curves of increasing order (hilbertcurve)",
+      "capability": "geometry-generate space filling curve hilbert path plotter polyline json",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/hilbertcurve.orders/recipe.md",
+      "sha256": "060a337371c04fd9adec16874e17b0b05ce8ca92eda9870eada021a3d25cc7a7"
+    },
+    {
       "id": "librosa.beat-track",
       "version": 1,
       "title": "Beats, tempo and onset envelope (librosa)",
@@ -26,6 +52,19 @@
       ],
       "path": "recipes/librosa.beat-track/recipe.md",
       "sha256": "f125ae55cb449eff526566c1611b8b6f34421f8c1c7d563289a702cd54b5e133"
+    },
+    {
+      "id": "meanderpy.migration",
+      "version": 1,
+      "title": "River meander migration with oxbow cutoffs (meanderpy)",
+      "capability": "simulate river meander channel migration centerlines oxbow geomorphology json",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/meanderpy.migration/recipe.md",
+      "sha256": "27b8f70b6164a379973aa8d2d9363d5c83be776f8b66dd44b2712b14af645985"
     },
     {
       "id": "networkx.les-miserables-layout",
@@ -52,6 +91,45 @@
       ],
       "path": "recipes/opencv.contours/recipe.md",
       "sha256": "ab16e3e78ec41d198874c0706cb5a87ba5c968a4935b8d785abb8878dd58e257"
+    },
+    {
+      "id": "pymcubes.gyroid-mesh",
+      "version": 1,
+      "title": "Mesh an implicit field with marching cubes (PyMCubes)",
+      "capability": "geometry-generate implicit field sdf marching cubes isosurface mesh gyroid json",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/pymcubes.gyroid-mesh/recipe.md",
+      "sha256": "c07370580f0949849e57bee761c55d4511713bc89961f7613e4d7f859b04429f"
+    },
+    {
+      "id": "rebound.disk-flyby",
+      "version": 1,
+      "title": "Debris disk torn by a passing star (REBOUND)",
+      "capability": "simulate n-body gravity orbits trajectories flyby tidal tails json",
+      "kind": "python",
+      "license": "GPL-3.0-only",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/rebound.disk-flyby/recipe.md",
+      "sha256": "d5f1dd477157ba709a522865a54bf95b00b69667f04f3fafd522747026e9e463"
+    },
+    {
+      "id": "sgp4.ground-tracks",
+      "version": 1,
+      "title": "Satellite orbits and ground tracks from TLEs (sgp4)",
+      "capability": "simulate satellite orbit propagation tle ground track earth json",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/sgp4.ground-tracks/recipe.md",
+      "sha256": "8db8dcf4f35321fdf7f01097992afa00a741445981fe95950342678bfbf998f8"
     },
     {
       "id": "shapely.offset-rings",
@@ -91,6 +169,19 @@
       ],
       "path": "recipes/trimesh.torus-knot/recipe.md",
       "sha256": "efc3e9d676e1f16e23dba75cb7c6b119cdd528d344088e5911379e15466e1cc7"
+    },
+    {
+      "id": "umap.digits-embedding",
+      "version": 1,
+      "title": "UMAP embedding of handwritten digits (umap-learn)",
+      "capability": "data-embed dimensionality reduction umap scatter clusters points json",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/umap.digits-embedding/recipe.md",
+      "sha256": "67b5fcf3ef9bf8157e2aad125babf50213451d6d812e9f3cc60ff3b0c29701c2"
     }
   ]
 }

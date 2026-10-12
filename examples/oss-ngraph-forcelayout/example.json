@@ -1,0 +1,19 @@
+{
+  "order": 161,
+  "title": "Graph unfolding (ngraph.forcelayout)",
+  "title_ko": "펼쳐지는 그래프 (ngraph.forcelayout)",
+  "description": "A generated graph of about 2,000 nodes in tree-like communities lays itself out in 3D with ngraph.forcelayout (ngraph.graph holds the graph). Drag to turn it; spring length and repulsion change the layout live, New graph starts over.",
+  "description_ko": "나무처럼 자라는 공동체들로 만든 노드 약 2,000개짜리 그래프를 ngraph.forcelayout이 3D로 스스로 배치한다(그래프는 ngraph.graph가 담는다). 드래그하면 돌아가고, 스프링 길이와 반발력을 바꾸면 배치가 실시간으로 달라지며, New graph는 처음부터 다시 만든다.",
+  "prompt": "(open-source example: ngraph.forcelayout and ngraph.graph imported in the scene)",
+  "made_with": "ngraph.forcelayout 3.3.1 + ngraph.graph 20.1.2 via ctx.utils.import",
+  "features": [
+    "graph layout",
+    "force simulation",
+    "3d",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "ngraph-forcelayout"
+  ]
+}

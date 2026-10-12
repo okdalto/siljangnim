@@ -1,0 +1,19 @@
+{
+  "order": 204,
+  "title": "Satellite tracks (sgp4)",
+  "title_ko": "위성 궤적 (sgp4)",
+  "description": "python-sgp4 propagated seven real satellites — ISS, Hubble, Tiangong, two weather satellites, a GPS satellite and a Molniya — from their published orbital elements (TLEs) over six hours on this computer (recipe sgp4.ground-tracks). The globe stays fixed to the Earth, so each orbit winds around it while its ground track is drawn on the surface.",
+  "description_ko": "python-sgp4가 이 컴퓨터에서 실제 위성 일곱 개(ISS, 허블, 톈궁, 기상위성 둘, GPS 위성, 몰니야)를 공개된 궤도 요소(TLE)로 여섯 시간 동안 전파했다(레시피 sgp4.ground-tracks). 지구에 고정된 좌표로 그려서, 궤도가 지구를 감아 돌고 지표에는 지상 궤적이 남는다.",
+  "prompt": "(open-source example: sgp4 run through the runtime, recipe included)",
+  "made_with": "sgp4 2.27 via recipe sgp4.ground-tracks (python_run)",
+  "features": [
+    "orbits",
+    "satellites",
+    "globe",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "sgp4"
+  ]
+}

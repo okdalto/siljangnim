@@ -1,0 +1,19 @@
+{
+  "order": 187,
+  "title": "Ink flow (p5.js)",
+  "title_ko": "잉크 흐름 (p5.js)",
+  "description": "A p5.js sketch in instance mode, with no canvas of its own, draws ink strokes that follow p5's Perlin noise into an offscreen p5.Graphics; the scene uploads it as a texture every frame and adds paper grain. Strokes swirl around the pointer; press Clear for a fresh sheet.",
+  "description_ko": "인스턴스 모드의 p5.js 스케치가 자체 캔버스 없이 화면 밖 p5.Graphics에 그린다. p5의 펄린 노이즈를 따라 잉크 획이 쌓이고, 씬은 이를 매 프레임 텍스처로 올려 종이 질감을 더한다. 포인터 주변에서는 획이 소용돌이친다. Clear를 누르면 새 종이가 된다.",
+  "prompt": "(open-source example: p5.js imported in the scene)",
+  "made_with": "p5 2.3.4 via ctx.utils.import",
+  "features": [
+    "creative coding",
+    "generative drawing",
+    "noise",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "p5-js"
+  ]
+}

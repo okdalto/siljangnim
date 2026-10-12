@@ -1,0 +1,18 @@
+{
+  "order": 124,
+  "title": "Sketchy landscape (Rough.js)",
+  "title_ko": "스케치 풍경 (Rough.js)",
+  "description": "Rough.js draws a hand-drawn landscape on an offscreen canvas, redrawn a few times a second so the lines wobble; the scene uploads it as a texture over a paper shader. The balloon follows the pointer; try other fill styles.",
+  "description_ko": "Rough.js가 손으로 그린 듯한 풍경을 화면 밖 캔버스에 그린다. 1초에 몇 번씩 다시 그려 선이 흔들리고, 씬은 그 캔버스를 텍스처로 올려 종이 셰이더 위에 얹는다. 풍선은 포인터를 따라오고, 채우기 스타일을 바꿔 볼 수 있다.",
+  "prompt": "(open-source example: Rough.js imported in the scene)",
+  "made_with": "roughjs 4.6.6 via ctx.utils.import",
+  "features": [
+    "hand-drawn",
+    "canvas texture",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "roughjs"
+  ]
+}

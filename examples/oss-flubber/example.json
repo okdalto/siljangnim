@@ -1,0 +1,18 @@
+{
+  "order": 127,
+  "title": "Shape morph (Flubber)",
+  "title_ko": "도형 변신 (Flubber)",
+  "description": "Flubber interpolates between outlines that have different numbers of points, matching them up so the morph doesn't twist; the scene cycles circle, star, heart, square, flower, crescent, triangle and cross, with fading echoes. Hold the mouse button and move sideways to scrub.",
+  "description_ko": "Flubber가 점 개수가 다른 윤곽 사이를 꼬이지 않게 짝지어 보간한다. 씬은 원, 별, 하트, 사각형, 꽃, 초승달, 삼각형, 십자를 차례로 바꾸며 흐려지는 잔상을 남긴다. 마우스 버튼을 누른 채 좌우로 움직이면 진행을 직접 넘길 수 있다.",
+  "prompt": "(open-source example: Flubber imported in the scene)",
+  "made_with": "flubber 0.4.2 via ctx.utils.import",
+  "features": [
+    "morph",
+    "shapes",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "flubber"
+  ]
+}

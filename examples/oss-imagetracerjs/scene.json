@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// imagetracerjs traces a small raster (metaballs drawn into a few flat colors, re-drawn every frame)\n// into vector paths of lines and quadratic curves; the scene draws those paths large and smooth.\n// The loupe at the pointer shows the raster pixels the paths came from.\nconst mod = await ctx.utils.import(\"https://esm.sh/imagetracerjs@1.2.6\");\nconst tracer = mod.default ?? mod;\nconst PAL = [[16, 20, 44], [38, 120, 140], [236, 108, 86], [250, 226, 180]];\nconst RW = 120, RH = 80, VW = 1440, VH = 960;\nconst vec = new OffscreenCanvas(VW, VH), vc = vec.getContext(\"2d\");\nconst gl = ctx.gl;\nconst tex = (filter) => {\n  const t = gl.createTexture();\n  gl.bindTexture(gl.TEXTURE_2D, t);\n  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, filter], [gl.TEXTURE_MAG_FILTER, filter], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);\n  return t;\n};\nconst blobs = Array.from({ length: 7 }, (_, i) => ({ ph: i * 1.7, sx: 0.23 + 0.11 * (i % 3), sy: 0.31 + 0.07 * (i % 4), r: 0.1 + 0.025 * (i % 3) }));\nconst fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_vec; uniform sampler2D u_ras; uniform vec2 u_fit; uniform vec2 u_lens; uniform float u_lensR; uniform vec2 u_resolution; uniform vec2 u_rsize;\nvoid main() {\n  vec2 q = (v_uv - 0.5) / u_fit + 0.5;\n  vec3 c = vec3(0.04, 0.05, 0.1);\n  if (all(greaterThanEqual(q, vec2(0.0))) && all(lessThanEqual(q, vec2(1.0)))) c = texture(u_vec, vec2(q.x, 1.0 - q.y)).rgb;\n  float aspect = u_resolution.x / u_resolution.y;\n  vec2 d = (v_uv - u_lens) * vec2(aspect, 1.0);\n  float r = length(d);\n  if (r < u_lensR) {\n    vec2 lq = (u_lens - 0.5) / u_fit + 0.5 + (v_uv - u_lens) / u_fit * 0.5;\n    c = texture(u_ras, vec2(lq.x, 1.0 - lq.y)).rgb;\n    // faint pixel grid inside the loupe\n    vec2 g = abs(fract(vec2(lq.x, 1.0 - lq.y) * u_rsize) - 0.5);\n    c *= 0.82 + 0.18 * smoothstep(0.5, 0.42, max(g.x, g.y));\n  }\n  c = mix(c, vec3(1.0), (1.0 - smoothstep(0.0, 0.004, abs(r - u_lensR))) * 0.85);\n  outColor = vec4(c, 1.0);\n}`;\nObject.assign(ctx.state, { tracer, PAL, RW, RH, VW, VH, vec, vc, blobs, raster: new ImageData(RW, RH), field: new Float32Array(RW * RH),\n  vecTex: tex(gl.LINEAR), rasTex: tex(gl.NEAREST), moved: false,\n  p: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fs) });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution, t = ctx.time * u.u_speed;\nconst { RW, RH, PAL } = s;\n// 1. Raster: metaballs thresholded into four flat colors.\nconst img = RW / RH, view = w / h;\nconst fit = img > view ? [0.96, 0.96 * view / img] : [0.96 * img / view, 0.96];\ns.moved ||= ctx.mouse[0] !== 0.5 || ctx.mouse[1] !== 0.5;\nconst px = s.raster.data;\nconst balls = s.blobs.map((b) => [0.5 + 0.38 * Math.sin(t * b.sx + b.ph), 0.5 + 0.36 * Math.cos(t * b.sy + b.ph * 1.3), b.r]);\nconst lens = s.moved ? [ctx.mouse[0], 1 - ctx.mouse[1]] : [balls[0][0] * fit[0] + (1 - fit[0]) / 2, (1 - balls[0][1]) * fit[1] + (1 - fit[1]) / 2];\nfor (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) {\n  const fx = (x + 0.5) / RW, fy = (y + 0.5) / RH;\n  let f = 0;\n  for (const [bx, by, r] of balls) { const dx = (fx - bx) * img, dy = fy - by; f += (r * r) / (dx * dx + dy * dy + 1e-4); }\n  const k = f > 2.6 ? 3 : f > 1.3 ? 2 : f > 0.6 ? 1 : 0, o = (y * RW + x) * 4;\n  px[o] = PAL[k][0]; px[o + 1] = PAL[k][1]; px[o + 2] = PAL[k][2]; px[o + 3] = 255;\n}\n// 2. Trace it into vector paths.\nconst t0 = performance.now();\nconst scale = s.VW / RW;\nconst opts = { ltres: u.u_detail, qtres: u.u_detail, pathomit: 4, rightangleenhance: false, colorsampling: 0, colorquantcycles: 1,\n  numberofcolors: PAL.length, pal: PAL.map(([r, g, b]) => ({ r, g, b, a: 255 })), blurradius: 0, scale, roundcoords: -1, linefilter: false, strokewidth: 0, viewbox: false, desc: false, lcpr: 0, qcpr: 0 };\nconst traced = s.tracer.imagedataToTracedata(s.raster, opts);\nconst traceMs = performance.now() - t0;\n// 3. Draw the paths big.\nconst vc = s.vc;\nvc.fillStyle = `rgb(${PAL[0].join(\",\")})`; vc.fillRect(0, 0, s.VW, s.VH);\nlet paths = 0, nodes = 0;\ntraced.layers.forEach((layer, li) => {\n  const col = traced.palette[li];\n  layer.forEach((path, pi) => {\n    if (path.isholepath || li === 0) return;\n    const d = s.tracer.svgpathstring(traced, li, pi, opts).match(/d=\"([^\"]*)\"/)?.[1];\n    if (!d) return;\n    const p2 = new Path2D(d);\n    vc.fillStyle = `rgb(${col.r},${col.g},${col.b})`; vc.fill(p2);\n    if (u.u_outline) { vc.strokeStyle = \"rgba(255,255,255,0.55)\"; vc.lineWidth = 3; vc.stroke(p2); }\n    paths++;\n    if (u.u_nodes) {\n      vc.fillStyle = \"#fff\";\n      for (const seg of path.segments) { vc.fillRect(seg.x1 * scale - 3, seg.y1 * scale - 3, 6, 6); nodes++; }\n    } else nodes += path.segments.length;\n  });\n});\nctx.publish(\"paths\", paths); ctx.publish(\"segments\", nodes); ctx.publish(\"trace ms\", +traceMs.toFixed(1));\ngl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\ngl.bindTexture(gl.TEXTURE_2D, s.vecTex);\ngl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, s.vec);\ngl.bindTexture(gl.TEXTURE_2D, s.rasTex);\ngl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, s.raster);\ngl.useProgram(s.p);\nctx.utils.bindTexture(s.p, \"u_vec\", s.vecTex, 0);\nctx.utils.bindTexture(s.p, \"u_ras\", s.rasTex, 1);\nctx.utils.drawFullscreen(s.p, { u_fit: fit, u_lens: lens, u_lensR: u.u_loupe, u_rsize: [RW, RH] });",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_detail": {
+      "type": "float",
+      "value": 1,
+      "min": 0.05,
+      "max": 8,
+      "step": 0.05,
+      "label": "Curve tolerance",
+      "widget": "knob"
+    },
+    "u_outline": {
+      "type": "bool",
+      "value": true,
+      "label": "Outlines"
+    },
+    "u_nodes": {
+      "type": "bool",
+      "value": false,
+      "label": "Show nodes"
+    },
+    "u_loupe": {
+      "type": "float",
+      "value": 0.16,
+      "min": 0,
+      "max": 0.4,
+      "step": 0.01,
+      "label": "Loupe size"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Speed",
+      "widget": "knob"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

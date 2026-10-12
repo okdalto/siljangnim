@@ -1,0 +1,105 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// d3-contour runs marching squares over an animated height field every frame; the scene fills\n// the bands between isolines (hypsometric tint) and draws the lines on top.\nconst { contours } = await ctx.utils.import(\"https://esm.sh/d3-contour@4.0.2\");\nconst gl = ctx.gl;\ngl.getExtension(\"EXT_color_buffer_float\");\nconst flat = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec2 a_position; layout(location=1) in vec4 a_color;\nuniform vec2 u_px; out vec4 v_color;\nvoid main(){ v_color = a_color; gl_Position = vec4(a_position / u_px * 2.0 - 1.0, 0.0, 1.0); }`, `#version 300 es\nprecision highp float; in vec4 v_color; out vec4 outColor;\nvoid main(){ outColor = v_color; }`);\nconst vao = gl.createVertexArray(), vbo = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 24, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 24, 8);\ngl.bindVertexArray(null);\nconst kit = {\n  // Draws a flat (x, y, r, g, b, a) triangle list.\n  draw(arr) {\n    if (!arr.length) return;\n    gl.useProgram(flat);\n    ctx.utils.setUniforms(flat, { u_px: ctx.resolution });\n    gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);\n    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.DYNAMIC_DRAW);\n    gl.drawArrays(gl.TRIANGLES, 0, arr.length / 6);\n    gl.bindVertexArray(null);\n  },\n  // Signed triangle fan: inside a closed ring the triangles add up to ±c, outside they cancel.\n  // Summed with additive blending, this fills any polygon (holes, self-overlaps) exactly.\n  fan(ring, c, out) {\n    const x0 = ring[0], y0 = ring[1];\n    for (let i = 2; i + 3 < ring.length; i += 2) {\n      const s = Math.sign((ring[i] - x0) * (ring[i + 3] - y0) - (ring[i + 1] - y0) * (ring[i + 2] - x0));\n      if (!s) continue;\n      out.push(x0, y0, c[0] * s, c[1] * s, c[2] * s, c[3] * s,\n        ring[i], ring[i + 1], c[0] * s, c[1] * s, c[2] * s, c[3] * s,\n        ring[i + 2], ring[i + 3], c[0] * s, c[1] * s, c[2] * s, c[3] * s);\n    }\n  },\n  // Thick polyline as quads (WebGL lines are 1 px); square ends overlap at the joints.\n  line(pts, closed, width, c, out) {\n    const n = pts.length / 2, hw = width / 2;\n    for (let i = 0; i < (closed ? n : n - 1); i++) {\n      const j = (i + 1) % n;\n      const ax = pts[i * 2], ay = pts[i * 2 + 1], bx = pts[j * 2], by = pts[j * 2 + 1];\n      const len = Math.hypot(bx - ax, by - ay);\n      if (len < 1e-6) continue;\n      const dx = (bx - ax) / len * hw, dy = (by - ay) / len * hw;\n      const p = [ax - dx - dy, ay - dy + dx, ax - dx + dy, ay - dy - dx, bx + dx + dy, by + dy - dx, bx + dx - dy, by + dy + dx];\n      for (const k of [0, 1, 2, 0, 2, 3]) out.push(p[k * 2], p[k * 2 + 1], c[0], c[1], c[2], c[3]);\n    }\n  },\n  // Disc made of triangles.\n  dot(x, y, r, c, out, seg = 16) {\n    for (let i = 0; i < seg; i++) {\n      const a0 = i / seg * 6.2832, a1 = (i + 1) / seg * 6.2832;\n      out.push(x, y, ...c, x + Math.cos(a0) * r, y + Math.sin(a0) * r, ...c, x + Math.cos(a1) * r, y + Math.sin(a1) * r, ...c);\n    }\n  },\n  acc: null,\n  // Renders signed fans additively into a half-float target at up to 2x the canvas size\n  // (sampling it back with linear filtering smooths the edges). Returns the texture.\n  accumulate(arr) {\n    const [w, h] = ctx.resolution, k = Math.min(2, 4096 / Math.max(w, h));\n    const tw = Math.round(w * k), th = Math.round(h * k);\n    if (!kit.acc) kit.acc = ctx.utils.createPingPong(tw, th, { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT });\n    else if (kit.acc.width !== tw || kit.acc.height !== th) kit.acc.resize(tw, th);\n    const t = kit.acc.read();\n    gl.bindFramebuffer(gl.FRAMEBUFFER, t.framebuffer); gl.viewport(0, 0, tw, th);\n    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);\n    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);\n    kit.draw(arr);\n    gl.disable(gl.BLEND);\n    gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, w, h);\n    return t.texture;\n  },\n};\nconst s = ctx.state;\ns.kit = kit; s.contours = contours;\n// A few drifting sine waves in random directions, summed and warped: smooth, noise-like terrain.\ns.waves = Array.from({ length: 8 }, (_, i) => {\n  const a = Math.random() * 6.283, f = 3 + i * 1.5;\n  return { fx: Math.cos(a) * f, fy: Math.sin(a) * f, w: 0.2 + Math.random() * 0.4, ph: Math.random() * 6.283, amp: 1 / (1 + i * 0.45) };\n});\ns.composite = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_bands; uniform sampler2D u_field; uniform float u_levels; uniform vec2 u_cell;\nuniform vec3 u_low; uniform vec3 u_mid; uniform vec3 u_high;\nvec3 tint(float k){\n  float t = k / u_levels;\n  return t < 0.5 ? mix(u_low, u_mid, t * 2.0) : mix(u_mid, u_high, t * 2.0 - 1.0);\n}\nvoid main(){\n  float b = abs(texture(u_bands, v_uv).r);\n  vec3 c = mix(tint(floor(b)), tint(floor(b) + 1.0), fract(b));\n  // Hill shading from the field's gradient (light from the upper left).\n  vec2 f = vec2(v_uv.x, 1.0 - v_uv.y);\n  float gx = texture(u_field, f + vec2(u_cell.x, 0.0)).r - texture(u_field, f - vec2(u_cell.x, 0.0)).r;\n  float gy = texture(u_field, f - vec2(0.0, u_cell.y)).r - texture(u_field, f + vec2(0.0, u_cell.y)).r;\n  float shade = clamp(0.85 + (-gx + gy) * 2.5, 0.55, 1.25);\n  outColor = vec4(c * shade, 1.0);\n}`);\ns.fieldTex = null;\ns.moved = false;",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, kit = s.kit;\nconst [w, h] = ctx.resolution;\nconst n = 128, m = Math.max(8, Math.round(n * h / w));\nif (!s.values || s.values.length !== n * m) { s.values = new Float32Array(n * m); s.fieldTex = null; }\nconst t = ctx.time * u.u_speed;\nconst [mx, my] = ctx.mouse;\ns.moved ||= mx !== 0.5 || my !== 0.5;\nconst aspect = w / h;\nfor (let j = 0; j < m; j++) for (let i = 0; i < n; i++) {\n  const x = (i + 0.5) / n * aspect, y = (j + 0.5) / m;\n  // Domain warp: bend the coordinates with one wave before summing the rest.\n  const wx = x + 0.12 * Math.sin(y * 3.1 + t * 0.7), wy = y + 0.12 * Math.cos(x * 2.7 - t * 0.5);\n  let v = 0;\n  for (const q of s.waves) v += Math.sin(wx * q.fx + wy * q.fy + t * q.w + q.ph) * q.amp;\n  v = Math.tanh(v * u.u_relief / 1.7); // keeps peaks inside the threshold range\n  if (s.moved) {\n    // The pointer raises a hill (y down in both the grid and ctx.mouse).\n    const dx = x - mx * aspect, dy = y - my;\n    v += u.u_hill * Math.exp(-(dx * dx + dy * dy) / 0.03);\n  }\n  s.values[i + j * n] = v;\n}\nconst L = u.u_levels, thresholds = Array.from({ length: L }, (_, k) => -1 + 2 * (k + 1) / (L + 1));\nconst polys = s.contours().size([n, m]).thresholds(thresholds)(s.values);\n// Grid → pixels (grid y runs down, pixels up).\nconst toPx = (ring) => { const out = []; for (const [x, y] of ring) out.push(x / n * w, h - y / m * h); return out; };\nconst fills = [], lines = [];\nconst lw = Math.max(1, h * 0.0022), dark = u.u_line;\npolys.forEach((mp, k) => {\n  const major = (k + 1) % 4 === 0;\n  for (const poly of mp.coordinates) for (const ring of poly) {\n    const pts = toPx(ring);\n    kit.fan(pts, [1, 0, 0, 0], fills);\n    kit.line(pts, true, major ? lw * 2.2 : lw, [dark[0], dark[1], dark[2], major ? 0.85 : 0.5], lines);\n  }\n});\nconst bands = kit.accumulate(fills);\ngl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\ns.fieldTex = ctx.utils.uploadDataTexture(gl, s.fieldTex, n, m, s.values, { internalFormat: gl.R16F, format: gl.RED, type: gl.FLOAT, filter: gl.LINEAR, forceRealloc: !s.fieldTex });\ngl.useProgram(s.composite);\nctx.utils.bindTexture(s.composite, \"u_bands\", bands, 0);\nctx.utils.bindTexture(s.composite, \"u_field\", s.fieldTex, 1);\nctx.utils.drawFullscreen(s.composite, { u_levels: L, u_cell: [1 / n, 1 / m] });\ngl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);\nkit.draw(lines);\ngl.disable(gl.BLEND);\nctx.publish(\"isolines\", polys.reduce((a, p) => a + p.coordinates.reduce((b, q) => b + q.length, 0), 0));",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_levels": {
+      "type": "int",
+      "value": 14,
+      "min": 3,
+      "max": 30,
+      "step": 1,
+      "label": "Levels"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 0.5,
+      "min": 0,
+      "max": 2,
+      "step": 0.01,
+      "label": "Drift",
+      "widget": "knob"
+    },
+    "u_relief": {
+      "type": "float",
+      "value": 1,
+      "min": 0.3,
+      "max": 2,
+      "step": 0.01,
+      "label": "Relief",
+      "widget": "knob"
+    },
+    "u_hill": {
+      "type": "float",
+      "value": 0.6,
+      "min": -1.5,
+      "max": 1.5,
+      "step": 0.01,
+      "label": "Pointer hill"
+    },
+    "u_low": {
+      "type": "color",
+      "value": [
+        0.07,
+        0.16,
+        0.35
+      ],
+      "label": "Low"
+    },
+    "u_mid": {
+      "type": "color",
+      "value": [
+        0.35,
+        0.62,
+        0.52
+      ],
+      "label": "Middle"
+    },
+    "u_high": {
+      "type": "color",
+      "value": [
+        0.98,
+        0.9,
+        0.72
+      ],
+      "label": "High"
+    },
+    "u_line": {
+      "type": "color",
+      "value": [
+        0.05,
+        0.06,
+        0.1
+      ],
+      "label": "Lines"
+    }
+  },
+  "controls": [
+    {
+      "label": "Terrain",
+      "uniforms": [
+        "u_levels",
+        "u_speed",
+        "u_relief",
+        "u_hill"
+      ]
+    },
+    {
+      "label": "Colors",
+      "uniforms": [
+        "u_low",
+        "u_mid",
+        "u_high",
+        "u_line"
+      ]
+    }
+  ],
+  "inputs": [
+    "mouse"
+  ]
+}

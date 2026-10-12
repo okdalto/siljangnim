@@ -1,0 +1,19 @@
+{
+  "order": 185,
+  "title": "Glyph distance fields (tiny-sdf)",
+  "title_ko": "글자 거리장 (tiny-sdf)",
+  "description": "@mapbox/tiny-sdf renders each glyph to a signed distance field; the scene merges them into one field for the word and shades it in a shader: weight, an outline with a gap, a pulsing glow and a shadow cast away from the pointer, all from the same texture.",
+  "description_ko": "@mapbox/tiny-sdf가 글자마다 부호 거리장(SDF)을 만든다. 씬은 이를 단어 하나의 거리장으로 합쳐 셰이더에서 칠한다. 굵기, 틈을 둔 외곽선, 맥동하는 글로, 포인터 반대쪽으로 지는 그림자가 모두 같은 텍스처 하나에서 나온다.",
+  "prompt": "(open-source example: @mapbox/tiny-sdf imported in the scene)",
+  "made_with": "@mapbox/tiny-sdf 2.2.0 via ctx.utils.import",
+  "features": [
+    "text",
+    "sdf",
+    "font",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "tiny-sdf"
+  ]
+}

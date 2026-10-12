@@ -1,0 +1,19 @@
+{
+  "order": 166,
+  "title": "Hexbin swarms (d3-hexbin)",
+  "title_ko": "육각 집계 무리 (d3-hexbin)",
+  "description": "9,000 points swirl in five swarms and d3-hexbin bins them into hexagons every frame; each bin is colored, and optionally sized, by how many points it holds. One swarm follows the pointer once it moves; the hex radius is a knob.",
+  "description_ko": "점 9,000개가 다섯 무리로 소용돌이치고, d3-hexbin이 매 프레임 이들을 육각형 칸으로 묶는다. 칸마다 담긴 점의 수에 따라 색이(원하면 크기도) 달라진다. 포인터를 움직이면 한 무리가 따라오고, 육각형 크기는 노브로 바꾼다.",
+  "prompt": "(open-source example: d3-hexbin imported in the scene)",
+  "made_with": "d3-hexbin 0.2.2 via ctx.utils.import",
+  "features": [
+    "binning",
+    "data visualization",
+    "particles",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-hexbin"
+  ]
+}

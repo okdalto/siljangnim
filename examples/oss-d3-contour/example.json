@@ -1,0 +1,19 @@
+{
+  "order": 121,
+  "title": "Moving contours (d3-contour)",
+  "title_ko": "움직이는 등고선 (d3-contour)",
+  "description": "d3-contour traces isolines over a drifting height field every frame (marching squares); the bands between them are filled like a relief map, with hill shading. The pointer raises a hill.",
+  "description_ko": "d3-contour가 흘러가는 높이 필드에서 매 프레임 등치선을 그린다(마칭 스퀘어). 선 사이의 띠는 지형도처럼 칠하고 음영을 준다. 포인터를 올리면 언덕이 솟는다.",
+  "prompt": "(open-source example: d3-contour imported in the scene)",
+  "made_with": "d3-contour 4.0.2 via ctx.utils.import",
+  "features": [
+    "contours",
+    "marching squares",
+    "terrain",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-contour"
+  ]
+}

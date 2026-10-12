@@ -1,0 +1,56 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// isosurface's surface nets turn an animated metaball field into a mesh every\n// frame; normals and colors come from the field itself.\nconst mod = await ctx.utils.import(\"https://esm.sh/isosurface@1.0.0\");\nconst { surfaceNets } = mod.default ?? mod;\nconst gl = ctx.gl;\nconst vao = gl.createVertexArray(), bufs = [0, 1, 2].map(() => gl.createBuffer()), ibo = gl.createBuffer();\ngl.bindVertexArray(vao);\nbufs.forEach((b, loc) => { gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 0, 0); });\ngl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);\ngl.bindVertexArray(null);\nconst palette = [[1, 0.35, 0.3], [1, 0.75, 0.25], [0.3, 0.85, 0.6], [0.25, 0.55, 1], [0.7, 0.35, 1], [1, 0.4, 0.75], [0.35, 0.9, 0.95], [0.95, 0.95, 0.5]];\nconst prog = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec3 a_position; layout(location=1) in vec3 a_normal; layout(location=2) in vec3 a_color;\nuniform mat4 u_vp; out vec3 v_n; out vec3 v_w; out vec3 v_c;\nvoid main() { v_w = a_position; v_n = a_normal; v_c = a_color; gl_Position = u_vp * vec4(a_position, 1.0); }`, `#version 300 es\nprecision highp float; in vec3 v_n; in vec3 v_w; in vec3 v_c; out vec4 outColor; uniform vec3 u_eye; uniform float u_gloss;\nvoid main() {\n  vec3 n = normalize(v_n), v = normalize(u_eye - v_w);\n  vec3 l1 = normalize(vec3(0.4, 0.9, 0.5)), l2 = normalize(vec3(-0.8, -0.1, -0.4));\n  float d = max(dot(n, l1), 0.0), d2 = max(dot(n, l2), 0.0);\n  float sp = pow(max(dot(n, normalize(l1 + v)), 0.0), 80.0) * u_gloss;\n  float fres = pow(1.0 - max(dot(n, v), 0.0), 4.0);\n  // A fake sky reflection: brighter above the horizon.\n  vec3 r = reflect(-v, n), sky = mix(vec3(0.05, 0.06, 0.1), vec3(0.6, 0.7, 0.9), smoothstep(-0.2, 0.8, r.y));\n  vec3 c = v_c * (0.08 + 0.8 * d) + v_c * vec3(0.3, 0.4, 0.8) * d2 * 0.4 + sp + sky * fres * u_gloss;\n  outColor = vec4(pow(c, vec3(0.4545)), 1.0);\n}`);\nObject.assign(ctx.state, { surfaceNets, vao, bufs, ibo, prog, palette, count: 0,\n  camera: ctx.utils.createOrbitCamera({ distance: 4.9, theta: 0.5, phi: 1.2 }) });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, { mat4 } = ctx.utils, [w, h] = ctx.resolution;\nconst t = ctx.time * u.u_speed, n = u.u_balls, k = u.u_threshold;\nconst balls = [];\nfor (let i = 0; i < n; i++) {\n  const a = i * 2.4;\n  balls.push([0.85 * Math.sin(t * (0.6 + 0.11 * i) + a), 0.85 * Math.sin(t * (0.47 + 0.07 * i) + a * 1.7), 0.85 * Math.cos(t * (0.53 + 0.09 * i) + a * 0.6), 0.32 + 0.1 * Math.sin(i * 1.9)]);\n}\nconst field = (x, y, z) => {\n  let f = 0;\n  for (const b of balls) { const dx = x - b[0], dy = y - b[1], dz = z - b[2]; f += b[3] * b[3] / (dx * dx + dy * dy + dz * dz + 1e-6); }\n  return f;\n};\nconst R = 1.9, N = u.u_res;\nconst t0 = performance.now();\n// surfaceNets wants negative inside.\nconst mesh = s.surfaceNets([N, N, N], (x, y, z) => k - field(x, y, z), [[-R, -R, -R], [R, R, R]]);\nconst ms = performance.now() - t0;\nconst V = mesh.positions.length, pos = new Float32Array(V * 3), nor = new Float32Array(V * 3), col = new Float32Array(V * 3);\nmesh.positions.forEach((p, i) => {\n  // Normal = the field's gradient direction; color = each ball's share of the field.\n  let gx = 0, gy = 0, gz = 0, cr = 0, cg = 0, cb = 0, sum = 0;\n  balls.forEach((b, j) => {\n    const dx = p[0] - b[0], dy = p[1] - b[1], dz = p[2] - b[2], d2 = dx * dx + dy * dy + dz * dz + 1e-6;\n    const f = b[3] * b[3] / d2, g = f / d2;\n    gx += g * dx; gy += g * dy; gz += g * dz;\n    const c = s.palette[j % s.palette.length], wgt = f * f;\n    cr += c[0] * wgt; cg += c[1] * wgt; cb += c[2] * wgt; sum += wgt;\n  });\n  const l = Math.hypot(gx, gy, gz) || 1;\n  pos.set(p, i * 3); nor.set([gx / l, gy / l, gz / l], i * 3); col.set([cr / sum, cg / sum, cb / sum], i * 3);\n});\nconst idx = new Uint32Array(mesh.cells.length * 3);\nmesh.cells.forEach((c, i) => idx.set(c, i * 3));\ngl.bindVertexArray(s.vao);\n[pos, nor, col].forEach((data, j) => { gl.bindBuffer(gl.ARRAY_BUFFER, s.bufs[j]); gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW); });\ngl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.DYNAMIC_DRAW);\ns.camera.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt);\nconst vp = mat4.multiply(s.camera.getProjectionMatrix(w / h, 40, 0.1, 50), s.camera.getViewMatrix());\ngl.enable(gl.DEPTH_TEST);\ngl.clearColor(0.03, 0.032, 0.045, 1);\ngl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);\ngl.useProgram(s.prog);\nctx.utils.setUniforms(s.prog, { u_vp: vp, u_eye: s.camera.getEye(), u_gloss: u.u_gloss });\ngl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_INT, 0);\ngl.bindVertexArray(null);\nctx.publish(\"mesh ms\", Math.round(ms * 10) / 10);\nctx.publish(\"triangles\", mesh.cells.length);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_balls": {
+      "type": "int",
+      "value": 9,
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "label": "Balls"
+    },
+    "u_threshold": {
+      "type": "float",
+      "value": 1,
+      "min": 0.4,
+      "max": 2.5,
+      "step": 0.01,
+      "label": "Threshold"
+    },
+    "u_res": {
+      "type": "int",
+      "value": 48,
+      "min": 16,
+      "max": 72,
+      "step": 1,
+      "label": "Grid"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 0.8,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Speed",
+      "widget": "knob"
+    },
+    "u_gloss": {
+      "type": "float",
+      "value": 0.8,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.01,
+      "label": "Gloss"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

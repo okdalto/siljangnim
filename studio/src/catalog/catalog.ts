@@ -3,6 +3,7 @@
 // worked (docs/catalog.md). Bundled, so it works without the hub and on the web.
 import { z } from "zod";
 import data from "./catalog.json";
+import referenceData from "./index-opensource.json";
 
 export const CatalogEntrySchema = z.object({
   id: z.string().regex(/^[a-z0-9][a-z0-9.-]+$/),
@@ -45,3 +46,61 @@ export function searchCatalog(query: string, filters: { media?: string; tier?: C
   // Lighter tiers first on a tie: a browser library beats a Python install.
   return scored.sort((a, b) => b.score - a.score || a.e.tier.localeCompare(b.e.tier)).map((s) => s.e);
 }
+
+/**
+ * The reference list the catalog grows from: index.opensource (by 현 @hyun2xyz,
+ * https://indexopensource.com/index), facts and classification labels only.
+ * These aren't set up in Siljangnim yet; curated entries above are.
+ */
+export const ReferenceEntrySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  repo: z.string().url().nullable(),
+  license: z.string().nullable(),
+  principle: z.string(),
+  medium: z.string(),
+  concept: z.string(),
+  area: z.string(),
+  input: z.string(),
+  keywords: z.array(z.string()),
+  index: z.object({ no: z.number(), code: z.string() }),
+});
+
+export type ReferenceEntry = z.infer<typeof ReferenceEntrySchema>;
+
+export const REFERENCE_SOURCE = "index.opensource by 현 @hyun2xyz (https://indexopensource.com/index)";
+
+const repoKey = (url: string | null | undefined) => url?.toLowerCase().replace(/\/+$/, "") ?? "";
+const curatedRepos = new Set(CATALOG.map((e) => repoKey(e.repo)));
+
+/** Reference entries not already curated (same repository). */
+export const REFERENCES: ReferenceEntry[] = z
+  .object({ entries: z.array(ReferenceEntrySchema) })
+  .parse(referenceData)
+  .entries.filter((e) => !curatedRepos.has(repoKey(e.repo)));
+
+/** The index.opensource entry for a curated tool, when the list has it. */
+export function referenceFor(entry: CatalogEntry): ReferenceEntry | undefined {
+  return z.object({ entries: z.array(ReferenceEntrySchema) }).parse(referenceData).entries.find((r) => repoKey(r.repo) === repoKey(entry.repo));
+}
+
+/** Reference entries matching every word (name, keywords, concept, field, medium, input), best first. */
+export function searchReferences(query: string, references = REFERENCES): ReferenceEntry[] {
+  const words = query.toLowerCase().split(/[\s,]+/).filter(Boolean);
+  if (!words.length) return [];
+  const scored = references.flatMap((e) => {
+    const name = e.name.toLowerCase();
+    const tags = `${e.keywords.join(" ")} ${e.concept}`.toLowerCase();
+    const rest = `${e.principle} ${e.medium} ${e.area} ${e.input}`.toLowerCase();
+    let score = 0;
+    for (const w of words) {
+      if (name.includes(w)) score += 3;
+      else if (tags.includes(w)) score += 2;
+      else if (rest.includes(w)) score += 1;
+      else return [];
+    }
+    return [{ e, score }];
+  });
+  return scored.sort((a, b) => b.score - a.score || a.e.index.no - b.e.index.no).map((s) => s.e);
+}
+

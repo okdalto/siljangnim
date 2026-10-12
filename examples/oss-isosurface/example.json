@@ -1,0 +1,19 @@
+{
+  "order": 146,
+  "title": "Metaball mesh (isosurface)",
+  "title_ko": "메타볼 메시 (isosurface)",
+  "description": "isosurface extracts a mesh from an animated metaball field every frame with surface nets; normals come from the field's gradient and each ball tints the part of the surface it pulls. Change the grid size, threshold and ball count; drag to orbit.",
+  "description_ko": "isosurface가 움직이는 메타볼 필드에서 매 프레임 서피스 넷으로 메시를 뽑아낸다. 법선은 필드의 기울기에서 얻고, 공마다 자기가 끌어당기는 표면에 색을 입힌다. 격자 크기·임계값·공 개수를 바꿔 보고, 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: isosurface imported in the scene)",
+  "made_with": "isosurface 1.0.0 via ctx.utils.import",
+  "features": [
+    "isosurface",
+    "metaballs",
+    "dynamic mesh",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "isosurface"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "circlify.stdlib-packing@1",
+      "packages": [
+        "circlify==0.15.1"
+      ],
+      "resolved": [
+        "circlify==0.15.1"
+      ],
+      "inputs": [],
+      "params": {
+        "max_depth": 3,
+        "min_lines": 40
+      },
+      "outputs": [
+        "circles.json"
+      ]
+    }
+  ]
+}

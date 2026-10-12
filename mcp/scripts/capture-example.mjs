@@ -25,7 +25,7 @@ process.on("exit", () => viewer?.kill("SIGKILL"));
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: [join(mcpDir, "bin", "siljangnim-mcp.js")],
-  env: { ...process.env, SILJANGNIM_OPEN: "0", SILJANGNIM_VIEWER: "browser", SILJANGNIM_PORT: "47962" },
+  env: { ...process.env, SILJANGNIM_OPEN: "0", SILJANGNIM_VIEWER: "browser", SILJANGNIM_PORT: process.env.SILJANGNIM_PORT || "47962" },
   stderr: "pipe",
 });
 transport.stderr.on("data", (chunk) => {

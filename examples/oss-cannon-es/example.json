@@ -1,0 +1,18 @@
+{
+  "order": 147,
+  "title": "Wall breaker (cannon-es)",
+  "title_ko": "벽 부수기 (cannon-es)",
+  "description": "cannon-es simulates the rigid bodies: a heavy ball is fired at a brick wall every few seconds and the bricks tumble, collide and settle; the wall rebuilds after three shots. Each body's quaternion and position become a model matrix. Drag to orbit.",
+  "description_ko": "cannon-es가 강체를 시뮬레이션한다. 몇 초마다 무거운 공이 벽돌 벽으로 날아가고, 벽돌이 구르고 부딪히다 멈춘다. 세 번 쏘고 나면 벽이 다시 세워진다. 각 물체의 쿼터니언과 위치가 그대로 모델 행렬이 된다. 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: cannon-es imported in the scene)",
+  "made_with": "cannon-es 0.20.0 via ctx.utils.import",
+  "features": [
+    "physics",
+    "rigid bodies",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "cannon-es"
+  ]
+}

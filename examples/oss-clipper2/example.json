@@ -1,0 +1,19 @@
+{
+  "order": 129,
+  "title": "Offset ripples (Clipper2)",
+  "title_ko": "오프셋 물결 (Clipper2)",
+  "description": "Clipper2 merges a turning star and orbiting circles into one outline (union) and offsets it outward and inward every frame ; the rings drift like ripples. The pointer adds a circle; switch between round, miter, square and bevel joins.",
+  "description_ko": "Clipper2가 도는 별과 궤도를 도는 원들을 하나의 윤곽으로 합치고(합집합), 매 프레임 안팎으로 오프셋한다. 고리들이 물결처럼 흘러간다. 포인터가 원 하나를 더하고, 모서리 처리를 둥글게, 뾰족하게, 사각, 깎기 중에서 고를 수 있다.",
+  "prompt": "(open-source example: Clipper2 imported in the scene)",
+  "made_with": "clipper2-ts 2.0.1-18 (TypeScript port of Clipper2) via ctx.utils.import",
+  "features": [
+    "polygon offset",
+    "boolean ops",
+    "geometry",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "clipper2"
+  ]
+}

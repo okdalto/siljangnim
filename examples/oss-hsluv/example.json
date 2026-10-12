@@ -1,0 +1,18 @@
+{
+  "order": 182,
+  "title": "Perceptual hue wheel (hsluv)",
+  "title_ko": "지각 균등 색상환 (hsluv)",
+  "description": "Two color wheels at the same lightness: plain HSL on the left, HSLuv from the hsluv library on the right, each with a ring of evenly spaced swatches. Turn on \"Show lightness\": the HSL wheel breaks into light yellows and dark blues, the HSLuv wheel stays one even grey.",
+  "description_ko": "같은 밝기의 색상환 두 개를 나란히 둔다. 왼쪽은 일반 HSL, 오른쪽은 hsluv 라이브러리의 HSLuv이고, 둘레에 같은 간격의 견본 색이 돈다. \"Show lightness\"를 켜면 HSL 쪽은 밝은 노랑과 어두운 파랑으로 갈라지지만 HSLuv 쪽은 고른 회색 하나로 남는다.",
+  "prompt": "(open-source example: hsluv imported in the scene)",
+  "made_with": "hsluv 1.0.2 via ctx.utils.import",
+  "features": [
+    "color",
+    "perceptual color",
+    "palette"
+  ],
+  "mode": "live",
+  "uses": [
+    "hsluv"
+  ]
+}

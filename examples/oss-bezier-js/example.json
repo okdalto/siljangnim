@@ -1,0 +1,19 @@
+{
+  "order": 123,
+  "title": "Curve offsets (Bezier.js)",
+  "title_ko": "곡선 오프셋 (Bezier.js)",
+  "description": "Bezier.js computes each drifting cubic curve's outline and offset curves, the points where curves cross, and the nearest curve point to the pointer with its normal. Drag a control point to pin it.",
+  "description_ko": "Bezier.js가 떠다니는 3차 곡선마다 외곽선과 오프셋 곡선, 곡선끼리 만나는 점, 포인터에서 가장 가까운 곡선 위의 점과 법선을 계산한다. 조절점을 끌면 그 자리에 고정된다.",
+  "prompt": "(open-source example: Bezier.js imported in the scene)",
+  "made_with": "bezier-js 6.1.4 via ctx.utils.import",
+  "features": [
+    "bezier",
+    "offset curves",
+    "intersections",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "bezier-js"
+  ]
+}

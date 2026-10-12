@@ -1,0 +1,69 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// meanderpy migrated a river centerline for 300 years (recipe meanderpy.migration →\n// river.json). Every saved centerline and every cutoff (oxbow lake) becomes instanced\n// segments tagged with its age; the shader shows only what exists at the replay time.\nconst data = await (await fetch(ctx.assets[\"river.json\"])).json();\nconst gl = ctx.gl;\nconst items = [\n  ...data.channels.map((c) => ({ ...c, kind: 0 })),\n  ...data.cutoffs.map((c) => ({ ...c, kind: 1 })),\n].sort((a, b) => a.age - b.age || b.kind - a.kind);\nlet count = 0;\nfor (const it of items) count += it.points.length / 2 - 1;\nconst inst = new Float32Array(count * 7);\nlet k = 0;\nfor (const it of items) {\n  const p = it.points;\n  let dist = 0;\n  for (let i = 0; i + 3 < p.length; i += 2) {\n    const len = Math.hypot(p[i + 2] - p[i], p[i + 3] - p[i + 1]);\n    inst.set([p[i], p[i + 1], p[i + 2], p[i + 3], it.age, it.kind, dist], k * 7);\n    dist += len; k++;\n  }\n}\n// Frame the meandering stretch (the model keeps the upstream end straight).\nlet x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;\nfor (const c of data.channels) for (let i = 0; i < c.points.length; i += 2) {\n  const x = c.points[i], y = c.points[i + 1];\n  y0 = Math.min(y0, y); y1 = Math.max(y1, y);\n  if (Math.abs(y) > 0.12) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); }\n}\nx0 -= 0.6; x1 += 0.6; y0 -= 0.4; y1 += 0.4;\nconst vao = gl.createVertexArray();\ngl.bindVertexArray(vao);\ngl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());\ngl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, -1, 1, -1, 0, 1, 1, 1]), gl.STATIC_DRAW);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);\ngl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());\ngl.bufferData(gl.ARRAY_BUFFER, inst, gl.STATIC_DRAW);\n[[1, 4, 0], [2, 1, 4], [3, 1, 5], [4, 1, 6]].forEach(([loc, size, off]) => {\n  gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 28, off * 4); gl.vertexAttribDivisor(loc, 1);\n});\ngl.bindVertexArray(null);\nconst vs = `#version 300 es\nlayout(location=0) in vec2 a_corner; layout(location=1) in vec4 a_seg; layout(location=2) in float a_age; layout(location=3) in float a_kind; layout(location=4) in float a_dist;\nuniform vec4 u_view; uniform float u_now; uniform float u_current; uniform float u_width; uniform float u_memory;\nout float v_side; out float v_ago; out float v_kind; out float v_dist; out float v_current;\nvoid main(){\n  if (a_age > u_now + 1e-3) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }\n  vec2 a = a_seg.xy, b = a_seg.zw, d = b - a; float len = max(length(d), 1e-5); vec2 dir = d / len, n = vec2(-dir.y, dir.x);\n  float ago = u_now - a_age; bool current = a_kind < 0.5 && abs(a_age - u_current) < 1e-3;\n  float w = u_width * (current ? 1.0 : a_kind > 0.5 ? mix(0.9, 0.6, clamp(ago / u_memory, 0.0, 1.0)) : 0.55);\n  vec2 p = mix(a, b, a_corner.x) + dir * (a_corner.x * 2.0 - 1.0) * w * 0.5 + n * a_corner.y * w * 0.5;\n  v_side = a_corner.y; v_ago = ago; v_kind = a_kind; v_dist = a_dist + a_corner.x * len; v_current = current ? 1.0 : 0.0;\n  gl_Position = vec4((p - u_view.xy) * u_view.zw, 0.0, 1.0);\n}`;\nconst fs = `#version 300 es\nprecision highp float; in float v_side; in float v_ago; in float v_kind; in float v_dist; in float v_current; out vec4 outColor;\nuniform float u_time; uniform float u_memory; uniform vec3 u_water; uniform vec3 u_scroll;\nvoid main(){\n  float edge = 1.0 - v_side * v_side;\n  float age = clamp(v_ago / u_memory, 0.0, 1.0);\n  vec3 c; float a;\n  if (v_current > 0.5) {\n    float flow = 0.5 + 0.5 * sin(v_dist * 18.0 - u_time * 6.0);\n    c = u_water * (0.75 + 0.35 * edge) + vec3(0.25) * flow * edge; a = 1.0;\n  } else if (v_kind > 0.5) {\n    c = mix(u_water * 0.75, vec3(0.16, 0.36, 0.34), age) * (0.7 + 0.3 * edge); a = mix(0.95, 0.55, age);\n  } else {\n    c = mix(u_scroll, vec3(0.22, 0.27, 0.17), sqrt(age)); a = mix(0.85, 0.35, age) * (0.6 + 0.4 * edge);\n  }\n  outColor = vec4(c * a, a);\n}`;\nObject.assign(ctx.state, {\n  data, vao, count, bounds: [x0, x1, y0, y1],\n  ages: data.channels.map((c) => c.age),\n  p: ctx.utils.createProgram(vs, fs),\n  bg: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform vec2 u_resolution;\nfloat h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }\nfloat vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);\n  return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }\nvoid main(){ vec2 p = v_uv * u_resolution / u_resolution.y * 5.0; float n = 0.0, a = 0.5;\n  for (int i = 0; i < 5; i++) { n += a * vn(p); p *= 2.03; a *= 0.5; }\n  outColor = vec4(mix(vec3(0.055, 0.07, 0.05), vec3(0.1, 0.12, 0.08), n), 1.0); }`),\n});\nctx.publish(\"centerlines\", data.channels.length);\nctx.publish(\"oxbow lakes\", data.cutoffs.length);",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst end = s.ages[s.ages.length - 1], span = end / u.u_speed, hold = 3;\nconst t = ctx.time % (span + hold), now = Math.min(t / span, 1) * end;\nlet current = s.ages[0];\nfor (const a of s.ages) if (a <= now + 1e-3) current = a;\n// Fit the meander belt to the canvas width; with zoom > 1 the mouse pans along the river.\nconst [x0, x1, y0, y1] = s.bounds;\nconst fitX = 2 / (x1 - x0), fitY = 2 / (y1 - y0) * h / w, k = Math.min(fitX, fitY) * u.u_zoom;\nconst halfW = 1 / k, cx = u.u_zoom > 1 ? x0 + halfW + (x1 - x0 - 2 * halfW) * ctx.mouse[0] : (x0 + x1) / 2;\nconst view = [cx, (y0 + y1) / 2, k, k * w / h];\nctx.utils.drawFullscreen(s.bg);\ngl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);\ngl.useProgram(s.p);\nctx.utils.setStandardUniforms(s.p);\nctx.utils.setUniforms(s.p, { u_view: view, u_now: now, u_current: current, u_width: s.data.width / 1000 * u.u_width, u_memory: u.u_memory });\ngl.bindVertexArray(s.vao);\ngl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, s.count);\ngl.bindVertexArray(null);\ngl.disable(gl.BLEND);\nctx.publish(\"year\", Math.round(now));",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 15,
+      "min": 2,
+      "max": 60,
+      "step": 1,
+      "label": "Years per second",
+      "widget": "knob"
+    },
+    "u_memory": {
+      "type": "float",
+      "value": 120,
+      "min": 10,
+      "max": 300,
+      "step": 5,
+      "label": "Fade (years)",
+      "widget": "slider"
+    },
+    "u_width": {
+      "type": "float",
+      "value": 1.2,
+      "min": 0.5,
+      "max": 3,
+      "step": 0.05,
+      "label": "Channel width",
+      "widget": "slider"
+    },
+    "u_zoom": {
+      "type": "float",
+      "value": 1,
+      "min": 1,
+      "max": 4,
+      "step": 0.05,
+      "label": "Zoom (mouse pans)",
+      "widget": "slider"
+    },
+    "u_water": {
+      "type": "color",
+      "value": [
+        0.35,
+        0.72,
+        1
+      ],
+      "label": "Water"
+    },
+    "u_scroll": {
+      "type": "color",
+      "value": [
+        0.86,
+        0.74,
+        0.5
+      ],
+      "label": "Old channels"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

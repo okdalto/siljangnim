@@ -1,0 +1,19 @@
+{
+  "order": 206,
+  "title": "Meandering river (meanderpy)",
+  "title_ko": "사행하는 강 (meanderpy)",
+  "description": "meanderpy simulated 300 years of a river migrating across its floodplain on this computer (recipe meanderpy.migration): bends grow, sweep downstream and pinch off into oxbow lakes. The scene replays the centerlines, older channels fading into the floodplain.",
+  "description_ko": "meanderpy가 이 컴퓨터에서 강이 범람원을 가로질러 움직이는 300년을 시뮬레이션했다(레시피 meanderpy.migration). 굽이가 커지고 하류로 쓸려 가다 잘려 우각호가 된다. 씬은 중심선을 시간 순으로 재생하고, 오래된 물길은 범람원 속으로 옅어진다.",
+  "prompt": "(open-source example: meanderpy run through the runtime, recipe included)",
+  "made_with": "meanderpy 0.2.0 via recipe meanderpy.migration (python_run)",
+  "features": [
+    "simulation",
+    "river",
+    "geomorphology",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "meanderpy"
+  ]
+}

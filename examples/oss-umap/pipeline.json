@@ -1,0 +1,35 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "umap.digits-embedding@1",
+      "packages": [
+        "umap-learn==0.5.12",
+        "scikit-learn==1.9.1"
+      ],
+      "resolved": [
+        "cloudpickle==3.1.2",
+        "joblib==1.6.0",
+        "llvmlite==0.50.0",
+        "narwhals==2.27.1",
+        "numba==0.68.0",
+        "numpy==2.5.4",
+        "pynndescent==0.6.0",
+        "scikit-learn==1.9.1",
+        "scipy==1.18.1",
+        "threadpoolctl==3.7.0",
+        "tqdm==4.70.1",
+        "umap-learn==0.5.12"
+      ],
+      "inputs": [],
+      "params": {
+        "n_neighbors": 12,
+        "min_dist": 0.4,
+        "seed": 42
+      },
+      "outputs": [
+        "digits.json"
+      ]
+    }
+  ]
+}

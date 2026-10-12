@@ -1,0 +1,19 @@
+{
+  "order": 169,
+  "title": "Sun over the plaza (SunCalc)",
+  "title_ko": "광장 위의 해 (SunCalc)",
+  "description": "SunCalc computes where the sun and moon stand for a city, day and hour; a raymarched plaza is lit from there, the sky and shadows follow, and the day's sun path is dotted across the sky (every 15 minutes). Pick a place and day; time runs on its own. Drag to look around; sunrise and sunset show in the monitor.",
+  "description_ko": "SunCalc가 도시, 날짜, 시각에 맞춰 해와 달의 고도와 방위를 계산한다. 레이마칭으로 그린 광장이 그 방향에서 빛을 받고, 하늘과 그림자가 따라 바뀌며, 그날 해가 지나는 길이 15분마다 점으로 하늘에 찍힌다. 장소와 날짜를 고르면 시간은 저절로 흐른다. 드래그하면 둘러볼 수 있고, 해 뜨고 지는 시각은 모니터에 나온다.",
+  "prompt": "(open-source example: SunCalc imported in the scene)",
+  "made_with": "suncalc 2.0.2 via ctx.utils.import",
+  "features": [
+    "sun position",
+    "raymarching",
+    "shadows",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "suncalc"
+  ]
+}

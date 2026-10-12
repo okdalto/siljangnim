@@ -1,0 +1,18 @@
+{
+  "order": 168,
+  "title": "Easing choreography (tween.js)",
+  "title_ko": "이징 안무 (tween.js)",
+  "description": "96 tiles move between a grid, a ring, a sunflower spiral, a wave and three rings, each driven by its own tween.js Tween with a staggered delay. The inset plots the easing in use (the monitor names it); pick one or cycle through them, and set duration, stagger and pause.",
+  "description_ko": "타일 96개가 격자, 원, 해바라기 나선, 물결, 세 겹 고리 사이를 오간다. 타일마다 tween.js Tween이 하나씩 붙어 시차를 두고 움직인다. 왼쪽 아래 그래프가 지금 쓰는 이징 곡선을 그리고(이름은 모니터에 나온다), 이징을 고르거나 차례로 돌려 볼 수 있으며 길이, 시차, 쉬는 시간을 조절할 수 있다.",
+  "prompt": "(open-source example: tween.js imported in the scene)",
+  "made_with": "@tweenjs/tween.js 25.0.0 via ctx.utils.import",
+  "features": [
+    "tweening",
+    "easing",
+    "motion design"
+  ],
+  "mode": "live",
+  "uses": [
+    "tween-js"
+  ]
+}

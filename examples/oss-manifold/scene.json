@@ -1,0 +1,58 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// manifold-3d (WebAssembly) runs the booleans every frame: a rounded block\n// minus a swarm of orbiting spheres, recomputed live and drawn as one mesh.\nconst BASE = \"https://cdn.jsdelivr.net/npm/manifold-3d@3.5.3/\";\nconst mod = await ctx.utils.import(BASE + \"manifold.js\");\nconst Module = mod.default ?? mod;\nconst wasm = await Module({ locateFile: () => BASE + \"manifold.wasm\" });\nwasm.setup();\nconst { Manifold } = wasm;\nconst gl = ctx.gl;\nconst cube = Manifold.cube([2.2, 2.2, 2.2], true);\nconst ball = Manifold.sphere(1.55, 96);\nconst block = cube.intersect(ball);\ncube.delete(); ball.delete();\nconst vao = gl.createVertexArray(), vbo = gl.createBuffer(), ibo = gl.createBuffer();\ngl.bindVertexArray(vao);\ngl.bindBuffer(gl.ARRAY_BUFFER, vbo);\ngl.enableVertexAttribArray(0);\ngl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);\ngl.bindVertexArray(null);\nconst prog = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec3 a_position; uniform mat4 u_vp, u_model; out vec3 v_w; out vec3 v_l;\nvoid main() { v_l = a_position; vec4 w = u_model * vec4(a_position, 1.0); v_w = w.xyz; gl_Position = u_vp * w; }`, `#version 300 es\nprecision highp float; in vec3 v_w; in vec3 v_l; out vec4 outColor;\nuniform vec3 u_eye, u_outer, u_inner;\nvoid main() {\n  // Flat normals from screen-space derivatives: the mesh changes every frame, so no normals are stored.\n  vec3 n = normalize(cross(dFdx(v_w), dFdy(v_w))), v = normalize(u_eye - v_w);\n  if (dot(n, v) < 0.0) n = -n;\n  // Surfaces the cutters carved lie inside the block's hull: color them by depth.\n  float r = max(max(abs(v_l.x), abs(v_l.y)), abs(v_l.z));\n  float hull = max(step(1.095, r), step(1.538, length(v_l)));\n  float depth = clamp((1.1 - min(r, length(v_l) - 0.45)) * 2.5, 0.0, 1.0);\n  vec3 base = hull > 0.5 ? u_outer : mix(u_inner, u_inner * vec3(0.35, 0.3, 0.6), depth);\n  vec3 l1 = normalize(vec3(0.5, 0.9, 0.4)), l2 = normalize(vec3(-0.6, -0.2, -0.7));\n  float d = max(dot(n, l1), 0.0), d2 = max(dot(n, l2), 0.0);\n  float sp = pow(max(dot(n, normalize(l1 + v)), 0.0), 50.0);\n  vec3 c = base * (0.1 + 0.85 * d) + base * vec3(0.4, 0.6, 1.0) * d2 * 0.3 + sp * 0.45;\n  outColor = vec4(pow(c, vec3(0.4545)), 1.0);\n}`);\nObject.assign(ctx.state, { wasm, Manifold, block, vao, vbo, ibo, prog, count: 0, cutters: [],\n  camera: ctx.utils.createOrbitCamera({ distance: 7.2, theta: 0.7, phi: 1.1 }) });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, { mat4 } = ctx.utils, [w, h] = ctx.resolution;\nconst { Manifold } = s, t = ctx.time * u.u_speed, n = u.u_count;\nconst t0 = performance.now();\n// Cutter spheres on tilted orbits that pass through the block's surface.\nconst parts = [];\nfor (let i = 0; i < n; i++) {\n  const a = t * (0.5 + 0.13 * (i % 5)) + i * 2.399, tilt = i * 1.7;\n  const R = 1.4 + 0.25 * Math.sin(t * 0.7 + i);\n  const x = R * Math.cos(a), y = R * Math.sin(a) * Math.cos(tilt), z = R * Math.sin(a) * Math.sin(tilt);\n  parts.push(Manifold.sphere(u.u_radius * (0.8 + 0.2 * Math.sin(i * 3.1)), 28).translate([x, y, z]));\n}\nconst cutters = Manifold.union(parts);\nconst result = s.block.subtract(cutters);\nconst mesh = result.getMesh();\nconst ms = performance.now() - t0;\nfor (const m of parts) m.delete();\ncutters.delete(); result.delete();\ngl.bindVertexArray(s.vao);\ngl.bindBuffer(gl.ARRAY_BUFFER, s.vbo);\ngl.bufferData(gl.ARRAY_BUFFER, mesh.vertProperties, gl.DYNAMIC_DRAW);\ngl.vertexAttribPointer(0, 3, gl.FLOAT, false, mesh.numProp * 4, 0);\ngl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.triVerts, gl.DYNAMIC_DRAW);\ns.count = mesh.triVerts.length;\ns.camera.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt);\nconst vp = mat4.multiply(s.camera.getProjectionMatrix(w / h, 35, 0.1, 50), s.camera.getViewMatrix());\ngl.enable(gl.DEPTH_TEST);\ngl.clearColor(0.045, 0.045, 0.06, 1);\ngl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);\ngl.useProgram(s.prog);\nctx.utils.setUniforms(s.prog, { u_vp: vp, u_model: mat4.fromYRotation(ctx.time * 0.15), u_eye: s.camera.getEye(), u_outer: u.u_outer, u_inner: u.u_inner });\ngl.drawElements(gl.TRIANGLES, s.count, gl.UNSIGNED_INT, 0);\ngl.bindVertexArray(null);\nctx.publish(\"boolean ms\", Math.round(ms * 10) / 10);\nctx.publish(\"triangles\", s.count / 3);",
+    "cleanup": "ctx.state.block?.delete();"
+  },
+  "uniforms": {
+    "u_count": {
+      "type": "int",
+      "value": 18,
+      "min": 1,
+      "max": 40,
+      "step": 1,
+      "label": "Cutters"
+    },
+    "u_radius": {
+      "type": "float",
+      "value": 0.75,
+      "min": 0.15,
+      "max": 1.2,
+      "step": 0.01,
+      "label": "Cutter size"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 0.6,
+      "min": 0,
+      "max": 2,
+      "step": 0.01,
+      "label": "Speed",
+      "widget": "knob"
+    },
+    "u_outer": {
+      "type": "color",
+      "value": [
+        0.82,
+        0.84,
+        0.9
+      ],
+      "label": "Outside"
+    },
+    "u_inner": {
+      "type": "color",
+      "value": [
+        0.95,
+        0.3,
+        0.2
+      ],
+      "label": "Carved"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

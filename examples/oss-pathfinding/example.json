@@ -1,0 +1,19 @@
+{
+  "order": 163,
+  "title": "Maze search (PathFinding.js)",
+  "title_ko": "미로 탐색 (PathFinding.js)",
+  "description": "PathFinding.js solves a generated maze with loops; the scene records which cells the finder expands, in order, and replays the search before tracing the path. Pick A*, Dijkstra, best-first, bidirectional A* or breadth-first to compare them; click a cell to send it there.",
+  "description_ko": "PathFinding.js가 고리가 있는 미로를 푼다. 씬은 탐색기가 펼친 칸을 순서대로 기록해 탐색 과정을 다시 보여 준 뒤 경로를 그린다. A*, 다익스트라, 최선 우선, 양방향 A*, 너비 우선을 골라 비교할 수 있고, 칸을 클릭하면 그곳으로 길을 찾는다.",
+  "prompt": "(open-source example: PathFinding.js imported in the scene)",
+  "made_with": "pathfinding 0.4.18 via ctx.utils.import",
+  "features": [
+    "pathfinding",
+    "maze",
+    "a-star",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "pathfinding-js"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "order": 148,
+  "title": "Domino spiral (Rapier)",
+  "title_ko": "도미노 나선 (Rapier)",
+  "description": "Rapier, a Rust physics engine compiled to WebAssembly, topples a three-armed spiral of dominoes from the center outward; fallen dominoes light up and the spiral sets itself up again. One instanced draw renders the bodies' poses. Drag to orbit.",
+  "description_ko": "Rust 물리 엔진을 WebAssembly로 컴파일한 Rapier가 세 갈래 나선으로 늘어선 도미노를 가운데부터 바깥으로 쓰러뜨린다. 쓰러진 도미노는 밝아지고, 다 쓰러지면 나선이 다시 세워진다. 물체들의 자세는 인스턴싱 한 번으로 그린다. 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: @dimforge/rapier3d-compat imported in the scene)",
+  "made_with": "@dimforge/rapier3d-compat 0.20.0 via ctx.utils.import",
+  "features": [
+    "physics",
+    "wasm",
+    "instancing",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "rapier"
+  ]
+}

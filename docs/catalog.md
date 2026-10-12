@@ -15,6 +15,10 @@
   - `catalog_search(query, media?, tier?)`: 검색어의 모든 단어가 맞는 항목을 고른다. 이름 > 태그 > 용도 순으로 점수를 매기고, 점수가 같으면 가벼운 등급(B → E)을 먼저 보여 준다.
   - `catalog_get(id)`: 설치·가져오기 방법과 라이선스(가중치 포함)를 보여 준다.
   - 프롬프트: 도구를 고를 때 `catalog_search` → `recipe_search` 순서로 쓴다.
-- **index.opensource:** 참고 목록으로 계획했지만, 데이터 사용 조건이 사이트에 적혀 있지 않아 설명문을 옮기지 않았다. 조건을 확인하면 출처를 표기하고 항목을 늘린다. 이건 사람이 결정한다.
+- **index.opensource(참고 목록):** [index.opensource](https://indexopensource.com/index)(현 @hyun2xyz, 2026.10.06판, 412개)를 `studio/src/catalog/index-opensource.json`으로 가져왔다(`studio/scripts/import-index-opensource.mjs`).
+  - 사이트의 설명문은 옮기지 않는다. 남기는 것은 사실 정보와 짧은 분류 라벨뿐이다: 이름, 저장소, 라이선스, 원리, 결과 매체, 핵심 개념, 분야, 입력, 키워드, 번호와 색인 코드. 출처는 데이터와 도구 결과 양쪽에 표기한다.
+  - 이미 큐레이션된 도구(같은 저장소)는 목록에서 빼고, `catalog_get`이 해당 번호와 분류를 함께 보여 준다.
+  - 처음에는 사용 조건이 적혀 있지 않다는 이유로 이 목록을 쓰지 않았다. 2026-10-12에 사용자가 참고하라고 다시 짚어서 위 방식으로 반영했다.
+  - `catalog_search`는 큐레이션된 항목 뒤에 이 목록의 일치 항목을 "아직 설정되지 않은 참고 항목"으로 붙인다. `catalog_get`은 그런 항목에 시작 방법을 안내한다: README를 보고 씬 안에서 쓸지(B), python_run/command_run으로 쓸지 정하고, 동작하면 레시피로 저장한다.
 - **기여:** 이 파일에 항목을 추가하는 PR을 보낸다. 테스트가 id 중복, 등급별 설치 정보, B 등급 CDN 허용 목록(esm.sh, jsdelivr, unpkg)을 확인한다.
-- **예제와 연결:** 갤러리의 "Open source in Siljangnim" 예제는 카탈로그 도구 하나를 실장님에 붙인 것이다(`example.json`의 `uses`). `catalog_search`가 예제 이름을 함께 보여 주고, `catalog_get`이 그 예제의 setup 코드와 쓴 레시피를 **동작하는 참고 구현**으로 보여 준다. 15개(B 9, C 5, D 1)이고, C·D 예제의 에셋은 레시피를 허브에서 저장 → 검증 → 실행해 만들었다. 같은 레시피가 `registry/`에도 있다.
+- **예제와 연결:** 갤러리의 "Open source in Siljangnim" 예제는 카탈로그 도구 하나를 실장님에 붙인 것이다(`example.json`의 `uses`). `catalog_search`가 예제 이름을 함께 보여 주고, `catalog_get`이 그 예제의 setup 코드와 쓴 레시피를 **동작하는 참고 구현**으로 보여 준다. 62개다(2026-10-12). 마지막 47개는 index.opensource 목록에서 고른 도구로, 주제별로 나눈 에이전트 다섯이 만들었다. 씬이 에러 없이 도는지와 썸네일이 괜찮은지는 각 에이전트가 확인했고, 모은 뒤 다시 확인했다. C·D 예제의 에셋은 레시피를 허브에서 저장 → 검증 → 실행해 만들었고, 같은 레시피가 `registry/`에도 있다(14개). 큐레이션된 카탈로그는 이에 맞춰 82개가 됐다.

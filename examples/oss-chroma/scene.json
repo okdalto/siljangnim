@@ -1,0 +1,90 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// chroma.js builds the palette: a scale through three colors, interpolated in the chosen color space\n// (optionally as a B\u00e9zier curve, with lightness evened out), then cut into one class per ridge.\nconst mod = await ctx.utils.import(\"https://esm.sh/chroma-js@3.2.0\");\nconst chroma = mod.default ?? mod;\nconst fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform vec2 u_resolution; uniform float u_time; uniform float u_speed;\nuniform int u_layers; uniform vec3 u_cls[12]; uniform vec3 u_ramp[64]; uniform vec3 u_sky; uniform vec3 u_sun;\nfloat h1(float n) { return fract(sin(n) * 43758.5453); }\nfloat vnoise(float x) { float i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f); return mix(h1(i), h1(i + 1.0), f); }\nfloat ridge(float x, float k) {\n  float a = 0.0, amp = 0.5, fr = 1.0;\n  for (int o = 0; o < 5; o++) { a += amp * vnoise(x * fr + k * 17.3); fr *= 2.03; amp *= 0.5; }\n  return a;\n}\nvec3 rampAt(float t) { float x = clamp(t, 0.0, 1.0) * 63.0; int i = int(floor(x)); return mix(u_ramp[i], u_ramp[min(i + 1, 63)], fract(x)); }\nvoid main() {\n  float aspect = u_resolution.x / u_resolution.y;\n  float strip = 0.13;\n  if (v_uv.y < strip) {\n    // legend: continuous scale on top, the classes below\n    float y = v_uv.y / strip;\n    vec3 c = y > 0.52 ? rampAt(v_uv.x) : u_cls[min(int(v_uv.x * float(u_layers)), u_layers - 1)];\n    float gap = smoothstep(0.46, 0.48, y) * (1.0 - smoothstep(0.52, 0.54, y));\n    outColor = vec4(mix(c, vec3(0.06), gap), 1.0); return;\n  }\n  vec2 p = vec2(v_uv.x * aspect, (v_uv.y - strip) / (1.0 - strip));\n  vec3 col = mix(mix(u_sky, vec3(1.0), 0.45), u_sky, smoothstep(0.45, 1.0, p.y));\n  vec2 sp = vec2(aspect * 0.72, 0.8);\n  float sd = length(p - sp);\n  col = mix(col, u_sun, smoothstep(0.105, 0.1, sd));\n  col += u_sun * 0.18 * exp(-sd * 6.0);\n  float n = float(u_layers);\n  for (int i = 0; i < 12; i++) {\n    if (i >= u_layers) break;\n    float fi = float(i), depth = (fi + 1.0) / n;\n    float base = 0.78 - 0.72 * depth;\n    float x = p.x * (1.2 + depth * 1.6) + u_time * u_speed * (0.02 + 0.12 * depth * depth);\n    float h = base + (0.12 + 0.1 * depth) * ridge(x, fi);\n    if (p.y < h) {\n      // a little haze at the top edge of each ridge\n      float rim = smoothstep(0.03, 0.0, h - p.y);\n      col = mix(u_cls[i], mix(u_cls[i], u_sky, 0.25), rim * (1.0 - depth) * 0.6);\n    }\n  }\n  outColor = vec4(col, 1.0);\n}`;\nObject.assign(ctx.state, { chroma, key: \"\", cls: new Float32Array(36), ramp: new Float32Array(192), sky: [0, 0, 0], sun: [0, 0, 0],\n  MODES: [\"rgb\", \"lab\", \"lch\", \"oklch\", \"bezier\"],\n  p: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fs) });",
+    "render": "const s = ctx.state, u = ctx.uniforms, { chroma } = s;\nconst hex = (c) => chroma.gl(c[0], c[1], c[2]).hex();\nconst n = Math.max(3, Math.min(12, u.u_layers | 0));\nconst key = [u.u_far, u.u_mid, u.u_near, u.u_mode, u.u_correct, n].join(\"|\");\nif (key !== s.key) {\n  // Rebuild the palette only when a control changed.\n  s.key = key;\n  const stops = [hex(u.u_far), hex(u.u_mid), hex(u.u_near)];\n  const mode = s.MODES[u.u_mode] ?? \"lab\";\n  let scale = mode === \"bezier\" ? chroma.bezier(stops).scale() : chroma.scale(stops).mode(mode);\n  if (u.u_correct) scale = scale.correctLightness();\n  for (let i = 0; i < 64; i++) s.ramp.set(scale(i / 63).gl().slice(0, 3), i * 3);\n  scale.colors(n, null).forEach((c, i) => s.cls.set(c.gl().slice(0, 3), i * 3));\n  s.sky = chroma.mix(stops[0], stops[1], 0.3, \"lab\").gl().slice(0, 3);\n  s.sun = chroma.mix(stops[0], \"white\", 0.5, \"lab\").gl().slice(0, 3);\n  ctx.publish(\"classes\", scale.colors(n).join(\" \"));\n}\nctx.utils.drawFullscreen(s.p, { u_layers: n, u_cls: s.cls, u_ramp: s.ramp, u_sky: s.sky, u_sun: s.sun });",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_far": {
+      "type": "color",
+      "value": [
+        0.98,
+        0.84,
+        0.62
+      ],
+      "label": "Far"
+    },
+    "u_mid": {
+      "type": "color",
+      "value": [
+        0.86,
+        0.32,
+        0.42
+      ],
+      "label": "Middle"
+    },
+    "u_near": {
+      "type": "color",
+      "value": [
+        0.1,
+        0.08,
+        0.22
+      ],
+      "label": "Near"
+    },
+    "u_mode": {
+      "type": "int",
+      "value": 4,
+      "label": "Interpolation",
+      "widget": "select",
+      "options": [
+        {
+          "label": "RGB",
+          "value": 0
+        },
+        {
+          "label": "Lab",
+          "value": 1
+        },
+        {
+          "label": "LCh",
+          "value": 2
+        },
+        {
+          "label": "OKLCH",
+          "value": 3
+        },
+        {
+          "label": "B\u00e9zier (Lab)",
+          "value": 4
+        }
+      ]
+    },
+    "u_correct": {
+      "type": "bool",
+      "value": true,
+      "label": "Even lightness"
+    },
+    "u_layers": {
+      "type": "int",
+      "value": 8,
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "label": "Classes"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.01,
+      "label": "Drift",
+      "widget": "knob"
+    }
+  },
+  "inputs": []
+}
