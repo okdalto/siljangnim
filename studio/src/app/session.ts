@@ -44,6 +44,7 @@ import {
   type AssetInfo,
 } from "../project/assets";
 import { EXAMPLES, exampleText } from "../project/examples";
+import { mixRequest } from "../project/mix";
 import { projectFolderName, sceneCodeFiles } from "../project/sceneFiles";
 import {
   PIPELINE_FILE,
@@ -263,8 +264,34 @@ export function buildRequest(ref: { id: string; name: string; repo: string | nul
  * without an API key, the request is copied for the person to paste.
  */
 export async function buildWithAgent(ref: Parameters<typeof buildRequest>[0]): Promise<void> {
-  const request = buildRequest(ref);
   set({ examplesOpen: false });
+  await handToAgent(buildRequest(ref), ref.name, `${ref.name} (new)`);
+}
+
+/**
+ * Mix an example into the open project: its assets come over, and the agent is asked to combine its scene
+ * with the current one.
+ */
+export async function mixExample(slug: string): Promise<void> {
+  const example = EXAMPLES.find((e) => e.slug === slug);
+  const project = get().project;
+  if (!example || !project) return;
+  set({ examplesOpen: false });
+  try {
+    const files = await Promise.all(
+      example.assets.map(async (a) => new File([await (await fetch(a.url)).blob()], a.name)),
+    );
+    const { names } = await addAssetFiles(project.id, files, { attach: false });
+    const renamed = new Map(example.assets.map((a, i) => [a.name, names[i] ?? a.name] as const));
+    const title = exampleText(example, resolveLanguage(get().settings.language) === "ko").title;
+    await handToAgent(mixRequest(title, await example.scene(), renamed), title);
+  } catch (err) {
+    set({ notice: { kind: "error", text: `Couldn't mix in the example: ${err instanceof Error ? err.message : String(err)}` } });
+  }
+}
+
+/** Send a request to the built-in agent, or copy it for an external agent (or when no key is set yet). */
+async function handToAgent(request: string, what: string, newProject?: string): Promise<void> {
   const { external, settings } = get();
   const status = await keys.status();
   const ready = settings.provider === "custom" || (settings.provider === "anthropic" ? status.anthropic : status.openai);
@@ -278,13 +305,13 @@ export async function buildWithAgent(ref: Parameters<typeof buildRequest>[0]): P
       notice: {
         kind: "info",
         text: external
-          ? `Copied the request for ${ref.name}; paste it into ${external.client ?? "your agent"}'s chat.`
-          : `Copied the request for ${ref.name}. Add an API key in Settings (or connect Claude Code / Codex), then paste it into the chat.`,
+          ? `Copied the request for ${what}; paste it into ${external.client ?? "your agent"}'s chat.`
+          : `Copied the request for ${what}. Add an API key in Settings (or connect Claude Code / Codex), then paste it into the chat.`,
       },
     });
     return;
   }
-  await createProject(`${ref.name} (new)`);
+  if (newProject) await createProject(newProject);
   await sendPrompt(request);
 }
 

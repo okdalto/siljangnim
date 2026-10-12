@@ -60,10 +60,14 @@ const SAMPLE_CANVAS = `(async () => {
   if (!canvas) return { canvas: false };
   await new Promise((r) => requestAnimationFrame(r));
   const bitmap = await createImageBitmap(canvas);
-  const c = new OffscreenCanvas(32, 32);
+  // 96x96 with smoothing: a plain 32x32 drawImage samples one point every ~30 px, and a sparse bright
+  // pattern (reaction-diffusion's dots) can fall entirely between them and read as black.
+  const N = 96;
+  const c = new OffscreenCanvas(N, N);
   const g = c.getContext("2d");
-  g.drawImage(bitmap, 0, 0, 32, 32);
-  const data = g.getImageData(0, 0, 32, 32).data;
+  g.imageSmoothingQuality = "high";
+  g.drawImage(bitmap, 0, 0, N, N);
+  const data = g.getImageData(0, 0, N, N).data;
   let lit = 0;
   const sum = [0, 0, 0];
   for (let i = 0; i < data.length; i += 4) {
@@ -75,8 +79,8 @@ const SAMPLE_CANVAS = `(async () => {
     canvas: true,
     width: canvas.width,
     height: canvas.height,
-    litFraction: lit / 1024,
-    meanRgb: sum.map((v) => Math.round(v / 1024)),
+    litFraction: lit / (N * N),
+    meanRgb: sum.map((v) => Math.round(v / (N * N))),
     fillsFrame: Math.abs(rect.width - innerWidth) < 2 && Math.abs(rect.height - innerHeight) < 2,
   };
 })()`;

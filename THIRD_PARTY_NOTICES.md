@@ -81,7 +81,6 @@ Each example is built around these tools. None of them is copied into this repos
 
 | Material | Source | License | Example |
 |---|---|---|---|
-| beat.wav | [synthesized for Siljangnim](https://github.com/okdalto/siljangnim) | GPL-3.0-or-later (this repository) | [audio-bars](examples/audio-bars/) |
 | Bungee font | [The Bungee Project Authors (David Jonathan Ross)](https://github.com/djrrb/Bungee) | SIL Open Font License 1.1 (FONT-LICENSE.txt) | [oss-opentype](examples/oss-opentype/) |
 | beat.wav | [synthesized for Siljangnim](https://github.com/okdalto/siljangnim) | GPL-3.0-or-later (this repository) | [oss-meyda](examples/oss-meyda/) |
 | beat.wav | [synthesized for Siljangnim](https://github.com/okdalto/siljangnim) | GPL-3.0-or-later (this repository) | [oss-librosa](examples/oss-librosa/) |

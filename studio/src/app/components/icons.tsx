@@ -59,4 +59,6 @@ export const ClockIcon = (p: IconProps) => <Icon {...p}><circle cx="12" cy="12" 
 export const FolderIcon = (p: IconProps) => <Icon {...p}><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2h8.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z" /></Icon>;
 export const PulseIcon = (p: IconProps) => <Icon {...p}><path d="M3 12h4l2-6 4 12 2-6h6" /></Icon>;
 export const CogsIcon = (p: IconProps) => <Icon {...p}><path d="M5 4v6M5 14v6M12 4v2M12 10v10M19 4v10M19 18v2M3 12h4M10 8h4M17 16h4" /></Icon>;
+export const ExpandIcon = (p: IconProps) => <Icon {...p}><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></Icon>;
+export const MixIcon = (p: IconProps) => <Icon {...p}><circle cx="9" cy="12" r="5.5" /><circle cx="15" cy="12" r="5.5" /></Icon>;
 export const PanelIcon = (p: IconProps) => <Icon {...p}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M15 4v16" /></Icon>;

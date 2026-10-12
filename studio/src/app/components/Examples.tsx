@@ -4,10 +4,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { CATALOG, REFERENCES, REFERENCE_SOURCE, referenceFor, referenceLabels, type CatalogEntry, type ReferenceEntry } from "../../catalog/catalog";
 import { EXAMPLES, exampleText, type Example } from "../../project/examples";
-import { buildWithAgent, exampleLink, openExample, setExamplesOpen } from "../session";
+import { buildWithAgent, exampleLink, mixExample, openExample, setExamplesOpen } from "../session";
 import type { Language } from "../language";
 import { useApp, useLanguage } from "../state";
-import { CheckIcon, XIcon } from "./icons";
+import { CheckIcon, MixIcon, XIcon } from "./icons";
 
 const MADE_HERE = "Made in Siljangnim";
 
@@ -32,6 +32,8 @@ const STRINGS = {
     allNotices: "All third-party notices ↗",
     technical: "Technical details",
     open: "Open",
+    mix: "Mix in",
+    mixTitle: "Ask the agent to blend this into the project that's open now",
     link: "Link",
     linkTitle: "Copy a link that opens this example",
     about: "About",
@@ -69,6 +71,8 @@ const STRINGS = {
     allNotices: "서드파티 고지 전체 ↗",
     technical: "기술 정보",
     open: "열기",
+    mix: "섞기",
+    mixTitle: "지금 열린 프로젝트에 이 예제를 섞어 달라고 에이전트에게 요청해요",
     link: "링크",
     linkTitle: "이 예제를 바로 여는 링크 복사",
     about: "소개",
@@ -256,6 +260,7 @@ export function ExamplesDialog() {
 function Detail({ example: e, tools, korean, onClose }: { example: Example; tools: CatalogEntry[]; korean: boolean; onClose: () => void }) {
   const text = exampleText(e, korean);
   const t = STRINGS[korean ? "ko" : "en"];
+  const hasProject = useApp((s) => Boolean(s.project));
   return (
     <aside className="flex w-[380px] shrink-0 flex-col border-l border-line bg-panel" data-testid="example-detail">
       <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
@@ -306,6 +311,17 @@ function Detail({ example: e, tools, korean, onClose }: { example: Example; tool
         <button type="button" onClick={() => void openExample(e.slug)} className="flex-1 rounded-md bg-accent py-1.5 text-sm font-medium text-white hover:opacity-90" data-testid="example-open">
           {t.open}
         </button>
+        {hasProject && (
+          <button
+            type="button"
+            onClick={() => void mixExample(e.slug)}
+            title={t.mixTitle}
+            data-testid="example-mix"
+            className="flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1.5 text-sm text-muted hover:border-faint hover:text-fg"
+          >
+            <MixIcon size={14} /> {t.mix}
+          </button>
+        )}
         <CopyLink slug={e.slug} t={t} />
       </div>
     </aside>
