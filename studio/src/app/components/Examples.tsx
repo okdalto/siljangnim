@@ -9,8 +9,8 @@ export function ExamplesDialog() {
   const gpu = typeof navigator !== "undefined" && "gpu" in navigator;
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onMouseDown={(e) => e.target === e.currentTarget && close()}>
-      <div className="flex max-h-full w-full max-w-4xl flex-col rounded-xl border border-line bg-panel shadow-2xl" data-testid="examples">
-        <div className="flex items-center justify-between border-b border-line px-5 py-3">
+      <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col rounded-xl border border-line bg-panel shadow-2xl" data-testid="examples">
+        <div className="flex shrink-0 items-center justify-between border-b border-line px-5 py-3">
           <div>
             <h2 className="text-base font-semibold">Examples</h2>
             <p className="text-xs text-muted">Each one opens as a new project you can change, or ask the agent to change.</p>
@@ -19,7 +19,7 @@ export function ExamplesDialog() {
             <XIcon />
           </button>
         </div>
-        <div className="min-h-0 overflow-y-auto p-4">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
           <Section
             title="Open source in Siljangnim"
             note="Each one is an open-source tool connected to Siljangnim: a library running in the scene, or a Python package or program the agent ran through a recipe."

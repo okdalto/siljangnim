@@ -1,42 +1,147 @@
 // Controls panel built from what the scene declares: its uniforms (with
 // optional widget hints and groups) and the values it publishes (monitors).
-import { useRef } from "react";
+// It floats over the viewport (rendered inside Viewport).
+import { useRef, useState } from "react";
 import { evaluateTrack, keyAt } from "../../scene/gl/keyframes";
 import { KEYFRAMABLE, type UniformDef, type UniformValue } from "../../scene/schema";
 import { controlSections } from "../controlLayout";
 import { CustomPanel } from "./CustomPanel";
 import { KEY_SNAP_SECONDS, pulseUniform, setUniformValue, toggleKey } from "../session";
 import { useApp } from "../state";
+import { ChevronIcon } from "./icons";
 
-const GRID = "grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-x-6 gap-y-3";
+/** Where the floating panel sits and whether it is folded; remembered per browser. */
+const PANEL_KEY = "siljangnim.controlsPanel";
+const PANEL_WIDTH = 288;
+const MARGIN = 10;
 
+interface PanelPlace {
+  right: number;
+  top: number;
+  collapsed: boolean;
+}
+
+function loadPlace(): PanelPlace {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PANEL_KEY) ?? "null") as PanelPlace | null;
+    if (saved && typeof saved.right === "number" && typeof saved.top === "number") return { right: saved.right, top: saved.top, collapsed: Boolean(saved.collapsed) };
+  } catch {
+    // storage unavailable: defaults
+  }
+  return { right: MARGIN, top: MARGIN, collapsed: false };
+}
+
+function savePlace(place: PanelPlace): void {
+  try {
+    localStorage.setItem(PANEL_KEY, JSON.stringify(place));
+  } catch {
+    // not persisted
+  }
+}
+
+/**
+ * The controls float over the viewport in a compact panel (one row per control)
+ * that can be dragged by its header and folded, so the scene keeps the space.
+ */
 export function Controls() {
   const uniforms = useApp((s) => s.scene.uniforms);
   const groups = useApp((s) => s.scene.controls);
   const hasMonitors = useApp((s) => Object.keys(s.monitors).length > 0);
   const panel = useApp((s) => s.scene.panel);
+  const [place, setPlace] = useState(loadPlace);
+  const [folded, setFolded] = useState<Set<string>>(() => new Set());
+  const ref = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ x: number; y: number; right: number; top: number } | null>(null);
   const sections = controlSections({ uniforms, controls: groups });
-  if (!sections.length && !hasMonitors && !panel) {
-    return (
-      <div className="shrink-0 border-t border-line bg-panel px-4 py-3 text-xs text-faint">
-        No controls yet. Ask the agent to expose the parameters you want to tweak.
-      </div>
-    );
-  }
+  if (!sections.length && !hasMonitors && !panel) return null;
+
+  const update = (next: PanelPlace) => {
+    setPlace(next);
+    savePlace(next);
+  };
+  // Keep the panel inside the viewport when dragging.
+  const clamp = (right: number, top: number) => {
+    const parent = ref.current?.parentElement?.getBoundingClientRect();
+    const own = ref.current?.getBoundingClientRect();
+    if (!parent || !own) return { right, top };
+    return {
+      right: Math.min(Math.max(MARGIN, right), Math.max(MARGIN, parent.width - own.width - MARGIN)),
+      top: Math.min(Math.max(MARGIN, top), Math.max(MARGIN, parent.height - 36)),
+    };
+  };
+  const toggleSection = (label: string) =>
+    setFolded((f) => {
+      const next = new Set(f);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+
   return (
-    <div className="max-h-[45%] shrink-0 space-y-4 overflow-y-auto border-t border-line bg-panel px-4 py-3" data-testid="controls">
-      {panel && <CustomPanel html={panel.html} height={panel.height} />}
-      {sections.map((section) => (
-        <section key={section.label ?? ""}>
-          {section.label && <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-faint">{section.label}</h3>}
-          <div className={GRID}>
-            {section.names.map((name) => (
-              <Control key={name} name={name} def={uniforms[name]!} />
-            ))}
-          </div>
-        </section>
-      ))}
-      {hasMonitors && <Monitors />}
+    <div
+      ref={ref}
+      data-testid="controls"
+      className="absolute z-10 flex flex-col overflow-hidden rounded-lg border border-line/80 bg-panel/90 text-[11px] shadow-2xl backdrop-blur"
+      style={{ right: place.right, top: place.top, width: PANEL_WIDTH, maxHeight: `calc(100% - ${place.top + 44}px)` }}
+    >
+      <div
+        className="flex h-7 shrink-0 cursor-grab touch-none select-none items-center justify-between border-b border-line/70 px-2.5 active:cursor-grabbing"
+        onPointerDown={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          e.currentTarget.setPointerCapture(e.pointerId);
+          drag.current = { x: e.clientX, y: e.clientY, right: place.right, top: place.top };
+        }}
+        onPointerMove={(e) => {
+          const d = drag.current;
+          if (!d) return;
+          setPlace({ ...place, ...clamp(d.right - (e.clientX - d.x), d.top + (e.clientY - d.y)) });
+        }}
+        onPointerUp={() => {
+          if (drag.current) update(place);
+          drag.current = null;
+        }}
+        onDoubleClick={() => update({ ...place, collapsed: !place.collapsed })}
+      >
+        <span className="font-medium text-muted">Controls</span>
+        <button
+          type="button"
+          onClick={() => update({ ...place, collapsed: !place.collapsed })}
+          title={place.collapsed ? "Show controls" : "Fold controls"}
+          data-testid="controls-fold"
+          className="rounded p-0.5 text-faint hover:bg-raised hover:text-fg"
+        >
+          <ChevronIcon size={13} className={place.collapsed ? "-rotate-90" : ""} />
+        </button>
+      </div>
+      {!place.collapsed && (
+        <div className="min-h-0 space-y-2 overflow-y-auto px-2.5 py-2">
+          {panel && <CustomPanel html={panel.html} height={panel.height} />}
+          {sections.map((section) => {
+            const key = section.label ?? "";
+            return (
+              <section key={key}>
+                {section.label && (
+                  <h3
+                    onClick={() => toggleSection(key)}
+                    title={folded.has(key) ? "Show group" : "Fold group"}
+                    className={`mb-1 cursor-pointer select-none text-[10px] font-medium uppercase tracking-wide hover:text-muted ${folded.has(key) ? "text-faint/60" : "text-faint"}`}
+                  >
+                    {section.label}
+                  </h3>
+                )}
+                {!folded.has(key) && (
+                  <div className="space-y-1">
+                    {section.names.map((name) => (
+                      <Control key={name} name={name} def={uniforms[name]!} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+          {hasMonitors && <Monitors />}
+        </div>
+      )}
     </div>
   );
 }
@@ -45,14 +150,14 @@ function Monitors() {
   const monitors = useApp((s) => s.monitors);
   return (
     <section data-testid="monitors">
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-faint">Monitors</h3>
-      <div className={GRID}>
+      <h3 className="mb-1 text-[10px] font-medium uppercase tracking-wide text-faint">Monitors</h3>
+      <div className="space-y-0.5">
         {Object.entries(monitors).map(([name, m]) => (
-          <div key={name} className="flex items-center justify-between gap-3 text-xs" data-monitor={name}>
+          <div key={name} className="flex h-5 items-center justify-between gap-2" data-monitor={name}>
             <span className="truncate text-muted">{name}</span>
-            <span className="flex items-center gap-2">
+            <span className="flex min-w-0 items-center gap-2">
               {m.history.length > 1 && <Sparkline values={m.history} />}
-              <span className="tabular-nums text-fg">{formatMonitor(m.value)}</span>
+              <span className="truncate tabular-nums text-fg">{formatMonitor(m.value)}</span>
             </span>
           </div>
         ))}
@@ -91,20 +196,31 @@ function Control({ name, def }: { name: string; def: UniformDef }) {
   const timelineMode = useApp((s) => Boolean(s.scene.timeline));
   const shown: UniformDef = keys && !overridden ? { ...def, value: evaluateTrack(keys, time) ?? def.value } : def;
 
-  // A button carries its own label.
-  if (def.widget === "button") return <Input name={name} def={def} set={set} />;
-  return (
-    <div className="block text-xs" data-control={name}>
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="truncate text-muted" title={name}>
-          {label}
-        </span>
-        <span className="flex items-center gap-1.5">
-          {keyable && <span className="tabular-nums text-faint">{format(shown.value as number, def.type as "float" | "int")}</span>}
-          {keyable && timelineMode && <KeyButton name={name} label={label} animated={Boolean(keys)} onKey={Boolean(keyAt(keys, time, KEY_SNAP_SECONDS))} />}
-        </span>
+  // A button carries its own label; a pad needs the panel's width.
+  if (def.widget === "button") return <div data-control={name}><Input name={name} def={def} set={set} /></div>;
+  const value = keyable ? <span className="tabular-nums text-faint">{format(shown.value as number, def.type as "float" | "int")}</span> : null;
+  const key = keyable && timelineMode ? <KeyButton name={name} label={label} animated={Boolean(keys)} onKey={Boolean(keyAt(keys, time, KEY_SNAP_SECONDS))} /> : null;
+  if (def.widget === "pad") {
+    return (
+      <div data-control={name}>
+        <div className="mb-1 flex items-center justify-between">
+          <span className="truncate text-muted" title={name}>{label}</span>
+          <span className="tabular-nums text-faint">{(shown.value as number[]).map((v) => v.toFixed(2)).join(", ")}</span>
+        </div>
+        <Input name={name} def={shown} set={set} />
       </div>
+    );
+  }
+  return (
+    <div className="grid min-h-6 grid-cols-[86px_minmax(0,1fr)_auto] items-center gap-2" data-control={name}>
+      <span className="truncate text-muted" title={label === name ? name : `${label} (${name})`}>
+        {label}
+      </span>
       <Input name={name} def={shown} set={set} />
+      <span className="flex min-w-7 items-center justify-end gap-1">
+        {value}
+        {key}
+      </span>
     </div>
   );
 }
@@ -135,7 +251,7 @@ function Input({ name, def, set }: { name: string; def: UniformDef; set: (v: Uni
         <select
           value={String(def.value)}
           onChange={(e) => set(Number(e.target.value))}
-          className="w-full rounded border border-line bg-bg px-1.5 py-1 outline-none focus:border-muted"
+          className="h-6 w-full rounded border border-line bg-bg px-1 outline-none focus:border-muted"
           data-widget="select"
         >
           {(def.options ?? []).map((o) => (
@@ -150,7 +266,7 @@ function Input({ name, def, set }: { name: string; def: UniformDef; set: (v: Uni
         <button
           type="button"
           onClick={() => pulseUniform(name)}
-          className="w-full rounded-md border border-line py-1.5 text-muted hover:border-faint hover:text-fg active:bg-raised"
+          className="h-6 w-full rounded border border-line text-muted hover:border-faint hover:text-fg active:bg-raised"
           data-widget="button"
         >
           {def.label ?? name.replace(/^u_/, "")}
@@ -172,7 +288,7 @@ function Input({ name, def, set }: { name: string; def: UniformDef; set: (v: Uni
           step={step}
           value={value}
           onChange={(e) => set(def.type === "int" ? Math.round(Number(e.target.value)) : Number(e.target.value))}
-          className="w-full"
+          className="h-4 w-full"
         />
       );
     }
@@ -181,21 +297,24 @@ function Input({ name, def, set }: { name: string; def: UniformDef; set: (v: Uni
         <button
           type="button"
           onClick={() => set(!def.value)}
-          className={`relative h-5 w-9 rounded-full transition-colors ${def.value ? "bg-accent" : "bg-line"}`}
+          className={`relative h-4 w-7 rounded-full transition-colors ${def.value ? "bg-accent" : "bg-line"}`}
           aria-pressed={Boolean(def.value)}
         >
-          <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-fg transition-all ${def.value ? "left-[18px]" : "left-0.5"}`} />
+          <span className={`absolute top-0.5 h-3 w-3 rounded-full bg-fg transition-all ${def.value ? "left-[14px]" : "left-0.5"}`} />
         </button>
       );
     case "color": {
       const rgb = def.value as number[];
       return (
-        <input
-          type="color"
-          value={toHex(rgb)}
-          onChange={(e) => set([...fromHex(e.target.value), ...rgb.slice(3)])}
-          className="h-7 w-full cursor-pointer rounded border border-line bg-transparent"
-        />
+        <label className="flex min-w-0 items-center gap-1.5">
+          <input
+            type="color"
+            value={toHex(rgb)}
+            onChange={(e) => set([...fromHex(e.target.value), ...rgb.slice(3)])}
+            className="h-5 w-9 shrink-0 cursor-pointer rounded border border-line bg-transparent p-0"
+          />
+          <span className="truncate font-mono text-[10px] text-faint">{toHex(rgb)}</span>
+        </label>
       );
     }
     default: {
@@ -213,7 +332,7 @@ function Input({ name, def, set }: { name: string; def: UniformDef; set: (v: Uni
                 next[i] = Number(e.target.value);
                 set(next);
               }}
-              className="w-full min-w-0 rounded border border-line bg-bg px-1.5 py-1 tabular-nums outline-none focus:border-muted"
+              className="h-6 w-full min-w-0 rounded border border-line bg-bg px-1 tabular-nums outline-none focus:border-muted"
             />
           ))}
         </div>
@@ -238,7 +357,7 @@ function Knob({ def, set }: { def: UniformDef; set: (v: UniformValue) => void })
       aria-valuenow={value}
       tabIndex={0}
       data-widget="knob"
-      className="mx-auto h-10 w-10 cursor-ns-resize touch-none select-none"
+      className="h-7 w-7 cursor-ns-resize touch-none select-none"
       onPointerDown={(e) => {
         e.currentTarget.setPointerCapture(e.pointerId);
         drag.current = { y: e.clientY, value };
@@ -281,7 +400,7 @@ function Pad({ def, set }: { def: UniformDef; set: (v: UniformValue) => void }) 
   return (
     <div
       data-widget="pad"
-      className="relative h-24 w-full cursor-crosshair touch-none rounded border border-line bg-bg"
+      className="relative h-20 w-full cursor-crosshair touch-none rounded border border-line bg-bg"
       onPointerDown={(e) => {
         e.currentTarget.setPointerCapture(e.pointerId);
         update(e);
