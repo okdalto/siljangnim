@@ -122,6 +122,7 @@ const set = useApp.setState;
 export async function boot(): Promise<void> {
   // Opened by the MCP bridge: an external agent drives this viewer.
   if (bridgeToken) void import("./bridge").then(({ connectBridge }) => connectBridge(bridgeToken!));
+  window.addEventListener("hashchange", openLinkedExample);
   // Desktop: an agent's MCP bridge can attach to this window (docs/mcp.md).
   if (bridge?.agent) {
     let attached = "";
@@ -144,10 +145,13 @@ export async function boot(): Promise<void> {
   const target = projects.find((p) => p.id === remembered) ?? projects[0]!;
   await openProject(target.id);
   set({ ready: true });
+  // A shared link to an example opens it after the last project.
+  openLinkedExample();
 }
 
 export async function openProject(id: string): Promise<void> {
   stopAgent();
+  set({ exampleIntro: null });
   await flushControlVersion();
   await flushSave();
   const project = await store.getProject(id);
@@ -194,6 +198,7 @@ export async function openExample(slug: string): Promise<void> {
     // Recipe examples say how their assets were made, so project.md can tell another machine.
     if (example.pipeline) await store.writeFile(project.id, PIPELINE_FILE, JSON.stringify(example.pipeline, null, 2));
     await openProject(project.id);
+    set({ exampleIntro: example.slug });
   } catch (err) {
     set({ notice: { kind: "error", text: `Couldn't open the example: ${err instanceof Error ? err.message : String(err)}` } });
   }
@@ -223,6 +228,61 @@ export async function importV1Project(file: File): Promise<void> {
 
 export function setExamplesOpen(open: boolean): void {
   set({ examplesOpen: open });
+}
+
+/** A link that opens an example directly (anyone can share it). */
+export function exampleLink(slug: string): string {
+  return `${window.location.origin}${window.location.pathname}#example=${encodeURIComponent(slug)}`;
+}
+
+/** #example=<slug> in the address opens that example (shared links). */
+function openLinkedExample(): void {
+  const slug = window.location.hash.match(/(?:^#|&)example=([\w.-]+)/)?.[1];
+  if (!slug) return;
+  history.replaceState(null, "", window.location.pathname + window.location.search);
+  if (EXAMPLES.some((e) => e.slug === slug)) void openExample(slug);
+  else set({ notice: { kind: "error", text: `No example "${slug}" in this version.` } });
+}
+
+/** What the agent is asked when someone picks a tool that has no example yet. */
+export function buildRequest(ref: { id: string; name: string; repo: string | null; license: string | null; concept: string; input: string }): string {
+  return (
+    `Connect the open-source tool ${ref.name}${ref.repo ? ` (${ref.repo})` : ""} to a live scene and make an example of it. ` +
+    `It is about: ${ref.concept}; its input: ${ref.input}. Start with catalog_get "${ref.id}", then decide whether it runs in the scene ` +
+    "(imported from a CDN) or on this computer (python_run / command_run). Make it good-looking and interactive with a few controls, " +
+    `check it with viewport_capture, save a recipe if it ran on this computer, and tell me its license (${ref.license ?? "check the repository"}).`
+  );
+}
+
+/**
+ * A new project where the agent connects a tool from the reference list.
+ * The built-in agent gets the request right away; with an external agent, or
+ * without an API key, the request is copied for the person to paste.
+ */
+export async function buildWithAgent(ref: Parameters<typeof buildRequest>[0]): Promise<void> {
+  const request = buildRequest(ref);
+  set({ examplesOpen: false });
+  const { external, settings } = get();
+  const status = await keys.status();
+  const ready = settings.provider === "custom" || (settings.provider === "anthropic" ? status.anthropic : status.openai);
+  if (external || !ready) {
+    try {
+      await navigator.clipboard.writeText(request);
+    } catch {
+      // clipboard not allowed: the notice still says what to ask
+    }
+    set({
+      notice: {
+        kind: "info",
+        text: external
+          ? `Copied the request for ${ref.name}; paste it into ${external.client ?? "your agent"}'s chat.`
+          : `Copied the request for ${ref.name}. Add an API key in Settings (or connect Claude Code / Codex), then paste it into the chat.`,
+      },
+    });
+    return;
+  }
+  await createProject(`${ref.name} (new)`);
+  await sendPrompt(request);
 }
 
 export async function renameProject(name: string): Promise<void> {

@@ -1,0 +1,33 @@
+{
+  "order": 169,
+  "title": "Sun over the plaza (SunCalc)",
+  "title_ko": "광장 위의 해 (SunCalc)",
+  "description": "SunCalc computes where the sun and moon stand for a city, day and hour; a raymarched plaza is lit from there, the sky and shadows follow, and the day's sun path is dotted across the sky (every 15 minutes). Pick a place and day; time runs on its own. Drag to look around; sunrise and sunset show in the monitor.",
+  "description_ko": "SunCalc가 도시, 날짜, 시각에 맞춰 해와 달의 고도와 방위를 계산한다. 레이마칭으로 그린 광장이 그 방향에서 빛을 받고, 하늘과 그림자가 따라 바뀌며, 그날 해가 지나는 길이 15분마다 점으로 하늘에 찍힌다. 장소와 날짜를 고르면 시간은 저절로 흐른다. 드래그하면 둘러볼 수 있고, 해 뜨고 지는 시각은 모니터에 나온다.",
+  "prompt": "(open-source example: SunCalc imported in the scene)",
+  "made_with": "suncalc 2.0.2 via ctx.utils.import",
+  "features": [
+    "sun position",
+    "raymarching",
+    "shadows",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "suncalc"
+  ],
+  "summary": "A stone plaza lit by the real sun for a chosen city and day, with shadows sweeping as the hours pass.",
+  "summary_ko": "고른 도시와 날짜의 실제 해 위치로 돌 광장을 비춰요. 시간이 흐르며 그림자가 빙 돌아가요.",
+  "try": [
+    "Set Place to Tromsø and Day of year (2026) near 172 to see the sun stay up all night",
+    "Drag left or right to look around the plaza",
+    "Turn up the Hours / second knob to fast-forward the day"
+  ],
+  "try_ko": [
+    "Place를 Tromsø로, Day of year (2026)을 172 근처로 맞추면 밤새 해가 지지 않아요",
+    "좌우로 드래그해서 광장을 둘러보세요",
+    "Hours / second 노브를 올려 하루를 빨리 감아 보세요"
+  ],
+  "tool_about": "SunCalc is a small JavaScript library that tells where the sun and moon are in the sky for any place and time, plus sunrise and sunset times. It runs in the browser and is used for maps, photography and lighting.",
+  "tool_about_ko": "SunCalc는 어느 장소, 어느 시각이든 해와 달이 하늘 어디에 있는지, 해 뜨고 지는 시각은 언제인지 알려 주는 작은 자바스크립트 라이브러리예요. 브라우저에서 돌아가며 지도, 사진, 조명 작업에 쓰여요."
+}

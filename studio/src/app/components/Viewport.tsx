@@ -4,6 +4,8 @@ import { SceneHost, sceneRuntimeUrl } from "../../scene/host";
 import { attachSceneHost } from "../session";
 import { useApp } from "../state";
 import { AlertIcon, XIcon } from "./icons";
+import { EXAMPLES, exampleText } from "../../project/examples";
+import { Notice } from "./Chat";
 import { Controls } from "./Controls";
 import { RecordingOverlay } from "./Record";
 
@@ -36,8 +38,50 @@ export function Viewport() {
       <StatusBar />
       {/* After the scene container: it is the page's first iframe. */}
       <Controls />
+      <FoldedNotice />
+      <ExampleIntro />
       <RecordingOverlay />
     </section>
+  );
+}
+
+/** Right after an example opens: what it is and what to try, in plain words. */
+function ExampleIntro() {
+  const slug = useApp((s) => s.exampleIntro);
+  const example = EXAMPLES.find((e) => e.slug === slug);
+  if (!example) return null;
+  const text = exampleText(example);
+  return (
+    <div className="absolute bottom-10 left-2 z-20 w-80 rounded-lg border border-line/80 bg-panel/90 p-3 text-xs shadow-2xl backdrop-blur" data-testid="example-intro">
+      <div className="mb-1 flex items-start justify-between gap-2">
+        <span className="font-medium text-fg">{text.title}</span>
+        <button type="button" onClick={() => useApp.setState({ exampleIntro: null })} className="-mr-1 -mt-0.5 rounded p-0.5 text-faint hover:bg-raised hover:text-fg" title="Close">
+          <XIcon size={13} />
+        </button>
+      </div>
+      <p className="leading-relaxed text-muted">{text.summary}</p>
+      {text.tries.length > 0 && (
+        <ul className="mt-2 space-y-0.5 text-muted">
+          {text.tries.map((t) => (
+            <li key={t} className="flex gap-1.5">
+              <span className="text-accent">•</span>
+              <span>{t}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/** With the sidebar folded, its notices (imports, exports, errors) float over the viewport. */
+function FoldedNotice() {
+  const folded = useApp((s) => s.sidebarCollapsed);
+  if (!folded) return null;
+  return (
+    <div className="absolute bottom-10 right-1 z-20 w-80 shadow-2xl">
+      <Notice />
+    </div>
   );
 }
 

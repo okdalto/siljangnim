@@ -1,0 +1,33 @@
+{
+  "order": 189,
+  "title": "Tilt-shift city (glur)",
+  "title_ko": "틸트 시프트 도시 (glur)",
+  "description": "Every frame the scene paints a night city with flickering windows and traffic, and glur blurs a half-size copy of it on the CPU (an IIR Gaussian: the cost does not grow with the radius). The shader keeps a band in focus at the pointer and blurs the rest, for a miniature look, plus a little bloom.",
+  "description_ko": "씬이 매 프레임 창문이 깜박이고 차가 달리는 밤 도시를 그리고, glur가 그 절반 크기 사본을 CPU에서 블러한다(IIR 가우시안이라 반경이 커져도 비용이 같다). 셰이더는 포인터 높이의 띠만 초점을 맞추고 나머지를 흐려 미니어처처럼 보이게 하고, 빛 번짐을 조금 더한다.",
+  "prompt": "(open-source example: glur imported in the scene)",
+  "made_with": "glur 2.0.0 via ctx.utils.import",
+  "features": [
+    "blur",
+    "tilt-shift",
+    "bloom",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "glur"
+  ],
+  "summary": "A night city made to look like a tiny model: one sharp strip, everything above and below softly blurred.",
+  "summary_ko": "밤 도시를 미니어처처럼 보이게 해요. 한 줄만 선명하고 그 위아래는 부드럽게 흐려져요.",
+  "try": [
+    "Move the pointer up and down to choose which strip stays sharp",
+    "Raise Blur radius for a stronger blur",
+    "Turn on Show band to see the edges of the sharp strip"
+  ],
+  "try_ko": [
+    "포인터를 위아래로 움직여 선명한 줄의 위치를 골라 보세요",
+    "Blur radius를 올리면 더 많이 흐려져요",
+    "Show band를 켜면 선명한 구역의 경계가 보여요"
+  ],
+  "tool_about": "glur is a small JavaScript library that blurs images quickly, and a big blur takes no longer than a small one. It runs in the browser and is used for photo editing and soft backgrounds.",
+  "tool_about_ko": "glur는 이미지를 빠르게 흐리게 하는 작은 자바스크립트 라이브러리예요. 많이 흐리게 해도 조금 흐리게 할 때보다 시간이 더 걸리지 않아요. 브라우저에서 돌아가며 사진 편집이나 흐린 배경에 쓰여요."
+}

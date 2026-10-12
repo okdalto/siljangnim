@@ -1,0 +1,33 @@
+{
+  "order": 128,
+  "title": "Low-poly light (Trianglify)",
+  "title_ko": "로우폴리 빛 (Trianglify)",
+  "description": "Trianglify generates a low-poly pattern: jittered points, Delaunay triangles and a ColorBrewer gradient. The scene keeps its triangles and colours, sways the points and lights each facet from the pointer. Change palette, cell size or seed for a new pattern.",
+  "description_ko": "Trianglify가 로우폴리 패턴을 만든다. 흩뜨린 격자 점, 들로네 삼각형, ColorBrewer 그라디언트 색이다. 씬은 그 삼각형과 색을 받아 점을 흔들고, 포인터 쪽에서 비추는 빛으로 면마다 음영을 준다. 팔레트, 셀 크기, 시드를 바꾸면 새 패턴이 된다.",
+  "prompt": "(open-source example: Trianglify imported in the scene)",
+  "made_with": "trianglify 4.1.1 (browser bundle) via ctx.utils.import",
+  "features": [
+    "low-poly",
+    "pattern",
+    "lighting",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "trianglify"
+  ],
+  "summary": "A mosaic of colored triangles gently shifts and catches the light from your pointer.",
+  "summary_ko": "색색의 삼각형 모자이크가 살랑살랑 움직이며 포인터 쪽에서 오는 빛을 받아 반짝여요.",
+  "try": [
+    "Move the pointer to move the light across the triangles",
+    "Pick another Palette for a new color scheme",
+    "Change Seed or Cell size for a different pattern"
+  ],
+  "try_ko": [
+    "포인터를 움직여 삼각형 위로 빛을 옮겨 보세요",
+    "Palette를 바꿔 새로운 색 조합을 골라 보세요",
+    "Seed나 Cell size를 바꿔 다른 무늬를 만들어 보세요"
+  ],
+  "tool_about": "Trianglify is a JavaScript library that generates colorful backgrounds made of triangles, the kind used for wallpapers and website headers. It runs in the browser.",
+  "tool_about_ko": "Trianglify는 배경화면이나 웹사이트 머리 이미지에 쓰이는, 삼각형으로 된 알록달록한 배경을 만들어 주는 JavaScript 라이브러리예요. 브라우저에서 돌아가요."
+}

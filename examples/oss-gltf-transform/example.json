@@ -16,5 +16,19 @@
   "uses": [
     "gltf-transform",
     "trimesh"
-  ]
+  ],
+  "summary": "A smooth, lumpy pebble-like sculpture with soft painted colors slowly spins in the dark.",
+  "summary_ko": "부드럽게 울퉁불퉁한 조약돌 같은 조형물이 은은한 색을 띠고 어둠 속에서 천천히 돌아요.",
+  "try": [
+    "Drag to orbit around the sculpture",
+    "Turn the Spin knob to zero to stop it",
+    "Raise Rim light for a glowing edge"
+  ],
+  "try_ko": [
+    "드래그해서 조형물 주위를 돌아보세요",
+    "Spin 노브를 0으로 돌려 멈춰 보세요",
+    "Rim light를 올려 가장자리가 빛나게 해 보세요"
+  ],
+  "tool_about": "glTF Transform opens and edits .glb/.gltf 3D model files, the common format for 3D on the web; it runs in the browser. The model itself was made with trimesh, a Python library for building 3D shapes that runs on this computer.",
+  "tool_about_ko": "glTF Transform은 웹 3D에서 흔히 쓰는 .glb/.gltf 모델 파일을 열고 고치는 도구로, 브라우저에서 돌아가요. 모델 자체는 이 컴퓨터의 파이썬에서 돌아가는 3D 모양 라이브러리 trimesh로 만들었어요."
 }

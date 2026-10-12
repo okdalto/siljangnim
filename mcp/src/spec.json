@@ -640,7 +640,7 @@
     },
     {
       "name": "catalog_search",
-      "description": "Search the catalog of open-source tools (metadata only: purpose, grade, license, install) for a capability, e.g. \"depth\", \"plotter svg\", \"beat detection\", \"triangulation\". Lighter options come first: B runs in the scene, C/D/E on this computer. Then recipe_search for a setup that already worked.",
+      "description": "Search the catalog of open-source tools (metadata only: purpose, grade, license, install) for a capability, e.g. \"depth\", \"plotter svg\", \"beat detection\", \"triangulation\". Lighter options come first: B runs in the scene, C/D/E on this computer. Also searches a reference list of ~400 open-source projects for creative coding (index.opensource), which aren't set up yet. Then recipe_search for a setup that already worked.",
       "inputSchema": {
         "type": "object",
         "properties": {

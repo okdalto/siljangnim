@@ -1,0 +1,33 @@
+{
+  "order": 164,
+  "title": "Rope bridge (planck.js)",
+  "title_ko": "흔들다리 (planck.js)",
+  "description": "planck.js, a JavaScript port of Box2D, simulates a plank bridge and a chain held together by revolute joints while shapes rain down onto them. Drag any body with the mouse (a mouse joint pulls it); gravity, drop rate and bounce are controls.",
+  "description_ko": "Box2D를 자바스크립트로 옮긴 planck.js가 회전 관절로 엮인 판자 다리와 쇠사슬을 시뮬레이션하고, 그 위로 도형들이 쏟아진다. 마우스로 아무 물체나 끌 수 있고(마우스 관절이 끌어당긴다), 중력, 떨어지는 빈도, 튕김을 조절할 수 있다.",
+  "prompt": "(open-source example: planck.js imported in the scene)",
+  "made_with": "planck 1.5.0 via ctx.utils.import",
+  "features": [
+    "physics",
+    "joints",
+    "rigid body",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "planck-js"
+  ],
+  "summary": "A wobbly plank bridge and a swinging chain catch colorful shapes falling from the sky.",
+  "summary_ko": "흔들거리는 판자 다리와 출렁이는 쇠사슬 위로 알록달록한 도형들이 쏟아져 내려요.",
+  "try": [
+    "Drag any shape, plank or the red ball with the mouse",
+    "Turn the Gravity knob below zero to make things float up",
+    "Raise Bounce (new shapes) so new shapes bounce like rubber"
+  ],
+  "try_ko": [
+    "마우스로 도형이나 판자, 빨간 공을 잡아 끌어 보세요",
+    "Gravity 노브를 0 아래로 돌려 물건들이 위로 떠오르게 해 보세요",
+    "Bounce (new shapes)를 올리면 새 도형들이 고무공처럼 튀어요"
+  ],
+  "tool_about": "planck.js is a 2D physics engine for the web (a JavaScript version of the classic Box2D). It runs in the browser and makes shapes fall, collide and hang from hinges and ropes, as in games.",
+  "tool_about_ko": "planck.js는 웹용 2D 물리 엔진이에요(유명한 Box2D의 자바스크립트판). 브라우저에서 돌아가며, 게임처럼 도형이 떨어지고 부딪히고 경첩이나 줄에 매달리게 해 줘요."
+}

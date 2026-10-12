@@ -1,0 +1,59 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// hsluv converts hue/saturation/lightness to sRGB so that equal lightness looks equally light.\n// Left: plain HSL (computed in the shader). Right: HSLuv (or HPLuv) from the library, baked into a\n// hue \u00d7 saturation texture whenever the lightness changes. \"Show lightness\" turns both into grey L*.\nconst { Hsluv } = await ctx.utils.import(\"https://esm.sh/hsluv@1.0.2\");\nconst gl = ctx.gl, tex = gl.createTexture();\ngl.bindTexture(gl.TEXTURE_2D, tex);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);\n// Labels under the wheels, drawn once on a small 2D canvas.\nconst label = new OffscreenCanvas(1024, 96), lc = label.getContext(\"2d\");\nlc.fillStyle = \"#fff\"; lc.font = \"600 54px sans-serif\"; lc.textAlign = \"center\"; lc.textBaseline = \"middle\";\nconst labelTex = gl.createTexture();\nconst fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_uv; uniform sampler2D u_label; uniform vec2 u_resolution; uniform float u_time;\nuniform float u_light; uniform bool u_lum; uniform int u_swatches; uniform float u_spin;\nconst float PI = 3.14159265;\nvec3 hsl(float h, float s, float l) {\n  vec3 k = mod(vec3(0.0, 8.0, 4.0) + h * 12.0, 12.0);\n  float a = s * min(l, 1.0 - l);\n  return l - a * clamp(min(k - 3.0, 9.0 - k), -1.0, 1.0);\n}\nfloat lstar(vec3 c) {\n  vec3 lin = mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c));\n  float y = dot(lin, vec3(0.2126, 0.7152, 0.0722));\n  float L = y > 0.008856 ? 116.0 * pow(y, 1.0 / 3.0) - 16.0 : 903.3 * y;\n  return L / 100.0;\n}\nvec3 wheel(int side, float hue, float sat) {\n  return side == 0 ? hsl(hue, sat, u_light / 100.0) : texture(u_uv, vec2(hue, sat * (100.0 / 101.0) + 0.5 / 101.0)).rgb;\n}\nvoid main() {\n  float aspect = u_resolution.x / u_resolution.y;\n  vec2 p = vec2(v_uv.x * aspect, v_uv.y);\n  int side = v_uv.x < 0.5 ? 0 : 1;\n  vec2 c = vec2(aspect * (side == 0 ? 0.26 : 0.74), 0.56);\n  float R = min(0.3, aspect * 0.16);\n  vec2 d = p - c; float r = length(d);\n  float hue = fract(atan(d.y, d.x) / (2.0 * PI));\n  vec3 col = vec3(0.08, 0.08, 0.09);\n  if (r < R) col = wheel(side, hue, r / R);\n  col = mix(col, vec3(0.08, 0.08, 0.09), smoothstep(R - 0.002, R + 0.002, r) * step(r, R + 0.01));\n  // ring of evenly spaced swatches at full saturation\n  float n = float(u_swatches), ringR = R + 0.065;\n  float a0 = u_time * u_spin / 360.0;\n  float k = floor((hue - a0) * n + 0.5);\n  float sh = fract(a0 + k / n);\n  vec2 sp = c + ringR * vec2(cos(sh * 2.0 * PI), sin(sh * 2.0 * PI));\n  float dotR = min(0.035, PI * ringR / n * 0.8);\n  float ds = length(p - sp);\n  if (ds < dotR) col = wheel(side, sh, 1.0);\n  col = mix(col, vec3(0.08, 0.08, 0.09), smoothstep(dotR - 0.003, dotR, ds) * step(ds, dotR + 0.004));\n  if (u_lum) col = vec3(lstar(col));\n  // labels\n  vec2 lp = vec2(v_uv.x, (v_uv.y - 0.07) / 0.06);\n  if (lp.y > 0.0 && lp.y < 1.0) col = mix(col, vec3(0.85), texture(u_label, vec2(lp.x, 1.0 - lp.y)).a);\n  outColor = vec4(col, 1.0);\n}`;\nObject.assign(ctx.state, { Hsluv, tex, label, lc, labelTex, key: \"\", px: new Uint8Array(360 * 101 * 4),\n  p: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fs) });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms;\nconst key = u.u_light + \"|\" + u.u_mode;\nif (key !== s.key) {\n  s.key = key;\n  const c = new s.Hsluv(), pastel = u.u_mode === 1;\n  for (let j = 0; j <= 100; j++) for (let i = 0; i < 360; i++) {\n    if (pastel) { c.hpluv_h = i; c.hpluv_p = j; c.hpluv_l = u.u_light; c.hpluvToRgb(); }\n    else { c.hsluv_h = i; c.hsluv_s = j; c.hsluv_l = u.u_light; c.hsluvToRgb(); }\n    const o = (j * 360 + i) * 4;\n    s.px[o] = Math.round(Math.min(1, Math.max(0, c.rgb_r)) * 255);\n    s.px[o + 1] = Math.round(Math.min(1, Math.max(0, c.rgb_g)) * 255);\n    s.px[o + 2] = Math.round(Math.min(1, Math.max(0, c.rgb_b)) * 255);\n    s.px[o + 3] = 255;\n  }\n  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\n  gl.bindTexture(gl.TEXTURE_2D, s.tex);\n  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 360, 101, 0, gl.RGBA, gl.UNSIGNED_BYTE, s.px);\n  const { lc, label } = s;\n  lc.clearRect(0, 0, label.width, label.height);\n  lc.fillText(\"HSL\", label.width * 0.26, label.height / 2);\n  lc.fillText(pastel ? \"HPLuv\" : \"HSLuv\", label.width * 0.74, label.height / 2);\n  gl.bindTexture(gl.TEXTURE_2D, s.labelTex);\n  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, label);\n  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);\n  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);\n  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);\n}\ngl.useProgram(s.p);\nctx.utils.bindTexture(s.p, \"u_uv\", s.tex, 0);\nctx.utils.bindTexture(s.p, \"u_label\", s.labelTex, 1);\nctx.utils.drawFullscreen(s.p, { u_swatches: Math.max(3, u.u_swatches | 0) });",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_light": {
+      "type": "float",
+      "value": 62,
+      "min": 5,
+      "max": 95,
+      "step": 1,
+      "label": "Lightness"
+    },
+    "u_mode": {
+      "type": "int",
+      "value": 0,
+      "label": "Right wheel",
+      "widget": "select",
+      "options": [
+        {
+          "label": "HSLuv",
+          "value": 0
+        },
+        {
+          "label": "HPLuv (pastel)",
+          "value": 1
+        }
+      ]
+    },
+    "u_lum": {
+      "type": "bool",
+      "value": false,
+      "label": "Show lightness (L*)"
+    },
+    "u_swatches": {
+      "type": "int",
+      "value": 9,
+      "min": 3,
+      "max": 24,
+      "step": 1,
+      "label": "Swatches"
+    },
+    "u_spin": {
+      "type": "float",
+      "value": 8,
+      "min": 0,
+      "max": 60,
+      "step": 0.5,
+      "label": "Spin (\u00b0/s)",
+      "widget": "knob"
+    }
+  },
+  "inputs": []
+}

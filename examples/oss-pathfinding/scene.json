@@ -1,0 +1,81 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "// PathFinding.js searches a generated maze; the scene records the order in which the finder\n// expands cells (by wrapping grid.getNeighbors) and replays the search, then the path.\nconst mod = await ctx.utils.import(\"https://esm.sh/pathfinding@0.4.18\");\nconst PF = mod.default ?? mod;\nconst COLS = 71, ROWS = 41;\n// Recursive-backtracker maze on odd cells, then knock out some walls so there are loops.\nconst walls = Array.from({ length: ROWS }, () => new Array(COLS).fill(1));\nconst stack = [[1, 1]]; walls[1][1] = 0;\nwhile (stack.length) {\n  const [x, y] = stack[stack.length - 1];\n  const next = [[2, 0], [-2, 0], [0, 2], [0, -2]].map(([dx, dy]) => [x + dx, y + dy, x + dx / 2, y + dy / 2])\n    .filter(([nx, ny]) => nx > 0 && ny > 0 && nx < COLS - 1 && ny < ROWS - 1 && walls[ny][nx]);\n  if (!next.length) { stack.pop(); continue; }\n  const [nx, ny, wx, wy] = next[Math.floor(Math.random() * next.length)];\n  walls[wy][wx] = 0; walls[ny][nx] = 0; stack.push([nx, ny]);\n}\nfor (let y = 1; y < ROWS - 1; y++) for (let x = 1; x < COLS - 1; x++) {\n  if (walls[y][x] && (x + y) % 2 === 1 && Math.random() < 0.1) walls[y][x] = 0;\n}\nconst floor = [];\nfor (let y = 1; y < ROWS - 1; y++) for (let x = 1; x < COLS - 1; x++) if (!walls[y][x]) floor.push([x, y]);\nconst program = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor;\nuniform vec2 u_resolution; uniform vec2 u_grid; uniform float u_cellPx; uniform sampler2D u_cells;\nuniform float u_reveal; uniform float u_path; uniform vec2 u_head; uniform vec2 u_start; uniform vec2 u_goal; uniform float u_time;\nuniform vec3 u_early; uniform vec3 u_late; uniform vec3 u_route;\nvoid main(){\n  vec2 g = (v_uv - 0.5) * u_resolution / u_cellPx + u_grid * 0.5;\n  vec3 col = vec3(0.025, 0.027, 0.04);\n  if (g.x >= 0.0 && g.y >= 0.0 && g.x < u_grid.x && g.y < u_grid.y) {\n    vec4 c = texelFetch(u_cells, ivec2(g), 0);\n    vec2 f = fract(g) - 0.5;\n    float box = max(abs(f.x), abs(f.y));\n    if (c.b > 0.5) {\n      col = vec3(0.012, 0.014, 0.022);\n    } else {\n      col = vec3(0.1, 0.105, 0.14);\n      if (c.r >= 0.0 && c.r <= u_reveal) {\n        // Searched cells: colored by when they were expanded; the frontier glows.\n        vec3 hue = mix(u_early, u_late, c.r);\n        float front = exp(-(u_reveal - c.r) * 40.0);\n        col = hue * (0.55 + 0.6 * front) + front * 0.3;\n      }\n      if (c.g >= 0.0 && c.g <= u_path) col = mix(col, u_route * (1.1 + 0.2 * sin(u_time * 6.0 - c.g * 40.0)), 0.9);\n    }\n  }\n  float px = 1.0 / u_cellPx;\n  float head = length(g - u_head - 0.5), start = length(g - u_start - 0.5), goal = length(g - u_goal - 0.5);\n  col += u_route * exp(-head * head * 4.0) * 1.2;\n  col = mix(col, vec3(0.3, 1.0, 0.6), smoothstep(0.42 + px, 0.42 - px, start));\n  col = mix(col, vec3(1.0, 0.35, 0.55), smoothstep(0.42 + px, 0.42 - px, goal) * (0.75 + 0.25 * sin(u_time * 5.0)));\n  outColor = vec4(col, 1.0);\n}`);\nObject.assign(ctx.state, { PF, COLS, ROWS, walls, floor, program, cells: new Float32Array(COLS * ROWS * 4), tex: null,\n  start: [1, 1], goal: [COLS - 2, ROWS - 2], phase: \"search\", t: 0, finder: -1, moved: false, wasDown: false });\nctx.state.solve = () => {\n  const s = ctx.state, grid = new PF.Grid(s.COLS, s.ROWS, s.walls);\n  const order = [], getNeighbors = grid.getNeighbors.bind(grid);\n  grid.getNeighbors = (node, diagonal) => { order.push(node); return getNeighbors(node, diagonal); };\n  const opts = { heuristic: PF.Heuristic.manhattan };\n  const finder = [new PF.AStarFinder(opts), new PF.DijkstraFinder(), new PF.BestFirstFinder(opts), new PF.BiAStarFinder(opts), new PF.BreadthFirstFinder()][ctx.uniforms.u_finder] ?? new PF.AStarFinder(opts);\n  const path = finder.findPath(s.start[0], s.start[1], s.goal[0], s.goal[1], grid);\n  for (let y = 0; y < s.ROWS; y++) for (let x = 0; x < s.COLS; x++) s.cells.set([-1, -1, s.walls[y][x], 0], (y * s.COLS + x) * 4);\n  order.forEach((n, i) => { const o = (n.y * s.COLS + n.x) * 4; if (s.cells[o] < 0) s.cells[o] = i / Math.max(order.length - 1, 1); });\n  path.forEach(([x, y], i) => { s.cells[(y * s.COLS + x) * 4 + 1] = i / Math.max(path.length - 1, 1); });\n  s.tex = ctx.utils.uploadDataTexture(ctx.gl, s.tex, s.COLS, s.ROWS, s.cells);\n  Object.assign(s, { path, expanded: order.length, phase: \"search\", t: 0 });\n};\nctx.state.solve();",
+    "render": "const s = ctx.state, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst cellPx = Math.min(w / s.COLS, h / s.ROWS) * 0.96;\nif (u.u_finder !== s.finder) { s.finder = u.u_finder; s.solve(); }\n// Click a floor cell to send the finder there (once the pointer has moved).\ns.moved ||= ctx.mouse[0] !== 0.5 || ctx.mouse[1] !== 0.5;\nif (s.moved && ctx.mouseDown && !s.wasDown) {\n  const gx = Math.floor((ctx.mouse[0] - 0.5) * w / cellPx + s.COLS / 2), gy = Math.floor((0.5 - ctx.mouse[1]) * h / cellPx + s.ROWS / 2);\n  if (gx > 0 && gy > 0 && gx < s.COLS - 1 && gy < s.ROWS - 1 && !s.walls[gy][gx]) {\n    if (s.phase === \"hold\") s.start = s.goal;\n    s.goal = [gx, gy]; s.solve();\n  }\n}\ns.wasDown = ctx.mouseDown;\n// Replay: the search (cells in expansion order), then the path, then a pause; then walk on.\ns.t += ctx.dt;\nconst searchTime = s.expanded / (220 * u.u_speed), pathTime = s.path.length / (45 * u.u_speed);\nlet reveal = 1, along = 1;\nif (s.phase === \"search\") { reveal = Math.min(1, s.t / searchTime); along = 0; if (s.t >= searchTime) { s.phase = \"path\"; s.t = 0; } }\nelse if (s.phase === \"path\") { along = Math.min(1, s.t / pathTime); if (s.t >= pathTime) { s.phase = \"hold\"; s.t = 0; } }\nelse if (s.t > 2.5) {\n  s.start = s.goal;\n  // Next goal: a random floor cell far enough away.\n  let g; do g = s.floor[Math.floor(Math.random() * s.floor.length)]; while (Math.abs(g[0] - s.start[0]) + Math.abs(g[1] - s.start[1]) < (s.COLS + s.ROWS) / 2);\n  s.goal = g; s.solve();\n}\nconst k = s.path.length ? Math.min(s.path.length - 1, Math.floor(along * (s.path.length - 1))) : 0;\nconst head = s.path.length && s.phase !== \"search\" ? s.path[k] : [-99, -99];\nconst gl = ctx.gl;\ngl.useProgram(s.program);\nctx.utils.bindTexture(s.program, \"u_cells\", s.tex, 0);\nctx.utils.drawFullscreen(s.program, { u_grid: [s.COLS, s.ROWS], u_cellPx: cellPx, u_reveal: reveal, u_path: s.phase === \"search\" ? -1 : along, u_head: head, u_start: s.start, u_goal: s.goal });\nctx.publish(\"expanded\", s.expanded);\nctx.publish(\"path length\", s.path.length);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_finder": {
+      "type": "int",
+      "value": 0,
+      "min": 0,
+      "max": 4,
+      "label": "Finder",
+      "widget": "select",
+      "options": [
+        {
+          "label": "A*",
+          "value": 0
+        },
+        {
+          "label": "Dijkstra",
+          "value": 1
+        },
+        {
+          "label": "Best-first",
+          "value": 2
+        },
+        {
+          "label": "Bidirectional A*",
+          "value": 3
+        },
+        {
+          "label": "Breadth-first",
+          "value": 4
+        }
+      ]
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0.2,
+      "max": 5,
+      "step": 0.01,
+      "label": "Replay speed",
+      "widget": "knob"
+    },
+    "u_early": {
+      "type": "color",
+      "value": [
+        0.15,
+        0.45,
+        0.85
+      ],
+      "label": "Searched early"
+    },
+    "u_late": {
+      "type": "color",
+      "value": [
+        0.75,
+        0.3,
+        0.9
+      ],
+      "label": "Searched late"
+    },
+    "u_route": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.78,
+        0.3
+      ],
+      "label": "Path"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ],
+  "keyframes": {}
+}

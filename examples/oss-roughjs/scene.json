@@ -1,0 +1,152 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Rough.js draws a hand-drawn scene on an OffscreenCanvas a few times a second (each redraw\n// wobbles, like boiling line animation); WebGL uploads it as a texture over a paper shader.\nconst mod = await ctx.utils.import(\"https://esm.sh/roughjs@4.6.6\");\nconst rough = mod.default ?? mod;\nconst gl = ctx.gl, s = ctx.state;\nObject.assign(s, { rough, canvas: null, rc: null, tex: gl.createTexture(), clock: 1e9, seed: 1 });\ngl.bindTexture(gl.TEXTURE_2D, s.tex);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);\ns.prog = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_ink; uniform vec2 u_resolution; uniform vec3 u_paper;\nfloat hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }\nfloat noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);\n  return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }\nvoid main(){\n  vec2 q = v_uv * u_resolution / u_resolution.y;\n  // Paper: fibres and blotches, darker towards the corners.\n  float fib = noise(q * vec2(400.0, 60.0)) * 0.04 + noise(q * 8.0) * 0.05;\n  vec3 paper = u_paper * (0.97 + fib) * (1.0 - 0.3 * pow(length(v_uv - 0.5), 2.0));\n  vec4 ink = texture(u_ink, v_uv);\n  // Ink takes on a little of the paper's grain.\n  outColor = vec4(mix(paper, ink.rgb * (0.95 + fib), ink.a), 1.0);\n}`);\ns.wasDown = false;",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms;\nconst [w, h] = ctx.resolution;\nif (!s.canvas || s.canvas.width !== w || s.canvas.height !== h) {\n  s.canvas = new OffscreenCanvas(w, h);\n  s.rc = s.rough.canvas(s.canvas);\n  s.clock = 1e9;\n}\ns.clock += ctx.dt;\n// Redraw at the boil rate; between redraws the same drawing stays up.\nif (s.clock >= 1 / Math.max(u.u_boil, 0.01) || (u.u_boil === 0 && s.clock > 0.1)) {\n  s.clock = 0;\n  if (u.u_boil > 0) s.seed = 1 + Math.floor(Math.random() * 1e6);\n  const g = s.canvas.getContext(\"2d\"), rc = s.rc, t = ctx.time, k = h / 600, W = w / k;\n  g.clearRect(0, 0, w, h);\n  g.save(); g.scale(k, k);\n  const hex = (c) => \"#\" + c.map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, \"0\")).join(\"\");\n  const styles = [\"hachure\", \"cross-hatch\", \"zigzag\", \"dots\", \"dashed\", \"zigzag-line\", \"solid\"];\n  const base = { roughness: u.u_roughness, bowing: u.u_bowing, strokeWidth: 1.6, hachureGap: u.u_gap, fillWeight: 1.2, fillStyle: styles[u.u_style], seed: s.seed };\n  const o = (extra) => ({ ...base, ...extra });\n  // Sun with turning rays.\n  const sx = W * 0.8, sy = 120;\n  rc.circle(sx, sy, 110, o({ fill: hex(u.u_sun), stroke: \"#7a4a10\" }));\n  for (let i = 0; i < 12; i++) {\n    const a = t * 0.3 + i * Math.PI / 6;\n    rc.line(sx + Math.cos(a) * 70, sy + Math.sin(a) * 70, sx + Math.cos(a) * 100, sy + Math.sin(a) * 100, o({ stroke: \"#b07020\" }));\n  }\n  // Drifting clouds.\n  for (let i = 0; i < 3; i++) {\n    const cx = ((t * (14 + i * 6) + i * 300) % (W + 300)) - 150, cy = 70 + i * 55;\n    rc.ellipse(cx, cy, 150, 50, o({ fill: \"#ffffff\", fillStyle: \"solid\", stroke: \"#5a6a80\" }));\n    rc.ellipse(cx + 40, cy - 20, 90, 50, o({ fill: \"#ffffff\", fillStyle: \"solid\", stroke: \"#5a6a80\" }));\n  }\n  // Rolling hills.\n  const hill = (y0, amp, ph, col) => {\n    const pts = [[-40, 640]];\n    for (let x = -40; x <= W + 40; x += 40) pts.push([x, y0 + Math.sin(x * 0.006 + ph) * amp]);\n    pts.push([W + 40, 640]);\n    rc.polygon(pts, o({ fill: hex(col), stroke: \"#2c3b22\" }));\n  };\n  hill(420, 30, 1.0, u.u_hills.map((v) => v * 1.15));\n  hill(470, 25, 3.5, u.u_hills);\n  // A house and a tree on the near hill.\n  const hx = W * 0.3;\n  rc.rectangle(hx, 380, 130, 100, o({ fill: hex(u.u_house), stroke: \"#4a2a1a\" }));\n  rc.polygon([[hx - 15, 382], [hx + 65, 310], [hx + 145, 382]], o({ fill: \"#8a3a2a\", fillStyle: \"cross-hatch\", stroke: \"#4a2a1a\" }));\n  rc.rectangle(hx + 50, 420, 30, 60, o({ fill: \"#5a3a20\", fillStyle: \"solid\", stroke: \"#3a1a10\" }));\n  rc.rectangle(hx + 90, 400, 26, 26, o({ fill: \"#ffe9a0\", stroke: \"#4a2a1a\" }));\n  const tx = W * 0.62, sway = Math.sin(t * 1.2) * 6;\n  rc.line(tx, 470, tx + sway * 0.3, 380, o({ stroke: \"#4a2a1a\", strokeWidth: 4 }));\n  rc.circle(tx + sway, 350, 110, o({ fill: \"#3f7a3a\", stroke: \"#1f3a1a\" }));\n  // A balloon on a string follows the pointer.\n  const [mx, my] = ctx.mouse;\n  s.moved ||= mx !== 0.5 || my !== 0.5;\n  const bx = s.moved ? mx * W : W * 0.12 + Math.sin(t * 0.7) * 30, by = s.moved ? my * 600 : 200 + Math.cos(t * 0.9) * 25;\n  rc.curve([[bx, by + 40], [bx - 10, by + 90], [bx + 8, by + 140], [bx - 4, by + 190]], o({ stroke: \"#333333\", strokeWidth: 1 }));\n  rc.ellipse(bx, by, 70, 85, o({ fill: hex(u.u_balloon), stroke: \"#5a1020\" }));\n  g.restore();\n  gl.bindTexture(gl.TEXTURE_2D, s.tex);\n  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);\n  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, s.canvas);\n  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\n}\ngl.useProgram(s.prog);\nctx.utils.bindTexture(s.prog, \"u_ink\", s.tex, 0);\nctx.utils.drawFullscreen(s.prog);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_roughness": {
+      "type": "float",
+      "value": 1.4,
+      "min": 0,
+      "max": 5,
+      "step": 0.05,
+      "label": "Roughness",
+      "widget": "knob"
+    },
+    "u_bowing": {
+      "type": "float",
+      "value": 1.5,
+      "min": 0,
+      "max": 10,
+      "step": 0.1,
+      "label": "Bowing",
+      "widget": "knob"
+    },
+    "u_style": {
+      "type": "int",
+      "value": 0,
+      "label": "Fill style",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Hachure",
+          "value": 0
+        },
+        {
+          "label": "Cross-hatch",
+          "value": 1
+        },
+        {
+          "label": "Zigzag",
+          "value": 2
+        },
+        {
+          "label": "Dots",
+          "value": 3
+        },
+        {
+          "label": "Dashed",
+          "value": 4
+        },
+        {
+          "label": "Zigzag line",
+          "value": 5
+        },
+        {
+          "label": "Solid",
+          "value": 6
+        }
+      ]
+    },
+    "u_gap": {
+      "type": "float",
+      "value": 6,
+      "min": 2,
+      "max": 20,
+      "step": 0.5,
+      "label": "Hachure gap"
+    },
+    "u_boil": {
+      "type": "float",
+      "value": 6,
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "label": "Redraws / s"
+    },
+    "u_sun": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.75,
+        0.2
+      ],
+      "label": "Sun"
+    },
+    "u_hills": {
+      "type": "color",
+      "value": [
+        0.45,
+        0.68,
+        0.3
+      ],
+      "label": "Hills"
+    },
+    "u_house": {
+      "type": "color",
+      "value": [
+        0.95,
+        0.85,
+        0.65
+      ],
+      "label": "House"
+    },
+    "u_balloon": {
+      "type": "color",
+      "value": [
+        0.9,
+        0.2,
+        0.3
+      ],
+      "label": "Balloon"
+    },
+    "u_paper": {
+      "type": "color",
+      "value": [
+        0.97,
+        0.95,
+        0.9
+      ],
+      "label": "Paper"
+    }
+  },
+  "controls": [
+    {
+      "label": "Sketch",
+      "uniforms": [
+        "u_roughness",
+        "u_bowing",
+        "u_style",
+        "u_gap",
+        "u_boil"
+      ]
+    },
+    {
+      "label": "Colors",
+      "uniforms": [
+        "u_sun",
+        "u_hills",
+        "u_house",
+        "u_balloon",
+        "u_paper"
+      ]
+    }
+  ],
+  "inputs": [
+    "mouse"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "order": 143,
+  "title": "Flip knot (glMatrix)",
+  "title_ko": "뒤집히는 매듭 (glMatrix)",
+  "description": "glMatrix does the transform math: 2,080 tiles sit on a trefoil knot, each oriented by a quaternion from the curve's frame, and a wave flips them over as it travels. All the matrices go into one instanced draw. Drag to orbit.",
+  "description_ko": "glMatrix가 변환 계산을 맡는다. 세잎 매듭 위의 타일 2,080개가 곡선의 좌표계에서 얻은 쿼터니언으로 방향을 잡고, 지나가는 물결이 타일을 뒤집는다. 행렬은 모두 인스턴싱 한 번으로 그린다. 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: gl-matrix imported in the scene)",
+  "made_with": "gl-matrix 3.4.4 via ctx.utils.import",
+  "features": [
+    "math",
+    "quaternions",
+    "instancing",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "gl-matrix"
+  ],
+  "summary": "Thousands of little tiles line a knotted ribbon, and waves flip them over to show their other color.",
+  "summary_ko": "매듭 모양 리본 위에 작은 타일 수천 장이 늘어서 있고, 물결이 지나가며 타일을 뒤집어 다른 색을 보여 줘요.",
+  "try": [
+    "Drag to turn the knot",
+    "Change Waves to send more flips along the ribbon at once",
+    "Pick different Front and Back colors"
+  ],
+  "try_ko": [
+    "드래그해서 매듭을 돌려 보세요",
+    "Waves를 바꿔 한 번에 지나가는 뒤집기 물결 수를 바꿔 보세요",
+    "Front와 Back 색을 바꿔 보세요"
+  ],
+  "tool_about": "glMatrix is a fast JavaScript math library for 3D graphics: it works out how to move, rotate and scale things. It runs in the browser and sits underneath many WebGL apps.",
+  "tool_about_ko": "glMatrix는 3D 그래픽용 빠른 JavaScript 수학 라이브러리예요. 물체를 옮기고, 돌리고, 크기를 바꾸는 계산을 해 주며 브라우저에서 돌아가요. 많은 WebGL 앱의 밑바탕에 쓰여요."
+}

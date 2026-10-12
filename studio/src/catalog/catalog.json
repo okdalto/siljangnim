@@ -960,6 +960,1239 @@
    },
    "weights_license": "depends on the model (e.g. CreativeML OpenRAIL-M, which restricts some uses)",
    "gpu": "required in practice"
+  },
+  {
+   "id": "poisson-disk-sampling",
+   "name": "poisson-disk-sampling",
+   "repo": "https://github.com/kchapelier/poisson-disk-sampling",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Poisson disk sampling in any dimension, with a distance function for variable density and point-by-point generation.",
+   "tags": [
+    "sampling",
+    "blue noise",
+    "stipple",
+    "points",
+    "distribution"
+   ],
+   "media": {
+    "in": [
+     "parameters"
+    ],
+    "out": [
+     "points"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/poisson-disk-sampling@2.3.1"
+   }
+  },
+  {
+   "id": "d3-contour",
+   "name": "d3-contour",
+   "repo": "https://github.com/d3/d3-contour",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "Isolines and filled contour polygons from a grid of values (marching squares), plus density contours of points.",
+   "tags": [
+    "contours",
+    "isolines",
+    "marching squares",
+    "terrain",
+    "density"
+   ],
+   "media": {
+    "in": [
+     "grid"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-contour@4.0.2"
+   }
+  },
+  {
+   "id": "perfect-freehand",
+   "name": "Perfect Freehand",
+   "repo": "https://github.com/steveruizok/perfect-freehand",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Turns pointer or pen samples into the outline polygon of a pressure-sensitive, tapered freehand stroke.",
+   "tags": [
+    "drawing",
+    "strokes",
+    "pen",
+    "pressure",
+    "ink"
+   ],
+   "media": {
+    "in": [
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/perfect-freehand@1.2.3"
+   }
+  },
+  {
+   "id": "bezier-js",
+   "name": "Bezier.js",
+   "repo": "https://github.com/Pomax/bezierjs",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Quadratic and cubic Bezier curve math: points, normals, offsets, outlines, intersections, projection and bounding boxes.",
+   "tags": [
+    "bezier",
+    "curves",
+    "offset",
+    "intersection",
+    "vector"
+   ],
+   "media": {
+    "in": [
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/bezier-js@6.1.4"
+   }
+  },
+  {
+   "id": "roughjs",
+   "name": "Rough.js",
+   "repo": "https://github.com/rough-stuff/rough",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Draws lines, shapes and paths in a sketchy hand-drawn style with hachure, cross-hatch and other fills on a 2D canvas or SVG.",
+   "tags": [
+    "hand-drawn",
+    "sketch",
+    "canvas",
+    "hachure",
+    "illustration"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/roughjs@4.6.6"
+   }
+  },
+  {
+   "id": "paper-js",
+   "name": "Paper.js",
+   "repo": "https://github.com/paperjs/paper.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Vector graphics scripting with a scene graph of paths, including boolean operations (unite, intersect, subtract, exclude), smoothing and flattening.",
+   "tags": [
+    "vector",
+    "paths",
+    "boolean ops",
+    "bezier",
+    "canvas"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/paper@0.12.18"
+   }
+  },
+  {
+   "id": "tactile-js",
+   "name": "TactileJS",
+   "repo": "https://github.com/isohedral/tactile-js",
+   "license": "BSD-3-Clause",
+   "tier": "B",
+   "purpose": "Describes and places the 81 isohedral tiling types, so custom tile shapes with matching edges cover the plane, with a colouring for each copy.",
+   "tags": [
+    "tiling",
+    "tessellation",
+    "escher",
+    "pattern",
+    "geometry"
+   ],
+   "media": {
+    "in": [
+     "parameters"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/tactile-js@1.0.0"
+   }
+  },
+  {
+   "id": "flubber",
+   "name": "Flubber",
+   "repo": "https://github.com/veltman/flubber",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Smooth interpolation between 2D shapes with different point counts, plus splitting one shape into many and combining many into one.",
+   "tags": [
+    "morph",
+    "shapes",
+    "interpolation",
+    "svg",
+    "animation"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/flubber@0.4.2"
+   }
+  },
+  {
+   "id": "trianglify",
+   "name": "Trianglify",
+   "repo": "https://github.com/qrohlf/trianglify",
+   "license": "GPL-3.0",
+   "tier": "B",
+   "purpose": "Generates low-poly triangle patterns from jittered points with ColorBrewer gradients, as geometry, SVG or canvas.",
+   "tags": [
+    "low-poly",
+    "pattern",
+    "triangles",
+    "delaunay",
+    "background"
+   ],
+   "media": {
+    "in": [
+     "parameters"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/trianglify@4.1.1/dist/trianglify.bundle.js"
+   }
+  },
+  {
+   "id": "clipper2",
+   "name": "Clipper2 (clipper2-ts)",
+   "repo": "https://github.com/countertype/clipper2-ts",
+   "license": "BSL-1.0",
+   "tier": "B",
+   "purpose": "Polygon boolean operations (union, intersection, difference, xor) and offsetting with round, miter, square or bevel joins, ported from Angus Johnson's Clipper2.",
+   "tags": [
+    "polygon",
+    "offset",
+    "boolean ops",
+    "clipping",
+    "geometry"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/clipper2-ts@2.0.1-18"
+   }
+  },
+  {
+   "id": "three-js",
+   "name": "Three.js",
+   "repo": "https://github.com/mrdoob/three.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Full 3D engine (scene graph, PBR materials, lights, shadows) that can render into the scene's own WebGL2 context.",
+   "tags": [
+    "3d",
+    "renderer",
+    "scene graph",
+    "pbr",
+    "shadows",
+    "instancing"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "model"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/three@0.186.0"
+   }
+  },
+  {
+   "id": "regl",
+   "name": "regl",
+   "repo": "https://github.com/regl-project/regl",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Functional, declarative wrapper around WebGL draw calls that runs on an existing GL context.",
+   "tags": [
+    "webgl",
+    "renderer",
+    "draw commands",
+    "points",
+    "shaders"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/regl@2.1.1"
+   }
+  },
+  {
+   "id": "ogl",
+   "name": "OGL",
+   "repo": "https://github.com/oframe/ogl",
+   "license": "Unlicense",
+   "tier": "B",
+   "purpose": "Minimal WebGL framework with a scene graph, primitives and programs, close to raw GL.",
+   "tags": [
+    "webgl",
+    "3d",
+    "scene graph",
+    "renderer",
+    "minimal"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/ogl@1.0.11"
+   }
+  },
+  {
+   "id": "gl-matrix",
+   "name": "glMatrix",
+   "repo": "https://github.com/toji/gl-matrix",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Fast vector, matrix and quaternion math for WebGL transforms and cameras.",
+   "tags": [
+    "math",
+    "matrix",
+    "quaternion",
+    "vector",
+    "transform"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/gl-matrix@3.4.4"
+   }
+  },
+  {
+   "id": "jscad-modeling",
+   "name": "JSCAD modeling",
+   "repo": "https://github.com/jscad/OpenJSCAD.org",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Parametric CAD in JavaScript: primitives, CSG booleans, extrusions and transforms producing polygon solids.",
+   "tags": [
+    "csg",
+    "cad",
+    "parametric",
+    "solid modeling",
+    "extrusion"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/@jscad/modeling@2.13.0"
+   }
+  },
+  {
+   "id": "manifold-3d",
+   "name": "Manifold",
+   "repo": "https://github.com/elalish/manifold",
+   "license": "Apache-2.0",
+   "tier": "B",
+   "purpose": "Fast, robust WebAssembly mesh booleans (CSG) that always return watertight manifold meshes.",
+   "tags": [
+    "csg",
+    "boolean",
+    "mesh",
+    "wasm",
+    "solid modeling"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/npm/manifold-3d@3.5.3/manifold.js"
+   }
+  },
+  {
+   "id": "isosurface",
+   "name": "isosurface",
+   "repo": "https://github.com/mikolalysenko/isosurface",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Extracts triangle meshes from scalar fields with marching cubes, marching tetrahedra or surface nets.",
+   "tags": [
+    "isosurface",
+    "marching cubes",
+    "surface nets",
+    "metaballs",
+    "sdf"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/isosurface@1.0.0"
+   }
+  },
+  {
+   "id": "cannon-es",
+   "name": "cannon-es",
+   "repo": "https://github.com/pmndrs/cannon-es",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Lightweight 3D rigid-body physics engine in plain JavaScript.",
+   "tags": [
+    "physics",
+    "3d",
+    "rigid body",
+    "collision"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "simulation"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/cannon-es@0.20.0"
+   }
+  },
+  {
+   "id": "rapier",
+   "name": "Rapier",
+   "repo": "https://github.com/dimforge/rapier",
+   "license": "Apache-2.0",
+   "tier": "B",
+   "purpose": "Fast deterministic 3D physics engine written in Rust and compiled to WebAssembly.",
+   "tags": [
+    "physics",
+    "3d",
+    "rigid body",
+    "wasm",
+    "collision"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "simulation"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/@dimforge/rapier3d-compat@0.20.0"
+   }
+  },
+  {
+   "id": "three-mesh-bvh",
+   "name": "three-mesh-bvh",
+   "repo": "https://github.com/gkjohnson/three-mesh-bvh",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Bounding volume hierarchy for Three.js meshes, for fast raycasting and spatial queries against dense geometry.",
+   "tags": [
+    "bvh",
+    "raycasting",
+    "spatial query",
+    "three.js",
+    "collision"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/three-mesh-bvh@0.9.15?deps=three@0.186.0"
+   }
+  },
+  {
+   "id": "chroma-js",
+   "name": "chroma.js",
+   "repo": "https://github.com/gka/chroma.js",
+   "license": "BSD-3-Clause AND Apache-2.0",
+   "tier": "B",
+   "purpose": "Color conversions and color scales (Lab/LCh/OKLCH interpolation, Bézier scales, lightness correction, ColorBrewer palettes).",
+   "tags": [
+    "color",
+    "palette",
+    "color scale",
+    "gradient"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "color"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/chroma-js@3.2.0"
+   }
+  },
+  {
+   "id": "d3-scale-chromatic",
+   "name": "d3-scale-chromatic",
+   "repo": "https://github.com/d3/d3-scale-chromatic",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "Scientific and ColorBrewer color maps (Viridis, Magma, Turbo, RdBu, ...) as interpolators and schemes.",
+   "tags": [
+    "color map",
+    "palette",
+    "scientific visualization",
+    "viridis"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "color"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-scale-chromatic@3.1.0"
+   }
+  },
+  {
+   "id": "hsluv",
+   "name": "HSLuv",
+   "repo": "https://github.com/hsluv/hsluv-javascript",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Perceptually uniform HSL (HSLuv and pastel HPLuv) to and from sRGB, for palettes with even lightness.",
+   "tags": [
+    "color",
+    "perceptual color",
+    "palette",
+    "hsl"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "color"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/hsluv@1.0.2"
+   }
+  },
+  {
+   "id": "image-q",
+   "name": "image-q",
+   "repo": "https://github.com/ibezkrovnyi/image-quantization",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Reduce an image to a small palette (Wu, NeuQuant, RgbQuant) and remap it with dithering (Floyd-Steinberg, Atkinson, ...).",
+   "tags": [
+    "quantization",
+    "palette",
+    "dithering",
+    "image"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image",
+     "color"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/image-q@4.0.0"
+   }
+  },
+  {
+   "id": "imagetracerjs",
+   "name": "imagetracerjs",
+   "repo": "https://github.com/jankovicsandras/imagetracerjs",
+   "license": "Unlicense",
+   "tier": "B",
+   "purpose": "Trace raster images into vector paths (lines and quadratic curves per color layer) or SVG.",
+   "tags": [
+    "vectorize",
+    "tracing",
+    "svg",
+    "paths"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "svg",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/imagetracerjs@1.2.6"
+   }
+  },
+  {
+   "id": "tiny-sdf",
+   "name": "TinySDF",
+   "repo": "https://github.com/mapbox/tiny-sdf",
+   "license": "BSD-2-Clause",
+   "tier": "B",
+   "purpose": "Render font glyphs to signed distance fields in the browser for crisp, scalable text with outlines and glow in shaders.",
+   "tags": [
+    "sdf",
+    "text",
+    "font",
+    "glyph"
+   ],
+   "media": {
+    "in": [
+     "font",
+     "text"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/@mapbox/tiny-sdf@2.2.0"
+   }
+  },
+  {
+   "id": "hydra-synth",
+   "name": "Hydra",
+   "repo": "https://github.com/hydra-synth/hydra-synth",
+   "license": "AGPL-3.0",
+   "tier": "B",
+   "purpose": "Live-coding video synth: chain oscillators, noise, feedback and canvas/video sources into WebGL visuals on its own canvas.",
+   "tags": [
+    "video synth",
+    "live coding",
+    "feedback",
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "image",
+     "video",
+     "camera"
+    ],
+    "out": [
+     "video"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/hydra-synth@1.4.0"
+   },
+   "notes": "AGPL-3.0: fetched at runtime from the CDN, not bundled; distributing code built on it carries AGPL terms."
+  },
+  {
+   "id": "p5-js",
+   "name": "p5.js",
+   "repo": "https://github.com/processing/p5.js",
+   "license": "LGPL-2.1",
+   "tier": "B",
+   "purpose": "Processing-style creative coding (shapes, noise, color, typography) in instance mode, drawn into an offscreen p5.Graphics.",
+   "tags": [
+    "creative coding",
+    "drawing",
+    "processing",
+    "generative"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/npm/p5@2.3.4/lib/p5.esm.min.js"
+   }
+  },
+  {
+   "id": "pts",
+   "name": "Pts",
+   "repo": "https://github.com/williamngan/pts",
+   "license": "Apache-2.0",
+   "tier": "B",
+   "purpose": "Creative-coding geometry (points, lines, polygons, convex hulls, intersections, grids) with a CanvasForm that draws on any 2D context.",
+   "tags": [
+    "creative coding",
+    "geometry",
+    "points",
+    "drawing"
+   ],
+   "media": {
+    "in": [
+     "points"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/pts@1.0.1"
+   }
+  },
+  {
+   "id": "glur",
+   "name": "glur",
+   "repo": "https://github.com/nodeca/glur",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Fast Gaussian blur of RGBA or 16-bit grey pixel arrays on the CPU (IIR, cost independent of radius).",
+   "tags": [
+    "blur",
+    "image",
+    "gaussian",
+    "filter"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/glur@2.0.0"
+   }
+  },
+  {
+   "id": "d3-force",
+   "name": "d3-force",
+   "repo": "https://github.com/d3/d3-force",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "Force-directed simulation of particles and graphs: collision, links, centering, radial and positional forces.",
+   "tags": [
+    "force simulation",
+    "graph layout",
+    "collision",
+    "particles",
+    "packing"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "simulation"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-force@3.0.0"
+   }
+  },
+  {
+   "id": "ngraph-forcelayout",
+   "name": "ngraph.forcelayout",
+   "repo": "https://github.com/anvaka/ngraph.forcelayout",
+   "license": "BSD-3-Clause",
+   "tier": "B",
+   "purpose": "Fast 2D/3D force-directed layout for large graphs (Barnes–Hut), used with ngraph.graph.",
+   "tags": [
+    "graph layout",
+    "force simulation",
+    "network",
+    "3d",
+    "large graphs"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/npm/ngraph.forcelayout@3.3.1/+esm"
+   }
+  },
+  {
+   "id": "lindenmayer",
+   "name": "lindenmayer",
+   "repo": "https://github.com/nylki/lindenmayer",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "L-systems: rewrites strings with deterministic, stochastic, context-sensitive or parametric productions for procedural plants and fractals.",
+   "tags": [
+    "l-system",
+    "procedural",
+    "plants",
+    "fractal",
+    "generative"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "text"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/lindenmayer@1.5.4"
+   }
+  },
+  {
+   "id": "pathfinding-js",
+   "name": "PathFinding.js",
+   "repo": "https://github.com/qiao/PathFinding.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Grid pathfinding: A*, Dijkstra, best-first, breadth-first, jump point and bidirectional finders.",
+   "tags": [
+    "pathfinding",
+    "a-star",
+    "maze",
+    "grid",
+    "search"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/pathfinding@0.4.18"
+   }
+  },
+  {
+   "id": "planck-js",
+   "name": "planck.js",
+   "repo": "https://github.com/piqnt/planck.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "2D rigid-body physics (a JavaScript port of Box2D) with joints, chains, motors and continuous collision.",
+   "tags": [
+    "physics",
+    "2d",
+    "rigid body",
+    "joints",
+    "box2d"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "simulation"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/planck@1.5.0"
+   }
+  },
+  {
+   "id": "spectral-js",
+   "name": "spectral.js",
+   "repo": "https://github.com/rvanwijnen/spectral.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Pigment-like color mixing with Kubelka–Munk theory, so blue and yellow make green.",
+   "tags": [
+    "color",
+    "color mixing",
+    "pigment",
+    "paint",
+    "kubelka-munk"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "color"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/spectral.js@3.0.0"
+   }
+  },
+  {
+   "id": "d3-hexbin",
+   "name": "d3-hexbin",
+   "repo": "https://github.com/d3/d3-hexbin",
+   "license": "BSD-3-Clause",
+   "tier": "B",
+   "purpose": "Bins 2D points into a hexagonal grid and returns each bin's center and members.",
+   "tags": [
+    "binning",
+    "hexagon",
+    "density",
+    "data visualization",
+    "aggregation"
+   ],
+   "media": {
+    "in": [
+     "points"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-hexbin@0.2.2"
+   }
+  },
+  {
+   "id": "flatbush",
+   "name": "Flatbush",
+   "repo": "https://github.com/mourner/flatbush",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "Fast static spatial index (packed Hilbert R-tree) for box and nearest-neighbor queries over many points or rectangles.",
+   "tags": [
+    "spatial index",
+    "r-tree",
+    "nearest neighbor",
+    "collision",
+    "boids"
+   ],
+   "media": {
+    "in": [
+     "points"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/flatbush@4.6.2"
+   }
+  },
+  {
+   "id": "tween-js",
+   "name": "tween.js",
+   "repo": "https://github.com/tweenjs/tween.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Tweens object properties over time with easing functions, delays, chaining and repeats.",
+   "tags": [
+    "tweening",
+    "easing",
+    "animation",
+    "motion design",
+    "timing"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/@tweenjs/tween.js@25.0.0"
+   }
+  },
+  {
+   "id": "suncalc",
+   "name": "SunCalc",
+   "repo": "https://github.com/mourner/suncalc",
+   "license": "BSD-2-Clause",
+   "tier": "B",
+   "purpose": "Sun and moon position (altitude, azimuth), sunrise/sunset/twilight times and moon phase for any place and time.",
+   "tags": [
+    "sun position",
+    "astronomy",
+    "daylight",
+    "shadows",
+    "moon"
+   ],
+   "media": {
+    "in": [],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/suncalc@2.0.2"
+   }
+  },
+  {
+   "id": "pymcubes",
+   "name": "PyMCubes",
+   "repo": "https://github.com/pmneila/PyMCubes",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "Marching cubes: turn an implicit field or voxel volume into a triangle mesh.",
+   "tags": [
+    "mesh",
+    "3d",
+    "marching cubes",
+    "isosurface",
+    "implicit",
+    "sdf"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "model",
+     "geometry"
+    ]
+   },
+   "install": {
+    "pip": [
+     "PyMCubes==0.1.6",
+     "numpy",
+     "scipy"
+    ]
+   }
+  },
+  {
+   "id": "circlify",
+   "name": "circlify",
+   "repo": "https://github.com/elmotec/circlify",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "Circle packing of flat or nested data into a circle, for bubble charts and hierarchy maps.",
+   "tags": [
+    "circle packing",
+    "hierarchy",
+    "layout",
+    "bubble chart",
+    "data viz"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "circlify==0.15.1"
+    ]
+   }
+  },
+  {
+   "id": "umap-learn",
+   "name": "UMAP",
+   "repo": "https://github.com/lmcinnes/umap",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "Dimensionality reduction that lays out high-dimensional data as 2D or 3D points that keep neighborhoods together.",
+   "tags": [
+    "umap",
+    "embedding",
+    "dimensionality reduction",
+    "clustering",
+    "machine learning",
+    "scatter"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "points",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "umap-learn==0.5.12",
+     "scikit-learn==1.9.1"
+    ]
+   }
+  },
+  {
+   "id": "rebound",
+   "name": "REBOUND",
+   "repo": "https://github.com/hannorein/rebound",
+   "license": "GPL-3.0-only",
+   "tier": "C",
+   "purpose": "N-body gravity integrator for orbits, planetary systems, flybys and disks.",
+   "tags": [
+    "n-body",
+    "gravity",
+    "orbits",
+    "astronomy",
+    "physics",
+    "simulation"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "simulation",
+     "points",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "rebound==5.2.0"
+    ]
+   }
+  },
+  {
+   "id": "sgp4",
+   "name": "python-sgp4",
+   "repo": "https://github.com/brandon-rhodes/python-sgp4",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "Satellite positions from TLE orbital elements with the standard SGP4 propagator, for orbits and ground tracks.",
+   "tags": [
+    "satellite",
+    "orbit",
+    "tle",
+    "space",
+    "ground track",
+    "astronomy"
+   ],
+   "media": {
+    "in": [
+     "text",
+     "data"
+    ],
+    "out": [
+     "points",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "sgp4==2.27"
+    ]
+   }
+  },
+  {
+   "id": "hilbertcurve",
+   "name": "hilbertcurve",
+   "repo": "https://github.com/galtay/hilbertcurve",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "Hilbert space-filling curves in any dimension: point order, index ↔ coordinates.",
+   "tags": [
+    "space-filling curve",
+    "hilbert",
+    "geometry",
+    "path",
+    "plotter",
+    "generative"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "points",
+     "geometry"
+    ]
+   },
+   "install": {
+    "pip": [
+     "hilbertcurve==2.0.5"
+    ]
+   }
+  },
+  {
+   "id": "meanderpy",
+   "name": "meanderpy",
+   "repo": "https://github.com/zsylvester/meanderpy",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "Simulates meandering rivers migrating over time, with cutoffs that leave oxbow lakes.",
+   "tags": [
+    "river",
+    "meander",
+    "geomorphology",
+    "simulation",
+    "terrain",
+    "generative"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "simulation",
+     "geometry",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "meanderpy==0.2.0",
+     "h5py"
+    ]
+   }
   }
  ]
 }

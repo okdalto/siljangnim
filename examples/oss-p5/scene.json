@@ -1,0 +1,63 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// p5.js in instance mode, without a canvas of its own: the sketch draws into an offscreen\n// p5.Graphics (ink strokes following p5's Perlin noise), which the scene uploads as a texture\n// every frame and shows on paper with a little grain.\nconst mod = await ctx.utils.import(\"https://cdn.jsdelivr.net/npm/p5@2.3.4/lib/p5.esm.min.js\");\nconst P5 = mod.default ?? mod;\nconst p = await new Promise((resolve) => new P5((sk) => { sk.setup = () => { sk.noCanvas(); sk.noLoop(); resolve(sk); }; }));\nconst [w, h] = ctx.resolution, GH = 900, GW = Math.round((GH * w) / h);\nconst pg = p.createGraphics(GW, GH);\npg.pixelDensity(1);\npg.elt.style.display = \"none\";\npg.background(244, 238, 226);\nconst INKS = [[24, 34, 90], [214, 52, 40], [0, 128, 140], [240, 170, 20]];\nconst N = 900;\nconst agents = Array.from({ length: N }, (_, i) => ({ x: Math.random() * GW, y: Math.random() * GH, ink: INKS[i % INKS.length], life: Math.random() * 300 }));\nconst gl = ctx.gl, tex = gl.createTexture();\ngl.bindTexture(gl.TEXTURE_2D, tex);\nfor (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);\nconst fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_ink; uniform vec2 u_resolution; uniform float u_grain;\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }\nvoid main() {\n  vec3 c = texture(u_ink, vec2(v_uv.x, 1.0 - v_uv.y)).rgb;\n  float g = hash(floor(v_uv * u_resolution / 1.5)) - 0.5;\n  c += g * u_grain * 0.08;\n  c *= 1.0 - 0.25 * pow(length(v_uv - 0.5) * 1.3, 2.5);\n  outColor = vec4(c, 1.0);\n}`;\nObject.assign(ctx.state, { p, pg, agents, GW, GH, tex, frame: 0,\n  prog: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fs) });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, { p, pg, GW, GH } = s;\nif (u.u_clear) pg.background(244, 238, 226);\n// paper slowly reclaims old strokes\npg.noStroke(); pg.fill(244, 238, 226, u.u_fade * 255); pg.rect(0, 0, GW, GH);\nconst mx = ctx.mouse[0] * GW, my = ctx.mouse[1] * GH;\nconst z = ctx.time * 0.05 * u.u_flow, sc = 0.0016 * u.u_scale;\npg.strokeWeight(1.2);\nconst count = Math.min(s.agents.length, u.u_count | 0);\nfor (let i = 0; i < count; i++) {\n  const a = s.agents[i];\n  let ang = p.noise(a.x * sc, a.y * sc, z) * p.TWO_PI * 2.5;\n  // the pointer swirls the strokes around it\n  const dx = a.x - mx, dy = a.y - my, d2 = dx * dx + dy * dy;\n  if (ctx.mouseDown || d2 < 20000) ang += (Math.atan2(dy, dx) + Math.PI / 2 - ang) * Math.exp(-d2 / 30000);\n  const nx = a.x + Math.cos(ang) * 2.2, ny = a.y + Math.sin(ang) * 2.2;\n  pg.stroke(a.ink[0], a.ink[1], a.ink[2], 90);\n  pg.line(a.x, a.y, nx, ny);\n  a.x = nx; a.y = ny; a.life -= 1;\n  if (a.life < 0 || a.x < 0 || a.y < 0 || a.x > GW || a.y > GH) { a.x = Math.random() * GW; a.y = Math.random() * GH; a.life = 150 + Math.random() * 300; }\n}\nctx.publish(\"strokes\", count);\ngl.bindTexture(gl.TEXTURE_2D, s.tex);\ngl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\ngl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pg.elt);\ngl.useProgram(s.prog);\nctx.utils.bindTexture(s.prog, \"u_ink\", s.tex, 0);\nctx.utils.drawFullscreen(s.prog);",
+    "cleanup": "ctx.state.p?.remove();"
+  },
+  "uniforms": {
+    "u_count": {
+      "type": "int",
+      "value": 700,
+      "min": 50,
+      "max": 900,
+      "step": 10,
+      "label": "Strokes"
+    },
+    "u_scale": {
+      "type": "float",
+      "value": 1,
+      "min": 0.2,
+      "max": 4,
+      "step": 0.01,
+      "label": "Noise scale",
+      "widget": "knob"
+    },
+    "u_flow": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 5,
+      "step": 0.01,
+      "label": "Flow change",
+      "widget": "knob"
+    },
+    "u_fade": {
+      "type": "float",
+      "value": 0.006,
+      "min": 0,
+      "max": 0.1,
+      "step": 0.001,
+      "label": "Fade"
+    },
+    "u_grain": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Paper grain"
+    },
+    "u_clear": {
+      "type": "bool",
+      "value": false,
+      "label": "Clear",
+      "widget": "button"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

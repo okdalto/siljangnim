@@ -1,0 +1,32 @@
+{
+  "order": 147,
+  "title": "Wall breaker (cannon-es)",
+  "title_ko": "벽 부수기 (cannon-es)",
+  "description": "cannon-es simulates the rigid bodies: a heavy ball is fired at a brick wall every few seconds and the bricks tumble, collide and settle; the wall rebuilds after three shots. Each body's quaternion and position become a model matrix. Drag to orbit.",
+  "description_ko": "cannon-es가 강체를 시뮬레이션한다. 몇 초마다 무거운 공이 벽돌 벽으로 날아가고, 벽돌이 구르고 부딪히다 멈춘다. 세 번 쏘고 나면 벽이 다시 세워진다. 각 물체의 쿼터니언과 위치가 그대로 모델 행렬이 된다. 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: cannon-es imported in the scene)",
+  "made_with": "cannon-es 0.20.0 via ctx.utils.import",
+  "features": [
+    "physics",
+    "rigid bodies",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "cannon-es"
+  ],
+  "summary": "A heavy ball smashes into a brick wall, the bricks tumble and pile up, and then the wall is rebuilt.",
+  "summary_ko": "무거운 공이 벽돌 벽에 부딪히면 벽돌이 와르르 무너져 쌓이고, 그다음 벽이 다시 세워져요.",
+  "try": [
+    "Drag to watch from another angle",
+    "Raise Shot speed or Ball mass for a harder hit",
+    "Press Rebuild wall to stack the bricks again"
+  ],
+  "try_ko": [
+    "드래그해서 다른 각도에서 보세요",
+    "Shot speed나 Ball mass를 올려 더 세게 부딪혀 보세요",
+    "Rebuild wall을 눌러 벽돌을 다시 쌓아 보세요"
+  ],
+  "tool_about": "cannon-es is a 3D physics engine written in JavaScript: it makes boxes, balls and other objects fall, bounce, collide and stack. It runs in the browser and is often paired with Three.js.",
+  "tool_about_ko": "cannon-es는 JavaScript로 만든 3D 물리 엔진이에요. 상자나 공 같은 물체가 떨어지고, 튀고, 부딪히고, 쌓이게 해 주며 브라우저에서 돌아가요. Three.js와 함께 자주 쓰여요."
+}

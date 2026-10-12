@@ -1,0 +1,32 @@
+{
+  "order": 162,
+  "title": "L-system garden (lindenmayer)",
+  "title_ko": "L-시스템 정원 (lindenmayer)",
+  "description": "lindenmayer rewrites five stochastic L-systems; the scene walks them with a turtle and grows every branch from the root out, then the tips blossom and sway in the wind. A new garden is planted after a while; branch angle and detail rebuild it.",
+  "description_ko": "lindenmayer가 확률적 L-시스템 다섯 개를 다시 쓰고, 씬이 거북이 그래픽으로 읽어 가지를 뿌리부터 키운다. 다 자라면 끝마다 꽃이 피고 바람에 흔들린다. 잠시 뒤 새 정원이 심어지며, 가지 각도와 세밀도를 바꾸면 다시 자란다.",
+  "prompt": "(open-source example: lindenmayer imported in the scene)",
+  "made_with": "lindenmayer 1.5.4 via ctx.utils.import",
+  "features": [
+    "l-system",
+    "procedural plants",
+    "growth animation"
+  ],
+  "mode": "live",
+  "uses": [
+    "lindenmayer"
+  ],
+  "summary": "A garden of branching plants grows from the ground up, blossoms, and sways in the wind.",
+  "summary_ko": "가지를 뻗는 식물들이 땅에서부터 자라나 꽃을 피우고 바람에 흔들리는 정원이에요.",
+  "try": [
+    "Press Plant again to grow a new garden",
+    "Turn the Wind knob up to make the plants sway more",
+    "Move Branch angle ± to spread the branches wider or narrower"
+  ],
+  "try_ko": [
+    "Plant again을 눌러 새 정원을 키워 보세요",
+    "Wind 노브를 올려 식물이 더 크게 흔들리게 해 보세요",
+    "Branch angle ±를 움직여 가지를 넓게 또는 좁게 뻗게 해 보세요"
+  ],
+  "tool_about": "lindenmayer is a JavaScript library for L-systems: simple find-and-replace rules on text that, repeated a few times, describe how plants, trees and fractals branch. It runs in the browser.",
+  "tool_about_ko": "lindenmayer는 L-시스템을 다루는 JavaScript 라이브러리예요. 글자를 바꿔 쓰는 간단한 규칙을 몇 번 반복하면 식물, 나무, 프랙털이 가지를 뻗는 모양이 나와요. 브라우저에서 돌아가요."
+}

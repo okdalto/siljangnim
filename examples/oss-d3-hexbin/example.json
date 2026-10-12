@@ -1,0 +1,33 @@
+{
+  "order": 166,
+  "title": "Hexbin swarms (d3-hexbin)",
+  "title_ko": "육각 집계 무리 (d3-hexbin)",
+  "description": "9,000 points swirl in five swarms and d3-hexbin bins them into hexagons every frame; each bin is colored, and optionally sized, by how many points it holds. One swarm follows the pointer once it moves; the hex radius is a knob.",
+  "description_ko": "점 9,000개가 다섯 무리로 소용돌이치고, d3-hexbin이 매 프레임 이들을 육각형 칸으로 묶는다. 칸마다 담긴 점의 수에 따라 색이(원하면 크기도) 달라진다. 포인터를 움직이면 한 무리가 따라오고, 육각형 크기는 노브로 바꾼다.",
+  "prompt": "(open-source example: d3-hexbin imported in the scene)",
+  "made_with": "d3-hexbin 0.2.2 via ctx.utils.import",
+  "features": [
+    "binning",
+    "data visualization",
+    "particles",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-hexbin"
+  ],
+  "summary": "Thousands of dots swarm around, and a honeycomb of hexagons glows brighter where the crowd is thickest.",
+  "summary_ko": "점 수천 개가 무리 지어 돌고, 벌집 모양 육각형 칸이 점이 많이 모인 곳일수록 밝게 빛나요.",
+  "try": [
+    "Move the pointer and one swarm follows it",
+    "Turn the Hex radius knob to make the cells bigger or smaller",
+    "Turn off Size by count so every hexagon is full size"
+  ],
+  "try_ko": [
+    "포인터를 움직이면 무리 하나가 따라와요",
+    "Hex radius 노브를 돌려 칸 크기를 키우거나 줄여 보세요",
+    "Size by count를 끄면 모든 육각형이 같은 크기가 돼요"
+  ],
+  "tool_about": "d3-hexbin is a small part of D3, the popular JavaScript charting toolkit. It groups scattered points into a grid of hexagons and counts them, a common way to show where data is dense; it runs in the browser.",
+  "tool_about_ko": "d3-hexbin은 인기 차트 도구 D3의 작은 부품이에요. 흩어진 점들을 육각형 격자로 묶어 개수를 세 주는데, 데이터가 어디에 몰려 있는지 보여 줄 때 흔히 써요. 브라우저에서 돌아가요."
+}

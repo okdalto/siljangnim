@@ -1,0 +1,22 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "sgp4.ground-tracks@1",
+      "packages": [
+        "sgp4==2.27"
+      ],
+      "resolved": [
+        "sgp4==2.27"
+      ],
+      "inputs": [],
+      "params": {
+        "hours": 6,
+        "step_s": 30
+      },
+      "outputs": [
+        "tracks.json"
+      ]
+    }
+  ]
+}

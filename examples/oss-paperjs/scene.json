@@ -1,0 +1,92 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Paper.js computes boolean operations (unite, intersect, subtract, exclude) between moving\n// vector shapes every frame; the scene flattens the result to points and fills it with WebGL.\nconst mod = await ctx.utils.import(\"https://esm.sh/paper@0.12.18\");\nconst paper = mod.default ?? mod;\n// A project without a visible view: Paper.js only does geometry here.\npaper.setup(new paper.Size(1000, 1000));\nconst gl = ctx.gl;\ngl.getExtension(\"EXT_color_buffer_float\");\nconst flat = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec2 a_position; layout(location=1) in vec4 a_color;\nuniform vec2 u_px; out vec4 v_color;\nvoid main(){ v_color = a_color; gl_Position = vec4(a_position / u_px * 2.0 - 1.0, 0.0, 1.0); }`, `#version 300 es\nprecision highp float; in vec4 v_color; out vec4 outColor;\nvoid main(){ outColor = v_color; }`);\nconst vao = gl.createVertexArray(), vbo = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 24, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 24, 8);\ngl.bindVertexArray(null);\nconst kit = {\n  // Draws a flat (x, y, r, g, b, a) triangle list.\n  draw(arr) {\n    if (!arr.length) return;\n    gl.useProgram(flat);\n    ctx.utils.setUniforms(flat, { u_px: ctx.resolution });\n    gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);\n    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.DYNAMIC_DRAW);\n    gl.drawArrays(gl.TRIANGLES, 0, arr.length / 6);\n    gl.bindVertexArray(null);\n  },\n  // Signed triangle fan: inside a closed ring the triangles add up to ±c, outside they cancel.\n  // Summed with additive blending, this fills any polygon (holes, self-overlaps) exactly.\n  fan(ring, c, out) {\n    const x0 = ring[0], y0 = ring[1];\n    for (let i = 2; i + 3 < ring.length; i += 2) {\n      const s = Math.sign((ring[i] - x0) * (ring[i + 3] - y0) - (ring[i + 1] - y0) * (ring[i + 2] - x0));\n      if (!s) continue;\n      out.push(x0, y0, c[0] * s, c[1] * s, c[2] * s, c[3] * s,\n        ring[i], ring[i + 1], c[0] * s, c[1] * s, c[2] * s, c[3] * s,\n        ring[i + 2], ring[i + 3], c[0] * s, c[1] * s, c[2] * s, c[3] * s);\n    }\n  },\n  // Thick polyline as quads (WebGL lines are 1 px); square ends overlap at the joints.\n  line(pts, closed, width, c, out) {\n    const n = pts.length / 2, hw = width / 2;\n    for (let i = 0; i < (closed ? n : n - 1); i++) {\n      const j = (i + 1) % n;\n      const ax = pts[i * 2], ay = pts[i * 2 + 1], bx = pts[j * 2], by = pts[j * 2 + 1];\n      const len = Math.hypot(bx - ax, by - ay);\n      if (len < 1e-6) continue;\n      const dx = (bx - ax) / len * hw, dy = (by - ay) / len * hw;\n      const p = [ax - dx - dy, ay - dy + dx, ax - dx + dy, ay - dy - dx, bx + dx + dy, by + dy - dx, bx + dx - dy, by + dy + dx];\n      for (const k of [0, 1, 2, 0, 2, 3]) out.push(p[k * 2], p[k * 2 + 1], c[0], c[1], c[2], c[3]);\n    }\n  },\n  // Disc made of triangles.\n  dot(x, y, r, c, out, seg = 16) {\n    for (let i = 0; i < seg; i++) {\n      const a0 = i / seg * 6.2832, a1 = (i + 1) / seg * 6.2832;\n      out.push(x, y, ...c, x + Math.cos(a0) * r, y + Math.sin(a0) * r, ...c, x + Math.cos(a1) * r, y + Math.sin(a1) * r, ...c);\n    }\n  },\n  acc: null,\n  // Renders signed fans additively into a half-float target at up to 2x the canvas size\n  // (sampling it back with linear filtering smooths the edges). Returns the texture.\n  accumulate(arr) {\n    const [w, h] = ctx.resolution, k = Math.min(2, 4096 / Math.max(w, h));\n    const tw = Math.round(w * k), th = Math.round(h * k);\n    if (!kit.acc) kit.acc = ctx.utils.createPingPong(tw, th, { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT });\n    else if (kit.acc.width !== tw || kit.acc.height !== th) kit.acc.resize(tw, th);\n    const t = kit.acc.read();\n    gl.bindFramebuffer(gl.FRAMEBUFFER, t.framebuffer); gl.viewport(0, 0, tw, th);\n    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);\n    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);\n    kit.draw(arr);\n    gl.disable(gl.BLEND);\n    gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, w, h);\n    return t.texture;\n  },\n};\nconst s = ctx.state;\nObject.assign(s, { paper, kit, moved: false, bx: null, by: null });\ns.show = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_fill; uniform vec2 u_resolution; uniform vec3 u_colorA; uniform vec3 u_colorB; uniform vec3 u_bg;\nfloat cover(vec2 uv){ return clamp(abs(texture(u_fill, uv).r), 0.0, 1.0); }\nvoid main(){\n  vec2 px = 1.0 / u_resolution;\n  // Soft shadow: a blurred, offset copy of the coverage.\n  float sh = 0.0;\n  for (int i = -2; i <= 2; i++) for (int j = -2; j <= 2; j++) sh += cover(v_uv + vec2(-6.0 + float(i) * 5.0, 10.0 + float(j) * 5.0) * px);\n  sh /= 25.0;\n  vec2 q = (v_uv - 0.5) * vec2(u_resolution.x / u_resolution.y, 1.0);\n  vec3 bg = u_bg * (1.0 - 0.35 * dot(q, q));\n  bg *= 1.0 - 0.35 * sh;\n  float a = cover(v_uv);\n  vec3 c = mix(u_colorA, u_colorB, clamp(v_uv.y * 1.2 - 0.1 + 0.2 * sin(v_uv.x * 4.0), 0.0, 1.0));\n  outColor = vec4(mix(bg, c, a), 1.0);\n}`);",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, kit = s.kit, P = s.paper;\nconst [w, h] = ctx.resolution, t = ctx.time * u.u_speed, R = h * 0.34;\nconst cx = w / 2, cy = h / 2;\n// Shape A: a turning star with rounded points.\nconst a = new P.Path.Star({ center: [cx - R * 0.25, cy], points: u.u_points, radius1: R * 0.55, radius2: R, insert: false });\na.smooth({ type: \"geometric\", factor: u.u_round });\na.rotate(t * 20);\n// Shape B: a ring (circle with a hole) that orbits, or follows the pointer once it has moved.\nconst [mx, my] = ctx.mouse;\ns.moved ||= mx !== 0.5 || my !== 0.5;\nconst tx = s.moved ? mx * w : cx + Math.cos(t * 0.8) * R * 0.9, ty = s.moved ? (1 - my) * h : cy + Math.sin(t * 1.1) * R * 0.6;\ns.bx = s.bx === null ? tx : s.bx + (tx - s.bx) * 0.2; s.by = s.by === null ? ty : s.by + (ty - s.by) * 0.2;\nconst outer = new P.Path.Circle({ center: [s.bx, s.by], radius: R * 0.62, insert: false });\nconst hole = new P.Path.Circle({ center: [s.bx, s.by], radius: R * 0.3, insert: false });\nconst b = outer.subtract(hole, { insert: false });\nconst ops = [\"unite\", \"intersect\", \"subtract\", \"exclude\"];\nconst result = a[ops[u.u_op]](b, { insert: false });\n// Flatten each sub-path into points (Paper.js turns its curves into short line segments).\nconst ringsOf = (item) => {\n  const rings = [], paths = item.children ? item.children : [item];\n  for (const p of paths) {\n    const f = p.clone({ insert: false });\n    f.flatten(Math.max(1, h * 0.002));\n    const pts = [];\n    for (const seg of f.segments) pts.push(seg.point.x, seg.point.y);\n    if (pts.length >= 6) rings.push(pts);\n  }\n  return rings;\n};\nconst fills = [], lines = [];\nconst lw = Math.max(1, h * 0.003);\nfor (const ring of ringsOf(result)) {\n  kit.fan(ring, [1, 0, 0, 0], fills);\n  kit.line(ring, true, lw * 1.4, [0.08, 0.08, 0.12, 0.9], lines);\n}\n// The inputs, as thin outlines.\nfor (const ring of [...ringsOf(a), ...ringsOf(b)]) kit.line(ring, true, lw * 0.6, [0.1, 0.1, 0.15, 0.35], lines);\nconst tex = kit.accumulate(fills);\ngl.useProgram(s.show);\nctx.utils.bindTexture(s.show, \"u_fill\", tex, 0);\nctx.utils.drawFullscreen(s.show);\ngl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);\nkit.draw(lines);\ngl.disable(gl.BLEND);\nctx.publish(\"result area\", Math.round(Math.abs(result.area) / (h * h) * 1000) / 1000);\nctx.publish(\"operation\", ops[u.u_op]);",
+    "cleanup": "ctx.state.paper?.project?.remove();"
+  },
+  "uniforms": {
+    "u_op": {
+      "type": "int",
+      "value": 3,
+      "label": "Operation",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Unite",
+          "value": 0
+        },
+        {
+          "label": "Intersect",
+          "value": 1
+        },
+        {
+          "label": "Subtract",
+          "value": 2
+        },
+        {
+          "label": "Exclude",
+          "value": 3
+        }
+      ]
+    },
+    "u_points": {
+      "type": "int",
+      "value": 6,
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "label": "Star points"
+    },
+    "u_round": {
+      "type": "float",
+      "value": 0.3,
+      "min": 0,
+      "max": 0.6,
+      "step": 0.01,
+      "label": "Roundness",
+      "widget": "knob"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 0.6,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Speed",
+      "widget": "knob"
+    },
+    "u_colorA": {
+      "type": "color",
+      "value": [
+        0.95,
+        0.35,
+        0.3
+      ],
+      "label": "Fill bottom"
+    },
+    "u_colorB": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.75,
+        0.3
+      ],
+      "label": "Fill top"
+    },
+    "u_bg": {
+      "type": "color",
+      "value": [
+        0.93,
+        0.92,
+        0.88
+      ],
+      "label": "Background"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "order": 203,
+  "title": "Stellar flyby (REBOUND)",
+  "title_ko": "스쳐 가는 별 (REBOUND)",
+  "description": "REBOUND integrated a star, its disk of 500 particles and a second star passing on a hyperbolic orbit on this computer (recipe rebound.disk-flyby); the scene replays the snapshots with trails as the flyby pulls the disk into tidal tails and steals part of it. Drag to orbit.",
+  "description_ko": "REBOUND가 이 컴퓨터에서 별 하나와 그 주위 입자 500개의 원반, 쌍곡선 궤도로 스쳐 가는 두 번째 별을 적분했다(레시피 rebound.disk-flyby). 씬은 스냅샷을 꼬리와 함께 재생한다. 지나가는 별이 원반을 조석 꼬리로 끌어내고 일부를 빼앗아 간다. 드래그로 돌려 볼 수 있다.",
+  "prompt": "(open-source example: REBOUND run through the runtime, recipe included)",
+  "made_with": "rebound 5.2.0 via recipe rebound.disk-flyby (python_run)",
+  "features": [
+    "n-body",
+    "gravity",
+    "simulation",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "rebound"
+  ],
+  "summary": "A passing star sweeps by another star's ring of dust, tearing it into long glowing tails and stealing some.",
+  "summary_ko": "지나가던 별이 다른 별의 먼지 고리를 스치며 긴 꼬리로 찢어 놓고, 일부를 훔쳐 가요.",
+  "try": [
+    "Drag to look at the disk from another angle",
+    "Raise Trail (frames) for longer streaks",
+    "Turn the Speed knob down to watch the close pass slowly"
+  ],
+  "try_ko": [
+    "드래그해서 다른 각도에서 원반을 보세요",
+    "Trail (frames)을 올리면 꼬리가 길어져요",
+    "Speed 노브를 낮춰 별이 스쳐 가는 순간을 천천히 보세요"
+  ],
+  "tool_about": "REBOUND is a precise gravity simulator for planets, stars and dust, used by astronomers. It runs on this computer through Python.",
+  "tool_about_ko": "REBOUND는 행성, 별, 먼지가 중력으로 어떻게 움직이는지 정밀하게 계산하는 시뮬레이터로, 천문학자들이 써요. 이 컴퓨터에서 파이썬으로 돌아가요."
+}

@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { app } from "electron";
 
-const TIMEOUT_MS = 240_000;
+const TIMEOUT_MS = 600_000;
 const LLM_PROBE = "app://siljangnim/api/llm/anthropic/v1/messages";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -413,14 +413,13 @@ async function runExamplesScenario(win, examplesOut) {
       log(`example ${slug}: skipped (needs ${needs.join(", ")})`);
       continue;
     }
+    // The Examples tab in the top bar; wait for the card rather than a fixed delay.
     await win.webContents.executeJavaScript(`(async () => {
-      if (!document.querySelector('[data-testid="examples"]')) {
-        document.querySelector('[title="Projects"]').click();
-        await new Promise((r) => setTimeout(r, 200));
-        document.querySelector('[data-testid="open-examples"]').click();
-        await new Promise((r) => setTimeout(r, 300));
-      }
-      document.querySelector('[data-example="${slug}"]').click();
+      if (!document.querySelector('[data-testid="examples"]')) document.querySelector('[data-testid="view-examples"]').click();
+      let card = null;
+      for (let i = 0; i < 50 && !(card = document.querySelector('[data-example="${slug}"]')); i++) await new Promise((r) => setTimeout(r, 100));
+      if (!card) throw new Error("no card for ${slug}");
+      card.click();
     })()`);
     let state = null;
     for (let i = 0; i < 60; i++) {

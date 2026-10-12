@@ -1,0 +1,30 @@
+{
+  "order": 142,
+  "title": "Orrery (OGL)",
+  "title_ko": "태양계 모형 (OGL)",
+  "description": "OGL's scene graph drives a small orrery on the scene's WebGL2 context: planets and moons are nested Transforms, so each only turns around its parent, lit by the sun at the center. Drag to orbit.",
+  "description_ko": "OGL의 씬 그래프가 씬의 WebGL2 컨텍스트에서 작은 태양계 모형을 움직인다. 행성과 위성이 중첩된 Transform이라 각자 부모 주위만 돈다. 가운데 태양이 빛을 비춘다. 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: ogl imported in the scene)",
+  "made_with": "ogl 1.0.11 via ctx.utils.import",
+  "features": [
+    "ogl",
+    "scene graph",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "ogl"
+  ],
+  "summary": "A toy solar system: planets circle the glowing sun, and moons circle their planets.",
+  "summary_ko": "장난감 태양계예요. 행성은 빛나는 태양을, 달은 행성을 따라 돌아요.",
+  "try": [
+    "Drag to look at the solar system from another angle",
+    "Turn the Speed knob to speed up the orbits, or to zero to stop them"
+  ],
+  "try_ko": [
+    "드래그해서 다른 각도에서 태양계를 보세요",
+    "Speed 노브를 돌려 공전을 빠르게 하거나, 0으로 내려 멈춰 보세요"
+  ],
+  "tool_about": "OGL is a small, lightweight library for 3D graphics in the browser, a simpler alternative to Three.js with just the basics: shapes, cameras and objects attached to other objects.",
+  "tool_about_ko": "OGL은 브라우저용 작고 가벼운 3D 그래픽 라이브러리예요. Three.js보다 단순하게 도형, 카메라, 물체끼리 붙여 움직이는 구조 같은 기본 기능만 담고 있어요."
+}

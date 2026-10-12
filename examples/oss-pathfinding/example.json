@@ -1,0 +1,33 @@
+{
+  "order": 163,
+  "title": "Maze search (PathFinding.js)",
+  "title_ko": "미로 탐색 (PathFinding.js)",
+  "description": "PathFinding.js solves a generated maze with loops; the scene records which cells the finder expands, in order, and replays the search before tracing the path. Pick A*, Dijkstra, best-first, bidirectional A* or breadth-first to compare them; click a cell to send it there.",
+  "description_ko": "PathFinding.js가 고리가 있는 미로를 푼다. 씬은 탐색기가 펼친 칸을 순서대로 기록해 탐색 과정을 다시 보여 준 뒤 경로를 그린다. A*, 다익스트라, 최선 우선, 양방향 A*, 너비 우선을 골라 비교할 수 있고, 칸을 클릭하면 그곳으로 길을 찾는다.",
+  "prompt": "(open-source example: PathFinding.js imported in the scene)",
+  "made_with": "pathfinding 0.4.18 via ctx.utils.import",
+  "features": [
+    "pathfinding",
+    "maze",
+    "a-star",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "pathfinding-js"
+  ],
+  "summary": "Watch the computer search a maze cell by cell, then trace the route it found to the goal.",
+  "summary_ko": "컴퓨터가 미로를 한 칸씩 뒤진 뒤, 찾아낸 길을 따라 목적지까지 선을 그어 가는 모습을 볼 수 있어요.",
+  "try": [
+    "Click an open cell to send the search there",
+    "Switch Finder to compare A*, Dijkstra, Best-first and the others",
+    "Turn the Replay speed knob to watch the search faster or slower"
+  ],
+  "try_ko": [
+    "빈 칸을 클릭해 그곳까지 길을 찾게 해 보세요",
+    "Finder를 바꿔 A*, Dijkstra, Best-first 등을 비교해 보세요",
+    "Replay speed 노브를 돌려 탐색을 빠르게 또는 느리게 보세요"
+  ],
+  "tool_about": "PathFinding.js is a JavaScript library that finds the shortest way through a grid, such as a maze or a game map, using several classic search methods. It runs in the browser.",
+  "tool_about_ko": "PathFinding.js는 미로나 게임 지도 같은 격자에서 가장 짧은 길을 찾아 주는 JavaScript 라이브러리로, 여러 고전적인 탐색 방법을 담고 있어요. 브라우저에서 돌아가요."
+}

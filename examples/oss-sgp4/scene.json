@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// python-sgp4 propagated seven satellites from their TLEs into an Earth-fixed frame\n// (recipe sgp4.ground-tracks → tracks.json). The globe is procedural (graticule and\n// day/night from the sun's position at that time); orbits and ground tracks come from the file.\nconst data = await (await fetch(ctx.assets[\"tracks.json\"])).json();\nconst gl = ctx.gl, steps = data.steps;\nconst colors = [[1, 0.78, 0.35], [0.55, 0.85, 1], [1, 0.45, 0.45], [0.55, 1, 0.6], [0.75, 0.6, 1], [1, 0.6, 0.9], [1, 1, 0.75]];\n// Earth-fixed (z = north) → GL y-up.\nconst gp = (x, y, z) => [x, z, -y];\nconst lineVao = (arr) => {\n  const vao = gl.createVertexArray();\n  gl.bindVertexArray(vao);\n  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());\n  gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);\n  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 16, 0);\n  gl.bindVertexArray(null);\n  return vao;\n};\nconst sats = data.satellites.map((sat, k) => {\n  const orbit = new Float32Array(steps * 4), ground = new Float32Array(steps * 4);\n  for (let i = 0; i < steps; i++) {\n    orbit.set([...gp(sat.xyz[i * 3], sat.xyz[i * 3 + 1], sat.xyz[i * 3 + 2]), i], i * 4);\n    const lat = sat.latlon[i * 2] * Math.PI / 180, lon = sat.latlon[i * 2 + 1] * Math.PI / 180, r = 1.004;\n    ground.set([...gp(r * Math.cos(lat) * Math.cos(lon), r * Math.cos(lat) * Math.sin(lon), r * Math.sin(lat)), i], i * 4);\n  }\n  return { name: sat.name, color: colors[k % colors.length], xyz: sat.xyz, orbit: lineVao(orbit), ground: lineVao(ground) };\n});\nconst start = new Date(data.start);\nconst lineVs = `#version 300 es\nlayout(location=0) in vec4 a_point; uniform mat4 u_mvp; uniform float u_head; uniform float u_tail; out float v_age;\nvoid main(){ v_age = u_head - a_point.w; gl_Position = u_mvp * vec4(a_point.xyz, 1.0); gl_PointSize = 1.0; }`;\nconst lineFs = `#version 300 es\nprecision highp float; in float v_age; out vec4 outColor; uniform vec3 u_color; uniform float u_tail; uniform float u_base;\nvoid main(){ float a = v_age < 0.0 ? u_base * 0.6 : v_age < u_tail ? mix(1.0, u_base, v_age / u_tail) : u_base;\n  outColor = vec4(u_color * a, 1.0); }`;\nconst globeFs = `#version 300 es\nprecision highp float; in vec3 v_normal; in vec3 v_pos; out vec4 outColor;\nuniform vec3 u_sun; uniform vec3 u_eye; uniform float u_grid;\nvoid main(){\n  vec3 n = normalize(v_pos);\n  float lat = asin(clamp(n.y, -1.0, 1.0)), lon = atan(-n.z, n.x);\n  float day = smoothstep(-0.12, 0.2, dot(n, u_sun));\n  vec3 ocean = mix(vec3(0.015, 0.03, 0.07), vec3(0.06, 0.16, 0.32), day);\n  float step15 = radians(15.0);\n  vec2 g = abs(fract(vec2(lat, lon) / step15 + 0.5) - 0.5) / fwidth(vec2(lat, lon) / step15);\n  float grid = 1.0 - min(min(g.x, g.y), 1.0);\n  float equator = 1.0 - min(abs(lat) / fwidth(lat) / 1.5, 1.0);\n  vec3 c = ocean + vec3(0.25, 0.45, 0.7) * grid * u_grid * (0.35 + 0.65 * day) + vec3(0.6, 0.5, 0.3) * equator * 0.5;\n  float rim = pow(1.0 - max(dot(n, normalize(u_eye - v_pos)), 0.0), 3.0);\n  c += vec3(0.3, 0.55, 1.0) * rim * (0.25 + 0.75 * day);\n  outColor = vec4(c, 1.0);\n}`;\nconst sphere = ctx.utils.geometry.sphere(96);\nObject.assign(ctx.state, {\n  data, sats, start,\n  globe: ctx.utils.createMesh(sphere),\n  globeP: ctx.utils.createProgram(ctx.utils.MESH_VERTEX_SHADER, globeFs),\n  lineP: ctx.utils.createProgram(lineVs, lineFs),\n  headP: ctx.utils.createProgram(`#version 300 es\nuniform mat4 u_mvp; uniform vec3 u_p; uniform float u_px; void main(){ gl_Position = u_mvp * vec4(u_p, 1.0); gl_PointSize = u_px; }`, `#version 300 es\nprecision highp float; out vec4 outColor; uniform vec3 u_color;\nvoid main(){ vec2 q = gl_PointCoord * 2.0 - 1.0; float d = dot(q, q); if (d > 1.0) discard; outColor = vec4(mix(u_color, vec3(1.0), exp(-d * 6.0)) * (1.0 - d * 0.6), 1.0); }`),\n  emptyVao: gl.createVertexArray(),\n  camera: ctx.utils.createOrbitCamera({ distance: 7.5, theta: 0.9, phi: 1.15 }),\n  overlay: new OffscreenCanvas(1, 1), tex: gl.createTexture(),\n  over: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform sampler2D u_tex;\nvoid main(){ outColor = texture(u_tex, vec2(v_uv.x, 1.0 - v_uv.y)); }`),\n  bg: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor;\nfloat h(vec2 p){ vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }\nvoid main(){ vec2 g = floor(v_uv * vec2(400.0, 225.0)); float s = step(0.997, h(g)) * h(g + 7.0);\n  outColor = vec4(vec3(0.01, 0.012, 0.025) + s * 0.45, 1.0); }`),\n});\nctx.state.o2d = ctx.state.overlay.getContext(\"2d\");\nctx.publish(\"satellites\", sats.length);",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, { mat4 } = ctx.utils, [w, h] = ctx.resolution;\nconst steps = s.data.steps, dtMin = s.data.step_s / 60;\nconst head = (ctx.time * u.u_speed / dtMin) % (steps - 1);\nconst now = new Date(s.start.getTime() + head * s.data.step_s * 1000);\n// Sun direction (Earth-fixed) from the UTC time of day and an approximate declination.\nconst hours = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;\nconst doy = (now - Date.UTC(now.getUTCFullYear(), 0, 0)) / 864e5;\nconst dec = -23.44 * Math.cos(2 * Math.PI / 365 * (doy + 10)) * Math.PI / 180, slon = (12 - hours) * 15 * Math.PI / 180;\nconst sun = [Math.cos(dec) * Math.cos(slon), Math.sin(dec), -Math.cos(dec) * Math.sin(slon)];\ns.camera.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt);\nconst view = mat4.multiply(s.camera.getViewMatrix(), mat4.fromYRotation(ctx.time * u.u_spin));\nconst proj = s.camera.getProjectionMatrix(w / h, 40, 0.1, 100);\nconst mvp = mat4.multiply(proj, view);\nctx.utils.drawFullscreen(s.bg);\ngl.enable(gl.DEPTH_TEST); gl.clear(gl.DEPTH_BUFFER_BIT);\ngl.useProgram(s.globeP);\nctx.utils.setStandardUniforms(s.globeP);\nconst eye = s.camera.getEye(), inv = mat4.fromYRotation(-ctx.time * u.u_spin);\nctx.utils.setUniforms(s.globeP, { u_mvp: mvp, u_model: mat4.identity(), u_sun: sun, u_eye: mat4.transformPoint(inv, eye) });\ns.globe.draw();\ngl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE); gl.depthMask(false);\ngl.useProgram(s.lineP);\nconst tail = u.u_tail / dtMin;\n// WebGL lines are 1 px; two passes shifted by a pixel make them read at full resolution.\nfor (const shift of [[0, 0], [2 / w, 2 / h]]) {\n  const shifted = mat4.multiply(mat4.fromTranslation(shift[0], shift[1], 0), mvp);\n  for (const sat of s.sats) {\n    for (const [vao, base] of [[sat.orbit, 0.4], [sat.ground, 0.3]]) {\n      ctx.utils.setUniforms(s.lineP, { u_mvp: shifted, u_head: head, u_tail: tail, u_color: sat.color, u_base: base });\n      gl.bindVertexArray(vao);\n      gl.drawArrays(gl.LINE_STRIP, 0, Math.floor(head) + 1);\n      ctx.utils.setUniforms(s.lineP, { u_base: base * 0.3 });\n      gl.drawArrays(gl.LINE_STRIP, Math.floor(head), steps - Math.floor(head));\n    }\n  }\n}\ngl.depthMask(true); gl.disable(gl.BLEND);\n// Satellite heads and labels.\ngl.useProgram(s.headP);\ngl.bindVertexArray(s.emptyVao);\nconst L = s.o2d;\nif (s.overlay.width !== w || s.overlay.height !== h) { s.overlay.width = w; s.overlay.height = h; }\nL.clearRect(0, 0, w, h);\nL.font = `600 ${Math.round(h / 48)}px ui-sans-serif, system-ui, sans-serif`; L.textBaseline = \"middle\";\nconst i0 = Math.floor(head), f = head - i0;\nfor (const sat of s.sats) {\n  const a = sat.xyz, k = i0 * 3, j = Math.min(i0 + 1, steps - 1) * 3;\n  const p = [0, 1, 2].map((c) => a[k + c] * (1 - f) + a[j + c] * f), gpos = [p[0], p[2], -p[1]];\n  ctx.utils.setUniforms(s.headP, { u_mvp: mvp, u_p: gpos, u_color: sat.color, u_px: h / 70 });\n  gl.drawArrays(gl.POINTS, 0, 1);\n  const c = mat4.transformPoint(view, gpos), hidden = (() => { // behind the globe as seen from the eye?\n    const e = mat4.transformPoint(inv, eye), d = gpos.map((v, n) => v - e[n]), len = Math.hypot(...d), dir = d.map((v) => v / len);\n    const b = e.reduce((acc, v, n) => acc + v * dir[n], 0), cc = e.reduce((acc, v) => acc + v * v, 0) - 1, disc = b * b - cc;\n    return disc > 0 && -b - Math.sqrt(disc) > 0 && -b - Math.sqrt(disc) < len;\n  })();\n  const clip = mat4.transformPoint(proj, c);\n  if (c[2] < 0 && !hidden) {\n    const x = (clip[0] * 0.5 + 0.5) * w, y = (0.5 - clip[1] * 0.5) * h;\n    L.fillStyle = `rgba(${sat.color.map((v) => Math.round(v * 255)).join(\",\")},0.95)`;\n    L.fillText(sat.name, x + h / 60, y);\n  }\n}\nL.fillStyle = \"rgba(255,255,255,0.7)\"; L.textBaseline = \"top\";\nL.fillText(now.toISOString().slice(0, 16).replace(\"T\", \" \") + \" UTC\", h / 40, h / 40);\ngl.bindVertexArray(null);\ngl.disable(gl.DEPTH_TEST);\ngl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);\ngl.bindTexture(gl.TEXTURE_2D, s.tex);\ngl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);\ngl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, s.overlay);\ngl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);\ngl.useProgram(s.over);\nctx.utils.bindTexture(s.over, \"u_tex\", s.tex, 0);\nctx.utils.drawFullscreen(s.over);\ngl.disable(gl.BLEND);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 8,
+      "min": 0.5,
+      "max": 40,
+      "step": 0.5,
+      "label": "Minutes per second",
+      "widget": "knob"
+    },
+    "u_tail": {
+      "type": "float",
+      "value": 45,
+      "min": 5,
+      "max": 360,
+      "step": 5,
+      "label": "Trail (minutes)",
+      "widget": "slider"
+    },
+    "u_spin": {
+      "type": "float",
+      "value": 0.05,
+      "min": 0,
+      "max": 0.5,
+      "step": 0.01,
+      "label": "Spin",
+      "widget": "knob"
+    },
+    "u_grid": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.01,
+      "label": "Graticule",
+      "widget": "slider"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

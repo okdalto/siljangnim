@@ -1,0 +1,134 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Trianglify makes a low-poly pattern: jittered grid points, Delaunay triangles and a colour\n// for each triangle from a ColorBrewer gradient. The scene keeps its triangles and colours,\n// sways the points and lights each facet from the pointer.\n// The browser bundle is self-contained (the package entry wants node-canvas).\nconst mod = await ctx.utils.import(\"https://esm.sh/trianglify@4.1.1/dist/trianglify.bundle.js\");\nconst trianglify = mod.default ?? mod;\nconst gl = ctx.gl;\ngl.getExtension(\"EXT_color_buffer_float\");\nconst flat = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec2 a_position; layout(location=1) in vec4 a_color;\nuniform vec2 u_px; out vec4 v_color;\nvoid main(){ v_color = a_color; gl_Position = vec4(a_position / u_px * 2.0 - 1.0, 0.0, 1.0); }`, `#version 300 es\nprecision highp float; in vec4 v_color; out vec4 outColor;\nvoid main(){ outColor = v_color; }`);\nconst vao = gl.createVertexArray(), vbo = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 24, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 24, 8);\ngl.bindVertexArray(null);\nconst kit = {\n  // Draws a flat (x, y, r, g, b, a) triangle list.\n  draw(arr) {\n    if (!arr.length) return;\n    gl.useProgram(flat);\n    ctx.utils.setUniforms(flat, { u_px: ctx.resolution });\n    gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);\n    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.DYNAMIC_DRAW);\n    gl.drawArrays(gl.TRIANGLES, 0, arr.length / 6);\n    gl.bindVertexArray(null);\n  },\n  // Signed triangle fan: inside a closed ring the triangles add up to ±c, outside they cancel.\n  // Summed with additive blending, this fills any polygon (holes, self-overlaps) exactly.\n  fan(ring, c, out) {\n    const x0 = ring[0], y0 = ring[1];\n    for (let i = 2; i + 3 < ring.length; i += 2) {\n      const s = Math.sign((ring[i] - x0) * (ring[i + 3] - y0) - (ring[i + 1] - y0) * (ring[i + 2] - x0));\n      if (!s) continue;\n      out.push(x0, y0, c[0] * s, c[1] * s, c[2] * s, c[3] * s,\n        ring[i], ring[i + 1], c[0] * s, c[1] * s, c[2] * s, c[3] * s,\n        ring[i + 2], ring[i + 3], c[0] * s, c[1] * s, c[2] * s, c[3] * s);\n    }\n  },\n  // Thick polyline as quads (WebGL lines are 1 px); square ends overlap at the joints.\n  line(pts, closed, width, c, out) {\n    const n = pts.length / 2, hw = width / 2;\n    for (let i = 0; i < (closed ? n : n - 1); i++) {\n      const j = (i + 1) % n;\n      const ax = pts[i * 2], ay = pts[i * 2 + 1], bx = pts[j * 2], by = pts[j * 2 + 1];\n      const len = Math.hypot(bx - ax, by - ay);\n      if (len < 1e-6) continue;\n      const dx = (bx - ax) / len * hw, dy = (by - ay) / len * hw;\n      const p = [ax - dx - dy, ay - dy + dx, ax - dx + dy, ay - dy - dx, bx + dx + dy, by + dy - dx, bx + dx - dy, by + dy + dx];\n      for (const k of [0, 1, 2, 0, 2, 3]) out.push(p[k * 2], p[k * 2 + 1], c[0], c[1], c[2], c[3]);\n    }\n  },\n  // Disc made of triangles.\n  dot(x, y, r, c, out, seg = 16) {\n    for (let i = 0; i < seg; i++) {\n      const a0 = i / seg * 6.2832, a1 = (i + 1) / seg * 6.2832;\n      out.push(x, y, ...c, x + Math.cos(a0) * r, y + Math.sin(a0) * r, ...c, x + Math.cos(a1) * r, y + Math.sin(a1) * r, ...c);\n    }\n  },\n  acc: null,\n  // Renders signed fans additively into a half-float target at up to 2x the canvas size\n  // (sampling it back with linear filtering smooths the edges). Returns the texture.\n  accumulate(arr) {\n    const [w, h] = ctx.resolution, k = Math.min(2, 4096 / Math.max(w, h));\n    const tw = Math.round(w * k), th = Math.round(h * k);\n    if (!kit.acc) kit.acc = ctx.utils.createPingPong(tw, th, { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT });\n    else if (kit.acc.width !== tw || kit.acc.height !== th) kit.acc.resize(tw, th);\n    const t = kit.acc.read();\n    gl.bindFramebuffer(gl.FRAMEBUFFER, t.framebuffer); gl.viewport(0, 0, tw, th);\n    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);\n    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);\n    kit.draw(arr);\n    gl.disable(gl.BLEND);\n    gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, w, h);\n    return t.texture;\n  },\n};\nconst s = ctx.state;\nObject.assign(s, { kit, trianglify, key: \"\", moved: false, light: [0.5, 0.5] });\ns.palettes = [\"YlGnBu\", \"RdPu\", \"Spectral\", \"PuOr\", \"YlOrRd\", \"RdYlBu\", \"BuPu\", \"PiYG\"];",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, kit = s.kit;\nconst [w, h] = ctx.resolution, t = ctx.time * u.u_speed;\n// Regenerate when the canvas or a pattern option changes.\nconst key = [w, h, u.u_cell, u.u_variance, u.u_palette, u.u_seed].join();\nif (key !== s.key) {\n  s.key = key;\n  const pal = s.palettes[u.u_palette % s.palettes.length];\n  const pattern = s.trianglify({ width: w, height: h, cellSize: u.u_cell * h, variance: u.u_variance, seed: u.u_seed, xColors: pal, yColors: \"match\" });\n  s.points = pattern.points;\n  s.polys = pattern.polys.map((p) => ({ idx: p.vertexIndices, color: p.color.gl() }));\n  // A height per point (for the facet normals) and a phase for the sway.\n  s.extra = s.points.map(() => [Math.random(), Math.random() * 6.283, Math.random() * 6.283]);\n  ctx.publish(\"triangles\", s.polys.length);\n}\nconst [mx, my] = ctx.mouse;\ns.moved ||= mx !== 0.5 || my !== 0.5;\n// The light follows the pointer (eased); before the pointer moves it circles.\nconst target = s.moved ? [mx, 1 - my] : [0.5 + 0.35 * Math.cos(ctx.time * 0.4), 0.5 + 0.3 * Math.sin(ctx.time * 0.5)];\ns.light[0] += (target[0] - s.light[0]) * 0.1; s.light[1] += (target[1] - s.light[1]) * 0.1;\nconst amp = u.u_sway * u.u_cell * h * 0.25, depth = u.u_cell * h * u.u_depth;\nconst P = s.points.map(([x, y], i) => {\n  const e = s.extra[i];\n  return [x + Math.sin(t + e[1]) * amp, h - (y + Math.cos(t * 0.8 + e[2]) * amp), e[0] * depth * (0.8 + 0.2 * Math.sin(t * 0.6 + e[1]))];\n});\nconst L = [s.light[0] * w, s.light[1] * h, h * 0.35];\nconst tris = [];\nfor (const p of s.polys) {\n  const [a, b, c] = p.idx.map((i) => P[i]);\n  // Facet normal from the three lifted points.\n  const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];\n  let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;\n  const nl = Math.hypot(nx, ny, nz) * Math.sign(nz || 1);\n  nx /= nl; ny /= nl; nz /= nl;\n  const cx = (a[0] + b[0] + c[0]) / 3, cy = (a[1] + b[1] + c[1]) / 3, cz = (a[2] + b[2] + c[2]) / 3;\n  let lx = L[0] - cx, ly = L[1] - cy, lz = L[2] - cz;\n  const ll = Math.hypot(lx, ly, lz); lx /= ll; ly /= ll; lz /= ll;\n  const diff = Math.max(0, nx * lx + ny * ly + nz * lz);\n  // Blinn-Phong highlight, viewer straight above.\n  const hl = Math.hypot(lx, ly, lz + 1);\n  const spec = Math.pow(Math.max(0, (nx * lx + ny * ly + nz * (lz + 1)) / hl), 40) * u.u_shine;\n  const near = Math.exp(-ll * ll / (h * h * 0.5));\n  const k = 0.45 + 0.75 * diff * (0.6 + 0.4 * near);\n  const col = [p.color[0] * k + spec, p.color[1] * k + spec, p.color[2] * k + spec, 1];\n  tris.push(a[0], a[1], ...col, b[0], b[1], ...col, c[0], c[1], ...col);\n}\ngl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);\nkit.draw(tris);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_palette": {
+      "type": "int",
+      "value": 0,
+      "label": "Palette",
+      "widget": "select",
+      "options": [
+        {
+          "label": "YlGnBu",
+          "value": 0
+        },
+        {
+          "label": "RdPu",
+          "value": 1
+        },
+        {
+          "label": "Spectral",
+          "value": 2
+        },
+        {
+          "label": "PuOr",
+          "value": 3
+        },
+        {
+          "label": "YlOrRd",
+          "value": 4
+        },
+        {
+          "label": "RdYlBu",
+          "value": 5
+        },
+        {
+          "label": "BuPu",
+          "value": 6
+        },
+        {
+          "label": "PiYG",
+          "value": 7
+        }
+      ]
+    },
+    "u_cell": {
+      "type": "float",
+      "value": 0.09,
+      "min": 0.03,
+      "max": 0.3,
+      "step": 0.005,
+      "label": "Cell size"
+    },
+    "u_variance": {
+      "type": "float",
+      "value": 0.75,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Variance",
+      "widget": "knob"
+    },
+    "u_seed": {
+      "type": "int",
+      "value": 7,
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "label": "Seed"
+    },
+    "u_sway": {
+      "type": "float",
+      "value": 0.5,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.01,
+      "label": "Sway",
+      "widget": "knob"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 0.8,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Speed",
+      "widget": "knob"
+    },
+    "u_depth": {
+      "type": "float",
+      "value": 0.8,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Relief"
+    },
+    "u_shine": {
+      "type": "float",
+      "value": 0.25,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Shine"
+    }
+  },
+  "controls": [
+    {
+      "label": "Pattern",
+      "uniforms": [
+        "u_palette",
+        "u_cell",
+        "u_variance",
+        "u_seed"
+      ]
+    },
+    {
+      "label": "Motion and light",
+      "uniforms": [
+        "u_sway",
+        "u_speed",
+        "u_depth",
+        "u_shine"
+      ]
+    }
+  ],
+  "inputs": [
+    "mouse"
+  ]
+}

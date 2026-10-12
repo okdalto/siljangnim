@@ -1,0 +1,94 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "// lindenmayer rewrites each plant's L-system; the scene walks the result with a turtle\n// and grows the branches along their distance from the root, swaying in the wind.\nconst mod = await ctx.utils.import(\"https://esm.sh/lindenmayer@1.5.4\");\nconst LSystem = mod.default ?? mod;\nconst pick = (...options) => ({ successors: options.map((successor) => ({ weight: 1, successor })) });\n// Four kinds of plant: [axiom, productions, iterations, angle (degrees)].\nconst KINDS = [\n  [\"X\", { X: pick(\"F+[[X]-X]-F[-FX]+X\", \"F-[[X]+X]+F[+FX]-X\"), F: \"FF\" }, 5, 23],\n  [\"F\", { F: pick(\"F[+F]F[-F]F\", \"F[+F]F\", \"F[-F]F\") }, 5, 26],\n  [\"X\", { X: pick(\"F[+X]F[-X]+X\", \"F[-X]F[+X]-X\", \"F[+X][-X]FX\"), F: \"FF\" }, 6, 21],\n  [\"F\", { F: pick(\"FF-[-F+F+F]+[+F-F-F]\", \"FF+[+F-F]-[-F+F+F]\") }, 3, 20],\n];\nconst gl = ctx.gl;\nconst makeVao = (layout) => {\n  const vao = gl.createVertexArray(), buffer = gl.createBuffer();\n  gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);\n  const stride = layout.reduce((a, b) => a + b, 0) * 4;\n  let offset = 0;\n  layout.forEach((n, i) => { gl.enableVertexAttribArray(i); gl.vertexAttribPointer(i, n, gl.FLOAT, false, stride, offset); offset += n * 4; });\n  gl.bindVertexArray(null);\n  return { vao, buffer, count: 0 };\n};\nconst SWAY = `\nuniform float u_time; uniform float u_wind; uniform float u_aspect;\nvec2 sway(vec2 p, float plant, float base) {\n  float hgt = max(p.y - 0.1, 0.0);\n  p.x += u_wind * 0.05 * hgt * hgt * (sin(u_time * 1.3 + plant * 1.7 + p.y * 2.5) + 0.45 * sin(u_time * 2.9 + plant));\n  return p;\n}\nvec4 toClip(vec2 p) { return vec4(p.x / u_aspect * 2.0 - 1.0, p.y * 2.0 - 1.0, 0.0, 1.0); }`;\nconst stems = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec4 a_ends; layout(location=1) in vec4 a_info; layout(location=2) in vec2 a_corner;\nuniform float u_grow; out float v_shade; out float v_depth;` + SWAY + `\nvoid main(){\n  float t = clamp((u_grow - a_info.x) / max(a_info.y - a_info.x, 1e-4), 0.0, 1.0);\n  vec2 a = sway(a_ends.xy, a_info.w, 0.0), b = sway(mix(a_ends.xy, a_ends.zw, t), a_info.w, 0.0);\n  vec2 dir = normalize(b - a + vec2(0.0, 1e-6)), nrm = vec2(-dir.y, dir.x);\n  float width = a_info.z * (t > 0.0 ? 1.0 : 0.0) * mix(1.0, 0.75, a_corner.x);\n  vec2 p = mix(a, b, a_corner.x) + nrm * a_corner.y * width * 0.5 + dir * (a_corner.x * 2.0 - 1.0) * width * 0.3;\n  v_shade = a_corner.y; v_depth = a_info.x;\n  gl_Position = toClip(p);\n}`, `#version 300 es\nprecision highp float; in float v_shade; in float v_depth; out vec4 outColor; uniform vec3 u_stem;\nvoid main(){\n  vec3 c = mix(u_stem * 0.55, u_stem * 1.25 + vec3(0.05, 0.12, 0.02), smoothstep(0.1, 0.9, v_depth));\n  outColor = vec4(c * (0.75 + 0.35 * v_shade), 1.0);\n}`);\nconst leaves = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec2 a_pos; layout(location=1) in vec2 a_info;\nuniform float u_grow; uniform float u_px; out float v_hue; out float v_open;` + SWAY + `\nvoid main(){\n  v_open = clamp((u_grow - a_info.x) * 8.0, 0.0, 1.0);\n  v_hue = a_info.y;\n  gl_Position = toClip(sway(a_pos, floor(a_info.y), 0.0));\n  gl_PointSize = u_px * v_open * (0.75 + 0.5 * fract(a_info.y * 7.31 + a_pos.x * 13.0));\n}`, `#version 300 es\nprecision highp float; in float v_hue; in float v_open; out vec4 outColor; uniform vec3 u_bloom[4];\nvoid main(){\n  vec2 p = gl_PointCoord - 0.5;\n  // Five petals.\n  float ang = atan(p.y, p.x), r = length(p) * 2.0;\n  float petal = 0.62 + 0.38 * cos(ang * 5.0);\n  if (r > petal || v_open <= 0.0) discard;\n  vec3 c = u_bloom[int(floor(v_hue)) % 4];\n  c = mix(vec3(1.0, 0.92, 0.6), c, smoothstep(0.12, 0.3, r));\n  outColor = vec4(c * (1.05 - 0.35 * r), 1.0);\n}`);\nconst sky = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform vec2 u_resolution; uniform float u_ground;\nvoid main(){\n  vec3 top = vec3(0.05, 0.06, 0.12), horizon = vec3(0.32, 0.22, 0.3);\n  vec3 c = mix(horizon, top, pow(v_uv.y, 0.7));\n  vec2 sun = vec2(0.72, 0.55); float aspect = u_resolution.x / u_resolution.y;\n  float d = length((v_uv - sun) * vec2(aspect, 1.0));\n  c += vec3(1.0, 0.6, 0.35) * (0.5 * exp(-d * 6.0) + smoothstep(0.075, 0.07, d) * 0.6);\n  if (v_uv.y < u_ground) c = mix(vec3(0.08, 0.06, 0.06), vec3(0.14, 0.1, 0.09), v_uv.y / u_ground);\n  outColor = vec4(c, 1.0);\n}`);\nObject.assign(ctx.state, { LSystem, KINDS, stems, leaves, sky, stemVao: makeVao([4, 4, 2]), leafVao: makeVao([2, 2]), grow: 0, key: \"\", hold: 0 });\n\n// Build the whole garden: one L-system per plant, a turtle walk, quads for the branches.\nctx.state.build = (detail, angleShift, aspect) => {\n  const s = ctx.state, ground = 0.12, plants = 5;\n  const segData = [], leafData = [];\n  for (let p = 0; p < plants; p++) {\n    const kind = s.KINDS[(p + s.seed) % s.KINDS.length];\n    const lsys = new s.LSystem({ axiom: kind[0], productions: kind[1] });\n    const text = lsys.iterate(Math.max(1, kind[2] + detail));\n    const turn = (kind[3] + angleShift) * Math.PI / 180;\n    // Turtle walk in local units; remember the distance from the root of every point.\n    let x = 0, y = 0, a = Math.PI / 2 + (Math.random() - 0.5) * 0.15, d = 0, depth = 0;\n    const stack = [], segs = [], tips = [];\n    for (const ch of text) {\n      if (ch === \"F\") {\n        const nx = x + Math.cos(a), ny = y + Math.sin(a);\n        segs.push([x, y, nx, ny, d, d + 1, depth]);\n        x = nx; y = ny; d += 1;\n      } else if (ch === \"+\") a += turn * (0.85 + Math.random() * 0.3);\n      else if (ch === \"-\") a -= turn * (0.85 + Math.random() * 0.3);\n      else if (ch === \"[\") { stack.push([x, y, a, d, depth]); depth++; }\n      else if (ch === \"]\") { tips.push([x, y, d]); [x, y, a, d, depth] = stack.pop(); }\n    }\n    tips.push([x, y, d]);\n    let x0 = Infinity, x1 = -Infinity, y1 = 0, dmax = 1;\n    for (const g of segs) { x0 = Math.min(x0, g[0], g[2]); x1 = Math.max(x1, g[0], g[2]); y1 = Math.max(y1, g[1], g[3]); dmax = Math.max(dmax, g[5]); }\n    // Fit every plant to its slot along the ground, at varied heights.\n    const slot = aspect / plants, height = 0.45 + 0.35 * Math.random();\n    const k = Math.min(height / y1, slot * 1.25 / Math.max(x1 - x0, 1e-3));\n    const cx = slot * (p + 0.5) + (Math.random() - 0.5) * slot * 0.2, mid = (x0 + x1) / 2;\n    const T = (px, py) => [cx + (px - mid) * k, ground + py * k];\n    for (const [ax, ay, bx, by, da, db, dep] of segs) {\n      const [Ax, Ay] = T(ax, ay), [Bx, By] = T(bx, by);\n      const width = Math.max(0.0016, 0.011 * Math.pow(0.7, dep) * (1 - 0.6 * da / dmax));\n      for (const [along, side] of [[0, -1], [1, -1], [1, 1], [0, -1], [1, 1], [0, 1]]) {\n        segData.push(Ax, Ay, Bx, By, da / dmax, db / dmax, width, p, along, side);\n      }\n    }\n    for (const [tx, ty, td] of tips) { if (td > 0 && Math.random() < 0.6) { const [X, Y] = T(tx, ty); leafData.push(X, Y, td / dmax + 0.05, p + Math.random() * 0.99); } }\n  }\n  for (const [vao, data, n] of [[s.stemVao, segData, 10], [s.leafVao, leafData, 4]]) {\n    gl.bindBuffer(gl.ARRAY_BUFFER, vao.buffer);\n    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);\n    vao.count = data.length / n;\n  }\n  s.grow = 0; s.hold = 0;\n};\nctx.state.seed = Math.floor(Math.random() * 4);",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution, aspect = w / h;\nconst key = [u.u_detail, u.u_angle, aspect.toFixed(3)].join();\nif (key !== s.key || u.u_regrow) { s.key = key; if (u.u_regrow) s.seed++; s.build(u.u_detail, u.u_angle, aspect); }\n// Grow; when the garden has bloomed, wait a while and plant a new one.\nif (s.grow < 1.15) s.grow += ctx.dt * u.u_speed / 6;\nelse if ((s.hold += ctx.dt) > 8) { s.seed++; s.build(u.u_detail, u.u_angle, aspect); }\ngl.useProgram(s.sky);\nctx.utils.drawFullscreen(s.sky, { u_ground: 0.12 });\nconst common = { u_time: ctx.time, u_wind: u.u_wind, u_aspect: aspect, u_grow: s.grow };\ngl.useProgram(s.stems);\nctx.utils.setUniforms(s.stems, { ...common, u_stem: u.u_stem });\ngl.bindVertexArray(s.stemVao.vao);\ngl.drawArrays(gl.TRIANGLES, 0, s.stemVao.count);\ngl.useProgram(s.leaves);\nctx.utils.setUniforms(s.leaves, { ...common, u_px: h * 0.016, u_bloom: [u.u_bloom1, u.u_bloom2, [1.0, 0.85, 0.35], [0.75, 0.6, 1.0], ].flat() });\ngl.bindVertexArray(s.leafVao.vao);\ngl.drawArrays(gl.POINTS, 0, s.leafVao.count);\ngl.bindVertexArray(null);\nctx.publish(\"branches\", s.stemVao.count / 6);\nctx.publish(\"growth\", Math.min(1, s.grow).toFixed(2));",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01,
+      "label": "Growth speed",
+      "widget": "knob"
+    },
+    "u_wind": {
+      "type": "float",
+      "value": 0.6,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Wind",
+      "widget": "knob"
+    },
+    "u_angle": {
+      "type": "float",
+      "value": 0,
+      "min": -12,
+      "max": 12,
+      "step": 0.5,
+      "label": "Branch angle ±"
+    },
+    "u_detail": {
+      "type": "int",
+      "value": 0,
+      "min": -1,
+      "max": 1,
+      "label": "Detail",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Low",
+          "value": -1
+        },
+        {
+          "label": "Normal",
+          "value": 0
+        },
+        {
+          "label": "High",
+          "value": 1
+        }
+      ]
+    },
+    "u_regrow": {
+      "type": "bool",
+      "value": false,
+      "label": "Plant again",
+      "widget": "button"
+    },
+    "u_stem": {
+      "type": "color",
+      "value": [
+        0.42,
+        0.55,
+        0.3
+      ],
+      "label": "Stems"
+    },
+    "u_bloom1": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.45,
+        0.6
+      ],
+      "label": "Blossom A"
+    },
+    "u_bloom2": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.95,
+        0.95
+      ],
+      "label": "Blossom B"
+    }
+  },
+  "inputs": [],
+  "keyframes": {}
+}

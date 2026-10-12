@@ -1,0 +1,33 @@
+{
+  "order": 201,
+  "title": "Standard library bubbles (circlify)",
+  "title_ko": "표준 라이브러리 버블 (circlify)",
+  "description": "circlify packed Python's own standard library into nested circles — folders around modules, each sized by its lines of code — on this computer (recipe circlify.stdlib-packing). Hover to read a module, click a folder to zoom in and outside it to zoom out.",
+  "description_ko": "circlify가 이 컴퓨터에 있는 파이썬 표준 라이브러리를 원 안의 원으로 채워 넣었다(레시피 circlify.stdlib-packing). 폴더가 모듈을 감싸고, 원의 크기는 코드 줄 수다. 마우스를 올리면 모듈 이름이 보이고, 폴더를 누르면 확대, 바깥을 누르면 축소된다.",
+  "prompt": "(open-source example: circlify run through the runtime, recipe included)",
+  "made_with": "circlify 0.15.1 via recipe circlify.stdlib-packing (python_run)",
+  "features": [
+    "circle packing",
+    "hierarchy",
+    "zoom",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "circlify"
+  ],
+  "summary": "Python's built-in library drawn as bubbles inside bubbles, each sized by how much code it holds.",
+  "summary_ko": "파이썬 기본 라이브러리를 거품 속 거품으로 그렸어요. 코드가 많을수록 거품이 커요.",
+  "try": [
+    "Hover over a bubble to read its name and size",
+    "Click a folder bubble to zoom in, and click outside it to zoom back out",
+    "Turn up Gap to space the bubbles apart"
+  ],
+  "try_ko": [
+    "거품 위에 포인터를 올리면 이름과 크기가 보여요",
+    "폴더 거품을 클릭하면 확대되고, 바깥을 클릭하면 다시 축소돼요",
+    "Gap을 올려 거품 사이를 띄워 보세요"
+  ],
+  "tool_about": "circlify is a Python library that packs circles inside circles without overlap, sized by your numbers, for bubble charts of nested data. It runs on this computer through Python.",
+  "tool_about_ko": "circlify는 숫자 크기에 맞춰 원 안에 원을 겹치지 않게 채워 넣는 파이썬 라이브러리로, 계층 데이터를 거품 차트로 그릴 때 써요. 이 컴퓨터에서 파이썬으로 돌아가요."
+}

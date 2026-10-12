@@ -1,0 +1,28 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "pymcubes.gyroid-mesh@1",
+      "packages": [
+        "PyMCubes==0.1.6",
+        "numpy",
+        "scipy"
+      ],
+      "resolved": [
+        "numpy==2.5.4",
+        "pymcubes==0.1.6",
+        "scipy==1.18.1"
+      ],
+      "inputs": [],
+      "params": {
+        "resolution": 84,
+        "cells": 2.6,
+        "thickness": 0.32,
+        "radius": 0.92
+      },
+      "outputs": [
+        "mesh.json"
+      ]
+    }
+  ]
+}

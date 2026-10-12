@@ -1,0 +1,7058 @@
+{
+ "source": "index.opensource by 현 @hyun2xyz — https://indexopensource.com/index",
+ "issued": "2026.10.06",
+ "count": 412,
+ "note": "Facts and classification labels only; see the site for its descriptions.",
+ "entries": [
+  {
+   "id": "mapgenerator",
+   "name": "MapGenerator",
+   "repo": "https://github.com/probabletrain/mapgenerator",
+   "license": "LGPL-3.0-only",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Tensor fields · streamlines",
+   "area": "Maps · environments",
+   "input": "Tensor fields · road constraints",
+   "keywords": [
+    "tensor fields",
+    "cities",
+    "roads"
+   ],
+   "index": {
+    "no": 1,
+    "code": "X026"
+   }
+  },
+  {
+   "id": "d3-delaunay",
+   "name": "d3-delaunay",
+   "repo": "https://github.com/d3/d3-delaunay",
+   "license": "ISC",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Delaunay · Voronoi",
+   "area": "Patterns · form",
+   "input": "Point coordinates",
+   "keywords": [
+    "geometry",
+    "Voronoi",
+    "triangulation"
+   ],
+   "index": {
+    "no": 2,
+    "code": "X033"
+   }
+  },
+  {
+   "id": "poisson-disk-sampling",
+   "name": "poisson-disk-sampling",
+   "repo": "https://github.com/kchapelier/poisson-disk-sampling",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Minimum-distance sampling",
+   "area": "Patterns · form",
+   "input": "Spacing · probability constraints",
+   "keywords": [
+    "distribution",
+    "sampling",
+    "minimum distance"
+   ],
+   "index": {
+    "no": 3,
+    "code": "X035"
+   }
+  },
+  {
+   "id": "hilbertcurve",
+   "name": "hilbertcurve",
+   "repo": "https://github.com/galtay/hilbertcurve",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Space-filling curves",
+   "area": "Patterns · form",
+   "input": "Coordinates · ordering",
+   "keywords": [
+    "recursion",
+    "space filling",
+    "locality"
+   ],
+   "index": {
+    "no": 4,
+    "code": "X036"
+   }
+  },
+  {
+   "id": "ln",
+   "name": "ln",
+   "repo": "https://github.com/fogleman/ln",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "3D hidden-line removal",
+   "area": "Drawing · printmaking",
+   "input": "3D scenes",
+   "keywords": [
+    "line drawing",
+    "3D",
+    "vectors"
+   ],
+   "index": {
+    "no": 5,
+    "code": "X064"
+   }
+  },
+  {
+   "id": "vpype",
+   "name": "vpype",
+   "repo": "https://github.com/abey79/vpype",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Vector path optimization",
+   "area": "Drawing · printmaking",
+   "input": "Vector paths",
+   "keywords": [
+    "plotters",
+    "SVG",
+    "path sorting"
+   ],
+   "index": {
+    "no": 6,
+    "code": "X065"
+   }
+  },
+  {
+   "id": "tactilejs",
+   "name": "TactileJS",
+   "repo": "https://github.com/isohedral/tactile-js",
+   "license": "BSD-3-Clause",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Isohedral tiling · symmetry constraints",
+   "area": "Patterns · form",
+   "input": "Tile boundaries · symmetry",
+   "keywords": [],
+   "index": {
+    "no": 7,
+    "code": "C006"
+   }
+  },
+  {
+   "id": "streamlines",
+   "name": "streamlines",
+   "repo": "https://github.com/anvaka/streamlines",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Vector fields · streamline integration",
+   "area": "Patterns · form",
+   "input": "Vector fields",
+   "keywords": [],
+   "index": {
+    "no": 8,
+    "code": "C007"
+   }
+  },
+  {
+   "id": "oripa",
+   "name": "ORIPA",
+   "repo": "https://github.com/oripa/oripa",
+   "license": "GPL-3.0-or-later",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Flat folding · layer-order constraints",
+   "area": "Structures · fabrication",
+   "input": "Crease patterns · paper",
+   "keywords": [],
+   "index": {
+    "no": 9,
+    "code": "C009"
+   }
+  },
+  {
+   "id": "paper-js",
+   "name": "Paper.js",
+   "repo": "https://github.com/paperjs/paper.js",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Boolean operations on curved paths",
+   "area": "Patterns · form",
+   "input": "Shapes · contours",
+   "keywords": [],
+   "index": {
+    "no": 10,
+    "code": "C014"
+   }
+  },
+  {
+   "id": "clipper2",
+   "name": "Clipper2",
+   "repo": "https://github.com/angusjohnson/clipper2",
+   "license": "BSL-1.0",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Polygon clipping · offsetting",
+   "area": "Patterns · form",
+   "input": "Shapes · contours",
+   "keywords": [],
+   "index": {
+    "no": 11,
+    "code": "C015"
+   }
+  },
+  {
+   "id": "cavalier-contours",
+   "name": "Cavalier Contours",
+   "repo": "https://github.com/jbuckmccready/cavalier_contours",
+   "license": "MIT OR Apache-2.0",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Arc-preserving parallel offsets",
+   "area": "Patterns · form",
+   "input": "Contours · distances",
+   "keywords": [],
+   "index": {
+    "no": 12,
+    "code": "C016"
+   }
+  },
+  {
+   "id": "p5-hershey-js",
+   "name": "p5-hershey-js",
+   "repo": "https://github.com/lingdong-/p5-hershey-js",
+   "license": "MIT (library code)",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Stroke coordinate encoding · vector glyphs",
+   "area": "Publishing · typography",
+   "input": "Characters · stroke coordinates",
+   "keywords": [],
+   "index": {
+    "no": 13,
+    "code": "C019"
+   }
+  },
+  {
+   "id": "svgpathtools",
+   "name": "svgpathtools",
+   "repo": "https://github.com/mathandy/svgpathtools",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Bézier polynomials · curvature · arc length",
+   "area": "Patterns · form",
+   "input": "Curve paths",
+   "keywords": [],
+   "index": {
+    "no": 14,
+    "code": "C020"
+   }
+  },
+  {
+   "id": "d3-contour",
+   "name": "d3-contour",
+   "repo": "https://github.com/d3/d3-contour",
+   "license": "ISC",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Marching squares · isolines",
+   "area": "Patterns · form",
+   "input": "Numerical grids · heights",
+   "keywords": [],
+   "index": {
+    "no": 15,
+    "code": "C024"
+   }
+  },
+  {
+   "id": "concaveman",
+   "name": "concaveman",
+   "repo": "https://github.com/mapbox/concaveman",
+   "license": "ISC",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Concave hulls · spatial indexing",
+   "area": "Patterns · form",
+   "input": "Scattered points",
+   "keywords": [],
+   "index": {
+    "no": 16,
+    "code": "C025"
+   }
+  },
+  {
+   "id": "simplify-js",
+   "name": "Simplify.js",
+   "repo": "https://github.com/mourner/simplify-js",
+   "license": "BSD-2-Clause",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Douglas–Peucker · polyline simplification",
+   "area": "Patterns · form",
+   "input": "Polylines",
+   "keywords": [],
+   "index": {
+    "no": 17,
+    "code": "C026"
+   }
+  },
+  {
+   "id": "earcut",
+   "name": "Earcut",
+   "repo": "https://github.com/mapbox/earcut",
+   "license": "ISC",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Ear clipping · polygon triangulation",
+   "area": "Patterns · form",
+   "input": "Contours · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 18,
+    "code": "C028"
+   }
+  },
+  {
+   "id": "penrose",
+   "name": "Penrose",
+   "repo": "https://github.com/penrose/penrose",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Constraint optimization · declarative diagrams",
+   "area": "Patterns · form",
+   "input": "Relationships · constraints",
+   "keywords": [],
+   "index": {
+    "no": 19,
+    "code": "C030"
+   }
+  },
+  {
+   "id": "processing-geometry-suite",
+   "name": "Processing Geometry Suite",
+   "repo": "https://github.com/micycle1/pgs",
+   "license": "GPL-3.0",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Largest empty circles · circle packing",
+   "area": "Patterns · form",
+   "input": "Shapes · sizes · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 20,
+    "code": "C032"
+   }
+  },
+  {
+   "id": "adaptive-bezier-curve",
+   "name": "adaptive-bezier-curve",
+   "repo": "https://github.com/mattdesl/adaptive-bezier-curve",
+   "license": "BSD-3-Clause",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Adaptive curve subdivision",
+   "area": "Patterns · form",
+   "input": "Points · control points",
+   "keywords": [],
+   "index": {
+    "no": 21,
+    "code": "C038"
+   }
+  },
+  {
+   "id": "go-graphics-gg",
+   "name": "Go Graphics (gg)",
+   "repo": "https://github.com/fogleman/gg",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Affine transforms · matrix composition",
+   "area": "Drawing · printmaking",
+   "input": "Shapes · transformation matrices",
+   "keywords": [],
+   "index": {
+    "no": 22,
+    "code": "C042"
+   }
+  },
+  {
+   "id": "bezier-js",
+   "name": "Bezier.js",
+   "repo": "https://github.com/pomax/bezierjs",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "De Casteljau · curve subdivision",
+   "area": "Patterns · form",
+   "input": "Points · control points",
+   "keywords": [],
+   "index": {
+    "no": 23,
+    "code": "C043"
+   }
+  },
+  {
+   "id": "martinez-polygon-clipping",
+   "name": "Martinez polygon clipping",
+   "repo": "https://github.com/w8r/martinez",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Sweep lines · polygon set operations",
+   "area": "Patterns · form",
+   "input": "Shapes · contours",
+   "keywords": [],
+   "index": {
+    "no": 24,
+    "code": "C044"
+   }
+  },
+  {
+   "id": "nurbs-python-geomdl",
+   "name": "NURBS-Python (geomdl)",
+   "repo": "https://github.com/orbingol/nurbs-python",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Rational B-splines · weighted control points",
+   "area": "Patterns · form",
+   "input": "Points · control points",
+   "keywords": [],
+   "index": {
+    "no": 25,
+    "code": "C049"
+   }
+  },
+  {
+   "id": "perfect-freehand",
+   "name": "Perfect Freehand",
+   "repo": "https://github.com/steveruizok/perfect-freehand",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Pen pressure · variable-width strokes",
+   "area": "Publishing · typography",
+   "input": "Pen pressure · hand paths",
+   "keywords": [],
+   "index": {
+    "no": 26,
+    "code": "C051"
+   }
+  },
+  {
+   "id": "chaikin-smooth",
+   "name": "chaikin-smooth",
+   "repo": "https://github.com/experience-monks/chaikin-smooth",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Chaikin corner cutting",
+   "area": "Patterns · form",
+   "input": "Polylines",
+   "keywords": [],
+   "index": {
+    "no": 27,
+    "code": "C055"
+   }
+  },
+  {
+   "id": "svgnest",
+   "name": "SVGnest",
+   "repo": "https://github.com/jack000/svgnest",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Irregular nesting · genetic algorithms",
+   "area": "Structures · fabrication",
+   "input": "Shapes · sizes · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 28,
+    "code": "C057"
+   }
+  },
+  {
+   "id": "cdt2d",
+   "name": "cdt2d",
+   "repo": "https://github.com/mikolalysenko/cdt2d",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Constrained Delaunay triangulation",
+   "area": "Patterns · form",
+   "input": "Contours · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 29,
+    "code": "C059"
+   }
+  },
+  {
+   "id": "polybool",
+   "name": "PolyBool",
+   "repo": "https://github.com/velipso/polybool",
+   "license": "0BSD",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Planar Boolean operations · segment selection",
+   "area": "Patterns · form",
+   "input": "Shapes · contours",
+   "keywords": [],
+   "index": {
+    "no": 30,
+    "code": "C060"
+   }
+  },
+  {
+   "id": "pack-spheres",
+   "name": "pack-spheres",
+   "repo": "https://github.com/mattdesl/pack-spheres",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Circle and sphere packing · growth",
+   "area": "Patterns · form",
+   "input": "Shapes · sizes · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 31,
+    "code": "C062"
+   }
+  },
+  {
+   "id": "d3-shape",
+   "name": "d3-shape",
+   "repo": "https://github.com/d3/d3-shape",
+   "license": "ISC",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Catmull–Rom splines · curve interpolation",
+   "area": "Information visualization",
+   "input": "Points · curve rules",
+   "keywords": [],
+   "index": {
+    "no": 32,
+    "code": "C063"
+   }
+  },
+  {
+   "id": "polypartition",
+   "name": "PolyPartition",
+   "repo": "https://github.com/ivanfratric/polypartition",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Dynamic programming · optimal convex partitioning",
+   "area": "Structures · fabrication",
+   "input": "Concave polygons",
+   "keywords": [],
+   "index": {
+    "no": 33,
+    "code": "C077"
+   }
+  },
+  {
+   "id": "contourmap",
+   "name": "contourmap",
+   "repo": "https://github.com/fogleman/contourmap",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Marching squares · isoline linking",
+   "area": "Maps · environments",
+   "input": "Numerical grids · heights",
+   "keywords": [],
+   "index": {
+    "no": 34,
+    "code": "C082"
+   }
+  },
+  {
+   "id": "svg-mesh-3d",
+   "name": "svg-mesh-3d",
+   "repo": "https://github.com/mattdesl/svg-mesh-3d",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "SVG contour discretization · constrained triangulation",
+   "area": "Drawing · printmaking",
+   "input": "Vector contours",
+   "keywords": [],
+   "index": {
+    "no": 35,
+    "code": "C083"
+   }
+  },
+  {
+   "id": "alpha-shape",
+   "name": "alpha-shape",
+   "repo": "https://github.com/mikolalysenko/alpha-shape",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Alpha complexes · boundary extraction",
+   "area": "Patterns · form",
+   "input": "Scattered points",
+   "keywords": [],
+   "index": {
+    "no": 36,
+    "code": "C084"
+   }
+  },
+  {
+   "id": "libspiro",
+   "name": "libspiro",
+   "repo": "https://github.com/fontforge/libspiro",
+   "license": "GPL-3.0-or-later",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Spiral splines · curvature continuity",
+   "area": "Publishing · typography",
+   "input": "Points · control points",
+   "keywords": [],
+   "index": {
+    "no": 37,
+    "code": "C091"
+   }
+  },
+  {
+   "id": "lyon",
+   "name": "Lyon",
+   "repo": "https://github.com/nical/lyon",
+   "license": "MIT OR Apache-2.0 OR MPL-2.0",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Vector path tessellation",
+   "area": "Patterns · form",
+   "input": "Contours · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 38,
+    "code": "C093"
+   }
+  },
+  {
+   "id": "kurbo",
+   "name": "Kurbo",
+   "repo": "https://github.com/linebender/kurbo",
+   "license": "MIT OR Apache-2.0",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Curve integration · error control",
+   "area": "Patterns · form",
+   "input": "Curve paths",
+   "keywords": [],
+   "index": {
+    "no": 39,
+    "code": "C095"
+   }
+  },
+  {
+   "id": "polyline-normals",
+   "name": "polyline-normals",
+   "repo": "https://github.com/mattdesl/polyline-normals",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Miter joins · polyline normals",
+   "area": "Drawing · printmaking",
+   "input": "Line paths · thickness",
+   "keywords": [],
+   "index": {
+    "no": 40,
+    "code": "C101"
+   }
+  },
+  {
+   "id": "delaunator",
+   "name": "Delaunator",
+   "repo": "https://github.com/mapbox/delaunator",
+   "license": "ISC",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Radial sweeps · half-edge structures",
+   "area": "Patterns · form",
+   "input": "Point coordinates",
+   "keywords": [],
+   "index": {
+    "no": 41,
+    "code": "C107"
+   }
+  },
+  {
+   "id": "flomat",
+   "name": "FloMat",
+   "repo": "https://github.com/florissteenkamp/mat",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Medial axes · scale-axis transforms",
+   "area": "Patterns · form",
+   "input": "Closed curves",
+   "keywords": [],
+   "index": {
+    "no": 42,
+    "code": "C111"
+   }
+  },
+  {
+   "id": "flobezier",
+   "name": "FloBezier",
+   "repo": "https://github.com/florissteenkamp/flobezier",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Curve degree reduction · error-based subdivision",
+   "area": "Patterns · form",
+   "input": "Cubic curves",
+   "keywords": [],
+   "index": {
+    "no": 43,
+    "code": "C112"
+   }
+  },
+  {
+   "id": "libtess2",
+   "name": "libtess2",
+   "repo": "https://github.com/memononen/libtess2",
+   "license": "SGI-B-2.0",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Sweep lines · winding rules",
+   "area": "Patterns · form",
+   "input": "Contours · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 44,
+    "code": "C116"
+   }
+  },
+  {
+   "id": "fit-curve",
+   "name": "fit-curve",
+   "repo": "https://github.com/soswow/fit-curve",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Least squares · recursive curve fitting",
+   "area": "Drawing · printmaking",
+   "input": "Points · control points",
+   "keywords": [],
+   "index": {
+    "no": 45,
+    "code": "C122"
+   }
+  },
+  {
+   "id": "monotone-convex-hull-2d",
+   "name": "monotone-convex-hull-2d",
+   "repo": "https://github.com/mikolalysenko/monotone-convex-hull-2d",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Monotone chains · orientation predicates",
+   "area": "Patterns · form",
+   "input": "Scattered points",
+   "keywords": [],
+   "index": {
+    "no": 46,
+    "code": "C128"
+   }
+  },
+  {
+   "id": "robust-point-in-polygon",
+   "name": "robust-point-in-polygon",
+   "repo": "https://github.com/mikolalysenko/robust-point-in-polygon",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Point containment · crossing parity",
+   "area": "Patterns · form",
+   "input": "Points · polygons",
+   "keywords": [],
+   "index": {
+    "no": 47,
+    "code": "C130"
+   }
+  },
+  {
+   "id": "hull-js",
+   "name": "hull.js",
+   "repo": "https://github.com/andriiheonia/hull",
+   "license": "BSD-3-Clause",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Concave hulls · contour extraction",
+   "area": "Patterns · form",
+   "input": "Scattered points",
+   "keywords": [],
+   "index": {
+    "no": 48,
+    "code": "C133"
+   }
+  },
+  {
+   "id": "poly-decomp-js",
+   "name": "poly-decomp.js",
+   "repo": "https://github.com/schteppe/poly-decomp.js",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Convex decomposition of concave polygons",
+   "area": "Patterns · form",
+   "input": "Concave polygons",
+   "keywords": [],
+   "index": {
+    "no": 49,
+    "code": "C134"
+   }
+  },
+  {
+   "id": "rectangle-decomposition",
+   "name": "rectangle-decomposition",
+   "repo": "https://github.com/mikolalysenko/rectangle-decomposition",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Orthogonal polygons · bipartite graph partitioning",
+   "area": "Patterns · form",
+   "input": "Orthogonal polygons",
+   "keywords": [],
+   "index": {
+    "no": 50,
+    "code": "C136"
+   }
+  },
+  {
+   "id": "extrude-polyline",
+   "name": "extrude-polyline",
+   "repo": "https://github.com/mattdesl/extrude-polyline",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Polyline thickness · miter joins",
+   "area": "Drawing · printmaking",
+   "input": "Line paths · thickness",
+   "keywords": [],
+   "index": {
+    "no": 51,
+    "code": "C143"
+   }
+  },
+  {
+   "id": "marchingsquaresjs",
+   "name": "MarchingSquaresJS",
+   "repo": "https://github.com/raumzeit/marchingsquares.js",
+   "license": "AGPL-3+ / exception for unmodified use",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Marching squares · isolines",
+   "area": "Patterns · form",
+   "input": "Numerical grids · heights",
+   "keywords": [],
+   "index": {
+    "no": 52,
+    "code": "C152"
+   }
+  },
+  {
+   "id": "polygon-offset",
+   "name": "polygon-offset",
+   "repo": "https://github.com/w8r/polygon-offset",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Polygon offsets · normals · arc joins",
+   "area": "Patterns · form",
+   "input": "Contours · distances",
+   "keywords": [],
+   "index": {
+    "no": 53,
+    "code": "C160"
+   }
+  },
+  {
+   "id": "b-spline",
+   "name": "b-spline",
+   "repo": "https://github.com/thibauts/b-spline",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "De Boor · rational B-splines",
+   "area": "Drawing · printmaking",
+   "input": "Points · control points",
+   "keywords": [],
+   "index": {
+    "no": 54,
+    "code": "C165"
+   }
+  },
+  {
+   "id": "tinyspline",
+   "name": "TinySpline",
+   "repo": "https://github.com/msteinbeck/tinyspline",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Arc-length reparameterization · rotation-minimizing frames",
+   "area": "Movement · choreography",
+   "input": "Curves · spacing",
+   "keywords": [],
+   "index": {
+    "no": 55,
+    "code": "C166"
+   }
+  },
+  {
+   "id": "circlify",
+   "name": "circlify",
+   "repo": "https://github.com/elmotec/circlify",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Circle packing · smallest enclosing circles",
+   "area": "Information visualization",
+   "input": "Shapes · sizes · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 56,
+    "code": "C167"
+   }
+  },
+  {
+   "id": "geos",
+   "name": "GEOS",
+   "repo": "https://github.com/libgeos/geos",
+   "license": "LGPL-2.1",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Topological operations · geometric buffers",
+   "area": "Patterns · form",
+   "input": "Shapes · contours",
+   "keywords": [],
+   "index": {
+    "no": 57,
+    "code": "C203"
+   }
+  },
+  {
+   "id": "shapely",
+   "name": "Shapely",
+   "repo": "https://github.com/shapely/shapely",
+   "license": "BSD-3-Clause",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Planar geometry · set operations",
+   "area": "Patterns · form",
+   "input": "Shapes · contours",
+   "keywords": [],
+   "index": {
+    "no": 58,
+    "code": "C204"
+   }
+  },
+  {
+   "id": "pts",
+   "name": "Pts",
+   "repo": "https://github.com/williamngan/pts",
+   "license": "Apache-2.0",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Points · vectors · creative geometry",
+   "area": "Patterns · form",
+   "input": "Points · vectors · time",
+   "keywords": [],
+   "index": {
+    "no": 59,
+    "code": "C214"
+   }
+  },
+  {
+   "id": "fontforge",
+   "name": "FontForge",
+   "repo": "https://github.com/fontforge/fontforge",
+   "license": "GPL-3.0-or-later / BSD parts",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Glyph outlines · font editing",
+   "area": "Publishing · typography",
+   "input": "Glyph outlines · fonts",
+   "keywords": [],
+   "index": {
+    "no": 60,
+    "code": "C257"
+   }
+  },
+  {
+   "id": "fonttools",
+   "name": "FontTools",
+   "repo": "https://github.com/fonttools/fonttools",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Font tables · subsetting",
+   "area": "Publishing · typography",
+   "input": "Fonts · character selections",
+   "keywords": [],
+   "index": {
+    "no": 61,
+    "code": "C259"
+   }
+  },
+  {
+   "id": "mandelbulber",
+   "name": "Mandelbulber",
+   "repo": "https://github.com/buddhi1980/mandelbulber2",
+   "license": "GPL-3.0",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "3D fractals",
+   "area": "Patterns · form",
+   "input": "Iterative formulas · light",
+   "keywords": [
+    "fractals",
+    "iteration",
+    "rendering"
+   ],
+   "index": {
+    "no": 62,
+    "code": "X016"
+   }
+  },
+  {
+   "id": "protein-ribbon-diagrams",
+   "name": "Protein Ribbon Diagrams",
+   "repo": "https://github.com/fogleman/ribbon",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "B-splines · cross-section sweeps",
+   "area": "Structures · fabrication",
+   "input": "Atomic coordinates",
+   "keywords": [],
+   "index": {
+    "no": 63,
+    "code": "C010"
+   }
+  },
+  {
+   "id": "manifold",
+   "name": "Manifold",
+   "repo": "https://github.com/elalish/manifold",
+   "license": "Apache-2.0",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Manifold meshes · solid Boolean operations",
+   "area": "Structures · fabrication",
+   "input": "Solids · meshes",
+   "keywords": [],
+   "index": {
+    "no": 64,
+    "code": "C017"
+   }
+  },
+  {
+   "id": "libfive",
+   "name": "libfive",
+   "repo": "https://github.com/libfive/libfive",
+   "license": "MPL-2.0 / GPL-2+",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Function representations · implicit surfaces",
+   "area": "Structures · fabrication",
+   "input": "Distance functions",
+   "keywords": [],
+   "index": {
+    "no": 65,
+    "code": "C018"
+   }
+  },
+  {
+   "id": "sdf",
+   "name": "sdf",
+   "repo": "https://github.com/fogleman/sdf",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Signed distance functions · smooth blending",
+   "area": "Structures · fabrication",
+   "input": "Distance functions",
+   "keywords": [],
+   "index": {
+    "no": 66,
+    "code": "C033"
+   }
+  },
+  {
+   "id": "pymcubes",
+   "name": "PyMCubes",
+   "repo": "https://github.com/pmneila/pymcubes",
+   "license": "BSD-3-Clause",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Marching cubes · isosurface extraction",
+   "area": "Structures · fabrication",
+   "input": "3D scalar fields",
+   "keywords": [],
+   "index": {
+    "no": 67,
+    "code": "C034"
+   }
+  },
+  {
+   "id": "glsl-solid-wireframe",
+   "name": "glsl-solid-wireframe",
+   "repo": "https://github.com/rreusser/glsl-solid-wireframe",
+   "license": "MIT (stated in README · package.json)",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Barycentric coordinates · screen-space derivatives",
+   "area": "Structures · fabrication",
+   "input": "Triangle meshes",
+   "keywords": [],
+   "index": {
+    "no": 68,
+    "code": "C037"
+   }
+  },
+  {
+   "id": "csg-js",
+   "name": "csg.js",
+   "repo": "https://github.com/evanw/csg.js",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "BSP trees · solid set operations",
+   "area": "Structures · fabrication",
+   "input": "Solids · meshes",
+   "keywords": [],
+   "index": {
+    "no": 69,
+    "code": "C047"
+   }
+  },
+  {
+   "id": "libigl-arap",
+   "name": "libigl · ARAP",
+   "repo": "https://github.com/libigl/libigl",
+   "license": "MPL-2.0 (the ARAP code in question)",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Local rigidity · ARAP deformation",
+   "area": "Structures · fabrication",
+   "input": "Meshes · deformation constraints",
+   "keywords": [],
+   "index": {
+    "no": 70,
+    "code": "C048"
+   }
+  },
+  {
+   "id": "surface-nets",
+   "name": "surface-nets",
+   "repo": "https://github.com/mikolalysenko/surface-nets",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Isosurfaces · surface nets",
+   "area": "Structures · fabrication",
+   "input": "3D scalar fields",
+   "keywords": [],
+   "index": {
+    "no": 71,
+    "code": "C054"
+   }
+  },
+  {
+   "id": "isosurface",
+   "name": "isosurface",
+   "repo": "https://github.com/mikolalysenko/isosurface",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Marching tetrahedra · isosurfaces",
+   "area": "Structures · fabrication",
+   "input": "3D scalar fields",
+   "keywords": [],
+   "index": {
+    "no": 72,
+    "code": "C067"
+   }
+  },
+  {
+   "id": "xatlas",
+   "name": "xatlas",
+   "repo": "https://github.com/jpcy/xatlas",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Mesh parameterization · UV chart packing",
+   "area": "Structures · fabrication",
+   "input": "3D meshes",
+   "keywords": [],
+   "index": {
+    "no": 73,
+    "code": "C074"
+   }
+  },
+  {
+   "id": "meshoptimizer-mesh-simplification",
+   "name": "meshoptimizer · Mesh simplification",
+   "repo": "https://github.com/zeux/meshoptimizer",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Error bounds · triangle simplification",
+   "area": "Structures · fabrication",
+   "input": "Triangle meshes",
+   "keywords": [],
+   "index": {
+    "no": 74,
+    "code": "C075"
+   }
+  },
+  {
+   "id": "instant-meshes",
+   "name": "Instant Meshes",
+   "repo": "https://github.com/wjakob/instant-meshes",
+   "license": "BSD-style 3 clauses + grant for contributed improvements",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Orientation-field and position-field optimization · remeshing",
+   "area": "Structures · fabrication",
+   "input": "3D surfaces",
+   "keywords": [],
+   "index": {
+    "no": 75,
+    "code": "C087"
+   }
+  },
+  {
+   "id": "voro",
+   "name": "Voro++",
+   "repo": "https://github.com/chr1shr/voro",
+   "license": "BSD-style 3 clauses + grant for contributed improvements",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "3D Voronoi · plane clipping",
+   "area": "Structures · fabrication",
+   "input": "Points in 3D",
+   "keywords": [],
+   "index": {
+    "no": 76,
+    "code": "C089"
+   }
+  },
+  {
+   "id": "opensubdiv",
+   "name": "OpenSubdiv",
+   "repo": "https://github.com/pixaranimationstudios/opensubdiv",
+   "license": "TOST-1.0",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Catmull–Clark subdivision surfaces",
+   "area": "Structures · fabrication",
+   "input": "Coarse control meshes",
+   "keywords": [],
+   "index": {
+    "no": 77,
+    "code": "C096"
+   }
+  },
+  {
+   "id": "quickhull",
+   "name": "QuickHull",
+   "repo": "https://github.com/akuukka/quickhull",
+   "license": "Public Domain (stated by author)",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "3D convex hulls · half-edge meshes",
+   "area": "Structures · fabrication",
+   "input": "3D point clouds",
+   "keywords": [],
+   "index": {
+    "no": 78,
+    "code": "C097"
+   }
+  },
+  {
+   "id": "greedy-mesher",
+   "name": "greedy-mesher",
+   "repo": "https://github.com/mikolalysenko/greedy-mesher",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Greedy grid merging",
+   "area": "Patterns · form",
+   "input": "Voxel grids",
+   "keywords": [],
+   "index": {
+    "no": 79,
+    "code": "C106"
+   }
+  },
+  {
+   "id": "simplify",
+   "name": "simplify",
+   "repo": "https://github.com/fogleman/simplify",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Quadric errors · edge collapse",
+   "area": "Structures · fabrication",
+   "input": "Triangle meshes",
+   "keywords": [],
+   "index": {
+    "no": 80,
+    "code": "C109"
+   }
+  },
+  {
+   "id": "glsl-smooth-min",
+   "name": "glsl-smooth-min",
+   "repo": "https://github.com/glslify/glsl-smooth-min",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Distance fields · smooth unions",
+   "area": "Structures · fabrication",
+   "input": "Distance values · formulas",
+   "keywords": [],
+   "index": {
+    "no": 81,
+    "code": "C137"
+   }
+  },
+  {
+   "id": "glmatrix",
+   "name": "glMatrix",
+   "repo": "https://github.com/toji/gl-matrix",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Vectors · matrices · quaternion rotations",
+   "area": "Structures · fabrication",
+   "input": "Vectors · rotation values",
+   "keywords": [],
+   "index": {
+    "no": 82,
+    "code": "C140"
+   }
+  },
+  {
+   "id": "fidget",
+   "name": "Fidget",
+   "repo": "https://github.com/mkeeter/fidget",
+   "license": "MPL-2.0",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Implicit surfaces · octrees · dual contouring",
+   "area": "Structures · fabrication",
+   "input": "Distance functions",
+   "keywords": [],
+   "index": {
+    "no": 83,
+    "code": "C145"
+   }
+  },
+  {
+   "id": "unity-mesh-smoothing",
+   "name": "unity-mesh-smoothing",
+   "repo": "https://github.com/mattatz/unity-mesh-smoothing",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Laplacian · HC smoothing",
+   "area": "Structures · fabrication",
+   "input": "Meshes · deformation constraints",
+   "keywords": [],
+   "index": {
+    "no": 84,
+    "code": "C146"
+   }
+  },
+  {
+   "id": "hole_fixer",
+   "name": "hole_fixer",
+   "repo": "https://github.com/erkaman/hole_fixer",
+   "license": "MIT (this implementation) / dependencies separate",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Boundary conditions · biharmonic surface interpolation",
+   "area": "Structures · fabrication",
+   "input": "Meshes · deformation constraints",
+   "keywords": [],
+   "index": {
+    "no": 85,
+    "code": "C147"
+   }
+  },
+  {
+   "id": "voxelize",
+   "name": "voxelize",
+   "repo": "https://github.com/mikolalysenko/voxelize",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Mesh voxelization · grid sampling",
+   "area": "Structures · fabrication",
+   "input": "Triangle meshes",
+   "keywords": [],
+   "index": {
+    "no": 86,
+    "code": "C155"
+   }
+  },
+  {
+   "id": "glsl-sdf-primitives",
+   "name": "glsl-sdf-primitives",
+   "repo": "https://github.com/marklundin/glsl-sdf-primitives",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Signed distance functions · primitive solids",
+   "area": "Structures · fabrication",
+   "input": "Distance values · formulas",
+   "keywords": [],
+   "index": {
+    "no": 87,
+    "code": "C164"
+   }
+  },
+  {
+   "id": "delaunay-triangulate",
+   "name": "delaunay-triangulate",
+   "repo": "https://github.com/mikolalysenko/delaunay-triangulate",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Paraboloid lifting · higher-dimensional Delaunay triangulation",
+   "area": "Patterns · form",
+   "input": "Point coordinates",
+   "keywords": [],
+   "index": {
+    "no": 88,
+    "code": "C176"
+   }
+  },
+  {
+   "id": "cgal",
+   "name": "CGAL",
+   "repo": "https://github.com/cgal/cgal",
+   "license": "GPL-3.0 / LGPL-3.0 by package",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Exact geometry · mesh operations",
+   "area": "Patterns · form",
+   "input": "Solids · meshes",
+   "keywords": [],
+   "index": {
+    "no": 89,
+    "code": "C205"
+   }
+  },
+  {
+   "id": "openscad",
+   "name": "OpenSCAD",
+   "repo": "https://github.com/openscad/openscad",
+   "license": "GPL-2.0",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "CSG · parametric modeling",
+   "area": "Structures · fabrication",
+   "input": "Code · dimensions",
+   "keywords": [],
+   "index": {
+    "no": 90,
+    "code": "C206"
+   }
+  },
+  {
+   "id": "jscad",
+   "name": "JSCAD",
+   "repo": "https://github.com/jscad/openjscad.org",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Code-based CSG",
+   "area": "Structures · fabrication",
+   "input": "Code · dimensions",
+   "keywords": [],
+   "index": {
+    "no": 91,
+    "code": "C207"
+   }
+  },
+  {
+   "id": "trimesh",
+   "name": "Trimesh",
+   "repo": "https://github.com/mikedh/trimesh",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Triangle meshes · geometric analysis",
+   "area": "Structures · fabrication",
+   "input": "3D meshes",
+   "keywords": [],
+   "index": {
+    "no": 92,
+    "code": "C208"
+   }
+  },
+  {
+   "id": "geometry3sharp",
+   "name": "geometry3Sharp",
+   "repo": "https://github.com/gradientspace/geometry3sharp",
+   "license": "BSL-1.0",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Meshes · spatial search · SDF",
+   "area": "Structures · fabrication",
+   "input": "Meshes · surfaces",
+   "keywords": [],
+   "index": {
+    "no": 93,
+    "code": "C212"
+   }
+  },
+  {
+   "id": "truck",
+   "name": "truck",
+   "repo": "https://github.com/ricosjp/truck",
+   "license": "Apache-2.0",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Boundary representations · surface CAD",
+   "area": "Structures · fabrication",
+   "input": "Meshes · surfaces",
+   "keywords": [],
+   "index": {
+    "no": 94,
+    "code": "C213"
+   }
+  },
+  {
+   "id": "embree",
+   "name": "Embree",
+   "repo": "https://github.com/renderkit/embree",
+   "license": "Apache-2.0",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Accelerated ray–shape intersection",
+   "area": "Structures · fabrication",
+   "input": "Rays · solids",
+   "keywords": [],
+   "index": {
+    "no": 95,
+    "code": "C228"
+   }
+  },
+  {
+   "id": "pytorch3d",
+   "name": "PyTorch3D",
+   "repo": "https://github.com/facebookresearch/pytorch3d",
+   "license": "BSD-3-Clause",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Mesh operations · differentiable rendering",
+   "area": "Structures · fabrication",
+   "input": "Images · scenes · targets",
+   "keywords": [],
+   "index": {
+    "no": 96,
+    "code": "C277"
+   }
+  },
+  {
+   "id": "draco",
+   "name": "Draco",
+   "repo": "https://github.com/google/draco",
+   "license": "Apache-2.0",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Mesh and point-cloud compression",
+   "area": "Structures · fabrication",
+   "input": "Meshes · point clouds",
+   "keywords": [],
+   "index": {
+    "no": 97,
+    "code": "C278"
+   }
+  },
+  {
+   "id": "three-mesh-bvh",
+   "name": "Three Mesh BVH",
+   "repo": "https://github.com/gkjohnson/three-mesh-bvh",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "3D · space",
+   "concept": "Bounding volume hierarchies · ray queries",
+   "area": "Structures · fabrication",
+   "input": "Rays · solids",
+   "keywords": [],
+   "index": {
+    "no": 98,
+    "code": "C279"
+   }
+  },
+  {
+   "id": "field-play",
+   "name": "Field Play",
+   "repo": "https://github.com/anvaka/fieldplay",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Moving image",
+   "concept": "Vector fields · numerical particle integration",
+   "area": "Matter · nature",
+   "input": "Vector fields",
+   "keywords": [],
+   "index": {
+    "no": 99,
+    "code": "C058"
+   }
+  },
+  {
+   "id": "packcircles",
+   "name": "packcircles",
+   "repo": "https://github.com/mbedward/packcircles",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Moving image",
+   "concept": "Circle-pair repulsion · tangent packing",
+   "area": "Information visualization",
+   "input": "Shapes · sizes · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 100,
+    "code": "C170"
+   }
+  },
+  {
+   "id": "polylabel",
+   "name": "polylabel",
+   "repo": "https://github.com/mapbox/polylabel",
+   "license": "ISC",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Pole of inaccessibility · branch-and-bound search",
+   "area": "Patterns · form",
+   "input": "Points · polygons",
+   "keywords": [],
+   "index": {
+    "no": 101,
+    "code": "C035"
+   }
+  },
+  {
+   "id": "d3-hexbin",
+   "name": "d3-hexbin",
+   "repo": "https://github.com/d3/d3-hexbin",
+   "license": "BSD-3-Clause",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Hexagonal grid aggregation · spatial quantization",
+   "area": "Information visualization",
+   "input": "Point coordinates",
+   "keywords": [],
+   "index": {
+    "no": 102,
+    "code": "C036"
+   }
+  },
+  {
+   "id": "potpack",
+   "name": "potpack",
+   "repo": "https://github.com/mapbox/potpack",
+   "license": "ISC",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Rectangle bin packing",
+   "area": "Structures · fabrication",
+   "input": "Shapes · sizes · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 103,
+    "code": "C053"
+   }
+  },
+  {
+   "id": "geometry-central-heat-method",
+   "name": "Geometry Central · Heat Method",
+   "repo": "https://github.com/nmwsharp/geometry-central",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Heat diffusion · distances on surfaces",
+   "area": "Structures · fabrication",
+   "input": "Meshes · heat sources",
+   "keywords": [],
+   "index": {
+    "no": 104,
+    "code": "C076"
+   }
+  },
+  {
+   "id": "distance-transform",
+   "name": "distance-transform",
+   "repo": "https://github.com/scijs/distance-transform",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Distance transforms · Lp distance",
+   "area": "Patterns · form",
+   "input": "Binary grids",
+   "keywords": [],
+   "index": {
+    "no": 105,
+    "code": "C088"
+   }
+  },
+  {
+   "id": "robust-predicates",
+   "name": "robust-predicates",
+   "repo": "https://github.com/mourner/robust-predicates",
+   "license": "Unlicense",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Adaptive precision · geometric predicates",
+   "area": "Patterns · form",
+   "input": "Point coordinates",
+   "keywords": [],
+   "index": {
+    "no": 106,
+    "code": "C090"
+   }
+  },
+  {
+   "id": "libmorton",
+   "name": "libmorton",
+   "repo": "https://github.com/forceflow/libmorton",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Bit interleaving · Z-order",
+   "area": "Patterns · form",
+   "input": "Coordinates · ordering",
+   "keywords": [],
+   "index": {
+    "no": 107,
+    "code": "C098"
+   }
+  },
+  {
+   "id": "glsl-ray-sphere",
+   "name": "glsl-ray-sphere",
+   "repo": "https://github.com/wellcaffeinated/glsl-ray-sphere",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Ray–sphere intersection · numerical precision",
+   "area": "Patterns · form",
+   "input": "Rays · solids",
+   "keywords": [],
+   "index": {
+    "no": 108,
+    "code": "C148"
+   }
+  },
+  {
+   "id": "box-intersect",
+   "name": "box-intersect",
+   "repo": "https://github.com/mikolalysenko/box-intersect",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Multidimensional box intersection · sweeps",
+   "area": "Patterns · form",
+   "input": "Bounding boxes",
+   "keywords": [],
+   "index": {
+    "no": 109,
+    "code": "C156"
+   }
+  },
+  {
+   "id": "d3-polygon",
+   "name": "d3-polygon",
+   "repo": "https://github.com/d3/d3-polygon",
+   "license": "ISC",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Shoelace formula · polygon centroids",
+   "area": "Patterns · form",
+   "input": "Points · polygons",
+   "keywords": [],
+   "index": {
+    "no": 110,
+    "code": "C163"
+   }
+  },
+  {
+   "id": "mesh-laplacian",
+   "name": "mesh-laplacian",
+   "repo": "https://github.com/mikolalysenko/mesh-laplacian",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Cotangent-weighted discrete Laplacians",
+   "area": "Patterns · form",
+   "input": "Triangle meshes",
+   "keywords": [],
+   "index": {
+    "no": 111,
+    "code": "C174"
+   }
+  },
+  {
+   "id": "barycentric",
+   "name": "barycentric",
+   "repo": "https://github.com/mikolalysenko/barycentric",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Numbers · data",
+   "concept": "Barycentric coordinates · linear systems",
+   "area": "Patterns · form",
+   "input": "Points · simplices",
+   "keywords": [],
+   "index": {
+    "no": 112,
+    "code": "C175"
+   }
+  },
+  {
+   "id": "wavefunctioncollapse",
+   "name": "WaveFunctionCollapse",
+   "repo": "https://github.com/mxgmn/wavefunctioncollapse",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Lines · vectors",
+   "concept": "Constraint-based arrangement",
+   "area": "Patterns · form",
+   "input": "Examples · tile rules",
+   "keywords": [
+    "constraints",
+    "tiles",
+    "procedural generation"
+   ],
+   "index": {
+    "no": 113,
+    "code": "X011"
+   }
+  },
+  {
+   "id": "differential-line",
+   "name": "differential-line",
+   "repo": "https://github.com/inconvergent/differential-line",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Lines · vectors",
+   "concept": "Differential growth",
+   "area": "Matter · nature",
+   "input": "Points · growth constraints",
+   "keywords": [
+    "lines",
+    "growth",
+    "organic forms"
+   ],
+   "index": {
+    "no": 114,
+    "code": "X013"
+   }
+  },
+  {
+   "id": "fishdraw",
+   "name": "fishdraw",
+   "repo": "https://github.com/lingdong-/fishdraw",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Lines · vectors",
+   "concept": "Procedural fish drawing",
+   "area": "Drawing · printmaking",
+   "input": "Fish shape rules",
+   "keywords": [
+    "curves",
+    "drawing",
+    "plotters"
+   ],
+   "index": {
+    "no": 115,
+    "code": "X063"
+   }
+  },
+  {
+   "id": "rough-js",
+   "name": "Rough.js",
+   "repo": "https://github.com/rough-stuff/rough",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Lines · vectors",
+   "concept": "Stochastic strokes · hatching",
+   "area": "Drawing · printmaking",
+   "input": "Shapes · strokes",
+   "keywords": [],
+   "index": {
+    "no": 116,
+    "code": "C004"
+   }
+  },
+  {
+   "id": "context-free",
+   "name": "Context Free",
+   "repo": "https://github.com/mtnviewjohn/context-free",
+   "license": "GPL-2.0-or-later",
+   "principle": "Rules · generation",
+   "medium": "Lines · vectors",
+   "concept": "Shape grammars · recursive rewriting",
+   "area": "Patterns · form",
+   "input": "Rewriting grammars",
+   "keywords": [],
+   "index": {
+    "no": 117,
+    "code": "C005"
+   }
+  },
+  {
+   "id": "lindenmayer",
+   "name": "Lindenmayer",
+   "repo": "https://github.com/nylki/lindenmayer",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Lines · vectors",
+   "concept": "Parallel string rewriting · L-systems",
+   "area": "Patterns · form",
+   "input": "Rewriting grammars",
+   "keywords": [],
+   "index": {
+    "no": 118,
+    "code": "C022"
+   }
+  },
+  {
+   "id": "space-colonization",
+   "name": "space-colonization",
+   "repo": "https://github.com/nicknikolov/space-colonization",
+   "license": "MIT (stated in README · package.json)",
+   "principle": "Rules · generation",
+   "medium": "Lines · vectors",
+   "concept": "Space colonization · attractor-based branch growth",
+   "area": "Matter · nature",
+   "input": "Attractors · branches",
+   "keywords": [],
+   "index": {
+    "no": 119,
+    "code": "C023"
+   }
+  },
+  {
+   "id": "hyphae",
+   "name": "Hyphae",
+   "repo": "https://github.com/inconvergent/hyphae",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Lines · vectors",
+   "concept": "Branching growth · proximity avoidance",
+   "area": "Matter · nature",
+   "input": "Points · growth constraints",
+   "keywords": [],
+   "index": {
+    "no": 120,
+    "code": "C061"
+   }
+  },
+  {
+   "id": "ndwfc",
+   "name": "NDWFC",
+   "repo": "https://github.com/lingdong-/ndwfc",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Lines · vectors",
+   "concept": "Entropy · constraint propagation · expanded grids",
+   "area": "Patterns · form",
+   "input": "Examples · tile rules",
+   "keywords": [],
+   "index": {
+    "no": 121,
+    "code": "C066"
+   }
+  },
+  {
+   "id": "trianglify",
+   "name": "Trianglify",
+   "repo": "https://github.com/qrohlf/trianglify",
+   "license": "GPL-3.0",
+   "principle": "Rules · generation",
+   "medium": "Lines · vectors",
+   "concept": "Grid perturbation · triangulation · color interpolation",
+   "area": "Patterns · form",
+   "input": "Grids · seeds · colors",
+   "keywords": [],
+   "index": {
+    "no": 122,
+    "code": "C085"
+   }
+  },
+  {
+   "id": "shan-shui-infinite",
+   "name": "Shan Shui Infinite",
+   "repo": "https://github.com/lingdong-/shan-shui-inf",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Still image",
+   "concept": "Procedural landscape painting",
+   "area": "Drawing · printmaking",
+   "input": "Landscape painting rules",
+   "keywords": [
+    "landscape painting",
+    "procedural generation",
+    "drawing"
+   ],
+   "index": {
+    "no": 123,
+    "code": "X021"
+   }
+  },
+  {
+   "id": "opensimplex2",
+   "name": "OpenSimplex2",
+   "repo": "https://github.com/kdotjpg/opensimplex2",
+   "license": "CC0-1.0 / some files Unlicense",
+   "principle": "Rules · generation",
+   "medium": "Still image",
+   "concept": "Lattice-gradient noise · dimensional projection",
+   "area": "Patterns · form",
+   "input": "Coordinates · seeds",
+   "keywords": [],
+   "index": {
+    "no": 124,
+    "code": "C027"
+   }
+  },
+  {
+   "id": "p5-brush",
+   "name": "p5.brush",
+   "repo": "https://github.com/acamposuribe/p5.brush",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Still image",
+   "concept": "Vector fields · stochastic brush textures",
+   "area": "Drawing · printmaking",
+   "input": "Paths · vector fields",
+   "keywords": [],
+   "index": {
+    "no": 125,
+    "code": "C041"
+   }
+  },
+  {
+   "id": "libnoise",
+   "name": "libnoise",
+   "repo": "https://github.com/expl0it3r/libnoise",
+   "license": "LGPL-2.1-or-later",
+   "principle": "Rules · generation",
+   "medium": "Still image",
+   "concept": "Multifractals · noise-module composition",
+   "area": "Maps · environments",
+   "input": "Coordinates · seeds",
+   "keywords": [],
+   "index": {
+    "no": 126,
+    "code": "C099"
+   }
+  },
+  {
+   "id": "glsl-worley",
+   "name": "glsl-worley",
+   "repo": "https://github.com/erkaman/glsl-worley",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Still image",
+   "concept": "Nearest-point distances · cellular noise",
+   "area": "Drawing · printmaking",
+   "input": "Coordinates · seeds",
+   "keywords": [],
+   "index": {
+    "no": 127,
+    "code": "C121"
+   }
+  },
+  {
+   "id": "glsl-random",
+   "name": "glsl-random",
+   "repo": "https://github.com/mattdesl/glsl-random",
+   "license": "BSD-3-Clause",
+   "principle": "Rules · generation",
+   "medium": "Still image",
+   "concept": "Coordinate hashing · pseudorandom numbers",
+   "area": "Drawing · printmaking",
+   "input": "Coordinates · seeds",
+   "keywords": [],
+   "index": {
+    "no": 128,
+    "code": "C131"
+   }
+  },
+  {
+   "id": "simplex-noise-js",
+   "name": "simplex-noise.js",
+   "repo": "https://github.com/jwagner/simplex-noise.js",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Still image",
+   "concept": "Simplex noise · gradient interpolation",
+   "area": "Patterns · form",
+   "input": "Coordinates · seeds",
+   "keywords": [],
+   "index": {
+    "no": 129,
+    "code": "C157"
+   }
+  },
+  {
+   "id": "convchain",
+   "name": "ConvChain",
+   "repo": "https://github.com/mxgmn/convchain",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Still image",
+   "concept": "MCMC · local pattern distributions",
+   "area": "Patterns · form",
+   "input": "Examples · tile rules",
+   "keywords": [],
+   "index": {
+    "no": 130,
+    "code": "C280"
+   }
+  },
+  {
+   "id": "markovjunior",
+   "name": "MarkovJunior",
+   "repo": "https://github.com/mxgmn/markovjunior",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "3D · space",
+   "concept": "Markov rewriting",
+   "area": "Matter · nature",
+   "input": "Local rewriting rules",
+   "keywords": [
+    "rewriting",
+    "voxels",
+    "procedural generation"
+   ],
+   "index": {
+    "no": 131,
+    "code": "X009"
+   }
+  },
+  {
+   "id": "differential-mesh",
+   "name": "Differential Mesh",
+   "repo": "https://github.com/inconvergent/differential-mesh",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "3D · space",
+   "concept": "Boundary growth · collision avoidance",
+   "area": "Matter · nature",
+   "input": "Points · growth constraints",
+   "keywords": [],
+   "index": {
+    "no": 132,
+    "code": "C008"
+   }
+  },
+  {
+   "id": "sand-spline",
+   "name": "Sand Spline",
+   "repo": "https://github.com/inconvergent/sand-spline",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "3D · space",
+   "concept": "Stochastic path deformation · particle accumulation",
+   "area": "Drawing · printmaking",
+   "input": "Paths · random numbers",
+   "keywords": [],
+   "index": {
+    "no": 133,
+    "code": "C013"
+   }
+  },
+  {
+   "id": "lenia",
+   "name": "Lenia",
+   "repo": "https://github.com/chakazul/lenia",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Moving image",
+   "concept": "Continuous cellular automata",
+   "area": "Matter · nature",
+   "input": "Grids · growth rules",
+   "keywords": [
+    "cellular automata",
+    "artificial life",
+    "patterns"
+   ],
+   "index": {
+    "no": 134,
+    "code": "X008"
+   }
+  },
+  {
+   "id": "particle-life",
+   "name": "Particle Life",
+   "repo": null,
+   "license": "Needs rechecking",
+   "principle": "Rules · generation",
+   "medium": "Moving image",
+   "concept": "Particle interactions",
+   "area": "Matter · nature",
+   "input": "Particles · attraction · repulsion",
+   "keywords": [
+    "particles",
+    "artificial life",
+    "clusters"
+   ],
+   "index": {
+    "no": 135,
+    "code": "X010"
+   }
+  },
+  {
+   "id": "mapgen4",
+   "name": "mapgen4",
+   "repo": "https://github.com/redblobgames/mapgen4",
+   "license": "Apache-2.0",
+   "principle": "Rules · generation",
+   "medium": "Moving image",
+   "concept": "Procedural terrain",
+   "area": "Maps · environments",
+   "input": "Heights · terrain constraints",
+   "keywords": [
+    "maps",
+    "rivers",
+    "terrain"
+   ],
+   "index": {
+    "no": 136,
+    "code": "X019"
+   }
+  },
+  {
+   "id": "fastnoise-lite",
+   "name": "FastNoise Lite",
+   "repo": "https://github.com/auburn/fastnoiselite",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Moving image",
+   "concept": "Noise · domain warping",
+   "area": "Patterns · form",
+   "input": "Coordinates · seeds",
+   "keywords": [
+    "noise",
+    "textures",
+    "warping"
+   ],
+   "index": {
+    "no": 137,
+    "code": "X027"
+   }
+  },
+  {
+   "id": "psrdnoise",
+   "name": "psrdnoise",
+   "repo": "https://github.com/stegu/psrdnoise",
+   "license": "MIT (GLSL) / documentation public domain",
+   "principle": "Rules · generation",
+   "medium": "Moving image",
+   "concept": "Periodic differentiable noise",
+   "area": "Patterns · form",
+   "input": "Coordinates · seeds",
+   "keywords": [
+    "noise",
+    "shaders",
+    "derivatives"
+   ],
+   "index": {
+    "no": 138,
+    "code": "X028"
+   }
+  },
+  {
+   "id": "slime-simulation",
+   "name": "Slime-Simulation",
+   "repo": "https://github.com/seblague/slime-simulation",
+   "license": "GPL-3.0",
+   "principle": "Rules · generation",
+   "medium": "Moving image",
+   "concept": "Slime molds · feedback",
+   "area": "Matter · nature",
+   "input": "Particles · trails",
+   "keywords": [
+    "slime molds",
+    "particles",
+    "self-organization"
+   ],
+   "index": {
+    "no": 139,
+    "code": "X032"
+   }
+  },
+  {
+   "id": "orca",
+   "name": "Orca",
+   "repo": "https://github.com/hundredrabbits/orca",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Sound",
+   "concept": "Grid sequencing",
+   "area": "Sound · performance",
+   "input": "Cycles · operator rules",
+   "keywords": [
+    "live coding",
+    "MIDI",
+    "Euclidean rhythms"
+   ],
+   "index": {
+    "no": 140,
+    "code": "X023"
+   }
+  },
+  {
+   "id": "d3-random",
+   "name": "d3-random",
+   "repo": "https://github.com/d3/d3-random",
+   "license": "ISC",
+   "principle": "Rules · generation",
+   "medium": "Numbers · data",
+   "concept": "Normal distributions · probability sample transforms",
+   "area": "Patterns · form",
+   "input": "Spacing · probability constraints",
+   "keywords": [],
+   "index": {
+    "no": 141,
+    "code": "C104"
+   }
+  },
+  {
+   "id": "spectral-js",
+   "name": "Spectral.js",
+   "repo": "https://github.com/rvanwijnen/spectral.js",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Still image",
+   "concept": "Spectral reflectance · Kubelka–Munk color mixing",
+   "area": "Drawing · printmaking",
+   "input": "Colors · mixing ratios",
+   "keywords": [],
+   "index": {
+    "no": 142,
+    "code": "C071"
+   }
+  },
+  {
+   "id": "mitsuba-3",
+   "name": "Mitsuba 3",
+   "repo": "https://github.com/mitsuba-renderer/mitsuba3",
+   "license": "BSD-3-Clause",
+   "principle": "Physics · numerical models",
+   "medium": "Still image",
+   "concept": "Light transport · differentiable rendering",
+   "area": "Lighting · compositing",
+   "input": "Scenes · lights · materials",
+   "keywords": [],
+   "index": {
+    "no": 143,
+    "code": "C224"
+   }
+  },
+  {
+   "id": "pbrt-v4",
+   "name": "pbrt-v4",
+   "repo": "https://github.com/mmp/pbrt-v4",
+   "license": "Apache-2.0",
+   "principle": "Physics · numerical models",
+   "medium": "Still image",
+   "concept": "Spectral Monte Carlo rendering",
+   "area": "Lighting · compositing",
+   "input": "Scenes · lights · materials",
+   "keywords": [],
+   "index": {
+    "no": 144,
+    "code": "C225"
+   }
+  },
+  {
+   "id": "luxcorerender",
+   "name": "LuxCoreRender",
+   "repo": "https://github.com/luxcorerender/luxcore",
+   "license": "Apache-2.0",
+   "principle": "Physics · numerical models",
+   "medium": "Still image",
+   "concept": "Global illumination · path tracing",
+   "area": "Lighting · compositing",
+   "input": "Scenes · lights · materials",
+   "keywords": [],
+   "index": {
+    "no": 145,
+    "code": "C226"
+   }
+  },
+  {
+   "id": "appleseed",
+   "name": "appleseed",
+   "repo": "https://github.com/appleseedhq/appleseed",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Still image",
+   "concept": "Physically based global illumination",
+   "area": "Lighting · compositing",
+   "input": "Scenes · lights · materials",
+   "keywords": [],
+   "index": {
+    "no": 146,
+    "code": "C227"
+   }
+  },
+  {
+   "id": "redner",
+   "name": "redner",
+   "repo": "https://github.com/bachili/redner",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Still image",
+   "concept": "Differentiable rendering · inverse light transport",
+   "area": "Lighting · compositing",
+   "input": "Images · scenes · targets",
+   "keywords": [],
+   "index": {
+    "no": 147,
+    "code": "C276"
+   }
+  },
+  {
+   "id": "origami-simulator",
+   "name": "Origami Simulator",
+   "repo": "https://github.com/amandaghassaei/origamisimulator",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Folding · kinematics",
+   "area": "Structures · fabrication",
+   "input": "Crease patterns · paper",
+   "keywords": [
+    "origami",
+    "constraints",
+    "structures"
+   ],
+   "index": {
+    "no": 148,
+    "code": "X015"
+   }
+  },
+  {
+   "id": "box2d",
+   "name": "Box2D",
+   "repo": "https://github.com/erincatto/box2d",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Rigid bodies · collisions",
+   "area": "Structures · fabrication",
+   "input": "Objects · forces · joints",
+   "keywords": [
+    "rigid bodies",
+    "collisions",
+    "joints"
+   ],
+   "index": {
+    "no": 149,
+    "code": "X017"
+   }
+  },
+  {
+   "id": "genesis-world",
+   "name": "Genesis World",
+   "repo": null,
+   "license": "Needs rechecking",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Physics simulation",
+   "area": "Matter · nature",
+   "input": "Objects · forces · joints",
+   "keywords": [
+    "physics",
+    "on hold",
+    "weights"
+   ],
+   "index": {
+    "no": 150,
+    "code": "X048"
+   }
+  },
+  {
+   "id": "ten-minute-physics-pbd",
+   "name": "Ten Minute Physics / PBD",
+   "repo": "https://github.com/matthias-research/pages",
+   "license": "3 demos under MIT",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Position-based dynamics",
+   "area": "Matter · nature",
+   "input": "Points · positional constraints",
+   "keywords": [
+    "PBD",
+    "constraints",
+    "cloth"
+   ],
+   "index": {
+    "no": 151,
+    "code": "X070"
+   }
+  },
+  {
+   "id": "three-js-pathtracing-renderer",
+   "name": "THREE.js-PathTracing-Renderer",
+   "repo": "https://github.com/erichlof/three.js-pathtracing-renderer",
+   "license": "CC0-1.0 (project LICENSE)",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Ray paths · reflection and refraction · accumulated sampling",
+   "area": "Lighting · compositing",
+   "input": "Scenes · lights · materials",
+   "keywords": [],
+   "index": {
+    "no": 152,
+    "code": "C086"
+   }
+  },
+  {
+   "id": "pt",
+   "name": "pt",
+   "repo": "https://github.com/fogleman/pt",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Monte Carlo light paths · adaptive sampling",
+   "area": "Lighting · compositing",
+   "input": "Scenes · lights · materials",
+   "keywords": [],
+   "index": {
+    "no": 153,
+    "code": "C110"
+   }
+  },
+  {
+   "id": "rapier",
+   "name": "Rapier",
+   "repo": "https://github.com/dimforge/rapier",
+   "license": "Apache-2.0",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Rigid bodies · contact · joint constraints",
+   "area": "Structures · fabrication",
+   "input": "Objects · forces · joints",
+   "keywords": [],
+   "index": {
+    "no": 154,
+    "code": "C215"
+   }
+  },
+  {
+   "id": "physx",
+   "name": "PhysX",
+   "repo": "https://github.com/nvidia-omniverse/physx",
+   "license": "BSD-3-Clause",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Rigid bodies · soft bodies · physical constraints",
+   "area": "Structures · fabrication",
+   "input": "Objects · forces · joints",
+   "keywords": [],
+   "index": {
+    "no": 155,
+    "code": "C216"
+   }
+  },
+  {
+   "id": "bullet-physics",
+   "name": "Bullet Physics",
+   "repo": "https://github.com/bulletphysics/bullet3",
+   "license": "Zlib",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Collision detection · multiphysics",
+   "area": "Structures · fabrication",
+   "input": "Objects · forces · joints",
+   "keywords": [],
+   "index": {
+    "no": 156,
+    "code": "C217"
+   }
+  },
+  {
+   "id": "jolt-physics",
+   "name": "Jolt Physics",
+   "repo": "https://github.com/jrouwe/joltphysics",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Multicore rigid bodies · contact",
+   "area": "Structures · fabrication",
+   "input": "Objects · forces · joints",
+   "keywords": [],
+   "index": {
+    "no": 157,
+    "code": "C218"
+   }
+  },
+  {
+   "id": "positionbaseddynamics",
+   "name": "PositionBasedDynamics",
+   "repo": "https://github.com/interactivecomputergraphics/positionbaseddynamics",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Positional constraints · stabilization",
+   "area": "Structures · fabrication",
+   "input": "Points · positional constraints",
+   "keywords": [],
+   "index": {
+    "no": 158,
+    "code": "C219"
+   }
+  },
+  {
+   "id": "splishsplash",
+   "name": "SPlisHSPlasH",
+   "repo": "https://github.com/interactivecomputergraphics/splishsplash",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "SPH · pressure · viscosity",
+   "area": "Matter · nature",
+   "input": "Velocity · fluid states",
+   "keywords": [],
+   "index": {
+    "no": 159,
+    "code": "C220"
+   }
+  },
+  {
+   "id": "simbody",
+   "name": "Simbody",
+   "repo": "https://github.com/simbody/simbody",
+   "license": "Apache-2.0",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Multibody · joint dynamics",
+   "area": "Structures · fabrication",
+   "input": "Objects · forces · joints",
+   "keywords": [],
+   "index": {
+    "no": 160,
+    "code": "C221"
+   }
+  },
+  {
+   "id": "mujoco",
+   "name": "MuJoCo",
+   "repo": "https://github.com/google-deepmind/mujoco",
+   "license": "Apache-2.0",
+   "principle": "Physics · numerical models",
+   "medium": "3D · space",
+   "concept": "Contact · joints · body dynamics",
+   "area": "Structures · fabrication",
+   "input": "Objects · forces · joints",
+   "keywords": [],
+   "index": {
+    "no": 161,
+    "code": "C222"
+   }
+  },
+  {
+   "id": "webgl-fluid-simulation",
+   "name": "WebGL Fluid Simulation",
+   "repo": "https://github.com/paveldogreat/webgl-fluid-simulation",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Real-time fluids",
+   "area": "Matter · nature",
+   "input": "Velocity · fluid states",
+   "keywords": [
+    "fluids",
+    "WebGL",
+    "interaction"
+   ],
+   "index": {
+    "no": 162,
+    "code": "X012"
+   }
+  },
+  {
+   "id": "ready",
+   "name": "Ready",
+   "repo": "https://github.com/gollygang/ready",
+   "license": "GPL-3.0",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Reaction · diffusion",
+   "area": "Matter · nature",
+   "input": "Substance quantities · reaction rules",
+   "keywords": [
+    "reaction diffusion",
+    "patterns",
+    "simulation"
+   ],
+   "index": {
+    "no": 163,
+    "code": "X020"
+   }
+  },
+  {
+   "id": "godotoceanwaves",
+   "name": "GodotOceanWaves",
+   "repo": "https://github.com/2retr0/godotoceanwaves",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Wave spectra · inverse FFT",
+   "area": "Matter · nature",
+   "input": "Wave spectra",
+   "keywords": [
+    "ocean",
+    "FFT",
+    "GPU"
+   ],
+   "index": {
+    "no": 164,
+    "code": "X025"
+   }
+  },
+  {
+   "id": "terrain-erosion",
+   "name": "Terrain Erosion",
+   "repo": null,
+   "license": "Needs rechecking",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Erosion · noise",
+   "area": "Maps · environments",
+   "input": "Heights · terrain constraints",
+   "keywords": [
+    "erosion",
+    "terrain",
+    "noise"
+   ],
+   "index": {
+    "no": 165,
+    "code": "X047"
+   }
+  },
+  {
+   "id": "spring-it-on",
+   "name": "Spring-It-On",
+   "repo": "https://github.com/orangeduck/spring-it-on",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Damped springs",
+   "area": "Movement · choreography",
+   "input": "Target values · velocity · damping",
+   "keywords": [
+    "springs",
+    "damping",
+    "cameras"
+   ],
+   "index": {
+    "no": 166,
+    "code": "X068"
+   }
+  },
+  {
+   "id": "d3-force",
+   "name": "d3-force",
+   "repo": "https://github.com/d3/d3-force",
+   "license": "ISC",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Particle forces · numerical integration · collision avoidance",
+   "area": "Information visualization",
+   "input": "Nodes · links",
+   "keywords": [],
+   "index": {
+    "no": 167,
+    "code": "C029"
+   }
+  },
+  {
+   "id": "matter-js",
+   "name": "Matter.js",
+   "repo": "https://github.com/liabru/matter-js",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Rigid-body collisions · distance constraints",
+   "area": "Structures · fabrication",
+   "input": "Objects · forces · joints",
+   "keywords": [],
+   "index": {
+    "no": 168,
+    "code": "C068"
+   }
+  },
+  {
+   "id": "cannon-js",
+   "name": "cannon.js",
+   "repo": "https://github.com/schteppe/cannon.js",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Gauss–Seidel constraint solving",
+   "area": "Structures · fabrication",
+   "input": "Objects · forces · joints",
+   "keywords": [],
+   "index": {
+    "no": 169,
+    "code": "C069"
+   }
+  },
+  {
+   "id": "turing-patterns",
+   "name": "Turing Patterns",
+   "repo": "https://github.com/ijmbarr/turing-patterns",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Reaction–diffusion · rotationally symmetric initial conditions",
+   "area": "Matter · nature",
+   "input": "Substance quantities · reaction rules",
+   "keywords": [],
+   "index": {
+    "no": 170,
+    "code": "C115"
+   }
+  },
+  {
+   "id": "ngraph-forcelayout",
+   "name": "ngraph.forcelayout",
+   "repo": "https://github.com/anvaka/ngraph.forcelayout",
+   "license": "BSD-3-Clause / inconsistent labeling",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Springs · repulsion · Barnes–Hut approximation",
+   "area": "Information visualization",
+   "input": "Nodes · links",
+   "keywords": [],
+   "index": {
+    "no": 171,
+    "code": "C118"
+   }
+  },
+  {
+   "id": "rdsystem",
+   "name": "RDSystem",
+   "repo": "https://github.com/keijiro/rdsystem",
+   "license": "Unlicense",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Reaction · diffusion · grid Laplacians",
+   "area": "Matter · nature",
+   "input": "Substance quantities · reaction rules",
+   "keywords": [],
+   "index": {
+    "no": 172,
+    "code": "C162"
+   }
+  },
+  {
+   "id": "the-powder-toy",
+   "name": "The Powder Toy",
+   "repo": "https://github.com/thepowdertoy/the-powder-toy",
+   "license": "GPL-3.0",
+   "principle": "Physics · numerical models",
+   "medium": "Moving image",
+   "concept": "Grid-based matter · heat · pressure",
+   "area": "Matter · nature",
+   "input": "Matter · heat · pressure",
+   "keywords": [],
+   "index": {
+    "no": 173,
+    "code": "C223"
+   }
+  },
+  {
+   "id": "numeric-js-ode",
+   "name": "Numeric.js · ODE",
+   "repo": "https://github.com/sloisel/numeric",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Numbers · data",
+   "concept": "Adaptive time steps · differential-equation integration",
+   "area": "Patterns · form",
+   "input": "Initial values · rates of change",
+   "keywords": [],
+   "index": {
+    "no": 174,
+    "code": "C119"
+   }
+  },
+  {
+   "id": "stipplegen",
+   "name": "StippleGen",
+   "repo": "https://github.com/evil-mad/stipplegen",
+   "license": "LGPL-2.1-or-later",
+   "principle": "Image · signal transformation",
+   "medium": "Lines · vectors",
+   "concept": "Weighted Voronoi · stippling",
+   "area": "Drawing · printmaking",
+   "input": "Photo tonal values",
+   "keywords": [],
+   "index": {
+    "no": 175,
+    "code": "C001"
+   }
+  },
+  {
+   "id": "skeleton-tracing",
+   "name": "Skeleton Tracing",
+   "repo": "https://github.com/lingdong-/skeleton-tracing",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Lines · vectors",
+   "concept": "Divide and conquer · stroke centerlines",
+   "area": "Drawing · printmaking",
+   "input": "Binary line images",
+   "keywords": [],
+   "index": {
+    "no": 176,
+    "code": "C002"
+   }
+  },
+  {
+   "id": "imagetracerjs",
+   "name": "ImageTracerJS",
+   "repo": "https://github.com/jankovicsandras/imagetracerjs",
+   "license": "Unlicense",
+   "principle": "Image · signal transformation",
+   "medium": "Lines · vectors",
+   "concept": "Color quantization · curve approximation",
+   "area": "Drawing · printmaking",
+   "input": "Photos · pixels",
+   "keywords": [],
+   "index": {
+    "no": 177,
+    "code": "C003"
+   }
+  },
+  {
+   "id": "vtracer",
+   "name": "VTracer",
+   "repo": "https://github.com/visioncortex/vtracer",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Lines · vectors",
+   "concept": "Color-region segmentation · curve fitting",
+   "area": "Drawing · printmaking",
+   "input": "Photos · pixels",
+   "keywords": [],
+   "index": {
+    "no": 178,
+    "code": "C011"
+   }
+  },
+  {
+   "id": "triangula",
+   "name": "Triangula",
+   "repo": "https://github.com/rh12503/triangula",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Lines · vectors",
+   "concept": "Genetic algorithms · triangulation optimization",
+   "area": "Drawing · printmaking",
+   "input": "Photos · pixels",
+   "keywords": [],
+   "index": {
+    "no": 179,
+    "code": "C012"
+   }
+  },
+  {
+   "id": "swingline",
+   "name": "Swingline",
+   "repo": "https://github.com/mkeeter/swingline",
+   "license": "GPL-2.0-or-later",
+   "principle": "Image · signal transformation",
+   "medium": "Lines · vectors",
+   "concept": "Weighted Voronoi stippling · GPU parallel computation",
+   "area": "Drawing · printmaking",
+   "input": "Photo tonal values",
+   "keywords": [],
+   "index": {
+    "no": 180,
+    "code": "C021"
+   }
+  },
+  {
+   "id": "autotrace",
+   "name": "AutoTrace",
+   "repo": "https://github.com/autotrace/autotrace",
+   "license": "GPL-2+ / LGPL-2.1+",
+   "principle": "Image · signal transformation",
+   "medium": "Lines · vectors",
+   "concept": "Outline and centerline vectorization",
+   "area": "Drawing · printmaking",
+   "input": "Photos · pixels",
+   "keywords": [],
+   "index": {
+    "no": 181,
+    "code": "C113"
+   }
+  },
+  {
+   "id": "diffvg",
+   "name": "diffvg",
+   "repo": "https://github.com/bachili/diffvg",
+   "license": "Apache-2.0",
+   "principle": "Image · signal transformation",
+   "medium": "Lines · vectors",
+   "concept": "Differentiable vector rasterization",
+   "area": "Drawing · printmaking",
+   "input": "Images · scenes · targets",
+   "keywords": [],
+   "index": {
+    "no": 182,
+    "code": "C265"
+   }
+  },
+  {
+   "id": "primitive",
+   "name": "Primitive",
+   "repo": "https://github.com/fogleman/primitive",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Shape approximation",
+   "area": "Drawing · printmaking",
+   "input": "Photos · pixels",
+   "keywords": [
+    "geometry",
+    "images",
+    "optimization"
+   ],
+   "index": {
+    "no": 183,
+    "code": "X018"
+   }
+  },
+  {
+   "id": "libmypaint",
+   "name": "libmypaint",
+   "repo": "https://github.com/mypaint/libmypaint",
+   "license": "ISC",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Accumulated brush dabs · pressure dynamics",
+   "area": "Drawing · printmaking",
+   "input": "Pen pressure · hand paths",
+   "keywords": [],
+   "index": {
+    "no": 184,
+    "code": "C031"
+   }
+  },
+  {
+   "id": "image-q",
+   "name": "image-q",
+   "repo": "https://github.com/ibezkrovnyi/image-quantization",
+   "license": "MIT + NeuQuant permission notice",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Color quantization · error diffusion",
+   "area": "Drawing · printmaking",
+   "input": "Pixels · palettes",
+   "keywords": [],
+   "index": {
+    "no": 185,
+    "code": "C039"
+   }
+  },
+  {
+   "id": "color-js",
+   "name": "Color.js",
+   "repo": "https://github.com/color-js/color.js",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Perceptual color spaces · color interpolation",
+   "area": "Drawing · printmaking",
+   "input": "Colors · color spaces",
+   "keywords": [],
+   "index": {
+    "no": 186,
+    "code": "C050"
+   }
+  },
+  {
+   "id": "tinysdf",
+   "name": "TinySDF",
+   "repo": "https://github.com/mapbox/tiny-sdf",
+   "license": "BSD-2-Clause",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Signed distance fields · distance transforms",
+   "area": "Publishing · typography",
+   "input": "Glyph shapes",
+   "keywords": [],
+   "index": {
+    "no": 187,
+    "code": "C052"
+   }
+  },
+  {
+   "id": "msdfgen",
+   "name": "msdfgen",
+   "repo": "https://github.com/chlumsky/msdfgen",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Multichannel signed distance fields",
+   "area": "Publishing · typography",
+   "input": "Vector boundaries",
+   "keywords": [],
+   "index": {
+    "no": 188,
+    "code": "C073"
+   }
+  },
+  {
+   "id": "dither",
+   "name": "dither",
+   "repo": "https://github.com/makew0rld/dither",
+   "license": "MPL-2.0",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Error diffusion · ordered-matrix dithering",
+   "area": "Drawing · printmaking",
+   "input": "Pixels · palettes",
+   "keywords": [],
+   "index": {
+    "no": 189,
+    "code": "C078"
+   }
+  },
+  {
+   "id": "skan",
+   "name": "Skan",
+   "repo": "https://github.com/jni/skan",
+   "license": "BSD-3-Clause",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Line skeletons · graph decomposition",
+   "area": "Drawing · printmaking",
+   "input": "Binary line images",
+   "keywords": [],
+   "index": {
+    "no": 190,
+    "code": "C092"
+   }
+  },
+  {
+   "id": "nanovg",
+   "name": "NanoVG",
+   "repo": "https://github.com/memononen/nanovg",
+   "license": "Zlib",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Stencil fills · edge antialiasing",
+   "area": "Media · interaction",
+   "input": "Vector paths",
+   "keywords": [],
+   "index": {
+    "no": 191,
+    "code": "C094"
+   }
+  },
+  {
+   "id": "glsl-lut",
+   "name": "glsl-lut",
+   "repo": "https://github.com/mattdesl/glsl-lut",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Color-coordinate lookup · LUT interpolation",
+   "area": "Lighting · compositing",
+   "input": "Colors · lookup tables",
+   "keywords": [],
+   "index": {
+    "no": 192,
+    "code": "C102"
+   }
+  },
+  {
+   "id": "glsl-dither",
+   "name": "glsl-dither",
+   "repo": "https://github.com/hughsk/glsl-dither",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Bayer matrices · ordered dithering",
+   "area": "Drawing · printmaking",
+   "input": "Pixels · palettes",
+   "keywords": [],
+   "index": {
+    "no": 193,
+    "code": "C103"
+   }
+  },
+  {
+   "id": "lineintegralconvolutions",
+   "name": "LineIntegralConvolutions",
+   "repo": "https://github.com/astrokriel/lineintegralconvolutions",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Line integral convolution · vector-field visualization",
+   "area": "Drawing · printmaking",
+   "input": "Vector fields",
+   "keywords": [],
+   "index": {
+    "no": 194,
+    "code": "C114"
+   }
+  },
+  {
+   "id": "glsl-fft",
+   "name": "glsl-fft",
+   "repo": "https://github.com/rreusser/glsl-fft",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "2D FFT · frequency-domain filtering",
+   "area": "Drawing · printmaking",
+   "input": "Samples · waveforms",
+   "keywords": [],
+   "index": {
+    "no": 195,
+    "code": "C117"
+   }
+  },
+  {
+   "id": "glsl-fxaa",
+   "name": "glsl-fxaa",
+   "repo": "https://github.com/mattdesl/glsl-fxaa",
+   "license": "MIT + BSD-3-Clause",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Screen-space antialiasing · luminance gradients",
+   "area": "Drawing · printmaking",
+   "input": "Pixels · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 196,
+    "code": "C120"
+   }
+  },
+  {
+   "id": "pixelmatch",
+   "name": "Pixelmatch",
+   "repo": "https://github.com/mapbox/pixelmatch",
+   "license": "ISC",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Perceptual color differences · edge-pixel classification",
+   "area": "Drawing · printmaking",
+   "input": "Two images",
+   "keywords": [],
+   "index": {
+    "no": 197,
+    "code": "C123"
+   }
+  },
+  {
+   "id": "d3-color",
+   "name": "d3-color",
+   "repo": "https://github.com/d3/d3-color",
+   "license": "ISC",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "CIELAB · Cartesian and polar color spaces",
+   "area": "Drawing · printmaking",
+   "input": "Colors · color spaces",
+   "keywords": [],
+   "index": {
+    "no": 198,
+    "code": "C126"
+   }
+  },
+  {
+   "id": "hsluv",
+   "name": "HSLuv",
+   "repo": "https://github.com/hsluv/hsluv-javascript",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Gamut boundaries · perceptual lightness and saturation",
+   "area": "Drawing · printmaking",
+   "input": "Colors · color spaces",
+   "keywords": [],
+   "index": {
+    "no": 199,
+    "code": "C127"
+   }
+  },
+  {
+   "id": "glsl-blend",
+   "name": "glsl-blend",
+   "repo": "https://github.com/jamieowen/glsl-blend",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Per-pixel blending · piecewise functions",
+   "area": "Lighting · compositing",
+   "input": "Two images · colors",
+   "keywords": [],
+   "index": {
+    "no": 200,
+    "code": "C129"
+   }
+  },
+  {
+   "id": "glsl-aastep",
+   "name": "glsl-aastep",
+   "repo": "https://github.com/glslify/glsl-aastep",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Screen-space derivatives · antialiasing",
+   "area": "Drawing · printmaking",
+   "input": "Pixels · boundaries",
+   "keywords": [],
+   "index": {
+    "no": 201,
+    "code": "C132"
+   }
+  },
+  {
+   "id": "glsl-fast-gaussian-blur",
+   "name": "glsl-fast-gaussian-blur",
+   "repo": "https://github.com/experience-monks/glsl-fast-gaussian-blur",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Separable convolution · linear sampling",
+   "area": "Drawing · printmaking",
+   "input": "Images · radii",
+   "keywords": [],
+   "index": {
+    "no": 202,
+    "code": "C138"
+   }
+  },
+  {
+   "id": "glur",
+   "name": "glur",
+   "repo": "https://github.com/nodeca/glur",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Recursive IIR filters · Gaussian approximation",
+   "area": "Drawing · printmaking",
+   "input": "Images · radii",
+   "keywords": [],
+   "index": {
+    "no": 203,
+    "code": "C139"
+   }
+  },
+  {
+   "id": "glsl-halftone",
+   "name": "glsl-halftone",
+   "repo": "https://github.com/glslify/glsl-halftone",
+   "license": "MIT / original effect public domain",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "CMYK halftone dots · rotated grids",
+   "area": "Drawing · printmaking",
+   "input": "Images · separated colors",
+   "keywords": [],
+   "index": {
+    "no": 204,
+    "code": "C141"
+   }
+  },
+  {
+   "id": "ndarray-warp",
+   "name": "ndarray-warp",
+   "repo": "https://github.com/scijs/ndarray-warp",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Inverse mapping · multidimensional interpolation",
+   "area": "Drawing · printmaking",
+   "input": "Images · coordinate mappings",
+   "keywords": [],
+   "index": {
+    "no": 205,
+    "code": "C142"
+   }
+  },
+  {
+   "id": "glsl-specular-blinn-phong",
+   "name": "glsl-specular-blinn-phong",
+   "repo": "https://github.com/glslify/glsl-specular-blinn-phong",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Half-vectors · specular exponents",
+   "area": "Lighting · compositing",
+   "input": "Light · view directions · normals",
+   "keywords": [],
+   "index": {
+    "no": 206,
+    "code": "C149"
+   }
+  },
+  {
+   "id": "d3-scale-chromatic",
+   "name": "d3-scale-chromatic",
+   "repo": "https://github.com/d3/d3-scale-chromatic",
+   "license": "ISC / ColorBrewer Apache-2.0",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Discrete palettes · uniform B-spline interpolation",
+   "area": "Information visualization",
+   "input": "Colors · color spaces",
+   "keywords": [],
+   "index": {
+    "no": 207,
+    "code": "C150"
+   }
+  },
+  {
+   "id": "chroma-js",
+   "name": "Chroma.js",
+   "repo": "https://github.com/gka/chroma.js",
+   "license": "BSD-3-Clause + Apache-2.0",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Perceptual color spaces · interpolation",
+   "area": "Drawing · printmaking",
+   "input": "Colors · color spaces",
+   "keywords": [],
+   "index": {
+    "no": 208,
+    "code": "C151"
+   }
+  },
+  {
+   "id": "triangulate-image",
+   "name": "triangulate-image",
+   "repo": "https://github.com/snorpey/triangulate-image",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Edge detection · triangulation",
+   "area": "Drawing · printmaking",
+   "input": "Photos · feature points",
+   "keywords": [],
+   "index": {
+    "no": 209,
+    "code": "C153"
+   }
+  },
+  {
+   "id": "hatchingshader",
+   "name": "HatchingShader",
+   "repo": "https://github.com/nkihrk/hatchingshader",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Tone-dependent hatching · Tonal Art Maps",
+   "area": "Drawing · printmaking",
+   "input": "Light · surfaces",
+   "keywords": [],
+   "index": {
+    "no": 210,
+    "code": "C161"
+   }
+  },
+  {
+   "id": "kinocontour",
+   "name": "KinoContour",
+   "repo": "https://github.com/keijiro/kinocontour",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Roberts cross derivatives · edge detection",
+   "area": "Drawing · printmaking",
+   "input": "Color · depth · normals",
+   "keywords": [],
+   "index": {
+    "no": 211,
+    "code": "C171"
+   }
+  },
+  {
+   "id": "kinobloom",
+   "name": "KinoBloom",
+   "repo": "https://github.com/keijiro/kinobloom",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Brightness thresholds · multiresolution filters",
+   "area": "Lighting · compositing",
+   "input": "Bright pixels",
+   "keywords": [],
+   "index": {
+    "no": 212,
+    "code": "C172"
+   }
+  },
+  {
+   "id": "kinoglitch",
+   "name": "KinoGlitch",
+   "repo": "https://github.com/keijiro/kinoglitch",
+   "license": "MIT (README permission notice)",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Scanline coordinate perturbation · color-channel shifts",
+   "area": "Movement · choreography",
+   "input": "Images · displacements",
+   "keywords": [],
+   "index": {
+    "no": 213,
+    "code": "C173"
+   }
+  },
+  {
+   "id": "kinoaqua",
+   "name": "KinoAqua",
+   "repo": "https://github.com/keijiro/kinoaqua",
+   "license": "Unlicense",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Luminance gradients · directional blur",
+   "area": "Drawing · printmaking",
+   "input": "Images · tonal values",
+   "keywords": [],
+   "index": {
+    "no": 214,
+    "code": "C181"
+   }
+  },
+  {
+   "id": "kinomirror",
+   "name": "KinoMirror",
+   "repo": "https://github.com/keijiro/kinomirror",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Polar coordinates · angular repetition · reflection symmetry",
+   "area": "Patterns · form",
+   "input": "Screen images · reflection angles",
+   "keywords": [],
+   "index": {
+    "no": 215,
+    "code": "C182"
+   }
+  },
+  {
+   "id": "kinobinary",
+   "name": "KinoBinary",
+   "repo": "https://github.com/keijiro/kinobinary",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Luminance thresholds · dither patterns",
+   "area": "Drawing · printmaking",
+   "input": "Pixels · palettes",
+   "keywords": [],
+   "index": {
+    "no": 216,
+    "code": "C183"
+   }
+  },
+  {
+   "id": "kinomotion",
+   "name": "KinoMotion",
+   "repo": "https://github.com/keijiro/kinomotion",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Motion vectors · neighborhood maxima · reconstruction",
+   "area": "Movement · choreography",
+   "input": "Screen-space motion vectors",
+   "keywords": [],
+   "index": {
+    "no": 217,
+    "code": "C184"
+   }
+  },
+  {
+   "id": "kinobokeh",
+   "name": "KinoBokeh",
+   "repo": "https://github.com/keijiro/kinobokeh",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Circles of confusion · depth-based disk blur",
+   "area": "Lighting · compositing",
+   "input": "Depth · focus",
+   "keywords": [],
+   "index": {
+    "no": 218,
+    "code": "C185"
+   }
+  },
+  {
+   "id": "kinoobscurance",
+   "name": "KinoObscurance",
+   "repo": "https://github.com/keijiro/kinoobscurance",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Screen-space ambient occlusion · geometry-aware filters",
+   "area": "Lighting · compositing",
+   "input": "Depth · normals",
+   "keywords": [],
+   "index": {
+    "no": 219,
+    "code": "C186"
+   }
+  },
+  {
+   "id": "kinodatamosh",
+   "name": "KinoDatamosh",
+   "repo": "https://github.com/keijiro/kinodatamosh",
+   "license": "Unlicense (root) · MIT (shader headers)",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Motion vectors · accumulation buffers · compression-error simulation",
+   "area": "Movement · choreography",
+   "input": "Images · displacements",
+   "keywords": [],
+   "index": {
+    "no": 220,
+    "code": "C187"
+   }
+  },
+  {
+   "id": "kinofog",
+   "name": "KinoFog",
+   "repo": "https://github.com/keijiro/kinofog",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Distance attenuation · exponential functions · skybox blending",
+   "area": "Lighting · compositing",
+   "input": "Depth · distance",
+   "keywords": [],
+   "index": {
+    "no": 221,
+    "code": "C188"
+   }
+  },
+  {
+   "id": "kinotube",
+   "name": "KinoTube",
+   "repo": "https://github.com/keijiro/kinotube",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "YIQ color space · color bleeding · scanlines",
+   "area": "Lighting · compositing",
+   "input": "Screen brightness · colors",
+   "keywords": [],
+   "index": {
+    "no": 222,
+    "code": "C189"
+   }
+  },
+  {
+   "id": "kinostreak",
+   "name": "KinoStreak",
+   "repo": "https://github.com/keijiro/kinostreak",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Brightness thresholds · directional multiresolution filters",
+   "area": "Lighting · compositing",
+   "input": "Bright pixels",
+   "keywords": [],
+   "index": {
+    "no": 223,
+    "code": "C190"
+   }
+  },
+  {
+   "id": "libvips",
+   "name": "libvips",
+   "repo": "https://github.com/libvips/libvips",
+   "license": "LGPL-2.1-or-later",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Demand-driven image pipelines",
+   "area": "Tools · workflows",
+   "input": "Photos · pixels",
+   "keywords": [],
+   "index": {
+    "no": 224,
+    "code": "C261"
+   }
+  },
+  {
+   "id": "imagemagick",
+   "name": "ImageMagick",
+   "repo": "https://github.com/imagemagick/imagemagick",
+   "license": "ImageMagick",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Pixel operations · composition · transformation",
+   "area": "Tools · workflows",
+   "input": "Photos · pixels",
+   "keywords": [],
+   "index": {
+    "no": 225,
+    "code": "C262"
+   }
+  },
+  {
+   "id": "scikit-image",
+   "name": "scikit-image",
+   "repo": "https://github.com/scikit-image/scikit-image",
+   "license": "BSD-3-Clause / bundled licenses",
+   "principle": "Image · signal transformation",
+   "medium": "Still image",
+   "concept": "Filters · segmentation · morphology",
+   "area": "Tools · workflows",
+   "input": "Photos · pixels",
+   "keywords": [],
+   "index": {
+    "no": 226,
+    "code": "C263"
+   }
+  },
+  {
+   "id": "opencv-optical-flow",
+   "name": "OpenCV Optical Flow",
+   "repo": "https://github.com/opencv/opencv",
+   "license": "Apache-2.0",
+   "principle": "Image · signal transformation",
+   "medium": "Moving image",
+   "concept": "Optical-flow tracking",
+   "area": "Perception · reconstruction",
+   "input": "Consecutive video frames",
+   "keywords": [
+    "optical flow",
+    "video",
+    "tracking"
+   ],
+   "index": {
+    "no": 227,
+    "code": "X007"
+   }
+  },
+  {
+   "id": "ffmpeg",
+   "name": "FFmpeg",
+   "repo": "https://github.com/ffmpeg/ffmpeg",
+   "license": "LGPL/GPL · check each build configuration",
+   "principle": "Image · signal transformation",
+   "medium": "Moving image",
+   "concept": "Video composition · editing",
+   "area": "Tools · workflows",
+   "input": "Video · subtitles · text",
+   "keywords": [
+    "typography",
+    "video",
+    "editing"
+   ],
+   "index": {
+    "no": 228,
+    "code": "X042"
+   }
+  },
+  {
+   "id": "hydra-synth",
+   "name": "Hydra Synth",
+   "repo": "https://github.com/hydra-synth/hydra-synth",
+   "license": "AGPL-3.0",
+   "principle": "Image · signal transformation",
+   "medium": "Moving image",
+   "concept": "Video feedback · coordinate transforms",
+   "area": "Media · interaction",
+   "input": "Video · shaders",
+   "keywords": [],
+   "index": {
+    "no": 229,
+    "code": "C197"
+   }
+  },
+  {
+   "id": "gl-react",
+   "name": "gl-react",
+   "repo": "https://github.com/gre/gl-react",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Moving image",
+   "concept": "Component-based shader composition",
+   "area": "Media · interaction",
+   "input": "Shaders · input video",
+   "keywords": [],
+   "index": {
+    "no": 230,
+    "code": "C264"
+   }
+  },
+  {
+   "id": "tone-js",
+   "name": "Tone.js",
+   "repo": "https://github.com/tonejs/tone.js",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Sound",
+   "concept": "Oscillators · ADSR · signal routing",
+   "area": "Sound · performance",
+   "input": "Sound · synthesis code",
+   "keywords": [],
+   "index": {
+    "no": 231,
+    "code": "C191"
+   }
+  },
+  {
+   "id": "csound",
+   "name": "Csound",
+   "repo": "https://github.com/csound/csound",
+   "license": "LGPL-2.1-or-later",
+   "principle": "Image · signal transformation",
+   "medium": "Sound",
+   "concept": "Opcode- and score-based synthesis",
+   "area": "Sound · performance",
+   "input": "Sound · synthesis code",
+   "keywords": [],
+   "index": {
+    "no": 232,
+    "code": "C193"
+   }
+  },
+  {
+   "id": "daisysp",
+   "name": "DaisySP",
+   "repo": "https://github.com/electro-smith/daisysp",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Sound",
+   "concept": "Oscillators · filters · envelopes",
+   "area": "Sound · performance",
+   "input": "Sound · synthesis code",
+   "keywords": [],
+   "index": {
+    "no": 233,
+    "code": "C198"
+   }
+  },
+  {
+   "id": "maximilian",
+   "name": "Maximilian",
+   "repo": "https://github.com/micknoise/maximilian",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Sound",
+   "concept": "Synthesis · sampling · FFT",
+   "area": "Sound · performance",
+   "input": "Sound · synthesis code",
+   "keywords": [],
+   "index": {
+    "no": 234,
+    "code": "C199"
+   }
+  },
+  {
+   "id": "fft-js",
+   "name": "fft.js",
+   "repo": "https://github.com/indutny/fft.js",
+   "license": "MIT",
+   "principle": "Image · signal transformation",
+   "medium": "Numbers · data",
+   "concept": "Fourier transforms",
+   "area": "Patterns · form",
+   "input": "Samples · waveforms",
+   "keywords": [
+    "Fourier",
+    "frequency",
+    "rotation"
+   ],
+   "index": {
+    "no": 235,
+    "code": "X034"
+   }
+  },
+  {
+   "id": "aubio",
+   "name": "aubio",
+   "repo": "https://github.com/aubio/aubio",
+   "license": "GPL-3.0-or-later",
+   "principle": "Image · signal transformation",
+   "medium": "Numbers · data",
+   "concept": "Onset · pitch · beat detection",
+   "area": "Sound · performance",
+   "input": "Sound · audio recordings",
+   "keywords": [],
+   "index": {
+    "no": 236,
+    "code": "C200"
+   }
+  },
+  {
+   "id": "librosa",
+   "name": "librosa",
+   "repo": "https://github.com/librosa/librosa",
+   "license": "ISC",
+   "principle": "Image · signal transformation",
+   "medium": "Numbers · data",
+   "concept": "STFT · mel frequencies · rhythm",
+   "area": "Sound · performance",
+   "input": "Sound · audio recordings",
+   "keywords": [],
+   "index": {
+    "no": 237,
+    "code": "C201"
+   }
+  },
+  {
+   "id": "essentia",
+   "name": "Essentia",
+   "repo": "https://github.com/mtg/essentia",
+   "license": "AGPL-3.0",
+   "principle": "Image · signal transformation",
+   "medium": "Numbers · data",
+   "concept": "Spectral and timbral feature extraction",
+   "area": "Sound · performance",
+   "input": "Sound · audio recordings",
+   "keywords": [],
+   "index": {
+    "no": 238,
+    "code": "C202"
+   }
+  },
+  {
+   "id": "mesh2motion",
+   "name": "Mesh2Motion",
+   "repo": "https://github.com/mesh2motion/mesh2motion-app",
+   "license": "MIT (code) / CC0 (default artwork)",
+   "principle": "Time · motion control",
+   "medium": "3D · space",
+   "concept": "Automatic rigging",
+   "area": "Movement · choreography",
+   "input": "3D models · skeletons",
+   "keywords": [
+    "rigging",
+    "skeletons",
+    "animation"
+   ],
+   "index": {
+    "no": 239,
+    "code": "X001"
+   }
+  },
+  {
+   "id": "animal-proc-anim",
+   "name": "animal-proc-anim",
+   "repo": "https://github.com/argonautcode/animal-proc-anim",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "3D · space",
+   "concept": "Point chains · FABRIK",
+   "area": "Movement · choreography",
+   "input": "Joint chains · targets",
+   "keywords": [
+    "procedural motion",
+    "joints",
+    "organisms"
+   ],
+   "index": {
+    "no": 240,
+    "code": "X029"
+   }
+  },
+  {
+   "id": "fullik-fabrik",
+   "name": "fullik · FABRIK",
+   "repo": "https://github.com/lo-th/fullik",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "3D · space",
+   "concept": "Inverse kinematics",
+   "area": "Movement · choreography",
+   "input": "Joints · target points",
+   "keywords": [
+    "FABRIK",
+    "inverse kinematics",
+    "skeletons"
+   ],
+   "index": {
+    "no": 241,
+    "code": "X031"
+   }
+  },
+  {
+   "id": "manimgl",
+   "name": "ManimGL",
+   "repo": "https://github.com/3b1b/manim",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Mathematical animation",
+   "area": "Patterns · form",
+   "input": "Equations · code",
+   "keywords": [
+    "mathematics",
+    "motion",
+    "Python"
+   ],
+   "index": {
+    "no": 242,
+    "code": "X024"
+   }
+  },
+  {
+   "id": "motion-canvas",
+   "name": "Motion Canvas",
+   "repo": "https://github.com/motion-canvas/motion-canvas",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Code-based explanatory animation",
+   "area": "Movement · choreography",
+   "input": "Time · code · text",
+   "keywords": [
+    "motion",
+    "explanation",
+    "code"
+   ],
+   "index": {
+    "no": 243,
+    "code": "X044"
+   }
+  },
+  {
+   "id": "rvo2-orca",
+   "name": "RVO2 / ORCA",
+   "repo": "https://github.com/snape/rvo2",
+   "license": "Apache-2.0 / CC BY-SA 4.0",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Reciprocal collision avoidance",
+   "area": "Movement · choreography",
+   "input": "Agents · targets",
+   "keywords": [
+    "crowds",
+    "velocity space",
+    "linear programming"
+   ],
+   "index": {
+    "no": 244,
+    "code": "X066"
+   }
+  },
+  {
+   "id": "bezier-easing",
+   "name": "bezier-easing",
+   "repo": "https://github.com/gre/bezier-easing",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Cubic Bézier time interpolation",
+   "area": "Movement · choreography",
+   "input": "Time · curves",
+   "keywords": [],
+   "index": {
+    "no": 245,
+    "code": "C056"
+   }
+  },
+  {
+   "id": "d3-interpolate",
+   "name": "d3-interpolate",
+   "repo": "https://github.com/d3/d3-interpolate",
+   "license": "ISC",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Color-space and numerical interpolation",
+   "area": "Movement · choreography",
+   "input": "Colors · color spaces",
+   "keywords": [],
+   "index": {
+    "no": 246,
+    "code": "C064"
+   }
+  },
+  {
+   "id": "flubber",
+   "name": "Flubber",
+   "repo": "https://github.com/veltman/flubber",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Contour resampling · point-correspondence interpolation",
+   "area": "Movement · choreography",
+   "input": "Two contours",
+   "keywords": [],
+   "index": {
+    "no": 247,
+    "code": "C081"
+   }
+  },
+  {
+   "id": "d3-ease",
+   "name": "d3-ease",
+   "repo": "https://github.com/d3/d3-ease",
+   "license": "BSD-3-Clause",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Time remapping · damped oscillation",
+   "area": "Movement · choreography",
+   "input": "Time · curves",
+   "keywords": [],
+   "index": {
+    "no": 248,
+    "code": "C125"
+   }
+  },
+  {
+   "id": "unitybeziersolution",
+   "name": "UnityBezierSolution",
+   "repo": "https://github.com/yasirkula/unitybeziersolution",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Bézier tangents · evenly spaced path samples",
+   "area": "Movement · choreography",
+   "input": "Curves · spacing",
+   "keywords": [],
+   "index": {
+    "no": 249,
+    "code": "C168"
+   }
+  },
+  {
+   "id": "twistspline",
+   "name": "TwistSpline",
+   "repo": "https://github.com/blurstudio/twistspline",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Orientation interpolation · twist splines",
+   "area": "Movement · choreography",
+   "input": "Curves · orientations",
+   "keywords": [],
+   "index": {
+    "no": 250,
+    "code": "C169"
+   }
+  },
+  {
+   "id": "motion",
+   "name": "Motion",
+   "repo": "https://github.com/motiondivision/motion",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Springs · keyframes · gestures",
+   "area": "Movement · choreography",
+   "input": "Time · properties · targets",
+   "keywords": [],
+   "index": {
+    "no": 251,
+    "code": "C251"
+   }
+  },
+  {
+   "id": "anime-js",
+   "name": "Anime.js",
+   "repo": "https://github.com/juliangarnier/anime",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Timelines · easing · paths",
+   "area": "Movement · choreography",
+   "input": "Time · properties · targets",
+   "keywords": [],
+   "index": {
+    "no": 252,
+    "code": "C252"
+   }
+  },
+  {
+   "id": "tween-js",
+   "name": "Tween.js",
+   "repo": "https://github.com/tweenjs/tween.js",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Time interpolation · easing functions",
+   "area": "Movement · choreography",
+   "input": "Time · properties · targets",
+   "keywords": [],
+   "index": {
+    "no": 253,
+    "code": "C253"
+   }
+  },
+  {
+   "id": "react-spring",
+   "name": "React Spring",
+   "repo": "https://github.com/pmndrs/react-spring",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Damped springs · state connections",
+   "area": "Movement · choreography",
+   "input": "Time · properties · targets",
+   "keywords": [],
+   "index": {
+    "no": 254,
+    "code": "C254"
+   }
+  },
+  {
+   "id": "lottie-web",
+   "name": "Lottie Web",
+   "repo": "https://github.com/airbnb/lottie-web",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "JSON keyframes · vector rendering",
+   "area": "Movement · choreography",
+   "input": "Vector motion data",
+   "keywords": [],
+   "index": {
+    "no": 255,
+    "code": "C255"
+   }
+  },
+  {
+   "id": "velato",
+   "name": "Velato",
+   "repo": "https://github.com/linebender/velato",
+   "license": "MIT OR Apache-2.0",
+   "principle": "Time · motion control",
+   "medium": "Moving image",
+   "concept": "Lottie parsing · time evaluation",
+   "area": "Movement · choreography",
+   "input": "Vector motion data",
+   "keywords": [],
+   "index": {
+    "no": 256,
+    "code": "C256"
+   }
+  },
+  {
+   "id": "sonic-pi",
+   "name": "Sonic Pi",
+   "repo": "https://github.com/sonic-pi-net/sonic-pi",
+   "license": "MIT core / AGPL web / CC-BY-SA docs",
+   "principle": "Time · motion control",
+   "medium": "Sound",
+   "concept": "Concurrent loops · time scheduling",
+   "area": "Sound · performance",
+   "input": "Cycles · operator rules",
+   "keywords": [],
+   "index": {
+    "no": 257,
+    "code": "C195"
+   }
+  },
+  {
+   "id": "tidal-cycles",
+   "name": "Tidal Cycles",
+   "repo": "https://github.com/tidalcycles/tidal",
+   "license": "GPL-3.0",
+   "principle": "Time · motion control",
+   "medium": "Sound",
+   "concept": "Cyclic patterns · time transformations",
+   "area": "Sound · performance",
+   "input": "Cycles · operator rules",
+   "keywords": [],
+   "index": {
+    "no": 258,
+    "code": "C196"
+   }
+  },
+  {
+   "id": "see-through",
+   "name": "See-through",
+   "repo": "https://github.com/shitagaki-lab/see-through",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Still image",
+   "concept": "Layer decomposition",
+   "area": "Lighting · compositing",
+   "input": "Character illustrations",
+   "keywords": [
+    "illustration",
+    "parts",
+    "layers"
+   ],
+   "index": {
+    "no": 259,
+    "code": "X002"
+   }
+  },
+  {
+   "id": "u2-net",
+   "name": "U2-Net",
+   "repo": "https://github.com/xuebinqin/u-2-net",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Still image",
+   "concept": "Nested U structures · saliency",
+   "area": "Perception · reconstruction",
+   "input": "Photos",
+   "keywords": [],
+   "index": {
+    "no": 260,
+    "code": "C268"
+   }
+  },
+  {
+   "id": "real-esrgan",
+   "name": "Real-ESRGAN",
+   "repo": "https://github.com/xinntao/real-esrgan",
+   "license": "BSD-3-Clause",
+   "principle": "Learning · inference",
+   "medium": "Still image",
+   "concept": "GAN-based image restoration",
+   "area": "Perception · reconstruction",
+   "input": "Low-quality photos",
+   "keywords": [],
+   "index": {
+    "no": 261,
+    "code": "C269"
+   }
+  },
+  {
+   "id": "gfpgan",
+   "name": "GFPGAN",
+   "repo": "https://github.com/tencentarc/gfpgan",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Still image",
+   "concept": "Generative priors · face restoration",
+   "area": "Perception · reconstruction",
+   "input": "Low-quality photos",
+   "keywords": [],
+   "index": {
+    "no": 262,
+    "code": "C270"
+   }
+  },
+  {
+   "id": "4d-gaussian-splatting",
+   "name": "4D Gaussian Splatting",
+   "repo": "https://github.com/hustvl/4dgaussians",
+   "license": "Apache-2.0 (top level) / nested code separate",
+   "principle": "Learning · inference",
+   "medium": "3D · space",
+   "concept": "Dynamic Gaussian splatting",
+   "area": "Perception · reconstruction",
+   "input": "Photos · camera information",
+   "keywords": [
+    "4D",
+    "reconstruction",
+    "Gaussians"
+   ],
+   "index": {
+    "no": 263,
+    "code": "X003"
+   }
+  },
+  {
+   "id": "matrix-3d",
+   "name": "Matrix-3D",
+   "repo": "https://github.com/skyworkai/matrix-3d",
+   "license": "MIT",
+   "principle": "Learning · inference",
+   "medium": "3D · space",
+   "concept": "Panorama-based scene generation",
+   "area": "Perception · reconstruction",
+   "input": "Photos",
+   "keywords": [
+    "panoramas",
+    "cameras",
+    "scenes"
+   ],
+   "index": {
+    "no": 264,
+    "code": "X004"
+   }
+  },
+  {
+   "id": "sam-3d-objects",
+   "name": "SAM 3D Objects",
+   "repo": "https://github.com/facebookresearch/sam-3d-objects",
+   "license": "SAM-specific terms · do not assume OSI approval",
+   "principle": "Learning · inference",
+   "medium": "3D · space",
+   "concept": "Image-based 3D reconstruction",
+   "area": "Perception · reconstruction",
+   "input": "Photos",
+   "keywords": [
+    "reconstruction",
+    "objects",
+    "AI"
+   ],
+   "index": {
+    "no": 265,
+    "code": "X039"
+   }
+  },
+  {
+   "id": "trellis-2",
+   "name": "TRELLIS.2",
+   "repo": "https://github.com/microsoft/trellis.2",
+   "license": "MIT",
+   "principle": "Learning · inference",
+   "medium": "3D · space",
+   "concept": "Structured 3D latent representations",
+   "area": "Perception · reconstruction",
+   "input": "Photos",
+   "keywords": [
+    "voxels",
+    "materials",
+    "3D generation"
+   ],
+   "index": {
+    "no": 266,
+    "code": "X040"
+   }
+  },
+  {
+   "id": "triposr",
+   "name": "TripoSR",
+   "repo": "https://github.com/vast-ai-research/triposr",
+   "license": "MIT",
+   "principle": "Learning · inference",
+   "medium": "3D · space",
+   "concept": "Single-image reconstruction",
+   "area": "Perception · reconstruction",
+   "input": "Photos",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 267,
+    "code": "X049"
+   }
+  },
+  {
+   "id": "trellis",
+   "name": "TRELLIS",
+   "repo": "https://github.com/microsoft/trellis",
+   "license": "MIT",
+   "principle": "Learning · inference",
+   "medium": "3D · space",
+   "concept": "Structured 3D generation",
+   "area": "Perception · reconstruction",
+   "input": "Images · text",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 268,
+    "code": "X054"
+   }
+  },
+  {
+   "id": "nerfstudio",
+   "name": "Nerfstudio",
+   "repo": "https://github.com/nerfstudio-project/nerfstudio",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "3D · space",
+   "concept": "NeRF · Gaussian reconstruction",
+   "area": "Perception · reconstruction",
+   "input": "Photos · camera information",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 269,
+    "code": "X055"
+   }
+  },
+  {
+   "id": "opensplat",
+   "name": "OpenSplat",
+   "repo": "https://github.com/webodm/opensplat",
+   "license": "AGPL-3.0",
+   "principle": "Learning · inference",
+   "medium": "3D · space",
+   "concept": "Gaussian training",
+   "area": "Perception · reconstruction",
+   "input": "Photos · camera information",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 270,
+    "code": "X056"
+   }
+  },
+  {
+   "id": "lerobot",
+   "name": "LeRobot",
+   "repo": "https://github.com/huggingface/lerobot",
+   "license": "Apache-2.0 / data MIT",
+   "principle": "Learning · inference",
+   "medium": "3D · space",
+   "concept": "Diffusion policies · imitation learning",
+   "area": "Structures · fabrication",
+   "input": "Observations · example actions",
+   "keywords": [
+    "robots",
+    "diffusion policies",
+    "PushT"
+   ],
+   "index": {
+    "no": 271,
+    "code": "X067"
+   }
+  },
+  {
+   "id": "gsplat",
+   "name": "gsplat",
+   "repo": "https://github.com/nerfstudio-project/gsplat",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "3D · space",
+   "concept": "Gaussian rasterization · training",
+   "area": "Perception · reconstruction",
+   "input": "Photos · camera information",
+   "keywords": [],
+   "index": {
+    "no": 272,
+    "code": "C271"
+   }
+  },
+  {
+   "id": "tapnet-tapnext",
+   "name": "TAPNet / TAPNext++",
+   "repo": "https://github.com/google-deepmind/tapnet",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Moving image",
+   "concept": "Point tracking",
+   "area": "Movement · choreography",
+   "input": "Video · selected points",
+   "keywords": [
+    "tracking",
+    "motion",
+    "video"
+   ],
+   "index": {
+    "no": 273,
+    "code": "X030"
+   }
+  },
+  {
+   "id": "mediapipe-hand-landmarker",
+   "name": "MediaPipe Hand Landmarker",
+   "repo": "https://github.com/google-ai-edge/mediapipe",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Moving image",
+   "concept": "Hand landmarks",
+   "area": "Media · interaction",
+   "input": "Hand images",
+   "keywords": [
+    "hands",
+    "joints",
+    "vision"
+   ],
+   "index": {
+    "no": 274,
+    "code": "X038"
+   }
+  },
+  {
+   "id": "sam-2",
+   "name": "SAM 2",
+   "repo": "https://github.com/facebookresearch/sam2",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Moving image",
+   "concept": "Video segmentation",
+   "area": "Perception · reconstruction",
+   "input": "Video · selected subjects",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 275,
+    "code": "X050"
+   }
+  },
+  {
+   "id": "liveportrait",
+   "name": "LivePortrait",
+   "repo": "https://github.com/klingairesearch/liveportrait",
+   "license": "MIT code / dependent models separate",
+   "principle": "Learning · inference",
+   "medium": "Moving image",
+   "concept": "Portrait driving",
+   "area": "Movement · choreography",
+   "input": "Portraits · driving video",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 276,
+    "code": "X051"
+   }
+  },
+  {
+   "id": "depth-anything-v2",
+   "name": "Depth Anything V2",
+   "repo": "https://github.com/depthanything/depth-anything-v2",
+   "license": "Apache-2.0 / CC BY-NC 4.0",
+   "principle": "Learning · inference",
+   "medium": "Moving image",
+   "concept": "Monocular depth",
+   "area": "Lighting · compositing",
+   "input": "Photos",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 277,
+    "code": "X052"
+   }
+  },
+  {
+   "id": "wan-2-2",
+   "name": "Wan 2.2",
+   "repo": "https://github.com/wan-video/wan2.2",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Moving image",
+   "concept": "Video generation",
+   "area": "Movement · choreography",
+   "input": "Text · images",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 278,
+    "code": "X057"
+   }
+  },
+  {
+   "id": "ltx-video",
+   "name": "LTX-Video",
+   "repo": "https://github.com/lightricks/ltx-video",
+   "license": "Apache-2.0 code / weights separate",
+   "principle": "Learning · inference",
+   "medium": "Moving image",
+   "concept": "Video generation · editing",
+   "area": "Movement · choreography",
+   "input": "Text · images",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 279,
+    "code": "X058"
+   }
+  },
+  {
+   "id": "cogvideox",
+   "name": "CogVideoX",
+   "repo": "https://github.com/zai-org/cogvideo",
+   "license": "Code · 2B Apache-2.0 / 5B separate",
+   "principle": "Learning · inference",
+   "medium": "Moving image",
+   "concept": "Diffusion video generation",
+   "area": "Movement · choreography",
+   "input": "Text · images",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 280,
+    "code": "X059"
+   }
+  },
+  {
+   "id": "qwen3-tts",
+   "name": "Qwen3-TTS",
+   "repo": "https://github.com/qwenlm/qwen3-tts",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Sound",
+   "concept": "Neural speech synthesis",
+   "area": "Sound · performance",
+   "input": "Text · voice characteristics",
+   "keywords": [
+    "TTS",
+    "Korean",
+    "speech"
+   ],
+   "index": {
+    "no": 281,
+    "code": "X046"
+   }
+  },
+  {
+   "id": "ace-step",
+   "name": "ACE-Step",
+   "repo": "https://github.com/ace-step/ace-step",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Sound",
+   "concept": "Music generation",
+   "area": "Sound · performance",
+   "input": "Descriptions · lyrics",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 282,
+    "code": "X053"
+   }
+  },
+  {
+   "id": "stable-audio-tools",
+   "name": "Stable Audio Tools",
+   "repo": "https://github.com/stability-ai/stable-audio-tools",
+   "license": "MIT code / weight terms separate",
+   "principle": "Learning · inference",
+   "medium": "Sound",
+   "concept": "Audio generation tools",
+   "area": "Sound · performance",
+   "input": "Audio · generative models",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 283,
+    "code": "X062"
+   }
+  },
+  {
+   "id": "magenta",
+   "name": "Magenta",
+   "repo": "https://github.com/magenta/magenta",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Sound",
+   "concept": "Learning-based music and image generation",
+   "area": "Sound · performance",
+   "input": "Music · images · models",
+   "keywords": [],
+   "index": {
+    "no": 284,
+    "code": "C273"
+   }
+  },
+  {
+   "id": "ddsp",
+   "name": "DDSP",
+   "repo": "https://github.com/magenta/ddsp",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Sound",
+   "concept": "Differentiable DSP · learning",
+   "area": "Sound · performance",
+   "input": "Audio recordings · trained models",
+   "keywords": [],
+   "index": {
+    "no": 285,
+    "code": "C275"
+   }
+  },
+  {
+   "id": "laya",
+   "name": "Laya",
+   "repo": "https://github.com/nandhakishorm/laya",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Text",
+   "concept": "Text selection · judgment",
+   "area": "Tools · workflows",
+   "input": "Sentences · choices",
+   "keywords": [
+    "text",
+    "classification",
+    "local"
+   ],
+   "index": {
+    "no": 286,
+    "code": "X005"
+   }
+  },
+  {
+   "id": "jev-chat",
+   "name": "Jev Chat",
+   "repo": "https://github.com/w3cj/jev-chat",
+   "license": "MIT",
+   "principle": "Learning · inference",
+   "medium": "Text",
+   "concept": "Tool selection",
+   "area": "Tools · workflows",
+   "input": "Sentences · candidate tools",
+   "keywords": [
+    "apps",
+    "judgment",
+    "API"
+   ],
+   "index": {
+    "no": 287,
+    "code": "X006"
+   }
+  },
+  {
+   "id": "paddleocr",
+   "name": "PaddleOCR",
+   "repo": "https://github.com/paddlepaddle/paddleocr",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Text",
+   "concept": "Text and document-structure recognition",
+   "area": "Documents · editing",
+   "input": "Documents · text images",
+   "keywords": [],
+   "index": {
+    "no": 288,
+    "code": "C266"
+   }
+  },
+  {
+   "id": "tesseract",
+   "name": "Tesseract",
+   "repo": "https://github.com/tesseract-ocr/tesseract",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Text",
+   "concept": "LSTM-based text recognition",
+   "area": "Documents · editing",
+   "input": "Documents · text images",
+   "keywords": [],
+   "index": {
+    "no": 289,
+    "code": "C267"
+   }
+  },
+  {
+   "id": "whisper",
+   "name": "Whisper",
+   "repo": "https://github.com/openai/whisper",
+   "license": "MIT",
+   "principle": "Learning · inference",
+   "medium": "Text",
+   "concept": "Transformer speech recognition",
+   "area": "Sound · performance",
+   "input": "Speech",
+   "keywords": [],
+   "index": {
+    "no": 290,
+    "code": "C272"
+   }
+  },
+  {
+   "id": "mt3",
+   "name": "MT3",
+   "repo": "https://github.com/magenta/mt3",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Numbers · data",
+   "concept": "Multi-instrument audio → notes",
+   "area": "Sound · performance",
+   "input": "Ensemble recordings",
+   "keywords": [],
+   "index": {
+    "no": 291,
+    "code": "C274"
+   }
+  },
+  {
+   "id": "diffusers",
+   "name": "Diffusers",
+   "repo": "https://github.com/huggingface/diffusers",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Workspace",
+   "concept": "Diffusion pipelines",
+   "area": "Tools · workflows",
+   "input": "Models · nodes · conditions",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 292,
+    "code": "X061"
+   }
+  },
+  {
+   "id": "d3-geo",
+   "name": "d3-geo",
+   "repo": "https://github.com/d3/d3-geo",
+   "license": "ISC + MIT (GeographicLib portions)",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Spherical projections · adaptive resampling",
+   "area": "Maps · environments",
+   "input": "Spherical coordinates",
+   "keywords": [],
+   "index": {
+    "no": 293,
+    "code": "C045"
+   }
+  },
+  {
+   "id": "d3-hierarchy",
+   "name": "d3-hierarchy",
+   "repo": "https://github.com/d3/d3-hierarchy",
+   "license": "ISC",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Hierarchical partitioning · rectangle aspect ratios",
+   "area": "Information visualization",
+   "input": "Hierarchies · proportions",
+   "keywords": [],
+   "index": {
+    "no": 294,
+    "code": "C046"
+   }
+  },
+  {
+   "id": "d3-voronoi-treemap",
+   "name": "d3-voronoi-treemap",
+   "repo": "https://github.com/kcnarf/d3-voronoi-treemap",
+   "license": "BSD-3-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Weighted Voronoi · hierarchical area partitioning",
+   "area": "Information visualization",
+   "input": "Hierarchies · proportions",
+   "keywords": [],
+   "index": {
+    "no": 295,
+    "code": "C072"
+   }
+  },
+  {
+   "id": "d3-cloud",
+   "name": "d3-cloud",
+   "repo": "https://github.com/jasondavies/d3-cloud",
+   "license": "BSD-3-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Spiral search · bitmask collision detection",
+   "area": "Information visualization",
+   "input": "Words · weights",
+   "keywords": [],
+   "index": {
+    "no": 296,
+    "code": "C079"
+   }
+  },
+  {
+   "id": "d3-sankey",
+   "name": "d3-sankey",
+   "repo": "https://github.com/d3/d3-sankey",
+   "license": "BSD-3-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Directed graphs · flow-proportional layouts",
+   "area": "Information visualization",
+   "input": "Links · flow quantities",
+   "keywords": [],
+   "index": {
+    "no": 297,
+    "code": "C080"
+   }
+  },
+  {
+   "id": "d3-geo-projection",
+   "name": "d3-geo-projection",
+   "repo": "https://github.com/d3/d3-geo-projection",
+   "license": "ISC / some integration code MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Map projections · nonlinear inverse transforms",
+   "area": "Maps · environments",
+   "input": "Spherical coordinates",
+   "keywords": [],
+   "index": {
+    "no": 298,
+    "code": "C144"
+   }
+  },
+  {
+   "id": "topojson-simplify",
+   "name": "TopoJSON Simplify",
+   "repo": "https://github.com/topojson/topojson-simplify",
+   "license": "ISC",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Effective triangle areas · topology-preserving simplification",
+   "area": "Maps · environments",
+   "input": "Shared map boundaries",
+   "keywords": [],
+   "index": {
+    "no": 299,
+    "code": "C178"
+   }
+  },
+  {
+   "id": "d3-geo-voronoi",
+   "name": "d3-geo-voronoi",
+   "repo": "https://github.com/fil/d3-geo-voronoi",
+   "license": "ISC",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Spherical Voronoi · stereographic projection",
+   "area": "Maps · environments",
+   "input": "Points on spheres",
+   "keywords": [],
+   "index": {
+    "no": 300,
+    "code": "C179"
+   }
+  },
+  {
+   "id": "d3-tricontour",
+   "name": "d3-tricontour",
+   "repo": "https://github.com/fil/d3-tricontour",
+   "license": "ISC",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Unstructured contours · meandering triangles",
+   "area": "Maps · environments",
+   "input": "Irregular samples",
+   "keywords": [],
+   "index": {
+    "no": 301,
+    "code": "C180"
+   }
+  },
+  {
+   "id": "harfbuzz",
+   "name": "HarfBuzz",
+   "repo": "https://github.com/harfbuzz/harfbuzz",
+   "license": "MIT-old",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Characters → glyphs · positioning",
+   "area": "Publishing · typography",
+   "input": "Characters · fonts",
+   "keywords": [],
+   "index": {
+    "no": 302,
+    "code": "C258"
+   }
+  },
+  {
+   "id": "martini",
+   "name": "MARTINI",
+   "repo": "https://github.com/mapbox/martini",
+   "license": "ISC",
+   "principle": "Data · spatial analysis",
+   "medium": "3D · space",
+   "concept": "RTIN · error-based adaptive triangulation",
+   "area": "Maps · environments",
+   "input": "Height grids",
+   "keywords": [],
+   "index": {
+    "no": 303,
+    "code": "C177"
+   }
+  },
+  {
+   "id": "open3d",
+   "name": "Open3D",
+   "repo": "https://github.com/isl-org/open3d",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "3D · space",
+   "concept": "Point-cloud registration · surface reconstruction",
+   "area": "Structures · fabrication",
+   "input": "Scanned point clouds",
+   "keywords": [],
+   "index": {
+    "no": 304,
+    "code": "C209"
+   }
+  },
+  {
+   "id": "pyvista",
+   "name": "PyVista",
+   "repo": "https://github.com/pyvista/pyvista",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "3D · space",
+   "concept": "Grid and vector-field visualization",
+   "area": "Structures · fabrication",
+   "input": "Grids · scientific data",
+   "keywords": [],
+   "index": {
+    "no": 305,
+    "code": "C210"
+   }
+  },
+  {
+   "id": "vtk",
+   "name": "VTK",
+   "repo": "https://github.com/kitware/vtk",
+   "license": "BSD-3-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "3D · space",
+   "concept": "Scientific data · volume rendering",
+   "area": "Structures · fabrication",
+   "input": "Grids · scientific data",
+   "keywords": [],
+   "index": {
+    "no": 306,
+    "code": "C211"
+   }
+  },
+  {
+   "id": "3d-force-graph",
+   "name": "3D Force Graph",
+   "repo": "https://github.com/vasturiano/3d-force-graph",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "3D · space",
+   "concept": "Force-based network layouts",
+   "area": "Information visualization",
+   "input": "Nodes · links",
+   "keywords": [],
+   "index": {
+    "no": 307,
+    "code": "C244"
+   }
+  },
+  {
+   "id": "cesiumjs",
+   "name": "CesiumJS",
+   "repo": "https://github.com/cesiumgs/cesium",
+   "license": "Apache-2.0",
+   "principle": "Data · spatial analysis",
+   "medium": "3D · space",
+   "concept": "Earth coordinates · 3D tiles",
+   "area": "Maps · environments",
+   "input": "Coordinates · map data",
+   "keywords": [],
+   "index": {
+    "no": 308,
+    "code": "C248"
+   }
+  },
+  {
+   "id": "rbush",
+   "name": "RBush",
+   "repo": "https://github.com/mourner/rbush",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "R-trees · spatial pruning",
+   "area": "Patterns · form",
+   "input": "Points · regions",
+   "keywords": [],
+   "index": {
+    "no": 309,
+    "code": "C040"
+   }
+  },
+  {
+   "id": "d3-chord",
+   "name": "d3-chord",
+   "repo": "https://github.com/d3/d3-chord",
+   "license": "ISC",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Matrices → arcs and ribbons",
+   "area": "Information visualization",
+   "input": "Relationship matrices",
+   "keywords": [],
+   "index": {
+    "no": 310,
+    "code": "C065"
+   }
+  },
+  {
+   "id": "flatbush",
+   "name": "Flatbush",
+   "repo": "https://github.com/mourner/flatbush",
+   "license": "ISC",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Packed Hilbert R-trees",
+   "area": "Patterns · form",
+   "input": "Points · regions",
+   "keywords": [],
+   "index": {
+    "no": 311,
+    "code": "C070"
+   }
+  },
+  {
+   "id": "h3",
+   "name": "H3",
+   "repo": "https://github.com/uber/h3",
+   "license": "Apache-2.0",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Spherical grids · hierarchical spatial indexing",
+   "area": "Maps · environments",
+   "input": "Locations on Earth",
+   "keywords": [],
+   "index": {
+    "no": 312,
+    "code": "C100"
+   }
+  },
+  {
+   "id": "d3-quadtree",
+   "name": "d3-quadtree",
+   "repo": "https://github.com/d3/d3-quadtree",
+   "license": "ISC",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Recursive spatial partitioning · quadtrees",
+   "area": "Patterns · form",
+   "input": "Points · regions",
+   "keywords": [],
+   "index": {
+    "no": 313,
+    "code": "C105"
+   }
+  },
+  {
+   "id": "supercluster",
+   "name": "Supercluster",
+   "repo": "https://github.com/mapbox/supercluster",
+   "license": "ISC",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Multiscale clustering · KD-trees",
+   "area": "Maps · environments",
+   "input": "Geographic coordinates · scales",
+   "keywords": [],
+   "index": {
+    "no": 314,
+    "code": "C108"
+   }
+  },
+  {
+   "id": "suncalc",
+   "name": "SunCalc",
+   "repo": "https://github.com/mourner/suncalc",
+   "license": "BSD-2-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Celestial coordinates · solar altitude calculations",
+   "area": "Maps · environments",
+   "input": "Locations · dates",
+   "keywords": [],
+   "index": {
+    "no": 315,
+    "code": "C124"
+   }
+  },
+  {
+   "id": "flatqueue",
+   "name": "flatqueue",
+   "repo": "https://github.com/mourner/flatqueue",
+   "license": "ISC",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Binary heaps · priority queues",
+   "area": "Patterns · form",
+   "input": "Items · priorities",
+   "keywords": [],
+   "index": {
+    "no": 316,
+    "code": "C135"
+   }
+  },
+  {
+   "id": "kdbush",
+   "name": "KDBush",
+   "repo": "https://github.com/mourner/kdbush",
+   "license": "ISC",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Planar KD-trees · proximity searches",
+   "area": "Patterns · form",
+   "input": "Points · regions",
+   "keywords": [],
+   "index": {
+    "no": 317,
+    "code": "C154"
+   }
+  },
+  {
+   "id": "pathfinding-js",
+   "name": "PathFinding.js",
+   "repo": "https://github.com/qiao/pathfinding.js",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Grid search · A* · heuristics",
+   "area": "Patterns · form",
+   "input": "Mazes · obstacles",
+   "keywords": [],
+   "index": {
+    "no": 318,
+    "code": "C158"
+   }
+  },
+  {
+   "id": "ngraph-path",
+   "name": "ngraph.path",
+   "repo": "https://github.com/anvaka/ngraph.path",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Weighted graphs · bidirectional NBA*",
+   "area": "Patterns · form",
+   "input": "Networks · costs",
+   "keywords": [],
+   "index": {
+    "no": 319,
+    "code": "C159"
+   }
+  },
+  {
+   "id": "ngraph",
+   "name": "ngraph",
+   "repo": "https://github.com/anvaka/ngraph",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Graphs · traversal · relationships",
+   "area": "Information visualization",
+   "input": "Nodes · links",
+   "keywords": [],
+   "index": {
+    "no": 320,
+    "code": "C240"
+   }
+  },
+  {
+   "id": "graphology",
+   "name": "Graphology",
+   "repo": "https://github.com/graphology/graphology",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Graph data structures · traversal",
+   "area": "Information visualization",
+   "input": "Nodes · links",
+   "keywords": [],
+   "index": {
+    "no": 321,
+    "code": "C241"
+   }
+  },
+  {
+   "id": "sigma-js",
+   "name": "Sigma.js",
+   "repo": "https://github.com/jacomyal/sigma.js",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "WebGL graph visualization",
+   "area": "Information visualization",
+   "input": "Networks",
+   "keywords": [],
+   "index": {
+    "no": 322,
+    "code": "C242"
+   }
+  },
+  {
+   "id": "cytoscape-js",
+   "name": "Cytoscape.js",
+   "repo": "https://github.com/cytoscape/cytoscape.js",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Network analysis · node layouts",
+   "area": "Information visualization",
+   "input": "Networks",
+   "keywords": [],
+   "index": {
+    "no": 323,
+    "code": "C243"
+   }
+  },
+  {
+   "id": "deck-gl",
+   "name": "deck.gl",
+   "repo": "https://github.com/visgl/deck.gl",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "GPU data layers",
+   "area": "Maps · environments",
+   "input": "Coordinates · data",
+   "keywords": [],
+   "index": {
+    "no": 324,
+    "code": "C245"
+   }
+  },
+  {
+   "id": "maplibre-gl-js",
+   "name": "MapLibre GL JS",
+   "repo": "https://github.com/maplibre/maplibre-gl-js",
+   "license": "BSD-3-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Vector tiles · map rendering",
+   "area": "Maps · environments",
+   "input": "Coordinates · map data",
+   "keywords": [],
+   "index": {
+    "no": 325,
+    "code": "C246"
+   }
+  },
+  {
+   "id": "kepler-gl",
+   "name": "kepler.gl",
+   "repo": "https://github.com/keplergl/kepler.gl",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Geographic data · layer exploration",
+   "area": "Maps · environments",
+   "input": "Coordinates · data",
+   "keywords": [],
+   "index": {
+    "no": 326,
+    "code": "C247"
+   }
+  },
+  {
+   "id": "leaflet",
+   "name": "Leaflet",
+   "repo": "https://github.com/leaflet/leaflet",
+   "license": "BSD-2-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Tiles · coordinates · map layers",
+   "area": "Maps · environments",
+   "input": "Coordinates · map data",
+   "keywords": [],
+   "index": {
+    "no": 327,
+    "code": "C249"
+   }
+  },
+  {
+   "id": "tippecanoe",
+   "name": "Tippecanoe",
+   "repo": "https://github.com/felt/tippecanoe",
+   "license": "BSD-2-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Vector tiles · levels of detail",
+   "area": "Maps · environments",
+   "input": "Coordinates · map data",
+   "keywords": [],
+   "index": {
+    "no": 328,
+    "code": "C250"
+   }
+  },
+  {
+   "id": "vello",
+   "name": "Vello",
+   "repo": "https://github.com/linebender/vello",
+   "license": "MIT OR Apache-2.0",
+   "principle": "Making · integration tools",
+   "medium": "Lines · vectors",
+   "concept": "Parallel vector rasterization",
+   "area": "Media · interaction",
+   "input": "Vector paths",
+   "keywords": [],
+   "index": {
+    "no": 329,
+    "code": "C260"
+   }
+  },
+  {
+   "id": "p5-js",
+   "name": "p5.js",
+   "repo": "https://github.com/processing/p5.js",
+   "license": "LGPL-2.1",
+   "principle": "Making · integration tools",
+   "medium": "Still image",
+   "concept": "Code drawing",
+   "area": "Media · interaction",
+   "input": "Code · time · input",
+   "keywords": [
+    "drawing",
+    "web",
+    "interaction"
+   ],
+   "index": {
+    "no": 330,
+    "code": "X043"
+   }
+  },
+  {
+   "id": "taichi",
+   "name": "Taichi",
+   "repo": "https://github.com/taichi-dev/taichi",
+   "license": "Apache-2.0",
+   "principle": "Making · integration tools",
+   "medium": "3D · space",
+   "concept": "Parallel physics computation",
+   "area": "Media · interaction",
+   "input": "Computation code · states",
+   "keywords": [
+    "particles",
+    "physics",
+    "parallel"
+   ],
+   "index": {
+    "no": 331,
+    "code": "X014"
+   }
+  },
+  {
+   "id": "react-three-fiber",
+   "name": "React Three Fiber",
+   "repo": "https://github.com/pmndrs/react-three-fiber",
+   "license": "MIT",
+   "principle": "Making · integration tools",
+   "medium": "3D · space",
+   "concept": "Declarative 3D scenes",
+   "area": "Media · interaction",
+   "input": "Code · 3D scenes",
+   "keywords": [
+    "web 3D",
+    "interaction",
+    "React"
+   ],
+   "index": {
+    "no": 332,
+    "code": "X037"
+   }
+  },
+  {
+   "id": "blender",
+   "name": "Blender",
+   "repo": "https://github.com/blender/blender",
+   "license": "GPL family · check each configuration",
+   "principle": "Making · integration tools",
+   "medium": "3D · space",
+   "concept": "3D scenes · rendering",
+   "area": "Media · interaction",
+   "input": "Code · 3D scenes",
+   "keywords": [
+    "3D",
+    "typography",
+    "rendering"
+   ],
+   "index": {
+    "no": 333,
+    "code": "X045"
+   }
+  },
+  {
+   "id": "three-js",
+   "name": "Three.js",
+   "repo": "https://github.com/mrdoob/three.js",
+   "license": "MIT",
+   "principle": "Making · integration tools",
+   "medium": "3D · space",
+   "concept": "Scene graphs · GPU rendering",
+   "area": "Media · interaction",
+   "input": "Code · 3D scenes",
+   "keywords": [],
+   "index": {
+    "no": 334,
+    "code": "C229"
+   }
+  },
+  {
+   "id": "babylon-js",
+   "name": "Babylon.js",
+   "repo": "https://github.com/babylonjs/babylon.js",
+   "license": "Apache-2.0",
+   "principle": "Making · integration tools",
+   "medium": "3D · space",
+   "concept": "Scene engines · WebGPU",
+   "area": "Media · interaction",
+   "input": "Code · 3D scenes",
+   "keywords": [],
+   "index": {
+    "no": 335,
+    "code": "C230"
+   }
+  },
+  {
+   "id": "ogl",
+   "name": "OGL",
+   "repo": "https://github.com/oframe/ogl",
+   "license": "Unlicense",
+   "principle": "Making · integration tools",
+   "medium": "3D · space",
+   "concept": "Minimal WebGL rendering",
+   "area": "Media · interaction",
+   "input": "Code · 3D scenes",
+   "keywords": [],
+   "index": {
+    "no": 336,
+    "code": "C237"
+   }
+  },
+  {
+   "id": "goxel",
+   "name": "Goxel",
+   "repo": "https://github.com/guillaumechereau/goxel",
+   "license": "GPL-3.0",
+   "principle": "Making · integration tools",
+   "medium": "3D · space",
+   "concept": "Voxel grids · 3D editing",
+   "area": "Structures · fabrication",
+   "input": "Voxels · colors",
+   "keywords": [],
+   "index": {
+    "no": 337,
+    "code": "C238"
+   }
+  },
+  {
+   "id": "regl",
+   "name": "regl",
+   "repo": "https://github.com/regl-project/regl",
+   "license": "MIT",
+   "principle": "Making · integration tools",
+   "medium": "Moving image",
+   "concept": "Declarative GPU commands",
+   "area": "Media · interaction",
+   "input": "Shaders · input video",
+   "keywords": [],
+   "index": {
+    "no": 338,
+    "code": "C231"
+   }
+  },
+  {
+   "id": "pixijs",
+   "name": "PixiJS",
+   "repo": "https://github.com/pixijs/pixijs",
+   "license": "MIT",
+   "principle": "Making · integration tools",
+   "medium": "Moving image",
+   "concept": "GPU 2D scenes · batching",
+   "area": "Media · interaction",
+   "input": "2D shapes · textures",
+   "keywords": [],
+   "index": {
+    "no": 339,
+    "code": "C234"
+   }
+  },
+  {
+   "id": "glslviewer",
+   "name": "glslViewer",
+   "repo": "https://github.com/patriciogonzalezvivo/glslviewer",
+   "license": "BSD-3-Clause",
+   "principle": "Making · integration tools",
+   "medium": "Moving image",
+   "concept": "GLSL execution · multiple passes",
+   "area": "Media · interaction",
+   "input": "Shaders · input video",
+   "keywords": [],
+   "index": {
+    "no": 340,
+    "code": "C236"
+   }
+  },
+  {
+   "id": "voicestudio",
+   "name": "VoiceStudio",
+   "repo": "https://github.com/debpalash/voicestudio",
+   "license": "AGPL-3.0",
+   "principle": "Making · integration tools",
+   "medium": "Sound",
+   "concept": "Speech · dubbing",
+   "area": "Sound · performance",
+   "input": "Text · speech",
+   "keywords": [
+    "speech",
+    "dubbing",
+    "local"
+   ],
+   "index": {
+    "no": 341,
+    "code": "X041"
+   }
+  },
+  {
+   "id": "supercollider",
+   "name": "SuperCollider",
+   "repo": "https://github.com/supercollider/supercollider",
+   "license": "GPL-3.0",
+   "principle": "Making · integration tools",
+   "medium": "Sound",
+   "concept": "Unit generators · audio servers",
+   "area": "Sound · performance",
+   "input": "Sound · synthesis code",
+   "keywords": [],
+   "index": {
+    "no": 342,
+    "code": "C192"
+   }
+  },
+  {
+   "id": "faust",
+   "name": "Faust",
+   "repo": "https://github.com/grame-cncm/faust",
+   "license": "LGPL-2.1-or-later",
+   "principle": "Making · integration tools",
+   "medium": "Sound",
+   "concept": "Signal graphs · DSP compilation",
+   "area": "Sound · performance",
+   "input": "Sound · synthesis code",
+   "keywords": [],
+   "index": {
+    "no": 343,
+    "code": "C194"
+   }
+  },
+  {
+   "id": "comfyui",
+   "name": "ComfyUI",
+   "repo": "https://github.com/comfy-org/comfyui",
+   "license": "GPL-3.0",
+   "principle": "Making · integration tools",
+   "medium": "Workspace",
+   "concept": "Node workflows",
+   "area": "Tools · workflows",
+   "input": "Models · nodes · conditions",
+   "keywords": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "index": {
+    "no": 344,
+    "code": "X060"
+   }
+  },
+  {
+   "id": "openframeworks",
+   "name": "openFrameworks",
+   "repo": "https://github.com/openframeworks/openframeworks",
+   "license": "MIT",
+   "principle": "Making · integration tools",
+   "medium": "Workspace",
+   "concept": "Creative C++ · media integration",
+   "area": "Media · interaction",
+   "input": "Code · sensors · media",
+   "keywords": [],
+   "index": {
+    "no": 345,
+    "code": "C232"
+   }
+  },
+  {
+   "id": "cinder",
+   "name": "Cinder",
+   "repo": "https://github.com/cinder/cinder",
+   "license": "BSD-2-Clause",
+   "principle": "Making · integration tools",
+   "medium": "Workspace",
+   "concept": "C++ graphics · media processing",
+   "area": "Media · interaction",
+   "input": "Code · sensors · media",
+   "keywords": [],
+   "index": {
+    "no": 346,
+    "code": "C233"
+   }
+  },
+  {
+   "id": "canvas-sketch",
+   "name": "canvas-sketch",
+   "repo": "https://github.com/mattdesl/canvas-sketch",
+   "license": "MIT",
+   "principle": "Making · integration tools",
+   "medium": "Workspace",
+   "concept": "Creative sketches · frame export",
+   "area": "Media · interaction",
+   "input": "Code · time · input",
+   "keywords": [],
+   "index": {
+    "no": 347,
+    "code": "C235"
+   }
+  },
+  {
+   "id": "py5",
+   "name": "py5",
+   "repo": "https://github.com/py5coding/py5",
+   "license": "LGPL-2.1",
+   "principle": "Making · integration tools",
+   "medium": "Workspace",
+   "concept": "Python · Processing integration",
+   "area": "Media · interaction",
+   "input": "Code · time · input",
+   "keywords": [],
+   "index": {
+    "no": 348,
+    "code": "C239"
+   }
+  },
+  {
+   "id": "glow-jam",
+   "name": "Glow Jam",
+   "repo": "https://github.com/hyun2xyz/glowjam",
+   "license": "MIT · models separate",
+   "principle": "Learning · inference",
+   "medium": "Moving image",
+   "concept": "Depth inference · 2.5D relighting",
+   "area": "Lighting · compositing",
+   "input": "Video · depth maps · lights",
+   "keywords": [
+    "visual creation",
+    "source verification needed"
+   ],
+   "index": {
+    "no": 349,
+    "code": "X022"
+   }
+  },
+  {
+   "id": "diy-nas",
+   "name": "DIY NAS",
+   "repo": "https://github.com/hyun2xyz/diy_nas",
+   "license": "MIT",
+   "principle": "Making · integration tools",
+   "medium": "Workspace",
+   "concept": "Virtualization · mirrored storage · web integration",
+   "area": "Archiving · sharing",
+   "input": "PC · disks · files",
+   "keywords": [],
+   "index": {
+    "no": 350,
+    "code": "X071"
+   }
+  },
+  {
+   "id": "bookbookbook",
+   "name": "BookBookBook",
+   "repo": null,
+   "license": "Source not public",
+   "principle": "Making · integration tools",
+   "medium": "Print · books",
+   "concept": "Page rearrangement · folding diagrams",
+   "area": "Publishing · typography",
+   "input": "Original PDFs · book formats",
+   "keywords": [],
+   "index": {
+    "no": 351,
+    "code": "X072"
+   }
+  },
+  {
+   "id": "threading",
+   "name": "Threading",
+   "repo": "https://github.com/piellardj/image-stylization-threading",
+   "license": "GPL-3.0",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Thread paths · image approximation",
+   "area": "Images · thread art",
+   "input": "Image · nail positions",
+   "keywords": [
+    "Thread paths · image approximation",
+    "Images · thread art"
+   ],
+   "index": {
+    "no": 352,
+    "code": "N001"
+   }
+  },
+  {
+   "id": "unitree-rl-gym",
+   "name": "Unitree RL Gym",
+   "repo": "https://github.com/unitreerobotics/unitree_rl_gym",
+   "license": "BSD-3-Clause",
+   "principle": "Learning · inference",
+   "medium": "Volumes · space",
+   "concept": "Reinforcement learning · robot policies",
+   "area": "Robotics · motion",
+   "input": "Robot state · trained policy",
+   "keywords": [
+    "Reinforcement learning · robot policies",
+    "Robotics · motion"
+   ],
+   "index": {
+    "no": 353,
+    "code": "N002"
+   }
+  },
+  {
+   "id": "dlaf",
+   "name": "dlaf",
+   "repo": "https://github.com/fogleman/dlaf",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Volumes · space",
+   "concept": "Diffusion-limited aggregation",
+   "area": "Particles · structures",
+   "input": "Particles · seeds · distance settings",
+   "keywords": [
+    "Diffusion-limited aggregation",
+    "Particles · structures"
+   ],
+   "index": {
+    "no": 354,
+    "code": "N003"
+   }
+  },
+  {
+   "id": "flam3",
+   "name": "flam3",
+   "repo": "https://github.com/scottdraves/flam3",
+   "license": "GPL-3.0",
+   "principle": "Rules · generation",
+   "medium": "Flat images",
+   "concept": "Iterated functions · fractal flames",
+   "area": "Images · fractals",
+   "input": "Transforms · colors · seed",
+   "keywords": [
+    "Iterated functions · fractal flames",
+    "Images · fractals"
+   ],
+   "index": {
+    "no": 355,
+    "code": "N004"
+   }
+  },
+  {
+   "id": "pythonrobotics",
+   "name": "PythonRobotics",
+   "repo": "https://github.com/AtsushiSakai/PythonRobotics",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Localization · planning · control",
+   "area": "Robotics · education",
+   "input": "Sensor observations · map · state",
+   "keywords": [
+    "Localization · planning · control",
+    "Robotics · education"
+   ],
+   "index": {
+    "no": 356,
+    "code": "N005"
+   }
+  },
+  {
+   "id": "rebound",
+   "name": "REBOUND",
+   "repo": "https://github.com/hannorein/rebound",
+   "license": "GPL-3.0-or-later",
+   "principle": "Physics · numerical models",
+   "medium": "Volumes · space",
+   "concept": "N-body gravity · orbit integration",
+   "area": "Astronomy · dynamics",
+   "input": "Masses · positions · velocities",
+   "keywords": [
+    "N-body gravity · orbit integration",
+    "Astronomy · dynamics"
+   ],
+   "index": {
+    "no": 357,
+    "code": "N006"
+   }
+  },
+  {
+   "id": "colmap",
+   "name": "COLMAP",
+   "repo": "https://github.com/colmap/colmap",
+   "license": "BSD-3-Clause",
+   "principle": "Geometry · structure",
+   "medium": "Volumes · space",
+   "concept": "Multi-view geometry · SfM · MVS",
+   "area": "Photography · 3D reconstruction",
+   "input": "Images from multiple viewpoints",
+   "keywords": [
+    "Multi-view geometry · SfM · MVS",
+    "Photography · 3D reconstruction"
+   ],
+   "index": {
+    "no": 358,
+    "code": "N007"
+   }
+  },
+  {
+   "id": "bytetrack",
+   "name": "ByteTrack",
+   "repo": "https://github.com/ifzhang/ByteTrack",
+   "license": "MIT",
+   "principle": "Time · motion control",
+   "medium": "Moving screens",
+   "concept": "Detection association · multi-object tracking",
+   "area": "Video · tracking",
+   "input": "Detection boxes across frames",
+   "keywords": [
+    "Detection association · multi-object tracking",
+    "Video · tracking"
+   ],
+   "index": {
+    "no": 359,
+    "code": "N008"
+   }
+  },
+  {
+   "id": "ultralytics-yolo",
+   "name": "Ultralytics YOLO",
+   "repo": "https://github.com/ultralytics/ultralytics",
+   "license": "AGPL-3.0 / Enterprise",
+   "principle": "Learning · inference",
+   "medium": "Moving screens",
+   "concept": "Object detection · segmentation · tracking",
+   "area": "Vision · video",
+   "input": "Images · video · model",
+   "keywords": [
+    "Object detection · segmentation · tracking",
+    "Vision · video"
+   ],
+   "index": {
+    "no": 360,
+    "code": "N009"
+   }
+  },
+  {
+   "id": "nonflowers",
+   "name": "Nonflowers",
+   "repo": "https://github.com/LingDong-/nonflowers",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Flat images",
+   "concept": "Procedural flowers · branching rules",
+   "area": "Drawing · plants",
+   "input": "Seed · shape parameters",
+   "keywords": [
+    "Procedural flowers · branching rules",
+    "Drawing · plants"
+   ],
+   "index": {
+    "no": 361,
+    "code": "N010"
+   }
+  },
+  {
+   "id": "diamond-webgl",
+   "name": "diamond-webgl",
+   "repo": "https://github.com/piellardj/diamond-webgl",
+   "license": "GPL-3.0",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "Gemstone rays · refraction · dispersion",
+   "area": "Light · gemstones",
+   "input": "Gem geometry · light · viewpoint",
+   "keywords": [
+    "Gemstone rays · refraction · dispersion",
+    "Light · gemstones"
+   ],
+   "index": {
+    "no": 362,
+    "code": "N011"
+   }
+  },
+  {
+   "id": "finite-volume-python",
+   "name": "Finite Volume Python",
+   "repo": "https://github.com/pmocz/finitevolume-python",
+   "license": "GPL-3.0",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "Finite volumes · fluid conservation",
+   "area": "Fluids · numerical experiments",
+   "input": "Grid · initial fluid state",
+   "keywords": [
+    "Finite volumes · fluid conservation",
+    "Fluids · numerical experiments"
+   ],
+   "index": {
+    "no": 363,
+    "code": "N012"
+   }
+  },
+  {
+   "id": "precomputed-atmospheric-scattering",
+   "name": "Precomputed Atmospheric Scattering",
+   "repo": "https://github.com/ebruneton/precomputed_atmospheric_scattering",
+   "license": "BSD-3-Clause",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "Atmospheric scattering · precomputation",
+   "area": "Sky · rendering",
+   "input": "Atmosphere model · sun · viewpoint",
+   "keywords": [
+    "Atmospheric scattering · precomputation",
+    "Sky · rendering"
+   ],
+   "index": {
+    "no": 364,
+    "code": "N013"
+   }
+  },
+  {
+   "id": "growing-neural-cellular-automata",
+   "name": "Growing Neural Cellular Automata",
+   "repo": "https://github.com/google-research/self-organising-systems",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Flat images",
+   "concept": "Neural networks · local cell updates",
+   "area": "Generation · learning",
+   "input": "Target image · cell states",
+   "keywords": [
+    "Neural networks · local cell updates",
+    "Generation · learning"
+   ],
+   "index": {
+    "no": 365,
+    "code": "N014"
+   }
+  },
+  {
+   "id": "galaxy-renderer",
+   "name": "Galaxy Renderer",
+   "repo": "https://github.com/beltoforion/Galaxy-Renderer",
+   "license": "BSD-2-Clause",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "Density waves · galactic orbits",
+   "area": "Space · visualization",
+   "input": "Orbits · density · galaxy parameters",
+   "keywords": [
+    "Density waves · galactic orbits",
+    "Space · visualization"
+   ],
+   "index": {
+    "no": 366,
+    "code": "N015"
+   }
+  },
+  {
+   "id": "lammps",
+   "name": "LAMMPS",
+   "repo": "https://github.com/lammps/lammps",
+   "license": "GPL-2.0",
+   "principle": "Physics · numerical models",
+   "medium": "Volumes · space",
+   "concept": "Molecular dynamics",
+   "area": "Materials · molecules",
+   "input": "Atom positions · interactions",
+   "keywords": [
+    "Molecular dynamics",
+    "Materials · molecules"
+   ],
+   "index": {
+    "no": 367,
+    "code": "N016"
+   }
+  },
+  {
+   "id": "meep",
+   "name": "Meep",
+   "repo": "https://github.com/NanoComp/meep",
+   "license": "GPL-2.0-or-later",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "FDTD · Maxwell equations",
+   "area": "Light · electromagnetic fields",
+   "input": "Materials · sources · grid",
+   "keywords": [
+    "FDTD · Maxwell equations",
+    "Light · electromagnetic fields"
+   ],
+   "index": {
+    "no": 368,
+    "code": "N017"
+   }
+  },
+  {
+   "id": "geant4",
+   "name": "Geant4",
+   "repo": "https://github.com/Geant4/geant4",
+   "license": "Geant4 Software License 1.0",
+   "principle": "Physics · numerical models",
+   "medium": "Volumes · space",
+   "concept": "Particle · matter interactions",
+   "area": "Physics · detectors",
+   "input": "Particles · materials · geometry",
+   "keywords": [
+    "Particle · matter interactions",
+    "Physics · detectors"
+   ],
+   "index": {
+    "no": 369,
+    "code": "N018"
+   }
+  },
+  {
+   "id": "astra-toolbox",
+   "name": "ASTRA Toolbox",
+   "repo": "https://github.com/astra-toolbox/astra-toolbox",
+   "license": "GPL-3.0",
+   "principle": "Image · signal transforms",
+   "medium": "Flat images",
+   "concept": "Projection · tomographic inverse problems",
+   "area": "Tomography · medical imaging",
+   "input": "Projection measurements · geometry",
+   "keywords": [
+    "Projection · tomographic inverse problems",
+    "Tomography · medical imaging"
+   ],
+   "index": {
+    "no": 370,
+    "code": "N019"
+   }
+  },
+  {
+   "id": "python-sgp4",
+   "name": "python-sgp4",
+   "repo": "https://github.com/brandon-rhodes/python-sgp4",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "SGP4 orbit propagation",
+   "area": "Satellites · space",
+   "input": "Orbital elements · time",
+   "keywords": [
+    "SGP4 orbit propagation",
+    "Satellites · space"
+   ],
+   "index": {
+    "no": 371,
+    "code": "N020"
+   }
+  },
+  {
+   "id": "proj",
+   "name": "PROJ",
+   "repo": "https://github.com/OSGeo/PROJ",
+   "license": "MIT-style",
+   "principle": "Data · spatial analysis",
+   "medium": "Numbers · data",
+   "concept": "Coordinate systems · map projections",
+   "area": "Maps · surveying",
+   "input": "Coordinates · reference systems",
+   "keywords": [
+    "Coordinate systems · map projections",
+    "Maps · surveying"
+   ],
+   "index": {
+    "no": 372,
+    "code": "N021"
+   }
+  },
+  {
+   "id": "tinyrenderer",
+   "name": "tinyrenderer",
+   "repo": "https://github.com/ssloy/tinyrenderer",
+   "license": "Tiny Renderer License",
+   "principle": "Image · signal transforms",
+   "medium": "Flat images",
+   "concept": "Triangle rasterization",
+   "area": "Rendering · education",
+   "input": "3D mesh · textures",
+   "keywords": [
+    "Triangle rasterization",
+    "Rendering · education"
+   ],
+   "index": {
+    "no": 373,
+    "code": "N022"
+   }
+  },
+  {
+   "id": "katago",
+   "name": "KataGo",
+   "repo": "https://github.com/lightvector/KataGo",
+   "license": "MIT",
+   "principle": "Learning · inference",
+   "medium": "Numbers · data",
+   "concept": "Neural networks · Go search",
+   "area": "Go · search",
+   "input": "Go board · trained model",
+   "keywords": [
+    "Neural networks · Go search",
+    "Go · search"
+   ],
+   "index": {
+    "no": 374,
+    "code": "N023"
+   }
+  },
+  {
+   "id": "caire",
+   "name": "caire",
+   "repo": "https://github.com/esimov/caire",
+   "license": "MIT",
+   "principle": "Image · signal transforms",
+   "medium": "Flat images",
+   "concept": "Seam carving · importance",
+   "area": "Images · editing",
+   "input": "Image · target dimensions",
+   "keywords": [
+    "Seam carving · importance",
+    "Images · editing"
+   ],
+   "index": {
+    "no": 375,
+    "code": "N024"
+   }
+  },
+  {
+   "id": "astrometry-net",
+   "name": "Astrometry.net",
+   "repo": "https://github.com/dstndstn/astrometry.net",
+   "license": "BSD / GPL-3.0-or-later",
+   "principle": "Data · spatial analysis",
+   "medium": "Flat images",
+   "concept": "Star patterns · sky coordinates",
+   "area": "Astronomy · photography",
+   "input": "Astronomical image",
+   "keywords": [
+    "Star patterns · sky coordinates",
+    "Astronomy · photography"
+   ],
+   "index": {
+    "no": 376,
+    "code": "N025"
+   }
+  },
+  {
+   "id": "rubikscube-twophasesolver",
+   "name": "RubiksCube-TwophaseSolver",
+   "repo": "https://github.com/hkociemba/RubiksCube-TwophaseSolver",
+   "license": "GPL-3.0",
+   "principle": "Rules · generation",
+   "medium": "Words · text",
+   "concept": "Two-phase · state-space search",
+   "area": "Puzzles · search",
+   "input": "Cube state",
+   "keywords": [
+    "Two-phase · state-space search",
+    "Puzzles · search"
+   ],
+   "index": {
+    "no": 377,
+    "code": "N026"
+   }
+  },
+  {
+   "id": "libjpeg-turbo",
+   "name": "libjpeg-turbo",
+   "repo": "https://github.com/libjpeg-turbo/libjpeg-turbo",
+   "license": "IJG / BSD-3-Clause",
+   "principle": "Image · signal transforms",
+   "medium": "Flat images",
+   "concept": "JPEG · SIMD transforms",
+   "area": "Images · codecs",
+   "input": "Image · JPEG file",
+   "keywords": [
+    "JPEG · SIMD transforms",
+    "Images · codecs"
+   ],
+   "index": {
+    "no": 378,
+    "code": "N027"
+   }
+  },
+  {
+   "id": "doom-fire-algorithm",
+   "name": "doom-fire-algorithm",
+   "repo": "https://github.com/filipedeschamps/doom-fire-algorithm",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Moving screens",
+   "concept": "Grid · decay · palette",
+   "area": "Pixels · effects",
+   "input": "Heat values · color palette",
+   "keywords": [
+    "Grid · decay · palette",
+    "Pixels · effects"
+   ],
+   "index": {
+    "no": 379,
+    "code": "N028"
+   }
+  },
+  {
+   "id": "myphysicslab",
+   "name": "myPhysicsLab",
+   "repo": "https://github.com/myphysicslab/myphysicslab",
+   "license": "Apache-2.0",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "Forces · differential equations",
+   "area": "Physics · education",
+   "input": "Objects · forces · initial conditions",
+   "keywords": [
+    "Forces · differential equations",
+    "Physics · education"
+   ],
+   "index": {
+    "no": 380,
+    "code": "N029"
+   }
+  },
+  {
+   "id": "routingkit",
+   "name": "RoutingKit",
+   "repo": "https://github.com/RoutingKit/RoutingKit",
+   "license": "BSD-2-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "Lines · vectors",
+   "concept": "Road graphs · route search",
+   "area": "Maps · transport",
+   "input": "Road graph · start · destination",
+   "keywords": [
+    "Road graphs · route search",
+    "Maps · transport"
+   ],
+   "index": {
+    "no": 381,
+    "code": "N030"
+   }
+  },
+  {
+   "id": "libraw",
+   "name": "LibRaw",
+   "repo": "https://github.com/LibRaw/LibRaw",
+   "license": "LGPL-2.1 / CDDL-1.0",
+   "principle": "Image · signal transforms",
+   "medium": "Flat images",
+   "concept": "RAW · sensor data decoding",
+   "area": "Photography · development",
+   "input": "Camera RAW file",
+   "keywords": [
+    "RAW · sensor data decoding",
+    "Photography · development"
+   ],
+   "index": {
+    "no": 382,
+    "code": "N031"
+   }
+  },
+  {
+   "id": "voxelspace",
+   "name": "VoxelSpace",
+   "repo": "https://github.com/s-macke/voxelspace",
+   "license": "MIT",
+   "principle": "Image · signal transforms",
+   "medium": "Moving screens",
+   "concept": "Heightmaps · terrain projection",
+   "area": "Terrain · games",
+   "input": "Heightmap · color map",
+   "keywords": [
+    "Heightmaps · terrain projection",
+    "Terrain · games"
+   ],
+   "index": {
+    "no": 383,
+    "code": "N032"
+   }
+  },
+  {
+   "id": "black-hole-shader",
+   "name": "Black Hole Shader",
+   "repo": "https://github.com/ebruneton/black_hole_shader",
+   "license": "BSD-3-Clause",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "Light trajectories · gravitational lensing",
+   "area": "Space · rendering",
+   "input": "Viewpoint · black-hole model",
+   "keywords": [
+    "Light trajectories · gravitational lensing",
+    "Space · rendering"
+   ],
+   "index": {
+    "no": 384,
+    "code": "N033"
+   }
+  },
+  {
+   "id": "torchcfm",
+   "name": "TorchCFM",
+   "repo": "https://github.com/atong01/conditional-flow-matching",
+   "license": "MIT",
+   "principle": "Learning · inference",
+   "medium": "Numbers · data",
+   "concept": "Conditional flow matching",
+   "area": "Generation · learning",
+   "input": "Training samples · distributions",
+   "keywords": [
+    "Conditional flow matching",
+    "Generation · learning"
+   ],
+   "index": {
+    "no": 385,
+    "code": "N034"
+   }
+  },
+  {
+   "id": "specfem2d",
+   "name": "SPECFEM2D",
+   "repo": "https://github.com/SPECFEM/specfem2d",
+   "license": "GPL-3.0",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "Spectral elements · waves",
+   "area": "Seismology · numerical experiments",
+   "input": "Earth layers · source · mesh",
+   "keywords": [
+    "Spectral elements · waves",
+    "Seismology · numerical experiments"
+   ],
+   "index": {
+    "no": 386,
+    "code": "N035"
+   }
+  },
+  {
+   "id": "datashader",
+   "name": "Datashader",
+   "repo": "https://github.com/holoviz/datashader",
+   "license": "BSD-3-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "Flat images",
+   "concept": "Pixel aggregation · density",
+   "area": "Data · visualization",
+   "input": "Large point sets · numeric data",
+   "keywords": [
+    "Pixel aggregation · density",
+    "Data · visualization"
+   ],
+   "index": {
+    "no": 387,
+    "code": "N036"
+   }
+  },
+  {
+   "id": "ray-optics-simulation",
+   "name": "Ray Optics Simulation",
+   "repo": "https://github.com/ricktu288/ray-optics",
+   "license": "Apache-2.0",
+   "principle": "Physics · numerical models",
+   "medium": "Lines · vectors",
+   "concept": "Light rays · reflection · refraction",
+   "area": "Optics · education",
+   "input": "Sources · lenses · mirrors",
+   "keywords": [
+    "Light rays · reflection · refraction",
+    "Optics · education"
+   ],
+   "index": {
+    "no": 388,
+    "code": "N037"
+   }
+  },
+  {
+   "id": "qmsolve",
+   "name": "QMsolve",
+   "repo": "https://github.com/quantum-visualizations/qmsolve",
+   "license": "BSD-3-Clause",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "Schrödinger equation",
+   "area": "Quantum physics · education",
+   "input": "Potential · particle conditions",
+   "keywords": [
+    "Schrödinger equation",
+    "Quantum physics · education"
+   ],
+   "index": {
+    "no": 389,
+    "code": "N038"
+   }
+  },
+  {
+   "id": "nanogpt",
+   "name": "nanoGPT",
+   "repo": "https://github.com/karpathy/nanoGPT",
+   "license": "MIT",
+   "principle": "Learning · inference",
+   "medium": "Words · text",
+   "concept": "Transformer · next-token prediction",
+   "area": "Language · learning",
+   "input": "Text · training settings",
+   "keywords": [
+    "Transformer · next-token prediction",
+    "Language · learning"
+   ],
+   "index": {
+    "no": 390,
+    "code": "N039"
+   }
+  },
+  {
+   "id": "hatviz",
+   "name": "hatviz",
+   "repo": "https://github.com/isohedral/hatviz",
+   "license": "BSD-3-Clause",
+   "principle": "Rules · generation",
+   "medium": "Lines · vectors",
+   "concept": "Aperiodic · hat tiles",
+   "area": "Patterns · tiling",
+   "input": "Tiles · substitution steps",
+   "keywords": [
+    "Aperiodic · hat tiles",
+    "Patterns · tiling"
+   ],
+   "index": {
+    "no": 391,
+    "code": "N040"
+   }
+  },
+  {
+   "id": "sandspiel",
+   "name": "sandspiel",
+   "repo": "https://github.com/MaxBittker/sandspiel",
+   "license": "MIT",
+   "principle": "Rules · generation",
+   "medium": "Moving screens",
+   "concept": "Materials · cellular rules",
+   "area": "Play · simulation",
+   "input": "Materials such as sand · water · fire",
+   "keywords": [
+    "Materials · cellular rules",
+    "Play · simulation"
+   ],
+   "index": {
+    "no": 392,
+    "code": "N041"
+   }
+  },
+  {
+   "id": "pink-trombone-c",
+   "name": "Pink Trombone C++",
+   "repo": "https://github.com/kaiidams/pinktrombone_cpp",
+   "license": "MIT (C++ port)",
+   "principle": "Physics · numerical models",
+   "medium": "Sound",
+   "concept": "Glottis · vocal-tract model",
+   "area": "Sound · voice",
+   "input": "Vocal-tract shape · voicing settings",
+   "keywords": [
+    "Glottis · vocal-tract model",
+    "Sound · voice"
+   ],
+   "index": {
+    "no": 393,
+    "code": "N042"
+   }
+  },
+  {
+   "id": "potree",
+   "name": "Potree",
+   "repo": "https://github.com/potree/potree",
+   "license": "BSD-2-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "Volumes · space",
+   "concept": "Point clouds · levels of detail",
+   "area": "Scanning · space",
+   "input": "3D point cloud",
+   "keywords": [
+    "Point clouds · levels of detail",
+    "Scanning · space"
+   ],
+   "index": {
+    "no": 394,
+    "code": "N043"
+   }
+  },
+  {
+   "id": "v86",
+   "name": "v86",
+   "repo": "https://github.com/copy/v86",
+   "license": "BSD-2-Clause",
+   "principle": "Making · connecting tools",
+   "medium": "Work environments",
+   "concept": "x86 emulation",
+   "area": "Computers · web",
+   "input": "Operating system · disk image",
+   "keywords": [
+    "x86 emulation",
+    "Computers · web"
+   ],
+   "index": {
+    "no": 395,
+    "code": "N044"
+   }
+  },
+  {
+   "id": "prettymaps",
+   "name": "prettymaps",
+   "repo": "https://github.com/marceloprates/prettymaps",
+   "license": "AGPL-3.0",
+   "principle": "Data · spatial analysis",
+   "medium": "Flat images",
+   "concept": "Map data · layers",
+   "area": "Maps · posters",
+   "input": "Location · OSM data",
+   "keywords": [
+    "Map data · layers",
+    "Maps · posters"
+   ],
+   "index": {
+    "no": 396,
+    "code": "N045"
+   }
+  },
+  {
+   "id": "repulsive-curves",
+   "name": "Repulsive Curves",
+   "repo": "https://github.com/ythea/repulsive-curves",
+   "license": "MIT",
+   "principle": "Geometry · structure",
+   "medium": "Lines · vectors",
+   "concept": "Curve energy · repulsion",
+   "area": "Curves · geometry",
+   "input": "Spatial curves",
+   "keywords": [
+    "Curve energy · repulsion",
+    "Curves · geometry"
+   ],
+   "index": {
+    "no": 397,
+    "code": "N046"
+   }
+  },
+  {
+   "id": "meanderpy",
+   "name": "meanderpy",
+   "repo": "https://github.com/zsylvester/meanderpy",
+   "license": "Apache-2.0",
+   "principle": "Physics · numerical models",
+   "medium": "Lines · vectors",
+   "concept": "River curvature · migration",
+   "area": "Terrain · rivers",
+   "input": "River centerline · channel conditions",
+   "keywords": [
+    "River curvature · migration",
+    "Terrain · rivers"
+   ],
+   "index": {
+    "no": 398,
+    "code": "N047"
+   }
+  },
+  {
+   "id": "latticeboltzmann-python",
+   "name": "latticeboltzmann-python",
+   "repo": "https://github.com/pmocz/latticeboltzmann-python",
+   "license": "GPL-3.0",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "Lattice Boltzmann · collision · streaming",
+   "area": "Fluids · education",
+   "input": "Grid · obstacles · initial flow",
+   "keywords": [
+    "Lattice Boltzmann · collision · streaming",
+    "Fluids · education"
+   ],
+   "index": {
+    "no": 399,
+    "code": "N048"
+   }
+  },
+  {
+   "id": "healpy",
+   "name": "healpy",
+   "repo": "https://github.com/healpy/healpy",
+   "license": "GPL-2.0",
+   "principle": "Data · spatial analysis",
+   "medium": "Flat images",
+   "concept": "HEALPix spherical pixels",
+   "area": "Astronomy · spherical maps",
+   "input": "Spherical observation data",
+   "keywords": [
+    "HEALPix spherical pixels",
+    "Astronomy · spherical maps"
+   ],
+   "index": {
+    "no": 400,
+    "code": "N049"
+   }
+  },
+  {
+   "id": "pysstv",
+   "name": "PySSTV",
+   "repo": "https://github.com/dnet/pySSTV",
+   "license": "MIT",
+   "principle": "Image · signal transforms",
+   "medium": "Sound",
+   "concept": "SSTV · image-to-audio encoding",
+   "area": "Radio · images",
+   "input": "Image · SSTV mode",
+   "keywords": [
+    "SSTV · image-to-audio encoding",
+    "Radio · images"
+   ],
+   "index": {
+    "no": 401,
+    "code": "N050"
+   }
+  },
+  {
+   "id": "freetype",
+   "name": "FreeType",
+   "repo": "https://github.com/freetype/freetype",
+   "license": "FTL / GPL-2.0-or-later",
+   "principle": "Image · signal transforms",
+   "medium": "Flat images",
+   "concept": "Font outlines · rasterization",
+   "area": "Letters · typography",
+   "input": "Font file · size",
+   "keywords": [
+    "Font outlines · rasterization",
+    "Letters · typography"
+   ],
+   "index": {
+    "no": 402,
+    "code": "N051"
+   }
+  },
+  {
+   "id": "eclipse-sumo",
+   "name": "Eclipse SUMO",
+   "repo": "https://github.com/eclipse-sumo/sumo",
+   "license": "EPL-2.0 / GPL-2.0-or-later",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "Microscopic traffic · vehicle rules",
+   "area": "Cities · transport",
+   "input": "Road network · vehicles · signals",
+   "keywords": [
+    "Microscopic traffic · vehicle rules",
+    "Cities · transport"
+   ],
+   "index": {
+    "no": 403,
+    "code": "N052"
+   }
+  },
+  {
+   "id": "gwpy",
+   "name": "GWpy",
+   "repo": "https://github.com/gwpy/gwpy",
+   "license": "GPL-3.0-or-later",
+   "principle": "Image · signal transforms",
+   "medium": "Numbers · data",
+   "concept": "Gravitational waves · time series",
+   "area": "Astronomy · signals",
+   "input": "Observation signals · time series",
+   "keywords": [
+    "Gravitational waves · time series",
+    "Astronomy · signals"
+   ],
+   "index": {
+    "no": 404,
+    "code": "N053"
+   }
+  },
+  {
+   "id": "gplates",
+   "name": "GPlates",
+   "repo": "https://github.com/GPlates/GPlates",
+   "license": "GPL-2.0-only",
+   "principle": "Data · spatial analysis",
+   "medium": "Volumes · space",
+   "concept": "Plate rotations · past geography",
+   "area": "Earth · geology",
+   "input": "Plate boundaries · rotation model · time",
+   "keywords": [
+    "Plate rotations · past geography",
+    "Earth · geology"
+   ],
+   "index": {
+    "no": 405,
+    "code": "N054"
+   }
+  },
+  {
+   "id": "sunpy",
+   "name": "SunPy",
+   "repo": "https://github.com/sunpy/sunpy",
+   "license": "BSD-3-Clause",
+   "principle": "Data · spatial analysis",
+   "medium": "Flat images",
+   "concept": "Solar observations · coordinates · time",
+   "area": "Sun · astronomy",
+   "input": "Solar observation data",
+   "keywords": [
+    "Solar observations · coordinates · time",
+    "Sun · astronomy"
+   ],
+   "index": {
+    "no": 406,
+    "code": "N055"
+   }
+  },
+  {
+   "id": "tensorflow-playground",
+   "name": "TensorFlow Playground",
+   "repo": "https://github.com/tensorflow/playground",
+   "license": "Apache-2.0",
+   "principle": "Learning · inference",
+   "medium": "Flat images",
+   "concept": "Neural networks · gradient descent",
+   "area": "Learning · education",
+   "input": "Point data · network architecture",
+   "keywords": [
+    "Neural networks · gradient descent",
+    "Learning · education"
+   ],
+   "index": {
+    "no": 407,
+    "code": "N056"
+   }
+  },
+  {
+   "id": "pytopo3d",
+   "name": "PyTopo3D",
+   "repo": "https://github.com/jihoonkim888/PyTopo3D",
+   "license": "MIT",
+   "principle": "Physics · numerical models",
+   "medium": "Volumes · space",
+   "concept": "Finite elements · topology optimization",
+   "area": "Structures · making",
+   "input": "3D domain · loads · constraints",
+   "keywords": [
+    "Finite elements · topology optimization",
+    "Structures · making"
+   ],
+   "index": {
+    "no": 408,
+    "code": "N057"
+   }
+  },
+  {
+   "id": "earth",
+   "name": "earth",
+   "repo": "https://github.com/cambecc/earth",
+   "license": "MIT",
+   "principle": "Data · spatial analysis",
+   "medium": "Moving screens",
+   "concept": "Weather grids · flow interpolation",
+   "area": "Maps · weather",
+   "input": "Global weather data",
+   "keywords": [
+    "Weather grids · flow interpolation",
+    "Maps · weather"
+   ],
+   "index": {
+    "no": 409,
+    "code": "N058"
+   }
+  },
+  {
+   "id": "umap",
+   "name": "UMAP",
+   "repo": "https://github.com/lmcinnes/umap",
+   "license": "BSD-3-Clause",
+   "principle": "Learning · inference",
+   "medium": "Numbers · data",
+   "concept": "Neighbor graphs · dimension reduction",
+   "area": "Data · learning",
+   "input": "High-dimensional data",
+   "keywords": [
+    "Neighbor graphs · dimension reduction",
+    "Data · learning"
+   ],
+   "index": {
+    "no": 410,
+    "code": "N059"
+   }
+  },
+  {
+   "id": "fipy",
+   "name": "FiPy",
+   "repo": "https://github.com/usnistgov/fipy",
+   "license": "NIST Terms of Use",
+   "principle": "Physics · numerical models",
+   "medium": "Moving screens",
+   "concept": "Finite volume · partial differential equations",
+   "area": "Diffusion · materials",
+   "input": "Mesh · equations · boundary conditions",
+   "keywords": [
+    "Finite volume · partial differential equations",
+    "Diffusion · materials"
+   ],
+   "index": {
+    "no": 411,
+    "code": "N060"
+   }
+  },
+  {
+   "id": "neuron",
+   "name": "NEURON",
+   "repo": "https://github.com/neuronsimulator/nrn",
+   "license": "BSD-3-Clause compatible",
+   "principle": "Physics · numerical models",
+   "medium": "Numbers · data",
+   "concept": "Neuron compartments · electrical signals",
+   "area": "Neuroscience · models",
+   "input": "Neuron morphology · channels · stimuli",
+   "keywords": [
+    "Neuron compartments · electrical signals",
+    "Neuroscience · models"
+   ],
+   "index": {
+    "no": 412,
+    "code": "N061"
+   }
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+  "order": 184,
+  "title": "Raster to vector (imagetracerjs)",
+  "title_ko": "래스터를 벡터로 (imagetracerjs)",
+  "description": "Every frame a 120×80 pixel image of drifting metaballs is traced by imagetracerjs into vector paths (lines and quadratic curves), drawn large and smooth. The loupe at the pointer shows the pixels the paths came from; raise the curve tolerance for fewer, looser segments.",
+  "description_ko": "매 프레임 떠다니는 메타볼을 120×80 픽셀 그림으로 그리고, imagetracerjs가 이를 벡터 경로(직선과 2차 곡선)로 따서 크고 매끄럽게 그린다. 포인터의 돋보기 안에는 경로의 원본 픽셀이 보인다. 곡선 허용 오차를 올리면 선분이 적고 느슨해진다.",
+  "prompt": "(open-source example: imagetracerjs imported in the scene)",
+  "made_with": "imagetracerjs 1.2.6 via ctx.utils.import",
+  "features": [
+    "vectorize",
+    "image tracing",
+    "paths",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "imagetracerjs"
+  ],
+  "summary": "Blocky pixel blobs are turned live into smooth vector shapes; a magnifier shows the pixels underneath.",
+  "summary_ko": "각진 픽셀 덩어리를 실시간으로 매끈한 벡터 도형으로 바꿔요. 돋보기로 보면 원래 픽셀이 보여요.",
+  "try": [
+    "Move the pointer to slide the magnifier over the shapes",
+    "Turn the Curve tolerance knob up for looser, simpler outlines",
+    "Turn on Show nodes to see the points each outline is built from"
+  ],
+  "try_ko": [
+    "포인터를 움직여 돋보기를 도형 위로 옮겨 보세요",
+    "Curve tolerance 노브를 올리면 윤곽이 더 느슨하고 단순해져요",
+    "Show nodes를 켜면 윤곽을 이루는 점들이 보여요"
+  ],
+  "tool_about": "imagetracerjs is a JavaScript library that traces a pixel image into smooth vector outlines (like SVG), the way you would turn a scan or a logo into clean shapes. It runs in the browser.",
+  "tool_about_ko": "imagetracerjs는 픽셀 그림을 따라 그려 매끈한 벡터 윤곽(SVG 같은)으로 바꿔 주는 자바스크립트 라이브러리예요. 스캔한 그림이나 로고를 깔끔한 도형으로 바꿀 때처럼 써요. 브라우저에서 돌아가요."
+}

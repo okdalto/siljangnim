@@ -1,0 +1,32 @@
+{
+  "order": 182,
+  "title": "Perceptual hue wheel (hsluv)",
+  "title_ko": "지각 균등 색상환 (hsluv)",
+  "description": "Two color wheels at the same lightness: plain HSL on the left, HSLuv from the hsluv library on the right, each with a ring of evenly spaced swatches. Turn on \"Show lightness\": the HSL wheel breaks into light yellows and dark blues, the HSLuv wheel stays one even grey.",
+  "description_ko": "같은 밝기의 색상환 두 개를 나란히 둔다. 왼쪽은 일반 HSL, 오른쪽은 hsluv 라이브러리의 HSLuv이고, 둘레에 같은 간격의 견본 색이 돈다. \"Show lightness\"를 켜면 HSL 쪽은 밝은 노랑과 어두운 파랑으로 갈라지지만 HSLuv 쪽은 고른 회색 하나로 남는다.",
+  "prompt": "(open-source example: hsluv imported in the scene)",
+  "made_with": "hsluv 1.0.2 via ctx.utils.import",
+  "features": [
+    "color",
+    "perceptual color",
+    "palette"
+  ],
+  "mode": "live",
+  "uses": [
+    "hsluv"
+  ],
+  "summary": "Two color wheels side by side: one looks uneven, the other keeps every hue equally bright.",
+  "summary_ko": "색상환 두 개를 나란히 놓았어요. 하나는 밝기가 들쭉날쭉하고, 다른 하나는 모든 색이 고르게 밝아요.",
+  "try": [
+    "Turn on Show lightness (L*) to compare both wheels in grey",
+    "Slide Lightness and see how each wheel changes",
+    "Switch Right wheel to HPLuv (pastel) for softer colors"
+  ],
+  "try_ko": [
+    "Show lightness (L*)를 켜서 두 색상환을 회색으로 비교해 보세요",
+    "Lightness를 움직이며 두 색상환이 어떻게 변하는지 보세요",
+    "Right wheel을 HPLuv (pastel)로 바꾸면 더 부드러운 색이 돼요"
+  ],
+  "tool_about": "HSLuv is a color system and small library (here in JavaScript) that works like the usual hue, saturation and lightness picker, except that colors with the same lightness number really look equally light. It runs in the browser and helps pick even palettes.",
+  "tool_about_ko": "HSLuv는 흔한 색상·채도·밝기 선택기처럼 쓰지만, 밝기 숫자가 같으면 실제로도 똑같이 밝아 보이게 만든 색 체계이자 작은 라이브러리예요(여기선 자바스크립트판). 브라우저에서 돌아가며 고른 팔레트를 고를 때 도움이 돼요."
+}

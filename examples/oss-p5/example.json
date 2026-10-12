@@ -1,0 +1,33 @@
+{
+  "order": 187,
+  "title": "Ink flow (p5.js)",
+  "title_ko": "잉크 흐름 (p5.js)",
+  "description": "A p5.js sketch in instance mode, with no canvas of its own, draws ink strokes that follow p5's Perlin noise into an offscreen p5.Graphics; the scene uploads it as a texture every frame and adds paper grain. Strokes swirl around the pointer; press Clear for a fresh sheet.",
+  "description_ko": "인스턴스 모드의 p5.js 스케치가 자체 캔버스 없이 화면 밖 p5.Graphics에 그린다. p5의 펄린 노이즈를 따라 잉크 획이 쌓이고, 씬은 이를 매 프레임 텍스처로 올려 종이 질감을 더한다. 포인터 주변에서는 획이 소용돌이친다. Clear를 누르면 새 종이가 된다.",
+  "prompt": "(open-source example: p5.js imported in the scene)",
+  "made_with": "p5 2.3.4 via ctx.utils.import",
+  "features": [
+    "creative coding",
+    "generative drawing",
+    "noise",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "p5-js"
+  ],
+  "summary": "Hundreds of colored ink strokes drift across paper like hair in the wind, curling around the pointer.",
+  "summary_ko": "색색의 잉크 선 수백 가닥이 바람에 날리는 머릿결처럼 종이 위를 흐르고, 포인터 주위에서 소용돌이쳐요.",
+  "try": [
+    "Move the pointer over the paper to swirl the strokes around it",
+    "Press Clear for a fresh sheet",
+    "Turn the Noise scale knob for wider or tighter curls"
+  ],
+  "try_ko": [
+    "종이 위로 포인터를 움직이면 선들이 그 주위로 소용돌이쳐요",
+    "Clear를 눌러 새 종이로 시작해 보세요",
+    "Noise scale 노브를 돌려 곡선을 크게 혹은 촘촘하게 바꿔 보세요"
+  ],
+  "tool_about": "p5.js is a friendly JavaScript library for drawing and animation, made for artists, designers and beginners learning to code (the web cousin of Processing). It runs in the browser.",
+  "tool_about_ko": "p5.js는 그림과 애니메이션을 쉽게 만들 수 있는 자바스크립트 라이브러리로, 예술가와 디자이너, 코딩을 처음 배우는 사람을 위해 만들어졌어요(Processing의 웹판 사촌). 브라우저에서 돌아가요."
+}

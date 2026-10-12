@@ -1,0 +1,33 @@
+{
+  "order": 141,
+  "title": "Attractor glow (regl)",
+  "title_ko": "끌개 빛 (regl)",
+  "description": "regl wraps the scene's WebGL context and one declarative draw command renders 400,000 points of the Aizawa attractor with additive blending; pulses of light run along the orbit. Drag to orbit.",
+  "description_ko": "regl이 씬의 WebGL 컨텍스트를 감싸고, 선언형 그리기 명령 하나로 아이자와 끌개의 점 40만 개를 가산 혼합으로 그린다. 궤도를 따라 빛 펄스가 흐른다. 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: regl imported in the scene)",
+  "made_with": "regl 2.1.1 via ctx.utils.import",
+  "features": [
+    "regl",
+    "point cloud",
+    "attractor",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "regl"
+  ],
+  "summary": "400,000 glowing dots trace a looping path in space, with bright pulses racing along it.",
+  "summary_ko": "40만 개의 빛나는 점이 공간 속에 빙글빙글 도는 궤적을 그리고, 밝은 빛이 그 위를 달려요.",
+  "try": [
+    "Drag to turn the view",
+    "Turn the Flow knob to speed up the pulses",
+    "Raise Exposure to make it glow brighter"
+  ],
+  "try_ko": [
+    "드래그해서 시점을 돌려 보세요",
+    "Flow 노브를 돌려 빛이 더 빨리 달리게 해 보세요",
+    "Exposure를 올려 더 밝게 빛나게 해 보세요"
+  ],
+  "tool_about": "regl is a small JavaScript library that makes WebGL, the browser's way of drawing with the graphics card, easier to use: each drawing step is written as one simple command. It runs in the browser.",
+  "tool_about_ko": "regl은 그래픽 카드로 그림을 그리는 브라우저 기능인 WebGL을 더 쉽게 쓰게 해 주는 작은 JavaScript 라이브러리예요. 그리기 한 단계를 간단한 명령 하나로 적을 수 있고, 브라우저에서 돌아가요."
+}

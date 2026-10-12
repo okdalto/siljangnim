@@ -1,0 +1,33 @@
+{
+  "order": 181,
+  "title": "Color maps (d3-scale-chromatic)",
+  "title_ko": "컬러맵 (d3-scale-chromatic)",
+  "description": "d3-scale-chromatic supplies scientific color maps (Viridis, Magma, Cividis, Turbo, diverging RdBu and more); the chosen one becomes a lookup texture that colors a drifting noise field with contour lines. The pointer raises a bump; the bar on the right shows the map.",
+  "description_ko": "d3-scale-chromatic이 과학 시각화용 컬러맵(Viridis, Magma, Cividis, Turbo, 발산형 RdBu 등)을 준다. 고른 맵을 룩업 텍스처로 만들어 흐르는 노이즈 필드와 등고선을 칠한다. 포인터를 대면 그 자리가 솟아오르고, 오른쪽 막대가 맵을 보여 준다.",
+  "prompt": "(open-source example: d3-scale-chromatic imported in the scene)",
+  "made_with": "d3-scale-chromatic 3.1.0 via ctx.utils.import",
+  "features": [
+    "color map",
+    "scientific visualization",
+    "contours",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-scale-chromatic"
+  ],
+  "summary": "A drifting landscape colored like a heat map, with contour lines, in well-known science color schemes.",
+  "summary_ko": "꿈틀대는 지형을 열지도처럼 칠하고 등고선을 그려요. 과학 그래프에 쓰는 유명한 색 배합들로요.",
+  "try": [
+    "Move the pointer to raise a bump under it",
+    "Switch Color map between Viridis, Turbo and RdBu",
+    "Turn the Zoom knob to see larger or finer patterns"
+  ],
+  "try_ko": [
+    "포인터를 움직이면 그 아래가 볼록 솟아올라요",
+    "Color map을 Viridis, Turbo, RdBu 등으로 바꿔 보세요",
+    "Zoom 노브를 돌려 무늬를 크게 혹은 잘게 보세요"
+  ],
+  "tool_about": "d3-scale-chromatic is part of D3, the JavaScript charting toolkit. It provides ready-made color schemes, many designed by scientists to read clearly, for coloring numbers in charts and maps; it runs in the browser.",
+  "tool_about_ko": "d3-scale-chromatic은 자바스크립트 차트 도구 D3의 일부예요. 차트나 지도에서 숫자를 색으로 나타낼 때 쓰는 기성 색 배합을 담고 있고, 그중 많은 수가 읽기 쉽도록 과학자들이 설계했어요. 브라우저에서 돌아가요."
+}

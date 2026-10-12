@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CATALOG, searchCatalog } from "./catalog";
+import { CATALOG, REFERENCES, referenceFor, searchCatalog, searchReferences } from "./catalog";
 
 describe("catalog", () => {
   it("has unique ids and an install path for each grade", () => {
@@ -31,4 +31,27 @@ describe("catalog", () => {
     const search = CATALOG_TOOLS.find((t) => t.name === "catalog_search")!;
     expect(String((await search.run(search.input.parse({ query: "delaunay" }), stubEnv())).content)).toContain('Example: "Low-poly drift (d3-delaunay)"');
   });
+
+  it("carries the index.opensource reference list, without repeating curated tools", () => {
+    // Every listed project is either curated (and linked) or kept as a reference.
+    expect(REFERENCES.length + CATALOG.filter((e) => referenceFor(e)).length).toBe(412);
+    expect(new Set(REFERENCES.map((r) => r.id)).size).toBe(REFERENCES.length);
+    // d3-delaunay is curated, so the reference copy is dropped and linked instead.
+    expect(REFERENCES.some((r) => r.name === "d3-delaunay")).toBe(false);
+    expect(referenceFor(CATALOG.find((e) => e.id === "d3-delaunay")!)?.index.no).toBe(2);
+    expect(searchReferences("wave function collapse").map((r) => r.name)).toContain("WaveFunctionCollapse");
+    expect(searchReferences("")).toEqual([]);
+  });
+
+  it("catalog_search adds reference matches after the curated ones", async () => {
+    const { CATALOG_TOOLS } = await import("../agent/catalogTools");
+    const { stubEnv } = await import("../agent/testing");
+    const search = CATALOG_TOOLS.find((t) => t.name === "catalog_search")!;
+    const text = String((await search.run(search.input.parse({ query: "streamlines" }), stubEnv())).content);
+    expect(text).toContain("From the reference list (index.opensource");
+    const get = CATALOG_TOOLS.find((t) => t.name === "catalog_get")!;
+    const ref = REFERENCES.find((r) => r.name === "WaveFunctionCollapse")!;
+    expect(String((await get.run({ id: ref.id }, stubEnv())).content)).toContain("Not set up in Siljangnim yet");
+  });
 });
+

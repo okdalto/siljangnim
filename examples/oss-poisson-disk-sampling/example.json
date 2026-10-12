@@ -1,0 +1,32 @@
+{
+  "order": 120,
+  "title": "Ripple stipple (poisson-disk-sampling)",
+  "title_ko": "물결 점묘 (poisson-disk-sampling)",
+  "description": "poisson-disk-sampling fills the canvas point by point, keeping each new point a minimum distance from the others; the distance follows a ripple pattern, so the dots form rings of dense and sparse stipple. Click to start again around the pointer.",
+  "description_ko": "poisson-disk-sampling이 점을 하나씩 채워 넣으며, 새 점은 다른 점과 최소 거리를 지킨다. 그 거리가 물결 모양으로 바뀌어 촘촘한 점묘와 성긴 점묘가 고리를 이룬다. 클릭하면 포인터 주변에서 다시 시작한다.",
+  "prompt": "(open-source example: poisson-disk-sampling imported in the scene)",
+  "made_with": "poisson-disk-sampling 2.3.1 via ctx.utils.import",
+  "features": [
+    "sampling",
+    "stipple",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "poisson-disk-sampling"
+  ],
+  "summary": "Dots fill the screen one by one, packed tight in some rings and spread out in others, like a ripple.",
+  "summary_ko": "점이 하나씩 화면을 채우며, 촘촘한 고리와 성긴 고리가 번갈아 물결무늬를 만들어요.",
+  "try": [
+    "Click anywhere to start the ripple again around the pointer",
+    "Turn the Ripples knob for more or fewer rings",
+    "Raise Points per frame to watch the screen fill faster"
+  ],
+  "try_ko": [
+    "아무 곳이나 클릭해 포인터 주변에서 물결을 다시 시작해 보세요",
+    "Ripples 노브를 돌려 고리 개수를 바꿔 보세요",
+    "Points per frame을 올려 화면이 더 빨리 채워지는 걸 보세요"
+  ],
+  "tool_about": "poisson-disk-sampling is a small JavaScript library that scatters points evenly, never letting two land too close together. It runs in the browser and is used for stipple drawings, placing trees and natural-looking textures.",
+  "tool_about_ko": "poisson-disk-sampling은 점들이 너무 붙지 않게 고르게 흩뿌려 주는 작은 JavaScript 라이브러리예요. 브라우저에서 돌아가며, 점묘화나 나무 배치, 자연스러운 질감을 만들 때 쓰여요."
+}

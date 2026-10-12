@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "shapely"
-  ]
+  ],
+  "summary": "Blobby islands drawn as glowing contour lines, like a topographic map, with light pulsing through the rings.",
+  "summary_ko": "몽글몽글한 섬들이 지도의 등고선처럼 빛나는 선으로 그려지고, 고리들 사이로 빛이 물결쳐요.",
+  "try": [
+    "Turn the Pulse speed knob to change how fast the light travels",
+    "Pick new Inside and Outside colors",
+    "Ask the agent to rerun the recipe with a different seed for new islands"
+  ],
+  "try_ko": [
+    "Pulse speed 노브를 돌려 빛이 퍼지는 속도를 바꿔 보세요",
+    "Inside와 Outside 색을 새로 골라 보세요",
+    "에이전트에게 다른 시드로 레시피를 다시 돌려 새 섬을 만들어 달라고 해 보세요"
+  ],
+  "tool_about": "Shapely is a Python library for flat shapes: it merges, cuts, shrinks and grows outlines. It runs on this computer through Python, not in the browser.",
+  "tool_about_ko": "Shapely는 평면 도형을 합치고 자르고 줄이고 키우는 파이썬 라이브러리예요. 브라우저가 아니라 이 컴퓨터의 파이썬에서 돌아가요."
 }

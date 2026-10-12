@@ -1,0 +1,33 @@
+{
+  "order": 205,
+  "title": "Hilbert curve (hilbertcurve)",
+  "title_ko": "힐베르트 곡선 (hilbertcurve)",
+  "description": "hilbertcurve computed Hilbert curves of orders 1 to 7, plus a 3D one, on this computer (recipe hilbertcurve.orders); the scene morphs each order into the next — every point splits into four — with color running along the path. One unbroken line visits every cell.",
+  "description_ko": "hilbertcurve가 이 컴퓨터에서 1차부터 7차까지의 힐베르트 곡선과 3D 곡선 하나를 계산했다(레시피 hilbertcurve.orders). 씬은 한 차수를 다음 차수로 변형하며(점 하나가 넷으로 갈라진다) 경로를 따라 색이 흐른다. 끊기지 않는 선 하나가 모든 칸을 지난다.",
+  "prompt": "(open-source example: hilbertcurve run through the runtime, recipe included)",
+  "made_with": "hilbertcurve 2.0.5 via recipe hilbertcurve.orders (python_run)",
+  "features": [
+    "space-filling curve",
+    "morph",
+    "plotter",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "hilbertcurve"
+  ],
+  "summary": "One unbroken line folds itself into finer and finer mazes until it passes through every square of a grid.",
+  "summary_ko": "끊기지 않는 선 하나가 점점 더 촘촘한 미로로 접히며 격자의 모든 칸을 한 번씩 지나가요.",
+  "try": [
+    "Turn off Auto sweep and drag the Order slider yourself",
+    "Switch View to 3D curve and drag to turn it around",
+    "Turn up the Flow knob to speed up the light running along the line"
+  ],
+  "try_ko": [
+    "Auto sweep을 끄고 Order 슬라이더를 직접 움직여 보세요",
+    "View를 3D curve로 바꾸고 드래그해서 돌려 보세요",
+    "Flow 노브를 올리면 선을 따라 흐르는 빛이 빨라져요"
+  ],
+  "tool_about": "hilbertcurve is a small Python library that computes the Hilbert curve, a line that visits every cell of a grid while keeping neighboring steps close together. It runs on this computer through Python and is used for pen-plotter art and for sorting map data.",
+  "tool_about_ko": "hilbertcurve는 격자의 모든 칸을 지나면서도 이웃한 칸끼리 가까이 이어지는 힐베르트 곡선을 계산하는 작은 파이썬 라이브러리예요. 이 컴퓨터에서 파이썬으로 돌아가며 펜 플로터 아트나 지도 데이터 정렬에 쓰여요."
+}

@@ -44,4 +44,17 @@ describe("examples", () => {
       for (const step of steps) for (const out of step.outputs) expect(e.assets.map((a) => a.name), `${e.slug}: ${out}`).toContain(out);
     }
   });
+
+  it("explain themselves in plain words, in English and Korean", () => {
+    for (const e of EXAMPLES) {
+      expect(e.summary, e.slug).toBeTruthy();
+      expect(e.summary_ko, e.slug).toBeTruthy();
+      expect(e.summary!.length, `${e.slug} summary is short`).toBeLessThanOrEqual(160);
+      expect(e.try?.length, `${e.slug} has things to try`).toBeGreaterThan(0);
+      expect(e.try_ko?.length, `${e.slug} try_ko matches try`).toBe(e.try!.length);
+      expect(e.tool_about, e.slug).toBeTruthy();
+      expect(e.tool_about_ko, e.slug).toBeTruthy();
+    }
+  });
 });
+

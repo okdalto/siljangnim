@@ -1,0 +1,33 @@
+{
+  "order": 123,
+  "title": "Curve offsets (Bezier.js)",
+  "title_ko": "곡선 오프셋 (Bezier.js)",
+  "description": "Bezier.js computes each drifting cubic curve's outline and offset curves, the points where curves cross, and the nearest curve point to the pointer with its normal. Drag a control point to pin it.",
+  "description_ko": "Bezier.js가 떠다니는 3차 곡선마다 외곽선과 오프셋 곡선, 곡선끼리 만나는 점, 포인터에서 가장 가까운 곡선 위의 점과 법선을 계산한다. 조절점을 끌면 그 자리에 고정된다.",
+  "prompt": "(open-source example: Bezier.js imported in the scene)",
+  "made_with": "bezier-js 6.1.4 via ctx.utils.import",
+  "features": [
+    "bezier",
+    "offset curves",
+    "intersections",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "bezier-js"
+  ],
+  "summary": "Three glowing curves sway and cross; yellow dots mark the crossings, and you can drag their handles.",
+  "summary_ko": "빛나는 곡선 세 개가 흔들리고, 서로 겹치는 곳엔 노란 점이 찍혀요. 손잡이를 끌어 모양을 바꿀 수 있어요.",
+  "try": [
+    "Drag one of the small colored dots to pin that part of the curve where you drop it",
+    "Move the pointer near a curve to see the closest point on it",
+    "Press Release pinned points to let the curves drift again"
+  ],
+  "try_ko": [
+    "작은 색 점 하나를 끌어다 놓으면 곡선의 그 부분이 그 자리에 고정돼요",
+    "포인터를 곡선 가까이 가져가 곡선에서 가장 가까운 점을 확인해 보세요",
+    "Release pinned points를 눌러 곡선이 다시 흘러가게 해 보세요"
+  ],
+  "tool_about": "Bezier.js is a JavaScript library for the smooth curves used in drawing apps and fonts. It finds where curves cross, draws parallel copies and finds the closest point on a curve; it runs in the browser.",
+  "tool_about_ko": "Bezier.js는 그림 앱과 글꼴에 쓰이는 매끈한 곡선(베지어 곡선)을 다루는 JavaScript 라이브러리예요. 곡선이 만나는 점, 나란한 곡선, 가장 가까운 점 등을 계산해 주며 브라우저에서 돌아가요."
+}

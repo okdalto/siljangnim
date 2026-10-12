@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "d3-delaunay"
-  ]
+  ],
+  "summary": "A low-poly mosaic of triangles shifts and reshapes itself, and the points dodge your pointer.",
+  "summary_ko": "삼각형 조각으로 된 로우폴리 모자이크가 계속 모양을 바꾸고, 점들이 포인터를 피해 비켜나요.",
+  "try": [
+    "Move the pointer over the picture to push the triangles aside",
+    "Raise Drift to make the mosaic shift faster",
+    "Pick new Bottom and Top colors"
+  ],
+  "try_ko": [
+    "포인터를 그림 위로 움직여 삼각형을 밀어내 보세요",
+    "Drift를 올려 모자이크가 더 빨리 움직이게 해 보세요",
+    "Bottom과 Top 색을 새로 골라 보세요"
+  ],
+  "tool_about": "d3-delaunay connects a set of dots into a mesh of neat triangles (or cells), handy for low-poly art and maps. It runs in the browser.",
+  "tool_about_ko": "d3-delaunay는 흩어진 점들을 깔끔한 삼각형(또는 칸) 그물로 이어 주는 라이브러리로, 로우폴리 그림이나 지도에 많이 써요. 브라우저에서 돌아가요."
 }

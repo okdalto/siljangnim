@@ -1,0 +1,32 @@
+{
+  "order": 125,
+  "title": "Boolean shapes (Paper.js)",
+  "title_ko": "불리언 도형 (Paper.js)",
+  "description": "Paper.js combines a turning star and a ring with a boolean operation (unite, intersect, subtract or exclude) every frame; the result is flattened to points and filled with WebGL, with a soft shadow. Move the pointer to move the ring.",
+  "description_ko": "Paper.js가 매 프레임 도는 별과 고리를 불리언 연산(합치기, 교집합, 빼기, 배타)으로 합친다. 결과를 점으로 펴서 WebGL로 채우고 부드러운 그림자를 준다. 포인터를 움직이면 고리가 따라온다.",
+  "prompt": "(open-source example: Paper.js imported in the scene)",
+  "made_with": "paper 0.12.18 via ctx.utils.import",
+  "features": [
+    "vector",
+    "boolean ops",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "paper-js"
+  ],
+  "summary": "A spinning star and a ring combine like cookie cutters into a new shape that changes as they move.",
+  "summary_ko": "회전하는 별과 고리가 쿠키 틀처럼 합쳐지거나 잘려 나가, 움직일 때마다 새로운 모양이 돼요.",
+  "try": [
+    "Move the pointer to drag the ring across the star",
+    "Switch Operation between Unite, Intersect, Subtract and Exclude",
+    "Change Star points for a star with more or fewer points"
+  ],
+  "try_ko": [
+    "포인터를 움직여 고리를 별 위로 옮겨 보세요",
+    "Operation을 Unite, Intersect, Subtract, Exclude로 바꿔 보세요",
+    "Star points를 바꿔 별 끝의 개수를 바꿔 보세요"
+  ],
+  "tool_about": "Paper.js is a JavaScript library for vector drawing, a bit like a small Illustrator you control with code. It handles paths, curves and combining shapes, and runs in the browser.",
+  "tool_about_ko": "Paper.js는 코드로 다루는 작은 일러스트레이터 같은 벡터 그림 라이브러리예요. 패스와 곡선, 도형 합치기 등을 처리하며 브라우저에서 돌아가요."
+}

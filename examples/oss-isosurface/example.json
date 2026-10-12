@@ -1,0 +1,33 @@
+{
+  "order": 146,
+  "title": "Metaball mesh (isosurface)",
+  "title_ko": "메타볼 메시 (isosurface)",
+  "description": "isosurface extracts a mesh from an animated metaball field every frame with surface nets; normals come from the field's gradient and each ball tints the part of the surface it pulls. Change the grid size, threshold and ball count; drag to orbit.",
+  "description_ko": "isosurface가 움직이는 메타볼 필드에서 매 프레임 서피스 넷으로 메시를 뽑아낸다. 법선은 필드의 기울기에서 얻고, 공마다 자기가 끌어당기는 표면에 색을 입힌다. 격자 크기·임계값·공 개수를 바꿔 보고, 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: isosurface imported in the scene)",
+  "made_with": "isosurface 1.0.0 via ctx.utils.import",
+  "features": [
+    "isosurface",
+    "metaballs",
+    "dynamic mesh",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "isosurface"
+  ],
+  "summary": "Soft colored blobs drift around and melt together into one smooth, shiny shape.",
+  "summary_ko": "말랑한 색 덩어리들이 떠다니다 하나의 매끈하고 반짝이는 모양으로 녹아 붙어요.",
+  "try": [
+    "Drag to turn the shape",
+    "Change Balls to add or remove blobs",
+    "Lower Grid for a chunkier, faceted look"
+  ],
+  "try_ko": [
+    "드래그해서 모양을 돌려 보세요",
+    "Balls를 바꿔 덩어리를 늘리거나 줄여 보세요",
+    "Grid를 낮추면 더 각진 모양이 돼요"
+  ],
+  "tool_about": "isosurface is a small JavaScript library that finds the surface hidden in a 3D cloud of numbers (such as density) and turns it into triangles you can draw. It runs in the browser.",
+  "tool_about_ko": "isosurface는 밀도 같은 숫자로 채워진 3D 공간에서 숨은 표면을 찾아, 그릴 수 있는 삼각형 모양으로 바꿔 주는 작은 JavaScript 라이브러리예요. 브라우저에서 돌아가요."
+}

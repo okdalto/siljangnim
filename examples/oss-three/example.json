@@ -1,0 +1,33 @@
+{
+  "order": 140,
+  "title": "Ripple columns (Three.js)",
+  "title_ko": "물결 기둥 (Three.js)",
+  "description": "Three.js renders straight into the scene's WebGL2 context: an instanced field of 1,156 metal columns rippling like interfering waves, with an environment map, soft shadows and fog. Drag to orbit.",
+  "description_ko": "Three.js가 씬의 WebGL2 컨텍스트에 바로 그린다. 1,156개의 금속 기둥이 인스턴싱으로 겹친 물결처럼 출렁이고, 환경 맵과 부드러운 그림자, 안개가 깔린다. 드래그해서 돌려 볼 수 있다.",
+  "prompt": "(open-source example: three imported in the scene)",
+  "made_with": "three 0.186.0 via ctx.utils.import",
+  "features": [
+    "three.js",
+    "instancing",
+    "shadows",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "three-js"
+  ],
+  "summary": "A field of over a thousand shiny columns rises and falls like waves meeting on a pond.",
+  "summary_ko": "천 개가 넘는 반짝이는 기둥이 연못 위 물결이 만나듯 오르내려요.",
+  "try": [
+    "Drag to circle the camera around the field",
+    "Raise Height for taller waves",
+    "Pick new Low and High colors"
+  ],
+  "try_ko": [
+    "드래그해서 카메라를 돌려 보세요",
+    "Height를 올려 물결을 더 높게 만들어 보세요",
+    "Low와 High 색을 새로 골라 보세요"
+  ],
+  "tool_about": "Three.js is the most popular JavaScript library for 3D graphics on the web: it handles cameras, lights, materials, shadows and 3D models. It runs in the browser.",
+  "tool_about_ko": "Three.js는 웹에서 3D 그래픽을 만들 때 가장 많이 쓰이는 JavaScript 라이브러리예요. 카메라, 조명, 재질, 그림자, 3D 모델을 다루며 브라우저에서 돌아가요."
+}

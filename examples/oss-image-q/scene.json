@@ -1,0 +1,75 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// image-q reduces the picture to a small palette (Wu, NeuQuant or RgbQuant) and redraws it with only\n// those colors, dithered (Floyd\u2013Steinberg, Atkinson, ...). Left of the divider: the original;\n// right: the quantized image. The strip at the bottom is the palette.\nconst iq = await ctx.utils.import(\"https://esm.sh/image-q@4.0.0\");\nconst bitmap = await createImageBitmap(await (await fetch(ctx.assets[\"great-wave.jpg\"])).blob());\nconst W = 320, H = Math.round((W * bitmap.height) / bitmap.width);\nconst canvas = new OffscreenCanvas(W, H), c2 = canvas.getContext(\"2d\", { willReadFrequently: true });\nc2.drawImage(bitmap, 0, 0, W, H);\nconst pixels = c2.getImageData(0, 0, W, H).data;\nconst gl = ctx.gl;\nconst makeTex = (data) => {\n  const t = gl.createTexture();\n  gl.bindTexture(gl.TEXTURE_2D, t);\n  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\n  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, W, H, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);\n  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.NEAREST], [gl.TEXTURE_MAG_FILTER, gl.NEAREST], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);\n  return t;\n};\nconst fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_src; uniform sampler2D u_dst; uniform vec2 u_fit; uniform float u_split;\nuniform vec3 u_pal[64]; uniform int u_count;\nvoid main() {\n  vec3 bg = vec3(0.07, 0.07, 0.08);\n  float strip = 0.07;\n  if (v_uv.y < strip) {\n    vec3 c = bg;\n    if (u_count > 0 && v_uv.y > 0.015 && v_uv.y < strip - 0.015) {\n      float x = (v_uv.x - 0.04) / 0.92;\n      int i = int(floor(x * float(u_count)));\n      if (x >= 0.0 && x < 1.0) c = u_pal[i];\n    }\n    outColor = vec4(c, 1.0); return;\n  }\n  vec2 q = vec2(v_uv.x, (v_uv.y - strip) / (1.0 - strip));\n  q = (q - 0.5) / u_fit + 0.5;\n  vec3 c = bg;\n  if (all(greaterThanEqual(q, vec2(0.0))) && all(lessThanEqual(q, vec2(1.0)))) {\n    vec2 t = vec2(q.x, 1.0 - q.y);\n    c = q.x < u_split ? texture(u_src, t).rgb : texture(u_dst, t).rgb;\n    c = mix(c, vec3(1.0), (1.0 - smoothstep(0.001, 0.003, abs(q.x - u_split))) * 0.9);\n  }\n  outColor = vec4(c, 1.0);\n}`;\nObject.assign(ctx.state, { iq, W, H, pixels, src: makeTex(pixels), dst: makeTex(pixels), key: \"\", changed: 0, busy: false, ready: null,\n  pal: new Float32Array(64 * 3), count: 0, moved: false,\n  PALETTES: [\"wuquant\", \"neuquant\", \"rgbquant\"],\n  DITHERS: [\"nearest\", \"floyd-steinberg\", \"atkinson\", \"stucki\", \"sierra-lite\", \"riemersma\"],\n  p: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fs) });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\nconst colors = Math.max(2, Math.min(64, u.u_colors | 0));\nconst key = [colors, u.u_palette, u.u_dither].join(\"|\");\nif (key !== s.key) { s.key = key; s.changed = ctx.time; s.pending = true; }\n// Quantize off the render path (image-q's async API yields between steps), once the controls settle.\nif (s.pending && !s.busy && ctx.time - s.changed > 0.12) {\n  s.pending = false; s.busy = true;\n  const opts = { colorDistanceFormula: \"euclidean-bt709-noalpha\" };\n  const image = s.iq.utils.PointContainer.fromUint8Array(s.pixels, s.W, s.H);\n  const t0 = performance.now();\n  s.iq.buildPalette([image], { ...opts, paletteQuantization: s.PALETTES[u.u_palette] ?? \"wuquant\", colors })\n    .then((palette) => s.iq.applyPalette(image, palette, { ...opts, imageQuantization: s.DITHERS[u.u_dither] ?? \"nearest\" })\n      .then((out) => { s.ready = { data: out.toUint8Array(), points: palette.getPointContainer().getPointArray(), ms: performance.now() - t0 }; }))\n    .catch((e) => console.error(e))\n    .finally(() => { s.busy = false; });\n}\nif (s.ready) {\n  const { data, points, ms } = s.ready; s.ready = null;\n  gl.bindTexture(gl.TEXTURE_2D, s.dst);\n  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\n  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, s.W, s.H, gl.RGBA, gl.UNSIGNED_BYTE, data);\n  // sort the palette by luminance for a tidy strip\n  points.sort((a, b) => (0.2126 * a.r + 0.7152 * a.g + 0.0722 * a.b) - (0.2126 * b.r + 0.7152 * b.g + 0.0722 * b.b));\n  s.pal.fill(0); points.slice(0, 64).forEach((p, i) => s.pal.set([p.r / 255, p.g / 255, p.b / 255], i * 3));\n  s.count = Math.min(64, points.length);\n  ctx.publish(\"palette colors\", s.count);\n  ctx.publish(\"quantize ms\", Math.round(ms));\n}\ns.moved ||= ctx.mouse[0] !== 0.5 || ctx.mouse[1] !== 0.5;\nconst img = s.W / s.H, view = w / (h * 0.93);\nconst fit = img > view ? [0.94, 0.94 * view / img] : [0.94 * img / view, 0.94];\nconst mx = ((ctx.mouse[0] - 0.5) / fit[0]) + 0.5;\nconst split = s.moved ? mx : 0.3 + 0.2 * Math.sin(ctx.time * 0.4);\ngl.useProgram(s.p);\nctx.utils.bindTexture(s.p, \"u_src\", s.src, 0);\nctx.utils.bindTexture(s.p, \"u_dst\", s.dst, 1);\nctx.utils.drawFullscreen(s.p, { u_fit: fit, u_split: split, u_pal: s.pal, u_count: s.count });",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_colors": {
+      "type": "int",
+      "value": 6,
+      "min": 2,
+      "max": 64,
+      "step": 1,
+      "label": "Colors"
+    },
+    "u_palette": {
+      "type": "int",
+      "value": 0,
+      "label": "Palette",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Wu",
+          "value": 0
+        },
+        {
+          "label": "NeuQuant",
+          "value": 1
+        },
+        {
+          "label": "RgbQuant",
+          "value": 2
+        }
+      ]
+    },
+    "u_dither": {
+      "type": "int",
+      "value": 1,
+      "label": "Dithering",
+      "widget": "select",
+      "options": [
+        {
+          "label": "None (nearest)",
+          "value": 0
+        },
+        {
+          "label": "Floyd\u2013Steinberg",
+          "value": 1
+        },
+        {
+          "label": "Atkinson",
+          "value": 2
+        },
+        {
+          "label": "Stucki",
+          "value": 3
+        },
+        {
+          "label": "Sierra Lite",
+          "value": 4
+        },
+        {
+          "label": "Riemersma",
+          "value": 5
+        }
+      ]
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

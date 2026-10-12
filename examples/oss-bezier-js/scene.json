@@ -1,0 +1,81 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Bezier.js does the curve math: offset curves, outlines, curve/curve intersections and\n// projecting the pointer onto the nearest curve. The control points drift; drag them to pin.\nconst { Bezier } = await ctx.utils.import(\"https://esm.sh/bezier-js@6.1.4\");\nconst gl = ctx.gl;\ngl.getExtension(\"EXT_color_buffer_float\");\nconst flat = ctx.utils.createProgram(`#version 300 es\nlayout(location=0) in vec2 a_position; layout(location=1) in vec4 a_color;\nuniform vec2 u_px; out vec4 v_color;\nvoid main(){ v_color = a_color; gl_Position = vec4(a_position / u_px * 2.0 - 1.0, 0.0, 1.0); }`, `#version 300 es\nprecision highp float; in vec4 v_color; out vec4 outColor;\nvoid main(){ outColor = v_color; }`);\nconst vao = gl.createVertexArray(), vbo = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 24, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 24, 8);\ngl.bindVertexArray(null);\nconst kit = {\n  // Draws a flat (x, y, r, g, b, a) triangle list.\n  draw(arr) {\n    if (!arr.length) return;\n    gl.useProgram(flat);\n    ctx.utils.setUniforms(flat, { u_px: ctx.resolution });\n    gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);\n    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.DYNAMIC_DRAW);\n    gl.drawArrays(gl.TRIANGLES, 0, arr.length / 6);\n    gl.bindVertexArray(null);\n  },\n  // Signed triangle fan: inside a closed ring the triangles add up to ±c, outside they cancel.\n  // Summed with additive blending, this fills any polygon (holes, self-overlaps) exactly.\n  fan(ring, c, out) {\n    const x0 = ring[0], y0 = ring[1];\n    for (let i = 2; i + 3 < ring.length; i += 2) {\n      const s = Math.sign((ring[i] - x0) * (ring[i + 3] - y0) - (ring[i + 1] - y0) * (ring[i + 2] - x0));\n      if (!s) continue;\n      out.push(x0, y0, c[0] * s, c[1] * s, c[2] * s, c[3] * s,\n        ring[i], ring[i + 1], c[0] * s, c[1] * s, c[2] * s, c[3] * s,\n        ring[i + 2], ring[i + 3], c[0] * s, c[1] * s, c[2] * s, c[3] * s);\n    }\n  },\n  // Thick polyline as quads (WebGL lines are 1 px); square ends overlap at the joints.\n  line(pts, closed, width, c, out) {\n    const n = pts.length / 2, hw = width / 2;\n    for (let i = 0; i < (closed ? n : n - 1); i++) {\n      const j = (i + 1) % n;\n      const ax = pts[i * 2], ay = pts[i * 2 + 1], bx = pts[j * 2], by = pts[j * 2 + 1];\n      const len = Math.hypot(bx - ax, by - ay);\n      if (len < 1e-6) continue;\n      const dx = (bx - ax) / len * hw, dy = (by - ay) / len * hw;\n      const p = [ax - dx - dy, ay - dy + dx, ax - dx + dy, ay - dy - dx, bx + dx + dy, by + dy - dx, bx + dx - dy, by + dy + dx];\n      for (const k of [0, 1, 2, 0, 2, 3]) out.push(p[k * 2], p[k * 2 + 1], c[0], c[1], c[2], c[3]);\n    }\n  },\n  // Disc made of triangles.\n  dot(x, y, r, c, out, seg = 16) {\n    for (let i = 0; i < seg; i++) {\n      const a0 = i / seg * 6.2832, a1 = (i + 1) / seg * 6.2832;\n      out.push(x, y, ...c, x + Math.cos(a0) * r, y + Math.sin(a0) * r, ...c, x + Math.cos(a1) * r, y + Math.sin(a1) * r, ...c);\n    }\n  },\n  acc: null,\n  // Renders signed fans additively into a half-float target at up to 2x the canvas size\n  // (sampling it back with linear filtering smooths the edges). Returns the texture.\n  accumulate(arr) {\n    const [w, h] = ctx.resolution, k = Math.min(2, 4096 / Math.max(w, h));\n    const tw = Math.round(w * k), th = Math.round(h * k);\n    if (!kit.acc) kit.acc = ctx.utils.createPingPong(tw, th, { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT });\n    else if (kit.acc.width !== tw || kit.acc.height !== th) kit.acc.resize(tw, th);\n    const t = kit.acc.read();\n    gl.bindFramebuffer(gl.FRAMEBUFFER, t.framebuffer); gl.viewport(0, 0, tw, th);\n    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);\n    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);\n    kit.draw(arr);\n    gl.disable(gl.BLEND);\n    gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, w, h);\n    return t.texture;\n  },\n};\nconst s = ctx.state;\n// Three cubic curves across the canvas (units of canvas height, y up); every control point orbits.\nconst spec = [\n  [[-0.58, 0.22], [-0.25, 0.95], [0.2, 0.05], [0.58, 0.75]],\n  [[-0.58, 0.78], [-0.15, 0.05], [0.25, 0.95], [0.58, 0.25]],\n  [[-0.38, 0.1], [-0.55, 0.92], [0.55, 0.92], [0.38, 0.1]],\n];\ns.ctrl = spec.map((pts) => pts.map(([x, y]) => ({ x, y, r: 0.04 + Math.random() * 0.06, w: 0.3 + Math.random() * 0.5, ph: Math.random() * 6.283, pin: null })));\nObject.assign(s, { kit, Bezier, grab: null, wasDown: false, moved: false });\ns.bg = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_fill; uniform float u_fillAlpha; uniform vec2 u_resolution;\nvoid main(){\n  vec2 q = (v_uv - 0.5) * vec2(u_resolution.x / u_resolution.y, 1.0);\n  vec3 bg = mix(vec3(0.075, 0.08, 0.11), vec3(0.03, 0.03, 0.045), length(q));\n  // Grid paper.\n  vec2 g = abs(fract(q * 12.0 + 0.5) - 0.5) / fwidth(q * 12.0);\n  bg += 0.025 * (1.0 - clamp(min(g.x, g.y), 0.0, 1.0));\n  vec4 t = texture(u_fill, v_uv);\n  float a = abs(t.a);\n  vec3 c = a > 1e-3 ? t.rgb / t.a : vec3(0.0);\n  outColor = vec4(mix(bg, c, min(a, 1.0) * u_fillAlpha), 1.0);\n}`);",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, kit = s.kit;\nconst [w, h] = ctx.resolution, A = w / h, t = ctx.time * u.u_speed;\nconst toPx = (p) => ({ x: (p.x + A / 2) * h, y: p.y * h });\nconst [mx, my] = ctx.mouse, mouse = { x: mx * w, y: (1 - my) * h };\ns.moved ||= mx !== 0.5 || my !== 0.5;\nif (u.u_unpin) for (const c of s.ctrl) for (const p of c) p.pin = null;\n// Control points in pixels: orbiting unless pinned.\nconst ctrlPx = s.ctrl.map((c) => c.map((p) => p.pin ? toPx(p.pin) : toPx({ x: p.x + Math.cos(t * p.w + p.ph) * p.r, y: p.y + Math.sin(t * p.w * 1.3 + p.ph) * p.r })));\n// Drag: grab the nearest control point within reach, pin it where it is released.\nif (ctx.mouseDown && !s.wasDown) {\n  let best = 0.05 * h;\n  s.grab = null;\n  ctrlPx.forEach((c, i) => c.forEach((p, j) => { const d = Math.hypot(p.x - mouse.x, p.y - mouse.y); if (d < best) { best = d; s.grab = [i, j]; } }));\n}\nif (!ctx.mouseDown) s.grab = null;\ns.wasDown = ctx.mouseDown;\nif (s.grab) {\n  const [i, j] = s.grab;\n  s.ctrl[i][j].pin = { x: mouse.x / h - A / 2, y: mouse.y / h };\n  ctrlPx[i][j] = { ...mouse };\n}\nconst curves = ctrlPx.map((c) => new s.Bezier(c));\nconst cols = [u.u_colorA, u.u_colorB, u.u_colorC];\nconst fills = [], lines = [], dots = [];\nconst lw = Math.max(1, h * 0.0025);\nconst lut = (c, n) => { const out = []; for (const p of c.getLUT(n)) out.push(p.x, p.y); return out; };\nconst d = u.u_width * h * 0.01;\ncurves.forEach((c, i) => {\n  const col = cols[i];\n  // outline(d): the closed shape d px either side of the curve, as a list of curves.\n  const ring = [];\n  for (const piece of c.outline(d).curves) ring.push(...lut(piece, 12));\n  kit.fan(ring, [col[0], col[1], col[2], 1], fills);\n  kit.line(ring, true, lw * 0.8, [col[0], col[1], col[2], 0.9], lines);\n  // offset(k * gap): parallel curves further out, fading.\n  for (let k = 1; k <= u.u_offsets; k++) for (const side of [1, -1]) {\n    const a = 0.8 * (1 - k / (u.u_offsets + 1));\n    for (const piece of c.offset(side * (d + k * d * 0.6))) kit.line(lut(piece, 10), false, lw * 0.7, [col[0], col[1], col[2], a], lines);\n  }\n  kit.line(lut(c, 100), false, lw * 1.6, [1, 1, 1, 0.95], lines);\n  // Control polygon.\n  const hull = []; for (const p of ctrlPx[i]) hull.push(p.x, p.y);\n  kit.line(hull, false, lw * 0.6, [1, 1, 1, 0.25], lines);\n  ctrlPx[i].forEach((p, j) => kit.dot(p.x, p.y, lw * (j % 3 ? 2.2 : 3), s.grab && s.grab[0] === i && s.grab[1] === j ? [1, 1, 1, 1] : [col[0], col[1], col[2], 1], dots, 12));\n});\n// intersects(other): \"t1/t2\" pairs where two curves cross.\nlet hits = 0;\nfor (let i = 0; i < curves.length; i++) for (let j = i + 1; j < curves.length; j++) {\n  for (const pair of curves[i].intersects(curves[j])) {\n    const p = curves[i].get(parseFloat(pair.split(\"/\")[0]));\n    kit.dot(p.x, p.y, lw * 7, [1, 1, 1, 0.2], dots, 24);\n    kit.dot(p.x, p.y, lw * 3.2, [1, 0.95, 0.6, 1], dots, 16);\n    hits++;\n  }\n}\n// project(pointer): the nearest point on each curve; show the closest one with its normal.\nif (s.moved && !s.grab) {\n  let best = null;\n  curves.forEach((c) => { const p = c.project(mouse); if (!best || p.d < best.p.d) best = { c, p }; });\n  const { c, p } = best, n = c.normal(p.t);\n  kit.line([mouse.x, mouse.y, p.x, p.y], false, lw * 0.6, [1, 1, 1, 0.4], lines);\n  kit.line([p.x - n.x * d * 2, p.y - n.y * d * 2, p.x + n.x * d * 2, p.y + n.y * d * 2], false, lw, [1, 1, 1, 0.8], lines);\n  kit.dot(p.x, p.y, lw * 3, [1, 1, 1, 1], dots, 16);\n}\nconst fillTex = kit.accumulate(fills);\ngl.useProgram(s.bg);\nctx.utils.bindTexture(s.bg, \"u_fill\", fillTex, 0);\nctx.utils.drawFullscreen(s.bg, { u_fillAlpha: u.u_fill });\ngl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);\nkit.draw(lines); kit.draw(dots);\ngl.disable(gl.BLEND);\nctx.publish(\"intersections\", hits);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 0.6,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Drift",
+      "widget": "knob"
+    },
+    "u_width": {
+      "type": "float",
+      "value": 1.6,
+      "min": 0.3,
+      "max": 6,
+      "step": 0.05,
+      "label": "Outline width"
+    },
+    "u_offsets": {
+      "type": "int",
+      "value": 4,
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "label": "Offset curves"
+    },
+    "u_fill": {
+      "type": "float",
+      "value": 0.35,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Fill"
+    },
+    "u_unpin": {
+      "type": "bool",
+      "value": false,
+      "label": "Release pinned points",
+      "widget": "button"
+    },
+    "u_colorA": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.45,
+        0.35
+      ],
+      "label": "Curve A"
+    },
+    "u_colorB": {
+      "type": "color",
+      "value": [
+        0.3,
+        0.75,
+        1.0
+      ],
+      "label": "Curve B"
+    },
+    "u_colorC": {
+      "type": "color",
+      "value": [
+        0.7,
+        0.95,
+        0.4
+      ],
+      "label": "Curve C"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}
