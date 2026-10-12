@@ -1,0 +1,33 @@
+{
+  "order": 208,
+  "title": "Tile choreography (Anime.js)",
+  "title_ko": "타일 안무 (Anime.js)",
+  "description": "One Anime.js createTimeline() of seven acts (bloom, turn, wave, spiral, rings, home, fold) animates 153 plain tile objects: position, scale, turn, corner roundness, ring thickness and palette position, each act with stagger({ grid, from }) delays and its own easing. The timeline is paused and seeked from the scene clock, and WebGL draws the tiles as instanced rounded boxes, the current easing curve with the leading tile riding it, and a progress bar with a tick per act.",
+  "description_ko": "Anime.js의 createTimeline() 하나에 일곱 막(피어남, 회전, 물결, 나선, 고리, 귀환, 접힘)을 이어 붙여 평범한 JS 객체 153개(타일)의 위치, 크기, 회전, 모서리 둥글기, 고리 두께, 팔레트 위치를 움직인다. 막마다 stagger({ grid, from })로 시차를 주고 이징을 따로 쓴다. 타임라인은 멈춰 둔 채 씬 시계로 seek하고, WebGL이 타일을 인스턴싱한 둥근 사각형으로 그리며, 지금 쓰는 이징 곡선(맨 앞 타일이 그 위를 따라간다)과 막마다 눈금이 있는 진행 막대를 함께 그린다.",
+  "prompt": "(open-source example: animejs imported in the scene)",
+  "made_with": "animejs 4.5.0 via ctx.utils.import",
+  "features": [
+    "timeline",
+    "easing",
+    "stagger",
+    "motion design"
+  ],
+  "mode": "live",
+  "uses": [
+    "anime-js"
+  ],
+  "summary": "A grid of colorful tiles dances through seven moves, rippling, spiraling and folding away, with the timing curve of each move drawn in the corner.",
+  "summary_ko": "알록달록한 타일 격자가 물결치고, 나선을 그리고, 접혀 사라지는 일곱 동작을 춤추듯 이어 가요. 동작마다 쓰는 타이밍 곡선이 구석에 그려져요.",
+  "try": [
+    "Pick outBounce or steps(6) in Easing to give every move the same feel",
+    "Set Stagger from to Random and raise Stagger (ms)",
+    "Lower Speed and press Replay to watch the opening bloom slowly"
+  ],
+  "try_ko": [
+    "Easing에서 outBounce나 steps(6)을 골라 모든 동작을 같은 느낌으로 바꿔 보세요",
+    "Stagger from을 Random으로 두고 Stagger (ms)를 올려 보세요",
+    "Speed를 내리고 Replay를 눌러 처음 피어나는 장면을 천천히 보세요"
+  ],
+  "tool_about": "Anime.js is a JavaScript animation library: it moves values over time with easing, staggers many things one after another and strings moves together on a timeline. It runs in the browser.",
+  "tool_about_ko": "Anime.js는 자바스크립트 애니메이션 라이브러리예요. 값을 이징에 맞춰 시간에 따라 움직이고, 여러 대상을 차례로 시차를 두어 출발시키고, 동작들을 타임라인에 이어 붙여 줘요. 브라우저에서 돌아가요."
+}

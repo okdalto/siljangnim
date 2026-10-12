@@ -1,0 +1,49 @@
+{
+  "order": 216,
+  "title": "Rewrite rules (MarkovJunior)",
+  "title_ko": "다시 쓰기 규칙 (MarkovJunior)",
+  "description": "A JavaScript port of MarkovJunior's core interpreter (one, all and prl rule nodes with symmetries, sequence and markov nodes, incremental match tracking) runs five models from the repo verbatim: MazeGrowth, MazeBacktracker, River, Flowers and BasicSnake. Each turn rewrites the grid in place; the board takes the canvas's shape, uses MarkovJunior's palette with crisp pixels, glows where cells just changed, and starts over a few seconds after a model finishes.",
+  "description_ko": "MarkovJunior 인터프리터의 핵심(대칭을 포함한 one·all·prl 규칙 노드, sequence·markov 노드, 증분 매칭)을 JavaScript로 옮겨, 저장소의 모델 다섯 개(MazeGrowth, MazeBacktracker, River, Flowers, BasicSnake)를 그대로 돌린다. 턴마다 격자를 제자리에서 다시 쓰고, 보드는 캔버스 비율에 맞춰 MarkovJunior 팔레트의 선명한 픽셀로 그리며 방금 바뀐 칸은 빛난다. 모델이 끝나면 몇 초 뒤 새로 시작한다.",
+  "prompt": "(open-source example: MarkovJunior ported to JavaScript in the scene)",
+  "made_with": "MarkovJunior core ported from C# to JavaScript in the scene; models and palette from the repo",
+  "features": [
+    "procedural generation",
+    "rewrite rules",
+    "pixel art",
+    "maze"
+  ],
+  "mode": "live",
+  "uses": [
+    "markovjunior"
+  ],
+  "summary": "A handful of tiny find-and-replace rules on a pixel grid grow a maze, carve a river through forests, or raise a meadow of flowers, step by step.",
+  "summary_ko": "픽셀 격자 위의 작은 '찾아 바꾸기' 규칙 몇 개가 한 걸음씩 미로를 키우고, 숲 사이로 강을 내고, 꽃밭을 피워요.",
+  "try": [
+    "Pick another Model: River, MazeBacktracker or BasicSnake",
+    "Turn the Speed knob down to watch single rewrites",
+    "Press Restart, or switch Grid size to Large"
+  ],
+  "try_ko": [
+    "Model에서 River, MazeBacktracker, BasicSnake를 골라 보세요",
+    "Speed 노브를 내리면 규칙이 하나씩 적용되는 걸 볼 수 있어요",
+    "Restart를 누르거나 Grid size를 Large로 바꿔 보세요"
+  ],
+  "tool_about": "MarkovJunior is a programming language made of rewrite rules: \"find this little pattern of colors, replace it with that one\", run in order or at random until nothing matches. Simple rules like these grow mazes, rivers, dungeons and plants. The original is in C#; here its core runs as JavaScript in the browser.",
+  "tool_about_ko": "MarkovJunior는 다시 쓰기 규칙으로 이루어진 프로그래밍 언어예요. \"이런 작은 색 무늬를 찾아서 저런 무늬로 바꿔라\"를 순서대로 또는 무작위로, 더 바꿀 게 없을 때까지 되풀이해요. 이런 단순한 규칙만으로 미로, 강, 던전, 식물이 자라나요. 원본은 C#이고, 여기서는 그 핵심을 JavaScript로 옮겨 브라우저에서 돌려요.",
+  "credits": [
+    {
+      "what": "MarkovJunior interpreter (rule matching, one/all/prl, sequence/markov, symmetries), ported to JavaScript",
+      "what_ko": "MarkovJunior 인터프리터(규칙 매칭, one/all/prl, sequence/markov, 대칭)를 JavaScript로 옮긴 것",
+      "source": "mxgmn/MarkovJunior (Maxim Gumin)",
+      "license": "MIT",
+      "url": "https://github.com/mxgmn/MarkovJunior"
+    },
+    {
+      "what": "Models MazeGrowth, MazeBacktracker, River, Flowers, BasicSnake and the color palette",
+      "what_ko": "모델 MazeGrowth, MazeBacktracker, River, Flowers, BasicSnake와 색 팔레트",
+      "source": "mxgmn/MarkovJunior models/ and resources/palette.xml (Maxim Gumin)",
+      "license": "MIT",
+      "url": "https://github.com/mxgmn/MarkovJunior/tree/main/models"
+    }
+  ]
+}

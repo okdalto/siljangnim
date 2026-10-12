@@ -1,0 +1,75 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Babylon.js renders into the scene's own WebGL2 context: a PBR material study lit by a\n// procedural studio environment (a reflection probe captures it once for IBL), with\n// GPU particles, soft shadows and Babylon's default post pipeline (bloom, ACES, grain).\nconst B = await ctx.utils.import(\"https://esm.sh/@babylonjs/core@9.28.0\");\n// Passing the context (not the canvas) keeps Babylon from hooking input events.\nconst [w0, h0] = ctx.resolution;\nconst engine = new B.Engine(ctx.gl, true, { stencil: true, doNotHandleContextLost: true }, false);\n// The engine sizes the canvas from its CSS size on creation; keep the runtime's size instead.\nengine.setSize(w0, h0);\nconst scene = new B.Scene(engine);\nscene.useRightHandedSystem = true; // matches ctx.utils.createOrbitCamera\nconst bgColor = new B.Color3(0.028, 0.03, 0.038);\nconst bgLinear = bgColor.toLinearSpace();\nscene.clearColor = new B.Color4(bgLinear.r, bgLinear.g, bgLinear.b, 1);\nscene.ambientColor = B.Color3.Black();\nscene.fogMode = B.Scene.FOGMODE_EXP2;\nscene.fogColor = bgColor;\nscene.fogDensity = 0.045;\n\nconst camera = new B.FreeCamera(\"camera\", new B.Vector3(0, 3, 10), scene);\ncamera.minZ = 0.1; camera.maxZ = 200;\n\n// Procedural studio: dark cyclorama with softboxes, rendered only into the probe.\nB.Effect.ShadersStore.studioSkyVertexShader = `precision highp float;\nattribute vec3 position; uniform mat4 worldViewProjection; varying vec3 vDir;\nvoid main() { vDir = position; gl_Position = worldViewProjection * vec4(position, 1.0); }`;\nB.Effect.ShadersStore.studioSkyFragmentShader = `precision highp float;\nvarying vec3 vDir; uniform vec3 accent;\nfloat box(vec3 d, vec3 c, vec2 size) {\n  vec3 z = normalize(c), x = normalize(cross(vec3(0.0, 1.0, 0.0), z)), y = cross(z, x);\n  float f = dot(d, z); if (f <= 0.0) return 0.0;\n  vec2 p = vec2(dot(d, x), dot(d, y)) / f;\n  vec2 q = smoothstep(size, size * 0.8, abs(p));\n  return q.x * q.y;\n}\nvoid main() {\n  vec3 d = normalize(vDir);\n  vec3 col = mix(vec3(0.010, 0.010, 0.012), vec3(0.05, 0.055, 0.07), smoothstep(-0.2, 0.6, d.y));\n  col += vec3(12.0) * box(d, vec3(0.0, 1.0, 0.08), vec2(0.7, 0.45));      // overhead softbox\n  col += vec3(9.0, 8.0, 6.6) * box(d, vec3(0.9, 0.35, 0.55), vec2(0.25, 0.7)); // warm key strip\n  col += accent * 8.0 * box(d, vec3(-0.85, 0.25, -0.6), vec2(0.16, 0.8));  // colored rim strip\n  col += vec3(2.0, 2.6, 3.6) * box(d, vec3(-0.7, 0.3, 0.75), vec2(0.45, 0.3)); // cool fill\n  gl_FragColor = vec4(col, 1.0);\n}`;\nconst skyMat = new B.ShaderMaterial(\"studioSky\", scene, { vertex: \"studioSky\", fragment: \"studioSky\" }, { attributes: [\"position\"], uniforms: [\"worldViewProjection\", \"accent\"] });\nskyMat.backFaceCulling = false;\nskyMat.fogEnabled = false;\nconst sky = B.MeshBuilder.CreateSphere(\"sky\", { diameter: 80, segments: 32, sideOrientation: B.Mesh.BACKSIDE }, scene);\nsky.material = skyMat;\nsky.infiniteDistance = true;\nsky.layerMask = 0x10000000; // the main camera (0x0fffffff) never sees it\nconst probe = new B.ReflectionProbe(\"studio\", 256, scene, true, true, true);\nprobe.renderList.push(sky);\nprobe.position = new B.Vector3(0, 1, 0);\nprobe.refreshRate = B.RenderTargetTexture.REFRESHRATE_RENDER_ONCE;\nscene.environmentTexture = probe.cubeTexture;\nscene.environmentIntensity = 1.3;\n\n// Key light with soft shadows.\nconst sun = new B.DirectionalLight(\"key\", new B.Vector3(-0.55, -1, -0.35), scene);\nsun.position = new B.Vector3(6, 12, 4);\nsun.intensity = 2.2;\nsun.diffuse = new B.Color3(1, 0.95, 0.88);\nconst shadows = new B.ShadowGenerator(2048, sun);\nshadows.usePercentageCloserFiltering = true;\nshadows.filteringQuality = B.ShadowGenerator.QUALITY_HIGH;\nshadows.bias = 0.002; shadows.normalBias = 0.02;\n\nconst pbr = (name, setup) => {\n  const m = new B.PBRMaterial(name, scene);\n  m.realTimeFiltering = true; // blur the probe by roughness on the fly\n  setup(m);\n  return m;\n};\nconst floorMat = pbr(\"floor\", (m) => { m.albedoColor = new B.Color3(0.03, 0.032, 0.04); m.metallic = 0; m.roughness = 0.32; });\nconst floor = B.MeshBuilder.CreateDisc(\"floor\", { radius: 40, tessellation: 96 }, scene);\nfloor.rotation.x = Math.PI / 2;\nfloor.material = floorMat;\nfloor.receiveShadows = true;\n\n// Hero: an iridescent metal knot.\nconst knotMat = pbr(\"knot\", (m) => {\n  m.albedoColor = new B.Color3(0.92, 0.9, 0.86); m.metallic = 1; m.roughness = 0.18;\n  m.iridescence.isEnabled = true; m.iridescence.intensity = 1; m.iridescence.indexOfRefraction = 1.8;\n  m.iridescence.minimumThickness = 100; m.iridescence.maximumThickness = 450;\n});\nconst knot = B.MeshBuilder.CreateTorusKnot(\"knot\", { radius: 1.05, tube: 0.34, radialSegments: 256, tubularSegments: 48, p: 2, q: 3 }, scene);\nknot.material = knotMat;\nknot.position.y = 1.85;\nshadows.addShadowCaster(knot);\nconst plinth = B.MeshBuilder.CreateCylinder(\"plinth\", { diameter: 2.2, height: 0.22, tessellation: 96 }, scene);\nplinth.position.y = 0.11;\nplinth.material = pbr(\"plinth\", (m) => { m.albedoColor = new B.Color3(0.02, 0.02, 0.022); m.metallic = 0; m.roughness = 0.08; m.clearCoat.isEnabled = true; });\nplinth.receiveShadows = true;\nshadows.addShadowCaster(plinth);\n\n// A ring of spheres, one PBR feature each.\nconst looks = [\n  [\"gold\", (m) => { m.albedoColor = new B.Color3(1.0, 0.76, 0.34); m.metallic = 1; m.roughness = 0.2; }],\n  [\"paint\", (m) => { m.albedoColor = new B.Color3(0.7, 0.05, 0.08); m.metallic = 0.3; m.roughness = 0.45; m.clearCoat.isEnabled = true; m.clearCoat.intensity = 1; m.clearCoat.roughness = 0.03; }],\n  [\"brushed\", (m) => { m.albedoColor = new B.Color3(0.95, 0.64, 0.54); m.metallic = 1; m.roughness = 0.35; m.anisotropy.isEnabled = true; m.anisotropy.intensity = 0.9; }],\n  [\"velvet\", (m) => { m.albedoColor = new B.Color3(0.05, 0.06, 0.25); m.metallic = 0; m.roughness = 0.9; m.sheen.isEnabled = true; m.sheen.intensity = 1; m.sheen.color = new B.Color3(0.55, 0.65, 1); m.sheen.roughness = 0.4; }],\n  [\"glass\", (m) => { m.albedoColor = new B.Color3(1, 1, 1); m.metallic = 0; m.roughness = 0.02; m.subSurface.isRefractionEnabled = true; m.subSurface.indexOfRefraction = 1.45; m.subSurface.tintColor = new B.Color3(0.75, 0.95, 0.9); }],\n  [\"chrome\", (m) => { m.albedoColor = new B.Color3(0.96, 0.96, 0.97); m.metallic = 1; m.roughness = 0.04; }],\n  [\"ceramic\", (m) => { m.albedoColor = new B.Color3(0.9, 0.88, 0.84); m.metallic = 0; m.roughness = 0.3; m.clearCoat.isEnabled = true; m.clearCoat.roughness = 0.1; }],\n];\nconst ring = new B.TransformNode(\"ring\", scene);\nconst mats = {};\nlooks.forEach(([name, setup], i) => {\n  const m = pbr(name, setup);\n  mats[name] = m;\n  const a = (i / looks.length) * Math.PI * 2;\n  const ball = B.MeshBuilder.CreateSphere(name, { diameter: 1.1, segments: 64 }, scene);\n  ball.material = m;\n  ball.parent = ring;\n  ball.position.set(Math.cos(a) * 3.4, 0.55, Math.sin(a) * 3.4);\n  shadows.addShadowCaster(ball);\n});\n\n// GPU particles: warm sparks drifting up through procedural noise.\nconst sparkTex = new B.DynamicTexture(\"spark\", 64, scene, false);\nconst g = sparkTex.getContext();\nconst grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);\ngrad.addColorStop(0, \"rgba(255,255,255,1)\"); grad.addColorStop(0.25, \"rgba(255,255,255,0.6)\"); grad.addColorStop(1, \"rgba(255,255,255,0)\");\ng.fillStyle = grad; g.fillRect(0, 0, 64, 64);\nsparkTex.hasAlpha = true;\nsparkTex.update();\nconst useGpu = B.GPUParticleSystem.IsSupported;\nconst sparks = useGpu ? new B.GPUParticleSystem(\"sparks\", { capacity: 40000 }, scene) : new B.ParticleSystem(\"sparks\", 8000, scene);\nsparks.particleTexture = sparkTex;\nsparks.emitter = new B.Vector3(0, 0.05, 0);\nsparks.createDirectedCylinderEmitter(5.6, 0.1, 0.35, new B.Vector3(-0.15, 1, -0.15), new B.Vector3(0.15, 1, 0.15));\nsparks.minEmitPower = 0.6; sparks.maxEmitPower = 1.6;\nsparks.minLifeTime = 2.5; sparks.maxLifeTime = 5;\nsparks.minSize = 0.025; sparks.maxSize = 0.08;\nsparks.gravity = new B.Vector3(0, 0.25, 0);\nsparks.blendMode = B.ParticleSystem.BLENDMODE_ADD;\nsparks.colorDead = new B.Color4(0, 0, 0, 0);\nconst noise = new B.NoiseProceduralTexture(\"sparkNoise\", 128, scene);\nnoise.animationSpeedFactor = 3; noise.persistence = 1.4; noise.brightness = 0.5; noise.octaves = 3;\nsparks.noiseTexture = noise;\nsparks.noiseStrength = new B.Vector3(0.5, 0.2, 0.5);\nsparks.preWarmCycles = 200; sparks.preWarmStepOffset = 5;\nsparks.start();\n\n// Default post pipeline: HDR, MSAA, bloom, ACES tone mapping, vignette, grain.\nconst pipe = new B.DefaultRenderingPipeline(\"post\", true, scene, [camera]);\npipe.samples = 4;\npipe.bloomEnabled = true; pipe.bloomThreshold = 0.85; pipe.bloomKernel = 96; pipe.bloomScale = 0.5;\npipe.imageProcessingEnabled = true;\nconst ip = pipe.imageProcessing;\nip.toneMappingEnabled = true;\nip.toneMappingType = B.ImageProcessingConfiguration.TONEMAPPING_ACES;\nip.contrast = 1.25;\nip.vignetteEnabled = true; ip.vignetteWeight = 2.2; ip.vignetteColor = new B.Color4(0, 0, 0, 0);\npipe.grainEnabled = true; pipe.grain.intensity = 4; pipe.grain.animated = true;\npipe.chromaticAberrationEnabled = true; pipe.chromaticAberration.aberrationAmount = 2;\n\nObject.assign(ctx.state, {\n  B, engine, scene, camera, knot, ring, mats, knotMat, sparks, pipe, skyMat, probe, size: [0, 0],\n  target: new B.Vector3(), accent: new B.Color3(), paint: new B.Color3(), spark: new B.Color4(), sparkCap: useGpu ? 40000 : 8000,\n  orbit: ctx.utils.createOrbitCamera({ distance: 11.5, theta: 0.55, phi: 1.17, target: [0, 1.1, 0], fov: 38, near: 0.1, far: 200, minDistance: 3, maxDistance: 40 }),\n});",
+    "render": "const s = ctx.state, u = ctx.uniforms, [w, h] = ctx.resolution, B = s.B;\nif (s.size[0] !== w || s.size[1] !== h) {\n  s.size = [w, h];\n  s.engine.setSize(w, h);\n}\n// The shared orbit camera drives Babylon's camera.\ns.orbit.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt);\ns.camera.fov = (s.orbit.fov * Math.PI) / 180;\ns.camera.position.set(...s.orbit.getEye());\ns.camera.setTarget(s.target.set(...s.orbit.getTarget()));\n// Look controls. Colors from the controls are sRGB; Babylon's material colors are linear.\ns.paint.set(...u.u_paint).toLinearSpaceToRef(s.paint);\ns.mats.paint.albedoColor.copyFrom(s.paint);\ns.skyMat.setColor3(\"accent\", s.accent.set(...u.u_paint).toLinearSpaceToRef(s.accent));\ns.knotMat.roughness = u.u_rough;\ns.mats.gold.roughness = Math.min(1, u.u_rough + 0.05);\ns.mats.brushed.roughness = Math.min(1, u.u_rough + 0.2);\nconst [sr, sg, sb] = u.u_spark;\ns.sparks.color1 = new B.Color4(sr * 6, sg * 6, sb * 6, 1);\ns.sparks.color2 = new B.Color4(sr * 2.5, sg * 2, sb * 2, 1);\ns.sparks.emitRate = u.u_sparks * s.sparkCap / 60;\ns.pipe.imageProcessing.exposure = u.u_exposure;\ns.pipe.bloomWeight = u.u_bloom;\nconst dt = Math.min(ctx.dt, 0.1) * u.u_speed;\ns.knot.rotation.y += dt * 0.5;\ns.knot.rotation.x = Math.sin(ctx.time * 0.4 * u.u_speed) * 0.25;\ns.ring.rotation.y -= dt * 0.15;\n// The runtime touched GL state since the last frame; Babylon caches it, so resync first.\ns.engine.wipeCaches(true);\ns.engine.beginFrame();\ns.scene.render();\ns.engine.endFrame();",
+    "cleanup": "const s = ctx.state;\ns.scene?.dispose(); s.engine?.dispose();"
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.01,
+      "label": "Speed",
+      "widget": "knob"
+    },
+    "u_rough": {
+      "type": "float",
+      "value": 0.18,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Roughness"
+    },
+    "u_exposure": {
+      "type": "float",
+      "value": 1.2,
+      "min": 0.3,
+      "max": 3,
+      "step": 0.01,
+      "label": "Exposure"
+    },
+    "u_bloom": {
+      "type": "float",
+      "value": 0.45,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.01,
+      "label": "Bloom"
+    },
+    "u_sparks": {
+      "type": "float",
+      "value": 0.2,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Sparks"
+    },
+    "u_paint": {
+      "type": "color",
+      "value": [
+        0.95,
+        0.12,
+        0.2
+      ],
+      "label": "Accent"
+    },
+    "u_spark": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.55,
+        0.22
+      ],
+      "label": "Spark color"
+    }
+  },
+  "inputs": [
+    "mouse",
+    "keyboard"
+  ]
+}

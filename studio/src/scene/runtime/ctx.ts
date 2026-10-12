@@ -7,6 +7,7 @@ import * as mat4 from "../gl/mat4.js";
 import * as noise from "../gl/noise.js";
 import { createOrbitCamera } from "../gl/orbitCamera.js";
 import { createPingPong } from "../gl/pingPong.js";
+import { createShadertoy, type ShadertoyOptions } from "../gl/shadertoy";
 import * as quat from "../gl/quat.js";
 import { uploadDataTexture } from "../gl/textureUtils.js";
 import { createVerletSystem } from "../gl/verletPhysics.js";
@@ -70,6 +71,11 @@ export interface SceneUtils {
   /** The shared orbit camera: drag orbits, right-drag/Shift+drag pans, scroll zooms, double-click resets. */
   createOrbitCamera: typeof createOrbitCamera;
   createVerletSystem: typeof createVerletSystem;
+  /**
+   * Run Shadertoy-style code (mainImage, iTime, iResolution, iMouse, iChannel0-3, Buffers A-D) as written.
+   * Returns { draw() } to call in render each frame.
+   */
+  shadertoy: (image: string, options?: ShadertoyOptions) => { draw(): void };
   glsl: Record<string, string>;
   /** Dynamic import of an ES module from an allowed CDN, e.g. "https://esm.sh/d3-delaunay@6". */
   import(url: string): Promise<unknown>;
@@ -93,6 +99,8 @@ export interface SceneCtx {
   frame: number;
   /** Drawing-buffer size in pixels. */
   resolution: [number, number];
+  /** True on the first frame after ctx.resolution changed: recreate size-dependent targets and layouts then. */
+  resized: boolean;
   /** [x, y, clickX, clickY], normalized 0..1, origin top-left. */
   mouse: [number, number, number, number];
   /** ctx.mouse as it was on the previous frame. */
@@ -142,6 +150,7 @@ export function createCtx(
   inputs?: SceneInputs,
 ): { ctx: SceneCtx; dispose(): void; beforeFrame(): void } {
   const quad = createFullscreenQuad(gl);
+  const toys: Array<ReturnType<typeof createShadertoy>> = [];
   const videos: VideoTexture[] = [];
   let audioTexture: WebGLTexture | null = null;
   const audioRows = new Float32Array(SPECTRUM_BINS * 2);
@@ -164,6 +173,7 @@ export function createCtx(
     dt: 0,
     frame: 0,
     resolution: [canvas.width, canvas.height],
+    resized: false,
     mouse: [0.5, 0.5, 0.5, 0.5],
     mousePrev: [0.5, 0.5, 0.5, 0.5],
     mouseDown: false,
@@ -258,6 +268,11 @@ export function createCtx(
       return createOrbitCamera({ pointer, ...options });
     },
     createVerletSystem,
+    shadertoy(image, options) {
+      const toy = createShadertoy(gl, quad, image, options);
+      toys.push(toy);
+      return { draw: () => toy.draw(ctx) };
+    },
     glsl,
     import: importModule,
   };
@@ -288,6 +303,7 @@ export function createCtx(
     },
     dispose: () => {
       hint?.remove();
+      for (const toy of toys) toy.dispose();
       quad.dispose();
       // Videos keep decoding (and playing sound) until stopped.
       for (const video of videos.splice(0)) video.dispose();

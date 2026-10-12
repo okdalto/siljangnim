@@ -1,0 +1,114 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "// A mix of two examples: opentype.js letters (Type particles) and a simplex-noise flow field (Flow field).\n// The wind scatters the letters into streams along the field (its curl, so they swirl rather than pile up); when it drops, the particles find\n// their way back into the word. Trails come from the flow-field example's fading half-float buffer.\nconst mod = await ctx.utils.import(\"https://esm.sh/opentype.js@1.3.4\");\nconst opentype = mod.default ?? mod;\nconst { createNoise3D } = await ctx.utils.import(\"https://esm.sh/simplex-noise@4.0.3\");\nconst font = opentype.parse(await (await fetch(ctx.assets[\"Bungee-Regular.ttf\"])).arrayBuffer());\nconst WORDS = [\"SILJANGNIM\", \"REMIX\", \"OPEN SOURCE\"];\nconst N = 14000;\n// Glyph outlines → N evenly spaced points, fitted to the canvas (uv, y up).\nconst sample = (text, w, h) => {\n  const segs = [];\n  let cur = [0, 0], start = [0, 0];\n  for (const c of font.getPath(text, 0, 0, 100).commands) {\n    if (c.type === \"M\") { cur = [c.x, c.y]; start = cur; }\n    else if (c.type === \"L\") { segs.push([cur, [c.x, c.y]]); cur = [c.x, c.y]; }\n    else if (c.type === \"Q\" || c.type === \"C\") {\n      let prev = cur;\n      for (let k = 1; k <= 10; k++) {\n        const t = k / 10, m = 1 - t;\n        const p = c.type === \"Q\"\n          ? [m * m * cur[0] + 2 * m * t * c.x1 + t * t * c.x, m * m * cur[1] + 2 * m * t * c.y1 + t * t * c.y]\n          : [m ** 3 * cur[0] + 3 * m * m * t * c.x1 + 3 * m * t * t * c.x2 + t ** 3 * c.x, m ** 3 * cur[1] + 3 * m * m * t * c.y1 + 3 * m * t * t * c.y2 + t ** 3 * c.y];\n        segs.push([prev, p]); prev = p;\n      }\n      cur = [c.x, c.y];\n    } else if (c.type === \"Z\") { segs.push([cur, start]); cur = start; }\n  }\n  const lengths = segs.map(([a, b]) => Math.hypot(b[0] - a[0], b[1] - a[1]));\n  const total = lengths.reduce((x, y) => x + y, 0);\n  const pts = new Float32Array(N * 2);\n  let si = 0, acc = 0;\n  for (let i = 0; i < N; i++) {\n    const d = (i / N) * total;\n    while (si < segs.length - 1 && acc + lengths[si] < d) acc += lengths[si++];\n    const [a, b] = segs[si], f = lengths[si] ? (d - acc) / lengths[si] : 0;\n    pts[i * 2] = a[0] + (b[0] - a[0]) * f; pts[i * 2 + 1] = a[1] + (b[1] - a[1]) * f;\n  }\n  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;\n  for (let i = 0; i < N; i++) { x0 = Math.min(x0, pts[i * 2]); x1 = Math.max(x1, pts[i * 2]); y0 = Math.min(y0, pts[i * 2 + 1]); y1 = Math.max(y1, pts[i * 2 + 1]); }\n  const aspect = w / h, scale = Math.min(0.86 * aspect / (x1 - x0), 0.42 / (y1 - y0));\n  for (let i = 0; i < N; i++) {\n    pts[i * 2] = 0.5 + ((pts[i * 2] - (x0 + x1) / 2) * scale) / aspect;\n    pts[i * 2 + 1] = 0.5 - (pts[i * 2 + 1] - (y0 + y1) / 2) * scale;\n  }\n  return pts;\n};\nconst pos = new Float32Array(N * 3); // x, y, speed\nfor (let i = 0; i < N; i++) { pos[i * 3] = Math.random(); pos[i * 3 + 1] = Math.random(); }\nconst gl = ctx.gl;\ngl.getExtension(\"EXT_color_buffer_float\");\nconst vao = gl.createVertexArray(), buffer = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 12, 0);\ngl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 12, 8);\ngl.bindVertexArray(null);\nObject.assign(ctx.state, {\n  WORDS, N, sample, pos, vel: new Float32Array(N * 2), vao, buffer, word: -1, targets: null, size: [0, 0],\n  noise: createNoise3D(), trails: null, wind: 1,\n  fade: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, '#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform sampler2D u_prev; uniform float u_fade;\\nvoid main(){ outColor = vec4(texture(u_prev, v_uv).rgb * u_fade, 1.0); }'),\n  show: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, '#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform sampler2D u_tex;\\nvoid main(){ vec3 c = texture(u_tex, v_uv).rgb; c = 1.0 - exp(-c * 1.5); c *= 1.0 - 0.3 * pow(length(v_uv - 0.5) * 1.4, 2.0); outColor = vec4(c + vec3(0.008, 0.009, 0.016), 1.0); }'),\n  points: ctx.utils.createProgram('#version 300 es\\nlayout(location=0) in vec2 a_position; layout(location=1) in float a_speed;\\nout float v_speed; uniform float u_size;\\nvoid main(){ v_speed = a_speed; gl_Position = vec4(a_position * 2.0 - 1.0, 0.0, 1.0); gl_PointSize = u_size; }', '#version 300 es\\nprecision highp float; in float v_speed; out vec4 outColor; uniform vec3 u_calm; uniform vec3 u_gust;\\nvoid main(){ float k = clamp(v_speed, 0.0, 1.0); outColor = vec4(mix(u_calm, u_gust, k) * mix(0.075, 0.2, k), 1.0); }'),\n});\n",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms;\nconst [w, h] = ctx.resolution;\nif (!s.trails || s.size[0] !== w || s.size[1] !== h) {\n  s.trails = ctx.utils.createPingPong(w, h, { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT, filter: gl.LINEAR });\n  s.size = [w, h]; s.word = -1;\n}\n// Gusts come and go on their own (or hold Wind); each calm spells the next word.\nconst cycle = (ctx.time % 7) / 7;\nconst auto = cycle < 0.38 ? 1 : cycle < 0.5 ? 1 - (cycle - 0.38) / 0.12 : cycle < 0.9 ? 0 : (cycle - 0.9) / 0.1;\nconst target = u.u_auto ? Math.max(auto, ctx.mouseDown ? 1 : 0) : (ctx.mouseDown ? 1 : u.u_wind);\ns.wind += (target - s.wind) * 0.06;\nconst word = u.u_auto ? Math.floor(ctx.time / 7) % s.WORDS.length : u.u_word;\nif (word !== s.word) { s.word = word; s.targets = s.sample(s.WORDS[word], w, h); }\nconst aspect = w / h, t = ctx.time * 0.1, scale = u.u_scale, wind = s.wind;\nfor (let i = 0; i < s.N; i++) {\n  const o = i * 3, v = i * 2;\n  const x = s.pos[o], y = s.pos[o + 1];\n  // Curl of the noise: a swirling wind that never piles particles into one stream.\n  const px = x * scale * aspect, py = y * scale, e = 0.01;\n  const fx = (s.noise(px, py + e, t) - s.noise(px, py - e, t)) / (2 * e);\n  const fy = -(s.noise(px + e, py, t) - s.noise(px - e, py, t)) / (2 * e);\n  // Flow-field push while it blows, a spring to the letter when it's calm.\n  let vx = s.vel[v] + fx * 0.00045 * wind / aspect + (s.targets[v] - x) * 0.018 * (1 - wind) * u.u_pull;\n  let vy = s.vel[v + 1] + fy * 0.00045 * wind + (s.targets[v + 1] - y) * 0.018 * (1 - wind) * u.u_pull;\n  vx *= 0.9; vy *= 0.9;\n  let nx = x + vx, ny = y + vy;\n  if (nx < -0.05 || nx > 1.05 || ny < -0.05 || ny > 1.05) { nx = Math.random(); ny = Math.random(); vx = vy = 0; }\n  s.vel[v] = vx; s.vel[v + 1] = vy;\n  s.pos[o] = nx; s.pos[o + 1] = ny; s.pos[o + 2] = Math.min(1, Math.hypot(vx * aspect, vy) * 260);\n}\nctx.publish(\"wind\", Number(wind.toFixed(2)));\nconst read = s.trails.read(), write = s.trails.write();\ngl.bindFramebuffer(gl.FRAMEBUFFER, write.framebuffer);\ngl.viewport(0, 0, w, h);\ngl.useProgram(s.fade);\nctx.utils.bindTexture(s.fade, \"u_prev\", read.texture, 0);\nctx.utils.drawFullscreen(s.fade, { u_fade: u.u_trail });\ngl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);\ngl.useProgram(s.points);\nctx.utils.setUniforms(s.points, { u_calm: u.u_calm, u_gust: u.u_gust, u_size: Math.max(1.5, h / 700) });\ngl.bindVertexArray(s.vao); gl.bindBuffer(gl.ARRAY_BUFFER, s.buffer);\ngl.bufferData(gl.ARRAY_BUFFER, s.pos, gl.DYNAMIC_DRAW);\ngl.drawArrays(gl.POINTS, 0, s.N);\ngl.bindVertexArray(null); gl.disable(gl.BLEND);\ns.trails.swap();\ngl.bindFramebuffer(gl.FRAMEBUFFER, null);\ngl.viewport(0, 0, w, h);\ngl.useProgram(s.show);\nctx.utils.bindTexture(s.show, \"u_tex\", s.trails.read().texture, 0);\nctx.utils.drawFullscreen(s.show);\n",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_auto": {
+      "type": "bool",
+      "value": true,
+      "label": "Gusts on their own"
+    },
+    "u_wind": {
+      "type": "float",
+      "value": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Wind",
+      "widget": "slider"
+    },
+    "u_word": {
+      "type": "int",
+      "value": 0,
+      "label": "Word",
+      "widget": "select",
+      "options": [
+        {
+          "label": "SILJANGNIM",
+          "value": 0
+        },
+        {
+          "label": "REMIX",
+          "value": 1
+        },
+        {
+          "label": "OPEN SOURCE",
+          "value": 2
+        }
+      ]
+    },
+    "u_pull": {
+      "type": "float",
+      "value": 1,
+      "min": 0.2,
+      "max": 2.5,
+      "step": 0.01,
+      "label": "Pull",
+      "widget": "knob"
+    },
+    "u_scale": {
+      "type": "float",
+      "value": 2.6,
+      "min": 0.5,
+      "max": 8,
+      "step": 0.1,
+      "label": "Field scale",
+      "widget": "knob"
+    },
+    "u_trail": {
+      "type": "float",
+      "value": 0.93,
+      "min": 0.7,
+      "max": 0.99,
+      "step": 0.005,
+      "label": "Trail",
+      "widget": "slider"
+    },
+    "u_calm": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.62,
+        0.32
+      ],
+      "label": "Calm"
+    },
+    "u_gust": {
+      "type": "color",
+      "value": [
+        0.38,
+        0.62,
+        1.0
+      ],
+      "label": "Gust"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ],
+  "controls": [
+    {
+      "label": "Wind",
+      "uniforms": [
+        "u_auto",
+        "u_wind",
+        "u_word"
+      ]
+    },
+    {
+      "label": "Look",
+      "uniforms": [
+        "u_pull",
+        "u_scale",
+        "u_trail",
+        "u_calm",
+        "u_gust"
+      ]
+    }
+  ],
+  "keyframes": {}
+}

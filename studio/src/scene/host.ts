@@ -46,6 +46,7 @@ interface Pending {
 export class SceneHost {
   readonly iframe: HTMLIFrameElement;
   private readonly origin: string;
+  private readonly url: string;
   private readonly pending = new Map<number, Pending>();
   private readonly listeners = new Map<EventName, Set<Listener<EventName>>>();
   private nextId = 1;
@@ -55,6 +56,7 @@ export class SceneHost {
 
   constructor(container: HTMLElement, url: URL = sceneRuntimeUrl()) {
     this.origin = url.origin;
+    this.url = url.href;
     this.iframe = document.createElement("iframe");
     this.iframe.title = "Scene";
     this.iframe.src = url.href;
@@ -62,18 +64,37 @@ export class SceneHost {
     this.iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-pointer-lock");
     this.iframe.setAttribute("allow", "camera; microphone; midi; fullscreen; autoplay");
     this.iframe.className = "block h-full w-full border-0";
-    this.readyPromise = new Promise((resolve) => {
-      const off = this.on("ready", () => {
-        off();
-        resolve();
-      });
-    });
+    this.readyPromise = this.waitForReady();
     window.addEventListener("message", this.onMessage);
     container.appendChild(this.iframe);
   }
 
   ready(): Promise<void> {
     return this.readyPromise;
+  }
+
+  /**
+   * A fresh scene document: what the previous project's libraries left behind (globals, WebGL contexts,
+   * workers) goes with the old one. Requests made meanwhile wait for the new runtime.
+   */
+  restart(): Promise<void> {
+    for (const p of this.pending.values()) {
+      clearTimeout(p.timer);
+      p.reject(new Error("scene runtime restarted"));
+    }
+    this.pending.clear();
+    this.readyPromise = this.waitForReady();
+    this.iframe.src = this.url;
+    return this.readyPromise;
+  }
+
+  private waitForReady(): Promise<void> {
+    return new Promise((resolve) => {
+      const off = this.on("ready", () => {
+        off();
+        resolve();
+      });
+    });
   }
 
   on<E extends EventName>(event: E, listener: Listener<E>): () => void {

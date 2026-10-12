@@ -1,7 +1,7 @@
 // Small WebGL2 helpers exposed to scene scripts through ctx.utils.
 import { ATTRIB } from "./shader";
 
-type UniformInput = number | boolean | ArrayLike<number>;
+export type UniformInput = number | boolean | ArrayLike<number>;
 
 interface UniformInfo {
   location: WebGLUniformLocation;

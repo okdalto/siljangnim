@@ -1,0 +1,106 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Lottie Web plays a hand-made animation (assets/bloom.json) with its canvas renderer into an\n// offscreen canvas; WebGL takes each frame as a texture. The animation's layers are drawn in pure\n// red, green and blue so the shader can recolor them, fold them into a kaleidoscope ring and\n// feed the result back on itself for zooming, twisting echo trails.\nconst mod = await ctx.utils.import(\"https://cdn.jsdelivr.net/npm/lottie-web@5.13.0/build/player/esm/lottie_light_canvas.min.js\");\nconst lottie = mod.default ?? mod;\nconst animationData = await (await fetch(ctx.assets[\"bloom.json\"])).json();\nconst gl = ctx.gl, S = 512;\nconst canvas = document.createElement(\"canvas\");\ncanvas.width = S; canvas.height = S;\nconst anim = lottie.loadAnimation({\n  renderer: \"canvas\", loop: true, autoplay: false, animationData,\n  rendererSettings: { context: canvas.getContext(\"2d\"), clearCanvas: true, preserveAspectRatio: \"xMidYMid meet\" },\n});\nconst tex = gl.createTexture();\ngl.bindTexture(gl.TEXTURE_2D, tex);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);\ngl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);\n// Half-float trails fade smoothly; 8-bit ones would stall in bands.\nconst float = !!gl.getExtension(\"EXT_color_buffer_float\");\nconst header = `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor;\nuniform vec2 u_resolution; uniform float u_time;`;\nconst feedback = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `${header}\nuniform sampler2D u_prev, u_lottie;\nuniform float u_echo, u_twist, u_segments, u_spread, u_spin, u_size;\nuniform vec3 u_colorA, u_colorB, u_colorC;\nconst float TAU = 6.2831853;\nmat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }\n// The Lottie frame at point q (frame spans [-u_size, u_size]), recolored channel by channel.\nvec4 bloom(vec2 q){\n  vec2 uv = q / (2.0 * u_size) + 0.5;\n  if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) return vec4(0.0);\n  vec4 c = texture(u_lottie, vec2(uv.x, 1.0 - uv.y));\n  return vec4(c.r * u_colorA + c.g * u_colorB + c.b * u_colorC, c.a);\n}\nvoid main(){\n  vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution) / u_resolution.y;\n  // Echo: last frame, zoomed out a little and twisted, so trails stream outwards in a spiral.\n  vec2 q = rot(u_twist * 0.03) * p * (1.0 - 0.006 - 0.012 * u_echo);\n  vec3 prev = texture(u_prev, q * u_resolution.y / u_resolution + 0.5).rgb;\n  // Trails cool towards the last color as they age.\n  prev = mix(prev, dot(prev, vec3(0.33)) * u_colorC * 1.4, 0.03);\n  // Kaleidoscope ring: fold the plane into mirrored wedges and place a copy in each.\n  vec4 cur = vec4(0.0);\n  if (u_segments > 1.5) {\n    float seg = TAU / u_segments;\n    vec2 k = rot(u_spin) * p;\n    float a = atan(k.y, k.x), r = length(k);\n    a = mod(a, seg); a = abs(a - seg * 0.5);\n    vec2 f = vec2(cos(a), sin(a)) * r - vec2(u_spread, 0.0);\n    cur = bloom(rot(-u_spin * 2.0) * f * 2.0);\n  }\n  vec4 center = bloom(p);\n  cur = cur * (1.0 - center.a) + center;\n  vec3 col = prev * u_echo * 0.985 * (1.0 - cur.a * 0.85) + cur.rgb;\n  outColor = vec4(min(col, vec3(8.0)), 1.0);\n}`);\nconst present = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `${header}\nuniform sampler2D u_image; uniform vec3 u_colorC;\nvoid main(){\n  vec3 c = texture(u_image, v_uv).rgb;\n  vec2 q = v_uv - 0.5; q.x *= u_resolution.x / u_resolution.y;\n  vec3 bg = mix(u_colorC * 0.06 + 0.012, vec3(0.006), smoothstep(0.1, 0.9, length(q)));\n  c = bg + c;\n  c = c / (1.0 + c * 0.35);        // soft shoulder for stacked echoes\n  outColor = vec4(pow(c, vec3(0.95)), 1.0);\n}`);\nObject.assign(ctx.state, { anim, canvas, tex, feedback, present, float, buffers: null, phase: 0 });",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution;\n// Our own clock, so Speed can change smoothly (and run backwards).\ns.phase += ctx.dt * u.u_speed;\nconst total = s.anim.totalFrames;\ns.anim.goToAndStop((((s.phase * s.anim.frameRate) % total) + total) % total, true);\ngl.bindTexture(gl.TEXTURE_2D, s.tex);\ngl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);\ngl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, s.canvas);\ngl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);\nif (!s.buffers || s.buffers.width !== w || s.buffers.height !== h) {\n  s.buffers = ctx.utils.createPingPong(w, h, s.float ? { internalFormat: gl.RGBA16F, type: gl.HALF_FLOAT } : {});\n}\nconst common = { u_colorA: u.u_colorA, u_colorB: u.u_colorB, u_colorC: u.u_colorC };\ngl.bindFramebuffer(gl.FRAMEBUFFER, s.buffers.write().framebuffer);\ngl.viewport(0, 0, w, h);\ngl.useProgram(s.feedback);\nctx.utils.bindTexture(s.feedback, \"u_prev\", s.buffers.read().texture, 0);\nctx.utils.bindTexture(s.feedback, \"u_lottie\", s.tex, 1);\nctx.utils.drawFullscreen(s.feedback, { ...common, u_echo: u.u_echo, u_twist: u.u_twist, u_segments: u.u_segments,\n  u_spread: u.u_spread, u_spin: ctx.time * 0.15, u_size: 0.26 });\ns.buffers.swap();\ngl.bindFramebuffer(gl.FRAMEBUFFER, null);\ngl.viewport(0, 0, w, h);\ngl.useProgram(s.present);\nctx.utils.bindTexture(s.present, \"u_image\", s.buffers.read().texture, 0);\nctx.utils.drawFullscreen(s.present, common);\nctx.publish(\"lottie frame\", Math.floor(s.anim.currentFrame));",
+    "cleanup": "ctx.state.anim?.destroy();"
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": -2,
+      "max": 3,
+      "step": 0.05,
+      "label": "Speed",
+      "widget": "knob"
+    },
+    "u_echo": {
+      "type": "float",
+      "value": 0.9,
+      "min": 0,
+      "max": 0.98,
+      "step": 0.01,
+      "label": "Echo",
+      "widget": "knob"
+    },
+    "u_twist": {
+      "type": "float",
+      "value": 1,
+      "min": -4,
+      "max": 4,
+      "step": 0.05,
+      "label": "Twist"
+    },
+    "u_segments": {
+      "type": "int",
+      "value": 6,
+      "label": "Mirrors",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Off",
+          "value": 1
+        },
+        {
+          "label": "3",
+          "value": 3
+        },
+        {
+          "label": "4",
+          "value": 4
+        },
+        {
+          "label": "6",
+          "value": 6
+        },
+        {
+          "label": "8",
+          "value": 8
+        },
+        {
+          "label": "12",
+          "value": 12
+        }
+      ]
+    },
+    "u_spread": {
+      "type": "float",
+      "value": 0.42,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Ring radius"
+    },
+    "u_colorA": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.36,
+        0.42
+      ],
+      "label": "Petals"
+    },
+    "u_colorB": {
+      "type": "color",
+      "value": [
+        1.0,
+        0.78,
+        0.3
+      ],
+      "label": "Arcs"
+    },
+    "u_colorC": {
+      "type": "color",
+      "value": [
+        0.3,
+        0.55,
+        1.0
+      ],
+      "label": "Dots"
+    }
+  },
+  "inputs": []
+}

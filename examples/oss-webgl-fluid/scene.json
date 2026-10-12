@@ -1,0 +1,116 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "// Stable-fluids simulation on ctx.gl. The shaders and the pass order (curl, vorticity, divergence,\n// pressure Jacobi, gradient subtract, advection, splats, bloom) are adapted from Pavel Dobryakov's\n// WebGL-Fluid-Simulation (MIT, https://github.com/PavelDoGreat/WebGL-Fluid-Simulation), ported to GLSL ES 3.00.\nconst gl = ctx.gl;\nif (!gl.getExtension(\"EXT_color_buffer_float\")) throw new Error(\"this GPU can't render to float textures (EXT_color_buffer_float)\");\ngl.getExtension(\"OES_texture_float_linear\");\n\nconst VS = `#version 300 es\nin vec2 a_position;\nuniform vec2 texelSize;\nout vec2 vUv; out vec2 vL; out vec2 vR; out vec2 vT; out vec2 vB;\nvoid main() {\n  vUv = a_position * 0.5 + 0.5;\n  vL = vUv - vec2(texelSize.x, 0.0); vR = vUv + vec2(texelSize.x, 0.0);\n  vT = vUv + vec2(0.0, texelSize.y); vB = vUv - vec2(0.0, texelSize.y);\n  gl_Position = vec4(a_position, 0.0, 1.0);\n}`;\nconst FS = (body) => `#version 300 es\nprecision highp float; precision highp sampler2D;\nin vec2 vUv; in vec2 vL; in vec2 vR; in vec2 vT; in vec2 vB;\nuniform vec2 texelSize;\nout vec4 outColor;\n${body}`;\nconst P = (body) => ctx.utils.createProgram(VS, FS(body));\n\nconst programs = {\n  clear: P(`uniform sampler2D uTexture; uniform float value;\nvoid main() { outColor = value * texture(uTexture, vUv); }`),\n  splat: P(`uniform sampler2D uTarget; uniform float aspectRatio; uniform vec3 color; uniform vec2 point; uniform float radius;\nvoid main() {\n  vec2 p = vUv - point; p.x *= aspectRatio;\n  vec3 splat = exp(-dot(p, p) / radius) * color;\n  outColor = vec4(texture(uTarget, vUv).xyz + splat, 1.0);\n}`),\n  advection: P(`uniform sampler2D uVelocity; uniform sampler2D uSource; uniform float dt; uniform float dissipation;\nvoid main() {\n  vec2 coord = vUv - dt * texture(uVelocity, vUv).xy * texelSize;\n  vec4 result = texture(uSource, coord);\n  outColor = result / (1.0 + dissipation * dt);\n}`),\n  divergence: P(`uniform sampler2D uVelocity;\nvoid main() {\n  float L = texture(uVelocity, vL).x, R = texture(uVelocity, vR).x;\n  float T = texture(uVelocity, vT).y, B = texture(uVelocity, vB).y;\n  vec2 C = texture(uVelocity, vUv).xy;\n  // walls: reflect the velocity at the edges\n  if (vL.x < 0.0) L = -C.x; if (vR.x > 1.0) R = -C.x;\n  if (vT.y > 1.0) T = -C.y; if (vB.y < 0.0) B = -C.y;\n  outColor = vec4(0.5 * (R - L + T - B), 0.0, 0.0, 1.0);\n}`),\n  curl: P(`uniform sampler2D uVelocity;\nvoid main() {\n  float L = texture(uVelocity, vL).y, R = texture(uVelocity, vR).y;\n  float T = texture(uVelocity, vT).x, B = texture(uVelocity, vB).x;\n  outColor = vec4(0.5 * (R - L - T + B), 0.0, 0.0, 1.0);\n}`),\n  vorticity: P(`uniform sampler2D uVelocity; uniform sampler2D uCurl; uniform float curl; uniform float dt;\nvoid main() {\n  float L = texture(uCurl, vL).x, R = texture(uCurl, vR).x;\n  float T = texture(uCurl, vT).x, B = texture(uCurl, vB).x, C = texture(uCurl, vUv).x;\n  vec2 force = 0.5 * vec2(abs(T) - abs(B), abs(R) - abs(L));\n  force /= length(force) + 0.0001;\n  force *= curl * C; force.y *= -1.0;\n  vec2 velocity = texture(uVelocity, vUv).xy + force * dt;\n  outColor = vec4(clamp(velocity, -1000.0, 1000.0), 0.0, 1.0);\n}`),\n  pressure: P(`uniform sampler2D uPressure; uniform sampler2D uDivergence;\nvoid main() {\n  float L = texture(uPressure, vL).x, R = texture(uPressure, vR).x;\n  float T = texture(uPressure, vT).x, B = texture(uPressure, vB).x;\n  float divergence = texture(uDivergence, vUv).x;\n  outColor = vec4((L + R + B + T - divergence) * 0.25, 0.0, 0.0, 1.0);\n}`),\n  gradient: P(`uniform sampler2D uPressure; uniform sampler2D uVelocity;\nvoid main() {\n  float L = texture(uPressure, vL).x, R = texture(uPressure, vR).x;\n  float T = texture(uPressure, vT).x, B = texture(uPressure, vB).x;\n  vec2 velocity = texture(uVelocity, vUv).xy - vec2(R - L, T - B);\n  outColor = vec4(velocity, 0.0, 1.0);\n}`),\n  bloomPrefilter: P(`uniform sampler2D uTexture; uniform vec3 curve; uniform float threshold;\nvoid main() {\n  vec3 c = texture(uTexture, vUv).rgb;\n  float br = max(c.r, max(c.g, c.b));\n  float rq = clamp(br - curve.x, 0.0, curve.y);\n  rq = curve.z * rq * rq;\n  c *= max(rq, br - threshold) / max(br, 0.0001);\n  outColor = vec4(c, 0.0);\n}`),\n  bloomBlur: P(`uniform sampler2D uTexture;\nvoid main() {\n  vec4 sum = texture(uTexture, vL) + texture(uTexture, vR) + texture(uTexture, vT) + texture(uTexture, vB);\n  outColor = sum * 0.25;\n}`),\n  bloomFinal: P(`uniform sampler2D uTexture; uniform float intensity;\nvoid main() {\n  vec4 sum = texture(uTexture, vL) + texture(uTexture, vR) + texture(uTexture, vT) + texture(uTexture, vB);\n  outColor = sum * 0.25 * intensity;\n}`),\n  display: P(`uniform sampler2D uTexture; uniform sampler2D uBloom; uniform float shading; uniform float bloomOn; uniform vec3 background;\nvec3 linearToGamma(vec3 c) { c = max(c, vec3(0)); return max(1.055 * pow(c, vec3(0.416666667)) - 0.055, vec3(0)); }\nvoid main() {\n  vec3 c = texture(uTexture, vUv).rgb;\n  // shading: treat dye brightness as a height field and light it from the front\n  vec3 lc = texture(uTexture, vL).rgb, rc = texture(uTexture, vR).rgb;\n  vec3 tc = texture(uTexture, vT).rgb, bc = texture(uTexture, vB).rgb;\n  vec3 n = normalize(vec3(length(rc) - length(lc), length(tc) - length(bc), length(texelSize)));\n  float diffuse = clamp(dot(n, vec3(0.0, 0.0, 1.0)) + 0.7, 0.7, 1.0);\n  c *= mix(1.0, diffuse, shading);\n  if (bloomOn > 0.5) c += linearToGamma(texture(uBloom, vUv).rgb);\n  float a = clamp(max(c.r, max(c.g, c.b)), 0.0, 1.0);\n  outColor = vec4(background * (1.0 - a) + c, 1.0);\n}`),\n};\n\n// One fullscreen triangle, attribute 0 (createProgram binds a_position there).\nconst vao = gl.createVertexArray(), vbo = gl.createBuffer();\ngl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);\ngl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);\ngl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);\ngl.bindVertexArray(null);\n\nfunction fbo(w, h, internalFormat, format) {\n  const texture = gl.createTexture();\n  gl.bindTexture(gl.TEXTURE_2D, texture);\n  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);\n  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);\n  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);\n  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);\n  gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, w, h, 0, format, gl.HALF_FLOAT, null);\n  const framebuffer = gl.createFramebuffer();\n  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);\n  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);\n  gl.viewport(0, 0, w, h); gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);\n  gl.bindFramebuffer(gl.FRAMEBUFFER, null);\n  return { texture, framebuffer, width: w, height: h, texel: [1 / w, 1 / h] };\n}\nconst pingPong = (w, h, internalFormat, format) => {\n  const p = ctx.utils.createPingPong(w, h, { internalFormat, format, type: gl.HALF_FLOAT, filter: gl.LINEAR });\n  return { p, width: w, height: h, texel: [1 / w, 1 / h] };\n};\nfunction size(resolution, w, h) {\n  const aspect = w > h ? w / h : h / w;\n  const lo = Math.round(resolution), hi = Math.round(resolution * aspect);\n  return w > h ? [hi, lo] : [lo, hi];\n}\n\nconst s = ctx.state;\nObject.assign(s, { programs, vao, fbo, pingPong, size, targets: null, key: \"\", autoT: 0, splats: [] });\n\n// Draws one pass into `target` (null = screen). Program must already have its uniforms set.\ns.blit = (target, w, h) => {\n  gl.bindFramebuffer(gl.FRAMEBUFFER, target);\n  gl.viewport(0, 0, w, h);\n  gl.bindVertexArray(vao);\n  gl.drawArrays(gl.TRIANGLES, 0, 3);\n};\ns.use = (program, textures, uniforms) => {\n  gl.useProgram(program);\n  let unit = 0;\n  for (const [name, tex] of Object.entries(textures)) ctx.utils.bindTexture(program, name, tex, unit++);\n  ctx.utils.setUniforms(program, uniforms);\n};\n// Pavel's generateColor: a saturated hue, kept dim so splats add up instead of clipping.\ns.color = (hue) => {\n  const h = ((hue % 1) + 1) % 1, i = Math.floor(h * 6), f = h * 6 - i, q = 1 - f;\n  const rgb = [[1, f, 0], [q, 1, 0], [0, 1, f], [0, q, 1], [f, 0, 1], [1, 0, q]][i % 6];\n  return rgb.map((c) => c * 0.15);\n};\n",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, P = s.programs;\nconst [W, H] = ctx.resolution;\nconst aspect = W / H;\n\n// (Re)create the targets when the canvas shape changes: velocity at 128, dye at 1024, bloom at 256.\nconst key = `${W}x${H}`;\nif (s.key !== key) {\n  s.key = key;\n  const [sw, sh] = s.size(128, W, H), [dw, dh] = s.size(1024, W, H);\n  const t = {\n    sim: [sw, sh], simTexel: [1 / sw, 1 / sh],\n    dye: s.pingPong(dw, dh, gl.RGBA16F, gl.RGBA),\n    velocity: s.pingPong(sw, sh, gl.RG16F, gl.RG),\n    pressure: s.pingPong(sw, sh, gl.R16F, gl.RED),\n    divergence: s.fbo(sw, sh, gl.R16F, gl.RED),\n    curl: s.fbo(sw, sh, gl.R16F, gl.RED),\n    bloom: [],\n  };\n  let [bw, bh] = s.size(256, W, H);\n  t.bloomTarget = s.fbo(bw, bh, gl.RGBA16F, gl.RGBA);\n  for (let i = 0; i < 8; i++) {\n    bw >>= 1; bh >>= 1;\n    if (bw < 2 || bh < 2) break;\n    t.bloom.push(s.fbo(bw, bh, gl.RGBA16F, gl.RGBA));\n  }\n  s.targets = t;\n  // A burst to start with, so the first frame already has something to look at.\n  for (let i = 0; i < 14; i++) {\n    const a = i / 14 * Math.PI * 2;\n    s.splats.push({ x: 0.5 + Math.cos(a) * 0.32, y: 0.5 + Math.sin(a) * 0.36, dx: -Math.sin(a) * 900 + Math.cos(a) * -500, dy: Math.cos(a) * 900 + Math.sin(a) * -500, color: s.color(i / 14).map((c) => c * 6), r: 1.1 });\n  }\n}\nconst T = s.targets, [sw, sh] = T.sim;\nconst dt = Math.min(ctx.dt || 1 / 60, 1 / 60);\nconst radius = u.u_radius / 100;\n\nconst splat = (x, y, dx, dy, color, r = 1) => {\n  const rad = (aspect > 1 ? radius * aspect : radius) * r;\n  s.use(P.splat, { uTarget: T.velocity.p.read().texture }, { aspectRatio: aspect, point: [x, y], color: [dx, dy, 0], radius: rad, texelSize: T.simTexel });\n  s.blit(T.velocity.p.write().framebuffer, sw, sh); T.velocity.p.swap();\n  s.use(P.splat, { uTarget: T.dye.p.read().texture }, { aspectRatio: aspect, point: [x, y], color, radius: rad, texelSize: T.dye.texel });\n  s.blit(T.dye.p.write().framebuffer, T.dye.width, T.dye.height); T.dye.p.swap();\n};\n\n// Input: drag to push dye; Splash! throws a handful of random splats; Auto keeps two brushes circling.\nconst hue = ctx.time * 0.12;\nif (ctx.mouseDown) {\n  const [mx, my] = ctx.mouse, [px, py] = ctx.mousePrev;\n  const dx = (mx - px) * (aspect < 1 ? aspect : 1), dy = (py - my) * (aspect > 1 ? 1 / aspect : 1);\n  if (dx !== 0 || dy !== 0) splat(mx, 1 - my, dx * u.u_force, dy * u.u_force, s.color(hue).map((c) => c * 2));\n}\nif (u.u_splash) {\n  const n = 5 + Math.floor(Math.random() * 12);\n  for (let i = 0; i < n; i++) {\n    s.splats.push({ x: Math.random(), y: Math.random(), dx: 1000 * (Math.random() - 0.5), dy: 1000 * (Math.random() - 0.5), color: s.color(Math.random()).map((c) => c * 10), r: 1 });\n  }\n}\nif (u.u_auto) {\n  for (let k = 0; k < 2; k++) {\n    const t = ctx.time * (0.45 + k * 0.12) + k * Math.PI;\n    const x = 0.5 + 0.36 * Math.sin(t * 1.3), y = 0.5 + 0.34 * Math.sin(t * 0.9 + k);\n    const vx = 0.36 * 1.3 * Math.cos(t * 1.3), vy = 0.34 * 0.9 * Math.cos(t * 0.9 + k);\n    splat(x, y, vx * 260, vy * 260, s.color(hue + k * 0.5).map((c) => c * 0.8 * dt * 60), 0.55);\n  }\n  s.autoT += dt;\n  if (s.autoT > 0.7) {\n    s.autoT = 0;\n    s.nextHue = ((s.nextHue ?? 0.6) + 0.618) % 1; // golden-ratio steps keep neighbours apart in hue\n    const a = Math.random() * Math.PI * 2;\n    s.splats.push({ x: 0.2 + Math.random() * 0.6, y: 0.2 + Math.random() * 0.6, dx: Math.cos(a) * 1200, dy: Math.sin(a) * 1200, color: s.color(s.nextHue).map((c) => c * 15), r: 1.3 });\n  }\n}\nfor (const p of s.splats) splat(p.x, p.y, p.dx, p.dy, p.color, p.r);\ns.splats.length = 0;\n\n// Step: curl -> vorticity confinement -> divergence -> pressure (Jacobi) -> subtract gradient -> advect.\ngl.disable(gl.BLEND);\ns.use(P.curl, { uVelocity: T.velocity.p.read().texture }, { texelSize: T.simTexel });\ns.blit(T.curl.framebuffer, sw, sh);\ns.use(P.vorticity, { uVelocity: T.velocity.p.read().texture, uCurl: T.curl.texture }, { texelSize: T.simTexel, curl: u.u_curl, dt });\ns.blit(T.velocity.p.write().framebuffer, sw, sh); T.velocity.p.swap();\ns.use(P.divergence, { uVelocity: T.velocity.p.read().texture }, { texelSize: T.simTexel });\ns.blit(T.divergence.framebuffer, sw, sh);\ns.use(P.clear, { uTexture: T.pressure.p.read().texture }, { value: 0.8, texelSize: T.simTexel });\ns.blit(T.pressure.p.write().framebuffer, sw, sh); T.pressure.p.swap();\nfor (let i = 0; i < 20; i++) {\n  s.use(P.pressure, { uPressure: T.pressure.p.read().texture, uDivergence: T.divergence.texture }, { texelSize: T.simTexel });\n  s.blit(T.pressure.p.write().framebuffer, sw, sh); T.pressure.p.swap();\n}\ns.use(P.gradient, { uPressure: T.pressure.p.read().texture, uVelocity: T.velocity.p.read().texture }, { texelSize: T.simTexel });\ns.blit(T.velocity.p.write().framebuffer, sw, sh); T.velocity.p.swap();\ns.use(P.advection, { uVelocity: T.velocity.p.read().texture, uSource: T.velocity.p.read().texture }, { texelSize: T.simTexel, dt, dissipation: u.u_velocity });\ns.blit(T.velocity.p.write().framebuffer, sw, sh); T.velocity.p.swap();\ns.use(P.advection, { uVelocity: T.velocity.p.read().texture, uSource: T.dye.p.read().texture }, { texelSize: T.simTexel, dt, dissipation: u.u_dye });\ns.blit(T.dye.p.write().framebuffer, T.dye.width, T.dye.height); T.dye.p.swap();\n\n// Bloom: bright parts of the dye, blurred down a mip chain and added back up.\nconst bloomOn = u.u_bloom > 0;\nif (bloomOn) {\n  const threshold = 0.6, knee = threshold * 0.7 + 0.0001;\n  let last = T.bloomTarget;\n  s.use(P.bloomPrefilter, { uTexture: T.dye.p.read().texture }, { curve: [threshold - knee, knee * 2, 0.25 / knee], threshold, texelSize: last.texel });\n  s.blit(last.framebuffer, last.width, last.height);\n  for (const dest of T.bloom) {\n    s.use(P.bloomBlur, { uTexture: last.texture }, { texelSize: last.texel });\n    s.blit(dest.framebuffer, dest.width, dest.height);\n    last = dest;\n  }\n  gl.blendFunc(gl.ONE, gl.ONE); gl.enable(gl.BLEND);\n  for (let i = T.bloom.length - 2; i >= 0; i--) {\n    const dest = T.bloom[i];\n    s.use(P.bloomBlur, { uTexture: last.texture }, { texelSize: last.texel });\n    s.blit(dest.framebuffer, dest.width, dest.height);\n    last = dest;\n  }\n  gl.disable(gl.BLEND);\n  s.use(P.bloomFinal, { uTexture: last.texture }, { texelSize: last.texel, intensity: u.u_bloom });\n  s.blit(T.bloomTarget.framebuffer, T.bloomTarget.width, T.bloomTarget.height);\n}\n\ns.use(P.display, { uTexture: T.dye.p.read().texture, uBloom: T.bloomTarget.texture }, { texelSize: [1 / W, 1 / H], shading: u.u_shading ? 1 : 0, bloomOn: bloomOn ? 1 : 0, background: u.u_background });\ns.blit(null, W, H);\n",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_dye": {
+      "type": "float",
+      "value": 0.7,
+      "min": 0,
+      "max": 4,
+      "step": 0.01,
+      "label": "Dye fade"
+    },
+    "u_velocity": {
+      "type": "float",
+      "value": 0.2,
+      "min": 0,
+      "max": 4,
+      "step": 0.01,
+      "label": "Velocity fade"
+    },
+    "u_curl": {
+      "type": "float",
+      "value": 30,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "label": "Swirl (curl)",
+      "widget": "knob"
+    },
+    "u_radius": {
+      "type": "float",
+      "value": 0.25,
+      "min": 0.02,
+      "max": 1,
+      "step": 0.01,
+      "label": "Splat radius"
+    },
+    "u_force": {
+      "type": "float",
+      "value": 6000,
+      "min": 500,
+      "max": 15000,
+      "step": 100,
+      "label": "Drag force"
+    },
+    "u_auto": {
+      "type": "bool",
+      "value": true,
+      "label": "Auto splats"
+    },
+    "u_splash": {
+      "type": "bool",
+      "value": false,
+      "label": "Splash!",
+      "widget": "button"
+    },
+    "u_bloom": {
+      "type": "float",
+      "value": 0.8,
+      "min": 0,
+      "max": 2,
+      "step": 0.01,
+      "label": "Bloom"
+    },
+    "u_shading": {
+      "type": "bool",
+      "value": true,
+      "label": "Shading"
+    },
+    "u_background": {
+      "type": "color",
+      "value": [
+        0.02,
+        0.02,
+        0.045
+      ],
+      "label": "Background"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ],
+  "keyframes": {},
+  "controls": [
+    {
+      "label": "Fluid",
+      "uniforms": [
+        "u_dye",
+        "u_velocity",
+        "u_curl"
+      ]
+    },
+    {
+      "label": "Splats",
+      "uniforms": [
+        "u_radius",
+        "u_force",
+        "u_auto",
+        "u_splash"
+      ]
+    },
+    {
+      "label": "Look",
+      "uniforms": [
+        "u_bloom",
+        "u_shading",
+        "u_background"
+      ]
+    }
+  ]
+}

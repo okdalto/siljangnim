@@ -35,6 +35,8 @@ export interface GpuSceneCtx {
   dt: number;
   frame: number;
   resolution: [number, number];
+  /** True on the first frame after ctx.resolution changed: recreate size-dependent targets and layouts then. */
+  resized: boolean;
   mouse: [number, number, number, number];
   mousePrev: [number, number, number, number];
   mouseDown: boolean;
@@ -84,6 +86,7 @@ export function createGpuCtx(
     dt: 0,
     frame: 0,
     resolution: [canvas.width, canvas.height],
+    resized: false,
     mouse: [0.5, 0.5, 0.5, 0.5],
     mousePrev: [0.5, 0.5, 0.5, 0.5],
     mouseDown: false,

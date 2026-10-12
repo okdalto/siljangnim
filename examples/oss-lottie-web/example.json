@@ -1,0 +1,34 @@
+{
+  "order": 212,
+  "title": "Bloom echoes (Lottie Web)",
+  "title_ko": "꽃 메아리 (Lottie Web)",
+  "description": "Lottie Web plays a hand-made Lottie animation (assets/bloom.json: repeated petals, a trimmed arc, orbiting dots and a star, keyframed over a 3-second loop) with its canvas renderer into an offscreen canvas. WebGL uploads each frame as a texture, recolors its red, green and blue layers, folds copies into a kaleidoscope ring and feeds the picture back on itself for twisting echo trails.",
+  "description_ko": "Lottie Web이 직접 만든 Lottie 애니메이션(assets/bloom.json: 반복된 꽃잎, 잘린 호, 도는 점, 별을 3초 루프로 키프레임한 것)을 캔버스 렌더러로 화면 밖 캔버스에 재생한다. WebGL이 매 프레임을 텍스처로 올려 빨강·초록·파랑 레이어에 색을 새로 입히고, 복사본을 만화경 고리로 접어 놓은 뒤, 화면을 자기 자신에게 되먹여 휘감기는 잔상을 남긴다.",
+  "prompt": "(open-source example: lottie-web imported in the scene, with a hand-made Lottie asset)",
+  "made_with": "lottie-web 5.13.0 (lottie_light_canvas) via ctx.utils.import; bloom.json authored for this example",
+  "features": [
+    "lottie",
+    "vector animation",
+    "feedback",
+    "kaleidoscope",
+    "canvas texture"
+  ],
+  "mode": "live",
+  "uses": [
+    "lottie-web"
+  ],
+  "summary": "A looping flower animation spins at the center while mirrored copies circle it, leaving long swirling echoes behind.",
+  "summary_ko": "가운데에서 꽃 애니메이션이 돌고, 거울에 비친 복사본들이 그 둘레를 돌며 긴 소용돌이 잔상을 남겨요.",
+  "try": [
+    "Turn the Echo knob up for longer trails, or down to see the plain animation",
+    "Change Mirrors and Ring radius to rearrange the copies",
+    "Pick new Petals, Arcs and Dots colors, or set Speed below zero to play it backwards"
+  ],
+  "try_ko": [
+    "Echo 노브를 올리면 잔상이 길어지고, 내리면 원래 애니메이션만 보여요",
+    "Mirrors와 Ring radius를 바꿔 복사본 배치를 바꿔 보세요",
+    "Petals, Arcs, Dots 색을 새로 고르거나 Speed를 0 아래로 내려 거꾸로 재생해 보세요"
+  ],
+  "tool_about": "Lottie Web plays Lottie animations: vector motion graphics saved as JSON, often exported from After Effects, used for app and web animations. It runs in the browser and can draw to SVG or canvas.",
+  "tool_about_ko": "Lottie Web은 Lottie 애니메이션을 재생해요. Lottie는 주로 After Effects에서 내보내는 JSON 형식의 벡터 모션 그래픽으로, 앱과 웹 애니메이션에 많이 쓰여요. 브라우저에서 돌아가고 SVG나 캔버스에 그릴 수 있어요."
+}

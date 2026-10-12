@@ -33,7 +33,7 @@ A scene is JSON, format version 2:
 ctx.gl, ctx.canvas — WebGL2 context and canvas (size = ctx.resolution, device pixels)
 ctx.state — your storage, shared by setup/render/cleanup
 ctx.time, ctx.dt, ctx.frame — seconds since start, seconds since last frame, frame index
-ctx.resolution — [width, height]
+ctx.resolution — [width, height]; ctx.resized — true on the first frame after the size changed
 ctx.mouse — [x, y, clickX, clickY] normalized 0..1, origin top-left; ctx.mousePrev — the same one frame earlier; ctx.mouseDown — boolean; ctx.pointer — { wheel (scroll since last frame, + = away), buttons (1 left, 2 right, 4 middle), doubleClick }
 ctx.keys — Set of KeyboardEvent.code currently held
 ctx.uniforms — current values of the scene uniforms, by name: plain numbers, booleans or arrays (ctx.uniforms.u_speed is 1.5, not an object). They follow the controls (and keyframes) live; read them every frame.
@@ -60,6 +60,7 @@ ctx.utils:
   uploadDataTexture(gl, existingTextureOrNull, width, height, typedArray, {internalFormat, format, type, filter})
   mat4 (identity, perspective(fovDeg, aspect, near, far), lookAt(eye, target, up), multiply, invert, transpose, fromTranslation, fromScaling, fromXRotation/Y/Z, transformPoint) — column-major Float32Array
   quat, createOrbitCamera({distance, theta, phi, target, fov, minDistance, maxDistance, autoRotate}) → camera.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt) every frame, getViewProjection(aspect), getViewMatrix(), getProjectionMatrix(aspect, fovDeg, near, far), getEye(), getTarget(), setTarget(x, y, z), reset(). Every 3D scene uses this camera so all scenes move the same way: drag orbits, right-drag or Shift+drag pans, scroll zooms, double-click resets (the scene shows that hint once). Don't write your own camera drag or wheel handling; with three.js or another engine, copy getEye()/getTarget() into its camera each frame. Pick distance/theta/phi so the first frame frames the subject well; autoRotate (radians/s) turns it while untouched. createVerletSystem()
+  shadertoy(imageCode, {common, channels, buffers: {A: {code, channels}, B…}}) → toy; call toy.draw() in render. Runs Shadertoy code as written: mainImage(out vec4, in vec2), iResolution, iTime, iTimeDelta, iFrame, iMouse (Shadertoy convention), iDate, iChannel0-3 and iChannelResolution. A channel is "A"-"D" (that buffer; its own name reads last frame) or a texture {texture, width, height} from loadTexture. Buffers are half-float and follow the canvas size. Expose a uniform's value by adding a line like "uniform float u_speed;" to the code; scene uniforms are set by name.
   glsl — GLSL snippet strings to paste into shaders: HASH, SIMPLEX_3D, PERLIN_3D, VALUE_3D, FBM, VORONOI, SDF_OPS, SDF_SHAPES, COLOR_SPACE, EASING, MATH
   import(url) — dynamic import of an ES module from https://esm.sh, https://cdn.jsdelivr.net or https://unpkg.com (pin versions, e.g. "https://esm.sh/d3-delaunay@6.0.4"). Use it in setup.
 
@@ -94,6 +95,15 @@ ctx.device (a fresh GPUDevice per load), ctx.context (canvas context, already co
 In render, encode your passes and submit; draw into ctx.context.getCurrentTexture(). GPUBufferUsage, GPUTextureUsage and GPUShaderStage are globals. Validation errors and device loss come back as scene errors.
 
 For feedback effects (simulations, trails), render into a ping-pong target and blit the result with a second program. Use ctx.resolution for sizes and recreate targets when it changes.
+
+Shadertoy code: Shadertoy's default license is CC BY-NC-SA 3.0 (non-commercial), which is not open source. Port a Shadertoy shader only when its source states an open license (MIT, CC0, Unlicense, public domain, Apache-2.0, BSD); otherwise tell the person and offer to write an original one instead. Keep the author, the shadertoy.com/view/<id> link and the license in a comment at the top of the code, and tell the person the same.
+
+The canvas size changes while the scene runs: the window resizes, the person goes full screen (Perform), picks another frame (16:9, 9:16 portrait, 1:1, an exact size like 1080×1920 or 3840×2160), or records at a different size. Write every scene to survive that:
+- Read ctx.resolution in render every frame; never keep the size from setup as the truth.
+- When ctx.resized is true, resize or recreate size-dependent things: render targets (pingPong.resize(w, h)), offscreen 2D canvases, layouts and anything fitted to the canvas (sampled text, grids, tiles). Simulations may keep their own fixed grid and only change how they're drawn.
+- Use the current aspect (w / h) for projections and anything placed in normalized coordinates, so portrait and landscape both look composed, not stretched or cropped; keep the subject inside both.
+- Size lines, points and text from the resolution (e.g. h / 1000), not fixed pixel counts, so a 4K render doesn't turn thin and a phone-sized one doesn't turn heavy.
+- Libraries that cache their own size (three.js renderer.setSize, Babylon engine.resize/setSize, PixiJS renderer.resize, p5 graphics) need telling on ctx.resized.
 
 `;
 

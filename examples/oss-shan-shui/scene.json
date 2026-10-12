@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Shan Shui Infinite by Lingdong Huang (MIT, https://github.com/LingDong-/shan-shui-inf).\n// Its generator (PRNG, Perlin noise, poly tools, trees, mountains, architecture, boats, the\n// mountain planner) is fetched from a pinned commit and run as-is; only the page's DOM/UI code\n// is left out. It returns SVG <polyline> strings, which are drawn here with Canvas 2D into\n// 512-unit tiles, written into a ring-buffer strip texture and scrolled forever on toned paper.\nconst SRC = \"https://cdn.jsdelivr.net/gh/LingDong-/shan-shui-inf@9f754d2b2e73495db7883d4d4055a7b0903b0454/index.html\";\nconst res = await fetch(SRC);\nif (!res.ok) throw new Error(`couldn't fetch the Shan Shui source (HTTP ${res.status}) from ${SRC}`);\nconst html = await res.text();\nconst blocks = [...html.matchAll(/<script(?: id=\"(\\w+)\")?>([\\s\\S]*?)<\\/script>/g)];\nconst pick = (test, what) => {\n  const b = blocks.find(test);\n  if (!b) throw new Error(`Shan Shui source: script block \"${what}\" not found in ${SRC}`);\n  return b[2];\n};\nconst code = [\"PRNG\", \"PerlinNoise\", \"PolyTools\", \"Util\"].map((id) => pick((b) => b[1] === id, id)).join(\"\\n\")\n  + \"\\n\" + pick((b) => b[2].includes(\"function chunkloader\"), \"chunk loader\");\n// The original assigns a few globals (MEM, scratch arrays); declare them so every world stays\n// self-contained, and give it its own Math so seeding Math.random doesn't touch the page's.\nconst factory = new Function(\"window\", \"document\", \"console\", \"Math\",\n  \"var MEM, SEED, mouseX, mouseY, vtxlist0, vtxlist1, vtxlist, reso;\\n\" + code +\n  \"\\nreturn { Mount, Arch, water, mountplanner, randChoice };\");\nconst quiet = { log() {}, warn() {}, error: (...a) => console.error(...a) };\n\nconst T = 512;            // world units per tile (the original's chunk width)\nconst S = 1.5;            // tile pixels per world unit\nconst Y0 = -130, WH = 870; // world rows kept in a tile\nconst SLOTS = 8;          // tiles in the ring buffer\nconst TPX = T * S, HPX = Math.round(WH * S);\nconst tile = new OffscreenCanvas(TPX, HPX);\nconst g = tile.getContext(\"2d\");\n\nfunction makeWorld(seed) {\n  const M = Object.create(Math);\n  const lib = factory({ btoa: (s) => btoa(s) }, { addEventListener() {} }, quiet, M);\n  M.seed(String(seed));\n  return { seed, lib, M, chunks: [], genR: 0, genL: -T, cursx: 0, ready: 0, shown: 0, viewW: 1300, job: null };\n}\n\n// Keep chunks sorted by y (far to near), exactly like the original's add().\nfunction add(w, ch) {\n  let i = w.chunks.length;\n  while (i > 0 && w.chunks[i - 1].y > ch.y) i--;\n  w.chunks.splice(i, 0, ch);\n}\n\n// One mountplanner region, one generated item per step (the same calls chunkloader makes).\nfunction* genRegion(w, xmin, xmax) {\n  const { lib, M } = w;\n  const plan = lib.mountplanner(xmin, xmax);\n  for (let i = 0; i < plan.length; i++) {\n    const p = plan[i];\n    if (p.tag === \"mount\") {\n      add(w, { x: p.x, y: p.y, canv: lib.Mount.mountain(p.x, p.y, i * 2 * M.random()) });\n      add(w, { x: p.x, y: p.y - 10000, canv: lib.water(p.x, p.y, i * 2) });\n    } else if (p.tag === \"flatmount\") {\n      add(w, { x: p.x, y: p.y, canv: lib.Mount.flatMount(p.x, p.y, 2 * M.random() * Math.PI, { wid: 600 + M.random() * 400, hei: 100, cho: 0.5 + M.random() * 0.2 }) });\n    } else if (p.tag === \"distmount\") {\n      add(w, { x: p.x, y: p.y, canv: lib.Mount.distMount(p.x, p.y, M.random() * 100, { hei: 150, len: lib.randChoice([500, 1000, 1500]) }) });\n    } else if (p.tag === \"boat\") {\n      add(w, { x: p.x, y: p.y, canv: lib.Arch.boat01(p.x, p.y, M.random(), { sca: p.y / 800, fli: lib.randChoice([true, false]) }) });\n    } else continue;\n    yield;\n  }\n}\n\n// SVG strings → drawing ops with bounding boxes, parsed once per chunk.\nconst RE = /<polyline points='([^']*)' style='([^']*)'\\/>|<text ([^>]*)>([^<]*)<\\/text>/g;\nfunction parse(ch) {\n  const ops = [];\n  for (const m of ch.canv.matchAll(RE)) {\n    if (m[1] !== undefined) {\n      const nums = m[1].trim().split(/[\\s,]+/).map(Number);\n      if (nums.length < 4 || nums.some(Number.isNaN)) continue;\n      const pts = new Float32Array(nums);\n      let x0 = Infinity, x1 = -Infinity;\n      for (let i = 0; i < pts.length; i += 2) { x0 = Math.min(x0, pts[i]); x1 = Math.max(x1, pts[i]); }\n      const st = {};\n      for (const kv of m[2].split(\";\")) { const j = kv.indexOf(\":\"); if (j > 0) st[kv.slice(0, j).trim()] = kv.slice(j + 1).trim(); }\n      const wid = parseFloat(st[\"stroke-width\"] ?? \"0\") || 0;\n      ops.push({ pts, x0: x0 - wid, x1: x1 + wid, fill: st.fill && st.fill !== \"none\" ? st.fill : null,\n        stroke: st.stroke && st.stroke !== \"none\" && wid > 0 ? st.stroke : null, wid });\n    } else {\n      const a = Object.fromEntries([...m[3].matchAll(/([\\w-]+)='([^']*)'/g)].map((q) => [q[1], q[2]]));\n      const tr = (a.transform || \"\").match(/translate\\(([-\\d.e]+),([-\\d.e]+)\\)\\s*rotate\\(([-\\d.e]+)\\)/);\n      if (!tr) continue;\n      const tx = +tr[1];\n      ops.push({ text: m[4], size: +a[\"font-size\"] || 6, tx, ty: +tr[2], rot: (+tr[3] * Math.PI) / 180,\n        fill: (a.style || \"\").replace(/^fill:/, \"\") || \"#666\", x0: tx - 100, x1: tx + 100 });\n    }\n  }\n  ch.ops = ops;\n  ch.canv = null;\n}\n\nfunction drawOp(op) {\n  if (op.text !== undefined) {\n    g.save(); g.translate(op.tx, op.ty); g.rotate(op.rot);\n    g.font = `${op.size}px Verdana, sans-serif`; g.textAlign = \"center\"; g.fillStyle = op.fill;\n    g.fillText(op.text, 0, 0); g.restore();\n    return;\n  }\n  const p = new Path2D(), a = op.pts;\n  p.moveTo(a[0], a[1]);\n  for (let i = 2; i < a.length; i += 2) p.lineTo(a[i], a[i + 1]);\n  if (op.fill) { g.fillStyle = op.fill; g.fill(p); }\n  if (op.stroke) { g.lineWidth = op.wid; g.strokeStyle = op.stroke; g.stroke(p); }\n}\n\nconst gl = ctx.gl;\nconst strip = gl.createTexture();\nfunction clearStrip() {\n  gl.bindTexture(gl.TEXTURE_2D, strip);\n  const white = new Uint8Array(TPX * SLOTS * HPX * 4).fill(255);\n  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\n  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, TPX * SLOTS, HPX, 0, gl.RGBA, gl.UNSIGNED_BYTE, white);\n}\ngl.bindTexture(gl.TEXTURE_2D, strip);\nfor (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.REPEAT], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);\nclearStrip();\n\n// The endless pipeline: generate what tile k needs, draw it (a few chunks per step), upload it.\nfunction* pipeline(w) {\n  yield* genRegion(w, -T, 0); // a little land to the left of the first view\n  for (let k = 0; ; k++) {\n    while (!(k * T < w.cursx + w.viewW + T && k < Math.floor(w.cursx / T) + SLOTS - 1)) yield \"idle\";\n    const x0 = k * T, x1 = x0 + T;\n    while (w.genR < x1 + 600) { yield* genRegion(w, w.genR, w.genR + T); w.genR += T; }\n    g.setTransform(1, 0, 0, 1, 0, 0);\n    g.fillStyle = \"#fff\"; g.fillRect(0, 0, TPX, HPX);\n    g.setTransform(S, 0, 0, S, -x0 * S, -Y0 * S);\n    g.lineJoin = \"miter\";\n    let n = 0;\n    for (const ch of w.chunks) {\n      if (ch.x < x0 - 1600 || ch.x > x1 + 600) continue;\n      if (!ch.ops) parse(ch);\n      for (const op of ch.ops) if (op.x1 > x0 && op.x0 < x1) drawOp(op);\n      if (++n % 6 === 0) yield;\n    }\n    gl.bindTexture(gl.TEXTURE_2D, strip);\n    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);\n    gl.texSubImage2D(gl.TEXTURE_2D, 0, (k % SLOTS) * TPX, 0, gl.RGBA, gl.UNSIGNED_BYTE, tile);\n    w.ready = x1;\n    // forget land that has scrolled well past\n    w.chunks = w.chunks.filter((ch) => ch.x > w.cursx - 2600);\n    yield;\n  }\n}\n\nconst fs = `#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 outColor;\nuniform sampler2D u_strip;\nuniform vec2 u_resolution;\nuniform float u_cursx, u_viewH, u_viewY, u_shown, u_stripW, u_y0, u_wh, u_density, u_time;\nuniform vec3 u_paper, u_ink;\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }\nfloat vnoise(vec2 p) {\n  vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);\n  return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);\n}\nfloat fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { s += a * vnoise(p); p *= 2.03; a *= 0.5; } return s; }\nvec3 inkAt(vec2 w) {\n  vec2 uv = vec2(w.x / u_stripW, (w.y - u_y0) / u_wh);\n  vec3 c = texture(u_strip, uv).rgb;\n  // pigment soaks a little into the fibres around each stroke\n  vec2 px = vec2(1.6 / u_stripW, 1.6 / u_wh);\n  vec3 b = (texture(u_strip, uv + vec2(px.x, 0.0)).rgb + texture(u_strip, uv - vec2(px.x, 0.0)).rgb\n          + texture(u_strip, uv + vec2(0.0, px.y)).rgb + texture(u_strip, uv - vec2(0.0, px.y)).rgb) * 0.25;\n  c = min(c, mix(vec3(1.0), b, 0.45));\n  float reveal = smoothstep(u_shown, u_shown - 220.0, w.x);\n  return mix(vec3(1.0), c, reveal);\n}\nvoid main() {\n  float aspect = u_resolution.x / u_resolution.y;\n  vec2 w = vec2(u_cursx + v_uv.x * u_viewH * aspect, u_viewY + (1.0 - v_uv.y) * u_viewH);\n  vec3 c = inkAt(w);\n  vec3 tone = pow(c, vec3(u_density));\n  // paper scrolls with the painting: mottled sizing, fibres and grain\n  vec2 pw = w * 0.02;\n  float mott = fbm(pw * 0.6) - 0.5;\n  float fib = fbm(vec2(pw.x * 6.0, pw.y * 0.7) + 3.0) - 0.5;\n  float grain = hash(floor(v_uv * u_resolution)) - 0.5;\n  vec3 paper = u_paper * (1.0 + mott * 0.07 + fib * 0.035 + grain * 0.025);\n  vec3 col = paper * mix(u_ink, vec3(1.0), tone);\n  float vig = 1.0 - 0.28 * pow(length((v_uv - 0.5) * vec2(1.0, 0.8)) * 1.35, 2.6);\n  outColor = vec4(col * vig, 1.0);\n}`;\n\nObject.assign(ctx.state, {\n  makeWorld, pipeline, clearStrip, strip, T, S, Y0, WH, SLOTS,\n  prog: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, fs),\n  seedUniform: ctx.uniforms.u_seed | 0,\n});\nconst w = makeWorld(ctx.state.seedUniform);\nw.job = pipeline(w);\nctx.state.world = w;\n",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms;\nconst VIEW_H = 720, VIEW_Y = -20;\nconst seedNow = u.u_seed | 0;\nlet regen = null;\nif (u.u_new) regen = 1 + Math.floor(Math.random() * 99999);\nelse if (seedNow !== s.seedUniform) regen = seedNow;\ns.seedUniform = seedNow;\nif (regen !== null) {\n  s.clearStrip();\n  s.world = s.makeWorld(regen);\n  s.world.job = s.pipeline(s.world);\n}\nconst w = s.world;\nconst [rw, rh] = ctx.resolution;\nw.viewW = (VIEW_H * rw) / rh;\n\n// Grow the painting a little each frame; work harder while the view isn't painted yet.\nconst behind = w.ready < w.cursx + w.viewW;\nconst budget = behind ? 45 : 9;\nconst t0 = performance.now();\nwhile (w.job.next().value !== \"idle\" && performance.now() - t0 < budget);\n\nconst dt = Math.min(ctx.dt, 0.1);\nif (w.shown >= w.cursx + w.viewW + 220) w.cursx += u.u_speed * dt;\nw.shown = Math.min(w.ready, w.shown + Math.max(900, u.u_speed * 4) * dt);\n\nctx.publish(\"seed\", w.seed);\nctx.publish(\"x\", Math.round(w.cursx));\n\ngl.useProgram(s.prog);\nctx.utils.setUniforms(s.prog, {\n  u_resolution: [rw, rh], u_cursx: w.cursx, u_viewH: VIEW_H, u_viewY: VIEW_Y, u_shown: w.shown,\n  u_stripW: s.T * s.SLOTS, u_y0: s.Y0, u_wh: s.WH, u_density: u.u_density, u_paper: u.u_paper, u_ink: u.u_ink, u_time: ctx.time,\n});\nctx.utils.bindTexture(s.prog, \"u_strip\", s.strip, 0);\nctx.utils.drawFullscreen(s.prog);\n",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "value": 22,
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "label": "Scroll speed"
+    },
+    "u_seed": {
+      "type": "int",
+      "value": 2018,
+      "min": 1,
+      "max": 99999,
+      "step": 1,
+      "label": "Seed"
+    },
+    "u_new": {
+      "type": "bool",
+      "value": false,
+      "label": "New landscape",
+      "widget": "button"
+    },
+    "u_ink": {
+      "type": "color",
+      "value": [
+        0.09,
+        0.08,
+        0.07
+      ],
+      "label": "Ink tone"
+    },
+    "u_density": {
+      "type": "float",
+      "value": 1.7,
+      "min": 0.4,
+      "max": 2.5,
+      "step": 0.01,
+      "label": "Ink density",
+      "widget": "knob"
+    },
+    "u_paper": {
+      "type": "color",
+      "value": [
+        0.96,
+        0.915,
+        0.83
+      ],
+      "label": "Paper"
+    }
+  },
+  "inputs": []
+}
