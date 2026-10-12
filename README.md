@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/okdalto/siljangnim/releases">Download</a> ·
+  <a href="#get-started">Get started</a> ·
   <a href="https://siljangnim.vercel.app/">Try on the web</a> ·
   <a href="docs/architecture.md">Architecture</a> ·
   <a href="README.ko.md">한국어</a>
@@ -19,175 +19,164 @@
 
 ---
 
-> **Siljangnim v2 is in progress.** The app is being rebuilt from scratch as a
-> desktop studio ([plan](docs/architecture.md#11-단계별-계획), [studio design](docs/studio.md)).
-> **What works today** lists what the new studio does now; the v1 web app at
-> [siljangnim.vercel.app](https://siljangnim.vercel.app/) still has the older, larger feature set
-> until the rewrite catches up.
+## Get started
+
+Pick one. Each takes about a minute.
+
+### A. With Claude Code — recommended
+
+Paste this into Claude Code:
+
+```text
+Install the Siljangnim MCP server by running:
+claude mcp add siljangnim -- npx -y siljangnim-mcp@latest
+Then tell me to restart Claude Code.
+```
+
+Restart Claude Code, then ask for something:
+
+```text
+Use siljangnim to make glowing jellyfish drifting in a dark sea, with a slider for how many there are.
+```
+
+A viewer opens in your browser and the scene appears there. Keep chatting in Claude Code to change it.
+
+You need [Node.js 22 or newer](https://nodejs.org). Nothing else: the first time a tool needs Python, it is
+downloaded into `~/.siljangnim/runtime/`.
+
+<details>
+<summary>Codex, Cursor, Claude Desktop and other MCP clients</summary>
+
+**Codex** — add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.siljangnim]
+command = "npx"
+args = ["-y", "siljangnim-mcp@latest"]
+tool_timeout_sec = 120
+```
+
+**Cursor, Claude Desktop, Windsurf and others** — add to the client's MCP settings
+(`.cursor/mcp.json`, `claude_desktop_config.json`, …):
+
+```json
+{
+  "mcpServers": {
+    "siljangnim": { "command": "npx", "args": ["-y", "siljangnim-mcp@latest"] }
+  }
+}
+```
+
+Options (port, which browser opens) are in [docs/mcp.md](docs/mcp.md). To remove it:
+`claude mcp remove siljangnim`.
+
+</details>
+
+### B. In your browser — nothing to install
+
+Open **[siljangnim.vercel.app](https://siljangnim.vercel.app/)**, then:
+
+1. Click **Examples** (top right) and open any example — it runs right away.
+2. To make your own, open **Settings** (gear icon) and paste an Anthropic or OpenAI API key.
+   It stays in that browser tab and goes only to the model provider.
+3. Type what you want in the chat.
+
+The web version can't run tools on your computer (Python packages, ffmpeg, OSC). Use A or C for those.
+
+### C. Desktop app
+
+Installers aren't published yet. Until they are, run it from the source — paste this into a terminal:
+
+```bash
+git clone https://github.com/okdalto/siljangnim.git && cd siljangnim && npm install && npm run dev
+```
+
+Next time, `npm run dev` in that folder (or `./run.sh`, `run.bat`) is enough. Add your API key under
+**Settings**; it is encrypted with the OS keychain and never reaches the app window. While the app is
+open, Claude Code (option A) uses its window as the viewer.
+
+To build an installer for your own machine: `npm run dist` (output in `desktop/release/`). The builds are
+not code-signed, so macOS asks once: *System Settings → Privacy & Security → Open Anyway*.
 
 ## What it is
 
-*Siljangnim* (실장님) is what Korean design studios call the person who runs the
-floor: you tell them what you want, and they know which people and tools to bring
-in. This app plays that part for creative coding.
+*Siljangnim* (실장님) is what Korean design studios call the person who runs the floor: you tell them what
+you want, and they know which people and tools to bring in. This app plays that part for creative coding.
 
 - **You describe the result** — "a hatching drawing of this photo, depth-aware, ready for an A3 plotter".
-- **The agent decides how** — which open-source projects fit (shaders, geometry libraries,
-  ML models, CLI tools), fetches them on your machine, and connects them.
-- **What worked becomes a recipe** — a short Markdown file describing how a tool was
-  installed and called. Next time it is instant, and other agents can reuse it.
-- **You share structure, not code** — a project exports as a Markdown document of its
-  pipeline and recipes. Another person's agent rebuilds it from that.
-- **Bring your own agent** — Claude Code, Codex, Cursor or your own can drive the app
-  over MCP, alongside the built-in agent.
+- **The agent decides how** — which open-source projects fit (shaders, geometry libraries, ML models,
+  CLI tools), fetches them on your machine, and connects them.
+- **What worked becomes a recipe** — a short Markdown file describing how a tool was installed and
+  called. Next time it is instant, and other agents can reuse it.
+- **You share structure, not code** — a project exports as a Markdown document of its pipeline and
+  recipes. Another person's agent rebuilds it from that.
+- **Bring your own agent** — Claude Code, Codex, Cursor or your own drive the studio over MCP, alongside
+  the built-in agent.
 
-Open-source code is never bundled with the app; it is fetched on your machine when a
-project needs it, and every project records exactly what it used.
+Open-source code is fetched on your machine when a project needs it, and every project records exactly
+what it used.
 
-## What works today
+## What it does
 
-In the new studio (desktop app and `npm run web`):
+- **Live scenes written by an agent** — WebGL2 or WebGPU. The agent reads compile errors with line
+  numbers, fixes them, and looks at a screenshot before answering.
+- **Controls** — sliders, knobs, 2D pads, menus, buttons and colors that update the scene instantly; one
+  orbit camera for every 3D scene (drag, right-drag, scroll, double-click to reset).
+- **Live or Timeline** — interactive by default, or keyframe the controls over a fixed length.
+- **Version history** — every change is a version with a thumbnail; restore any of them.
+- **Assets** — drop images, video, audio, fonts, 3D models or data. The Assets tab also shows the
+  scene's code and shaders, and *Show in Finder* writes the project out as plain files.
+- **Open-source tools on your machine** — Python packages (trimesh, librosa, …) in isolated environments
+  and installed CLIs (ffmpeg, …), each after you approve.
+- **Inputs** — microphone and audio files, camera, MIDI, OSC, and browser ML such as hand tracking.
+- **Recording** — MP4, WebM or PNG frames.
+- **Sharing** — export a project as `project.md` or a bundle ([docs/project-md.md](docs/project-md.md));
+  recipes are shared through [registry/](registry/).
+- **Examples** — 70+ projects, most built on an open-source library, each with credits and a link
+  (e.g. `siljangnim.vercel.app/#example=oss-three`).
+- **Providers** — Anthropic (Claude Opus 5.5 by default) or any OpenAI-compatible server (OpenAI, vLLM,
+  Ollama, …).
 
-- **Agent-built live scenes** — describe a visual; the agent writes a WebGL2 or WebGPU scene, reads back compile
-  errors with line numbers, fixes them, and looks at a screenshot of the result before answering.
-- **Isolated scene runtime** — scene code runs on a separate origin with its own security policy; it
-  cannot reach your projects or API keys.
-- **Live controls** — the parameters the agent exposes update the scene instantly: sliders, knobs, 2D pads,
-  menus, one-frame buttons, colors, grouped panels, and monitors for values the scene publishes.
-- **Live or Timeline** — scenes are interactive by default; switch one to Timeline to keyframe its controls
-  over a fixed length. Undo/redo with Cmd+Z.
-- **Version history** — every agent change and control tweak is a version with a thumbnail; restore any of them.
-- **Assets** — drop images, video, audio, fonts, 3D models or data files; the agent sees and uses them.
-- **Open-source tools on your machine** — the agent runs Python packages (trimesh, librosa, …) in isolated
-  environments and installed CLIs (ffmpeg, …), after you approve; results come back as assets. What worked is
-  saved as a recipe, so the next request runs it directly.
-- **Bring your own agent** — Claude Code, Codex and other MCP clients can drive the studio
-  ([docs/mcp.md](docs/mcp.md)); you chat with them, the viewer shows the result. With the desktop app
-  running, the agent works in its window.
-- **Recording** — MP4, WebM or PNG frames, rendered frame by frame or captured live.
-- **Inputs** — microphone and audio files (spectrum, bands), camera, MIDI, OSC from controllers, and
-  browser ML such as MediaPipe hand tracking.
-- **Sharing** — export a project as `project.md` (scene, assets and how they were made) or a bundle; another
-  agent can rebuild it from the document ([docs/project-md.md](docs/project-md.md)). Recipes are shared through
-  a registry ([registry/](registry/)), and a catalog helps the agent pick open-source tools.
-- **v1 projects** — *Projects menu → Import v1 project* brings old exports over.
-- **Examples** — the *Examples* tab (top right) lists every example with search and categories; each opens as a
-  project, and its *Link* opens it directly (e.g. `siljangnim.vercel.app/#example=oss-three`). Tools from the
-  reference list that have no example yet can be handed to the agent to build ([examples/](examples/)).
-- **Projects** — several projects with their scene and chat, saved locally.
-- **Providers** — Anthropic (Claude Opus 5.5 by default) or any OpenAI-compatible server (OpenAI, vLLM, Ollama, …).
-- **Desktop app** — macOS (Apple Silicon) and Windows. API keys are encrypted with the OS keychain and
-  never reach the app window; the app manages its own Python runtime.
-
-The web version at [siljangnim.vercel.app](https://siljangnim.vercel.app/) runs this studio ([docs/m3.md](docs/m3.md#4-웹-배포-전환과-v1-은퇴)).
-
-## Download
-
-| Platform | File |
-|---|---|
-| macOS (Apple Silicon) | `Siljangnim-<version>-mac-arm64.dmg` |
-| Windows (x64) | `Siljangnim-<version>-win-x64.exe` |
-
-Get them from [Releases](https://github.com/okdalto/siljangnim/releases). The builds are not
-code-signed yet:
-
-- **macOS** — the first time, open the app, then go to *System Settings → Privacy & Security*
-  and choose **Open Anyway**.
-- **Windows** — on the SmartScreen prompt, choose **More info → Run anyway**.
-
-On first launch the app downloads a private Python runtime (about 120 MB on disk) into its
-own data folder. Nothing is installed system-wide.
-
-## Run from source
-
-You need **Node.js 22+**. That is all — Python is downloaded and managed by the app.
+## For developers
 
 ```bash
-git clone https://github.com/okdalto/siljangnim.git
-cd siljangnim
 npm install
-npm run dev
+npm run web      # the studio at http://localhost:5173
+npm run dev      # the desktop app with hot reload
 ```
-
-`./run.sh` (macOS/Linux) and `run.bat` (Windows) do the same in one step. Then open
-*Projects menu → Examples…* to try a scene right away.
-
-### With Claude Code, Codex or another MCP client
-
-```bash
-claude mcp add siljangnim -- npx -y siljangnim-mcp
-```
-
-No clone needed: the package carries the studio and the hub. From a checkout instead:
-`npm install && npm --prefix studio run build`, then `claude mcp add siljangnim -- node "$PWD/mcp/bin/siljangnim-mcp.js"`.
-
-Ask your agent for a visual; its first tool call opens the viewer in your browser. Codex and others:
-see [docs/mcp.md](docs/mcp.md).
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Desktop app with hot reload |
-| `npm run web` | The studio in your browser at http://localhost:5173 |
 | `npm run check` | Typecheck and lint |
 | `npm test` | Studio, MCP bridge and hub tests |
-| `npm run smoke` | Build and launch the desktop app, run an agent session against a mock API and open every example; then drive the viewer through the MCP bridge |
-| `npm run mcp` | The MCP server external agents launch |
-| `npm run dist` | Build the installer for the current platform into `desktop/release/` |
-
-Installers for both platforms are built by GitHub Actions when a `v*` tag is pushed.
-
-## How it fits together
-
-```
-Your agent (MCP)      Built-in agent
-        \                 /
-         ▼               ▼
- ┌────────── Siljangnim desktop (Electron) ──────────┐
- │ Studio     chat · viewport · controls;             │
- │            scenes run on an isolated origin        │
- │ Hub        local Python sidecar: MCP, runtime,     │
- │            recipes, provenance, permissions        │
- └────────────────────────────────────────────────────┘
-         │ fetched on demand, isolated per tool
-         ▼
- Open-source projects: GLSL · JS/WASM · Python · CLI apps · ML models
-```
-
-Details, recipe and project formats, and the staged plan: [docs/architecture.md](docs/architecture.md).
-
-## Repository layout
+| `npm run smoke` | Launch the desktop app, run an agent session against a mock API and open every example; then drive the viewer through the MCP bridge |
+| `npm run mcp` | The MCP server from this checkout (`claude mcp add siljangnim -- node "$PWD/mcp/bin/siljangnim-mcp.js"` after `npm --prefix studio run build`) |
+| `npm run dist` | Installer for the current platform into `desktop/release/` (CI builds both platforms on a `v*` tag) |
+| `npm run notices` | Regenerate `THIRD_PARTY_NOTICES.md` |
 
 ```
 studio/     The app: React + TypeScript UI, built-in agent, isolated scene runtime
 desktop/    Electron shell: window, app:// protocol, key storage, hub process, installers
-hub/        Python sidecar run by the app (uv-managed): runtime jobs and recipes
-mcp/        MCP server for external agents (serves the studio, relays tool calls)
-examples/   Example projects shown in the app's gallery
-registry/   Shared recipes (index.json + recipe files), contributed by pull request
-docs/       Architecture and guides
+hub/        Python sidecar (uv-managed): runtime jobs and recipes
+mcp/        MCP server for external agents (published as siljangnim-mcp)
+examples/   Example projects shown in the app
+registry/   Shared recipes, contributed by pull request
+docs/       Architecture and guides (Korean)
 ```
 
-## The web version
-
-[siljangnim.vercel.app](https://siljangnim.vercel.app/) runs the studio in your browser, with your own
-API key (kept in the tab's session storage and sent only to the model provider through the site's
-forwarder). Scenes run on a separate domain. Tools that need a local runtime (Python packages, CLI
-apps, GPU models, OSC) need the desktop app or an MCP client. The v1 web app has been retired; open
-its project exports with *Import v1 project*.
+How the pieces fit, and the plan: [docs/architecture.md](docs/architecture.md).
 
 ## Costs and security
 
-- **Cost** — cloud providers bill per token. A complex scene can take many tool-use rounds;
-  a single conversation can cost a few dollars. Self-hosted models have no per-token cost.
-- **Security** — the agent writes and runs code on your machine, and in later stages will
-  install open-source tools; those steps will ask for confirmation first. The hub listens on
-  127.0.0.1 only and requires a per-launch token. Do not expose any part of the app to the
-  network.
+- **Cost** — cloud models bill per token. A complex scene can take many rounds; one conversation can cost
+  a few dollars. With Claude Code you use your Claude plan; self-hosted models have no per-token cost.
+- **Security** — scene code runs on a separate origin and can't reach your projects or keys. Running code
+  or installing packages on your machine asks first; it isolates files and dependencies, but it is not an
+  OS sandbox. Everything local listens on 127.0.0.1 only — don't expose it to the network.
 
 ## License
 
-Third-party code, tools and material, with their licenses and source links: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-The open-source catalog starts from [index.opensource](https://indexopensource.com/index) by 현 (@hyun2xyz).
-
-[GPL-3.0](LICENSE). Open-source projects the agent fetches keep their own licenses; each
-project records what it used.
+[GPL-3.0](LICENSE). Third-party code, tools and material, with licenses and source links:
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The open-source catalog starts from
+[index.opensource](https://indexopensource.com/index) by 현 (@hyun2xyz). Projects the agent fetches keep
+their own licenses.

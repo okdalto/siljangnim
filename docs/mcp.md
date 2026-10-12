@@ -10,10 +10,10 @@ Claude Code, Codex 같은 에이전트에 MCP 서버로 붙이면 에이전트�
 npm 패키지(`siljangnim-mcp`, 2026-10-12에 0.2.0 배포)로 저장소 없이 한 줄로 붙는다:
 
 ```bash
-claude mcp add siljangnim -- npx -y siljangnim-mcp
+claude mcp add siljangnim -- npx -y siljangnim-mcp@latest
 ```
 
-Codex는 `command = "npx"`, `args = ["-y", "siljangnim-mcp"]`. 저장소에서 바로 쓰려면 먼저 studio를 빌드하고(`npm install` 후 `npm --prefix studio run build`):
+Codex는 `command = "npx"`, `args = ["-y", "siljangnim-mcp@latest"]`. 저장소에서 바로 쓰려면 먼저 studio를 빌드하고(`npm install` 후 `npm --prefix studio run build`):
 
 ```bash
 # Claude Code
