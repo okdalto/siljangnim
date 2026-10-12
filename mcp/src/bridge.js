@@ -15,10 +15,10 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { WebSocketServer } from "ws";
 import { toMcpResult } from "./content.js";
+import { CallTracker, CALL_STATUS_TOOL } from "./calls.js";
 
 export const DEFAULT_PORT = 47823;
 const VIEWER_WAIT_MS = 30_000;
-const CALL_TIMEOUT_MS = 120_000;
 const HELLO_TIMEOUT_MS = 5_000;
 /** Don't open a second tab while the first may still be loading. */
 const REOPEN_AFTER_MS = 15_000;
@@ -50,13 +50,14 @@ const VIEWER_OPEN_TOOL = {
  *   spec: { instructions: string, tools: Array<{ name: string, description: string, inputSchema: object, readOnly: boolean }> },
  *   version?: string,
  *   port?: number,
+ *   responseWaitMs?: number,
  *   open?: (url: string) => void,
  *   log?: (message: string) => void,
  *   hub?: (origin: string) => Promise<{ url: string, token: string }>,
  *   attach?: (request: { ws: string, token: string }) => Promise<boolean>,
  * }} options  attach hands the bridge to a running desktop app (true when it took it) before a browser tab is opened;  hub starts (once) and returns the runtime hub for the viewer; leave it out to run without one
  */
-export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAULT_PORT, open = () => undefined, log = () => undefined, hub, attach }) {
+export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAULT_PORT, open = () => undefined, log = () => undefined, hub, attach, responseWaitMs = 45_000 }) {
   const token = randomBytes(24).toString("base64url");
   let boundPort = port;
   /** @type {import("ws").WebSocket | null} */
@@ -64,8 +65,9 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
   let lastOpened = 0;
   let nextId = 1;
   /** Calls in flight, with the viewer socket each was sent to. */
-  /** @type {Map<number, { resolve: (v: unknown) => void, reject: (e: Error) => void, timer: NodeJS.Timeout, name: string, socket: import("ws").WebSocket | null }>} */
+  /** @type {Map<number, { resolve: (v: unknown) => void, reject: (e: Error) => void, name: string, socket: import("ws").WebSocket | null }>} */
   const pending = new Map();
+  const calls = new CallTracker({ waitMs: responseWaitMs });
   /** @type {Array<() => void>} */
   let viewerWaiters = [];
 
@@ -87,12 +89,14 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
     tools: [
       ...spec.tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema, annotations: { readOnlyHint: t.readOnly } })),
       VIEWER_OPEN_TOOL,
+      CALL_STATUS_TOOL,
     ],
   }));
 
   mcp.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: input = {} } = request.params;
     try {
+      if (name === CALL_STATUS_TOOL.name) return toMcpResult(await calls.poll(input.call_id));
       if (name === VIEWER_OPEN_TOOL.name) {
         await ensureViewer(true);
         const where = viewerPlace === "desktop" ? "in the Siljangnim desktop app" : appOrigin();
@@ -101,7 +105,7 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
       if (!spec.tools.some((t) => t.name === name)) {
         return { isError: true, content: [{ type: "text", text: `Unknown tool "${name}".` }] };
       }
-      return toMcpResult(await call(name, input));
+      return toMcpResult(await calls.start(name, () => call(name, input)));
     } catch (err) {
       return { isError: true, content: [{ type: "text", text: err instanceof Error ? err.message : String(err) }] };
     }
@@ -144,11 +148,7 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
     await ensureViewer();
     const id = nextId++;
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        pending.delete(id);
-        reject(new Error(`The viewer did not finish ${name} within ${CALL_TIMEOUT_MS / 1000}s.`));
-      }, CALL_TIMEOUT_MS);
-      pending.set(id, { resolve, reject, timer, name, socket: viewer });
+      pending.set(id, { resolve, reject, name, socket: viewer });
       send({ type: "call", id, name, input });
     });
   }
@@ -171,7 +171,6 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
     const p = pending.get(message.id);
     if (!p) return;
     pending.delete(message.id);
-    clearTimeout(p.timer);
     p.resolve(message.output);
   }
 
@@ -183,7 +182,6 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
     // Including a tab replaced by a newer one: its calls will never be answered.
     for (const [id, p] of pending) {
       if (p.socket !== socket) continue;
-      clearTimeout(p.timer);
       p.reject(new Error(`The viewer was closed while running ${p.name}. Call viewer_open to reopen it.`));
       pending.delete(id);
     }
@@ -288,7 +286,9 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
   }
 
   async function close() {
-    for (const p of pending.values()) clearTimeout(p.timer);
+    for (const p of pending.values()) p.reject(new Error("The agent session ended."));
+    pending.clear();
+    calls.clear();
     // 4004: the agent session ended; the viewer stops retrying (the desktop app returns to its chat).
     viewer?.close(4004, "session ended");
     wss.close();

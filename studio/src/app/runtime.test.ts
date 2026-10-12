@@ -134,4 +134,61 @@ describe("runtime controller", () => {
     setHubProvider(async () => "needs the desktop app");
     expect(await runtimeController("p").unavailable()).toBe("needs the desktop app");
   });
+
+  it("queues parallel approvals instead of reporting a user denial", async () => {
+    const runtime = runtimeController("p-parallel");
+    const request = { kind: "command" as const, code: "", packages: [], argv: ["first"], inputs: [], timeoutS: 60, waitS: 20 };
+    let firstSettled = false;
+    const first = runtime.run(request, new AbortController().signal).catch((e: Error) => { firstSettled = true; return e.message; });
+    for (let i = 0; i < 100 && !useApp.getState().approval; i++) await new Promise((r) => setTimeout(r, 5));
+    const card = useApp.getState().approval;
+    expect(card).not.toBeNull();
+    const second = runtime.run({ ...request, argv: ["second"] }, new AbortController().signal).catch((e: Error) => e.message);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(firstSettled).toBe(false);
+    expect(useApp.getState().approval).toBe(card);
+    answerRuntimeApproval("deny");
+    expect(await first).toMatch(/did not allow/);
+    expect(useApp.getState().approval).not.toBeNull();
+    expect(useApp.getState().approval).not.toBe(card);
+    answerRuntimeApproval("deny");
+    expect(await second).toMatch(/did not allow/);
+    expect(useApp.getState().approval).toBeNull();
+  });
+
+  it("cancels a queued approval without dismissing the active card", async () => {
+    const runtime = runtimeController("p-queued-abort");
+    const request = { kind: "python" as const, code: "x", packages: [], argv: [], inputs: [], timeoutS: 60, waitS: 20 };
+    const first = runtime.run(request, new AbortController().signal).catch((e: Error) => e.message);
+    for (let i = 0; i < 100 && !useApp.getState().approval; i++) await new Promise((r) => setTimeout(r, 5));
+    const card = useApp.getState().approval;
+    const abort = new AbortController();
+    const second = runtime.run(request, abort.signal).catch((e: Error) => e.message);
+    await new Promise((r) => setTimeout(r, 20));
+    abort.abort();
+    expect(await second).toMatch(/did not allow/);
+    expect(useApp.getState().approval).toBe(card);
+    answerRuntimeApproval("deny");
+    await first;
+    expect(useApp.getState().approval).toBeNull();
+  });
+
+  it("expires a queued approval without dismissing the active card", async () => {
+    vi.useFakeTimers();
+    try {
+      const runtime = runtimeController("p-queued-expiry");
+      const request = { kind: "python" as const, code: "x", packages: [], argv: [], inputs: [], timeoutS: 60, waitS: 30 };
+      const first = runtime.run(request, new AbortController().signal).catch((e: Error) => e.message);
+      await vi.advanceTimersByTimeAsync(1);
+      const card = useApp.getState().approval;
+      expect(card).not.toBeNull();
+      const second = runtime.run({ ...request, waitS: 10 }, new AbortController().signal).catch((e: Error) => e.message);
+      await vi.advanceTimersByTimeAsync(10_001);
+      expect(await second).toMatch(/Nothing ran/);
+      expect(useApp.getState().approval).toBe(card);
+      answerRuntimeApproval("deny");
+      await first;
+      expect(useApp.getState().approval).toBeNull();
+    } finally { vi.useRealTimers(); }
+  });
 });

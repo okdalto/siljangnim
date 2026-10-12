@@ -56,9 +56,18 @@ transport.stderr.on("data", (chunk) => {
 
 const client = new Client({ name: "claude-code", version: "smoke" });
 await client.connect(transport);
+// Exercise the same continuation protocol an external agent follows.
+async function callTool(request) {
+  let result = await client.callTool(request);
+  for (;;) {
+    const pending = result.content.find((c) => c.type === "text")?.text?.match(/call_id "([^"]+)"/);
+    if (!pending || result.isError) return result;
+    result = await client.callTool({ name: "viewer_call_status", arguments: { call_id: pending[1] } });
+  }
+}
 const calls = {};
 const call = async (name, args = {}) => {
-  const result = await client.callTool({ name, arguments: args });
+  const result = await callTool({ name, arguments: args });
   calls[name] = result;
   return result;
 };
@@ -95,8 +104,8 @@ await call("python_run", {
 await call("command_run", { argv: ["node", "-e", "require('fs').writeFileSync('out/cli.txt', 'cli ok')"] });
 const status = await call("runtime_status");
 const catalog = await call("catalog_search", { query: "plotter svg" });
-const registrySearch = await client.callTool({ name: "recipe_search", arguments: { query: "torus" } });
-const registryInstall = await client.callTool({ name: "recipe_install", arguments: { id: "trimesh.torus-knot" } });
+const registrySearch = await callTool({ name: "recipe_search", arguments: { query: "torus" } });
+const registryInstall = await callTool({ name: "recipe_install", arguments: { id: "trimesh.torus-knot" } });
 const installedRecipe = existsSync(join(out, "recipes", "trimesh.torus-knot", "recipe.md")) ? readFileSync(join(out, "recipes", "trimesh.torus-knot", "recipe.md"), "utf8") : "";
 
 // Stage 4: save what worked as a recipe, verify it, find it, run it with new params.
@@ -120,7 +129,7 @@ const viewerState = JSON.parse(readFileSync(join(out, "viewer.json"), "utf8"));
 
 // M3: inputs. Chromium's fake camera, and audio analysis of a tone the scene
 // generates (the fake microphone hangs on macOS, where capture needs OS permission).
-const inputScene = await client.callTool({ name: "scene_write", arguments: {
+const inputScene = await callTool({ name: "scene_write", arguments: {
   scene: {
     version: 2,
     inputs: ["camera"],
@@ -152,10 +161,10 @@ ctx.publish("camWidth", ctx.state.cam.width);`,
   },
 } });
 await wait(2500);
-const inputs = await client.callTool({ name: "viewport_status", arguments: {} });
+const inputs = await callTool({ name: "viewport_status", arguments: {} });
 
 // Shadertoy-style code through ctx.utils.shadertoy: an Image pass reading a feedback Buffer A.
-const toyScene = await client.callTool({ name: "scene_write", arguments: {
+const toyScene = await callTool({ name: "scene_write", arguments: {
   scene: {
     version: 2,
     script: {
@@ -167,7 +176,7 @@ const toyScene = await client.callTool({ name: "scene_write", arguments: {
   },
 } });
 await wait(1200);
-const toyCapture = await client.callTool({ name: "viewport_capture", arguments: { max_size: 128 } });
+const toyCapture = await callTool({ name: "viewport_capture", arguments: { max_size: 128 } });
 
 // OSC: the hub listens on UDP, the viewer streams it into ctx.osc. Sent from here with dgram.
 const oscPort = await new Promise((resolve) => {
@@ -177,7 +186,7 @@ const oscPort = await new Promise((resolve) => {
     probe.close(() => resolve(port));
   });
 });
-const oscScene = await client.callTool({ name: "scene_write", arguments: {
+const oscScene = await callTool({ name: "scene_write", arguments: {
   scene: {
     version: 2,
     script: {
@@ -202,7 +211,7 @@ for (const msg of [oscMessage("/fader", ",f", float), oscMessage("/label", ",s",
 }
 oscSender.close();
 await wait(1000);
-const oscStatus = await client.callTool({ name: "viewport_status", arguments: {} });
+const oscStatus = await callTool({ name: "viewport_status", arguments: {} });
 
 // Stage 5: project.md. The agent's export, the person's bundle (.zip) and an import of each.
 let commandSerial = 0;
@@ -218,7 +227,7 @@ const inPage = async (code, timeoutMs = 15_000) => {
   return { ok: false, error: "timed out" };
 };
 // Stage 6: the job queue. A long job comes back "still running"; the person cancels it in the Jobs tab.
-const longJob = await client.callTool({ name: "python_run", arguments: { code: "import time\nprint('working', flush=True)\ntime.sleep(60)", wait_s: 1 } });
+const longJob = await callTool({ name: "python_run", arguments: { code: "import time\nprint('working', flush=True)\ntime.sleep(60)", wait_s: 1 } });
 const longId = text(longJob).match(/Job (\w+) is still/)?.[1];
 const jobsPanel = await inPage(`(async () => {
   [...document.querySelectorAll('[role="tab"]')].find((t) => t.innerText === "Jobs").click();
@@ -231,7 +240,7 @@ const jobsPanel = await inPage(`(async () => {
   [...document.querySelectorAll('[role="tab"]')].find((t) => t.innerText === "Activity").click();
   return { label, state, rows: document.querySelectorAll("[data-job]").length };
 })()`);
-const longAfter = longId ? await client.callTool({ name: "job_status", arguments: { id: longId, wait_s: 5 } }) : null;
+const longAfter = longId ? await callTool({ name: "job_status", arguments: { id: longId, wait_s: 5 } }) : null;
 const exported = await call("project_export_md");
 const md = text(exported);
 // The menu may take a moment to render: wait for the button rather than a fixed delay.
@@ -266,11 +275,11 @@ const bundleImport = bundle
   };
 })()`)
   : { ok: false, error: "no bundle downloaded" };
-const bundleAssets = text(await client.callTool({ name: "asset_list", arguments: {} }));
+const bundleAssets = text(await callTool({ name: "asset_list", arguments: {} }));
 const importedRecipe = existsSync(join(out, "recipes", "smoke.points", "recipe.md")) ? readFileSync(join(out, "recipes", "smoke.points", "recipe.md"), "utf8") : "";
 const mdImport = await call("project_import_md", { markdown: md });
 await wait(1500);
-const afterImport = await client.callTool({ name: "viewport_status", arguments: {} });
+const afterImport = await callTool({ name: "viewport_status", arguments: {} });
 
 
 const checks = {

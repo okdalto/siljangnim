@@ -96,7 +96,7 @@ describe("bridge", () => {
     const { tools } = await client.listTools();
     assert.deepEqual(
       tools.map((t) => t.name),
-      ["scene_read", "viewport_capture", "viewer_open"],
+      ["scene_read", "viewport_capture", "viewer_open", "viewer_call_status"],
     );
     assert.equal(tools[0].annotations.readOnlyHint, true);
     assert.equal(client.getInstructions(), "test instructions");
@@ -169,6 +169,36 @@ describe("bridge", () => {
 });
 
 describe("bridge runtime hub", () => {
+  it("returns a continuation ID and retrieves the original result without another viewer call", async () => {
+    const bridge = createBridge({ studioDir: studioDir(), spec, port: 0, responseWaitMs: 5 });
+    await bridge.listen();
+    const client = await connectClient(bridge);
+    let finish;
+    const viewer = fakeViewer(bridge, { reply: () => new Promise((resolve) => { finish = resolve; }) });
+    try {
+      await viewer.ready;
+      const initial = await client.callTool({ name: "scene_read", arguments: {} });
+      const id = initial.content[0].text.match(/call_id "([^"]+)"/)[1];
+      assert.equal(initial.isError, undefined);
+      assert.match((await client.callTool({ name: "viewer_call_status", arguments: { call_id: id } })).content[0].text, /still pending/);
+      finish({ content: "original result" });
+      // Wait until the socket has delivered the result, polling never dispatches another tool.
+      let result;
+      for (let i = 0; i < 20; i++) {
+        result = await client.callTool({ name: "viewer_call_status", arguments: { call_id: id } });
+        if (result.content[0].text === "original result") break;
+      }
+      assert.equal(result.content[0].text, "original result");
+      assert.equal(viewer.calls.length, 1);
+      assert.equal((await client.callTool({ name: "viewer_call_status", arguments: { call_id: "unknown" } })).isError, true);
+    } finally {
+      viewer.ws.close();
+      await viewer.closed;
+      await client.close();
+      await bridge.close();
+    }
+  });
+
   it("hands the hub only to the authenticated viewer, starting it on request", async () => {
     let started = 0;
     const bridge = createBridge({

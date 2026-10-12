@@ -50,7 +50,7 @@ Or into **Codex**:
 Install the Siljangnim MCP server by running:
 codex mcp add siljangnim -- npx -y siljangnim-mcp@latest
 Then, in ~/.codex/config.toml under [mcp_servers.siljangnim], add the line tool_timeout_sec = 120
-(some tools wait up to 110 seconds for a job). Then tell me to restart Codex.
+(long calls return a tracking ID within 45 seconds; the agent polls viewer_call_status). Then tell me to restart Codex.
 ```
 
 Restart it, then ask for something:

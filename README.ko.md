@@ -49,7 +49,7 @@ claude mcp add siljangnim -- npx -y siljangnim-mcp@latest
 실장님 MCP 서버를 설치해 줘. 이 명령을 실행하면 돼:
 codex mcp add siljangnim -- npx -y siljangnim-mcp@latest
 그다음 ~/.codex/config.toml의 [mcp_servers.siljangnim] 아래에 tool_timeout_sec = 120 줄을 추가해 줘
-(작업을 최대 110초까지 기다리는 도구가 있어). 끝나면 Codex를 다시 시작하라고 알려 줘.
+(긴 호출은 45초 안에 추적 ID를 반환하고 viewer_call_status로 이어서 조회해). 끝나면 Codex를 다시 시작하라고 알려 줘.
 ```
 
 다시 시작하고, 만들고 싶은 것을 말하세요:

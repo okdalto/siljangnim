@@ -1131,35 +1131,45 @@ const jobRecipes = new Map<string, string>();
 /** What each job was asked to do, for pipeline.json (project.md). */
 const jobRequests = new Map<string, RuntimeRequest>();
 const replacedByJob = new Map<string, string[]>();
-let answerApproval: ((answer: ApprovalAnswer | "unanswered") => void) | null = null;
+type ApprovalResult = ApprovalAnswer | "unanswered";
+const approvalQueue: Array<{ request: ApprovalRequest; finish(answer: ApprovalResult): void }> = [];
 
-/**
- * Ask the person to allow a runtime action. Resolves "deny" when the run
- * stops, and "unanswered" after `timeoutS` so a tool call never hangs on a
- * card nobody is looking at.
- */
-function requestApproval(request: ApprovalRequest, signal: AbortSignal, timeoutS: number): Promise<ApprovalAnswer | "unanswered"> {
+/** Each request keeps its own deadline, including time queued behind another card. */
+function requestApproval(request: ApprovalRequest, signal: AbortSignal, timeoutS: number): Promise<ApprovalResult> {
   return new Promise((resolve) => {
     if (signal.aborted) return resolve("deny");
-    const timer = setTimeout(() => done("unanswered"), timeoutS * 1000);
-    const done = (answer: ApprovalAnswer | "unanswered") => {
+    let settled = false;
+    const entry = { request, finish };
+    const timer = setTimeout(() => finish("unanswered"), timeoutS * 1000);
+    const onAbort = () => finish("deny");
+    function finish(answer: ApprovalResult) {
+      if (settled) return;
+      settled = true;
       clearTimeout(timer);
       signal.removeEventListener("abort", onAbort);
-      if (answerApproval === done) answerApproval = null;
-      set({ approval: null });
+      const index = approvalQueue.indexOf(entry);
+      if (index !== -1) approvalQueue.splice(index, 1);
+      // A queued timeout/cancellation must not dismiss someone else's card.
+      if (index === 0) showNextApproval();
       resolve(answer);
-    };
-    const onAbort = () => done("deny");
+    }
     signal.addEventListener("abort", onAbort);
-    // A newer request replaces an unanswered one (it can only come from a stopped run).
-    answerApproval?.("deny");
-    answerApproval = done;
-    set((st) => ({ approval: request, sidebarTab: st.external ? "activity" : "chat", sidebarCollapsed: false }));
+    approvalQueue.push(entry);
+    if (approvalQueue.length === 1) showNextApproval();
   });
 }
 
+function showNextApproval(): void {
+  const next = approvalQueue[0];
+  if (!next) {
+    set({ approval: null });
+    return;
+  }
+  set((st) => ({ approval: next.request, sidebarTab: st.external ? "activity" : "chat", sidebarCollapsed: false }));
+}
+
 export function answerRuntimeApproval(answer: ApprovalAnswer): void {
-  answerApproval?.(answer);
+  approvalQueue[0]?.finish(answer);
 }
 
 async function readJsonFile(projectId: string, path: string): Promise<unknown> {
@@ -1235,7 +1245,7 @@ export function runtimeController(projectId: string): RuntimeController {
         const answer = await requestApproval(needed, signal, Math.max(10, request.waitS));
         if (answer === "unanswered") {
           throw new Error(
-            `Waiting for the person to approve this in the Siljangnim window (${needed.items.join("; ")}). Nothing ran. Tell them to look at the approval card, then call the tool again.`,
+            `Waiting for the person to approve this timed out (${needed.items.join("; ")}). Nothing ran. Call the tool again to show a new approval card in the Siljangnim window.`,
           );
         }
         if (answer === "deny") throw new Error("The person did not allow this. Ask them in your reply, or find a way that runs in the browser.");
