@@ -10,6 +10,8 @@ app.setPath("userData", join(out, "profile"));
 // Chromium's fake microphone (a beep) and camera (a test pattern), with permission prompts accepted.
 app.commandLine.appendSwitch("use-fake-device-for-media-stream");
 app.commandLine.appendSwitch("use-fake-ui-for-media-stream");
+// Keep rendering when the window is behind others (Chromium pauses occluded windows).
+for (const flag of ["disable-renderer-backgrounding", "disable-background-timer-throttling", "disable-backgrounding-occluded-windows"]) app.commandLine.appendSwitch(flag);
 
 const READ_STATE = `(() => ({
   status: document.querySelector('[data-testid="external-status"]')?.dataset.status ?? null,
@@ -25,7 +27,7 @@ const READ_STATE = `(() => ({
 app.whenReady().then(async () => {
   // Recordings download without a save dialog, into the smoke output.
   session.defaultSession.on("will-download", (_e, item) => item.setSavePath(join(out, "downloads", item.getFilename())));
-  const win = new BrowserWindow({ width: 1280, height: 800, show: true });
+  const win = new BrowserWindow({ width: 1280, height: 800, show: true, webPreferences: { backgroundThrottling: false } });
   // The page's console, for when something goes wrong.
   const logLines = [];
   win.webContents.on("console-message", ({ level, message }) => {

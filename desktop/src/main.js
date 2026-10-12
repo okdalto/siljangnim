@@ -22,6 +22,13 @@ app.setName("Siljangnim");
 // Lets the smoke test run against a throwaway profile instead of the user's projects and keys.
 if (process.env.SILJANGNIM_USER_DATA) app.setPath("userData", process.env.SILJANGNIM_USER_DATA);
 registerScheme();
+// The smoke test's window may sit behind others; Chromium would pause an occluded window's
+// rendering and timers, and every scene would look stuck in "loading".
+if (process.env.SILJANGNIM_SMOKE_OUT) {
+  for (const flag of ["disable-renderer-backgrounding", "disable-background-timer-throttling", "disable-backgrounding-occluded-windows"]) {
+    app.commandLine.appendSwitch(flag);
+  }
+}
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -65,6 +72,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      backgroundThrottling: !process.env.SILJANGNIM_SMOKE_OUT,
     },
   });
 

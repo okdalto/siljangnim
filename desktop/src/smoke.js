@@ -434,10 +434,12 @@ async function runExamplesScenario(win, examplesOut) {
     await wait(1200);
     const frame = await findSceneFrame(win);
     // Libraries come from a CDN with an empty cache here: give setup a few seconds to finish.
+    // Only a dark canvas is retried; a frame that doesn't answer has failed already.
     let sample = null;
-    for (let i = 0; i < 8 && !(sample?.litFraction > 0.02); i++) {
+    for (let i = 0; i < 8 && frame; i++) {
       if (i) await wait(750);
-      sample = frame ? await inFrame(frame, SAMPLE_CANVAS, `sample ${slug}`).catch(() => null) : null;
+      sample = await inFrame(frame, SAMPLE_CANVAS, `sample ${slug}`, 10_000).catch(() => null);
+      if (!sample || sample.litFraction > 0.02) break;
     }
     const after = await win.webContents.executeJavaScript(`Number(document.querySelector("[data-runtime-state]")?.dataset.runtimeErrors)`);
     results[slug] = { ...state, errors: after, litFraction: sample?.litFraction ?? 0 };
