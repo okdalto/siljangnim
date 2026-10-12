@@ -64,6 +64,10 @@ export const ReferenceEntrySchema = z.object({
   input: z.string(),
   keywords: z.array(z.string()),
   index: z.object({ no: z.number(), code: z.string() }),
+  /** The same labels in Korean, from the list's Korean edition. */
+  ko: z
+    .object({ principle: z.string(), medium: z.string(), concept: z.string(), area: z.string(), input: z.string(), keywords: z.array(z.string()) })
+    .optional(),
 });
 
 export type ReferenceEntry = z.infer<typeof ReferenceEntrySchema>;
@@ -72,6 +76,11 @@ export const REFERENCE_SOURCE = "index.opensource by 현 @hyun2xyz (https://inde
 
 const repoKey = (url: string | null | undefined) => url?.toLowerCase().replace(/\/+$/, "") ?? "";
 const curatedRepos = new Set(CATALOG.map((e) => repoKey(e.repo)));
+
+/** An entry's labels in one language (English when it has no Korean). */
+export function referenceLabels(e: ReferenceEntry, korean: boolean): Pick<ReferenceEntry, "principle" | "medium" | "concept" | "area" | "input" | "keywords"> {
+  return korean && e.ko ? e.ko : e;
+}
 
 /** Reference entries not already curated (same repository). */
 export const REFERENCES: ReferenceEntry[] = z
@@ -90,8 +99,8 @@ export function searchReferences(query: string, references = REFERENCES): Refere
   if (!words.length) return [];
   const scored = references.flatMap((e) => {
     const name = e.name.toLowerCase();
-    const tags = `${e.keywords.join(" ")} ${e.concept}`.toLowerCase();
-    const rest = `${e.principle} ${e.medium} ${e.area} ${e.input}`.toLowerCase();
+    const tags = `${e.keywords.join(" ")} ${e.concept} ${e.ko?.keywords.join(" ") ?? ""} ${e.ko?.concept ?? ""}`.toLowerCase();
+    const rest = `${e.principle} ${e.medium} ${e.area} ${e.input} ${e.ko ? `${e.ko.principle} ${e.ko.medium} ${e.ko.area} ${e.ko.input}` : ""}`.toLowerCase();
     let score = 0;
     for (const w of words) {
       if (name.includes(w)) score += 3;

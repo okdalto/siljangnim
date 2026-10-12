@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatSceneError } from "../../agent/sceneTools";
 import { SceneHost, sceneRuntimeUrl } from "../../scene/host";
 import { attachSceneHost } from "../session";
-import { useApp } from "../state";
+import { useApp, useLanguage } from "../state";
 import { AlertIcon, XIcon } from "./icons";
 import { EXAMPLES, exampleText } from "../../project/examples";
 import { Notice } from "./Chat";
@@ -48,9 +48,10 @@ export function Viewport() {
 /** Right after an example opens: what it is and what to try, in plain words. */
 function ExampleIntro() {
   const slug = useApp((s) => s.exampleIntro);
+  const korean = useLanguage() === "ko";
   const example = EXAMPLES.find((e) => e.slug === slug);
   if (!example) return null;
-  const text = exampleText(example);
+  const text = exampleText(example, korean);
   return (
     <div className="absolute bottom-10 left-2 z-20 w-80 rounded-lg border border-line/80 bg-panel/90 p-3 text-xs shadow-2xl backdrop-blur" data-testid="example-intro">
       <div className="mb-1 flex items-start justify-between gap-2">
@@ -62,10 +63,10 @@ function ExampleIntro() {
       <p className="leading-relaxed text-muted">{text.summary}</p>
       {text.tries.length > 0 && (
         <ul className="mt-2 space-y-0.5 text-muted">
-          {text.tries.map((t) => (
-            <li key={t} className="flex gap-1.5">
+          {text.tries.map((line) => (
+            <li key={line} className="flex gap-1.5">
               <span className="text-accent">•</span>
-              <span>{t}</span>
+              <span>{line}</span>
             </li>
           ))}
         </ul>

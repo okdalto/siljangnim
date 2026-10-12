@@ -22,6 +22,18 @@
    "index": {
     "no": 1,
     "code": "X026"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "텐서장·유선",
+    "area": "지도·환경",
+    "input": "텐서장·도로 조건",
+    "keywords": [
+     "텐서장",
+     "도시",
+     "도로"
+    ]
    }
   },
   {
@@ -42,6 +54,18 @@
    "index": {
     "no": 2,
     "code": "X033"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "들로네·보로노이",
+    "area": "패턴·조형",
+    "input": "점 좌표",
+    "keywords": [
+     "기하",
+     "보로노이",
+     "삼각분할"
+    ]
    }
   },
   {
@@ -62,6 +86,18 @@
    "index": {
     "no": 3,
     "code": "X035"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "최소 간격 표본화",
+    "area": "패턴·조형",
+    "input": "간격·확률 조건",
+    "keywords": [
+     "분포",
+     "표본화",
+     "최소거리"
+    ]
    }
   },
   {
@@ -82,6 +118,18 @@
    "index": {
     "no": 4,
     "code": "X036"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "공간 채움 곡선",
+    "area": "패턴·조형",
+    "input": "좌표·순서",
+    "keywords": [
+     "재귀",
+     "공간채움",
+     "지역성"
+    ]
    }
   },
   {
@@ -102,6 +150,18 @@
    "index": {
     "no": 5,
     "code": "X064"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "3D 은선 제거",
+    "area": "드로잉·판화",
+    "input": "3D 장면",
+    "keywords": [
+     "선화",
+     "3D",
+     "벡터"
+    ]
    }
   },
   {
@@ -122,6 +182,18 @@
    "index": {
     "no": 6,
     "code": "X065"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "벡터 경로 최적화",
+    "area": "드로잉·판화",
+    "input": "벡터 경로",
+    "keywords": [
+     "플로터",
+     "SVG",
+     "경로정렬"
+    ]
    }
   },
   {
@@ -138,6 +210,14 @@
    "index": {
     "no": 7,
     "code": "C006"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "등면 타일링·대칭 제약",
+    "area": "패턴·조형",
+    "input": "타일 경계·대칭",
+    "keywords": []
    }
   },
   {
@@ -154,6 +234,14 @@
    "index": {
     "no": 8,
     "code": "C007"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "벡터장·유선 적분",
+    "area": "패턴·조형",
+    "input": "벡터장",
+    "keywords": []
    }
   },
   {
@@ -170,6 +258,14 @@
    "index": {
     "no": 9,
     "code": "C009"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "평탄 접기·층위 제약",
+    "area": "구조·제작",
+    "input": "접기선·종이",
+    "keywords": []
    }
   },
   {
@@ -186,6 +282,14 @@
    "index": {
     "no": 10,
     "code": "C014"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "곡선 경로의 불리언 연산",
+    "area": "패턴·조형",
+    "input": "도형·윤곽",
+    "keywords": []
    }
   },
   {
@@ -202,6 +306,14 @@
    "index": {
     "no": 11,
     "code": "C015"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "다각형 클리핑·오프셋",
+    "area": "패턴·조형",
+    "input": "도형·윤곽",
+    "keywords": []
    }
   },
   {
@@ -218,6 +330,14 @@
    "index": {
     "no": 12,
     "code": "C016"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "원호 보존 평행 오프셋",
+    "area": "패턴·조형",
+    "input": "윤곽·거리",
+    "keywords": []
    }
   },
   {
@@ -234,6 +354,14 @@
    "index": {
     "no": 13,
     "code": "C019"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "획 좌표 인코딩·벡터 글자",
+    "area": "출판·타이포",
+    "input": "문자·획 좌표",
+    "keywords": []
    }
   },
   {
@@ -250,6 +378,14 @@
    "index": {
     "no": 14,
     "code": "C020"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "베지에 다항식·곡률·호 길이",
+    "area": "패턴·조형",
+    "input": "곡선 경로",
+    "keywords": []
    }
   },
   {
@@ -266,6 +402,14 @@
    "index": {
     "no": 15,
     "code": "C024"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "마칭 스퀘어·등치선",
+    "area": "패턴·조형",
+    "input": "수치 격자·높이",
+    "keywords": []
    }
   },
   {
@@ -282,6 +426,14 @@
    "index": {
     "no": 16,
     "code": "C025"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "오목 껍질·공간 인덱스",
+    "area": "패턴·조형",
+    "input": "흩어진 점",
+    "keywords": []
    }
   },
   {
@@ -298,6 +450,14 @@
    "index": {
     "no": 17,
     "code": "C026"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "더글러스–퍼커·선 경로 단순화",
+    "area": "패턴·조형",
+    "input": "꺾은선",
+    "keywords": []
    }
   },
   {
@@ -314,6 +474,14 @@
    "index": {
     "no": 18,
     "code": "C028"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "귀 자르기·다각형 삼각분할",
+    "area": "패턴·조형",
+    "input": "윤곽·경계",
+    "keywords": []
    }
   },
   {
@@ -330,6 +498,14 @@
    "index": {
     "no": 19,
     "code": "C030"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "제약 최적화·선언형 다이어그램",
+    "area": "패턴·조형",
+    "input": "관계·제약",
+    "keywords": []
    }
   },
   {
@@ -346,6 +522,14 @@
    "index": {
     "no": 20,
     "code": "C032"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "최대 빈 원·원 채우기",
+    "area": "패턴·조형",
+    "input": "도형·크기·경계",
+    "keywords": []
    }
   },
   {
@@ -362,6 +546,14 @@
    "index": {
     "no": 21,
     "code": "C038"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "적응형 곡선 세분화",
+    "area": "패턴·조형",
+    "input": "점·제어점",
+    "keywords": []
    }
   },
   {
@@ -378,6 +570,14 @@
    "index": {
     "no": 22,
     "code": "C042"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "아핀 변환·행렬 합성",
+    "area": "드로잉·판화",
+    "input": "도형·변환 행렬",
+    "keywords": []
    }
   },
   {
@@ -394,6 +594,14 @@
    "index": {
     "no": 23,
     "code": "C043"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "드 카스텔조·곡선 분할",
+    "area": "패턴·조형",
+    "input": "점·제어점",
+    "keywords": []
    }
   },
   {
@@ -410,6 +618,14 @@
    "index": {
     "no": 24,
     "code": "C044"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "스윕 라인·다각형 집합 연산",
+    "area": "패턴·조형",
+    "input": "도형·윤곽",
+    "keywords": []
    }
   },
   {
@@ -426,6 +642,14 @@
    "index": {
     "no": 25,
     "code": "C049"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "유리 B-스플라인·가중 제어점",
+    "area": "패턴·조형",
+    "input": "점·제어점",
+    "keywords": []
    }
   },
   {
@@ -442,6 +666,14 @@
    "index": {
     "no": 26,
     "code": "C051"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "필압·가변 폭 획",
+    "area": "출판·타이포",
+    "input": "필압·손의 경로",
+    "keywords": []
    }
   },
   {
@@ -458,6 +690,14 @@
    "index": {
     "no": 27,
     "code": "C055"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "차이킨 모서리 자르기",
+    "area": "패턴·조형",
+    "input": "꺾은선",
+    "keywords": []
    }
   },
   {
@@ -474,6 +714,14 @@
    "index": {
     "no": 28,
     "code": "C057"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "비정형 네스팅·유전 알고리즘",
+    "area": "구조·제작",
+    "input": "도형·크기·경계",
+    "keywords": []
    }
   },
   {
@@ -490,6 +738,14 @@
    "index": {
     "no": 29,
     "code": "C059"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "제약 들로네 삼각분할",
+    "area": "패턴·조형",
+    "input": "윤곽·경계",
+    "keywords": []
    }
   },
   {
@@ -506,6 +762,14 @@
    "index": {
     "no": 30,
     "code": "C060"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "평면 도형 불리언·선분 선택",
+    "area": "패턴·조형",
+    "input": "도형·윤곽",
+    "keywords": []
    }
   },
   {
@@ -522,6 +786,14 @@
    "index": {
     "no": 31,
     "code": "C062"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "원·구 패킹과 성장",
+    "area": "패턴·조형",
+    "input": "도형·크기·경계",
+    "keywords": []
    }
   },
   {
@@ -538,6 +810,14 @@
    "index": {
     "no": 32,
     "code": "C063"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "Catmull–Rom 스플라인·곡선 보간",
+    "area": "정보 시각화",
+    "input": "점·곡선 규칙",
+    "keywords": []
    }
   },
   {
@@ -554,6 +834,14 @@
    "index": {
     "no": 33,
     "code": "C077"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "동적 계획법·최적 볼록 분할",
+    "area": "구조·제작",
+    "input": "오목 다각형",
+    "keywords": []
    }
   },
   {
@@ -570,6 +858,14 @@
    "index": {
     "no": 34,
     "code": "C082"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "마칭 스퀘어·등치선 연결",
+    "area": "지도·환경",
+    "input": "수치 격자·높이",
+    "keywords": []
    }
   },
   {
@@ -586,6 +882,14 @@
    "index": {
     "no": 35,
     "code": "C083"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "SVG 윤곽 이산화·제약 삼각분할",
+    "area": "드로잉·판화",
+    "input": "벡터 윤곽",
+    "keywords": []
    }
   },
   {
@@ -602,6 +906,14 @@
    "index": {
     "no": 36,
     "code": "C084"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "알파 복합체·경계 추출",
+    "area": "패턴·조형",
+    "input": "흩어진 점",
+    "keywords": []
    }
   },
   {
@@ -618,6 +930,14 @@
    "index": {
     "no": 37,
     "code": "C091"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "스파이럴 스플라인·곡률 연속성",
+    "area": "출판·타이포",
+    "input": "점·제어점",
+    "keywords": []
    }
   },
   {
@@ -634,6 +954,14 @@
    "index": {
     "no": 38,
     "code": "C093"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "벡터 경로 테셀레이션",
+    "area": "패턴·조형",
+    "input": "윤곽·경계",
+    "keywords": []
    }
   },
   {
@@ -650,6 +978,14 @@
    "index": {
     "no": 39,
     "code": "C095"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "곡선 적분·오차 제어",
+    "area": "패턴·조형",
+    "input": "곡선 경로",
+    "keywords": []
    }
   },
   {
@@ -666,6 +1002,14 @@
    "index": {
     "no": 40,
     "code": "C101"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "마이터 접합·선의 법선",
+    "area": "드로잉·판화",
+    "input": "선 경로·두께",
+    "keywords": []
    }
   },
   {
@@ -682,6 +1026,14 @@
    "index": {
     "no": 41,
     "code": "C107"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "방사형 스윕·반변 구조",
+    "area": "패턴·조형",
+    "input": "점 좌표",
+    "keywords": []
    }
   },
   {
@@ -698,6 +1050,14 @@
    "index": {
     "no": 42,
     "code": "C111"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "중심축·스케일 축 변환",
+    "area": "패턴·조형",
+    "input": "닫힌 곡선",
+    "keywords": []
    }
   },
   {
@@ -714,6 +1074,14 @@
    "index": {
     "no": 43,
     "code": "C112"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "곡선 차수 감소·오차 기반 분할",
+    "area": "패턴·조형",
+    "input": "삼차 곡선",
+    "keywords": []
    }
   },
   {
@@ -730,6 +1098,14 @@
    "index": {
     "no": 44,
     "code": "C116"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "스윕 라인·와인딩 규칙",
+    "area": "패턴·조형",
+    "input": "윤곽·경계",
+    "keywords": []
    }
   },
   {
@@ -746,6 +1122,14 @@
    "index": {
     "no": 45,
     "code": "C122"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "최소제곱·재귀 곡선 맞춤",
+    "area": "드로잉·판화",
+    "input": "점·제어점",
+    "keywords": []
    }
   },
   {
@@ -762,6 +1146,14 @@
    "index": {
     "no": 46,
     "code": "C128"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "단조 체인·방향 판정",
+    "area": "패턴·조형",
+    "input": "흩어진 점",
+    "keywords": []
    }
   },
   {
@@ -778,6 +1170,14 @@
    "index": {
     "no": 47,
     "code": "C130"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "점의 안팎·교차 패리티",
+    "area": "패턴·조형",
+    "input": "점·다각형",
+    "keywords": []
    }
   },
   {
@@ -794,6 +1194,14 @@
    "index": {
     "no": 48,
     "code": "C133"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "오목 껍질·윤곽 추출",
+    "area": "패턴·조형",
+    "input": "흩어진 점",
+    "keywords": []
    }
   },
   {
@@ -810,6 +1218,14 @@
    "index": {
     "no": 49,
     "code": "C134"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "오목 다각형의 볼록 분해",
+    "area": "패턴·조형",
+    "input": "오목 다각형",
+    "keywords": []
    }
   },
   {
@@ -826,6 +1242,14 @@
    "index": {
     "no": 50,
     "code": "C136"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "직교 다각형·이분 그래프 분할",
+    "area": "패턴·조형",
+    "input": "직교 다각형",
+    "keywords": []
    }
   },
   {
@@ -842,6 +1266,14 @@
    "index": {
     "no": 51,
     "code": "C143"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "선의 두께·마이터 접합",
+    "area": "드로잉·판화",
+    "input": "선 경로·두께",
+    "keywords": []
    }
   },
   {
@@ -858,6 +1290,14 @@
    "index": {
     "no": 52,
     "code": "C152"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "마칭 스퀘어·등치선",
+    "area": "패턴·조형",
+    "input": "수치 격자·높이",
+    "keywords": []
    }
   },
   {
@@ -874,6 +1314,14 @@
    "index": {
     "no": 53,
     "code": "C160"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "폴리곤 오프셋·법선·호 연결",
+    "area": "패턴·조형",
+    "input": "윤곽·거리",
+    "keywords": []
    }
   },
   {
@@ -890,6 +1338,14 @@
    "index": {
     "no": 54,
     "code": "C165"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "de Boor·유리 B-스플라인",
+    "area": "드로잉·판화",
+    "input": "점·제어점",
+    "keywords": []
    }
   },
   {
@@ -906,6 +1362,14 @@
    "index": {
     "no": 55,
     "code": "C166"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "호 길이 재매개화·회전 최소 프레임",
+    "area": "움직임·안무",
+    "input": "곡선·간격",
+    "keywords": []
    }
   },
   {
@@ -922,6 +1386,14 @@
    "index": {
     "no": 56,
     "code": "C167"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "원 포장·최소 둘레 원",
+    "area": "정보 시각화",
+    "input": "도형·크기·경계",
+    "keywords": []
    }
   },
   {
@@ -938,6 +1410,14 @@
    "index": {
     "no": 57,
     "code": "C203"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "위상 연산·기하 버퍼",
+    "area": "패턴·조형",
+    "input": "도형·윤곽",
+    "keywords": []
    }
   },
   {
@@ -954,6 +1434,14 @@
    "index": {
     "no": 58,
     "code": "C204"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "평면 기하·집합 연산",
+    "area": "패턴·조형",
+    "input": "도형·윤곽",
+    "keywords": []
    }
   },
   {
@@ -970,6 +1458,14 @@
    "index": {
     "no": 59,
     "code": "C214"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "점·벡터·창작 기하",
+    "area": "패턴·조형",
+    "input": "점·벡터·시간",
+    "keywords": []
    }
   },
   {
@@ -986,6 +1482,14 @@
    "index": {
     "no": 60,
     "code": "C257"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "글리프 윤곽·폰트 편집",
+    "area": "출판·타이포",
+    "input": "글자 윤곽·폰트",
+    "keywords": []
    }
   },
   {
@@ -1002,6 +1506,14 @@
    "index": {
     "no": 61,
     "code": "C259"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "폰트 테이블·서브셋",
+    "area": "출판·타이포",
+    "input": "폰트·글자 선택",
+    "keywords": []
    }
   },
   {
@@ -1022,6 +1534,18 @@
    "index": {
     "no": 62,
     "code": "X016"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "3D 프랙탈",
+    "area": "패턴·조형",
+    "input": "반복 수식·빛",
+    "keywords": [
+     "프랙탈",
+     "반복",
+     "렌더링"
+    ]
    }
   },
   {
@@ -1038,6 +1562,14 @@
    "index": {
     "no": 63,
     "code": "C010"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "B-스플라인·단면 스윕",
+    "area": "구조·제작",
+    "input": "원자 좌표",
+    "keywords": []
    }
   },
   {
@@ -1054,6 +1586,14 @@
    "index": {
     "no": 64,
     "code": "C017"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "매니폴드 메시·입체 불리언",
+    "area": "구조·제작",
+    "input": "입체·메시",
+    "keywords": []
    }
   },
   {
@@ -1070,6 +1610,14 @@
    "index": {
     "no": 65,
     "code": "C018"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "함수 표현·암시적 곡면",
+    "area": "구조·제작",
+    "input": "거리 함수",
+    "keywords": []
    }
   },
   {
@@ -1086,6 +1634,14 @@
    "index": {
     "no": 66,
     "code": "C033"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "부호 있는 거리 함수·부드러운 결합",
+    "area": "구조·제작",
+    "input": "거리 함수",
+    "keywords": []
    }
   },
   {
@@ -1102,6 +1658,14 @@
    "index": {
     "no": 67,
     "code": "C034"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "마칭 큐브·등치면 추출",
+    "area": "구조·제작",
+    "input": "3D 수치장",
+    "keywords": []
    }
   },
   {
@@ -1118,6 +1682,14 @@
    "index": {
     "no": 68,
     "code": "C037"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "무게중심 좌표·화면 미분",
+    "area": "구조·제작",
+    "input": "삼각형 메시",
+    "keywords": []
    }
   },
   {
@@ -1134,6 +1706,14 @@
    "index": {
     "no": 69,
     "code": "C047"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "BSP 트리·입체 집합 연산",
+    "area": "구조·제작",
+    "input": "입체·메시",
+    "keywords": []
    }
   },
   {
@@ -1150,6 +1730,14 @@
    "index": {
     "no": 70,
     "code": "C048"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "국소 강체성·ARAP 변형",
+    "area": "구조·제작",
+    "input": "메시·변형 조건",
+    "keywords": []
    }
   },
   {
@@ -1166,6 +1754,14 @@
    "index": {
     "no": 71,
     "code": "C054"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "등치면·서피스 넷",
+    "area": "구조·제작",
+    "input": "3D 수치장",
+    "keywords": []
    }
   },
   {
@@ -1182,6 +1778,14 @@
    "index": {
     "no": 72,
     "code": "C067"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "Marching Tetrahedra·등가면",
+    "area": "구조·제작",
+    "input": "3D 수치장",
+    "keywords": []
    }
   },
   {
@@ -1198,6 +1802,14 @@
    "index": {
     "no": 73,
     "code": "C074"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "메시 매개화·UV 차트 패킹",
+    "area": "구조·제작",
+    "input": "입체 메시",
+    "keywords": []
    }
   },
   {
@@ -1214,6 +1826,14 @@
    "index": {
     "no": 74,
     "code": "C075"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "오차 제한·삼각형 단순화",
+    "area": "구조·제작",
+    "input": "삼각형 메시",
+    "keywords": []
    }
   },
   {
@@ -1230,6 +1850,14 @@
    "index": {
     "no": 75,
     "code": "C087"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "방향장·위치장 최적화·리메싱",
+    "area": "구조·제작",
+    "input": "입체 표면",
+    "keywords": []
    }
   },
   {
@@ -1246,6 +1874,14 @@
    "index": {
     "no": 76,
     "code": "C089"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "3차원 보로노이·평면 절단",
+    "area": "구조·제작",
+    "input": "입체의 점",
+    "keywords": []
    }
   },
   {
@@ -1262,6 +1898,14 @@
    "index": {
     "no": 77,
     "code": "C096"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "Catmull–Clark 세분곡면",
+    "area": "구조·제작",
+    "input": "거친 제어망",
+    "keywords": []
    }
   },
   {
@@ -1278,6 +1922,14 @@
    "index": {
     "no": 78,
     "code": "C097"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "3D 볼록껍질·반모서리 메시",
+    "area": "구조·제작",
+    "input": "입체 점군",
+    "keywords": []
    }
   },
   {
@@ -1294,6 +1946,14 @@
    "index": {
     "no": 79,
     "code": "C106"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "탐욕적 격자 병합",
+    "area": "패턴·조형",
+    "input": "복셀 격자",
+    "keywords": []
    }
   },
   {
@@ -1310,6 +1970,14 @@
    "index": {
     "no": 80,
     "code": "C109"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "이차 오차·변 축약",
+    "area": "구조·제작",
+    "input": "삼각형 메시",
+    "keywords": []
    }
   },
   {
@@ -1326,6 +1994,14 @@
    "index": {
     "no": 81,
     "code": "C137"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "거리장·부드러운 합집합",
+    "area": "구조·제작",
+    "input": "거리값·수식",
+    "keywords": []
    }
   },
   {
@@ -1342,6 +2018,14 @@
    "index": {
     "no": 82,
     "code": "C140"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "벡터·행렬·사원수 회전",
+    "area": "구조·제작",
+    "input": "벡터·회전값",
+    "keywords": []
    }
   },
   {
@@ -1358,6 +2042,14 @@
    "index": {
     "no": 83,
     "code": "C145"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "암시적 곡면·옥트리·듀얼 컨투어링",
+    "area": "구조·제작",
+    "input": "거리 함수",
+    "keywords": []
    }
   },
   {
@@ -1374,6 +2066,14 @@
    "index": {
     "no": 84,
     "code": "C146"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "라플라시안·HC 평활화",
+    "area": "구조·제작",
+    "input": "메시·변형 조건",
+    "keywords": []
    }
   },
   {
@@ -1390,6 +2090,14 @@
    "index": {
     "no": 85,
     "code": "C147"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "경계 조건·쌍조화 곡면 보간",
+    "area": "구조·제작",
+    "input": "메시·변형 조건",
+    "keywords": []
    }
   },
   {
@@ -1406,6 +2114,14 @@
    "index": {
     "no": 86,
     "code": "C155"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "메시 복셀화·격자 표본화",
+    "area": "구조·제작",
+    "input": "삼각형 메시",
+    "keywords": []
    }
   },
   {
@@ -1422,6 +2138,14 @@
    "index": {
     "no": 87,
     "code": "C164"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "부호 거리 함수·기본 입체",
+    "area": "구조·제작",
+    "input": "거리값·수식",
+    "keywords": []
    }
   },
   {
@@ -1438,6 +2162,14 @@
    "index": {
     "no": 88,
     "code": "C176"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "포물면 리프팅·고차원 들로네 분할",
+    "area": "패턴·조형",
+    "input": "점 좌표",
+    "keywords": []
    }
   },
   {
@@ -1454,6 +2186,14 @@
    "index": {
     "no": 89,
     "code": "C205"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "정확한 기하·메시 연산",
+    "area": "패턴·조형",
+    "input": "입체·메시",
+    "keywords": []
    }
   },
   {
@@ -1470,6 +2210,14 @@
    "index": {
     "no": 90,
     "code": "C206"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "CSG·파라미터 모델링",
+    "area": "구조·제작",
+    "input": "코드·치수",
+    "keywords": []
    }
   },
   {
@@ -1486,6 +2234,14 @@
    "index": {
     "no": 91,
     "code": "C207"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "코드 기반 CSG",
+    "area": "구조·제작",
+    "input": "코드·치수",
+    "keywords": []
    }
   },
   {
@@ -1502,6 +2258,14 @@
    "index": {
     "no": 92,
     "code": "C208"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "삼각 메시·기하 분석",
+    "area": "구조·제작",
+    "input": "입체 메시",
+    "keywords": []
    }
   },
   {
@@ -1518,6 +2282,14 @@
    "index": {
     "no": 93,
     "code": "C212"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "메시·공간 검색·SDF",
+    "area": "구조·제작",
+    "input": "메시·곡면",
+    "keywords": []
    }
   },
   {
@@ -1534,6 +2306,14 @@
    "index": {
     "no": 94,
     "code": "C213"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "경계 표현·곡면 CAD",
+    "area": "구조·제작",
+    "input": "메시·곡면",
+    "keywords": []
    }
   },
   {
@@ -1550,6 +2330,14 @@
    "index": {
     "no": 95,
     "code": "C228"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "광선·형상 교차 가속",
+    "area": "구조·제작",
+    "input": "광선·입체",
+    "keywords": []
    }
   },
   {
@@ -1566,6 +2354,14 @@
    "index": {
     "no": 96,
     "code": "C277"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "메시 연산·미분 렌더",
+    "area": "구조·제작",
+    "input": "이미지·장면·목표",
+    "keywords": []
    }
   },
   {
@@ -1582,6 +2378,14 @@
    "index": {
     "no": 97,
     "code": "C278"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "메시·점군 압축",
+    "area": "구조·제작",
+    "input": "메시·점군",
+    "keywords": []
    }
   },
   {
@@ -1598,6 +2402,14 @@
    "index": {
     "no": 98,
     "code": "C279"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "계층 경계상자·광선 검색",
+    "area": "구조·제작",
+    "input": "광선·입체",
+    "keywords": []
    }
   },
   {
@@ -1614,6 +2426,14 @@
    "index": {
     "no": 99,
     "code": "C058"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "움직이는 화면",
+    "concept": "벡터장·입자 수치 적분",
+    "area": "물질·자연",
+    "input": "벡터장",
+    "keywords": []
    }
   },
   {
@@ -1630,6 +2450,14 @@
    "index": {
     "no": 100,
     "code": "C170"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "움직이는 화면",
+    "concept": "원 쌍 반발·접선 포장",
+    "area": "정보 시각화",
+    "input": "도형·크기·경계",
+    "keywords": []
    }
   },
   {
@@ -1646,6 +2474,14 @@
    "index": {
     "no": 101,
     "code": "C035"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "접근 불가능 극점·분기 한정 탐색",
+    "area": "패턴·조형",
+    "input": "점·다각형",
+    "keywords": []
    }
   },
   {
@@ -1662,6 +2498,14 @@
    "index": {
     "no": 102,
     "code": "C036"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "육각 격자 집계·공간 양자화",
+    "area": "정보 시각화",
+    "input": "점 좌표",
+    "keywords": []
    }
   },
   {
@@ -1678,6 +2522,14 @@
    "index": {
     "no": 103,
     "code": "C053"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "직사각형 빈 패킹",
+    "area": "구조·제작",
+    "input": "도형·크기·경계",
+    "keywords": []
    }
   },
   {
@@ -1694,6 +2546,14 @@
    "index": {
     "no": 104,
     "code": "C076"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "열 확산·곡면 위 거리",
+    "area": "구조·제작",
+    "input": "메시·열원",
+    "keywords": []
    }
   },
   {
@@ -1710,6 +2570,14 @@
    "index": {
     "no": 105,
     "code": "C088"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "거리 변환·Lp 거리",
+    "area": "패턴·조형",
+    "input": "이진 격자",
+    "keywords": []
    }
   },
   {
@@ -1726,6 +2594,14 @@
    "index": {
     "no": 106,
     "code": "C090"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "적응 정밀도·기하 판정",
+    "area": "패턴·조형",
+    "input": "점 좌표",
+    "keywords": []
    }
   },
   {
@@ -1742,6 +2618,14 @@
    "index": {
     "no": 107,
     "code": "C098"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "비트 인터리빙·Z 순서",
+    "area": "패턴·조형",
+    "input": "좌표·순서",
+    "keywords": []
    }
   },
   {
@@ -1758,6 +2642,14 @@
    "index": {
     "no": 108,
     "code": "C148"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "광선·구 교차·수치 정밀도",
+    "area": "패턴·조형",
+    "input": "광선·입체",
+    "keywords": []
    }
   },
   {
@@ -1774,6 +2666,14 @@
    "index": {
     "no": 109,
     "code": "C156"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "다차원 상자 교차·스위프",
+    "area": "패턴·조형",
+    "input": "경계 상자",
+    "keywords": []
    }
   },
   {
@@ -1790,6 +2690,14 @@
    "index": {
     "no": 110,
     "code": "C163"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "신발끈 공식·다각형 무게중심",
+    "area": "패턴·조형",
+    "input": "점·다각형",
+    "keywords": []
    }
   },
   {
@@ -1806,6 +2714,14 @@
    "index": {
     "no": 111,
     "code": "C174"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "여접 가중 이산 라플라시안",
+    "area": "패턴·조형",
+    "input": "삼각형 메시",
+    "keywords": []
    }
   },
   {
@@ -1822,6 +2738,14 @@
    "index": {
     "no": 112,
     "code": "C175"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "수치·데이터",
+    "concept": "무게중심 좌표·선형계",
+    "area": "패턴·조형",
+    "input": "점·단체",
+    "keywords": []
    }
   },
   {
@@ -1842,6 +2766,18 @@
    "index": {
     "no": 113,
     "code": "X011"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "선·벡터",
+    "concept": "제약 기반 배치",
+    "area": "패턴·조형",
+    "input": "예시·타일 규칙",
+    "keywords": [
+     "제약",
+     "타일",
+     "절차생성"
+    ]
    }
   },
   {
@@ -1862,6 +2798,18 @@
    "index": {
     "no": 114,
     "code": "X013"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "선·벡터",
+    "concept": "차등 성장",
+    "area": "물질·자연",
+    "input": "점·성장 조건",
+    "keywords": [
+     "선",
+     "성장",
+     "유기형태"
+    ]
    }
   },
   {
@@ -1882,6 +2830,18 @@
    "index": {
     "no": 115,
     "code": "X063"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "선·벡터",
+    "concept": "절차형 물고기 드로잉",
+    "area": "드로잉·판화",
+    "input": "물고기 형상 규칙",
+    "keywords": [
+     "곡선",
+     "드로잉",
+     "플로터"
+    ]
    }
   },
   {
@@ -1898,6 +2858,14 @@
    "index": {
     "no": 116,
     "code": "C004"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "선·벡터",
+    "concept": "확률적 획·해칭",
+    "area": "드로잉·판화",
+    "input": "도형·획",
+    "keywords": []
    }
   },
   {
@@ -1914,6 +2882,14 @@
    "index": {
     "no": 117,
     "code": "C005"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "선·벡터",
+    "concept": "도형 문법·재귀 치환",
+    "area": "패턴·조형",
+    "input": "치환 문법",
+    "keywords": []
    }
   },
   {
@@ -1930,6 +2906,14 @@
    "index": {
     "no": 118,
     "code": "C022"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "선·벡터",
+    "concept": "문자열 병렬 치환·L 시스템",
+    "area": "패턴·조형",
+    "input": "치환 문법",
+    "keywords": []
    }
   },
   {
@@ -1946,6 +2930,14 @@
    "index": {
     "no": 119,
     "code": "C023"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "선·벡터",
+    "concept": "공간 점유·끌림점 기반 가지 성장",
+    "area": "물질·자연",
+    "input": "끌림점·가지",
+    "keywords": []
    }
   },
   {
@@ -1962,6 +2954,14 @@
    "index": {
     "no": 120,
     "code": "C061"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "선·벡터",
+    "concept": "분기 성장·근접 회피",
+    "area": "물질·자연",
+    "input": "점·성장 조건",
+    "keywords": []
    }
   },
   {
@@ -1978,6 +2978,14 @@
    "index": {
     "no": 121,
     "code": "C066"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "선·벡터",
+    "concept": "엔트로피·제약 전파·확장 격자",
+    "area": "패턴·조형",
+    "input": "예시·타일 규칙",
+    "keywords": []
    }
   },
   {
@@ -1994,6 +3002,14 @@
    "index": {
     "no": 122,
     "code": "C085"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "선·벡터",
+    "concept": "격자 교란·삼각분할·색 보간",
+    "area": "패턴·조형",
+    "input": "격자·시드·색",
+    "keywords": []
    }
   },
   {
@@ -2014,6 +3030,18 @@
    "index": {
     "no": 123,
     "code": "X021"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "평면 이미지",
+    "concept": "절차형 산수화",
+    "area": "드로잉·판화",
+    "input": "산수화 규칙",
+    "keywords": [
+     "산수화",
+     "절차생성",
+     "드로잉"
+    ]
    }
   },
   {
@@ -2030,6 +3058,14 @@
    "index": {
     "no": 124,
     "code": "C027"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "평면 이미지",
+    "concept": "격자 기울기 노이즈·차원 투영",
+    "area": "패턴·조형",
+    "input": "좌표·시드",
+    "keywords": []
    }
   },
   {
@@ -2046,6 +3082,14 @@
    "index": {
     "no": 125,
     "code": "C041"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "평면 이미지",
+    "concept": "벡터장·확률적 붓 질감",
+    "area": "드로잉·판화",
+    "input": "경로·벡터장",
+    "keywords": []
    }
   },
   {
@@ -2062,6 +3106,14 @@
    "index": {
     "no": 126,
     "code": "C099"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "평면 이미지",
+    "concept": "다중 프랙탈·노이즈 모듈 합성",
+    "area": "지도·환경",
+    "input": "좌표·시드",
+    "keywords": []
    }
   },
   {
@@ -2078,6 +3130,14 @@
    "index": {
     "no": 127,
     "code": "C121"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "평면 이미지",
+    "concept": "최근접 거리·셀룰러 노이즈",
+    "area": "드로잉·판화",
+    "input": "좌표·시드",
+    "keywords": []
    }
   },
   {
@@ -2094,6 +3154,14 @@
    "index": {
     "no": 128,
     "code": "C131"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "평면 이미지",
+    "concept": "좌표 해시·의사 난수",
+    "area": "드로잉·판화",
+    "input": "좌표·시드",
+    "keywords": []
    }
   },
   {
@@ -2110,6 +3178,14 @@
    "index": {
     "no": 129,
     "code": "C157"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "평면 이미지",
+    "concept": "심플렉스 노이즈·기울기 보간",
+    "area": "패턴·조형",
+    "input": "좌표·시드",
+    "keywords": []
    }
   },
   {
@@ -2126,6 +3202,14 @@
    "index": {
     "no": 130,
     "code": "C280"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "평면 이미지",
+    "concept": "MCMC·국소 패턴 분포",
+    "area": "패턴·조형",
+    "input": "예시·타일 규칙",
+    "keywords": []
    }
   },
   {
@@ -2146,6 +3230,18 @@
    "index": {
     "no": 131,
     "code": "X009"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "입체·공간",
+    "concept": "마르코프 치환",
+    "area": "물질·자연",
+    "input": "국소 치환 규칙",
+    "keywords": [
+     "치환",
+     "복셀",
+     "절차생성"
+    ]
    }
   },
   {
@@ -2162,6 +3258,14 @@
    "index": {
     "no": 132,
     "code": "C008"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "입체·공간",
+    "concept": "경계 성장·충돌 회피",
+    "area": "물질·자연",
+    "input": "점·성장 조건",
+    "keywords": []
    }
   },
   {
@@ -2178,6 +3282,14 @@
    "index": {
     "no": 133,
     "code": "C013"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "입체·공간",
+    "concept": "확률적 경로 변형·입자 누적",
+    "area": "드로잉·판화",
+    "input": "경로·난수",
+    "keywords": []
    }
   },
   {
@@ -2198,6 +3310,18 @@
    "index": {
     "no": 134,
     "code": "X008"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "움직이는 화면",
+    "concept": "연속 세포자동자",
+    "area": "물질·자연",
+    "input": "격자·성장 규칙",
+    "keywords": [
+     "세포자동자",
+     "인공생명",
+     "패턴"
+    ]
    }
   },
   {
@@ -2218,6 +3342,18 @@
    "index": {
     "no": 135,
     "code": "X010"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "움직이는 화면",
+    "concept": "입자 상호작용",
+    "area": "물질·자연",
+    "input": "입자·인력·반발",
+    "keywords": [
+     "입자",
+     "인공생명",
+     "군집"
+    ]
    }
   },
   {
@@ -2238,6 +3374,18 @@
    "index": {
     "no": 136,
     "code": "X019"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "움직이는 화면",
+    "concept": "절차 지형",
+    "area": "지도·환경",
+    "input": "높이·지형 조건",
+    "keywords": [
+     "지도",
+     "강",
+     "지형"
+    ]
    }
   },
   {
@@ -2258,6 +3406,18 @@
    "index": {
     "no": 137,
     "code": "X027"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "움직이는 화면",
+    "concept": "노이즈·도메인 워프",
+    "area": "패턴·조형",
+    "input": "좌표·시드",
+    "keywords": [
+     "노이즈",
+     "텍스처",
+     "워프"
+    ]
    }
   },
   {
@@ -2278,6 +3438,18 @@
    "index": {
     "no": 138,
     "code": "X028"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "움직이는 화면",
+    "concept": "주기적 미분 노이즈",
+    "area": "패턴·조형",
+    "input": "좌표·시드",
+    "keywords": [
+     "노이즈",
+     "셰이더",
+     "미분"
+    ]
    }
   },
   {
@@ -2298,6 +3470,18 @@
    "index": {
     "no": 139,
     "code": "X032"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "움직이는 화면",
+    "concept": "점균·되먹임",
+    "area": "물질·자연",
+    "input": "입자·흔적",
+    "keywords": [
+     "점균",
+     "입자",
+     "자기조직화"
+    ]
    }
   },
   {
@@ -2318,6 +3502,18 @@
    "index": {
     "no": 140,
     "code": "X023"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "소리",
+    "concept": "격자 시퀀싱",
+    "area": "소리·공연",
+    "input": "주기·연산 규칙",
+    "keywords": [
+     "라이브코딩",
+     "MIDI",
+     "유클리드리듬"
+    ]
    }
   },
   {
@@ -2334,6 +3530,14 @@
    "index": {
     "no": 141,
     "code": "C104"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "수치·데이터",
+    "concept": "정규분포·확률 표본 변환",
+    "area": "패턴·조형",
+    "input": "간격·확률 조건",
+    "keywords": []
    }
   },
   {
@@ -2350,6 +3554,14 @@
    "index": {
     "no": 142,
     "code": "C071"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "평면 이미지",
+    "concept": "분광 반사율·쿠벨카–뭉크 혼색",
+    "area": "드로잉·판화",
+    "input": "색·혼합 비율",
+    "keywords": []
    }
   },
   {
@@ -2366,6 +3578,14 @@
    "index": {
     "no": 143,
     "code": "C224"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "평면 이미지",
+    "concept": "광 수송·미분 렌더",
+    "area": "조명·합성",
+    "input": "장면·빛·재질",
+    "keywords": []
    }
   },
   {
@@ -2382,6 +3602,14 @@
    "index": {
     "no": 144,
     "code": "C225"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "평면 이미지",
+    "concept": "분광 몬테카를로 렌더",
+    "area": "조명·합성",
+    "input": "장면·빛·재질",
+    "keywords": []
    }
   },
   {
@@ -2398,6 +3626,14 @@
    "index": {
     "no": 145,
     "code": "C226"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "평면 이미지",
+    "concept": "전역 조명·경로 추적",
+    "area": "조명·합성",
+    "input": "장면·빛·재질",
+    "keywords": []
    }
   },
   {
@@ -2414,6 +3650,14 @@
    "index": {
     "no": 146,
     "code": "C227"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "평면 이미지",
+    "concept": "물리 기반 전역 조명",
+    "area": "조명·합성",
+    "input": "장면·빛·재질",
+    "keywords": []
    }
   },
   {
@@ -2430,6 +3674,14 @@
    "index": {
     "no": 147,
     "code": "C276"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "평면 이미지",
+    "concept": "미분 렌더·역광 수송",
+    "area": "조명·합성",
+    "input": "이미지·장면·목표",
+    "keywords": []
    }
   },
   {
@@ -2450,6 +3702,18 @@
    "index": {
     "no": 148,
     "code": "X015"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "접힘·기구학",
+    "area": "구조·제작",
+    "input": "접기선·종이",
+    "keywords": [
+     "종이접기",
+     "제약",
+     "구조"
+    ]
    }
   },
   {
@@ -2470,6 +3734,18 @@
    "index": {
     "no": 149,
     "code": "X017"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "강체·충돌",
+    "area": "구조·제작",
+    "input": "물체·힘·관절",
+    "keywords": [
+     "강체",
+     "충돌",
+     "관절"
+    ]
    }
   },
   {
@@ -2490,6 +3766,18 @@
    "index": {
     "no": 150,
     "code": "X048"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "물리 시뮬레이션",
+    "area": "물질·자연",
+    "input": "물체·힘·관절",
+    "keywords": [
+     "물리",
+     "보류",
+     "가중치"
+    ]
    }
   },
   {
@@ -2510,6 +3798,18 @@
    "index": {
     "no": 151,
     "code": "X070"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "위치 기반 역학",
+    "area": "물질·자연",
+    "input": "점·위치 제약",
+    "keywords": [
+     "PBD",
+     "제약",
+     "천"
+    ]
    }
   },
   {
@@ -2526,6 +3826,14 @@
    "index": {
     "no": 152,
     "code": "C086"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "광선 경로·반사와 굴절·누적 샘플링",
+    "area": "조명·합성",
+    "input": "장면·빛·재질",
+    "keywords": []
    }
   },
   {
@@ -2542,6 +3850,14 @@
    "index": {
     "no": 153,
     "code": "C110"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "몬테카를로 광 경로·적응 표본",
+    "area": "조명·합성",
+    "input": "장면·빛·재질",
+    "keywords": []
    }
   },
   {
@@ -2558,6 +3874,14 @@
    "index": {
     "no": 154,
     "code": "C215"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "강체·접촉·관절 제약",
+    "area": "구조·제작",
+    "input": "물체·힘·관절",
+    "keywords": []
    }
   },
   {
@@ -2574,6 +3898,14 @@
    "index": {
     "no": 155,
     "code": "C216"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "강체·연체·물리 제약",
+    "area": "구조·제작",
+    "input": "물체·힘·관절",
+    "keywords": []
    }
   },
   {
@@ -2590,6 +3922,14 @@
    "index": {
     "no": 156,
     "code": "C217"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "충돌 검출·다물리",
+    "area": "구조·제작",
+    "input": "물체·힘·관절",
+    "keywords": []
    }
   },
   {
@@ -2606,6 +3946,14 @@
    "index": {
     "no": 157,
     "code": "C218"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "멀티코어 강체·접촉",
+    "area": "구조·제작",
+    "input": "물체·힘·관절",
+    "keywords": []
    }
   },
   {
@@ -2622,6 +3970,14 @@
    "index": {
     "no": 158,
     "code": "C219"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "위치 제약·안정화",
+    "area": "구조·제작",
+    "input": "점·위치 제약",
+    "keywords": []
    }
   },
   {
@@ -2638,6 +3994,14 @@
    "index": {
     "no": 159,
     "code": "C220"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "SPH·압력·점성",
+    "area": "물질·자연",
+    "input": "속도·유체 상태",
+    "keywords": []
    }
   },
   {
@@ -2654,6 +4018,14 @@
    "index": {
     "no": 160,
     "code": "C221"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "다물체·관절 역학",
+    "area": "구조·제작",
+    "input": "물체·힘·관절",
+    "keywords": []
    }
   },
   {
@@ -2670,6 +4042,14 @@
    "index": {
     "no": 161,
     "code": "C222"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "접촉·관절·물체 역학",
+    "area": "구조·제작",
+    "input": "물체·힘·관절",
+    "keywords": []
    }
   },
   {
@@ -2690,6 +4070,18 @@
    "index": {
     "no": 162,
     "code": "X012"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "실시간 유체",
+    "area": "물질·자연",
+    "input": "속도·유체 상태",
+    "keywords": [
+     "유체",
+     "WebGL",
+     "상호작용"
+    ]
    }
   },
   {
@@ -2710,6 +4102,18 @@
    "index": {
     "no": 163,
     "code": "X020"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "반응·확산",
+    "area": "물질·자연",
+    "input": "물질량·반응 규칙",
+    "keywords": [
+     "반응확산",
+     "패턴",
+     "시뮬레이션"
+    ]
    }
   },
   {
@@ -2730,6 +4134,18 @@
    "index": {
     "no": 164,
     "code": "X025"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "파도 스펙트럼·역 FFT",
+    "area": "물질·자연",
+    "input": "파도 스펙트럼",
+    "keywords": [
+     "바다",
+     "FFT",
+     "GPU"
+    ]
    }
   },
   {
@@ -2750,6 +4166,18 @@
    "index": {
     "no": 165,
     "code": "X047"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "침식·노이즈",
+    "area": "지도·환경",
+    "input": "높이·지형 조건",
+    "keywords": [
+     "침식",
+     "지형",
+     "노이즈"
+    ]
    }
   },
   {
@@ -2770,6 +4198,18 @@
    "index": {
     "no": 166,
     "code": "X068"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "감쇠 스프링",
+    "area": "움직임·안무",
+    "input": "목표값·속도·감쇠",
+    "keywords": [
+     "스프링",
+     "감쇠",
+     "카메라"
+    ]
    }
   },
   {
@@ -2786,6 +4226,14 @@
    "index": {
     "no": 167,
     "code": "C029"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "입자 힘·수치 적분·충돌 회피",
+    "area": "정보 시각화",
+    "input": "노드·연결",
+    "keywords": []
    }
   },
   {
@@ -2802,6 +4250,14 @@
    "index": {
     "no": 168,
     "code": "C068"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "강체 충돌·거리 제약",
+    "area": "구조·제작",
+    "input": "물체·힘·관절",
+    "keywords": []
    }
   },
   {
@@ -2818,6 +4274,14 @@
    "index": {
     "no": 169,
     "code": "C069"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "Gauss–Seidel 제약 풀이",
+    "area": "구조·제작",
+    "input": "물체·힘·관절",
+    "keywords": []
    }
   },
   {
@@ -2834,6 +4298,14 @@
    "index": {
     "no": 170,
     "code": "C115"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "반응확산·회전 대칭 초기조건",
+    "area": "물질·자연",
+    "input": "물질량·반응 규칙",
+    "keywords": []
    }
   },
   {
@@ -2850,6 +4322,14 @@
    "index": {
     "no": 171,
     "code": "C118"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "스프링·반발력·Barnes–Hut 근사",
+    "area": "정보 시각화",
+    "input": "노드·연결",
+    "keywords": []
    }
   },
   {
@@ -2866,6 +4346,14 @@
    "index": {
     "no": 172,
     "code": "C162"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "반응·확산·격자 라플라시안",
+    "area": "물질·자연",
+    "input": "물질량·반응 규칙",
+    "keywords": []
    }
   },
   {
@@ -2882,6 +4370,14 @@
    "index": {
     "no": 173,
     "code": "C223"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "격자 물질·열·압력",
+    "area": "물질·자연",
+    "input": "물질·열·압력",
+    "keywords": []
    }
   },
   {
@@ -2898,6 +4394,14 @@
    "index": {
     "no": 174,
     "code": "C119"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "수치·데이터",
+    "concept": "적응 시간 간격·미분방정식 적분",
+    "area": "패턴·조형",
+    "input": "초깃값·변화율",
+    "keywords": []
    }
   },
   {
@@ -2914,6 +4418,14 @@
    "index": {
     "no": 175,
     "code": "C001"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "선·벡터",
+    "concept": "가중 보로노이·점묘",
+    "area": "드로잉·판화",
+    "input": "사진의 명암",
+    "keywords": []
    }
   },
   {
@@ -2930,6 +4442,14 @@
    "index": {
     "no": 176,
     "code": "C002"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "선·벡터",
+    "concept": "분할정복·획의 중심선",
+    "area": "드로잉·판화",
+    "input": "이진 선 이미지",
+    "keywords": []
    }
   },
   {
@@ -2946,6 +4466,14 @@
    "index": {
     "no": 177,
     "code": "C003"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "선·벡터",
+    "concept": "색 양자화·곡선 근사",
+    "area": "드로잉·판화",
+    "input": "사진·픽셀",
+    "keywords": []
    }
   },
   {
@@ -2962,6 +4490,14 @@
    "index": {
     "no": 178,
     "code": "C011"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "선·벡터",
+    "concept": "색 영역 분할·곡선 피팅",
+    "area": "드로잉·판화",
+    "input": "사진·픽셀",
+    "keywords": []
    }
   },
   {
@@ -2978,6 +4514,14 @@
    "index": {
     "no": 179,
     "code": "C012"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "선·벡터",
+    "concept": "유전 알고리즘·삼각망 최적화",
+    "area": "드로잉·판화",
+    "input": "사진·픽셀",
+    "keywords": []
    }
   },
   {
@@ -2994,6 +4538,14 @@
    "index": {
     "no": 180,
     "code": "C021"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "선·벡터",
+    "concept": "가중 보로노이 점묘·GPU 병렬 계산",
+    "area": "드로잉·판화",
+    "input": "사진의 명암",
+    "keywords": []
    }
   },
   {
@@ -3010,6 +4562,14 @@
    "index": {
     "no": 181,
     "code": "C113"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "선·벡터",
+    "concept": "윤곽선·중심선 벡터화",
+    "area": "드로잉·판화",
+    "input": "사진·픽셀",
+    "keywords": []
    }
   },
   {
@@ -3026,6 +4586,14 @@
    "index": {
     "no": 182,
     "code": "C265"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "선·벡터",
+    "concept": "미분 가능한 벡터 래스터화",
+    "area": "드로잉·판화",
+    "input": "이미지·장면·목표",
+    "keywords": []
    }
   },
   {
@@ -3046,6 +4614,18 @@
    "index": {
     "no": 183,
     "code": "X018"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "도형 근사",
+    "area": "드로잉·판화",
+    "input": "사진·픽셀",
+    "keywords": [
+     "기하",
+     "이미지",
+     "최적화"
+    ]
    }
   },
   {
@@ -3062,6 +4642,14 @@
    "index": {
     "no": 184,
     "code": "C031"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "브러시 자국 누적·필압 동역학",
+    "area": "드로잉·판화",
+    "input": "필압·손의 경로",
+    "keywords": []
    }
   },
   {
@@ -3078,6 +4666,14 @@
    "index": {
     "no": 185,
     "code": "C039"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "색 양자화·오차 확산",
+    "area": "드로잉·판화",
+    "input": "픽셀·팔레트",
+    "keywords": []
    }
   },
   {
@@ -3094,6 +4690,14 @@
    "index": {
     "no": 186,
     "code": "C050"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "지각 색공간·색 보간",
+    "area": "드로잉·판화",
+    "input": "색·색공간",
+    "keywords": []
    }
   },
   {
@@ -3110,6 +4714,14 @@
    "index": {
     "no": 187,
     "code": "C052"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "부호 있는 거리장·거리 변환",
+    "area": "출판·타이포",
+    "input": "글자 형태",
+    "keywords": []
    }
   },
   {
@@ -3126,6 +4738,14 @@
    "index": {
     "no": 188,
     "code": "C073"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "다중 채널 부호 거리장",
+    "area": "출판·타이포",
+    "input": "벡터 경계",
+    "keywords": []
    }
   },
   {
@@ -3142,6 +4762,14 @@
    "index": {
     "no": 189,
     "code": "C078"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "오차 확산·규칙 행렬 디더링",
+    "area": "드로잉·판화",
+    "input": "픽셀·팔레트",
+    "keywords": []
    }
   },
   {
@@ -3158,6 +4786,14 @@
    "index": {
     "no": 190,
     "code": "C092"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "선의 골격·그래프 분해",
+    "area": "드로잉·판화",
+    "input": "이진 선 이미지",
+    "keywords": []
    }
   },
   {
@@ -3174,6 +4810,14 @@
    "index": {
     "no": 191,
     "code": "C094"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "스텐실 채움·경계 안티앨리어싱",
+    "area": "미디어·상호작용",
+    "input": "벡터 경로",
+    "keywords": []
    }
   },
   {
@@ -3190,6 +4834,14 @@
    "index": {
     "no": 192,
     "code": "C102"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "색 좌표 조회·LUT 보간",
+    "area": "조명·합성",
+    "input": "색·조회표",
+    "keywords": []
    }
   },
   {
@@ -3206,6 +4858,14 @@
    "index": {
     "no": 193,
     "code": "C103"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "Bayer 행렬·순서 디더링",
+    "area": "드로잉·판화",
+    "input": "픽셀·팔레트",
+    "keywords": []
    }
   },
   {
@@ -3222,6 +4882,14 @@
    "index": {
     "no": 194,
     "code": "C114"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "선적분 합성곱·벡터장 시각화",
+    "area": "드로잉·판화",
+    "input": "벡터장",
+    "keywords": []
    }
   },
   {
@@ -3238,6 +4906,14 @@
    "index": {
     "no": 195,
     "code": "C117"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "2D FFT·주파수 영역 필터링",
+    "area": "드로잉·판화",
+    "input": "표본·파형",
+    "keywords": []
    }
   },
   {
@@ -3254,6 +4930,14 @@
    "index": {
     "no": 196,
     "code": "C120"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "화면 공간 안티앨리어싱·명도 기울기",
+    "area": "드로잉·판화",
+    "input": "픽셀·경계",
+    "keywords": []
    }
   },
   {
@@ -3270,6 +4954,14 @@
    "index": {
     "no": 197,
     "code": "C123"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "지각 색차·경계 픽셀 판별",
+    "area": "드로잉·판화",
+    "input": "두 이미지",
+    "keywords": []
    }
   },
   {
@@ -3286,6 +4978,14 @@
    "index": {
     "no": 198,
     "code": "C126"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "CIELAB·직교와 극좌표 색공간",
+    "area": "드로잉·판화",
+    "input": "색·색공간",
+    "keywords": []
    }
   },
   {
@@ -3302,6 +5002,14 @@
    "index": {
     "no": 199,
     "code": "C127"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "색역 경계·지각 명도와 채도",
+    "area": "드로잉·판화",
+    "input": "색·색공간",
+    "keywords": []
    }
   },
   {
@@ -3318,6 +5026,14 @@
    "index": {
     "no": 200,
     "code": "C129"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "픽셀별 합성·구간 함수",
+    "area": "조명·합성",
+    "input": "두 이미지·색",
+    "keywords": []
    }
   },
   {
@@ -3334,6 +5050,14 @@
    "index": {
     "no": 201,
     "code": "C132"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "화면 미분·안티앨리어싱",
+    "area": "드로잉·판화",
+    "input": "픽셀·경계",
+    "keywords": []
    }
   },
   {
@@ -3350,6 +5074,14 @@
    "index": {
     "no": 202,
     "code": "C138"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "분리 합성곱·선형 샘플링",
+    "area": "드로잉·판화",
+    "input": "이미지·반경",
+    "keywords": []
    }
   },
   {
@@ -3366,6 +5098,14 @@
    "index": {
     "no": 203,
     "code": "C139"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "재귀 IIR 필터·가우시안 근사",
+    "area": "드로잉·판화",
+    "input": "이미지·반경",
+    "keywords": []
    }
   },
   {
@@ -3382,6 +5122,14 @@
    "index": {
     "no": 204,
     "code": "C141"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "CMYK 망점·회전 격자",
+    "area": "드로잉·판화",
+    "input": "이미지·분판색",
+    "keywords": []
    }
   },
   {
@@ -3398,6 +5146,14 @@
    "index": {
     "no": 205,
     "code": "C142"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "역방향 매핑·다차원 보간",
+    "area": "드로잉·판화",
+    "input": "영상·좌표 매핑",
+    "keywords": []
    }
   },
   {
@@ -3414,6 +5170,14 @@
    "index": {
     "no": 206,
     "code": "C149"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "하프 벡터·정반사 지수",
+    "area": "조명·합성",
+    "input": "빛·시선·법선",
+    "keywords": []
    }
   },
   {
@@ -3430,6 +5194,14 @@
    "index": {
     "no": 207,
     "code": "C150"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "이산 팔레트·균일 B-스플라인 보간",
+    "area": "정보 시각화",
+    "input": "색·색공간",
+    "keywords": []
    }
   },
   {
@@ -3446,6 +5218,14 @@
    "index": {
     "no": 208,
     "code": "C151"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "지각 색공간·보간",
+    "area": "드로잉·판화",
+    "input": "색·색공간",
+    "keywords": []
    }
   },
   {
@@ -3462,6 +5242,14 @@
    "index": {
     "no": 209,
     "code": "C153"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "윤곽 검출·삼각분할",
+    "area": "드로잉·판화",
+    "input": "사진·특징점",
+    "keywords": []
    }
   },
   {
@@ -3478,6 +5266,14 @@
    "index": {
     "no": 210,
     "code": "C161"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "명암별 해칭·Tonal Art Map",
+    "area": "드로잉·판화",
+    "input": "빛·표면",
+    "keywords": []
    }
   },
   {
@@ -3494,6 +5290,14 @@
    "index": {
     "no": 211,
     "code": "C171"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "로버츠 교차 미분·윤곽 검출",
+    "area": "드로잉·판화",
+    "input": "색·깊이·법선",
+    "keywords": []
    }
   },
   {
@@ -3510,6 +5314,14 @@
    "index": {
     "no": 212,
     "code": "C172"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "밝기 임계값·다중 해상도 필터",
+    "area": "조명·합성",
+    "input": "밝은 픽셀",
+    "keywords": []
    }
   },
   {
@@ -3526,6 +5338,14 @@
    "index": {
     "no": 213,
     "code": "C173"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "스캔라인 좌표 교란·색 채널 이동",
+    "area": "움직임·안무",
+    "input": "영상·이동량",
+    "keywords": []
    }
   },
   {
@@ -3542,6 +5362,14 @@
    "index": {
     "no": 214,
     "code": "C181"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "명암 기울기·방향성 블러",
+    "area": "드로잉·판화",
+    "input": "이미지·명암",
+    "keywords": []
    }
   },
   {
@@ -3558,6 +5386,14 @@
    "index": {
     "no": 215,
     "code": "C182"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "극좌표·각도 반복·반사 대칭",
+    "area": "패턴·조형",
+    "input": "화면·반사 각도",
+    "keywords": []
    }
   },
   {
@@ -3574,6 +5410,14 @@
    "index": {
     "no": 216,
     "code": "C183"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "휘도 임계값·디더 패턴",
+    "area": "드로잉·판화",
+    "input": "픽셀·팔레트",
+    "keywords": []
    }
   },
   {
@@ -3590,6 +5434,14 @@
    "index": {
     "no": 217,
     "code": "C184"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "모션 벡터·이웃 최대값·재구성",
+    "area": "움직임·안무",
+    "input": "화면 이동 벡터",
+    "keywords": []
    }
   },
   {
@@ -3606,6 +5458,14 @@
    "index": {
     "no": 218,
     "code": "C185"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "착란원·깊이 기반 디스크 블러",
+    "area": "조명·합성",
+    "input": "깊이·초점",
+    "keywords": []
    }
   },
   {
@@ -3622,6 +5482,14 @@
    "index": {
     "no": 219,
     "code": "C186"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "화면 공간 주변광 차폐·기하 인식 필터",
+    "area": "조명·합성",
+    "input": "깊이·법선",
+    "keywords": []
    }
   },
   {
@@ -3638,6 +5506,14 @@
    "index": {
     "no": 220,
     "code": "C187"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "모션 벡터·누적 버퍼·압축 오류 모사",
+    "area": "움직임·안무",
+    "input": "영상·이동량",
+    "keywords": []
    }
   },
   {
@@ -3654,6 +5530,14 @@
    "index": {
     "no": 221,
     "code": "C188"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "거리 감쇠·지수 함수·스카이박스 혼합",
+    "area": "조명·합성",
+    "input": "깊이·거리",
+    "keywords": []
    }
   },
   {
@@ -3670,6 +5554,14 @@
    "index": {
     "no": 222,
     "code": "C189"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "YIQ 색공간·색 번짐·주사선",
+    "area": "조명·합성",
+    "input": "화면의 밝기·색",
+    "keywords": []
    }
   },
   {
@@ -3686,6 +5578,14 @@
    "index": {
     "no": 223,
     "code": "C190"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "밝기 문턱·방향성 다중 해상도 필터",
+    "area": "조명·합성",
+    "input": "밝은 픽셀",
+    "keywords": []
    }
   },
   {
@@ -3702,6 +5602,14 @@
    "index": {
     "no": 224,
     "code": "C261"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "요구 기반 이미지 파이프",
+    "area": "도구·워크플로",
+    "input": "사진·픽셀",
+    "keywords": []
    }
   },
   {
@@ -3718,6 +5626,14 @@
    "index": {
     "no": 225,
     "code": "C262"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "픽셀 연산·합성·변환",
+    "area": "도구·워크플로",
+    "input": "사진·픽셀",
+    "keywords": []
    }
   },
   {
@@ -3734,6 +5650,14 @@
    "index": {
     "no": 226,
     "code": "C263"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "필터·분할·형태 연산",
+    "area": "도구·워크플로",
+    "input": "사진·픽셀",
+    "keywords": []
    }
   },
   {
@@ -3754,6 +5678,18 @@
    "index": {
     "no": 227,
     "code": "X007"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "움직이는 화면",
+    "concept": "광류 추적",
+    "area": "인지·재구성",
+    "input": "연속 영상 프레임",
+    "keywords": [
+     "광류",
+     "영상",
+     "추적"
+    ]
    }
   },
   {
@@ -3774,6 +5710,18 @@
    "index": {
     "no": 228,
     "code": "X042"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "움직이는 화면",
+    "concept": "영상 합성·편집",
+    "area": "도구·워크플로",
+    "input": "영상·자막·문구",
+    "keywords": [
+     "타이포",
+     "영상",
+     "편집"
+    ]
    }
   },
   {
@@ -3790,6 +5738,14 @@
    "index": {
     "no": 229,
     "code": "C197"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "움직이는 화면",
+    "concept": "영상 되먹임·좌표 변환",
+    "area": "미디어·상호작용",
+    "input": "영상·셰이더",
+    "keywords": []
    }
   },
   {
@@ -3806,6 +5762,14 @@
    "index": {
     "no": 230,
     "code": "C264"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "움직이는 화면",
+    "concept": "컴포넌트 셰이더 합성",
+    "area": "미디어·상호작용",
+    "input": "셰이더·입력 영상",
+    "keywords": []
    }
   },
   {
@@ -3822,6 +5786,14 @@
    "index": {
     "no": 231,
     "code": "C191"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "소리",
+    "concept": "발진기·ADSR·신호 연결",
+    "area": "소리·공연",
+    "input": "소리·합성 코드",
+    "keywords": []
    }
   },
   {
@@ -3838,6 +5810,14 @@
    "index": {
     "no": 232,
     "code": "C193"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "소리",
+    "concept": "오피코드·악보 기반 합성",
+    "area": "소리·공연",
+    "input": "소리·합성 코드",
+    "keywords": []
    }
   },
   {
@@ -3854,6 +5834,14 @@
    "index": {
     "no": 233,
     "code": "C198"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "소리",
+    "concept": "발진기·필터·엔벌로프",
+    "area": "소리·공연",
+    "input": "소리·합성 코드",
+    "keywords": []
    }
   },
   {
@@ -3870,6 +5858,14 @@
    "index": {
     "no": 234,
     "code": "C199"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "소리",
+    "concept": "합성·샘플링·FFT",
+    "area": "소리·공연",
+    "input": "소리·합성 코드",
+    "keywords": []
    }
   },
   {
@@ -3890,6 +5886,18 @@
    "index": {
     "no": 235,
     "code": "X034"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "수치·데이터",
+    "concept": "푸리에 변환",
+    "area": "패턴·조형",
+    "input": "표본·파형",
+    "keywords": [
+     "푸리에",
+     "주파수",
+     "회전"
+    ]
    }
   },
   {
@@ -3906,6 +5914,14 @@
    "index": {
     "no": 236,
     "code": "C200"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "수치·데이터",
+    "concept": "어택·피치·박자 검출",
+    "area": "소리·공연",
+    "input": "소리·음원",
+    "keywords": []
    }
   },
   {
@@ -3922,6 +5938,14 @@
    "index": {
     "no": 237,
     "code": "C201"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "수치·데이터",
+    "concept": "STFT·멜 주파수·리듬",
+    "area": "소리·공연",
+    "input": "소리·음원",
+    "keywords": []
    }
   },
   {
@@ -3938,6 +5962,14 @@
    "index": {
     "no": 238,
     "code": "C202"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "수치·데이터",
+    "concept": "스펙트럼·음색 특징 추출",
+    "area": "소리·공연",
+    "input": "소리·음원",
+    "keywords": []
    }
   },
   {
@@ -3958,6 +5990,18 @@
    "index": {
     "no": 239,
     "code": "X001"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "입체·공간",
+    "concept": "자동 리깅",
+    "area": "움직임·안무",
+    "input": "3D 모델·골격",
+    "keywords": [
+     "리깅",
+     "골격",
+     "애니메이션"
+    ]
    }
   },
   {
@@ -3978,6 +6022,18 @@
    "index": {
     "no": 240,
     "code": "X029"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "입체·공간",
+    "concept": "점 사슬·FABRIK",
+    "area": "움직임·안무",
+    "input": "관절 사슬·목표",
+    "keywords": [
+     "절차모션",
+     "관절",
+     "생물"
+    ]
    }
   },
   {
@@ -3998,6 +6054,18 @@
    "index": {
     "no": 241,
     "code": "X031"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "입체·공간",
+    "concept": "역기구학",
+    "area": "움직임·안무",
+    "input": "관절·목표점",
+    "keywords": [
+     "FABRIK",
+     "역기구학",
+     "골격"
+    ]
    }
   },
   {
@@ -4018,6 +6086,18 @@
    "index": {
     "no": 242,
     "code": "X024"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "수학 애니메이션",
+    "area": "패턴·조형",
+    "input": "수식·코드",
+    "keywords": [
+     "수학",
+     "모션",
+     "Python"
+    ]
    }
   },
   {
@@ -4038,6 +6118,18 @@
    "index": {
     "no": 243,
     "code": "X044"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "코드 기반 설명 애니메이션",
+    "area": "움직임·안무",
+    "input": "시간·코드·문구",
+    "keywords": [
+     "모션",
+     "설명",
+     "코드"
+    ]
    }
   },
   {
@@ -4058,6 +6150,18 @@
    "index": {
     "no": 244,
     "code": "X066"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "상호 충돌 회피",
+    "area": "움직임·안무",
+    "input": "에이전트·목표",
+    "keywords": [
+     "군중",
+     "속도공간",
+     "선형계획"
+    ]
    }
   },
   {
@@ -4074,6 +6178,14 @@
    "index": {
     "no": 245,
     "code": "C056"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "삼차 베지어 시간 보간",
+    "area": "움직임·안무",
+    "input": "시간·곡선",
+    "keywords": []
    }
   },
   {
@@ -4090,6 +6202,14 @@
    "index": {
     "no": 246,
     "code": "C064"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "색 공간·수치 보간",
+    "area": "움직임·안무",
+    "input": "색·색공간",
+    "keywords": []
    }
   },
   {
@@ -4106,6 +6226,14 @@
    "index": {
     "no": 247,
     "code": "C081"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "윤곽 재표본화·점 대응 보간",
+    "area": "움직임·안무",
+    "input": "두 윤곽",
+    "keywords": []
    }
   },
   {
@@ -4122,6 +6250,14 @@
    "index": {
     "no": 248,
     "code": "C125"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "시간 재매핑·감쇠 진동",
+    "area": "움직임·안무",
+    "input": "시간·곡선",
+    "keywords": []
    }
   },
   {
@@ -4138,6 +6274,14 @@
    "index": {
     "no": 249,
     "code": "C168"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "베지어 접선·등간격 경로 표본",
+    "area": "움직임·안무",
+    "input": "곡선·간격",
+    "keywords": []
    }
   },
   {
@@ -4154,6 +6298,14 @@
    "index": {
     "no": 250,
     "code": "C169"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "방향 보간·비틀림 스플라인",
+    "area": "움직임·안무",
+    "input": "곡선·방향",
+    "keywords": []
    }
   },
   {
@@ -4170,6 +6322,14 @@
    "index": {
     "no": 251,
     "code": "C251"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "스프링·키프레임·제스처",
+    "area": "움직임·안무",
+    "input": "시간·속성·목표",
+    "keywords": []
    }
   },
   {
@@ -4186,6 +6346,14 @@
    "index": {
     "no": 252,
     "code": "C252"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "타임라인·이징·경로",
+    "area": "움직임·안무",
+    "input": "시간·속성·목표",
+    "keywords": []
    }
   },
   {
@@ -4202,6 +6370,14 @@
    "index": {
     "no": 253,
     "code": "C253"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "시간 보간·이징 함수",
+    "area": "움직임·안무",
+    "input": "시간·속성·목표",
+    "keywords": []
    }
   },
   {
@@ -4218,6 +6394,14 @@
    "index": {
     "no": 254,
     "code": "C254"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "감쇠 스프링·상태 연결",
+    "area": "움직임·안무",
+    "input": "시간·속성·목표",
+    "keywords": []
    }
   },
   {
@@ -4234,6 +6418,14 @@
    "index": {
     "no": 255,
     "code": "C255"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "JSON 키프레임·벡터 렌더",
+    "area": "움직임·안무",
+    "input": "벡터 모션 데이터",
+    "keywords": []
    }
   },
   {
@@ -4250,6 +6442,14 @@
    "index": {
     "no": 256,
     "code": "C256"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "Lottie 파싱·시간 평가",
+    "area": "움직임·안무",
+    "input": "벡터 모션 데이터",
+    "keywords": []
    }
   },
   {
@@ -4266,6 +6466,14 @@
    "index": {
     "no": 257,
     "code": "C195"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "소리",
+    "concept": "동시 루프·시각 예약",
+    "area": "소리·공연",
+    "input": "주기·연산 규칙",
+    "keywords": []
    }
   },
   {
@@ -4282,6 +6490,14 @@
    "index": {
     "no": 258,
     "code": "C196"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "소리",
+    "concept": "주기 패턴·시간 변환",
+    "area": "소리·공연",
+    "input": "주기·연산 규칙",
+    "keywords": []
    }
   },
   {
@@ -4302,6 +6518,18 @@
    "index": {
     "no": 259,
     "code": "X002"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "평면 이미지",
+    "concept": "레이어 분해",
+    "area": "조명·합성",
+    "input": "캐릭터 그림",
+    "keywords": [
+     "일러스트",
+     "파츠",
+     "레이어"
+    ]
    }
   },
   {
@@ -4318,6 +6546,14 @@
    "index": {
     "no": 260,
     "code": "C268"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "평면 이미지",
+    "concept": "중첩 U 구조·현저성",
+    "area": "인지·재구성",
+    "input": "사진",
+    "keywords": []
    }
   },
   {
@@ -4334,6 +6570,14 @@
    "index": {
     "no": 261,
     "code": "C269"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "평면 이미지",
+    "concept": "GAN 기반 영상 복원",
+    "area": "인지·재구성",
+    "input": "낮은 품질의 사진",
+    "keywords": []
    }
   },
   {
@@ -4350,6 +6594,14 @@
    "index": {
     "no": 262,
     "code": "C270"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "평면 이미지",
+    "concept": "생성 사전정보·얼굴 복원",
+    "area": "인지·재구성",
+    "input": "낮은 품질의 사진",
+    "keywords": []
    }
   },
   {
@@ -4370,6 +6622,18 @@
    "index": {
     "no": 263,
     "code": "X003"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "입체·공간",
+    "concept": "동적 가우시안 스플래팅",
+    "area": "인지·재구성",
+    "input": "사진·카메라 정보",
+    "keywords": [
+     "4D",
+     "재구성",
+     "가우시안"
+    ]
    }
   },
   {
@@ -4390,6 +6654,18 @@
    "index": {
     "no": 264,
     "code": "X004"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "입체·공간",
+    "concept": "파노라마 기반 장면 생성",
+    "area": "인지·재구성",
+    "input": "사진",
+    "keywords": [
+     "파노라마",
+     "카메라",
+     "장면"
+    ]
    }
   },
   {
@@ -4410,6 +6686,18 @@
    "index": {
     "no": 265,
     "code": "X039"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "입체·공간",
+    "concept": "이미지 기반 3D 재구성",
+    "area": "인지·재구성",
+    "input": "사진",
+    "keywords": [
+     "재구성",
+     "물체",
+     "AI"
+    ]
    }
   },
   {
@@ -4430,6 +6718,18 @@
    "index": {
     "no": 266,
     "code": "X040"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "입체·공간",
+    "concept": "구조화 3D 잠재 표현",
+    "area": "인지·재구성",
+    "input": "사진",
+    "keywords": [
+     "복셀",
+     "재질",
+     "3D생성"
+    ]
    }
   },
   {
@@ -4450,6 +6750,18 @@
    "index": {
     "no": 267,
     "code": "X049"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "입체·공간",
+    "concept": "단일 이미지 재구성",
+    "area": "인지·재구성",
+    "input": "사진",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4470,6 +6782,18 @@
    "index": {
     "no": 268,
     "code": "X054"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "입체·공간",
+    "concept": "구조화 3D 생성",
+    "area": "인지·재구성",
+    "input": "이미지·텍스트",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4490,6 +6814,18 @@
    "index": {
     "no": 269,
     "code": "X055"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "입체·공간",
+    "concept": "NeRF·가우시안 재구성",
+    "area": "인지·재구성",
+    "input": "사진·카메라 정보",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4510,6 +6846,18 @@
    "index": {
     "no": 270,
     "code": "X056"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "입체·공간",
+    "concept": "가우시안 학습",
+    "area": "인지·재구성",
+    "input": "사진·카메라 정보",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4530,6 +6878,18 @@
    "index": {
     "no": 271,
     "code": "X067"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "입체·공간",
+    "concept": "확산 정책·모방 학습",
+    "area": "구조·제작",
+    "input": "관측·행동 예시",
+    "keywords": [
+     "로봇",
+     "확산정책",
+     "PushT"
+    ]
    }
   },
   {
@@ -4546,6 +6906,14 @@
    "index": {
     "no": 272,
     "code": "C271"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "입체·공간",
+    "concept": "가우시안 래스터화·학습",
+    "area": "인지·재구성",
+    "input": "사진·카메라 정보",
+    "keywords": []
    }
   },
   {
@@ -4566,6 +6934,18 @@
    "index": {
     "no": 273,
     "code": "X030"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "움직이는 화면",
+    "concept": "점 추적",
+    "area": "움직임·안무",
+    "input": "영상·선택한 점",
+    "keywords": [
+     "추적",
+     "모션",
+     "영상"
+    ]
    }
   },
   {
@@ -4586,6 +6966,18 @@
    "index": {
     "no": 274,
     "code": "X038"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "움직이는 화면",
+    "concept": "손 랜드마크",
+    "area": "미디어·상호작용",
+    "input": "손 이미지",
+    "keywords": [
+     "손",
+     "관절",
+     "비전"
+    ]
    }
   },
   {
@@ -4606,6 +6998,18 @@
    "index": {
     "no": 275,
     "code": "X050"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "움직이는 화면",
+    "concept": "영상 분할",
+    "area": "인지·재구성",
+    "input": "영상·대상 선택",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4626,6 +7030,18 @@
    "index": {
     "no": 276,
     "code": "X051"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "움직이는 화면",
+    "concept": "초상 구동",
+    "area": "움직임·안무",
+    "input": "초상·구동 영상",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4646,6 +7062,18 @@
    "index": {
     "no": 277,
     "code": "X052"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "움직이는 화면",
+    "concept": "단안 깊이",
+    "area": "조명·합성",
+    "input": "사진",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4666,6 +7094,18 @@
    "index": {
     "no": 278,
     "code": "X057"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "움직이는 화면",
+    "concept": "영상 생성",
+    "area": "움직임·안무",
+    "input": "텍스트·이미지",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4686,6 +7126,18 @@
    "index": {
     "no": 279,
     "code": "X058"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "움직이는 화면",
+    "concept": "영상 생성·편집",
+    "area": "움직임·안무",
+    "input": "텍스트·이미지",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4706,6 +7158,18 @@
    "index": {
     "no": 280,
     "code": "X059"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "움직이는 화면",
+    "concept": "확산 영상 생성",
+    "area": "움직임·안무",
+    "input": "텍스트·이미지",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4726,6 +7190,18 @@
    "index": {
     "no": 281,
     "code": "X046"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "소리",
+    "concept": "신경망 음성 합성",
+    "area": "소리·공연",
+    "input": "텍스트·음색",
+    "keywords": [
+     "TTS",
+     "한국어",
+     "음성"
+    ]
    }
   },
   {
@@ -4746,6 +7222,18 @@
    "index": {
     "no": 282,
     "code": "X053"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "소리",
+    "concept": "음악 생성",
+    "area": "소리·공연",
+    "input": "설명·가사",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4766,6 +7254,18 @@
    "index": {
     "no": 283,
     "code": "X062"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "소리",
+    "concept": "오디오 생성 도구",
+    "area": "소리·공연",
+    "input": "오디오·생성 모델",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4782,6 +7282,14 @@
    "index": {
     "no": 284,
     "code": "C273"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "소리",
+    "concept": "학습 기반 음악·그림 생성",
+    "area": "소리·공연",
+    "input": "음악·그림·모델",
+    "keywords": []
    }
   },
   {
@@ -4798,6 +7306,14 @@
    "index": {
     "no": 285,
     "code": "C275"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "소리",
+    "concept": "미분 가능한 DSP·학습",
+    "area": "소리·공연",
+    "input": "음원·학습 모델",
+    "keywords": []
    }
   },
   {
@@ -4818,6 +7334,18 @@
    "index": {
     "no": 286,
     "code": "X005"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "문자·텍스트",
+    "concept": "텍스트 선택·판단",
+    "area": "도구·워크플로",
+    "input": "문장·선택지",
+    "keywords": [
+     "텍스트",
+     "분류",
+     "로컬"
+    ]
    }
   },
   {
@@ -4838,6 +7366,18 @@
    "index": {
     "no": 287,
     "code": "X006"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "문자·텍스트",
+    "concept": "도구 선택",
+    "area": "도구·워크플로",
+    "input": "문장·도구 후보",
+    "keywords": [
+     "앱",
+     "판단",
+     "API"
+    ]
    }
   },
   {
@@ -4854,6 +7394,14 @@
    "index": {
     "no": 288,
     "code": "C266"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "문자·텍스트",
+    "concept": "문자·문서 구조 인식",
+    "area": "문서·편집",
+    "input": "문서·글자 이미지",
+    "keywords": []
    }
   },
   {
@@ -4870,6 +7418,14 @@
    "index": {
     "no": 289,
     "code": "C267"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "문자·텍스트",
+    "concept": "LSTM 기반 문자 인식",
+    "area": "문서·편집",
+    "input": "문서·글자 이미지",
+    "keywords": []
    }
   },
   {
@@ -4886,6 +7442,14 @@
    "index": {
     "no": 290,
     "code": "C272"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "문자·텍스트",
+    "concept": "Transformer 음성 인식",
+    "area": "소리·공연",
+    "input": "음성",
+    "keywords": []
    }
   },
   {
@@ -4902,6 +7466,14 @@
    "index": {
     "no": 291,
     "code": "C274"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "수치·데이터",
+    "concept": "다악기 음원→음표",
+    "area": "소리·공연",
+    "input": "합주 음원",
+    "keywords": []
    }
   },
   {
@@ -4922,6 +7494,18 @@
    "index": {
     "no": 292,
     "code": "X061"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "작업 환경",
+    "concept": "확산 파이프라인",
+    "area": "도구·워크플로",
+    "input": "모델·노드·조건",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -4938,6 +7522,14 @@
    "index": {
     "no": 293,
     "code": "C045"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "구면 투영·적응형 재표본화",
+    "area": "지도·환경",
+    "input": "구면 좌표",
+    "keywords": []
    }
   },
   {
@@ -4954,6 +7546,14 @@
    "index": {
     "no": 294,
     "code": "C046"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "계층 분할·직사각형 종횡비",
+    "area": "정보 시각화",
+    "input": "계층·비중",
+    "keywords": []
    }
   },
   {
@@ -4970,6 +7570,14 @@
    "index": {
     "no": 295,
     "code": "C072"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "가중 보로노이·계층적 면적 분할",
+    "area": "정보 시각화",
+    "input": "계층·비중",
+    "keywords": []
    }
   },
   {
@@ -4986,6 +7594,14 @@
    "index": {
     "no": 296,
     "code": "C079"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "나선 탐색·비트마스크 충돌 검사",
+    "area": "정보 시각화",
+    "input": "단어·비중",
+    "keywords": []
    }
   },
   {
@@ -5002,6 +7618,14 @@
    "index": {
     "no": 297,
     "code": "C080"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "방향 그래프·흐름량 비례 배치",
+    "area": "정보 시각화",
+    "input": "연결·흐름량",
+    "keywords": []
    }
   },
   {
@@ -5018,6 +7642,14 @@
    "index": {
     "no": 298,
     "code": "C144"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "지도 투영·비선형 역변환",
+    "area": "지도·환경",
+    "input": "구면 좌표",
+    "keywords": []
    }
   },
   {
@@ -5034,6 +7666,14 @@
    "index": {
     "no": 299,
     "code": "C178"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "유효 삼각형 넓이·위상 보존 단순화",
+    "area": "지도·환경",
+    "input": "공유 지도 경계",
+    "keywords": []
    }
   },
   {
@@ -5050,6 +7690,14 @@
    "index": {
     "no": 300,
     "code": "C179"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "구면 보로노이·입체사영",
+    "area": "지도·환경",
+    "input": "구면 위 점",
+    "keywords": []
    }
   },
   {
@@ -5066,6 +7714,14 @@
    "index": {
     "no": 301,
     "code": "C180"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "비격자 등고선·미앤더링 삼각형",
+    "area": "지도·환경",
+    "input": "불규칙 표본",
+    "keywords": []
    }
   },
   {
@@ -5082,6 +7738,14 @@
    "index": {
     "no": 302,
     "code": "C258"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "문자→글리프·위치 결정",
+    "area": "출판·타이포",
+    "input": "문자·폰트",
+    "keywords": []
    }
   },
   {
@@ -5098,6 +7762,14 @@
    "index": {
     "no": 303,
     "code": "C177"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "입체·공간",
+    "concept": "RTIN·오차 기반 적응 삼각분할",
+    "area": "지도·환경",
+    "input": "높이 격자",
+    "keywords": []
    }
   },
   {
@@ -5114,6 +7786,14 @@
    "index": {
     "no": 304,
     "code": "C209"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "입체·공간",
+    "concept": "점군 정합·표면 재구성",
+    "area": "구조·제작",
+    "input": "스캔 점군",
+    "keywords": []
    }
   },
   {
@@ -5130,6 +7810,14 @@
    "index": {
     "no": 305,
     "code": "C210"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "입체·공간",
+    "concept": "격자·벡터장 시각화",
+    "area": "구조·제작",
+    "input": "격자·과학 데이터",
+    "keywords": []
    }
   },
   {
@@ -5146,6 +7834,14 @@
    "index": {
     "no": 306,
     "code": "C211"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "입체·공간",
+    "concept": "과학 데이터·볼륨 렌더",
+    "area": "구조·제작",
+    "input": "격자·과학 데이터",
+    "keywords": []
    }
   },
   {
@@ -5162,6 +7858,14 @@
    "index": {
     "no": 307,
     "code": "C244"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "입체·공간",
+    "concept": "힘 기반 연결망 배치",
+    "area": "정보 시각화",
+    "input": "노드·연결",
+    "keywords": []
    }
   },
   {
@@ -5178,6 +7882,14 @@
    "index": {
     "no": 308,
     "code": "C248"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "입체·공간",
+    "concept": "지구 좌표·3D 타일",
+    "area": "지도·환경",
+    "input": "좌표·지도 자료",
+    "keywords": []
    }
   },
   {
@@ -5194,6 +7906,14 @@
    "index": {
     "no": 309,
     "code": "C040"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "R 트리·공간 가지치기",
+    "area": "패턴·조형",
+    "input": "점·영역",
+    "keywords": []
    }
   },
   {
@@ -5210,6 +7930,14 @@
    "index": {
     "no": 310,
     "code": "C065"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "행렬을 원호·리본으로 변환",
+    "area": "정보 시각화",
+    "input": "관계 행렬",
+    "keywords": []
    }
   },
   {
@@ -5226,6 +7954,14 @@
    "index": {
     "no": 311,
     "code": "C070"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "패킹된 Hilbert R-tree",
+    "area": "패턴·조형",
+    "input": "점·영역",
+    "keywords": []
    }
   },
   {
@@ -5242,6 +7978,14 @@
    "index": {
     "no": 312,
     "code": "C100"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "구면 격자·계층 공간색인",
+    "area": "지도·환경",
+    "input": "지구 위 위치",
+    "keywords": []
    }
   },
   {
@@ -5258,6 +8002,14 @@
    "index": {
     "no": 313,
     "code": "C105"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "재귀 공간 분할·사분 트리",
+    "area": "패턴·조형",
+    "input": "점·영역",
+    "keywords": []
    }
   },
   {
@@ -5274,6 +8026,14 @@
    "index": {
     "no": 314,
     "code": "C108"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "다중 축척 군집·KD 트리",
+    "area": "지도·환경",
+    "input": "지리 좌표·축척",
+    "keywords": []
    }
   },
   {
@@ -5290,6 +8050,14 @@
    "index": {
     "no": 315,
     "code": "C124"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "천체 좌표·태양 고도 계산",
+    "area": "지도·환경",
+    "input": "위치·날짜",
+    "keywords": []
    }
   },
   {
@@ -5306,6 +8074,14 @@
    "index": {
     "no": 316,
     "code": "C135"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "이진 힙·우선순위 큐",
+    "area": "패턴·조형",
+    "input": "항목·우선순위",
+    "keywords": []
    }
   },
   {
@@ -5322,6 +8098,14 @@
    "index": {
     "no": 317,
     "code": "C154"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "평면 KD 트리·근접 탐색",
+    "area": "패턴·조형",
+    "input": "점·영역",
+    "keywords": []
    }
   },
   {
@@ -5338,6 +8122,14 @@
    "index": {
     "no": 318,
     "code": "C158"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "격자 탐색·A*·휴리스틱",
+    "area": "패턴·조형",
+    "input": "미로·장애물",
+    "keywords": []
    }
   },
   {
@@ -5354,6 +8146,14 @@
    "index": {
     "no": 319,
     "code": "C159"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "가중 그래프·양방향 NBA*",
+    "area": "패턴·조형",
+    "input": "연결망·비용",
+    "keywords": []
    }
   },
   {
@@ -5370,6 +8170,14 @@
    "index": {
     "no": 320,
     "code": "C240"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "그래프·탐색·관계",
+    "area": "정보 시각화",
+    "input": "노드·연결",
+    "keywords": []
    }
   },
   {
@@ -5386,6 +8194,14 @@
    "index": {
     "no": 321,
     "code": "C241"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "그래프 자료 구조·탐색",
+    "area": "정보 시각화",
+    "input": "노드·연결",
+    "keywords": []
    }
   },
   {
@@ -5402,6 +8218,14 @@
    "index": {
     "no": 322,
     "code": "C242"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "WebGL 그래프 시각화",
+    "area": "정보 시각화",
+    "input": "관계망",
+    "keywords": []
    }
   },
   {
@@ -5418,6 +8242,14 @@
    "index": {
     "no": 323,
     "code": "C243"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "관계망 분석·노드 배치",
+    "area": "정보 시각화",
+    "input": "관계망",
+    "keywords": []
    }
   },
   {
@@ -5434,6 +8266,14 @@
    "index": {
     "no": 324,
     "code": "C245"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "GPU 데이터 레이어",
+    "area": "지도·환경",
+    "input": "좌표·자료",
+    "keywords": []
    }
   },
   {
@@ -5450,6 +8290,14 @@
    "index": {
     "no": 325,
     "code": "C246"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "벡터 타일·지도 렌더",
+    "area": "지도·환경",
+    "input": "좌표·지도 자료",
+    "keywords": []
    }
   },
   {
@@ -5466,6 +8314,14 @@
    "index": {
     "no": 326,
     "code": "C247"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "지리 데이터·레이어 탐색",
+    "area": "지도·환경",
+    "input": "좌표·자료",
+    "keywords": []
    }
   },
   {
@@ -5482,6 +8338,14 @@
    "index": {
     "no": 327,
     "code": "C249"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "타일·좌표·지도 레이어",
+    "area": "지도·환경",
+    "input": "좌표·지도 자료",
+    "keywords": []
    }
   },
   {
@@ -5498,6 +8362,14 @@
    "index": {
     "no": 328,
     "code": "C250"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "벡터 타일·세부 수준",
+    "area": "지도·환경",
+    "input": "좌표·지도 자료",
+    "keywords": []
    }
   },
   {
@@ -5514,6 +8386,14 @@
    "index": {
     "no": 329,
     "code": "C260"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "선·벡터",
+    "concept": "병렬 벡터 래스터화",
+    "area": "미디어·상호작용",
+    "input": "벡터 경로",
+    "keywords": []
    }
   },
   {
@@ -5534,6 +8414,18 @@
    "index": {
     "no": 330,
     "code": "X043"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "평면 이미지",
+    "concept": "코드 드로잉",
+    "area": "미디어·상호작용",
+    "input": "코드·시간·입력",
+    "keywords": [
+     "드로잉",
+     "웹",
+     "상호작용"
+    ]
    }
   },
   {
@@ -5554,6 +8446,18 @@
    "index": {
     "no": 331,
     "code": "X014"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "입체·공간",
+    "concept": "병렬 물리 계산",
+    "area": "미디어·상호작용",
+    "input": "계산 코드·상태",
+    "keywords": [
+     "입자",
+     "물리",
+     "병렬"
+    ]
    }
   },
   {
@@ -5574,6 +8478,18 @@
    "index": {
     "no": 332,
     "code": "X037"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "입체·공간",
+    "concept": "선언형 3D 장면",
+    "area": "미디어·상호작용",
+    "input": "코드·3D 장면",
+    "keywords": [
+     "웹3D",
+     "상호작용",
+     "React"
+    ]
    }
   },
   {
@@ -5594,6 +8510,18 @@
    "index": {
     "no": 333,
     "code": "X045"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "입체·공간",
+    "concept": "3D 장면·렌더링",
+    "area": "미디어·상호작용",
+    "input": "코드·3D 장면",
+    "keywords": [
+     "3D",
+     "타이포",
+     "렌더"
+    ]
    }
   },
   {
@@ -5610,6 +8538,14 @@
    "index": {
     "no": 334,
     "code": "C229"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "입체·공간",
+    "concept": "장면 그래프·GPU 렌더",
+    "area": "미디어·상호작용",
+    "input": "코드·3D 장면",
+    "keywords": []
    }
   },
   {
@@ -5626,6 +8562,14 @@
    "index": {
     "no": 335,
     "code": "C230"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "입체·공간",
+    "concept": "장면 엔진·WebGPU",
+    "area": "미디어·상호작용",
+    "input": "코드·3D 장면",
+    "keywords": []
    }
   },
   {
@@ -5642,6 +8586,14 @@
    "index": {
     "no": 336,
     "code": "C237"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "입체·공간",
+    "concept": "간결한 WebGL 렌더",
+    "area": "미디어·상호작용",
+    "input": "코드·3D 장면",
+    "keywords": []
    }
   },
   {
@@ -5658,6 +8610,14 @@
    "index": {
     "no": 337,
     "code": "C238"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "입체·공간",
+    "concept": "복셀 그리드·입체 편집",
+    "area": "구조·제작",
+    "input": "복셀·색",
+    "keywords": []
    }
   },
   {
@@ -5674,6 +8634,14 @@
    "index": {
     "no": 338,
     "code": "C231"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "움직이는 화면",
+    "concept": "선언형 GPU 명령",
+    "area": "미디어·상호작용",
+    "input": "셰이더·입력 영상",
+    "keywords": []
    }
   },
   {
@@ -5690,6 +8658,14 @@
    "index": {
     "no": 339,
     "code": "C234"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "움직이는 화면",
+    "concept": "GPU 2D 장면·배치",
+    "area": "미디어·상호작용",
+    "input": "2D 도형·텍스처",
+    "keywords": []
    }
   },
   {
@@ -5706,6 +8682,14 @@
    "index": {
     "no": 340,
     "code": "C236"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "움직이는 화면",
+    "concept": "GLSL 실행·다중 패스",
+    "area": "미디어·상호작용",
+    "input": "셰이더·입력 영상",
+    "keywords": []
    }
   },
   {
@@ -5726,6 +8710,18 @@
    "index": {
     "no": 341,
     "code": "X041"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "소리",
+    "concept": "음성·더빙",
+    "area": "소리·공연",
+    "input": "텍스트·음성",
+    "keywords": [
+     "음성",
+     "더빙",
+     "로컬"
+    ]
    }
   },
   {
@@ -5742,6 +8738,14 @@
    "index": {
     "no": 342,
     "code": "C192"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "소리",
+    "concept": "유닛 생성기·오디오 서버",
+    "area": "소리·공연",
+    "input": "소리·합성 코드",
+    "keywords": []
    }
   },
   {
@@ -5758,6 +8762,14 @@
    "index": {
     "no": 343,
     "code": "C194"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "소리",
+    "concept": "신호 그래프·DSP 컴파일",
+    "area": "소리·공연",
+    "input": "소리·합성 코드",
+    "keywords": []
    }
   },
   {
@@ -5778,6 +8790,18 @@
    "index": {
     "no": 344,
     "code": "X060"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "작업 환경",
+    "concept": "노드 워크플로",
+    "area": "도구·워크플로",
+    "input": "모델·노드·조건",
+    "keywords": [
+     "이전조사",
+     "모델",
+     "재검토"
+    ]
    }
   },
   {
@@ -5794,6 +8818,14 @@
    "index": {
     "no": 345,
     "code": "C232"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "작업 환경",
+    "concept": "C++ 창작·미디어 연결",
+    "area": "미디어·상호작용",
+    "input": "코드·센서·미디어",
+    "keywords": []
    }
   },
   {
@@ -5810,6 +8842,14 @@
    "index": {
     "no": 346,
     "code": "C233"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "작업 환경",
+    "concept": "C++ 그래픽·미디어 처리",
+    "area": "미디어·상호작용",
+    "input": "코드·센서·미디어",
+    "keywords": []
    }
   },
   {
@@ -5826,6 +8866,14 @@
    "index": {
     "no": 347,
     "code": "C235"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "작업 환경",
+    "concept": "창작 스케치·프레임 출력",
+    "area": "미디어·상호작용",
+    "input": "코드·시간·입력",
+    "keywords": []
    }
   },
   {
@@ -5842,6 +8890,14 @@
    "index": {
     "no": 348,
     "code": "C239"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "작업 환경",
+    "concept": "Python·Processing 연결",
+    "area": "미디어·상호작용",
+    "input": "코드·시간·입력",
+    "keywords": []
    }
   },
   {
@@ -5861,6 +8917,17 @@
    "index": {
     "no": 349,
     "code": "X022"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "움직이는 화면",
+    "concept": "깊이 추론·2.5D 재조명",
+    "area": "조명·합성",
+    "input": "영상·깊이맵·광원",
+    "keywords": [
+     "시각창작",
+     "출처확인필요"
+    ]
    }
   },
   {
@@ -5877,6 +8944,14 @@
    "index": {
     "no": 350,
     "code": "X071"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "작업 환경",
+    "concept": "가상화·미러 저장·웹 연결",
+    "area": "아카이브·공유",
+    "input": "PC·디스크·파일",
+    "keywords": []
    }
   },
   {
@@ -5893,6 +8968,14 @@
    "index": {
     "no": 351,
     "code": "X072"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "인쇄물·책",
+    "concept": "페이지 재배열·접기 도면",
+    "area": "출판·타이포",
+    "input": "원본 PDF·책 형식",
+    "keywords": []
    }
   },
   {
@@ -5912,6 +8995,17 @@
    "index": {
     "no": 352,
     "code": "N001"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "실 경로·이미지 근사",
+    "area": "이미지·실 작업",
+    "input": "이미지·못 배치",
+    "keywords": [
+     "실 경로·이미지 근사",
+     "이미지·실 작업"
+    ]
    }
   },
   {
@@ -5931,6 +9025,17 @@
    "index": {
     "no": 353,
     "code": "N002"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "입체·공간",
+    "concept": "강화학습·로봇 정책",
+    "area": "로봇·동작",
+    "input": "로봇 상태·학습 정책",
+    "keywords": [
+     "강화학습·로봇 정책",
+     "로봇·동작"
+    ]
    }
   },
   {
@@ -5950,6 +9055,17 @@
    "index": {
     "no": 354,
     "code": "N003"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "입체·공간",
+    "concept": "확산 제한 응집",
+    "area": "입자·구조",
+    "input": "입자·씨앗·거리 조건",
+    "keywords": [
+     "확산 제한 응집",
+     "입자·구조"
+    ]
    }
   },
   {
@@ -5969,6 +9085,17 @@
    "index": {
     "no": 355,
     "code": "N004"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "평면 이미지",
+    "concept": "반복 함수·프랙털 플레임",
+    "area": "이미지·프랙탈",
+    "input": "변환 규칙·색·시드",
+    "keywords": [
+     "반복 함수·프랙털 플레임",
+     "이미지·프랙탈"
+    ]
    }
   },
   {
@@ -5988,6 +9115,17 @@
    "index": {
     "no": 356,
     "code": "N005"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "위치 추정·계획·제어",
+    "area": "로봇·교육",
+    "input": "센서 측정·지도·상태",
+    "keywords": [
+     "위치 추정·계획·제어",
+     "로봇·교육"
+    ]
    }
   },
   {
@@ -6007,6 +9145,17 @@
    "index": {
     "no": 357,
     "code": "N006"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "N체 중력·궤도 적분",
+    "area": "천체·역학",
+    "input": "질량·위치·속도",
+    "keywords": [
+     "N체 중력·궤도 적분",
+     "천체·역학"
+    ]
    }
   },
   {
@@ -6026,6 +9175,17 @@
    "index": {
     "no": 358,
     "code": "N007"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "입체·공간",
+    "concept": "다시점 기하·SfM·MVS",
+    "area": "사진·3D 복원",
+    "input": "여러 시점의 사진",
+    "keywords": [
+     "다시점 기하·SfM·MVS",
+     "사진·3D 복원"
+    ]
    }
   },
   {
@@ -6045,6 +9205,17 @@
    "index": {
     "no": 359,
     "code": "N008"
+   },
+   "ko": {
+    "principle": "시간·동작 제어",
+    "medium": "움직이는 화면",
+    "concept": "검출 연결·다중 물체 추적",
+    "area": "영상·추적",
+    "input": "프레임별 검출 상자",
+    "keywords": [
+     "검출 연결·다중 물체 추적",
+     "영상·추적"
+    ]
    }
   },
   {
@@ -6064,6 +9235,17 @@
    "index": {
     "no": 360,
     "code": "N009"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "움직이는 화면",
+    "concept": "객체 검출·분할·추적",
+    "area": "비전·영상",
+    "input": "이미지·영상·모델",
+    "keywords": [
+     "객체 검출·분할·추적",
+     "비전·영상"
+    ]
    }
   },
   {
@@ -6083,6 +9265,17 @@
    "index": {
     "no": 361,
     "code": "N010"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "평면 이미지",
+    "concept": "절차적 꽃·분기 규칙",
+    "area": "그림·식물",
+    "input": "시드·형태 조건",
+    "keywords": [
+     "절차적 꽃·분기 규칙",
+     "그림·식물"
+    ]
    }
   },
   {
@@ -6102,6 +9295,17 @@
    "index": {
     "no": 362,
     "code": "N011"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "보석 광선·굴절·분산",
+    "area": "빛·보석",
+    "input": "보석 기하·빛·시점",
+    "keywords": [
+     "보석 광선·굴절·분산",
+     "빛·보석"
+    ]
    }
   },
   {
@@ -6121,6 +9325,17 @@
    "index": {
     "no": 363,
     "code": "N012"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "유한체적·유체 보존",
+    "area": "유체·수치 실험",
+    "input": "격자·초기 유체 상태",
+    "keywords": [
+     "유한체적·유체 보존",
+     "유체·수치 실험"
+    ]
    }
   },
   {
@@ -6140,6 +9355,17 @@
    "index": {
     "no": 364,
     "code": "N013"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "대기 산란·사전 계산",
+    "area": "하늘·렌더링",
+    "input": "대기 모형·태양·시점",
+    "keywords": [
+     "대기 산란·사전 계산",
+     "하늘·렌더링"
+    ]
    }
   },
   {
@@ -6159,6 +9385,17 @@
    "index": {
     "no": 365,
     "code": "N014"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "평면 이미지",
+    "concept": "신경망·국소 세포 갱신",
+    "area": "생성·학습",
+    "input": "목표 이미지·세포 상태",
+    "keywords": [
+     "신경망·국소 세포 갱신",
+     "생성·학습"
+    ]
    }
   },
   {
@@ -6178,6 +9415,17 @@
    "index": {
     "no": 366,
     "code": "N015"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "밀도파·은하 궤도",
+    "area": "우주·시각화",
+    "input": "궤도·밀도·은하 조건",
+    "keywords": [
+     "밀도파·은하 궤도",
+     "우주·시각화"
+    ]
    }
   },
   {
@@ -6197,6 +9445,17 @@
    "index": {
     "no": 367,
     "code": "N016"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "분자 동역학",
+    "area": "재료·분자",
+    "input": "원자 좌표·상호작용",
+    "keywords": [
+     "분자 동역학",
+     "재료·분자"
+    ]
    }
   },
   {
@@ -6216,6 +9475,17 @@
    "index": {
     "no": 368,
     "code": "N017"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "FDTD·맥스웰 방정식",
+    "area": "빛·전자기장",
+    "input": "재료·광원·격자",
+    "keywords": [
+     "FDTD·맥스웰 방정식",
+     "빛·전자기장"
+    ]
    }
   },
   {
@@ -6235,6 +9505,17 @@
    "index": {
     "no": 369,
     "code": "N018"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "입자·물질 상호작용",
+    "area": "물리·검출기",
+    "input": "입자·재료·기하",
+    "keywords": [
+     "입자·물질 상호작용",
+     "물리·검출기"
+    ]
    }
   },
   {
@@ -6254,6 +9535,17 @@
    "index": {
     "no": 370,
     "code": "N019"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "투영·단층 역문제",
+    "area": "단층·의료 영상",
+    "input": "투영 측정값·기하",
+    "keywords": [
+     "투영·단층 역문제",
+     "단층·의료 영상"
+    ]
    }
   },
   {
@@ -6273,6 +9565,17 @@
    "index": {
     "no": 371,
     "code": "N020"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "SGP4 궤도 전파",
+    "area": "위성·우주",
+    "input": "위성 궤도 요소·시각",
+    "keywords": [
+     "SGP4 궤도 전파",
+     "위성·우주"
+    ]
    }
   },
   {
@@ -6292,6 +9595,17 @@
    "index": {
     "no": 372,
     "code": "N021"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "수치·데이터",
+    "concept": "좌표계·지도 투영",
+    "area": "지도·측량",
+    "input": "좌표·기준 좌표계",
+    "keywords": [
+     "좌표계·지도 투영",
+     "지도·측량"
+    ]
    }
   },
   {
@@ -6311,6 +9625,17 @@
    "index": {
     "no": 373,
     "code": "N022"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "삼각형 래스터화",
+    "area": "렌더링·교육",
+    "input": "3D 메시·텍스처",
+    "keywords": [
+     "삼각형 래스터화",
+     "렌더링·교육"
+    ]
    }
   },
   {
@@ -6330,6 +9655,17 @@
    "index": {
     "no": 374,
     "code": "N023"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "수치·데이터",
+    "concept": "신경망·바둑 탐색",
+    "area": "바둑·탐색",
+    "input": "바둑판·학습 모델",
+    "keywords": [
+     "신경망·바둑 탐색",
+     "바둑·탐색"
+    ]
    }
   },
   {
@@ -6349,6 +9685,17 @@
    "index": {
     "no": 375,
     "code": "N024"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "심 카빙·중요도",
+    "area": "이미지·편집",
+    "input": "이미지·목표 크기",
+    "keywords": [
+     "심 카빙·중요도",
+     "이미지·편집"
+    ]
    }
   },
   {
@@ -6368,6 +9715,17 @@
    "index": {
     "no": 376,
     "code": "N025"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "평면 이미지",
+    "concept": "별 패턴·천구 좌표",
+    "area": "천문·사진",
+    "input": "천체 사진",
+    "keywords": [
+     "별 패턴·천구 좌표",
+     "천문·사진"
+    ]
    }
   },
   {
@@ -6387,6 +9745,17 @@
    "index": {
     "no": 377,
     "code": "N026"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "문자·텍스트",
+    "concept": "두 단계·상태 공간 탐색",
+    "area": "퍼즐·탐색",
+    "input": "큐브 상태",
+    "keywords": [
+     "두 단계·상태 공간 탐색",
+     "퍼즐·탐색"
+    ]
    }
   },
   {
@@ -6406,6 +9775,17 @@
    "index": {
     "no": 378,
     "code": "N027"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "JPEG·SIMD 변환",
+    "area": "이미지·코덱",
+    "input": "이미지·JPEG 파일",
+    "keywords": [
+     "JPEG·SIMD 변환",
+     "이미지·코덱"
+    ]
    }
   },
   {
@@ -6425,6 +9805,17 @@
    "index": {
     "no": 379,
     "code": "N028"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "움직이는 화면",
+    "concept": "격자·감쇠·팔레트",
+    "area": "픽셀·효과",
+    "input": "열 값·색 팔레트",
+    "keywords": [
+     "격자·감쇠·팔레트",
+     "픽셀·효과"
+    ]
    }
   },
   {
@@ -6444,6 +9835,17 @@
    "index": {
     "no": 380,
     "code": "N029"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "힘·미분방정식",
+    "area": "물리·교육",
+    "input": "물체·힘·초기 조건",
+    "keywords": [
+     "힘·미분방정식",
+     "물리·교육"
+    ]
    }
   },
   {
@@ -6463,6 +9865,17 @@
    "index": {
     "no": 381,
     "code": "N030"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "선·벡터",
+    "concept": "도로 그래프·경로 탐색",
+    "area": "지도·교통",
+    "input": "도로 연결·출발·도착",
+    "keywords": [
+     "도로 그래프·경로 탐색",
+     "지도·교통"
+    ]
    }
   },
   {
@@ -6482,6 +9895,17 @@
    "index": {
     "no": 382,
     "code": "N031"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "RAW·센서 데이터 읽기",
+    "area": "사진·현상",
+    "input": "카메라 RAW 파일",
+    "keywords": [
+     "RAW·센서 데이터 읽기",
+     "사진·현상"
+    ]
    }
   },
   {
@@ -6501,6 +9925,17 @@
    "index": {
     "no": 383,
     "code": "N032"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "움직이는 화면",
+    "concept": "높이맵·지형 투영",
+    "area": "지형·게임",
+    "input": "높이 지도·색 지도",
+    "keywords": [
+     "높이맵·지형 투영",
+     "지형·게임"
+    ]
    }
   },
   {
@@ -6520,6 +9955,17 @@
    "index": {
     "no": 384,
     "code": "N033"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "빛의 궤적·중력 렌즈",
+    "area": "우주·렌더링",
+    "input": "시점·블랙홀 모형",
+    "keywords": [
+     "빛의 궤적·중력 렌즈",
+     "우주·렌더링"
+    ]
    }
   },
   {
@@ -6539,6 +9985,17 @@
    "index": {
     "no": 385,
     "code": "N034"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "수치·데이터",
+    "concept": "조건부 흐름 매칭",
+    "area": "생성·학습",
+    "input": "학습 샘플·분포",
+    "keywords": [
+     "조건부 흐름 매칭",
+     "생성·학습"
+    ]
    }
   },
   {
@@ -6558,6 +10015,17 @@
    "index": {
     "no": 386,
     "code": "N035"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "스펙트럴 요소·파동",
+    "area": "지진·수치 실험",
+    "input": "지층·진원·메시",
+    "keywords": [
+     "스펙트럴 요소·파동",
+     "지진·수치 실험"
+    ]
    }
   },
   {
@@ -6577,6 +10045,17 @@
    "index": {
     "no": 387,
     "code": "N036"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "평면 이미지",
+    "concept": "픽셀별 집계·밀도",
+    "area": "데이터·시각화",
+    "input": "많은 점·수치 데이터",
+    "keywords": [
+     "픽셀별 집계·밀도",
+     "데이터·시각화"
+    ]
    }
   },
   {
@@ -6596,6 +10075,17 @@
    "index": {
     "no": 388,
     "code": "N037"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "선·벡터",
+    "concept": "광선·반사·굴절",
+    "area": "빛·교육",
+    "input": "광원·렌즈·거울",
+    "keywords": [
+     "광선·반사·굴절",
+     "빛·교육"
+    ]
    }
   },
   {
@@ -6615,6 +10105,17 @@
    "index": {
     "no": 389,
     "code": "N038"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "슈뢰딩거 방정식",
+    "area": "양자·교육",
+    "input": "퍼텐셜·입자 조건",
+    "keywords": [
+     "슈뢰딩거 방정식",
+     "양자·교육"
+    ]
    }
   },
   {
@@ -6634,6 +10135,17 @@
    "index": {
     "no": 390,
     "code": "N039"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "문자·텍스트",
+    "concept": "트랜스포머·다음 토큰",
+    "area": "언어·학습",
+    "input": "텍스트·학습 조건",
+    "keywords": [
+     "트랜스포머·다음 토큰",
+     "언어·학습"
+    ]
    }
   },
   {
@@ -6653,6 +10165,17 @@
    "index": {
     "no": 391,
     "code": "N040"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "선·벡터",
+    "concept": "비주기·모자 타일",
+    "area": "패턴·타일",
+    "input": "타일·치환 단계",
+    "keywords": [
+     "비주기·모자 타일",
+     "패턴·타일"
+    ]
    }
   },
   {
@@ -6672,6 +10195,17 @@
    "index": {
     "no": 392,
     "code": "N041"
+   },
+   "ko": {
+    "principle": "규칙·생성",
+    "medium": "움직이는 화면",
+    "concept": "재료·셀룰러 규칙",
+    "area": "놀이·시뮬레이션",
+    "input": "모래·물·불 등 재료",
+    "keywords": [
+     "재료·셀룰러 규칙",
+     "놀이·시뮬레이션"
+    ]
    }
   },
   {
@@ -6691,6 +10225,17 @@
    "index": {
     "no": 393,
     "code": "N042"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "소리",
+    "concept": "성대·성도 모형",
+    "area": "소리·발성",
+    "input": "성도 형태·발성 조건",
+    "keywords": [
+     "성대·성도 모형",
+     "소리·발성"
+    ]
    }
   },
   {
@@ -6710,6 +10255,17 @@
    "index": {
     "no": 394,
     "code": "N043"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "입체·공간",
+    "concept": "점구름·단계별 상세도",
+    "area": "스캔·공간",
+    "input": "3D 점구름",
+    "keywords": [
+     "점구름·단계별 상세도",
+     "스캔·공간"
+    ]
    }
   },
   {
@@ -6729,6 +10285,17 @@
    "index": {
     "no": 395,
     "code": "N044"
+   },
+   "ko": {
+    "principle": "제작·연결 도구",
+    "medium": "작업 환경",
+    "concept": "x86 에뮬레이션",
+    "area": "컴퓨터·웹",
+    "input": "운영체제·디스크 이미지",
+    "keywords": [
+     "x86 에뮬레이션",
+     "컴퓨터·웹"
+    ]
    }
   },
   {
@@ -6748,6 +10315,17 @@
    "index": {
     "no": 396,
     "code": "N045"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "평면 이미지",
+    "concept": "지도 데이터·레이어",
+    "area": "지도·포스터",
+    "input": "위치·OSM 데이터",
+    "keywords": [
+     "지도 데이터·레이어",
+     "지도·포스터"
+    ]
    }
   },
   {
@@ -6767,6 +10345,17 @@
    "index": {
     "no": 397,
     "code": "N046"
+   },
+   "ko": {
+    "principle": "기하·구조",
+    "medium": "선·벡터",
+    "concept": "곡선 에너지·반발",
+    "area": "곡선·기하",
+    "input": "공간 곡선",
+    "keywords": [
+     "곡선 에너지·반발",
+     "곡선·기하"
+    ]
    }
   },
   {
@@ -6786,6 +10375,17 @@
    "index": {
     "no": 398,
     "code": "N047"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "선·벡터",
+    "concept": "하천 곡률·이동",
+    "area": "지형·하천",
+    "input": "강 중심선·하천 조건",
+    "keywords": [
+     "하천 곡률·이동",
+     "지형·하천"
+    ]
    }
   },
   {
@@ -6805,6 +10405,17 @@
    "index": {
     "no": 399,
     "code": "N048"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "격자 볼츠만·충돌·이동",
+    "area": "유체·교육",
+    "input": "격자·장애물·초기 흐름",
+    "keywords": [
+     "격자 볼츠만·충돌·이동",
+     "유체·교육"
+    ]
    }
   },
   {
@@ -6824,6 +10435,17 @@
    "index": {
     "no": 400,
     "code": "N049"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "평면 이미지",
+    "concept": "HEALPix 구면 픽셀",
+    "area": "천문·구면 지도",
+    "input": "구면 관측 데이터",
+    "keywords": [
+     "HEALPix 구면 픽셀",
+     "천문·구면 지도"
+    ]
    }
   },
   {
@@ -6843,6 +10465,17 @@
    "index": {
     "no": 401,
     "code": "N050"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "소리",
+    "concept": "SSTV·이미지의 음 변환",
+    "area": "라디오·이미지",
+    "input": "이미지·SSTV 모드",
+    "keywords": [
+     "SSTV·이미지의 음 변환",
+     "라디오·이미지"
+    ]
    }
   },
   {
@@ -6862,6 +10495,17 @@
    "index": {
     "no": 402,
     "code": "N051"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "평면 이미지",
+    "concept": "글꼴 윤곽·래스터화",
+    "area": "글자·타이포",
+    "input": "글꼴 파일·크기",
+    "keywords": [
+     "글꼴 윤곽·래스터화",
+     "글자·타이포"
+    ]
    }
   },
   {
@@ -6881,6 +10525,17 @@
    "index": {
     "no": 403,
     "code": "N052"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "미시 교통·차량 규칙",
+    "area": "도시·교통",
+    "input": "도로망·차량·신호",
+    "keywords": [
+     "미시 교통·차량 규칙",
+     "도시·교통"
+    ]
    }
   },
   {
@@ -6900,6 +10555,17 @@
    "index": {
     "no": 404,
     "code": "N053"
+   },
+   "ko": {
+    "principle": "이미지·신호 변환",
+    "medium": "수치·데이터",
+    "concept": "중력파·시계열 분석",
+    "area": "천문·신호",
+    "input": "관측 신호·시계열",
+    "keywords": [
+     "중력파·시계열 분석",
+     "천문·신호"
+    ]
    }
   },
   {
@@ -6919,6 +10585,17 @@
    "index": {
     "no": 405,
     "code": "N054"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "입체·공간",
+    "concept": "판 회전·과거 지리",
+    "area": "지구·지질",
+    "input": "판 경계·회전 모델·시각",
+    "keywords": [
+     "판 회전·과거 지리",
+     "지구·지질"
+    ]
    }
   },
   {
@@ -6938,6 +10615,17 @@
    "index": {
     "no": 406,
     "code": "N055"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "평면 이미지",
+    "concept": "태양 관측·좌표·시각",
+    "area": "태양·천문",
+    "input": "태양 관측 데이터",
+    "keywords": [
+     "태양 관측·좌표·시각",
+     "태양·천문"
+    ]
    }
   },
   {
@@ -6957,6 +10645,17 @@
    "index": {
     "no": 407,
     "code": "N056"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "평면 이미지",
+    "concept": "신경망·경사 하강",
+    "area": "학습·교육",
+    "input": "점 데이터·신경망 구조",
+    "keywords": [
+     "신경망·경사 하강",
+     "학습·교육"
+    ]
    }
   },
   {
@@ -6976,6 +10675,17 @@
    "index": {
     "no": 408,
     "code": "N057"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "입체·공간",
+    "concept": "유한요소·위상 최적화",
+    "area": "구조·제작",
+    "input": "3D 영역·하중·제약",
+    "keywords": [
+     "유한요소·위상 최적화",
+     "구조·제작"
+    ]
    }
   },
   {
@@ -6995,6 +10705,17 @@
    "index": {
     "no": 409,
     "code": "N058"
+   },
+   "ko": {
+    "principle": "데이터·공간 분석",
+    "medium": "움직이는 화면",
+    "concept": "기상 격자·흐름 보간",
+    "area": "지도·기상",
+    "input": "전 지구 기상 데이터",
+    "keywords": [
+     "기상 격자·흐름 보간",
+     "지도·기상"
+    ]
    }
   },
   {
@@ -7014,6 +10735,17 @@
    "index": {
     "no": 410,
     "code": "N059"
+   },
+   "ko": {
+    "principle": "학습·추론",
+    "medium": "수치·데이터",
+    "concept": "이웃 그래프·차원 축소",
+    "area": "데이터·학습",
+    "input": "고차원 데이터",
+    "keywords": [
+     "이웃 그래프·차원 축소",
+     "데이터·학습"
+    ]
    }
   },
   {
@@ -7033,6 +10765,17 @@
    "index": {
     "no": 411,
     "code": "N060"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "움직이는 화면",
+    "concept": "유한체적·편미분방정식",
+    "area": "확산·재료",
+    "input": "격자·방정식·경계 조건",
+    "keywords": [
+     "유한체적·편미분방정식",
+     "확산·재료"
+    ]
    }
   },
   {
@@ -7052,6 +10795,17 @@
    "index": {
     "no": 412,
     "code": "N061"
+   },
+   "ko": {
+    "principle": "물리·수치 모형",
+    "medium": "수치·데이터",
+    "concept": "뉴런 구획·전기 신호",
+    "area": "신경·모형",
+    "input": "뉴런 형태·채널·자극",
+    "keywords": [
+     "뉴런 구획·전기 신호",
+     "신경·모형"
+    ]
    }
   }
  ]

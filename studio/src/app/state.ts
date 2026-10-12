@@ -7,6 +7,7 @@ import type { AssetInfo } from "../project/assets";
 import type { ProjectMeta, Version } from "../project/store";
 import type { MonitorValue, RecordOptions, RuntimeState, SceneError } from "../scene/protocol";
 import { DEFAULT_SCENE, type Scene } from "../scene/schema";
+import { resolveLanguage, type Language } from "./language";
 import { loadSettings, type Settings } from "./settings";
 
 export interface LiveTurn {
@@ -121,3 +122,8 @@ export const useApp = create<AppState>(() => ({
   settingsOpen: false,
   examplesOpen: false,
 }));
+
+/** The language descriptions are shown in (Settings → Language, else the system's). */
+export function useLanguage(): Language {
+  return useApp((s) => resolveLanguage(s.settings.language));
+}
