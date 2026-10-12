@@ -33,9 +33,9 @@
 
 셋 중 하나를 고르세요. 1분이면 됩니다.
 
-### A. Claude Code로 쓰기 — 추천
+### A. Claude Code나 Codex로 쓰기 — 추천
 
-Claude Code에 이렇게 붙여 넣으세요:
+**Claude Code**에 이렇게 붙여 넣으세요:
 
 ```text
 실장님 MCP 서버를 설치해 줘. 이 명령을 실행하면 돼:
@@ -43,21 +43,30 @@ claude mcp add siljangnim -- npx -y siljangnim-mcp@latest
 끝나면 Claude Code를 다시 시작하라고 알려 줘.
 ```
 
-Claude Code를 다시 시작하고, 만들고 싶은 것을 말하세요:
+**Codex**라면:
+
+```text
+실장님 MCP 서버를 설치해 줘. 이 명령을 실행하면 돼:
+codex mcp add siljangnim -- npx -y siljangnim-mcp@latest
+그다음 ~/.codex/config.toml의 [mcp_servers.siljangnim] 아래에 tool_timeout_sec = 120 줄을 추가해 줘
+(작업을 최대 110초까지 기다리는 도구가 있어). 끝나면 Codex를 다시 시작하라고 알려 줘.
+```
+
+다시 시작하고, 만들고 싶은 것을 말하세요:
 
 ```text
 siljangnim으로 어두운 바다를 떠다니는 빛나는 해파리를 만들어 줘. 해파리 개수는 슬라이더로 바꿀 수 있게.
 ```
 
-브라우저에 뷰어가 열리고 거기에 결과가 나옵니다. 고치고 싶으면 Claude Code에서 계속 말하면 됩니다.
+브라우저에 뷰어가 열리고 거기에 결과가 나옵니다. 고치고 싶으면 에이전트에게 계속 말하면 됩니다.
 
 필요한 것은 [Node.js 22 이상](https://nodejs.org)뿐입니다. Python이 필요한 도구를 처음 쓸 때 알아서
 `~/.siljangnim/runtime/`에 받아 둡니다.
 
 <details>
-<summary>Codex, Cursor, Claude 데스크톱 앱 등 다른 MCP 클라이언트</summary>
+<summary>Cursor, Claude 데스크톱 앱 등 다른 MCP 클라이언트, Codex 직접 설정</summary>
 
-**Codex** — `~/.codex/config.toml`에 추가:
+**Codex**(`codex mcp add` 대신) — `~/.codex/config.toml`에 추가:
 
 ```toml
 [mcp_servers.siljangnim]

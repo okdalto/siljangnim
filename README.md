@@ -34,9 +34,9 @@
 
 Pick one. Each takes about a minute.
 
-### A. With Claude Code — recommended
+### A. With Claude Code or Codex — recommended
 
-Paste this into Claude Code:
+Paste this into **Claude Code**:
 
 ```text
 Install the Siljangnim MCP server by running:
@@ -44,21 +44,30 @@ claude mcp add siljangnim -- npx -y siljangnim-mcp@latest
 Then tell me to restart Claude Code.
 ```
 
-Restart Claude Code, then ask for something:
+Or into **Codex**:
+
+```text
+Install the Siljangnim MCP server by running:
+codex mcp add siljangnim -- npx -y siljangnim-mcp@latest
+Then, in ~/.codex/config.toml under [mcp_servers.siljangnim], add the line tool_timeout_sec = 120
+(some tools wait up to 110 seconds for a job). Then tell me to restart Codex.
+```
+
+Restart it, then ask for something:
 
 ```text
 Use siljangnim to make glowing jellyfish drifting in a dark sea, with a slider for how many there are.
 ```
 
-A viewer opens in your browser and the scene appears there. Keep chatting in Claude Code to change it.
+A viewer opens in your browser and the scene appears there. Keep chatting with your agent to change it.
 
 You need [Node.js 22 or newer](https://nodejs.org). Nothing else: the first time a tool needs Python, it is
 downloaded into `~/.siljangnim/runtime/`.
 
 <details>
-<summary>Codex, Cursor, Claude Desktop and other MCP clients</summary>
+<summary>Cursor, Claude Desktop and other MCP clients; Codex by hand</summary>
 
-**Codex** — add to `~/.codex/config.toml`:
+**Codex** (instead of `codex mcp add`) — add to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.siljangnim]

@@ -16,7 +16,9 @@ claude mcp add siljangnim -- npx -y siljangnim-mcp@latest
 또는 Claude Code에 "실장님 MCP 서버를 설치해 줘: `claude mcp add siljangnim -- npx -y siljangnim-mcp@latest`"라고
 붙여 넣으세요. 설치한 뒤에는 Claude Code를 다시 시작해야 합니다.
 
-**Codex** — `~/.codex/config.toml`:
+**Codex** — 터미널에서 `codex mcp add siljangnim -- npx -y siljangnim-mcp@latest`를 실행한 뒤,
+`~/.codex/config.toml`의 `[mcp_servers.siljangnim]` 아래에 `tool_timeout_sec = 120`을 추가하세요(Codex의 기본 제한은
+60초인데, 오래 걸리는 작업은 최대 110초까지 기다립니다). 또는 설정 파일에 직접:
 
 ```toml
 [mcp_servers.siljangnim]

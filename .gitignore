@@ -2,8 +2,6 @@
 node_modules/
 
 # siljangnim - AI-generated workspace (sandboxed outputs)
-.workspace/projects/
-.workspace/.active_project
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
