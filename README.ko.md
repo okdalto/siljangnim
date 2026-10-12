@@ -65,7 +65,9 @@
   다시 만듭니다([docs/project-md.md](docs/project-md.md)). 레시피는 레지스트리([registry/](registry/))로 나누고,
   카탈로그가 에이전트의 오픈소스 선택을 돕습니다.
 - **v1 프로젝트** — *프로젝트 메뉴 → Import v1 project*로 예전 내보내기를 가져옵니다.
-- **예제** — *프로젝트 메뉴 → Examples…*에서 바로 열어 볼 수 있습니다([examples/](examples/)).
+- **예제** — 오른쪽 위 *Examples* 탭에서 모든 예제를 검색하고 분류별로 봅니다. 누르면 프로젝트로 열리고, *Link*로 바로
+  여는 주소(예: `siljangnim.vercel.app/#example=oss-three`)를 공유할 수 있습니다. 아직 예제가 없는 참고 목록의 도구는
+  에이전트에게 만들어 달라고 맡길 수 있습니다([examples/](examples/)).
 - **프로젝트** — 여러 프로젝트와 각각의 씬·채팅을 로컬에 저장합니다.
 - **AI 프로바이더** — Anthropic(기본 Claude Opus 5.5) 또는 OpenAI 호환 서버(OpenAI, vLLM, Ollama 등).
 - **데스크톱 앱** — macOS(Apple Silicon)와 Windows. API 키는 OS 키체인으로 암호화되고 앱 화면에는

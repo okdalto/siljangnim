@@ -71,7 +71,9 @@ In the new studio (desktop app and `npm run web`):
   agent can rebuild it from the document ([docs/project-md.md](docs/project-md.md)). Recipes are shared through
   a registry ([registry/](registry/)), and a catalog helps the agent pick open-source tools.
 - **v1 projects** — *Projects menu → Import v1 project* brings old exports over.
-- **Examples** — *Projects menu → Examples…* opens ready-made scenes ([examples/](examples/)).
+- **Examples** — the *Examples* tab (top right) lists every example with search and categories; each opens as a
+  project, and its *Link* opens it directly (e.g. `siljangnim.vercel.app/#example=oss-three`). Tools from the
+  reference list that have no example yet can be handed to the agent to build ([examples/](examples/)).
 - **Projects** — several projects with their scene and chat, saved locally.
 - **Providers** — Anthropic (Claude Opus 5.5 by default) or any OpenAI-compatible server (OpenAI, vLLM, Ollama, …).
 - **Desktop app** — macOS (Apple Silicon) and Windows. API keys are encrypted with the OS keychain and
