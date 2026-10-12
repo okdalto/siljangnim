@@ -38,6 +38,8 @@ export interface GpuSceneCtx {
   mouse: [number, number, number, number];
   mousePrev: [number, number, number, number];
   mouseDown: boolean;
+  /** Wheel, buttons and double-click (see the WebGL ctx). */
+  pointer: { wheel: number; buttons: number; doubleClick: boolean };
   keys: Set<string>;
   uniforms: Record<string, UniformValue>;
   assets: Record<string, string>;
@@ -85,6 +87,7 @@ export function createGpuCtx(
     mouse: [0.5, 0.5, 0.5, 0.5],
     mousePrev: [0.5, 0.5, 0.5, 0.5],
     mouseDown: false,
+    pointer: { wheel: 0, buttons: 0, doubleClick: false },
     keys: new Set(),
     uniforms,
     assets,

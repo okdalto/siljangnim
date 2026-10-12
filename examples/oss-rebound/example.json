@@ -19,12 +19,12 @@
   "summary": "A passing star sweeps by another star's ring of dust, tearing it into long glowing tails and stealing some.",
   "summary_ko": "지나가던 별이 다른 별의 먼지 고리를 스치며 긴 꼬리로 찢어 놓고, 일부를 훔쳐 가요.",
   "try": [
-    "Drag to look at the disk from another angle",
+    "Drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
     "Raise Trail (frames) for longer streaks",
     "Turn the Speed knob down to watch the close pass slowly"
   ],
   "try_ko": [
-    "드래그해서 다른 각도에서 원반을 보세요",
+    "드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
     "Trail (frames)을 올리면 꼬리가 길어져요",
     "Speed 노브를 낮춰 별이 스쳐 가는 순간을 천천히 보세요"
   ],

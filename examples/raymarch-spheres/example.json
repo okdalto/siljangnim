@@ -14,12 +14,12 @@
   "summary": "A chrome ball sits on an endless checkered floor, mirroring the sky and the floor around it.",
   "summary_ko": "끝없는 체크무늬 바닥 위에 크롬 공이 놓여 하늘과 바닥을 거울처럼 비춰요.",
   "try": [
-    "Drag to walk the camera around the ball, and scroll to zoom",
+    "Drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
     "Raise Roughness to turn the mirror into brushed metal",
     "Change Sphere size and watch the reflection and shadow follow"
   ],
   "try_ko": [
-    "드래그해서 카메라로 공 주위를 돌고, 휠로 확대해 보세요",
+    "드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
     "Roughness를 올려 거울을 무광 금속처럼 만들어 보세요",
     "Sphere size를 바꾸면 반사와 그림자가 함께 바뀌어요"
   ],

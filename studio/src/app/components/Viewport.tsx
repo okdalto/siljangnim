@@ -32,7 +32,7 @@ export function Viewport() {
   }, [runtime.url]);
 
   return (
-    <section className="relative min-h-0 flex-1 bg-black">
+    <section className="relative min-h-0 flex-1 select-none bg-black">
       <div ref={containerRef} className="absolute inset-0" />
       {hostError && <div className="absolute inset-0 grid place-items-center p-6 text-sm text-danger">{hostError}</div>}
       <StatusBar />

@@ -18,11 +18,11 @@
   "summary": "A toy solar system: planets circle the glowing sun, and moons circle their planets.",
   "summary_ko": "장난감 태양계예요. 행성은 빛나는 태양을, 달은 행성을 따라 돌아요.",
   "try": [
-    "Drag to look at the solar system from another angle",
+    "Drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
     "Turn the Speed knob to speed up the orbits, or to zero to stop them"
   ],
   "try_ko": [
-    "드래그해서 다른 각도에서 태양계를 보세요",
+    "드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
     "Speed 노브를 돌려 공전을 빠르게 하거나, 0으로 내려 멈춰 보세요"
   ],
   "tool_about": "OGL is a small, lightweight library for 3D graphics in the browser, a simpler alternative to Three.js with just the basics: shapes, cameras and objects attached to other objects.",

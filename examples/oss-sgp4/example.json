@@ -19,12 +19,12 @@
   "summary": "Seven real satellites, like the space station and Hubble, circle Earth and draw their paths over it.",
   "summary_ko": "국제우주정거장, 허블 등 실제 위성 일곱 개가 지구를 돌며 땅 위에 지나간 길을 그려요.",
   "try": [
-    "Drag to turn the globe",
+    "Drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
     "Raise Trail (minutes) to see longer paths",
     "Turn up the Minutes per second knob to speed up time"
   ],
   "try_ko": [
-    "드래그해서 지구를 돌려 보세요",
+    "드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
     "Trail (minutes)를 올리면 더 긴 경로가 보여요",
     "Minutes per second 노브를 올려 시간을 빨리 감아 보세요"
   ],

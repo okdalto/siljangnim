@@ -415,9 +415,12 @@ async function runExamplesScenario(win, examplesOut) {
     }
     // The Examples tab in the top bar; wait for the card rather than a fixed delay.
     await win.webContents.executeJavaScript(`(async () => {
-      if (!document.querySelector('[data-testid="examples"]')) document.querySelector('[data-testid="view-examples"]').click();
       let card = null;
-      for (let i = 0; i < 50 && !(card = document.querySelector('[data-example="${slug}"]')); i++) await new Promise((r) => setTimeout(r, 100));
+      for (let i = 0; i < 100 && !(card = document.querySelector('[data-example="${slug}"]')); i++) {
+        // (Re)open the view if it isn't showing; the previous example may still be settling.
+        if (!document.querySelector('[data-testid="examples"]')) document.querySelector('[data-testid="view-examples"]').click();
+        await new Promise((r) => setTimeout(r, 100));
+      }
       if (!card) throw new Error("no card for ${slug}");
       card.click();
     })()`);

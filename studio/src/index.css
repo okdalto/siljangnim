@@ -40,3 +40,7 @@ html, body {
 .prose-chat strong { font-weight: 600; }
 
 input[type="range"] { accent-color: var(--color-accent); }
+
+/* Korean wraps between words, not inside them ("보\n세요"); long unbroken tokens (URLs, code) still wrap. */
+body { word-break: keep-all; overflow-wrap: break-word; }
+pre, code, .font-mono { word-break: normal; }

@@ -34,7 +34,7 @@ ctx.gl, ctx.canvas — WebGL2 context and canvas (size = ctx.resolution, device 
 ctx.state — your storage, shared by setup/render/cleanup
 ctx.time, ctx.dt, ctx.frame — seconds since start, seconds since last frame, frame index
 ctx.resolution — [width, height]
-ctx.mouse — [x, y, clickX, clickY] normalized 0..1, origin top-left; ctx.mousePrev — the same one frame earlier; ctx.mouseDown — boolean
+ctx.mouse — [x, y, clickX, clickY] normalized 0..1, origin top-left; ctx.mousePrev — the same one frame earlier; ctx.mouseDown — boolean; ctx.pointer — { wheel (scroll since last frame, + = away), buttons (1 left, 2 right, 4 middle), doubleClick }
 ctx.keys — Set of KeyboardEvent.code currently held
 ctx.uniforms — current values of the scene uniforms, by name: plain numbers, booleans or arrays (ctx.uniforms.u_speed is 1.5, not an object). They follow the controls (and keyframes) live; read them every frame.
 ctx.assets — uploaded asset name → blob URL (see asset_list); ctx.uploads is the same object (the v1 name)
@@ -59,7 +59,7 @@ ctx.utils:
   createPingPong(width, height, {internalFormat, format, type, filter, depth, count}) → {read(), write(), swap(), resize(w, h), width, height}; read()/write() return {framebuffer, texture, textures}
   uploadDataTexture(gl, existingTextureOrNull, width, height, typedArray, {internalFormat, format, type, filter})
   mat4 (identity, perspective(fovDeg, aspect, near, far), lookAt(eye, target, up), multiply, invert, transpose, fromTranslation, fromScaling, fromXRotation/Y/Z, transformPoint) — column-major Float32Array
-  quat, createOrbitCamera({distance, theta, phi, target}) → camera.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt), getViewMatrix(), getProjectionMatrix(aspect, fovDeg, near, far), getEye(), zoom(delta); createVerletSystem()
+  quat, createOrbitCamera({distance, theta, phi, target, fov, minDistance, maxDistance, autoRotate}) → camera.update(ctx.mouse, ctx.mousePrev, ctx.mouseDown, ctx.keys, ctx.dt) every frame, getViewProjection(aspect), getViewMatrix(), getProjectionMatrix(aspect, fovDeg, near, far), getEye(), getTarget(), setTarget(x, y, z), reset(). Every 3D scene uses this camera so all scenes move the same way: drag orbits, right-drag or Shift+drag pans, scroll zooms, double-click resets (the scene shows that hint once). Don't write your own camera drag or wheel handling; with three.js or another engine, copy getEye()/getTarget() into its camera each frame. Pick distance/theta/phi so the first frame frames the subject well; autoRotate (radians/s) turns it while untouched. createVerletSystem()
   glsl — GLSL snippet strings to paste into shaders: HASH, SIMPLEX_3D, PERLIN_3D, VALUE_3D, FBM, VORONOI, SDF_OPS, SDF_SHAPES, COLOR_SPACE, EASING, MATH
   import(url) — dynamic import of an ES module from https://esm.sh, https://cdn.jsdelivr.net or https://unpkg.com (pin versions, e.g. "https://esm.sh/d3-delaunay@6.0.4"). Use it in setup.
 
