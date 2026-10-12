@@ -1,6 +1,6 @@
 // The catalog: metadata about open-source tools worth reaching for (no code).
 // The agent searches it before picking a library; recipes record what then
-// worked (docs/catalog.md). Bundled, so it works without the hub and on the web.
+// worked. Bundled, so it works without the hub and on the web.
 import { z } from "zod";
 import data from "./catalog.json";
 import referenceData from "./index-opensource.json";

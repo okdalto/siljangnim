@@ -1,6 +1,6 @@
 """The shared recipe registry: recipes other people verified, fetched on request.
 
-A registry is static files (docs/registry.md):
+A registry is static files:
 
     <base>/index.json                  {"version": 1, "recipes": [{id, version, title, capability, kind,
                                          license, verified_on, path, sha256}, ...]}

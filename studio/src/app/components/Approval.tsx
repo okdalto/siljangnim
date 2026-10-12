@@ -1,5 +1,5 @@
 // The person's OK before the agent runs code or installs packages on this
-// computer (docs/runtime.md). Shown in the chat, or in Activity for external agents.
+// computer. Shown in the chat, or in Activity for external agents.
 import { answerRuntimeApproval } from "../session";
 import { useApp } from "../state";
 

@@ -1,4 +1,4 @@
-// Scene format v2. See docs/studio.md#씬-형식-v2.
+// Scene format v2.
 import { z } from "zod";
 import { EASES } from "./gl/keyframes";
 

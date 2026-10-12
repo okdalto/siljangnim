@@ -1,4 +1,4 @@
-// Project assets: kinds, names and light metadata (docs/m2.md#2-에셋-업로드).
+// Project assets: kinds, names and light metadata.
 // The parsers here are pure; analyzeAsset adds what needs the browser.
 
 export const ASSET_DIR = "assets/";

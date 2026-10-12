@@ -13,7 +13,7 @@
 <p align="center">
   <a href="#get-started">Get started</a> ·
   <a href="https://siljangnim.vercel.app/">Try on the web</a> ·
-  <a href="docs/architecture.md">Architecture</a> ·
+  <a href="docs/mcp.md">Guides</a> ·
   <a href="README.ko.md">한국어</a>
 </p>
 
@@ -137,7 +137,7 @@ what it used.
   and installed CLIs (ffmpeg, …), each after you approve.
 - **Inputs** — microphone and audio files, camera, MIDI, OSC, and browser ML such as hand tracking.
 - **Recording** — MP4, WebM or PNG frames.
-- **Sharing** — export a project as `project.md` or a bundle ([docs/project-md.md](docs/project-md.md));
+- **Sharing** — export a project as `project.md` or a bundle ([docs/sharing.md](docs/sharing.md));
   recipes are shared through [registry/](registry/).
 - **Examples** — 70+ projects, most built on an open-source library, each with credits and a link
   (e.g. `siljangnim.vercel.app/#example=oss-three`).
@@ -168,10 +168,10 @@ hub/        Python sidecar (uv-managed): runtime jobs and recipes
 mcp/        MCP server for external agents (published as siljangnim-mcp)
 examples/   Example projects shown in the app
 registry/   Shared recipes, contributed by pull request
-docs/       Architecture and guides (Korean)
+docs/       User guides (Korean)
 ```
 
-How the pieces fit, and the plan: [docs/architecture.md](docs/architecture.md).
+Guides (Korean): [connecting an agent](docs/mcp.md), [tools on your machine](docs/local-tools.md), [sharing](docs/sharing.md), [models](docs/models.md).
 
 ## Costs and security
 

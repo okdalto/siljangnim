@@ -13,7 +13,7 @@
 <p align="center">
   <a href="#시작하기">시작하기</a> ·
   <a href="https://siljangnim.vercel.app/">웹에서 써 보기</a> ·
-  <a href="docs/architecture.md">아키텍처</a> ·
+  <a href="docs/mcp.md">가이드</a> ·
   <a href="README.md">English</a>
 </p>
 
@@ -135,7 +135,7 @@ git clone https://github.com/okdalto/siljangnim.git && cd siljangnim && npm inst
   CLI(ffmpeg 등)는 그대로, 매번 허락을 받고 실행합니다.
 - **입력** — 마이크와 오디오 파일, 카메라, MIDI, OSC, 손 추적 같은 브라우저 ML.
 - **녹화** — MP4, WebM, PNG 프레임.
-- **공유** — 프로젝트를 `project.md`나 번들로 내보냅니다([docs/project-md.md](docs/project-md.md)).
+- **공유** — 프로젝트를 `project.md`나 번들로 내보냅니다([docs/sharing.md](docs/sharing.md)).
   레시피는 [registry/](registry/)로 나눕니다.
 - **예제** — 70개 넘는 프로젝트. 대부분 오픈소스 하나를 바탕으로 만들었고, 출처와 링크가 붙어
   있습니다(예: `siljangnim.vercel.app/#example=oss-three`).
@@ -165,10 +165,10 @@ hub/        Python 사이드카(uv 관리): 런타임 작업과 레시피
 mcp/        외부 에이전트용 MCP 서버(siljangnim-mcp로 배포)
 examples/   앱에 나오는 예제 프로젝트
 registry/   공유 레시피(PR로 기여)
-docs/       아키텍처와 가이드
+docs/       사용자 가이드
 ```
 
-전체 구조와 계획: [docs/architecture.md](docs/architecture.md).
+가이드: [에이전트 연결](docs/mcp.md), [내 컴퓨터에서 도구 실행](docs/local-tools.md), [공유](docs/sharing.md), [모델 연결](docs/models.md).
 
 ## 비용과 보안
 

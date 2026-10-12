@@ -1,5 +1,5 @@
 // Recipes: integrations that worked once, saved so the next request runs them
-// directly (docs/recipes.md). Running goes through the same runtime as
+// directly. Running goes through the same runtime as
 // python_run/command_run.
 import { z } from "zod";
 import { jobReport } from "./runtimeTools";
