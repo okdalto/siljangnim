@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { Controls } from "./components/Controls";
 import { DropOverlay } from "./components/DropOverlay";
 import { ExamplesDialog } from "./components/Examples";
 import { SettingsDialog } from "./components/SettingsDialog";
@@ -44,7 +43,6 @@ export function App() {
         <main className="flex min-w-0 flex-1 flex-col">
           <Viewport />
           <Timeline />
-          <Controls />
         </main>
         <Sidebar />
       </div>
