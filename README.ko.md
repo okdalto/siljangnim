@@ -197,6 +197,4 @@ docs/       사용자 가이드
 ## 라이선스
 
 [GPL-3.0](LICENSE). 쓰인 서드파티 코드, 도구, 자료와 라이선스, 출처 링크:
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). 오픈소스 카탈로그는 현(@hyun2xyz)의
-[index.opensource](https://indexopensource.com/index)에서 시작했습니다. 에이전트가 받아 오는 프로젝트는 각자의
-라이선스를 따릅니다.
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -200,6 +200,4 @@ Guides (Korean): [the creative workflow](docs/creative.md), [connecting an agent
 ## License
 
 [GPL-3.0](LICENSE). Third-party code, tools and material, with licenses and source links:
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The open-source catalog starts from
-[index.opensource](https://indexopensource.com/index) by 현 (@hyun2xyz). Projects the agent fetches keep
-their own licenses.
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
