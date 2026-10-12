@@ -1,0 +1,123 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "// Growing Neural Cellular Automata (Mordvintsev, Randazzo, Niklasson, Levin; Distill 2020), run live on the GPU.\n// Model and pretrained weights: google-research/self-organising-systems (Apache-2.0), assets/growing_ca/models.zip,\n// the \"regenerating\" runs (use_sample_pool_1 damage_n_3, run_index_0). nca-weights.bin holds, per model, the two\n// 1x1 conv layers as float32: w1 [48][128], b1 [128], w2 [128][16], b2 [16].\nconst gl = ctx.gl;\nif (!gl.getExtension(\"EXT_color_buffer_float\")) {\n  throw new Error(\"Growing NCA needs float render targets (EXT_color_buffer_float), which this GPU/browser doesn't offer.\");\n}\nconst MODELS = 10, PER = 48 * 128 + 128 + 128 * 16 + 16;\nconst buf = await (await fetch(ctx.assets[\"nca-weights.bin\"])).arrayBuffer();\nconst all = new Float32Array(buf);\nif (all.length !== MODELS * PER) throw new Error(`nca-weights.bin: expected ${MODELS * PER} floats, got ${all.length}`);\n\n// Pack the dense layers into float textures. w1: 128 wide (hidden unit j), 13 rows per model — row k holds inputs\n// 4k..4k+3 for unit j, row 12 holds b1[j]. w2: 4 wide (output group), 129 rows per model — row j holds the 16 outputs\n// of hidden unit j as four RGBA texels, row 128 holds b2.\nconst w1 = new Float32Array(128 * 13 * MODELS * 4), w2 = new Float32Array(4 * 129 * MODELS * 4);\nfor (let m = 0; m < MODELS; m++) {\n  const o = m * PER, W1 = o, B1 = o + 6144, W2 = o + 6272, B2 = o + 8320;\n  for (let k = 0; k < 12; k++) for (let j = 0; j < 128; j++) for (let c = 0; c < 4; c++)\n    w1[((m * 13 + k) * 128 + j) * 4 + c] = all[W1 + (4 * k + c) * 128 + j];\n  for (let j = 0; j < 128; j++) w1[((m * 13 + 12) * 128 + j) * 4] = all[B1 + j];\n  for (let j = 0; j < 129; j++) for (let g = 0; g < 4; g++) for (let c = 0; c < 4; c++)\n    w2[((m * 129 + j) * 4 + g) * 4 + c] = j < 128 ? all[W2 + j * 16 + 4 * g + c] : all[B2 + 4 * g + c];\n}\nconst tex = (w, h, data) => ctx.utils.uploadDataTexture(gl, null, w, h, data, { internalFormat: gl.RGBA32F, format: gl.RGBA, type: gl.FLOAT, filter: gl.NEAREST });\nconst w1Tex = tex(128, 13 * MODELS, w1), w2Tex = tex(4, 129 * MODELS, w2);\n\nconst N = 80; // the grid: 16 channels per cell in four RGBA32F textures; row 0 is the top of the picture\nconst HEAD = `#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2D;\nin vec2 v_uv;\n`;\n// One NCA step, before alive masking: perceive (identity + rotated Sobel per channel, zero padding as in TF 'SAME'),\n// 48 -> 128 ReLU -> 16, and add the update to roughly half the cells (fire rate 0.5, step size 1).\nconst updateFs = HEAD + `\nuniform sampler2D m_s0, m_s1, m_s2, m_s3, m_w1, m_w2;\nuniform float m_model, m_seed, m_cos, m_sin;\nlayout(location = 0) out vec4 o0;\nlayout(location = 1) out vec4 o1;\nlayout(location = 2) out vec4 o2;\nlayout(location = 3) out vec4 o3;\nuint hash(uvec3 v) {\n  v = v * 1664525u + 1013904223u;\n  v.x += v.y * v.z; v.y += v.z * v.x; v.z += v.x * v.y;\n  v ^= v >> 16u;\n  v.x += v.y * v.z; v.y += v.z * v.x; v.z += v.x * v.y;\n  return v.x ^ v.y ^ v.z;\n}\nvec4 S(int t, ivec2 q) {\n  if (q.x < 0 || q.y < 0 || q.x >= ${N} || q.y >= ${N}) return vec4(0.0);\n  if (t == 0) return texelFetch(m_s0, q, 0);\n  if (t == 1) return texelFetch(m_s1, q, 0);\n  if (t == 2) return texelFetch(m_s2, q, 0);\n  return texelFetch(m_s3, q, 0);\n}\nvoid main() {\n  ivec2 p = ivec2(gl_FragCoord.xy);\n  float y[48];\n  vec4 self[4];\n  for (int t = 0; t < 4; t++) {\n    vec4 gx = vec4(0.0), gy = vec4(0.0);\n    for (int dy = -1; dy <= 1; dy++) for (int dx = -1; dx <= 1; dx++) {\n      vec4 v = S(t, p + ivec2(dx, dy));\n      // Sobel / 8: dx = [[-1,0,1],[-2,0,2],[-1,0,1]] / 8, dy its transpose (rows run down the picture).\n      gx += v * float(dx) * (dy == 0 ? 0.25 : 0.125);\n      gy += v * float(dy) * (dx == 0 ? 0.25 : 0.125);\n      if (dx == 0 && dy == 0) self[t] = v;\n    }\n    vec4 rx = m_cos * gx - m_sin * gy, ry = m_sin * gx + m_cos * gy;\n    for (int c = 0; c < 4; c++) {\n      int ch = t * 4 + c;\n      y[ch * 3] = self[t][c]; y[ch * 3 + 1] = rx[c]; y[ch * 3 + 2] = ry[c];\n    }\n  }\n  vec4 x4[12];\n  for (int k = 0; k < 12; k++) x4[k] = vec4(y[4 * k], y[4 * k + 1], y[4 * k + 2], y[4 * k + 3]);\n  int b1 = int(m_model) * 13, b2 = int(m_model) * 129;\n  vec4 d0 = texelFetch(m_w2, ivec2(0, b2 + 128), 0), d1 = texelFetch(m_w2, ivec2(1, b2 + 128), 0);\n  vec4 d2 = texelFetch(m_w2, ivec2(2, b2 + 128), 0), d3 = texelFetch(m_w2, ivec2(3, b2 + 128), 0);\n  for (int j = 0; j < 128; j++) {\n    float h = texelFetch(m_w1, ivec2(j, b1 + 12), 0).x;\n    for (int k = 0; k < 12; k++) h += dot(x4[k], texelFetch(m_w1, ivec2(j, b1 + k), 0));\n    h = max(h, 0.0);\n    if (h == 0.0) continue;\n    d0 += h * texelFetch(m_w2, ivec2(0, b2 + j), 0);\n    d1 += h * texelFetch(m_w2, ivec2(1, b2 + j), 0);\n    d2 += h * texelFetch(m_w2, ivec2(2, b2 + j), 0);\n    d3 += h * texelFetch(m_w2, ivec2(3, b2 + j), 0);\n  }\n  float fire = float(hash(uvec3(p, uint(m_seed))) & 0xffffu) / 65536.0 < 0.5 ? 1.0 : 0.0;\n  o0 = self[0] + d0 * fire; o1 = self[1] + d1 * fire; o2 = self[2] + d2 * fire; o3 = self[3] + d3 * fire;\n}`;\n// Alive masking: a cell lives only if some 3x3 neighbor had alpha > 0.1 both before and after the step.\n// The brush (damage) clears cells here too.\nconst maskFs = HEAD + `\nuniform sampler2D m_old, m_t0, m_t1, m_t2, m_t3;\nuniform vec4 m_pen; // x, y in cells, radius, on\nlayout(location = 0) out vec4 o0;\nlayout(location = 1) out vec4 o1;\nlayout(location = 2) out vec4 o2;\nlayout(location = 3) out vec4 o3;\nvoid main() {\n  ivec2 p = ivec2(gl_FragCoord.xy);\n  float pre = 0.0, post = 0.0;\n  for (int dy = -1; dy <= 1; dy++) for (int dx = -1; dx <= 1; dx++) {\n    ivec2 q = p + ivec2(dx, dy);\n    if (q.x < 0 || q.y < 0 || q.x >= ${N} || q.y >= ${N}) continue;\n    pre = max(pre, texelFetch(m_old, q, 0).a);\n    post = max(post, texelFetch(m_t0, q, 0).a);\n  }\n  float alive = pre > 0.1 && post > 0.1 ? 1.0 : 0.0;\n  if (m_pen.w > 0.0 && distance(vec2(p) + 0.5, m_pen.xy) < m_pen.z) alive = 0.0;\n  o0 = texelFetch(m_t0, p, 0) * alive; o1 = texelFetch(m_t1, p, 0) * alive;\n  o2 = texelFetch(m_t2, p, 0) * alive; o3 = texelFetch(m_t3, p, 0) * alive;\n}`;\n// Drawing: each cell a crisp rounded tile on a soft paper background, with a faint drop shadow.\nconst viewFs = HEAD + `\nuniform sampler2D m_s0, m_s1;\nuniform vec2 m_res, m_off;\nuniform float m_scale, m_view;\nuniform vec3 m_bg;\nuniform vec4 m_pen;\nout vec4 outColor;\nvec4 cell(ivec2 q) {\n  if (q.x < 0 || q.y < 0 || q.x >= ${N} || q.y >= ${N}) return vec4(0.0);\n  return texelFetch(m_s0, q, 0);\n}\nfloat alphaAt(vec2 c) { // bilinear alpha, for the shadow\n  c -= 0.5;\n  ivec2 i = ivec2(floor(c)); vec2 f = fract(c);\n  float a = mix(mix(cell(i).a, cell(i + ivec2(1, 0)).a, f.x), mix(cell(i + ivec2(0, 1)).a, cell(i + ivec2(1, 1)).a, f.x), f.y);\n  return clamp(a, 0.0, 1.0);\n}\nvoid main() {\n  vec2 px = vec2(gl_FragCoord.x, m_res.y - gl_FragCoord.y);\n  vec2 c = (px - m_off) / m_scale;\n  vec2 uv = px / m_res - 0.5;\n  uv.x *= m_res.x / m_res.y;\n  // paper: lighter in the middle, a touch deeper toward the corners\n  vec3 bg = mix(m_bg, vec3(1.0), 0.55 - 0.5 * length(uv));\n  bg *= 1.0 - 0.10 * smoothstep(0.3, 1.1, length(uv));\n  // faint dot grid at cell centers\n  vec2 g = fract(c) - 0.5;\n  bg *= 1.0 - 0.05 * smoothstep(0.09 + 0.8 / m_scale, 0.09, length(g)) * smoothstep(3.0, 6.0, m_scale);\n  // soft shadow, offset down-right\n  float sh = 0.0;\n  for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) sh += alphaAt(c - vec2(0.7, 1.0) + vec2(i, j) * 1.2);\n  bg *= 1.0 - 0.16 * sh / 9.0;\n  // the cell under this pixel, as a rounded tile\n  ivec2 q = ivec2(floor(c));\n  vec4 v = cell(q);\n  float a = clamp(v.a, 0.0, 1.0);\n  vec3 rgb = clamp(v.rgb, 0.0, 1.0);\n  if (m_view > 0.5) {\n    vec4 hd = (q.x < 0 || q.y < 0 || q.x >= ${N} || q.y >= ${N}) ? vec4(0.0) : texelFetch(m_s1, q, 0);\n    rgb = clamp(0.5 + 0.5 * tanh(hd.rgb * 0.8), 0.0, 1.0) * a;\n  }\n  float gap = m_scale > 5.0 ? 0.055 : 0.0, r = 0.24, aa = 1.0 / m_scale;\n  vec2 d = abs(fract(c) - 0.5) - (0.5 - gap - r);\n  float sd = length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - r;\n  float tile = m_scale > 5.0 ? smoothstep(aa, -aa, sd) : 1.0;\n  // a gentle top-left light on each tile\n  rgb *= 1.0 + 0.06 * (0.5 - fract(c).y) * tile;\n  vec3 col = bg * (1.0 - a * tile) + rgb * tile;\n  // brush ring while dragging\n  if (m_pen.w > 0.0) {\n    float ring = abs(distance(c, m_pen.xy) - m_pen.z) * m_scale;\n    col = mix(col, vec3(0.15, 0.13, 0.12), 0.45 * smoothstep(1.6, 0.4, ring));\n  }\n  outColor = vec4(col, 1.0);\n}`;\nconst pp = (count) => ctx.utils.createPingPong(N, N, { internalFormat: gl.RGBA32F, format: gl.RGBA, type: gl.FLOAT, filter: gl.NEAREST, count });\nObject.assign(ctx.state, {\n  N, w1Tex, w2Tex,\n  update: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, updateFs),\n  mask: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, maskFs),\n  view: ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, viewFs),\n  world: pp(4), temp: pp(4), acc: 0, seed: 1, model: -1,\n  zeros: new Float32Array(N * N * 4), px: new Float32Array(N * N * 4),\n});\n// A single seed cell in the middle: alpha and every hidden channel set to 1.\nctx.state.reseed = () => {\n  const s = ctx.state, mid = ((s.N >> 1) * s.N + (s.N >> 1)) * 4;\n  for (const target of [s.world.read(), s.world.write()]) target.textures.forEach((t, i) => {\n    const data = s.zeros.slice();\n    if (i === 0) data[mid + 3] = 1; else data.fill(1, mid, mid + 4);\n    gl.bindTexture(gl.TEXTURE_2D, t);\n    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, s.N, s.N, gl.RGBA, gl.FLOAT, data);\n  });\n  s.biteAt = ctx.time + 9;\n};\n",
+    "render": "const s = ctx.state, gl = ctx.gl, u = ctx.uniforms, [w, h] = ctx.resolution, N = s.N;\nconst model = Math.round(u.u_model);\nif (model !== s.model || u.u_reseed) { s.model = model; s.reseed(); }\n// Frame the grown creature (about 40 cells) to fill ~70% of the shorter side, centered, in any aspect.\nconst scale = Math.min(w, h) / 58, ox = (w - N * scale) / 2, oy = (h - N * scale) / 2;\nconst toCell = (m) => [(m[0] * w - ox) / scale, (m[1] * h - oy) / scale];\n\n// Damage: drag erases a disc of cells; strokes are interpolated across this frame's steps.\nlet a = null, b = null;\nif (ctx.mouseDown) { b = toCell(ctx.mouse); a = s.wasDown ? toCell(ctx.mousePrev) : b; }\ns.wasDown = ctx.mouseDown;\n// Auto bite: every so often take a bite out of a random living cell so the regrowth shows on its own.\nlet bite = null;\nif (u.u_autobite && s.alive > 200 && ctx.time > s.biteAt && s.cells?.length) {\n  const c = s.cells[Math.floor(Math.random() * s.cells.length)];\n  bite = [c[0] + 0.5, c[1] + 0.5, 6 + Math.random() * 4];\n  s.biteAt = ctx.time + 7 + Math.random() * 3;\n}\n\ns.acc = Math.min(s.acc + Math.min(ctx.dt, 0.1) * u.u_speed, 8);\nconst steps = Math.floor(s.acc);\ns.acc -= steps;\nconst th = (u.u_angle * Math.PI) / 180;\nconst quad = (prog, target, inputs, extra) => {\n  gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);\n  gl.viewport(0, 0, N, N);\n  gl.useProgram(prog);\n  inputs.forEach(([name, t], i) => ctx.utils.bindTexture(prog, name, t, i));\n  ctx.utils.drawFullscreen(prog, extra);\n};\nfor (let i = 0; i < steps; i++) {\n  const r = s.world.read().textures, t = s.temp.write();\n  quad(s.update, t, [[\"m_s0\", r[0]], [\"m_s1\", r[1]], [\"m_s2\", r[2]], [\"m_s3\", r[3]], [\"m_w1\", s.w1Tex], [\"m_w2\", s.w2Tex]],\n    { m_model: model, m_seed: (s.seed = (s.seed + 1) % 1e6), m_cos: Math.cos(th), m_sin: Math.sin(th) });\n  const f = (i + 1) / steps;\n  let pen = [0, 0, 0, 0];\n  if (b) pen = [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, u.u_brush, 1];\n  else if (bite && i === 0) pen = [...bite, 1];\n  quad(s.mask, s.world.write(), [[\"m_old\", r[0]], [\"m_t0\", t.textures[0]], [\"m_t1\", t.textures[1]], [\"m_t2\", t.textures[2]], [\"m_t3\", t.textures[3]]], { m_pen: pen });\n  s.world.swap();\n}\ngl.bindFramebuffer(gl.FRAMEBUFFER, null);\ngl.viewport(0, 0, w, h);\nconst cur = s.world.read().textures;\ngl.useProgram(s.view);\nctx.utils.bindTexture(s.view, \"m_s0\", cur[0], 0);\nctx.utils.bindTexture(s.view, \"m_s1\", cur[1], 1);\nctx.utils.drawFullscreen(s.view, {\n  m_res: [w, h], m_off: [ox, oy], m_scale: scale, m_view: Math.round(u.u_view), m_bg: u.u_bg,\n  m_pen: b ? [b[0], b[1], u.u_brush, 1] : [0, 0, 0, 0],\n});\n\n// Twice a second, count living cells (alpha > 0.1); if everything was erased, start again from a seed.\nif (ctx.frame % 30 === 0) {\n  gl.bindFramebuffer(gl.FRAMEBUFFER, s.world.read().framebuffer);\n  gl.readBuffer(gl.COLOR_ATTACHMENT0);\n  gl.readPixels(0, 0, N, N, gl.RGBA, gl.FLOAT, s.px);\n  gl.bindFramebuffer(gl.FRAMEBUFFER, null);\n  const cells = [];\n  for (let i = 0; i < N * N; i++) if (s.px[i * 4 + 3] > 0.1) cells.push([i % N, Math.floor(i / N)]);\n  s.cells = cells; s.alive = cells.length;\n  s.deadSince = cells.length ? null : s.deadSince ?? ctx.time;\n  if (s.deadSince != null && ctx.time - s.deadSince > 1) s.reseed();\n}\nctx.publish(\"living cells\", s.alive ?? 0);\nctx.publish(\"steps / frame\", steps);\n",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_model": {
+      "type": "int",
+      "value": 0,
+      "label": "Creature",
+      "widget": "select",
+      "options": [
+        {
+          "label": "🦎 Lizard",
+          "value": 0
+        },
+        {
+          "label": "🦋 Butterfly",
+          "value": 1
+        },
+        {
+          "label": "🐠 Tropical fish",
+          "value": 2
+        },
+        {
+          "label": "🐞 Ladybug",
+          "value": 3
+        },
+        {
+          "label": "🎄 Christmas tree",
+          "value": 4
+        },
+        {
+          "label": "🥨 Pretzel",
+          "value": 5
+        },
+        {
+          "label": "😀 Grinning face",
+          "value": 6
+        },
+        {
+          "label": "👁 Eye",
+          "value": 7
+        },
+        {
+          "label": "🕸 Spider web",
+          "value": 8
+        },
+        {
+          "label": "💥 Collision",
+          "value": 9
+        }
+      ]
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 45,
+      "min": 1,
+      "max": 120,
+      "step": 1,
+      "label": "Steps per second"
+    },
+    "u_brush": {
+      "type": "float",
+      "value": 7,
+      "min": 2,
+      "max": 20,
+      "step": 0.5,
+      "label": "Damage brush"
+    },
+    "u_angle": {
+      "type": "float",
+      "value": 0,
+      "min": -180,
+      "max": 180,
+      "step": 1,
+      "label": "Rotation"
+    },
+    "u_autobite": {
+      "type": "bool",
+      "value": true,
+      "label": "Auto bite"
+    },
+    "u_view": {
+      "type": "int",
+      "value": 0,
+      "label": "Show",
+      "widget": "select",
+      "options": [
+        {
+          "label": "Color (RGBA)",
+          "value": 0
+        },
+        {
+          "label": "Hidden channels",
+          "value": 1
+        }
+      ]
+    },
+    "u_bg": {
+      "type": "color",
+      "value": [
+        0.93,
+        0.86,
+        0.8
+      ],
+      "label": "Paper"
+    },
+    "u_reseed": {
+      "type": "bool",
+      "value": false,
+      "label": "Reseed",
+      "widget": "button"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ]
+}

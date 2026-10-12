@@ -1,5 +1,5 @@
 {
-  "order": 208,
+  "order": 14,
   "title": "Tile choreography (Anime.js)",
   "title_ko": "타일 안무 (Anime.js)",
   "description": "One Anime.js createTimeline() of seven acts (bloom, turn, wave, spiral, rings, home, fold) animates 153 plain tile objects: position, scale, turn, corner roundness, ring thickness and palette position, each act with stagger({ grid, from }) delays and its own easing. The timeline is paused and seeked from the scene clock, and WebGL draws the tiles as instanced rounded boxes, the current easing curve with the leading tile riding it, and a progress bar with a tick per act.",

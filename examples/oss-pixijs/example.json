@@ -1,5 +1,5 @@
 {
-  "order": 209,
+  "order": 15,
   "title": "Silk flow (PixiJS)",
   "title_ko": "비단 흐름 (PixiJS)",
   "description": "PixiJS renders straight into the scene's WebGL2 context: up to 30,000 particles in one batched ParticleContainer with additive blending drift through a curl-noise flow field. They paint into a render texture that keeps trails, which is drawn twice, sharp and through a BlurFilter for glow, under an animated DisplacementFilter. The pointer stirs a vortex; hold the button to stir harder.",

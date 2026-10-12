@@ -1,5 +1,5 @@
 {
-  "order": 11,
+  "order": 91,
   "title": "Hand tracking (MediaPipe)",
   "title_ko": "손 추적 (MediaPipe)",
   "description": "Your hands glow over the mirrored webcam. MediaPipe Hand Landmarker is fetched on demand from a CDN, not bundled. Needs a camera and the network.",

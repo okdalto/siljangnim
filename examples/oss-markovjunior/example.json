@@ -1,5 +1,5 @@
 {
-  "order": 216,
+  "order": 2,
   "title": "Rewrite rules (MarkovJunior)",
   "title_ko": "다시 쓰기 규칙 (MarkovJunior)",
   "description": "A JavaScript port of MarkovJunior's core interpreter (one, all and prl rule nodes with symmetries, sequence and markov nodes, incremental match tracking) runs five models from the repo verbatim: MazeGrowth, MazeBacktracker, River, Flowers and BasicSnake. Each turn rewrites the grid in place; the board takes the canvas's shape, uses MarkovJunior's palette with crisp pixels, glows where cells just changed, and starts over a few seconds after a model finishes.",

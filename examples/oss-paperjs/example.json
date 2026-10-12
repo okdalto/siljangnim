@@ -1,5 +1,5 @@
 {
-  "order": 125,
+  "order": 20,
   "title": "Boolean shapes (Paper.js)",
   "title_ko": "불리언 도형 (Paper.js)",
   "description": "Paper.js combines a turning star and a ring with a boolean operation (unite, intersect, subtract or exclude) every frame; the result is flattened to points and filled with WebGL, with a soft shadow. Move the pointer to move the ring.",

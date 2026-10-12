@@ -1,5 +1,5 @@
 {
-  "order": 207,
+  "order": 12,
   "title": "Ink in water (WebGL Fluid Simulation)",
   "title_ko": "물속의 잉크 (WebGL Fluid Simulation)",
   "description": "A stable-fluids solver on the scene's WebGL2 context, with shaders adapted from Pavel Dobryakov's WebGL-Fluid-Simulation: curl and vorticity confinement, divergence, 20 Jacobi pressure iterations, gradient subtraction and semi-Lagrangian advection on half-float ping-pong targets (velocity at 128, dye at 1024), then front-lit shading and a mip-chain bloom. Drag to push dye; two brushes circle and a splat lands every 0.7 s so it stays alive untouched.",

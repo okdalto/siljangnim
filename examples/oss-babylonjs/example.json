@@ -1,5 +1,5 @@
 {
-  "order": 210,
+  "order": 16,
   "title": "Material study (Babylon.js)",
   "title_ko": "재질 연구 (Babylon.js)",
   "description": "Babylon.js renders straight into the scene's WebGL2 context: an iridescent metal knot and a ring of spheres, each showing a PBR feature (gold, clear-coat paint, anisotropic brushed copper, sheen velvet, refractive glass, chrome, ceramic). A procedural studio of softboxes is captured once by a reflection probe and used as the environment for image-based lighting. GPU particles drift through noise, with soft shadows and the default post pipeline (MSAA, bloom, ACES tone mapping, vignette, grain). Drag to orbit.",

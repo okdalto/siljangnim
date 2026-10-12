@@ -1,0 +1,49 @@
+{
+  "order": 3,
+  "title": "Shapes by hill climbing (Primitive)",
+  "title_ko": "언덕 오르기로 쌓는 도형 (Primitive)",
+  "description": "Primitive's algorithm, ported from Go to JavaScript, repaints Hokusai's The Great Wave (public domain) one translucent shape at a time. For each shape it tries hundreds of random candidates on a 256px copy, hill-climbs the best by small mutations, and keeps the one whose alpha-blended average color most lowers the RMS error; accepted shapes are redrawn as vectors at screen size. The search runs within a time budget per frame. Pick a shape type, change the rate or alpha, or show the target beside it.",
+  "description_ko": "Go로 된 Primitive의 알고리즘을 JavaScript로 옮겨, 호쿠사이의 〈가나가와 해변의 높은 파도 아래〉(퍼블릭 도메인)를 반투명 도형 하나씩으로 다시 그린다. 도형마다 256px로 줄인 사본 위에서 무작위 후보 수백 개를 시험하고, 가장 나은 것을 작은 변이로 언덕 오르기 해서, 알파 블렌딩한 평균색이 RMS 오차를 가장 많이 줄이는 도형을 남긴다. 받아들인 도형은 화면 크기에 맞춰 벡터로 다시 그린다. 탐색은 프레임마다 정해진 시간 안에서만 돈다. 도형 종류를 고르거나 속도·알파를 바꾸고, 원본을 옆에 띄워 볼 수 있다.",
+  "prompt": "(open-source example: Primitive's hill-climbing algorithm ported to JavaScript in the scene, with an image asset)",
+  "made_with": "Primitive (fogleman/primitive) core, shapes and hill climbing ported to JavaScript; Canvas 2D for the vector redraw; The Great Wave off Kanagawa (public domain)",
+  "features": [
+    "image",
+    "optimization",
+    "geometry",
+    "generative"
+  ],
+  "mode": "live",
+  "uses": [
+    "primitive"
+  ],
+  "summary": "The Great Wave rebuilt from hundreds of see-through triangles, each one picked by trial and error to make the copy closer to the original.",
+  "summary_ko": "〈가나가와 해변의 높은 파도〉를 비치는 삼각형 수백 개로 다시 쌓아요. 하나하나 시행착오로 골라 원본에 점점 가까워져요.",
+  "try": [
+    "Switch Shape to Ellipses or Rotated rectangles, then press Restart",
+    "Turn on Show target to compare with the original",
+    "Set Alpha to 0 so each shape picks its own transparency"
+  ],
+  "try_ko": [
+    "Shape를 Ellipses나 Rotated rectangles로 바꾸고 Restart를 눌러 보세요",
+    "Show target을 켜서 원본과 나란히 비교해 보세요",
+    "Alpha를 0으로 내리면 도형마다 투명도를 스스로 골라요"
+  ],
+  "tool_about": "Primitive is a program by Michael Fogleman that recreates a photo with simple shapes. It keeps adding the one triangle, ellipse or rectangle that makes the picture most like the original, found by trying random shapes and nudging the best one. It's written in Go; here its method runs in the browser.",
+  "tool_about_ko": "Primitive는 Michael Fogleman이 만든 프로그램으로, 사진을 단순한 도형으로 다시 그려요. 무작위 도형을 시험하고 가장 나은 것을 조금씩 다듬어서, 그림을 원본에 가장 가깝게 만드는 삼각형·타원·사각형을 하나씩 더해 가요. Go로 쓰여 있고, 여기서는 그 방법을 브라우저에서 돌려요.",
+  "credits": [
+    {
+      "what": "Primitive's shape search, hill climbing, color fitting and error metric (core.go, worker.go, optimize.go, triangle.go, rectangle.go, ellipse.go), ported to JavaScript",
+      "what_ko": "Primitive의 도형 탐색, 언덕 오르기, 색 맞추기, 오차 계산 (core.go, worker.go, optimize.go, triangle.go, rectangle.go, ellipse.go)을 JavaScript로 옮김",
+      "source": "fogleman/primitive (Michael Fogleman)",
+      "license": "MIT",
+      "url": "https://github.com/fogleman/primitive"
+    },
+    {
+      "what": "The Great Wave off Kanagawa (Katsushika Hokusai, c. 1831)",
+      "what_ko": "가나가와 해변의 높은 파도 (가쓰시카 호쿠사이, 1831년경)",
+      "source": "Wikimedia Commons",
+      "license": "Public domain",
+      "url": "https://commons.wikimedia.org/wiki/File:Tsunami_by_hokusai_19th_century.jpg"
+    }
+  ]
+}

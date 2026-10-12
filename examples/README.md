@@ -91,6 +91,9 @@ pipeline.json  how the assets were made (copied into the project, so project.md 
 | [Plotter fish (fishdraw)](oss-fishdraw/) | [fishdraw](https://github.com/LingDong-/fishdraw) (MIT, fetched from a pinned commit) | procedural drawing, pen plotter |
 | [Rewrite rules (MarkovJunior)](oss-markovjunior/) | [MarkovJunior](https://github.com/mxgmn/MarkovJunior) (MIT, interpreter ported into the scene) | rewrite rules, mazes, rivers, flowers |
 | [Gliding creatures (Lenia)](oss-lenia/) | [Lenia](https://github.com/Chakazul/Lenia) (MIT, GPU shaders in the scene) | artificial life, cellular automata, mouse |
+| [Shapes by hill climbing (Primitive)](oss-primitive/) | [Primitive](https://github.com/fogleman/primitive) (MIT, ported into the scene) | image, geometry, hill climbing |
+| [Falling sand (sandspiel)](oss-sandspiel/) | [sandspiel](https://github.com/MaxBittker/sandspiel) (MIT, rules ported into the scene) | falling sand, elements, mouse |
+| [Regrowing creatures (Growing NCA)](oss-growing-nca/) | [Growing Neural Cellular Automata](https://github.com/google-research/self-organising-systems) (Apache-2.0, pretrained weights as GPU shaders) | neural CA, regeneration, mouse |
 
 ## Remixes
 

@@ -1,5 +1,5 @@
 {
-  "order": 109,
+  "order": 8,
   "title": "Edge drawing (OpenCV)",
   "title_ko": "윤곽 드로잉 (OpenCV)",
   "description": "OpenCV traced the edges of Hokusai's The Great Wave (public domain) on this computer (recipe opencv.contours); the scene redraws them stroke by stroke, longest lines first. Drop in another image and run the recipe again.",
