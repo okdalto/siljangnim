@@ -197,6 +197,12 @@ Guides: [the creative workflow](docs/en/creative.md), [connecting an agent](docs
   or installing packages on your machine asks first; it isolates files and dependencies, but it is not an
   OS sandbox. Everything local listens on 127.0.0.1 only — don't expose it to the network.
 
+## Thanks
+
+Thanks to 현 (@hyun2xyz) for [index.opensource](https://indexopensource.com/index),
+the open-source index Siljangnim's catalog of tools started from, and to everyone whose open-source work the
+examples are built on.
+
 ## License
 
 [GPL-3.0](LICENSE). Third-party code, tools and material, with licenses and source links:
