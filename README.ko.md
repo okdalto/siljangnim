@@ -17,6 +17,11 @@
   <a href="README.md">English</a>
 </p>
 
+<p align="center">
+  <a href="media/siljangnim-short.mp4"><img src="media/siljangnim-short-poster.jpg" alt="▶ 30초 소개 영상 (한국어 내레이션, 한/영 자막)" width="240" /></a><br/>
+  <a href="media/siljangnim-short.mp4">▶ 30초 소개 영상 (한국어 내레이션, 한/영 자막)</a>
+</p>
+
 ---
 
 ## 시작하기
