@@ -7,7 +7,13 @@ Claude Code, Codex 같은 에이전트에 MCP 서버로 붙이면 에이전트�
 
 ## 붙이는 법
 
-먼저 studio를 빌드한다(`npm install` 후 `npm --prefix studio run build`). 그다음:
+npm 패키지(`siljangnim-mcp`, 2026-10-12에 0.2.0 배포)로 저장소 없이 한 줄로 붙는다:
+
+```bash
+claude mcp add siljangnim -- npx -y siljangnim-mcp
+```
+
+Codex는 `command = "npx"`, `args = ["-y", "siljangnim-mcp"]`. 저장소에서 바로 쓰려면 먼저 studio를 빌드하고(`npm install` 후 `npm --prefix studio run build`):
 
 ```bash
 # Claude Code
@@ -20,14 +26,9 @@ args = ["/절대경로/siljangnim/mcp/bin/siljangnim-mcp.js"]
 tool_timeout_sec = 120
 ```
 
-npm에 배포하면 저장소 없이 한 줄로 붙는다(아직 배포 전):
-
-```bash
-claude mcp add siljangnim -- npx -y siljangnim-mcp
-```
-
 - **패키징:** `npm pack`/`npm publish` 직전에 `mcp/scripts/prepack.mjs`가 studio를 빌드해 `mcp/studio/`에, 허브 소스(`siljangnim_hub`, `pyproject.toml`, `uv.lock`, `.python-version`)를 `mcp/hub/`에 넣는다. 둘 다 git에는 올리지 않는다. 패키지는 약 18 MB이고, 대부분 예제 에셋이다.
 - **uv:** 설치된 패키지에는 저장소의 uv가 없다. 그래서 허브를 처음 띄울 때 PATH의 `uv`를 쓰고, 없으면 데스크톱 앱과 같은 고정 버전(0.12.16)을 `~/.siljangnim/runtime/uv/`에 한 번 받는다(`mcp/src/uv.js`). 받은 파일은 공개된 sha256과 비교해 확인한다. 그다음 uv가 Python과 허브 의존성을 같은 런타임 폴더에 설치한다.
+- **배포:** npm은 새 패키지에 2단계 인증을 요구한다. 계정에 2FA가 꺼져 있으면 OTP를 묻지 않고 403으로 끝난다. 배포 직후 잠시 `0.0.0-stage`만 보이다가 처리가 끝나면 실제 버전이 `latest`가 된다.
 - **배포 전 확인(2026-10-12):** 만든 tarball을 빈 폴더에 설치하고, 그 bin으로 MCP smoke 전체를 돌렸다(`SILJANGNIM_SMOKE_BIN`, 빈 `SILJANGNIM_SMOKE_RUNTIME`). 패키지 안의 studio와 허브로 Python을 새로 설치하고 모든 검사를 통과했다. uv 다운로드(체크섬, 재사용)는 따로 확인했다.
 
 첫 도구 호출에서 기본 브라우저로 뷰어(`http://localhost:47823`)가 열린다. 에이전트를 켤 때마다 탭이 열리지 않도록, 시작할 때가 아니라 첫 호출 때 연다.

@@ -6,6 +6,7 @@ import { startAttachServer } from "./attach.js";
 import { Hub } from "./hub.js";
 import { KeyStore } from "./keys.js";
 import { originOf, resolveOrigins } from "./origins.js";
+import { projectsRoot, writeProjectFolder } from "./projectFolder.js";
 import { handleAppProtocol, registerScheme } from "./protocol.js";
 import { runSmokeTest } from "./smoke.js";
 
@@ -115,6 +116,16 @@ function registerIpc() {
     const request = pendingAttach;
     pendingAttach = null;
     return request;
+  });
+  // Write the open project out as files and show the folder (Assets tab → Open folder).
+  ipcMain.handle("project:reveal", async (event, folder, files) => {
+    if (!fromApp(event)) throw new Error("forbidden");
+    if (!Array.isArray(files)) throw new Error("files must be a list");
+    const dir = writeProjectFolder(projectsRoot(), folder, files);
+    // The smoke test checks the files; it shouldn't pop a Finder window.
+    const failed = process.env.SILJANGNIM_SMOKE_OUT ? "" : await shell.openPath(dir);
+    if (failed) throw new Error(failed);
+    return dir;
   });
 }
 

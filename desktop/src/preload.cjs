@@ -22,6 +22,10 @@ contextBridge.exposeInMainWorld("siljangnim", {
     status: () => ipcRenderer.invoke("keys:status"),
     set: (provider, key) => ipcRenderer.invoke("keys:set", provider, key),
   },
+  project: {
+    /** Write the open project to ~/Siljangnim/projects/<folder>/ and open it in Finder/Explorer. */
+    reveal: (folder, files) => ipcRenderer.invoke("project:reveal", folder, files),
+  },
   agent: {
     /** An agent's MCP bridge asked to use this window as its viewer. */
     onAttach(callback) {

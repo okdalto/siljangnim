@@ -2,7 +2,7 @@
 // the scene runtime renders in its own origin, the LLM forwarder answers
 // the app and refuses the scene, and the hub starts. Saves a screenshot and
 // a JSON report, then quits with a status code.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -385,6 +385,33 @@ void main() { outColor = vec4(0.9 * u_glow, 0.4, 0.1, 1.0); }`;
   return state;
 }
 
+/** Assets tab → Show in Finder: the open project (the imported v1 one) written out as files. */
+async function runProjectFolderScenario(win) {
+  const root = process.env.SILJANGNIM_PROJECTS_DIR;
+  const opened = await win.webContents.executeJavaScript(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    // The tab strip when the side panel is open, the icon rail when it is folded.
+    const tab = () => [...document.querySelectorAll('[role="tab"]')].find((t) => t.innerText === "Assets") ?? document.querySelector('[data-testid="sidebar-rail"] button[title="Assets"]');
+    for (let i = 0; i < 20 && !tab(); i++) await wait(100);
+    tab()?.click();
+    for (let i = 0; i < 20 && !document.querySelector('[data-testid="open-folder"]'); i++) await wait(100);
+    const code = [...document.querySelectorAll("[data-code]")].map((e) => e.dataset.code);
+    document.querySelector('[data-testid="open-folder"]')?.click();
+    return code;
+  })()`);
+  let files = [];
+  for (let i = 0; i < 40; i++) {
+    await wait(250);
+    const dir = existsSync(root) ? readdirSync(root).find((d) => d.startsWith("Old-Piece-")) : null;
+    const manifest = dir && join(root, dir, ".siljangnim-files.json");
+    if (manifest && existsSync(manifest)) {
+      files = JSON.parse(readFileSync(manifest, "utf8")).files;
+      break;
+    }
+  }
+  return { code: opened, files };
+}
+
 /** Opens every bundled example through the gallery and checks it runs, error-free, and draws something. */
 async function runExamplesScenario(win, examplesOut) {
   const slugs = await win.webContents.executeJavaScript(`(async () => {
@@ -527,6 +554,8 @@ async function runSmoke(win, hub, keys, outDir) {
   const examples = await runExamplesScenario(win, outDir);
   log("v1 import");
   const v1 = await runV1ImportScenario(win);
+  log("project folder");
+  const folder = await runProjectFolderScenario(win).catch((err) => ({ error: String(err), code: [], files: [] }));
   log("agent attaches over MCP");
   const attach = await runAttachScenario(win).catch((err) => ({ error: String(err) }));
   log("waiting for hub");
@@ -572,6 +601,9 @@ async function runSmoke(win, hub, keys, outDir) {
         }
       : {}),
     ...(history ? { historyRecorded: history.recorded, historyRestored: history.restored } : {}),
+    projectFolderWritten:
+      ["code/setup.js", "code/shaders/p.glsl", "scene.json"].every((f) => folder.code.includes(f)) &&
+      ["project.md", "scene.json", "code/setup.js", "code/render.js", "code/shaders/p.glsl", "assets/tile.png"].every((f) => folder.files.includes(f)),
     v1Imported: v1.project === "Old Piece" && v1.state === "running" && v1.errors === 0 && v1.glow === "1.00",
     ...(attach
       ? {
@@ -589,7 +621,7 @@ async function runSmoke(win, hub, keys, outDir) {
       Object.keys(examples).length >= 10 && Object.values(examples).every((e) => e.skipped || (e.state === "running" && e.errors === 0 && e.litFraction > 0.02)),
   };
   const ok = Object.values(checks).every(Boolean);
-  report({ ok, checks, scene, iframe, llm, agent, history, examples, v1, attach, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
+  report({ ok, checks, scene, iframe, llm, agent, history, examples, v1, folder, attach, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
   clearTimeout(timer);
   quit(hub, ok ? 0 : 1);
 }

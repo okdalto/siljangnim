@@ -40,7 +40,10 @@ preview: "preview.png"
 
 - **에이전트:** `project_export_md`는 md 텍스트를 돌려준다(번들 없이 md만). `project_import_md({ markdown })`는 새 프로젝트를 만들어 열고, 빠진 에셋과 다시 만드는 방법을 알려 준다.
 - **사람:** 프로젝트 메뉴에서 쓴다.
-  - **Export project (.zip):** `project.md`, `preview.png`(뷰포트 캡처), `assets/`, `recipes/<id>/recipe.md`를 담는다.
+  - **Export project (.zip):** `project.md`, `preview.png`(뷰포트 캡처), `code/`, `scene.json`, `assets/`, `recipes/<id>/recipe.md`를 담는다.
+    `code/`는 사람이 읽고 편집기로 열어 보라고 넣는 사본이다: `setup.js`·`render.js`·`cleanup.js`, 그 안에서 찾은 셰이더(`code/shaders/<변수 이름>.glsl|wgsl`), 커스텀 패널(`panel.html`). 가져오기는 `project.md`만 보므로 이 파일들을 고쳐도 반영되지 않는다.
+- **에셋 탭:** 위쪽 *Scene code*에 같은 파일 목록이 보이고, 누르면 줄 번호와 복사 버튼이 있는 읽기 전용 뷰어가 열린다(텍스트·SVG 에셋도 마찬가지, 텍스트로만 보여 주고 렌더링하지 않는다).
+  아래 버튼은 데스크톱에서 **Show in Finder/Explorer**다. 번들과 같은 파일을 `~/Siljangnim/projects/<이름>-<id 앞 6자>/`(`SILJANGNIM_PROJECTS_DIR`)에 쓰고 폴더를 연다. 쓸 때마다 이전에 쓴 파일 목록(`.siljangnim-files.json`)으로 사라진 파일만 지우고, 사람이 넣은 파일은 남긴다. 경로 검사(`..`·절대 경로·역슬래시 거부)는 메인 프로세스(`desktop/src/projectFolder.js`)가 한다. 브라우저에서는 같은 버튼이 zip을 내려받는다(*Download folder*).
   - **Import project (project.md or .zip)…:** md만 받거나 번들을 받는다.
 - **번들의 레시피**는 허브의 `POST /recipes/import`로 들어간다. 다른 컴퓨터에서 온 것이므로 `origin: imported`, 이 플랫폼은 `draft`로 저장하고, 실행할 때 사람에게 묻는다. 다른 플랫폼의 검증 기록은 정보로 남긴다. 같은 id의 로컬 레시피가 같거나 높은 버전이면 그대로 둔다.
 - **가져온 뒤:** 내장 에이전트는 다음 요청에 `[Studio note]`로 빠진 에셋, 들어온 레시피, 가중치 라이선스를 듣는다. 외부 에이전트는 도구 결과로 같은 내용을 받는다. 알림은 채팅과 Activity 패널 양쪽에 보인다. 예전에는 채팅에만 있어서 MCP 모드에서 보이지 않았다.

@@ -115,9 +115,11 @@ npm run dev
 ### With Claude Code, Codex or another MCP client
 
 ```bash
-npm install && npm --prefix studio run build
-claude mcp add siljangnim -- node "$PWD/mcp/bin/siljangnim-mcp.js"
+claude mcp add siljangnim -- npx -y siljangnim-mcp
 ```
+
+No clone needed: the package carries the studio and the hub. From a checkout instead:
+`npm install && npm --prefix studio run build`, then `claude mcp add siljangnim -- node "$PWD/mcp/bin/siljangnim-mcp.js"`.
 
 Ask your agent for a visual; its first tool call opens the viewer in your browser. Codex and others:
 see [docs/mcp.md](docs/mcp.md).

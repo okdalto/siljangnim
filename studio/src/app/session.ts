@@ -44,6 +44,7 @@ import {
   type AssetInfo,
 } from "../project/assets";
 import { EXAMPLES } from "../project/examples";
+import { projectFolderName, sceneCodeFiles } from "../project/sceneFiles";
 import {
   PIPELINE_FILE,
   PROJECT_MD,
@@ -894,22 +895,50 @@ function projectController(projectId: string): ProjectController {
   };
 }
 
-/** Download the open project as a bundle: project.md, preview.png, assets/, recipes/. */
+/** The open project as files: project.md, preview.png, scene code, assets/, recipes/. */
+async function projectBundleFiles(projectId: string): Promise<{ files: { name: string; data: Uint8Array }[]; recipes: number }> {
+  const { doc, preview, recipeTexts } = await projectDocument(projectId, { includeAssets: true, preview: true });
+  const encode = (text: string) => new TextEncoder().encode(text);
+  const files = [{ name: PROJECT_MD, data: encode(renderProjectMd(doc)) }];
+  if (preview) files.push({ name: "preview.png", data: new Uint8Array(await preview.arrayBuffer()) });
+  // Readable copies of the scene; import goes by project.md, so these are for people and editors.
+  for (const file of sceneCodeFiles(doc.scene)) files.push({ name: file.path, data: encode(file.text) });
+  for (const [name, blob] of assetBlobs) files.push({ name: `assets/${name}`, data: new Uint8Array(await blob.arrayBuffer()) });
+  for (const [id, text] of recipeTexts) files.push({ name: `recipes/${id}/recipe.md`, data: encode(text) });
+  return { files, recipes: recipeTexts.size };
+}
+
+/** Download the open project as a bundle: project.md, preview.png, code/, assets/, recipes/. */
 export async function exportProjectBundle(): Promise<void> {
   const project = get().project;
   if (!project) return;
   try {
-    const { doc, preview, recipeTexts } = await projectDocument(project.id, { includeAssets: true, preview: true });
-    const encode = (text: string) => new TextEncoder().encode(text);
-    const files = [{ name: PROJECT_MD, data: encode(renderProjectMd(doc)) }];
-    if (preview) files.push({ name: "preview.png", data: new Uint8Array(await preview.arrayBuffer()) });
-    for (const [name, blob] of assetBlobs) files.push({ name: `assets/${name}`, data: new Uint8Array(await blob.arrayBuffer()) });
-    for (const [id, text] of recipeTexts) files.push({ name: `recipes/${id}/recipe.md`, data: encode(text) });
+    const { files, recipes } = await projectBundleFiles(project.id);
     const slug = project.name.trim().replace(/[^\p{L}\p{N}._-]+/gu, "-").replace(/^-+|-+$/g, "") || "project";
     download(storedZip(files), `${slug}.siljangnim.zip`);
-    set({ notice: { kind: "info", text: `Exported "${project.name}" with ${assetBlobs.size} asset${assetBlobs.size === 1 ? "" : "s"}${recipeTexts.size ? ` and ${recipeTexts.size} recipe${recipeTexts.size === 1 ? "" : "s"}` : ""}.` } });
+    set({ notice: { kind: "info", text: `Exported "${project.name}" with ${assetBlobs.size} asset${assetBlobs.size === 1 ? "" : "s"}${recipes ? ` and ${recipes} recipe${recipes === 1 ? "" : "s"}` : ""}.` } });
   } catch (err) {
     set({ notice: { kind: "error", text: `Couldn't export the project: ${err instanceof Error ? err.message : String(err)}` } });
+  }
+}
+
+/**
+ * The open project as a folder of plain files. On desktop it is written under
+ * ~/Siljangnim/projects/ and shown in Finder/Explorer; in a browser it downloads as a zip.
+ */
+export async function openProjectFolder(): Promise<void> {
+  const project = get().project;
+  if (!project) return;
+  if (!bridge?.project) return exportProjectBundle();
+  try {
+    const { files } = await projectBundleFiles(project.id);
+    const dir = await bridge.project.reveal(
+      projectFolderName(project.name, project.id),
+      files.map((f) => ({ path: f.name, data: f.data })),
+    );
+    set({ notice: { kind: "info", text: `Wrote "${project.name}" to ${dir}. It's a copy: edits there don't change the project.` } });
+  } catch (err) {
+    set({ notice: { kind: "error", text: `Couldn't write the project folder: ${err instanceof Error ? err.message : String(err)}` } });
   }
 }
 
