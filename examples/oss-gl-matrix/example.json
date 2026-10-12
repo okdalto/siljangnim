@@ -19,12 +19,12 @@
   "summary": "Thousands of little tiles line a knotted ribbon, and waves flip them over to show their other color.",
   "summary_ko": "매듭 모양 리본 위에 작은 타일 수천 장이 늘어서 있고, 물결이 지나가며 타일을 뒤집어 다른 색을 보여 줘요.",
   "try": [
-    "Drag to turn the knot",
+    "Drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
     "Change Waves to send more flips along the ribbon at once",
     "Pick different Front and Back colors"
   ],
   "try_ko": [
-    "드래그해서 매듭을 돌려 보세요",
+    "드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
     "Waves를 바꿔 한 번에 지나가는 뒤집기 물결 수를 바꿔 보세요",
     "Front와 Back 색을 바꿔 보세요"
   ],

@@ -67,6 +67,7 @@ export interface SceneUtils {
   uploadDataTexture: typeof uploadDataTexture;
   mat4: typeof mat4;
   quat: typeof quat;
+  /** The shared orbit camera: drag orbits, right-drag/Shift+drag pans, scroll zooms, double-click resets. */
   createOrbitCamera: typeof createOrbitCamera;
   createVerletSystem: typeof createVerletSystem;
   glsl: Record<string, string>;
@@ -97,6 +98,12 @@ export interface SceneCtx {
   /** ctx.mouse as it was on the previous frame. */
   mousePrev: [number, number, number, number];
   mouseDown: boolean;
+  /**
+   * More of the pointer, for cameras: wheel = scroll since the last frame in pixels (positive = away from
+   * the screen, i.e. zoom out), buttons = MouseEvent.buttons (1 left, 2 right, 4 middle), doubleClick = a
+   * double-click since the last frame.
+   */
+  pointer: { wheel: number; buttons: number; doubleClick: boolean };
   /** KeyboardEvent.code values currently held. */
   keys: Set<string>;
   uniforms: Record<string, UniformValue>;
@@ -114,6 +121,8 @@ export interface SceneCtx {
   publish(name: string, value: MonitorValue): void;
   utils: SceneUtils;
 }
+
+export const CAMERA_HINT = "Drag to orbit · Right-drag or Shift+drag to pan · Scroll to zoom · Double-click to reset";
 
 /** Dynamic import of an ES module, from the allowed CDNs only. */
 export function importModule(url: string): Promise<unknown> {
@@ -158,6 +167,7 @@ export function createCtx(
     mouse: [0.5, 0.5, 0.5, 0.5],
     mousePrev: [0.5, 0.5, 0.5, 0.5],
     mouseDown: false,
+    pointer: { wheel: 0, buttons: 0, doubleClick: false },
     keys: new Set(),
     uniforms,
     assets,
@@ -231,11 +241,45 @@ export function createCtx(
     uploadDataTexture,
     mat4,
     quat,
-    createOrbitCamera,
+    // Bound to this scene's pointer (wheel, buttons, double-click), and it shows the controls once.
+    createOrbitCamera: (options) => {
+      showCameraHint();
+      const pointer = {
+        get wheel() {
+          return ctx.pointer.wheel;
+        },
+        get buttons() {
+          return ctx.pointer.buttons;
+        },
+        get doubleClick() {
+          return ctx.pointer.doubleClick;
+        },
+      };
+      return createOrbitCamera({ pointer, ...options });
+    },
     createVerletSystem,
     glsl,
     import: importModule,
   };
+
+  let hint: HTMLElement | null = null;
+  /** A short, fading line over the scene: how the camera moves. */
+  function showCameraHint() {
+    const parent = canvas.parentElement;
+    if (hint || !parent || typeof document === "undefined") return;
+    hint = document.createElement("div");
+    hint.textContent = CAMERA_HINT;
+    hint.setAttribute("data-camera-hint", "");
+    Object.assign(hint.style, {
+      position: "absolute", left: "50%", bottom: "14px", transform: "translateX(-50%)", padding: "5px 10px",
+      borderRadius: "6px", background: "rgba(0,0,0,0.55)", color: "rgba(255,255,255,0.85)", font: "11px system-ui, sans-serif",
+      pointerEvents: "none", whiteSpace: "nowrap", transition: "opacity 0.8s", opacity: "1", zIndex: "1",
+    });
+    parent.appendChild(hint);
+    const shown = hint;
+    setTimeout(() => (shown.style.opacity = "0"), 4000);
+    setTimeout(() => shown.remove(), 5000);
+  }
 
   return {
     ctx,
@@ -243,6 +287,7 @@ export function createCtx(
       if (audioTexture) uploadDataTexture(gl, audioTexture, SPECTRUM_BINS, 2, audioData(), { internalFormat: gl.R32F, format: gl.RED, type: gl.FLOAT, filter: gl.NEAREST });
     },
     dispose: () => {
+      hint?.remove();
       quad.dispose();
       // Videos keep decoding (and playing sound) until stopped.
       for (const video of videos.splice(0)) video.dispose();

@@ -19,12 +19,12 @@
   "summary": "A field of over a thousand shiny columns rises and falls like waves meeting on a pond.",
   "summary_ko": "천 개가 넘는 반짝이는 기둥이 연못 위 물결이 만나듯 오르내려요.",
   "try": [
-    "Drag to circle the camera around the field",
+    "Drag to orbit, scroll to zoom, right-drag to pan; double-click resets the view",
     "Raise Height for taller waves",
     "Pick new Low and High colors"
   ],
   "try_ko": [
-    "드래그해서 카메라를 돌려 보세요",
+    "드래그해서 돌려 보고, 스크롤로 확대, 오른쪽 드래그로 옮겨 보세요. 더블클릭하면 처음 시점으로 돌아와요",
     "Height를 올려 물결을 더 높게 만들어 보세요",
     "Low와 High 색을 새로 골라 보세요"
   ],
