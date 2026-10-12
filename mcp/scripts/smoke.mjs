@@ -154,6 +154,21 @@ ctx.publish("camWidth", ctx.state.cam.width);`,
 await wait(2500);
 const inputs = await client.callTool({ name: "viewport_status", arguments: {} });
 
+// Shadertoy-style code through ctx.utils.shadertoy: an Image pass reading a feedback Buffer A.
+const toyScene = await client.callTool({ name: "scene_write", arguments: {
+  scene: {
+    version: 2,
+    script: {
+      setup: `ctx.state.toy = ctx.utils.shadertoy(
+  "void mainImage(out vec4 o, in vec2 p) { o = vec4(texture(iChannel0, p / iResolution.xy).rgb, 1.0); }",
+  { channels: ["A"], buffers: { A: { channels: ["A"], code: "void mainImage(out vec4 o, in vec2 p) { vec2 uv = p / iResolution.xy; o = vec4(texture(iChannel0, uv).rgb * 0.9 + vec3(uv, 0.5 + 0.5 * sin(iTime)) * 0.1, 1.0); }" } } });`,
+      render: `ctx.state.toy.draw();`,
+    },
+  },
+} });
+await wait(1200);
+const toyCapture = await client.callTool({ name: "viewport_capture", arguments: { max_size: 128 } });
+
 // OSC: the hub listens on UDP, the viewer streams it into ctx.osc. Sent from here with dgram.
 const oscPort = await new Promise((resolve) => {
   const probe = createSocket("udp4");
@@ -263,6 +278,7 @@ const checks = {
   instructions: instructions.includes("Talk with the person in your own chat"),
   viewerOpened: !calls.viewer_open.isError,
   sceneWritten: !calls.scene_write.isError && /without errors/.test(text(calls.scene_write)),
+  shadertoyRuns: !toyScene.isError && /without errors/.test(text(toyScene)) && /No errors/.test(text(toyCapture)),
   captureBlue: Boolean(rgb && rgb[2] > 150 && rgb[2] > 2 * rgb[0] && rgb[2] > rgb[1]),
   timelineEdited: !calls.scene_edit.isError,
   assetsAnswered: !calls.asset_list.isError && /points\.json/.test(text(calls.asset_list)),

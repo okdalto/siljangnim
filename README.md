@@ -127,6 +127,8 @@ writes the code, and the work keeps changing for as long as you keep talking to 
 - **Make it by describing it** — "glowing jellyfish drifting in a dark sea", "a hatching drawing of this photo,
   denser where it's closer". The agent picks the tools (shaders, physics engines, geometry libraries, Python
   packages, ML models), writes a WebGL2 or WebGPU scene, fixes its own errors and looks at the result before answering.
+- **Bring open Shadertoy code** — paste a shader that carries an open license (MIT, CC0, …) and it runs as
+  written, buffers and channels included; the agent keeps the credit and won't port non-open ones.
 - **Shape it in conversation** — "slower, sunset colours", "twice the particles", "give me a slider for that".
   Anything you want to play with becomes a control: sliders, knobs, 2D pads, menus, buttons, colours. Every
   change is a version you can go back to and branch from, and you can read the code it wrote.
