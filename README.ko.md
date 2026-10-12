@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@df9822e1e6/media/siljangnim-short.mp4"><img src="media/siljangnim-short-preview.gif" alt="Siljangnim intro" width="270" /></a><br/>
+  <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@df9822e1e6/media/siljangnim-short.mp4"><img src="media/siljangnim-short-preview.gif" alt="실장님 소개 영상" width="270" /></a><br/>
   <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@df9822e1e6/media/siljangnim-short.mp4">▶ 소리와 함께 보기 (39초, 영어 내레이션, 한/영 자막)</a>
 </p>
 
@@ -95,8 +95,8 @@ tool_timeout_sec = 120
 
 **[siljangnim.vercel.app](https://siljangnim.vercel.app/)** 에 들어가서:
 
-1. 오른쪽 위 **Examples**를 누르고 아무 예제나 여세요. 바로 돌아갑니다.
-2. 직접 만들려면 **Settings**(톱니바퀴)에 Anthropic이나 OpenAI API 키를 넣으세요.
+1. 오른쪽 위 **Examples**(예제)를 누르고 아무 예제나 여세요. 바로 돌아갑니다.
+2. 직접 만들려면 **Settings**(설정, 톱니바퀴 아이콘)에 Anthropic이나 OpenAI API 키를 넣으세요.
    키는 그 브라우저 탭에만 있고, 모델 회사로만 전달됩니다.
 3. 채팅에 만들고 싶은 것을 적으세요.
 
@@ -111,7 +111,7 @@ tool_timeout_sec = 120
 git clone https://github.com/okdalto/siljangnim.git && cd siljangnim && npm install && npm run dev
 ```
 
-다음부터는 그 폴더에서 `npm run dev`(또는 `./run.sh`, `run.bat`)만 하면 됩니다. API 키는 **Settings**에
+다음부터는 그 폴더에서 `npm run dev`(또는 `./run.sh`, `run.bat`)만 하면 됩니다. API 키는 **Settings**(설정)에
 넣으세요. OS 키체인으로 암호화되고 앱 화면에는 전달되지 않습니다. 앱이 켜져 있으면 Claude Code(A)가
 브라우저 대신 이 앱 창을 뷰어로 씁니다.
 
@@ -134,8 +134,8 @@ git clone https://github.com/okdalto/siljangnim.git && cd siljangnim && npm inst
 - **섞기** — 예제 소개에서 **섞기(Mix in)**를 누르면 그 예제의 씬과 에셋이 지금 프로젝트로 들어오고, 에이전트가 둘을
   하나의 장면으로 섞습니다. 다른 사람이 보낸 작업을 붙여 넣고 매시업을 부탁해도 됩니다.
 - **라이브로 연주하기** — 마우스, 키보드, 마이크와 오디오 파일, 카메라, MIDI 컨트롤러, OSC(TouchOSC, Ableton,
-  TouchDesigner). "노브 1번으로 색을" 이라고 말하면 에이전트가 연결합니다. **Perform**을 누르면 장면만 전체 화면으로
-  띄워 프로젝터로 보낼 수 있습니다. **Timeline**으로 바꿔 컨트롤에 키프레임을 찍을 수도 있습니다.
+  TouchDesigner). "노브 1번으로 색을 바꾸게 해 줘"라고 말하면 에이전트가 연결합니다. **Perform**(공연)을 누르면 장면만 전체 화면으로
+  띄워 프로젝터로 보낼 수 있습니다. **Timeline**(타임라인)으로 바꿔 컨트롤에 키프레임을 찍을 수도 있습니다.
 - **화면 비율 고르기** — 프레임 메뉴에서 가로, 세로(9:16), 정사각형, 또는 1080×1920·4K 같은 정확한 해상도. 실행 중에
   크기가 바뀌어도 장면이 다시 맞춰집니다.
 - **영상으로 뽑기** — MP4, WebM, PNG 연속 이미지. 원하는 크기(세로 1080×1920, 4K)로 프레임 단위 정확하게 렌더링하거나,
@@ -143,8 +143,8 @@ git clone https://github.com/okdalto/siljangnim.git && cd siljangnim && npm inst
 - **넘겨주기** — 프로젝트는 `project.md`(무엇을 요청했고, 어떤 도구로 어떻게 만들었는지)로 내보냅니다. 받은 사람의
   에이전트가 그 문서로 다시 만들고, 또 리믹스합니다.
 
-오픈소스 하나하나를 바탕으로 만든 **예제 70여 개**(REBOUND, Rapier, Three.js, Hydra, p5.js, librosa, OpenCV, UMAP 등,
-출처와 라이선스 포함)에서 출발해 다른 곳으로 가져가 보세요.
+오픈소스 하나하나를 바탕으로 만든 **예제 70여 개**(Shan Shui Infinite, MarkovJunior, Growing NCA, Three.js, p5.js,
+OpenCV, librosa 등, 출처와 라이선스 포함)에서 출발해 다른 곳으로 가져가 보세요.
 
 [창작 흐름 자세히 보기](docs/creative.md)
 
@@ -181,7 +181,7 @@ hub/        Python 사이드카(uv 관리): 런타임 작업과 레시피
 mcp/        외부 에이전트용 MCP 서버(siljangnim-mcp로 배포)
 examples/   앱에 나오는 예제 프로젝트
 registry/   공유 레시피(PR로 기여)
-docs/       사용자 가이드
+docs/       사용자 가이드(한국어)
 ```
 
 가이드: [창작 흐름](docs/creative.md), [에이전트 연결](docs/mcp.md), [내 컴퓨터에서 도구 실행](docs/local-tools.md), [공유](docs/sharing.md), [모델 연결](docs/models.md).
@@ -190,7 +190,7 @@ docs/       사용자 가이드
 
 - **비용** — 클라우드 모델은 토큰 단위로 과금됩니다. 복잡한 씬은 여러 번 오가서, 대화 한 번에 몇 달러가
   들 수 있습니다. Claude Code로 쓰면 Claude 요금제 안에서 돌고, 직접 띄운 모델은 토큰 비용이 없습니다.
-- **보안** — 씬 코드는 별도 origin에서 돌아서 프로젝트나 키에 접근하지 못합니다. 내 컴퓨터에서 코드를
+- **보안** — 씬 코드는 별도 출처(origin)에서 돌아서 프로젝트나 키에 접근하지 못합니다. 내 컴퓨터에서 코드를
   실행하거나 패키지를 설치할 때는 먼저 묻습니다. 파일과 의존성은 격리하지만 OS 샌드박스는 아닙니다.
   로컬 서버는 모두 127.0.0.1에서만 열리니 네트워크에 노출하지 마세요.
 

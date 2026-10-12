@@ -129,13 +129,13 @@ writes the code, and the work keeps changing for as long as you keep talking to 
   packages, ML models), writes a WebGL2 or WebGPU scene, fixes its own errors and looks at the result before answering.
 - **Bring open Shadertoy code** — paste a shader that carries an open license (MIT, CC0, …) and it runs as
   written, buffers and channels included; the agent keeps the credit and won't port non-open ones.
-- **Shape it in conversation** — "slower, sunset colours", "twice the particles", "give me a slider for that".
-  Anything you want to play with becomes a control: sliders, knobs, 2D pads, menus, buttons, colours. Every
+- **Shape it in conversation** — "slower, sunset colors", "twice the particles", "give me a slider for that".
+  Anything you want to play with becomes a control: sliders, knobs, 2D pads, menus, buttons, colors. Every
   change is a version you can go back to and branch from, and you can read the code it wrote.
 - **Mix pieces together** — open an example's details and press **Mix in**: its scene and assets come into your
   project and the agent blends the two into one image. Or paste a piece someone shared and ask for a mashup.
 - **Play it live** — mouse, keyboard, microphone and audio files, camera, MIDI controllers and OSC (TouchOSC,
-  Ableton, TouchDesigner). Ask the agent to wire knob 1 to colour; press **Perform** to send the scene full
+  Ableton, TouchDesigner). Ask the agent to wire knob 1 to color; press **Perform** to send the scene full
   screen to a projector. Or switch to **Timeline** and keyframe the controls.
 - **Frame it** — landscape, portrait (9:16), square, or an exact size like 1080×1920 or 4K from the frame menu; scenes
   re-fit when the size changes mid-run.
@@ -144,10 +144,10 @@ writes the code, and the work keeps changing for as long as you keep talking to 
 - **Pass it on** — a project exports as `project.md`: what was asked, which tools were used and how. Another
   person's agent rebuilds it from that, and keeps remixing.
 
-Start from one of **70+ examples**, each built on an open-source project (REBOUND, Rapier, Three.js, Hydra,
-p5.js, librosa, OpenCV, UMAP …) with its credits and license, and take it somewhere else.
+Start from one of **70+ examples**, each built on an open-source project (Shan Shui Infinite, MarkovJunior,
+Growing NCA, Three.js, p5.js, OpenCV, librosa …) with its credits and license, and take it somewhere else.
 
-[A longer walk-through of the creative workflow (Korean)](docs/creative.md).
+[A longer walk-through of the creative workflow (in Korean)](docs/creative.md).
 
 ## Under the hood
 
@@ -184,10 +184,10 @@ hub/        Python sidecar (uv-managed): runtime jobs and recipes
 mcp/        MCP server for external agents (published as siljangnim-mcp)
 examples/   Example projects shown in the app
 registry/   Shared recipes, contributed by pull request
-docs/       User guides (Korean)
+docs/       User guides (in Korean)
 ```
 
-Guides (Korean): [the creative workflow](docs/creative.md), [connecting an agent](docs/mcp.md), [tools on your machine](docs/local-tools.md), [sharing](docs/sharing.md), [models](docs/models.md).
+Guides (in Korean): [the creative workflow](docs/creative.md), [connecting an agent](docs/mcp.md), [tools on your machine](docs/local-tools.md), [sharing](docs/sharing.md), [models](docs/models.md).
 
 ## Costs and security
 
