@@ -100,6 +100,8 @@ export class SceneRunner {
   private recordAbort: AbortController | null = null;
   /** Output size while recording; the canvas ignores the container until it's cleared. */
   private fixedSize: { width: number; height: number } | null = null;
+  /** The person's chosen render size (Viewport → frame menu); a recording's size wins while it runs. */
+  private chosenSize: { width: number; height: number } | null = null;
 
   constructor(container: HTMLElement, emit: Emit) {
     this.container = container;
@@ -387,6 +389,8 @@ export class SceneRunner {
     ctx.dt = dt;
     ctx.frame = this.frame;
     ctx.mouseDown = this.mouseDown;
+    // The canvas can change size at any time (window, Perform, the frame menu, a recording's size).
+    ctx.resized = ctx.resolution[0] !== loaded.canvas.width || ctx.resolution[1] !== loaded.canvas.height;
     ctx.resolution[0] = loaded.canvas.width;
     ctx.resolution[1] = loaded.canvas.height;
     const check = this.frame % GL_ERROR_CHECK_EVERY === 1;
@@ -595,16 +599,22 @@ export class SceneRunner {
     this.emit("error", error);
   }
 
+  setResolution(size: { width: number; height: number } | null): void {
+    this.chosenSize = size && { width: Math.max(1, Math.round(size.width)), height: Math.max(1, Math.round(size.height)) };
+    this.resize();
+  }
+
   private resize(): void {
     if (this.current) this.sizeCanvas(this.current.canvas);
     this.dirty = true;
   }
 
   private sizeCanvas(canvas: HTMLCanvasElement): void {
-    if (this.fixedSize) {
-      if (canvas.width !== this.fixedSize.width || canvas.height !== this.fixedSize.height) {
-        canvas.width = this.fixedSize.width;
-        canvas.height = this.fixedSize.height;
+    const fixed = this.fixedSize ?? this.chosenSize;
+    if (fixed) {
+      if (canvas.width !== fixed.width || canvas.height !== fixed.height) {
+        canvas.width = fixed.width;
+        canvas.height = fixed.height;
       }
       return;
     }

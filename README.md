@@ -135,12 +135,14 @@ writes the code, and the work keeps changing for as long as you keep talking to 
 - **Play it live** — mouse, keyboard, microphone and audio files, camera, MIDI controllers and OSC (TouchOSC,
   Ableton, TouchDesigner). Ask the agent to wire knob 1 to colour; press **Perform** to send the scene full
   screen to a projector. Or switch to **Timeline** and keyframe the controls.
+- **Frame it** — landscape, portrait (9:16), square, or an exact size like 1080×1920 or 4K from the frame menu; scenes
+  re-fit when the size changes mid-run.
 - **Export it** — MP4, WebM or PNG frames: frame-exact offline renders at any size (vertical 1080×1920, 4K), or
   a realtime capture of what you played. The intro video above was recorded from the examples this way.
 - **Pass it on** — a project exports as `project.md`: what was asked, which tools were used and how. Another
   person's agent rebuilds it from that, and keeps remixing.
 
-Start from one of **60+ examples**, each built on an open-source project (REBOUND, Rapier, Three.js, Hydra,
+Start from one of **70+ examples**, each built on an open-source project (REBOUND, Rapier, Three.js, Hydra,
 p5.js, librosa, OpenCV, UMAP …) with its credits and license, and take it somewhere else.
 
 [A longer walk-through of the creative workflow (Korean)](docs/creative.md).

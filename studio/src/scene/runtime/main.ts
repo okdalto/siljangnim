@@ -25,6 +25,7 @@ if (!parentOrigin || window.parent === window || !root) {
     status: () => runner.status(),
     record: (p) => runner.recordScene(p),
     recordCancel: () => runner.cancelRecording(),
+    resolution: (p) => runner.setResolution(p.size),
   };
 
   window.addEventListener("message", async (e: MessageEvent) => {

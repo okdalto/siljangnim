@@ -389,6 +389,32 @@ void main() { outColor = vec4(0.9 * u_glow, 0.4, 0.1, 1.0); }`;
   return state;
 }
 
+/** Viewport frame menu: an exact size renders at those pixels in a box of that shape; Fit goes back. */
+async function runFrameScenario(win) {
+  const pick = (label) => win.webContents.executeJavaScript(`(async () => {
+    document.querySelector('[data-testid="frame-button"]').click();
+    await new Promise((r) => setTimeout(r, 200));
+    [...document.querySelectorAll('[data-testid="frame-menu"] button')].find((b) => b.innerText === ${JSON.stringify(label)})?.click();
+  })()`);
+  const read = async () => {
+    const frame = await findSceneFrame(win);
+    const canvas = frame ? await inFrame(frame, `(() => { const c = document.querySelector("#stage canvas"); return c && [c.width, c.height]; })()`, "canvas size").catch(() => null) : null;
+    const box = await win.webContents.executeJavaScript(`(() => { const b = document.querySelector("[data-frame]"); return { label: b.dataset.frame, w: b.clientWidth, h: b.clientHeight }; })()`);
+    return { canvas, box };
+  };
+  await pick("1080×1920");
+  let portrait = null;
+  for (let i = 0; i < 20; i++) {
+    await wait(250);
+    portrait = await read();
+    if (portrait.canvas?.[0] === 1080) break;
+  }
+  await pick("Fit window");
+  await wait(1500);
+  const fit = await read();
+  return { portrait, fit };
+}
+
 /** Assets tab → Show in Finder: the open project (the imported v1 one) written out as files. */
 async function runProjectFolderScenario(win) {
   const root = process.env.SILJANGNIM_PROJECTS_DIR;
@@ -473,7 +499,7 @@ async function runExamplesScenario(win, examplesOut) {
     for (let i = 0; i < 20 && frame; i++) {
       if (i) await wait(750);
       sample = await inFrame(frame, SAMPLE_CANVAS, `sample ${slug}`, 10_000).catch(() => null);
-      if (!sample || sample.litFraction > 0.02) break;
+      if (!sample || sample.litFraction > 0.01) break;
     }
     const after = await win.webContents.executeJavaScript(`Number(document.querySelector("[data-runtime-state]")?.dataset.runtimeErrors)`);
     results[slug] = { ...state, errors: after, litFraction: sample?.litFraction ?? 0 };
@@ -557,6 +583,8 @@ async function runSmoke(win, hub, keys, outDir) {
   const history = agent ? await runHistoryScenario(win, sceneFrame) : null;
   log("examples");
   const examples = await runExamplesScenario(win, outDir);
+  log("frame menu");
+  const frameCheck = await runFrameScenario(win).catch((err) => ({ error: String(err) }));
   log("v1 import");
   const v1 = await runV1ImportScenario(win);
   log("project folder");
@@ -606,6 +634,11 @@ async function runSmoke(win, hub, keys, outDir) {
         }
       : {}),
     ...(history ? { historyRecorded: history.recorded, historyRestored: history.restored } : {}),
+    framesWork:
+      frameCheck.portrait?.canvas?.join("x") === "1080x1920" &&
+      frameCheck.portrait.box.label === "1080×1920" &&
+      Math.abs(frameCheck.portrait.box.w / frameCheck.portrait.box.h - 1080 / 1920) < 0.01 &&
+      frameCheck.fit?.box.label === "Fit",
     projectFolderWritten:
       ["code/setup.js", "code/shaders/p.glsl", "scene.json"].every((f) => folder.code.includes(f)) &&
       ["project.md", "scene.json", "code/setup.js", "code/render.js", "code/shaders/p.glsl", "assets/tile.png"].every((f) => folder.files.includes(f)),
@@ -623,10 +656,11 @@ async function runSmoke(win, hub, keys, outDir) {
         }
       : {}),
     examplesRun:
-      Object.keys(examples).length >= 10 && Object.values(examples).every((e) => e.skipped || (e.state === "running" && e.errors === 0 && e.litFraction > 0.02)),
+      Object.keys(examples).length >= 10 && // 1% lit: sparse pieces (a graph of dots and thin lines on black) are real output too.
+      Object.values(examples).every((e) => e.skipped || (e.state === "running" && e.errors === 0 && e.litFraction > 0.01)),
   };
   const ok = Object.values(checks).every(Boolean);
-  report({ ok, checks, scene, iframe, llm, agent, history, examples, v1, folder, attach, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
+  report({ ok, checks, scene, iframe, llm, agent, history, examples, frameCheck, v1, folder, attach, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
   clearTimeout(timer);
   quit(hub, ok ? 0 : 1);
 }

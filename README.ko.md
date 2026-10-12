@@ -134,12 +134,14 @@ git clone https://github.com/okdalto/siljangnim.git && cd siljangnim && npm inst
 - **라이브로 연주하기** — 마우스, 키보드, 마이크와 오디오 파일, 카메라, MIDI 컨트롤러, OSC(TouchOSC, Ableton,
   TouchDesigner). "노브 1번으로 색을" 이라고 말하면 에이전트가 연결합니다. **Perform**을 누르면 장면만 전체 화면으로
   띄워 프로젝터로 보낼 수 있습니다. **Timeline**으로 바꿔 컨트롤에 키프레임을 찍을 수도 있습니다.
+- **화면 비율 고르기** — 프레임 메뉴에서 가로, 세로(9:16), 정사각형, 또는 1080×1920·4K 같은 정확한 해상도. 실행 중에
+  크기가 바뀌어도 장면이 다시 맞춰집니다.
 - **영상으로 뽑기** — MP4, WebM, PNG 연속 이미지. 원하는 크기(세로 1080×1920, 4K)로 프레임 단위 정확하게 렌더링하거나,
   연주한 그대로 실시간 녹화합니다. 위의 소개 영상도 예제들을 이렇게 녹화해서 만들었습니다.
 - **넘겨주기** — 프로젝트는 `project.md`(무엇을 요청했고, 어떤 도구로 어떻게 만들었는지)로 내보냅니다. 받은 사람의
   에이전트가 그 문서로 다시 만들고, 또 리믹스합니다.
 
-오픈소스 하나하나를 바탕으로 만든 **예제 60여 개**(REBOUND, Rapier, Three.js, Hydra, p5.js, librosa, OpenCV, UMAP 등,
+오픈소스 하나하나를 바탕으로 만든 **예제 70여 개**(REBOUND, Rapier, Three.js, Hydra, p5.js, librosa, OpenCV, UMAP 등,
 출처와 라이선스 포함)에서 출발해 다른 곳으로 가져가 보세요.
 
 [창작 흐름 자세히 보기](docs/creative.md)

@@ -69,6 +69,7 @@ import { evaluateTrack, keyAt, removeKeyAt, upsertKey } from "../scene/gl/keyfra
 import { DEFAULT_SCENE, KEYFRAMABLE, parseScene, type Scene, type Timeline, type UniformValue } from "../scene/schema";
 import { bridge, bridgeToken, keys } from "./platform";
 import { createProvider, looksLikeApiKey, saveSettings, type Settings } from "./settings";
+import { frameResolution, readFrame, type Frame } from "./frame";
 import { resolveLanguage } from "./language";
 import { useApp, type AppState } from "./state";
 
@@ -172,8 +173,13 @@ export async function openProject(id: string): Promise<void> {
   const assets = records.flatMap((r) => (r.content instanceof Blob ? [assetInfo(r.path.slice(ASSET_DIR.length), r.content, r.meta ?? {})] : []));
   safeLocal(() => localStorage.setItem(ACTIVE_PROJECT_KEY, id));
   clearUndo();
-  set({ project, scene, messages, versions, assets, attachments: [], overrides: [], live: null, notice: null, projects: await store.listProjects() });
-  if (host) void loadIntoHost(scene);
+  const frame = readFrame(safeJson(safeLocal(() => localStorage.getItem(FRAME_KEY + id)) ?? "null"));
+  set({ frame, project, scene, messages, versions, assets, attachments: [], overrides: [], live: null, notice: null, projects: await store.listProjects() });
+  if (host) {
+    // Each project gets a clean scene document, so one example's libraries can't break the next.
+    void host.restart();
+    void loadIntoHost(scene);
+  }
 }
 
 export async function createProject(name = "Untitled"): Promise<void> {
@@ -372,6 +378,18 @@ export function attachSceneHost(next: SceneHost): () => void {
   };
 }
 
+// --- viewport frame (aspect or exact render size) ---
+
+const FRAME_KEY = "siljangnim.frame.";
+
+/** Change the viewport's frame for this project and restart the scene at its new size. */
+export function setFrame(frame: Frame): void {
+  const project = get().project;
+  set({ frame });
+  if (project) safeLocal(() => localStorage.setItem(FRAME_KEY + project.id, JSON.stringify(frame)));
+  if (host) void loadIntoHost(get().scene);
+}
+
 // --- OSC: the hub listens on UDP and streams messages; they go on to the scene ---
 
 let osc: { port: number; abort: AbortController; client: HubClient | null } | null = null;
@@ -424,6 +442,8 @@ async function loadIntoHost(scene: Scene): Promise<LoadResult> {
   if (!host) return { ok: false, errors: [] };
   set((st) => ({ runtime: { ...st.runtime, state: "loading", errors: [] } }));
   oscRequested = false;
+  // The scene's setup reads ctx.resolution, so the chosen render size goes in first.
+  await host.request("resolution", { size: frameResolution(get().frame) }).catch(() => undefined);
   const result = await host.load(scene, Object.fromEntries(assetBlobs));
   // The OSC listener stays open across reloads of scenes that use it.
   if (!oscRequested) stopOsc();

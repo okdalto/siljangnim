@@ -7,6 +7,7 @@ import type { AssetInfo } from "../project/assets";
 import type { ProjectMeta, Version } from "../project/store";
 import type { MonitorValue, RecordOptions, RuntimeState, SceneError } from "../scene/protocol";
 import { DEFAULT_SCENE, type Scene } from "../scene/schema";
+import { FIT, type Frame } from "./frame";
 import { resolveLanguage, type Language } from "./language";
 import { loadSettings, type Settings } from "./settings";
 
@@ -55,6 +56,8 @@ export interface AppState {
   jobsUsed: boolean;
   /** The example just opened, introduced over the viewport until dismissed. */
   exampleIntro: string | null;
+  /** The viewport's frame (aspect or exact size), remembered per project in this browser. */
+  frame: Frame;
   /** The sidebar folded to a rail of icons, leaving the viewport the room. */
   sidebarCollapsed: boolean;
   /** Set when the viewer was opened by the MCP bridge: chat is replaced by the agent's activity. */
@@ -97,6 +100,7 @@ export const useApp = create<AppState>(() => ({
   sidebarTab: "chat",
   jobsUsed: false,
   exampleIntro: null,
+  frame: FIT,
   sidebarCollapsed: (() => {
     try {
       return localStorage.getItem("siljangnim.sidebarCollapsed") === "1";

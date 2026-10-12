@@ -85,6 +85,8 @@ export interface RuntimeMethods {
   status: { params: Record<string, never>; result: RuntimeStatus };
   record: { params: RecordOptions; result: RecordResult };
   recordCancel: { params: Record<string, never>; result: void };
+  /** Render at exactly this many pixels whatever the viewport's size (null: follow the viewport). */
+  resolution: { params: { size: { width: number; height: number } | null }; result: void };
   /** OSC the hub received, and whether it is listening (ctx.osc). */
   osc: { params: { active?: boolean; messages?: OscMessage[]; error?: string }; result: void };
 }

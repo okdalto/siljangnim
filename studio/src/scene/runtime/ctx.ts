@@ -93,6 +93,8 @@ export interface SceneCtx {
   frame: number;
   /** Drawing-buffer size in pixels. */
   resolution: [number, number];
+  /** True on the first frame after ctx.resolution changed: recreate size-dependent targets and layouts then. */
+  resized: boolean;
   /** [x, y, clickX, clickY], normalized 0..1, origin top-left. */
   mouse: [number, number, number, number];
   /** ctx.mouse as it was on the previous frame. */
@@ -164,6 +166,7 @@ export function createCtx(
     dt: 0,
     frame: 0,
     resolution: [canvas.width, canvas.height],
+    resized: false,
     mouse: [0.5, 0.5, 0.5, 0.5],
     mousePrev: [0.5, 0.5, 0.5, 0.5],
     mouseDown: false,

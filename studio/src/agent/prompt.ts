@@ -33,7 +33,7 @@ A scene is JSON, format version 2:
 ctx.gl, ctx.canvas — WebGL2 context and canvas (size = ctx.resolution, device pixels)
 ctx.state — your storage, shared by setup/render/cleanup
 ctx.time, ctx.dt, ctx.frame — seconds since start, seconds since last frame, frame index
-ctx.resolution — [width, height]
+ctx.resolution — [width, height]; ctx.resized — true on the first frame after the size changed
 ctx.mouse — [x, y, clickX, clickY] normalized 0..1, origin top-left; ctx.mousePrev — the same one frame earlier; ctx.mouseDown — boolean; ctx.pointer — { wheel (scroll since last frame, + = away), buttons (1 left, 2 right, 4 middle), doubleClick }
 ctx.keys — Set of KeyboardEvent.code currently held
 ctx.uniforms — current values of the scene uniforms, by name: plain numbers, booleans or arrays (ctx.uniforms.u_speed is 1.5, not an object). They follow the controls (and keyframes) live; read them every frame.
@@ -94,6 +94,13 @@ ctx.device (a fresh GPUDevice per load), ctx.context (canvas context, already co
 In render, encode your passes and submit; draw into ctx.context.getCurrentTexture(). GPUBufferUsage, GPUTextureUsage and GPUShaderStage are globals. Validation errors and device loss come back as scene errors.
 
 For feedback effects (simulations, trails), render into a ping-pong target and blit the result with a second program. Use ctx.resolution for sizes and recreate targets when it changes.
+
+The canvas size changes while the scene runs: the window resizes, the person goes full screen (Perform), picks another frame (16:9, 9:16 portrait, 1:1, an exact size like 1080×1920 or 3840×2160), or records at a different size. Write every scene to survive that:
+- Read ctx.resolution in render every frame; never keep the size from setup as the truth.
+- When ctx.resized is true, resize or recreate size-dependent things: render targets (pingPong.resize(w, h)), offscreen 2D canvases, layouts and anything fitted to the canvas (sampled text, grids, tiles). Simulations may keep their own fixed grid and only change how they're drawn.
+- Use the current aspect (w / h) for projections and anything placed in normalized coordinates, so portrait and landscape both look composed, not stretched or cropped; keep the subject inside both.
+- Size lines, points and text from the resolution (e.g. h / 1000), not fixed pixel counts, so a 4K render doesn't turn thin and a phone-sized one doesn't turn heavy.
+- Libraries that cache their own size (three.js renderer.setSize, Babylon engine.resize/setSize, PixiJS renderer.resize, p5 graphics) need telling on ctx.resized.
 
 `;
 
