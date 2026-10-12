@@ -600,6 +600,15 @@ export function setSidebarTab(tab: AppState["sidebarTab"]): void {
   set({ sidebarTab: tab });
 }
 
+export function setSidebarCollapsed(collapsed: boolean): void {
+  set({ sidebarCollapsed: collapsed });
+  try {
+    localStorage.setItem("siljangnim.sidebarCollapsed", collapsed ? "1" : "0");
+  } catch {
+    // not remembered
+  }
+}
+
 function flushControlVersion(): Promise<unknown> {
   clearTimeout(controlTimer);
   controlTimer = undefined;
@@ -1007,7 +1016,7 @@ function requestApproval(request: ApprovalRequest, signal: AbortSignal, timeoutS
     // A newer request replaces an unanswered one (it can only come from a stopped run).
     answerApproval?.("deny");
     answerApproval = done;
-    set((st) => ({ approval: request, sidebarTab: st.external ? "activity" : "chat" }));
+    set((st) => ({ approval: request, sidebarTab: st.external ? "activity" : "chat", sidebarCollapsed: false }));
   });
 }
 
@@ -1281,7 +1290,7 @@ export async function sendPrompt(text: string): Promise<void> {
         const onAbort = () => done(null);
         signal.addEventListener("abort", onAbort);
         answerPending = done;
-        set({ question: { question, options }, sidebarTab: "chat" });
+        set({ question: { question, options }, sidebarTab: "chat", sidebarCollapsed: false });
       }),
   };
   const note = pendingNotes.get(projectId);
