@@ -2,7 +2,7 @@
 
 An agent-run creative studio: people describe a visual, the built-in agent writes a live scene,
 checks it runs and looks right, and refines it. Being rebuilt as a desktop app (v2).
-`docs/` holds user guides only (Korean); the design lives in this file, the code and its comments.
+`docs/` holds user guides only (Korean, with English translations in `docs/en/`); the design lives in this file, the code and its comments.
 
 ## Layout
 
@@ -93,5 +93,6 @@ Run `check`, `test` and `smoke` before every push; CI runs the same (Linux needs
   `THIRD_PARTY_NOTICES.md` (licenses and source links). Material from others in an example (fonts, images,
   data) goes in its example.json `credits`.
 - Update `docs/` when something people use changes; keep it to what users need (no implementation notes,
-  test logs or plans). Docs are written in Korean; code and comments in English.
+  test logs or plans). Docs are written in Korean, with an English version of each in `docs/en/` — change both;
+  the two READMEs likewise. Code and comments in English.
 - UI strings are English for now.

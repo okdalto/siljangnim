@@ -181,7 +181,7 @@ hub/        Python 사이드카(uv 관리): 런타임 작업과 레시피
 mcp/        외부 에이전트용 MCP 서버(siljangnim-mcp로 배포)
 examples/   앱에 나오는 예제 프로젝트
 registry/   공유 레시피(PR로 기여)
-docs/       사용자 가이드(한국어)
+docs/       사용자 가이드(한국어, 영어판은 docs/en/)
 ```
 
 가이드: [창작 흐름](docs/creative.md), [에이전트 연결](docs/mcp.md), [내 컴퓨터에서 도구 실행](docs/local-tools.md), [공유](docs/sharing.md), [모델 연결](docs/models.md).

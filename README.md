@@ -13,7 +13,7 @@
 <p align="center">
   <a href="#get-started">Get started</a> ·
   <a href="https://siljangnim.vercel.app/">Try on the web</a> ·
-  <a href="docs/creative.md">Guides</a> ·
+  <a href="docs/en/creative.md">Guides</a> ·
   <a href="README.ko.md">한국어</a>
 </p>
 
@@ -87,7 +87,7 @@ tool_timeout_sec = 120
 }
 ```
 
-Options (port, which browser opens) are in [docs/mcp.md](docs/mcp.md). To remove it:
+Options (port, which browser opens) are in [docs/en/mcp.md](docs/en/mcp.md). To remove it:
 `claude mcp remove siljangnim`.
 
 </details>
@@ -147,7 +147,7 @@ writes the code, and the work keeps changing for as long as you keep talking to 
 Start from one of **70+ examples**, each built on an open-source project (Shan Shui Infinite, MarkovJunior,
 Growing NCA, Three.js, p5.js, OpenCV, librosa …) with its credits and license, and take it somewhere else.
 
-[A longer walk-through of the creative workflow (in Korean)](docs/creative.md).
+[A longer walk-through of the creative workflow](docs/en/creative.md).
 
 ## Under the hood
 
@@ -184,10 +184,10 @@ hub/        Python sidecar (uv-managed): runtime jobs and recipes
 mcp/        MCP server for external agents (published as siljangnim-mcp)
 examples/   Example projects shown in the app
 registry/   Shared recipes, contributed by pull request
-docs/       User guides (in Korean)
+docs/       User guides (Korean; English in docs/en/)
 ```
 
-Guides (in Korean): [the creative workflow](docs/creative.md), [connecting an agent](docs/mcp.md), [tools on your machine](docs/local-tools.md), [sharing](docs/sharing.md), [models](docs/models.md).
+Guides: [the creative workflow](docs/en/creative.md), [connecting an agent](docs/en/mcp.md), [tools on your machine](docs/en/local-tools.md), [sharing](docs/en/sharing.md), [models](docs/en/models.md).
 
 ## Costs and security
 
