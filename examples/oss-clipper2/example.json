@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "clipper2"
-  ]
+  ],
+  "summary": "Moving shapes merge into one outline, and rings ripple out from it like water around a dropped stone.",
+  "summary_ko": "움직이는 도형들이 하나의 윤곽으로 합쳐지고, 돌을 던진 물처럼 그 둘레로 고리가 퍼져 나가요.",
+  "try": [
+    "Move the pointer to add your own circle to the shape",
+    "Switch Join to Miter or Bevel to see sharp or clipped corners on the rings",
+    "Raise Outer rings for more ripples"
+  ],
+  "try_ko": [
+    "포인터를 움직여 도형에 내 원을 하나 더해 보세요",
+    "Join을 Miter나 Bevel로 바꿔 고리 모서리가 뾰족해지거나 잘리는 걸 보세요",
+    "Outer rings를 올려 물결을 더 늘려 보세요"
+  ],
+  "tool_about": "Clipper2 is a fast library for merging, cutting, growing and shrinking flat outlines, used in laser cutting, 3D printing and maps. Here a JavaScript version of it runs in the browser.",
+  "tool_about_ko": "Clipper2는 평면 윤곽선을 합치고, 자르고, 두껍게 또는 얇게 만드는 빠른 라이브러리로 레이저 커팅, 3D 프린팅, 지도 등에 쓰여요. 여기서는 JavaScript 버전이 브라우저에서 돌아가요."
 }

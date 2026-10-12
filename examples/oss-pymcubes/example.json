@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "pymcubes"
-  ]
+  ],
+  "summary": "A sphere carved into a sponge of smooth, twisting tunnels, sliced open so you can see inside.",
+  "summary_ko": "매끈하게 꼬인 터널로 가득한 스펀지 같은 구를 잘라 열어서 속까지 들여다봐요.",
+  "try": [
+    "Drag to turn the shape around",
+    "Move the Slice slider to cut deeper or close it up",
+    "Ask the agent to change the shape in the recipe, for example into a twisted donut"
+  ],
+  "try_ko": [
+    "드래그해서 모양을 돌려 보세요",
+    "Slice 슬라이더를 움직여 더 깊이 자르거나 다시 닫아 보세요",
+    "레시피의 모양을 바꿔 달라고 에이전트에게 부탁해 보세요. 예를 들어 꼬인 도넛으로요"
+  ],
+  "tool_about": "PyMCubes is a Python library that turns a shape described by a math formula into a 3D mesh of triangles you can draw or 3D-print. It runs on this computer through Python, not in the browser.",
+  "tool_about_ko": "PyMCubes는 수식으로 정의한 모양을 화면에 그리거나 3D 프린트할 수 있는 삼각형 메시로 바꿔 주는 파이썬 라이브러리예요. 브라우저가 아니라 이 컴퓨터에서 파이썬으로 돌아가요."
 }

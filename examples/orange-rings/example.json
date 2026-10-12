@@ -11,5 +11,19 @@
     "control groups",
     "mcp"
   ],
-  "mode": "live"
+  "mode": "live",
+  "summary": "Glowing orange rings ripple out from a warm center, like a stone dropped in lava.",
+  "summary_ko": "따뜻하게 빛나는 중심에서 주황색 고리가 용암에 돌을 던진 것처럼 퍼져 나가요.",
+  "try": [
+    "Raise Ring Scale to pack the rings closer together",
+    "Push Glow up for a hazier, brighter light",
+    "Change the Orange color to make blue or green ripples"
+  ],
+  "try_ko": [
+    "Ring Scale을 올려 고리 간격을 촘촘하게 해 보세요",
+    "Glow를 올려 더 뿌옇고 밝게 빛나게 해 보세요",
+    "Orange 색을 바꿔 파란색이나 초록색 물결로 만들어 보세요"
+  ],
+  "tool_about": "Made by Codex, an outside AI agent, which built it in Siljangnim through the MCP connection.",
+  "tool_about_ko": "외부 AI 에이전트인 Codex가 MCP 연결로 Siljangnim에 접속해 만든 씬이에요."
 }

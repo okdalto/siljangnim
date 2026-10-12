@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "hydra-synth"
-  ]
+  ],
+  "summary": "Psychedelic video-synth patterns: kaleidoscopes, endless tunnels and cells that bend as you move the pointer.",
+  "summary_ko": "사이키델릭한 비디오 신스 무늬예요. 만화경, 끝없는 터널, 세포 무늬가 포인터를 따라 휘어져요.",
+  "try": [
+    "Switch Patch between Kaleidoscope, Feedback, Voronoi and Type (canvas source)",
+    "Move the pointer around to bend the pattern",
+    "Turn on Mirror for a symmetric picture"
+  ],
+  "try_ko": [
+    "Patch를 Kaleidoscope, Feedback, Voronoi, Type (canvas source)로 바꿔 보세요",
+    "포인터를 움직여 무늬를 휘어 보세요",
+    "Mirror를 켜면 좌우 대칭이 돼요"
+  ],
+  "tool_about": "Hydra is a live-coding video synthesizer: you chain short commands like osc() and kaleid() to make moving visuals, often performed live at music shows. It runs in the browser.",
+  "tool_about_ko": "Hydra는 라이브 코딩 비디오 신시사이저예요. osc(), kaleid() 같은 짧은 명령을 이어 붙여 움직이는 영상을 만들고, 공연장에서 음악과 함께 즉석으로 연주하듯 쓰여요. 브라우저에서 돌아가요."
 }

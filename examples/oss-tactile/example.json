@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "tactile-js"
-  ]
+  ],
+  "summary": "Puzzle-piece tiles cover the screen with no gaps and keep changing shape while still fitting together.",
+  "summary_ko": "퍼즐 조각 같은 타일이 빈틈없이 화면을 덮고, 모양이 계속 바뀌어도 꼭 맞물려요.",
+  "try": [
+    "Move the pointer over a tile to highlight it",
+    "Turn off Cycle types and pick a Tiling type number yourself",
+    "Turn the Edge bend knob to make the edges wavier or straighter"
+  ],
+  "try_ko": [
+    "포인터를 타일 위에 올려 강조해 보세요",
+    "Cycle types를 끄고 Tiling type 번호를 직접 골라 보세요",
+    "Edge bend 노브를 돌려 가장자리를 더 구불구불하게, 또는 곧게 만들어 보세요"
+  ],
+  "tool_about": "TactileJS is a JavaScript library for tilings: one shape repeated to cover a surface with no gaps or overlaps, as in M. C. Escher's drawings. It knows all 81 basic families of these patterns and runs in the browser.",
+  "tool_about_ko": "TactileJS는 에셔의 그림처럼 한 가지 모양을 빈틈도 겹침도 없이 반복해 평면을 덮는 타일링을 다루는 JavaScript 라이브러리예요. 이런 무늬의 기본 유형 81가지를 모두 알고 있고, 브라우저에서 돌아가요."
 }

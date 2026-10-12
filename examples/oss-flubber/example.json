@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "flubber"
-  ]
+  ],
+  "summary": "One shape smoothly melts into the next (circle, star, heart, square and more), leaving faint trails.",
+  "summary_ko": "원, 별, 하트, 사각형… 한 도형이 다음 도형으로 부드럽게 녹아들며 희미한 잔상을 남겨요.",
+  "try": [
+    "Hold the mouse button and move sideways to flip through the shapes yourself",
+    "Raise Morph (s) to slow the change down",
+    "Set Echoes to 0 to hide the trails"
+  ],
+  "try_ko": [
+    "마우스 버튼을 누른 채 좌우로 움직여 도형을 직접 넘겨 보세요",
+    "Morph (s)를 올려 변신을 느리게 해 보세요",
+    "Echoes를 0으로 하면 잔상이 사라져요"
+  ],
+  "tool_about": "Flubber is a JavaScript library for smoothly morphing one flat shape into another, even when their outlines are very different. It runs in the browser and is often used for animated icons and charts.",
+  "tool_about_ko": "Flubber는 윤곽이 전혀 다른 평면 도형끼리도 부드럽게 변신시켜 주는 JavaScript 라이브러리예요. 브라우저에서 돌아가며 움직이는 아이콘이나 차트에 자주 쓰여요."
 }

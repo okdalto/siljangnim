@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "flatbush"
-  ]
+  ],
+  "summary": "Thousands of tiny arrows flock like birds, each one steering by only the neighbors right around it.",
+  "summary_ko": "작은 화살표 수천 개가 새 떼처럼 무리 지어 날아요. 저마다 바로 옆 이웃만 보고 방향을 정해요.",
+  "try": [
+    "Hover over the flock to pick one bird and see its search box and the neighbors it found",
+    "Hold the mouse button to scare the flock away from the pointer",
+    "Turn the View radius knob up so each bird sees farther"
+  ],
+  "try_ko": [
+    "무리 위에 포인터를 올리면 한 마리가 골라지고, 이웃을 찾는 상자와 찾은 이웃이 보여요",
+    "마우스 버튼을 누르고 있으면 포인터 근처의 새들이 흩어져요",
+    "View radius 노브를 올려 각자 더 멀리 보게 해 보세요"
+  ],
+  "tool_about": "Flatbush is a fast JavaScript library for finding things by location: give it many points or boxes, and it quickly answers \"what is near here?\". It runs in the browser and is used in maps, games and collision checks.",
+  "tool_about_ko": "Flatbush는 위치로 물건을 빨리 찾아 주는 자바스크립트 라이브러리예요. 점이나 상자를 잔뜩 넣어 두면 \"여기 근처에 뭐가 있지?\"에 재빨리 답해 줘요. 브라우저에서 돌아가며 지도, 게임, 충돌 검사에 쓰여요."
 }

@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "d3-force"
-  ]
+  ],
+  "summary": "900 colored bubbles jostle into clusters without overlapping, and scatter away from your pointer.",
+  "summary_ko": "900개의 색색 거품이 겹치지 않게 서로 밀치며 무리를 이루고, 포인터가 다가가면 비켜나요.",
+  "try": [
+    "Move the pointer through the bubbles; hold the button to push harder",
+    "Switch Layout between One cluster, By group and Rings",
+    "Press Shake to stir them up"
+  ],
+  "try_ko": [
+    "포인터를 거품 사이로 움직여 보세요. 버튼을 누르고 있으면 더 세게 밀어내요",
+    "Layout을 One cluster, By group, Rings로 바꿔 보세요",
+    "Shake를 눌러 거품을 휘저어 보세요"
+  ],
+  "tool_about": "d3-force is part of D3, a JavaScript toolkit for charts and data pictures. It moves dots with simple pushes and pulls so they spread out, cluster or link up, and is widely used for network diagrams; it runs in the browser.",
+  "tool_about_ko": "d3-force는 차트와 데이터 시각화 도구 모음인 D3의 한 부분이에요. 점들을 밀고 당기는 힘으로 움직여 퍼지거나 뭉치거나 연결되게 하며, 네트워크 그림에 많이 쓰여요. 브라우저에서 돌아가요."
 }

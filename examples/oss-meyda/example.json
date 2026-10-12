@@ -14,5 +14,17 @@
   "mode": "live",
   "uses": [
     "meyda"
-  ]
+  ],
+  "summary": "A wheel of 12 colored slices lights up with the notes in the music, and the center pulses with loudness.",
+  "summary_ko": "12조각 색 바퀴가 음악 속 음에 따라 빛나고, 가운데 원은 소리 크기에 맞춰 커졌다 작아져요.",
+  "try": [
+    "Click the viewport if the wheel stays dark (the browser may be waiting to play sound)",
+    "Ask the agent to analyse your own song instead of the bundled loop"
+  ],
+  "try_ko": [
+    "바퀴가 어두운 채라면 뷰포트를 클릭하세요(브라우저가 소리 재생을 기다리고 있을 수 있어요)",
+    "에이전트에게 들어 있는 루프 대신 내 노래를 분석해 달라고 해 보세요"
+  ],
+  "tool_about": "Meyda listens to audio and measures things like which notes are playing, how loud it is and how bright it sounds. It runs in the browser.",
+  "tool_about_ko": "Meyda는 소리를 듣고 어떤 음이 나는지, 얼마나 큰지, 얼마나 밝게 들리는지 등을 측정해 줘요. 브라우저에서 돌아가요."
 }

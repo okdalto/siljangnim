@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "ffmpeg"
-  ]
+  ],
+  "summary": "An endless fractal zoom video, folded into a slowly turning kaleidoscope.",
+  "summary_ko": "끝없이 확대되는 프랙털 영상이 천천히 도는 만화경 속에 비쳐요.",
+  "try": [
+    "Change Mirrors for more or fewer kaleidoscope slices",
+    "Turn the Zoom knob to look closer or farther",
+    "Slide Hue to recolor the whole picture"
+  ],
+  "try_ko": [
+    "Mirrors를 바꿔 만화경 조각 수를 늘리거나 줄여 보세요",
+    "Zoom 노브를 돌려 가까이 또는 멀리 보세요",
+    "Hue를 밀어 화면 전체 색을 바꿔 보세요"
+  ],
+  "tool_about": "FFmpeg is a free program for converting, cutting and creating video and audio files. It is installed and runs on this computer, not in the browser.",
+  "tool_about_ko": "FFmpeg는 영상과 소리 파일을 변환하고 자르고 만드는 무료 프로그램이에요. 브라우저가 아니라 이 컴퓨터에 설치되어 돌아가요."
 }

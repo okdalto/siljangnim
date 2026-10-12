@@ -10,5 +10,19 @@
     "timeline",
     "keyframes"
   ],
-  "mode": "timeline"
+  "mode": "timeline",
+  "summary": "The same sea, but on a 12-second loop: a calm sea swells into big waves and settles again.",
+  "summary_ko": "같은 바다지만 12초짜리 반복 영상이에요. 잔잔한 바다가 큰 파도로 부풀었다가 다시 가라앉아요.",
+  "try": [
+    "Play the timeline and watch Wave height and Chop & foam rise and fall on their own",
+    "Drag along the timeline bar to jump to the stormiest moment at 6 seconds",
+    "Ask the agent to keyframe Water color so the sea darkens as the storm peaks"
+  ],
+  "try_ko": [
+    "타임라인을 재생해 Wave height와 Chop & foam이 저절로 오르내리는 걸 보세요",
+    "타임라인 막대를 드래그해 가장 거친 6초 지점으로 가 보세요",
+    "에이전트에게 Water color에도 키프레임을 넣어 폭풍이 절정일 때 바다가 어두워지게 해 달라고 해 보세요"
+  ],
+  "tool_about": "Made by hand from the Ocean waves example by adding keyframes to two controls.",
+  "tool_about_ko": "바다 파도 예제에 컨트롤 두 개의 키프레임을 손으로 더해 만든 씬이에요."
 }

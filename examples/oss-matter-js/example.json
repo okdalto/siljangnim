@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "matter-js"
-  ]
+  ],
+  "summary": "Colored blobs pour onto a shelf and merge like drops of liquid.",
+  "summary_ko": "색색의 방울이 선반 위로 쏟아지며 물방울처럼 서로 녹아 붙어요.",
+  "try": [
+    "Hold the mouse button to pull the blobs toward the pointer",
+    "Turn the Gravity knob below zero to make them float up",
+    "Raise Merge to make the drops look separate"
+  ],
+  "try_ko": [
+    "마우스를 누르고 있으면 방울이 포인터 쪽으로 끌려와요",
+    "Gravity 노브를 0 아래로 돌려 방울이 위로 떠오르게 해 보세요",
+    "Merge를 올리면 방울이 덜 붙고 따로따로 보여요"
+  ],
+  "tool_about": "Matter.js is a physics engine for the web: it moves 2D shapes that fall, bounce and collide. It runs in the browser.",
+  "tool_about_ko": "Matter.js는 웹용 물리 엔진으로, 2D 도형이 떨어지고 튀고 부딪치게 해 줘요. 브라우저에서 돌아가요."
 }

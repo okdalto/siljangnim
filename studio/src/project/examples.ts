@@ -17,6 +17,27 @@ interface ExampleMeta {
   requires?: string[];
   /** Catalog ids of the open-source tools the example is built around (src/catalog). */
   uses?: string[];
+  /** Plain-language versions for people new to it: what you see, what to try, what the tool is. */
+  summary?: string;
+  summary_ko?: string;
+  try?: string[];
+  try_ko?: string[];
+  tool_about?: string;
+  tool_about_ko?: string;
+}
+
+/** Korean when the browser asks for it; examples carry both languages. */
+export const prefersKorean = (): boolean => typeof navigator !== "undefined" && /^ko\b/i.test(navigator.language);
+
+/** The example's plain-language text in the person's language (technical description as the fallback). */
+export function exampleText(e: ExampleMeta, korean = prefersKorean()): { title: string; summary: string; tries: string[]; tool: string; details: string } {
+  return {
+    title: (korean && e.title_ko) || e.title,
+    summary: (korean ? e.summary_ko : e.summary) || e.summary || (korean && e.description_ko) || e.description,
+    tries: (korean ? e.try_ko : e.try) ?? e.try ?? [],
+    tool: (korean ? e.tool_about_ko : e.tool_about) ?? e.tool_about ?? "",
+    details: (korean && e.description_ko) || e.description,
+  };
 }
 
 export interface Example extends ExampleMeta {

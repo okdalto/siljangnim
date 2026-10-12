@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "spectral-js"
-  ]
+  ],
+  "summary": "Blobs of paint swirl on paper and mix like real paint, so blue and yellow really make green.",
+  "summary_ko": "종이 위 물감이 소용돌이치며 진짜 물감처럼 섞여요. 파랑과 노랑이 만나면 정말 초록이 돼요.",
+  "try": [
+    "Hold the mouse button and drag to paint with the color picked in Brush",
+    "Turn on Compare with RGB (right half) to see screen-style mixing turn muddy grey",
+    "Change Paint A, Paint B or Paint C and watch the mixes update"
+  ],
+  "try_ko": [
+    "마우스 버튼을 누른 채 드래그해서 Brush에서 고른 색으로 칠해 보세요",
+    "Compare with RGB (right half)를 켜면 오른쪽 절반은 화면식으로 섞여서 탁한 회색이 돼요",
+    "Paint A, Paint B, Paint C 색을 바꾸고 섞인 색이 어떻게 변하는지 보세요"
+  ],
+  "tool_about": "spectral.js is a small JavaScript library that mixes colors the way real paint does, instead of the way screens add light. It runs in the browser and is used in drawing apps and generative art.",
+  "tool_about_ko": "spectral.js는 화면의 빛 혼합이 아니라 실제 물감처럼 색을 섞어 주는 작은 자바스크립트 라이브러리예요. 브라우저에서 돌아가며 그림 앱이나 제너레이티브 아트에 쓰여요."
 }

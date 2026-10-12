@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "pathfinding-js"
-  ]
+  ],
+  "summary": "Watch the computer search a maze cell by cell, then trace the route it found to the goal.",
+  "summary_ko": "컴퓨터가 미로를 한 칸씩 뒤진 뒤, 찾아낸 길을 따라 목적지까지 선을 그어 가는 모습을 볼 수 있어요.",
+  "try": [
+    "Click an open cell to send the search there",
+    "Switch Finder to compare A*, Dijkstra, Best-first and the others",
+    "Turn the Replay speed knob to watch the search faster or slower"
+  ],
+  "try_ko": [
+    "빈 칸을 클릭해 그곳까지 길을 찾게 해 보세요",
+    "Finder를 바꿔 A*, Dijkstra, Best-first 등을 비교해 보세요",
+    "Replay speed 노브를 돌려 탐색을 빠르게 또는 느리게 보세요"
+  ],
+  "tool_about": "PathFinding.js is a JavaScript library that finds the shortest way through a grid, such as a maze or a game map, using several classic search methods. It runs in the browser.",
+  "tool_about_ko": "PathFinding.js는 미로나 게임 지도 같은 격자에서 가장 짧은 길을 찾아 주는 JavaScript 라이브러리로, 여러 고전적인 탐색 방법을 담고 있어요. 브라우저에서 돌아가요."
 }

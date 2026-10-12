@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "tween-js"
-  ]
+  ],
+  "summary": "Colorful squares glide between a grid, a circle, a spiral and a wave, each move with its own style of motion.",
+  "summary_ko": "알록달록한 사각형들이 격자, 원, 나선, 물결 모양을 오가며, 이동할 때마다 다른 느낌으로 움직여요.",
+  "try": [
+    "Pick Bounce.Out or Elastic.Out in Easing to see the squares bounce or wobble into place",
+    "Raise Stagger (s) so the squares leave one after another",
+    "Watch the small curve in the corner: it draws the motion style in use"
+  ],
+  "try_ko": [
+    "Easing에서 Bounce.Out이나 Elastic.Out을 골라 통통 튀거나 출렁이며 자리 잡는 모습을 보세요",
+    "Stagger (s)를 올리면 사각형들이 하나씩 차례로 출발해요",
+    "구석의 작은 곡선을 보세요. 지금 쓰는 움직임 스타일을 그려 줘요"
+  ],
+  "tool_about": "tween.js is a JavaScript animation helper: you say where something should go and how long it takes, and it fills in the in-between frames with smooth, bouncy or springy timing. It runs in the browser.",
+  "tool_about_ko": "tween.js는 자바스크립트 애니메이션 도우미예요. 어디로, 얼마 동안 움직일지만 정하면 그 사이 장면을 부드럽게, 통통 튀게, 혹은 용수철처럼 채워 줘요. 브라우저에서 돌아가요."
 }

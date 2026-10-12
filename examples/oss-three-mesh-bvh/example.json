@@ -16,5 +16,19 @@
   "uses": [
     "three-mesh-bvh",
     "three-js"
-  ]
+  ],
+  "summary": "Three lights circle a lumpy knot and spray it with thousands of rays that leave glowing paint where they hit.",
+  "summary_ko": "세 개의 광원이 울퉁불퉁한 매듭 주위를 돌며 수천 개의 광선을 쏘고, 맞은 자리에 빛나는 물감이 남아요.",
+  "try": [
+    "Drag to look around the knot",
+    "Raise Rays per frame to paint faster",
+    "Raise Paint fade so the paint stays longer"
+  ],
+  "try_ko": [
+    "드래그해서 매듭을 둘러보세요",
+    "Rays per frame을 올려 더 빨리 칠해 보세요",
+    "Paint fade를 올리면 물감이 더 오래 남아요"
+  ],
+  "tool_about": "three-mesh-bvh is an add-on for Three.js that sorts a 3D model's triangles so it can quickly tell what a ray or the mouse hits, even on huge models. It runs in the browser.",
+  "tool_about_ko": "three-mesh-bvh는 Three.js용 확장으로, 3D 모델의 삼각형을 미리 정리해 두어 아주 큰 모델에서도 광선이나 마우스가 어디에 닿는지 빠르게 알아내요. 브라우저에서 돌아가요."
 }

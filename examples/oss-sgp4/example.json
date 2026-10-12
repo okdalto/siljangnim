@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "sgp4"
-  ]
+  ],
+  "summary": "Seven real satellites, like the space station and Hubble, circle Earth and draw their paths over it.",
+  "summary_ko": "국제우주정거장, 허블 등 실제 위성 일곱 개가 지구를 돌며 땅 위에 지나간 길을 그려요.",
+  "try": [
+    "Drag to turn the globe",
+    "Raise Trail (minutes) to see longer paths",
+    "Turn up the Minutes per second knob to speed up time"
+  ],
+  "try_ko": [
+    "드래그해서 지구를 돌려 보세요",
+    "Trail (minutes)를 올리면 더 긴 경로가 보여요",
+    "Minutes per second 노브를 올려 시간을 빨리 감아 보세요"
+  ],
+  "tool_about": "python-sgp4 is the standard Python tool for working out where a satellite is at any moment from its published orbit data. It runs on this computer through Python and is used by satellite-tracking apps.",
+  "tool_about_ko": "python-sgp4는 공개된 궤도 정보로 위성이 어느 순간에 어디 있는지 계산하는 표준 파이썬 도구예요. 이 컴퓨터에서 파이썬으로 돌아가며 위성 추적 프로그램에 쓰여요."
 }

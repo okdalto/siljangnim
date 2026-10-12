@@ -10,5 +10,19 @@
     "raymarching",
     "orbit camera"
   ],
-  "mode": "live"
+  "mode": "live",
+  "summary": "A chrome ball sits on an endless checkered floor, mirroring the sky and the floor around it.",
+  "summary_ko": "끝없는 체크무늬 바닥 위에 크롬 공이 놓여 하늘과 바닥을 거울처럼 비춰요.",
+  "try": [
+    "Drag to walk the camera around the ball, and scroll to zoom",
+    "Raise Roughness to turn the mirror into brushed metal",
+    "Change Sphere size and watch the reflection and shadow follow"
+  ],
+  "try_ko": [
+    "드래그해서 카메라로 공 주위를 돌고, 휠로 확대해 보세요",
+    "Roughness를 올려 거울을 무광 금속처럼 만들어 보세요",
+    "Sphere size를 바꾸면 반사와 그림자가 함께 바뀌어요"
+  ],
+  "tool_about": "Written by the built-in agent from a one-line request.",
+  "tool_about_ko": "내장 에이전트가 한 줄 요청을 받아 만든 씬이에요."
 }

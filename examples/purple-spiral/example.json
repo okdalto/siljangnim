@@ -11,5 +11,17 @@
     "knob",
     "mcp"
   ],
-  "mode": "live"
+  "mode": "live",
+  "summary": "A glowing purple spiral with four arms slowly turns, like a galaxy or a hypnotic swirl.",
+  "summary_ko": "팔 네 개짜리 보라색 나선이 은하나 최면 소용돌이처럼 천천히 돌아요.",
+  "try": [
+    "Turn the Rotation speed knob below zero to spin it the other way",
+    "Ask the agent to add a knob for the number of arms"
+  ],
+  "try_ko": [
+    "Rotation speed 노브를 0 아래로 돌려 반대로 돌게 해 보세요",
+    "에이전트에게 나선 팔 개수를 바꾸는 노브를 추가해 달라고 해 보세요"
+  ],
+  "tool_about": "Made by Claude Code, an outside AI agent, which built it in Siljangnim through the MCP connection.",
+  "tool_about_ko": "외부 AI 에이전트인 Claude Code가 MCP 연결로 Siljangnim에 접속해 만든 씬이에요."
 }

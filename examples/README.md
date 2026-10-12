@@ -6,7 +6,8 @@ Python package or program the agent ran through a recipe, whose output the scene
 `catalog_get` shows an agent the example built around a tool.
 
 ```
-example.json   title, description, what it's made with, uses (catalog ids)
+example.json   title, description (technical), summary / try / tool_about (plain words, also _ko),
+               what it's made with, uses (catalog ids)
 scene.json     the scene (format v2, see docs/studio.md)
 thumbnail.png
 assets/        files the scene loads by name (ctx.assets[name])

@@ -18,5 +18,19 @@
   ],
   "uses": [
     "mediapipe-tasks-vision"
-  ]
+  ],
+  "summary": "Your webcam becomes a mirror and glowing dots follow every finger joint of up to two hands.",
+  "summary_ko": "웹캠이 거울처럼 비치고, 빛나는 점이 두 손의 손가락 마디마다 따라다녀요.",
+  "try": [
+    "Hold your hands up to the camera and wiggle your fingers",
+    "Turn the Glow size knob up for bigger lights",
+    "Lower Camera brightness so only the glow shows"
+  ],
+  "try_ko": [
+    "카메라 앞에 손을 들고 손가락을 움직여 보세요",
+    "Glow size 노브를 올려 빛을 크게 해 보세요",
+    "Camera brightness를 낮춰 빛만 보이게 해 보세요"
+  ],
+  "tool_about": "MediaPipe is Google's toolkit for spotting hands, faces and bodies in camera images. It runs right in the browser and is downloaded when the scene starts.",
+  "tool_about_ko": "MediaPipe는 카메라 영상에서 손·얼굴·몸을 찾아내는 구글의 도구예요. 브라우저 안에서 바로 돌아가고, 씬이 시작될 때 내려받아요."
 }

@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "perfect-freehand"
-  ]
+  ],
+  "summary": "Draw with the mouse and your line becomes a smooth ink stroke that gets thinner when you move fast.",
+  "summary_ko": "마우스로 그리면 선이 매끈한 잉크 붓질이 되고, 빨리 그을수록 가늘어져요.",
+  "try": [
+    "Hold the mouse button and drag to draw a stroke",
+    "Turn the Thinning knob below zero so fast strokes get thicker instead",
+    "Press Clear to start on a blank page"
+  ],
+  "try_ko": [
+    "마우스 버튼을 누른 채 끌어서 선을 그려 보세요",
+    "Thinning 노브를 0 아래로 돌리면 빨리 그을수록 오히려 굵어져요",
+    "Clear를 눌러 빈 종이에서 다시 시작해 보세요"
+  ],
+  "tool_about": "Perfect Freehand is a JavaScript library that turns the points of a mouse or pen path into the outline of a natural-looking stroke that swells and thins like real ink. It runs in the browser and is used in drawing and whiteboard apps.",
+  "tool_about_ko": "Perfect Freehand는 마우스나 펜이 지나간 점들을 진짜 잉크처럼 굵어졌다 가늘어지는 자연스러운 붓 자국 모양으로 바꿔 주는 JavaScript 라이브러리예요. 브라우저에서 돌아가며 그림 앱이나 화이트보드 앱에 쓰여요."
 }

@@ -15,5 +15,19 @@
   "mode": "live",
   "uses": [
     "tiny-sdf"
-  ]
+  ],
+  "summary": "A word in glowing neon letters, with an outline, a pulsing glow and a shadow that turns away from the pointer.",
+  "summary_ko": "네온처럼 빛나는 글자예요. 테두리와 숨 쉬듯 깜빡이는 빛, 포인터 반대쪽으로 지는 그림자까지 있어요.",
+  "try": [
+    "Move the pointer around the letters to swing the shadow",
+    "Turn the Weight knob to make the letters thinner or bolder",
+    "Pick 실장님 in Text to see Korean letters"
+  ],
+  "try_ko": [
+    "글자 주변으로 포인터를 움직여 그림자 방향을 바꿔 보세요",
+    "Weight 노브를 돌려 글자를 가늘게 혹은 굵게 해 보세요",
+    "Text에서 실장님을 골라 한글도 보세요"
+  ],
+  "tool_about": "TinySDF, from Mapbox, is a small JavaScript library that turns the letters of a font into a special kind of image that stays crisp at any size and makes outlines and glows easy. It runs in the browser and is used for text on web maps.",
+  "tool_about_ko": "TinySDF는 Mapbox가 만든 작은 자바스크립트 라이브러리로, 글꼴의 글자를 어떤 크기에서도 선명하고 테두리나 빛 효과를 넣기 쉬운 특별한 이미지로 바꿔 줘요. 브라우저에서 돌아가며 웹 지도의 글자에 쓰여요."
 }

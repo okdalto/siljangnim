@@ -14,5 +14,19 @@
   "mode": "live",
   "uses": [
     "simplex-noise"
-  ]
+  ],
+  "summary": "Thousands of specks drift along invisible currents and leave glowing trails, like wind on a weather map.",
+  "summary_ko": "수천 개의 점이 보이지 않는 물결을 따라 흐르며 빛나는 꼬리를 남겨요. 날씨 지도의 바람 같아요.",
+  "try": [
+    "Raise Trail for longer, silkier streaks",
+    "Change Noise scale for big lazy swirls or small busy ones",
+    "Turn the Speed knob to speed the currents up"
+  ],
+  "try_ko": [
+    "Trail을 올려 꼬리를 더 길고 매끄럽게 해 보세요",
+    "Noise scale을 바꿔 크고 느긋한 소용돌이나 작고 바쁜 소용돌이를 만들어 보세요",
+    "Speed 노브를 돌려 흐름을 빠르게 해 보세요"
+  ],
+  "tool_about": "simplex-noise makes smooth, natural-looking randomness, the kind used for clouds, terrain and flowing motion. It runs in the browser.",
+  "tool_about_ko": "simplex-noise는 구름·지형·흐르는 움직임에 쓰는 부드럽고 자연스러운 무작위 값을 만들어 줘요. 브라우저에서 돌아가요."
 }
