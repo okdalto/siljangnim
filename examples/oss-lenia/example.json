@@ -1,5 +1,5 @@
 {
-  "order": 217,
+  "order": 9,
   "title": "Gliding creatures (Lenia)",
   "title_ko": "헤엄치는 생명체 (Lenia)",
   "description": "Lenia, a continuous cellular automaton, runs on the GPU: each step convolves a float world (a torus, R32F ping-pong textures) with Lenia's bump-shaped ring kernel of radius 13 and adds dt times the Gaussian growth function. The world is seeded with a school of Orbium unicaudatus, decoded from the repo's animals.json with its own parameters (R=13, μ=0.15, σ=0.015, T=10), and colored with Lenia's colormaps. Drag paints matter, right-drag or Shift+drag erases; the scene weighs the world twice a second and reseeds when everything has died or blown up.",

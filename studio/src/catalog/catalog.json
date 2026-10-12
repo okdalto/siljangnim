@@ -2462,6 +2462,90 @@
     "cdn": "https://cdn.jsdelivr.net/gh/Chakazul/Lenia@adfc54293926/Python/animals.json"
    },
    "notes": "The update rule runs as shaders in the example's scene; species (e.g. Orbium) come from animals.json."
+  },
+  {
+   "id": "growing-neural-cellular-automata",
+   "name": "Growing Neural Cellular Automata",
+   "repo": "https://github.com/google-research/self-organising-systems",
+   "license": "Apache-2.0",
+   "tier": "B",
+   "purpose": "Pretrained neural cellular automata that grow an emoji from one seed cell and regenerate after damage (run as GPU shaders in the scene).",
+   "tags": [
+    "neural cellular automata",
+    "neural network",
+    "self-organization",
+    "gpu",
+    "regeneration"
+   ],
+   "media": {
+    "in": [
+     "parameters"
+    ],
+    "out": [
+     "simulation",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/google-research/self-organising-systems@3d5547ca48b60ecac459834e2c05c9ff5df87991/assets/growing_ca/models.zip"
+   },
+   "notes": "The update rule (Sobel perception, 48→128→16 network, stochastic update, alive masking) runs as shaders in the example's scene; weights for 10 regenerating emoji models were extracted from models.zip into the example's nca-weights.bin."
+  },
+  {
+   "id": "primitive",
+   "name": "Primitive",
+   "repo": "https://github.com/fogleman/primitive",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Reproduces an image with translucent geometric shapes found by random search and hill climbing (ported to JavaScript in the scene).",
+   "tags": [
+    "image",
+    "geometry",
+    "optimization",
+    "hill climbing",
+    "generative"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image",
+     "vector"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/fogleman/primitive@0373c216458b/primitive/core.go"
+   },
+   "notes": "Go program; the example ports core.go, worker.go, optimize.go and the triangle/rectangle/ellipse shapes to JavaScript and runs the search within a time budget per frame."
+  },
+  {
+   "id": "sandspiel",
+   "name": "sandspiel",
+   "repo": "https://github.com/MaxBittker/sandspiel",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Falling-sand game with many interacting elements (sand, water, fire, plants, lava, ice, gas…); rules ported to JavaScript in the scene.",
+   "tags": [
+    "cellular automata",
+    "falling sand",
+    "simulation",
+    "game",
+    "pixel"
+   ],
+   "media": {
+    "in": [
+     "mouse"
+    ],
+    "out": [
+     "simulation",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/gh/MaxBittker/sandspiel@9936e06b07a5/crate/src/species.rs"
+   },
+   "notes": "Rust→WASM original; the example ports species.rs/lib.rs rules and the sand.glsl palette to JavaScript/GLSL, with a simplified CPU wind field in place of the GPU fluid."
   }
  ]
 }

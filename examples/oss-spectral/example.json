@@ -1,5 +1,5 @@
 {
-  "order": 165,
+  "order": 7,
   "title": "Pigment swirl (spectral.js)",
   "title_ko": "물감 소용돌이 (spectral.js)",
   "description": "spectral.js mixes three paints the way pigments mix (Kubelka–Munk), so blue and yellow make green; its mixes fill a lookup table the shader reads while a GPU flow swirls the paint. Drag to paint or smear; Compare shows plain RGB mixing on the right half.",

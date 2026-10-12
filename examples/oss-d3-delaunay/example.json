@@ -1,5 +1,5 @@
 {
-  "order": 101,
+  "order": 11,
   "title": "Low-poly drift (d3-delaunay)",
   "title_ko": "로우폴리 흐름 (d3-delaunay)",
   "description": "d3-delaunay re-triangulates 400 drifting points every frame; the facets take a two-color gradient and move away from the pointer.",

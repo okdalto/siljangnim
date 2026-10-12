@@ -1,5 +1,5 @@
 {
-  "order": 7,
+  "order": 90,
   "title": "Torus knot mesh",
   "title_ko": "토러스 매듭 메시",
   "description": "A (2,3) torus knot mesh loaded from an OBJ asset, lit and turning. The mesh was made with trimesh through python_run; the recipe to regenerate it is included.",

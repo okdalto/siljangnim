@@ -1,5 +1,5 @@
 {
-  "order": 213,
+  "order": 21,
   "title": "Letters in the wind (opentype.js × simplex-noise)",
   "title_ko": "바람 속 글자 (opentype.js × simplex-noise)",
   "description": "A remix of two examples, Type particles (opentype.js) and Flow field (simplex-noise), combined by Claude Code over MCP: gusts scatter the letters into streams along a simplex-noise flow field; when the wind drops, 14,000 particles find their way back into the word, leaving trails. Hold the mouse button for wind.",

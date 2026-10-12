@@ -1,5 +1,5 @@
 {
-  "order": 215,
+  "order": 4,
   "title": "Plotter fish (fishdraw)",
   "title_ko": "플로터 물고기 (fishdraw)",
   "description": "Lingdong Huang's fishdraw is fetched from a pinned commit and run unchanged: each fish (body, scales, fins, eye, and its invented Latin name lettered underneath) comes out as plotter polylines. The scene plays them back like a pen plotter at a constant pen speed in fishdraw's own stroke order, with quicker pen-up moves between strokes, drawing into an offscreen Canvas 2D that becomes a mipmapped texture; the shader adds paper fibre, a faint ink halo and the pen nib with its shadow. A finished sheet rests, slides away, and the next fish begins.",

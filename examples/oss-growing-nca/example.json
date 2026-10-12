@@ -1,0 +1,56 @@
+{
+  "order": 5,
+  "title": "Regrowing creatures (Growing NCA)",
+  "title_ko": "다시 자라는 생명체 (Growing NCA)",
+  "description": "Growing Neural Cellular Automata run live on the GPU with the pretrained weights from google-research/self-organising-systems. An 80×80 grid of cells, each with 16 channels (RGBA plus 12 hidden, in four RGBA32F ping-pong textures), starts from one seed cell. Every step each cell perceives itself and its neighbors through Sobel filters (rotatable), passes the 48 values through the trained network (48→128 ReLU→16, weights packed into float textures), and about half the cells apply their update; alive masking keeps only cells next to a cell with alpha above 0.1. Ten emoji models, all trained to regenerate after damage: drag erases cells and the creature grows back.",
+  "description_ko": "Growing Neural Cellular Automata를 google-research/self-organising-systems의 사전 학습 가중치로 GPU에서 실시간으로 돌린다. 80×80 격자의 각 셀은 16개 채널(RGBA와 숨은 채널 12개, RGBA32F 핑퐁 텍스처 4장)을 가지고, 씨앗 셀 하나에서 시작한다. 스텝마다 각 셀이 자신과 이웃을 소벨 필터(회전 가능)로 감지하고, 그 48개 값을 학습된 신경망(48→128 ReLU→16, 가중치는 실수 텍스처에 담음)에 통과시킨 뒤, 셀의 절반 정도만 갱신을 적용한다. alive 마스킹은 alpha가 0.1을 넘는 셀 곁에 있는 셀만 남긴다. 모델은 이모지 10개로, 모두 손상된 뒤 다시 자라도록 학습됐다. 드래그하면 셀이 지워지고 생명체가 다시 자라난다.",
+  "prompt": "(open-source example: Growing NCA's pretrained models run as shaders in the scene)",
+  "made_with": "The Growing NCA update (perception, dense layers, stochastic update, alive masking) reimplemented as WebGL2 shaders; weights from the repo's assets/growing_ca/models.zip, shipped as nca-weights.bin",
+  "features": [
+    "neural cellular automata",
+    "neural network",
+    "gpu simulation",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "growing-neural-cellular-automata"
+  ],
+  "summary": "A tiny neural network in every cell grows an emoji from a single dot. Scratch a piece away and watch it heal itself.",
+  "summary_ko": "셀마다 들어 있는 작은 신경망이 점 하나에서 이모지를 키워 내요. 일부를 긁어 지우면 스스로 다시 아물어요.",
+  "try": [
+    "Drag across the creature to erase cells (Damage brush sets the size) and watch it regrow",
+    "Pick another Creature, or turn Rotation and press Reseed to grow it at an angle",
+    "Switch Show to Hidden channels to see the cells' private signals"
+  ],
+  "try_ko": [
+    "생명체 위를 드래그해서 셀을 지워 보세요(크기는 Damage brush). 다시 자라나는 걸 볼 수 있어요",
+    "Creature를 바꿔 보거나, Rotation을 돌리고 Reseed를 눌러 비스듬히 키워 보세요",
+    "Show를 Hidden channels로 바꾸면 셀끼리 주고받는 숨은 신호가 보여요"
+  ],
+  "tool_about": "Growing Neural Cellular Automata is research from Google (Mordvintsev et al., Distill 2020): every cell of a grid runs the same small neural network that only sees its neighbors, and the network is trained so the cells together grow a target picture from one seed and repair it when damaged. The repo has the training notebooks and the trained models; here those models run as shaders in the browser.",
+  "tool_about_ko": "Growing Neural Cellular Automata는 Google의 연구(Mordvintsev 외, Distill 2020)예요. 격자의 모든 셀이 이웃만 보는 똑같은 작은 신경망을 돌리는데, 셀들이 힘을 모아 씨앗 하나에서 목표 그림을 키우고 다치면 고치도록 학습돼 있어요. 저장소에는 학습 노트북과 학습된 모델이 있고, 여기서는 그 모델을 셰이더로 옮겨 브라우저에서 돌려요.",
+  "credits": [
+    {
+      "what": "Pretrained Growing NCA models, regenerating runs for 10 emoji (use_sample_pool_1 damage_n_3, run_index_0), extracted to nca-weights.bin",
+      "what_ko": "사전 학습된 Growing NCA 모델, 이모지 10개의 재생 학습 실행본(use_sample_pool_1 damage_n_3, run_index_0)을 nca-weights.bin으로 추출",
+      "source": "google-research/self-organising-systems, assets/growing_ca/models.zip (commit 3d5547c)",
+      "license": "Apache-2.0",
+      "url": "https://github.com/google-research/self-organising-systems/tree/3d5547ca48b60ecac459834e2c05c9ff5df87991/assets/growing_ca"
+    },
+    {
+      "what": "Growing NCA model: perception (identity + Sobel), update network, stochastic update and alive masking (reimplemented in GLSL)",
+      "what_ko": "Growing NCA 모델: 감지(항등 + 소벨), 갱신 신경망, 확률적 갱신, alive 마스킹 (GLSL로 다시 구현)",
+      "source": "Mordvintsev, Randazzo, Niklasson, Levin, \"Growing Neural Cellular Automata\" (Distill 2020); google-research/self-organising-systems, notebooks/growing_ca.ipynb",
+      "license": "Apache-2.0",
+      "url": "https://github.com/google-research/self-organising-systems/blob/3d5547ca48b60ecac459834e2c05c9ff5df87991/notebooks/growing_ca.ipynb"
+    },
+    {
+      "what": "Target emoji the models were trained to grow (Noto Color Emoji)",
+      "what_ko": "모델이 키우도록 학습된 목표 이모지 (Noto Color Emoji)",
+      "source": "googlefonts/noto-emoji",
+      "license": "Apache-2.0",
+      "url": "https://github.com/googlefonts/noto-emoji"
+    }
+  ]
+}

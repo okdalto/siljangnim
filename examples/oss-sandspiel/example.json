@@ -1,0 +1,49 @@
+{
+  "order": 6,
+  "title": "Falling sand (sandspiel)",
+  "title_ko": "떨어지는 모래 (sandspiel)",
+  "description": "sandspiel's cellular rules, ported from Rust to JavaScript cell for cell: 18 elements (sand, water, fire, plant, seed, lava, ice, gas, wood, stone, dust, oil, acid, fungus, mite, cloner, rocket, wall), each cell holding species, ra, rb and a clock like the original, updated in alternating scan order. A small CPU wind/pressure field stands in for its GPU fluid, so fire lifts and smoke drifts, and cells are colored with sand.glsl's palette. The grid follows the canvas (about 80k cells). It starts with a leaking water tank, a tree, flowers, a bonfire, gas and ice over lava.",
+  "description_ko": "sandspiel의 셀 규칙을 Rust에서 JavaScript로 칸 하나하나 그대로 옮겼다. 원소는 18가지(모래, 물, 불, 식물, 씨앗, 용암, 얼음, 기체, 나무, 돌, 먼지, 기름, 산, 곰팡이, 진드기, 복제기, 로켓, 벽)이고, 각 칸은 원본처럼 종류·ra·rb·clock을 갖고 번갈아 가는 순서로 갱신된다. 원본의 GPU 유체 대신 작은 CPU 바람·압력 장을 돌려 불이 솟고 연기가 흐르며, 색은 sand.glsl의 팔레트를 쓴다. 격자는 캔버스에 맞춰 약 8만 칸이다. 새는 물탱크, 나무, 꽃, 모닥불, 기체, 용암 위 얼음이 놓인 채로 시작한다.",
+  "prompt": "(open-source example: sandspiel's falling-sand rules ported to JavaScript in the scene)",
+  "made_with": "sandspiel (MaxBittker/sandspiel) species rules and palette ported to JavaScript and GLSL; simplified CPU wind field",
+  "features": [
+    "cellular automata",
+    "falling sand",
+    "simulation",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "sandspiel"
+  ],
+  "summary": "A falling-sand toy box: pour sand, water, fire, lava, seeds and more, and watch them flow, grow, burn and melt.",
+  "summary_ko": "떨어지는 모래 장난감 상자예요. 모래, 물, 불, 용암, 씨앗 등을 부으면 흐르고, 자라고, 타고, 녹아요.",
+  "try": [
+    "Drag to pour the chosen Element; try Water on the plants or Lava on the ice",
+    "Pick Seed (flower), drop some on the sand, and change Brush size",
+    "Press Clear for an empty box, or Reset scene to start over"
+  ],
+  "try_ko": [
+    "드래그해서 고른 Element를 부어 보세요. 식물에 Water를, 얼음에 Lava를 부어 봐요",
+    "Seed (flower)를 골라 모래 위에 뿌려 보고, Brush size도 바꿔 보세요",
+    "Clear를 누르면 빈 상자가 되고, Reset scene을 누르면 처음 장면으로 돌아와요"
+  ],
+  "tool_about": "sandspiel is a falling-sand game by Max Bittker that runs in the browser. Every pixel is a little piece of an element, and simple rules about its neighbors make sand pile up, water spread, fire spread and plants grow. The original is written in Rust and compiled to WebAssembly; here its rules run in JavaScript.",
+  "tool_about_ko": "sandspiel은 Max Bittker가 만든, 브라우저에서 하는 떨어지는 모래 게임이에요. 픽셀 하나하나가 원소 조각이고, 이웃을 보는 단순한 규칙만으로 모래가 쌓이고 물이 퍼지고 불이 번지고 식물이 자라요. 원본은 Rust로 써서 WebAssembly로 돌리고, 여기서는 그 규칙을 JavaScript로 옮겨 돌려요.",
+  "credits": [
+    {
+      "what": "Element rules, cell layout, wind thresholds and painting (crate/src/species.rs, lib.rs, utils.rs), ported to JavaScript",
+      "what_ko": "원소 규칙, 셀 구조, 바람 문턱값, 칠하기 (crate/src/species.rs, lib.rs, utils.rs)를 JavaScript로 옮김",
+      "source": "MaxBittker/sandspiel (Max Bittker)",
+      "license": "MIT",
+      "url": "https://github.com/MaxBittker/sandspiel"
+    },
+    {
+      "what": "Palette and shading (js/glsl/sand.glsl) and the fluid's look and pressure/burn coupling (js/fluid.js and shaders), adapted",
+      "what_ko": "팔레트와 음영 (js/glsl/sand.glsl), 유체의 모습과 압력·연소 연결 (js/fluid.js와 셰이더)을 옮겨 씀",
+      "source": "MaxBittker/sandspiel (Max Bittker)",
+      "license": "MIT",
+      "url": "https://github.com/MaxBittker/sandspiel/tree/master/js"
+    }
+  ]
+}

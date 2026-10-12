@@ -1,5 +1,5 @@
 {
-  "order": 211,
+  "order": 10,
   "title": "Tile collapse (WaveFunctionCollapse)",
   "title_ko": "타일 붕괴 (WaveFunctionCollapse)",
   "description": "WaveFunctionCollapse (kchapelier's JavaScript port of mxgmn's algorithm, SimpleTiledModel) fills a grid with tiles live: it observes the lowest-entropy cell, picks a tile and propagates the edge rules, a few steps a frame. Three tilesets are drawn in the scene with canvas 2D (knotted tubes, a circuit board, rivers and roads) and their neighbor rules come from edge sockets. Unsolved cells show the library's superposition image and an entropy marker that glows hotter as options run out; finished grids hold, then start over.",
