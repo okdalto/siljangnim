@@ -15,9 +15,11 @@
   "files": [
     "bin",
     "src",
-    "studio"
+    "studio",
+    "hub"
   ],
   "scripts": {
+    "prepack": "node scripts/prepack.mjs",
     "test": "node --test \"test/*.test.js\"",
     "smoke": "node scripts/smoke.mjs"
   },
