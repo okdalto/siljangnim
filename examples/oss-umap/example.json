@@ -29,5 +29,13 @@
     "Point size를 올려 점을 키워 보세요"
   ],
   "tool_about": "UMAP (umap-learn) is a Python machine-learning tool that lays out complicated data on a flat map so that similar items end up close together. It runs on this computer through Python and is used to explore large datasets.",
-  "tool_about_ko": "UMAP(umap-learn)은 복잡한 데이터를 평평한 지도 위에 펼쳐서 비슷한 것끼리 가까이 모이게 해 주는 파이썬 머신러닝 도구예요. 이 컴퓨터에서 파이썬으로 돌아가며 큰 데이터를 살펴볼 때 쓰여요."
+  "tool_about_ko": "UMAP(umap-learn)은 복잡한 데이터를 평평한 지도 위에 펼쳐서 비슷한 것끼리 가까이 모이게 해 주는 파이썬 머신러닝 도구예요. 이 컴퓨터에서 파이썬으로 돌아가며 큰 데이터를 살펴볼 때 쓰여요.",
+  "credits": [
+    {
+      "what": "Optical Recognition of Handwritten Digits (scikit-learn's digits)",
+      "source": "UCI Machine Learning Repository (E. Alpaydin, C. Kaynak)",
+      "license": "CC BY 4.0",
+      "url": "https://archive.ics.uci.edu/dataset/80/optical+recognition+of+handwritten+digits"
+    }
+  ]
 }

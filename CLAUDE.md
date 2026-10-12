@@ -90,5 +90,8 @@ Run `check`, `test` and `smoke` before every push; CI runs the same (Linux needs
   *why*, sparingly.
 - Every feature: unit tests for logic; extend the smoke scenario (`desktop/scripts/mockAnthropic.mjs`,
   `desktop/src/smoke.js`) when it adds an agent-visible capability.
+- After adding an example, a catalog tool or a dependency, run `npm run notices` to regenerate
+  `THIRD_PARTY_NOTICES.md` (licenses and source links). Material from others in an example (fonts, images,
+  data) goes in its example.json `credits`.
 - Update `docs/` when a design decision changes. Docs are written in Korean; code and comments in English.
 - UI strings are English for now.

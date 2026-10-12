@@ -184,5 +184,8 @@ its project exports with *Import v1 project*.
 
 ## License
 
+Third-party code, tools and material, with their licenses and source links: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+The open-source catalog starts from [index.opensource](https://indexopensource.com/index) by 현 (@hyun2xyz).
+
 [GPL-3.0](LICENSE). Open-source projects the agent fetches keep their own licenses; each
 project records what it used.

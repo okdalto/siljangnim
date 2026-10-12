@@ -28,5 +28,13 @@
     "Color를 바꿔 보세요"
   ],
   "tool_about": "librosa is a Python library for studying music: it finds the beat, tempo, notes and changes in a song. It runs on this computer through Python, not in the browser.",
-  "tool_about_ko": "librosa는 음악을 분석하는 파이썬 라이브러리로, 곡의 박자·템포·음·변화를 찾아내요. 브라우저가 아니라 이 컴퓨터의 파이썬에서 돌아가요."
+  "tool_about_ko": "librosa는 음악을 분석하는 파이썬 라이브러리로, 곡의 박자·템포·음·변화를 찾아내요. 브라우저가 아니라 이 컴퓨터의 파이썬에서 돌아가요.",
+  "credits": [
+    {
+      "what": "beat.wav",
+      "source": "synthesized for Siljangnim",
+      "license": "GPL-3.0-or-later (this repository)",
+      "url": "https://github.com/okdalto/siljangnim"
+    }
+  ]
 }

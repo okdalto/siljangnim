@@ -24,6 +24,8 @@ interface ExampleMeta {
   try_ko?: string[];
   tool_about?: string;
   tool_about_ko?: string;
+  /** Material from others in the example (fonts, images, data): what, from whom, license, link. */
+  credits?: Array<{ what: string; source: string; license: string; url: string }>;
 }
 
 /** Korean when the browser asks for it; examples carry both languages. */

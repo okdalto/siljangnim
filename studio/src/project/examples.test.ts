@@ -56,5 +56,18 @@ describe("examples", () => {
       expect(e.tool_about_ko, e.slug).toBeTruthy();
     }
   });
+
+  it("credit outside material with a source link and a license", () => {
+    for (const e of EXAMPLES) {
+      for (const c of e.credits ?? []) {
+        expect(c.what && c.source && c.license, e.slug).toBeTruthy();
+        expect(c.url, e.slug).toMatch(/^https:\/\//);
+      }
+    }
+    // Examples that ship someone else's font, image or data say so.
+    for (const slug of ["oss-opentype", "oss-opencv", "oss-image-q", "oss-sgp4", "oss-umap", "oss-networkx"]) {
+      expect(EXAMPLES.find((e) => e.slug === slug)?.credits?.length, slug).toBeGreaterThan(0);
+    }
+  });
 });
 

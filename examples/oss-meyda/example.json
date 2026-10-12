@@ -26,5 +26,13 @@
     "에이전트에게 들어 있는 루프 대신 내 노래를 분석해 달라고 해 보세요"
   ],
   "tool_about": "Meyda listens to audio and measures things like which notes are playing, how loud it is and how bright it sounds. It runs in the browser.",
-  "tool_about_ko": "Meyda는 소리를 듣고 어떤 음이 나는지, 얼마나 큰지, 얼마나 밝게 들리는지 등을 측정해 줘요. 브라우저에서 돌아가요."
+  "tool_about_ko": "Meyda는 소리를 듣고 어떤 음이 나는지, 얼마나 큰지, 얼마나 밝게 들리는지 등을 측정해 줘요. 브라우저에서 돌아가요.",
+  "credits": [
+    {
+      "what": "beat.wav",
+      "source": "synthesized for Siljangnim",
+      "license": "GPL-3.0-or-later (this repository)",
+      "url": "https://github.com/okdalto/siljangnim"
+    }
+  ]
 }
