@@ -818,7 +818,7 @@ export async function cancelJob(id: string): Promise<void> {
   if (typeof c !== "string") await c.cancel(id);
 }
 
-// --- sharing: project.md (docs/project-md.md) ---
+// --- sharing: project.md ---
 
 async function sha256(blob: Blob): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
@@ -1074,7 +1074,7 @@ function download(blob: Blob, name: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-// --- runtime: open-source tools through the hub (docs/runtime.md) ---
+// --- runtime: open-source tools through the hub ---
 
 const LOCK_FILE = "project.lock.json";
 /** Output files already saved as assets, by job id, so a second job_status doesn't save them twice. */

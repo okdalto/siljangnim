@@ -1,4 +1,4 @@
-// Catalog tools: which open-source tool fits, before setting one up (docs/catalog.md).
+// Catalog tools: which open-source tool fits, before setting one up.
 import { z } from "zod";
 import { CATALOG, REFERENCES, REFERENCE_SOURCE, referenceFor, searchCatalog, searchReferences, type CatalogEntry, type ReferenceEntry } from "../catalog/catalog";
 import { EXAMPLES, type Example } from "../project/examples";

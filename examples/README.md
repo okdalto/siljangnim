@@ -8,7 +8,7 @@ Python package or program the agent ran through a recipe, whose output the scene
 ```
 example.json   title, description (technical), summary / try / tool_about (plain words, also _ko),
                what it's made with, uses (catalog ids)
-scene.json     the scene (format v2, see docs/studio.md)
+scene.json     the scene (format v2, studio/src/scene/schema.ts)
 thumbnail.png
 assets/        files the scene loads by name (ctx.assets[name])
 recipe/        recipes that made the assets (also in ../registry)

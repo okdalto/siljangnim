@@ -9,7 +9,7 @@ export interface ProjectMeta {
   name: string;
   createdAt: number;
   updatedAt: number;
-  /** Version the current scene descends from (see docs/m2.md#1-버전-히스토리). */
+  /** Version the current scene descends from. */
   head?: string;
 }
 

@@ -1,5 +1,5 @@
 // project.md: a project as one readable document another person's agent can
-// rebuild from (docs/architecture.md#5-공유-프로젝트-md, docs/project-md.md).
+// rebuild from (docs/sharing.md).
 // It carries the scene (code written in this project) and how each generated
 // asset was made: recipe references, or the job's own code. Never third-party
 // code. Pure: the session gathers the inputs and does the I/O.
