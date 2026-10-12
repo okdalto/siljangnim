@@ -20,7 +20,15 @@ args = ["/절대경로/siljangnim/mcp/bin/siljangnim-mcp.js"]
 tool_timeout_sec = 120
 ```
 
-npm에 배포하면 `npx -y siljangnim-mcp` 한 줄이 된다. 배포는 아직 하지 않았다(`mcp/studio/`에 빌드를 넣어 패키징한다).
+npm에 배포하면 저장소 없이 한 줄로 붙는다(아직 배포 전):
+
+```bash
+claude mcp add siljangnim -- npx -y siljangnim-mcp
+```
+
+- **패키징:** `npm pack`/`npm publish` 직전에 `mcp/scripts/prepack.mjs`가 studio를 빌드해 `mcp/studio/`에, 허브 소스(`siljangnim_hub`, `pyproject.toml`, `uv.lock`, `.python-version`)를 `mcp/hub/`에 넣는다. 둘 다 git에는 올리지 않는다. 패키지는 약 18 MB이고, 대부분 예제 에셋이다.
+- **uv:** 설치된 패키지에는 저장소의 uv가 없다. 그래서 허브를 처음 띄울 때 PATH의 `uv`를 쓰고, 없으면 데스크톱 앱과 같은 고정 버전(0.12.16)을 `~/.siljangnim/runtime/uv/`에 한 번 받는다(`mcp/src/uv.js`). 받은 파일은 공개된 sha256과 비교해 확인한다. 그다음 uv가 Python과 허브 의존성을 같은 런타임 폴더에 설치한다.
+- **배포 전 확인(2026-10-12):** 만든 tarball을 빈 폴더에 설치하고, 그 bin으로 MCP smoke 전체를 돌렸다(`SILJANGNIM_SMOKE_BIN`, 빈 `SILJANGNIM_SMOKE_RUNTIME`). 패키지 안의 studio와 허브로 Python을 새로 설치하고 모든 검사를 통과했다. uv 다운로드(체크섬, 재사용)는 따로 확인했다.
 
 첫 도구 호출에서 기본 브라우저로 뷰어(`http://localhost:47823`)가 열린다. 에이전트를 켤 때마다 탭이 열리지 않도록, 시작할 때가 아니라 첫 호출 때 연다.
 
