@@ -13,6 +13,7 @@ export function TopBar() {
       {project && <ProjectName key={project.id} name={project.name} />}
       <ProjectMenu />
       <div className="flex-1" />
+      <ViewSwitch />
       <button
         type="button"
         onClick={() => setSettingsOpen(true)}
@@ -22,6 +23,22 @@ export function TopBar() {
         <GearIcon />
       </button>
     </header>
+  );
+}
+
+/** The studio, or the Examples view over it. */
+function ViewSwitch() {
+  const examples = useApp((s) => s.examplesOpen);
+  const tab = (active: boolean) => `rounded px-2.5 py-1 text-xs ${active ? "bg-raised text-fg" : "text-muted hover:text-fg"}`;
+  return (
+    <div className="flex items-center gap-0.5 rounded-md border border-line p-0.5">
+      <button type="button" data-testid="view-studio" className={tab(!examples)} onClick={() => setExamplesOpen(false)}>
+        Studio
+      </button>
+      <button type="button" data-testid="view-examples" className={tab(examples)} onClick={() => setExamplesOpen(true)}>
+        Examples
+      </button>
+    </div>
   );
 }
 

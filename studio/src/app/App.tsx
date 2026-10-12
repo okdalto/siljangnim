@@ -37,7 +37,7 @@ export function App() {
   const examplesOpen = useApp((s) => s.examplesOpen);
   useUndoShortcuts();
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col">
       <TopBar />
       <div className="flex min-h-0 flex-1">
         <main className="flex min-w-0 flex-1 flex-col">

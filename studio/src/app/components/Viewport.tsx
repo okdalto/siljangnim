@@ -4,6 +4,7 @@ import { SceneHost, sceneRuntimeUrl } from "../../scene/host";
 import { attachSceneHost } from "../session";
 import { useApp } from "../state";
 import { AlertIcon, XIcon } from "./icons";
+import { Notice } from "./Chat";
 import { Controls } from "./Controls";
 import { RecordingOverlay } from "./Record";
 
@@ -36,8 +37,20 @@ export function Viewport() {
       <StatusBar />
       {/* After the scene container: it is the page's first iframe. */}
       <Controls />
+      <FoldedNotice />
       <RecordingOverlay />
     </section>
+  );
+}
+
+/** With the sidebar folded, its notices (imports, exports, errors) float over the viewport. */
+function FoldedNotice() {
+  const folded = useApp((s) => s.sidebarCollapsed);
+  if (!folded) return null;
+  return (
+    <div className="absolute bottom-10 right-1 z-20 w-80 shadow-2xl">
+      <Notice />
+    </div>
   );
 }
 
