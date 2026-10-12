@@ -1,6 +1,6 @@
 {
   "name": "siljangnim-mcp",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Siljangnim for MCP agents: a creative coding studio your agent drives — make live visuals by talking, change and mix them, perform with MIDI/OSC/audio, record video",
   "license": "GPL-3.0-or-later",
   "author": "okdalto",
