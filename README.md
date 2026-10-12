@@ -5,15 +5,15 @@
 <h1 align="center">Siljangnim</h1>
 
 <p align="center">
-  A creative studio run by an agent.<br/>
-  Describe what you want to make. The agent picks the open-source tools for the job,<br/>
-  wires them together on your machine and renders the result live.
+  A creative coding studio run by an agent.<br/>
+  Make live visuals by describing them, reshape them in conversation, mix pieces together,<br/>
+  play them live with MIDI, OSC and sound, and export them as video.
 </p>
 
 <p align="center">
   <a href="#get-started">Get started</a> ·
   <a href="https://siljangnim.vercel.app/">Try on the web</a> ·
-  <a href="docs/mcp.md">Guides</a> ·
+  <a href="docs/creative.md">Guides</a> ·
   <a href="README.ko.md">한국어</a>
 </p>
 
@@ -110,44 +110,42 @@ open, Claude Code (option A) uses its window as the viewer.
 To build an installer for your own machine: `npm run dist` (output in `desktop/release/`). The builds are
 not code-signed, so macOS asks once: *System Settings → Privacy & Security → Open Anyway*.
 
-## What it is
+## What you can do
 
-*Siljangnim* (실장님) is what Korean design studios call the person who runs the floor: you tell them what
-you want, and they know which people and tools to bring in. This app plays that part for creative coding.
+Siljangnim isn't a gallery of demos to download and run. It's a studio: you set the direction, the agent
+writes the code, and the work keeps changing for as long as you keep talking to it.
 
-- **You describe the result** — "a hatching drawing of this photo, depth-aware, ready for an A3 plotter".
-- **The agent decides how** — which open-source projects fit (shaders, geometry libraries, ML models,
-  CLI tools), fetches them on your machine, and connects them.
-- **What worked becomes a recipe** — a short Markdown file describing how a tool was installed and
-  called. Next time it is instant, and other agents can reuse it.
-- **You share structure, not code** — a project exports as a Markdown document of its pipeline and
-  recipes. Another person's agent rebuilds it from that.
-- **Bring your own agent** — Claude Code, Codex, Cursor or your own drive the studio over MCP, alongside
-  the built-in agent.
+- **Make it by describing it** — "glowing jellyfish drifting in a dark sea", "a hatching drawing of this photo,
+  denser where it's closer". The agent picks the tools (shaders, physics engines, geometry libraries, Python
+  packages, ML models), writes a WebGL2 or WebGPU scene, fixes its own errors and looks at the result before answering.
+- **Shape it in conversation** — "slower, sunset colours", "twice the particles", "give me a slider for that".
+  Anything you want to play with becomes a control: sliders, knobs, 2D pads, menus, buttons, colours. Every
+  change is a version you can go back to and branch from, and you can read the code it wrote.
+- **Mix pieces together** — open an example's details and press **Mix in**: its scene and assets come into your
+  project and the agent blends the two into one image. Or paste a piece someone shared and ask for a mashup.
+- **Play it live** — mouse, keyboard, microphone and audio files, camera, MIDI controllers and OSC (TouchOSC,
+  Ableton, TouchDesigner). Ask the agent to wire knob 1 to colour; press **Perform** to send the scene full
+  screen to a projector. Or switch to **Timeline** and keyframe the controls.
+- **Export it** — MP4, WebM or PNG frames: frame-exact offline renders at any size (vertical 1080×1920, 4K), or
+  a realtime capture of what you played. The intro video above was recorded from the examples this way.
+- **Pass it on** — a project exports as `project.md`: what was asked, which tools were used and how. Another
+  person's agent rebuilds it from that, and keeps remixing.
 
-Open-source code is fetched on your machine when a project needs it, and every project records exactly
-what it used.
+Start from one of **60+ examples**, each built on an open-source project (REBOUND, Rapier, Three.js, Hydra,
+p5.js, librosa, OpenCV, UMAP …) with its credits and license, and take it somewhere else.
 
-## What it does
+[A longer walk-through of the creative workflow (Korean)](docs/creative.md).
 
-- **Live scenes written by an agent** — WebGL2 or WebGPU. The agent reads compile errors with line
-  numbers, fixes them, and looks at a screenshot before answering.
-- **Controls** — sliders, knobs, 2D pads, menus, buttons and colors that update the scene instantly; one
-  orbit camera for every 3D scene (drag, right-drag, scroll, double-click to reset).
-- **Live or Timeline** — interactive by default, or keyframe the controls over a fixed length.
-- **Version history** — every change is a version with a thumbnail; restore any of them.
-- **Assets** — drop images, video, audio, fonts, 3D models or data. The Assets tab also shows the
-  scene's code and shaders, and *Show in Finder* writes the project out as plain files.
-- **Open-source tools on your machine** — Python packages (trimesh, librosa, …) in isolated environments
-  and installed CLIs (ffmpeg, …), each after you approve.
-- **Inputs** — microphone and audio files, camera, MIDI, OSC, and browser ML such as hand tracking.
-- **Recording** — MP4, WebM or PNG frames.
-- **Sharing** — export a project as `project.md` or a bundle ([docs/sharing.md](docs/sharing.md));
+## Under the hood
+
+- *Siljangnim* (실장님) is what Korean design studios call the person who runs the floor: you say what you want,
+  and they know which people and tools to bring in.
+- **Open-source tools on your machine** — Python packages run in isolated environments and installed programs
+  (ffmpeg, Blender, …) run after you approve. What worked is saved as a recipe, so next time it's instant, and
   recipes are shared through [registry/](registry/).
-- **Examples** — 70+ projects, most built on an open-source library, each with credits and a link
-  (e.g. `siljangnim.vercel.app/#example=oss-three`).
-- **Providers** — Anthropic (Claude Opus 5.5 by default) or any OpenAI-compatible server (OpenAI, vLLM,
-  Ollama, …).
+- **Bring your own agent** — Claude Code, Codex, Cursor or any MCP client drives the same studio as the built-in
+  agent, which runs on Anthropic (Claude Opus 5.5 by default) or any OpenAI-compatible server (OpenAI, vLLM, Ollama, …).
+- **Isolated scenes** — scene code runs on a separate origin and can't reach your projects or keys.
 
 ## For developers
 
@@ -176,7 +174,7 @@ registry/   Shared recipes, contributed by pull request
 docs/       User guides (Korean)
 ```
 
-Guides (Korean): [connecting an agent](docs/mcp.md), [tools on your machine](docs/local-tools.md), [sharing](docs/sharing.md), [models](docs/models.md).
+Guides (Korean): [the creative workflow](docs/creative.md), [connecting an agent](docs/mcp.md), [tools on your machine](docs/local-tools.md), [sharing](docs/sharing.md), [models](docs/models.md).
 
 ## Costs and security
 

@@ -1,7 +1,7 @@
 {
   "name": "siljangnim-mcp",
   "version": "0.2.0",
-  "description": "Siljangnim for MCP agents: a live graphics viewer that Claude Code, Codex and other MCP clients can drive",
+  "description": "Siljangnim for MCP agents: a creative coding studio your agent drives — make live visuals by talking, change and mix them, perform with MIDI/OSC/audio, record video",
   "license": "GPL-3.0-or-later",
   "author": "okdalto",
   "repository": {
@@ -31,5 +31,17 @@
   },
   "engines": {
     "node": ">=22"
-  }
+  },
+  "keywords": [
+    "mcp",
+    "creative-coding",
+    "generative-art",
+    "webgl",
+    "webgpu",
+    "shaders",
+    "live-visuals",
+    "vj",
+    "claude-code",
+    "codex"
+  ]
 }
