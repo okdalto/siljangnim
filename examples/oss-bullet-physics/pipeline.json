@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "bullet-physics.gallery@1",
+      "packages": [
+        "cmake==4.4.3"
+      ],
+      "inputs": [
+        "main.cpp",
+        "CMakeLists.txt",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

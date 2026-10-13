@@ -1,0 +1,9 @@
+{
+  "id": "embree",
+  "repo": "https://github.com/renderkit/embree",
+  "sha": "3d9cb89b9ea099c630e6272d37767e7dd4e78e74",
+  "url": "https://codeload.github.com/renderkit/embree/tar.gz/3d9cb89b9ea099c630e6272d37767e7dd4e78e74",
+  "sha256": "65a7d6014f546844a69201ff1ed0e892c49aa74171db8a7eeffa86f6ef0be78f",
+  "license": "Apache-2.0",
+  "frames": 3
+}

@@ -1,0 +1,38 @@
+{
+  "order": 396,
+  "title": "Catmull-Clark refinement levels (OpenSubdiv)",
+  "title_ko": "Catmull-Clark 세분화 단계 (OpenSubdiv)",
+  "description": "OpenSubdiv refines the upstream tutorial cube at three levels. Its Far topology and primvar interpolation produce the displayed vertices and faces.",
+  "description_ko": "OpenSubdiv로 원본 튜토리얼 정육면체를 세 단계로 세분화했어요. Far 토폴로지·속성 보간이 계산한 꼭짓점과 면이에요.",
+  "prompt": "Catmull-Clark refinement levels. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "opensubdiv"
+  ],
+  "summary": "OpenSubdiv refines the upstream tutorial cube at three levels.",
+  "summary_ko": "OpenSubdiv로 원본 튜토리얼 정육면체를 세 단계로 세분화했어요. Far 토폴로지·속성 보간이 계산한 꼭짓점과 면이에요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale and rotation"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율과 회전을 바꿔 보세요"
+  ],
+  "tool_about": "OpenSubdiv refines the upstream tutorial cube at three levels. Its Far topology and primvar interpolation produce the displayed vertices and faces. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "OpenSubdiv로 원본 튜토리얼 정육면체를 세 단계로 세분화했어요. Far 토폴로지·속성 보간이 계산한 꼭짓점과 면이에요. 레시피에서 원본 엔진을 컴파일해 실행해요.",
+  "credits": [
+    {
+      "what": "Far tutorial cube and vertex adapter",
+      "source": "Pixar / OpenSubdiv contributors",
+      "url": "https://github.com/pixaranimationstudios/opensubdiv/blob/c826d2713b51b64a9a6f6641c8c1e9a69f7aaa20/tutorials/far/tutorial_1_1/far_tutorial_1_1.cpp",
+      "license": "LicenseRef-Tomorrow-Open-Source-Technology-1.0"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "order": 394,
+  "title": "Restitution in a rigid-body world (Bullet Physics)",
+  "title_ko": "강체 세계의 반발계수 (Bullet Physics)",
+  "description": "Bullet simulates a sphere falling onto a plane with three restitution settings. The directly computed height curves include contact and rebound.",
+  "description_ko": "Bullet으로 구가 평면에 떨어지는 동작을 세 반발계수에서 계산했어요. 실제 접촉·반동을 포함한 높이 곡선이에요.",
+  "prompt": "Restitution in a rigid-body world. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "bullet-physics"
+  ],
+  "summary": "Bullet simulates a sphere falling onto a plane with three restitution settings.",
+  "summary_ko": "Bullet으로 구가 평면에 떨어지는 동작을 세 반발계수에서 계산했어요. 실제 접촉·반동을 포함한 높이 곡선이에요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "Bullet simulates a sphere falling onto a plane with three restitution settings. The directly computed height curves include contact and rebound. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "Bullet으로 구가 평면에 떨어지는 동작을 세 반발계수에서 계산했어요. 실제 접촉·반동을 포함한 높이 곡선이에요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

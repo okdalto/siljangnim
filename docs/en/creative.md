@@ -32,6 +32,8 @@ FastNoise Lite and libnoise terrain, Voro++ cells, RVO2 paths, Skeleton Tracing 
 
 CSG.js boolean solids, NDWFC tiles, p5-hershey-js stroke fonts, Fullik articulated chains and FloMat medial axes were computed by their original JavaScript in Node.js. Their Python recipes cache verified source archives and rerun them through Node.js.
 
+Box2D, Bullet and Jolt rebound simulations, OpenSubdiv refinement and Embree CPU ray queries come from directly built and executed engines. These recipes install CMake and cache source archives and native builds. Computation runs on every invocation; the first build can take several minutes.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

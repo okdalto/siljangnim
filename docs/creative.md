@@ -30,6 +30,8 @@ FastNoise Lite·libnoise 지형, Voro++ 셀, RVO2 이동 경로, Skeleton Tracin
 
 CSG.js 입체 불리언, NDWFC 타일, p5-hershey-js 획 글꼴, Fullik 관절, FloMat 중앙축 예제는 원본 JavaScript를 Node.js에서 직접 실행했습니다. Python 레시피가 검증된 소스를 캐시하고 Node.js로 재실행합니다.
 
+Box2D·Bullet·Jolt의 반동 시뮬레이션, OpenSubdiv 세분화, Embree CPU 광선 질의도 원본 엔진을 빌드해 직접 계산했습니다. 이 레시피들은 CMake를 설치하고 소스와 네이티브 빌드를 캐시합니다. 캐시가 있어도 계산은 매번 실행하며 첫 빌드에는 시간이 걸릴 수 있습니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

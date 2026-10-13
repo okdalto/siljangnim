@@ -1,0 +1,14 @@
+#include "embree4/rtcore.h"
+#include <iostream>
+#include <vector>
+#include <array>
+#include <algorithm>
+#include <cmath>
+#include <cassert>
+#include <cstdint>
+using P=std::array<double,3>;using Path=std::vector<P>;
+void point(P p){std::cout<<"["<<p[0]<<","<<p[1]<<","<<p[2]<<"]";}
+void paths(const std::vector<Path>&lines){std::cout<<"{\"paths\":[";bool first=true;for(auto line:lines){if(!first)std::cout<<",";first=false;std::cout<<"{\"points\":[";for(size_t i=0;i<line.size();i++){if(i)std::cout<<",";point(line[i]);}std::cout<<"]}";}std::cout<<"]}";}
+void mesh(const Path&v,const std::vector<std::array<int,3>>&f){std::cout<<"{\"mesh\":{\"vertices\":[";for(size_t i=0;i<v.size();i++){if(i)std::cout<<",";point(v[i]);}std::cout<<"],\"faces\":[";for(size_t i=0;i<f.size();i++){if(i)std::cout<<",";std::cout<<"["<<f[i][0]<<","<<f[i][1]<<","<<f[i][2]<<"]";}std::cout<<"]}}";}
+
+int main(){std::cout<<"{\"frames\":[";RTCDevice device=rtcNewDevice("threads=2");assert(device);for(int k=0;k<3;k++){if(k)std::cout<<",";RTCScene scene=rtcNewScene(device);RTCGeometry geometry=rtcNewGeometry(device,RTC_GEOMETRY_TYPE_TRIANGLE);struct V{float x,y,z;};struct F{unsigned a,b,c;};auto v=(V*)rtcSetNewGeometryBuffer(geometry,RTC_BUFFER_TYPE_VERTEX,0,RTC_FORMAT_FLOAT3,sizeof(V),6);auto f=(F*)rtcSetNewGeometryBuffer(geometry,RTC_BUFFER_TYPE_INDEX,0,RTC_FORMAT_UINT3,sizeof(F),8);V original[6]={{.8f,0,0},{-.8f,0,0},{0,.8f,0},{0,-.8f,0},{0,0,.8f},{0,0,-.8f}};F faces[8]={{0,2,4},{2,1,4},{1,3,4},{3,0,4},{2,0,5},{1,2,5},{3,1,5},{0,3,5}};double a=k*.4;for(int i=0;i<6;i++)v[i]={float(original[i].x*cos(a)+original[i].z*sin(a)),original[i].y,float(-original[i].x*sin(a)+original[i].z*cos(a))};for(int i=0;i<8;i++)f[i]=faces[i];rtcCommitGeometry(geometry);rtcAttachGeometry(scene,geometry);rtcReleaseGeometry(geometry);rtcCommitScene(scene);Path points;std::vector<double>values;for(int y=0;y<64;y++)for(int x=0;x<64;x++){RTCRayHit ray{};ray.ray.org_x=(x+.5f)/64*1.8f-.9f;ray.ray.org_y=(y+.5f)/64*1.8f-.9f;ray.ray.org_z=2;ray.ray.dir_z=-1;ray.ray.tnear=0;ray.ray.tfar=10;ray.ray.mask=~0u;ray.hit.geomID=RTC_INVALID_GEOMETRY_ID;RTCIntersectArguments args;rtcInitIntersectArguments(&args);rtcIntersect1(scene,&ray,&args);if(ray.hit.geomID!=RTC_INVALID_GEOMETRY_ID){assert(ray.ray.tfar>1&&ray.ray.tfar<3);points.push_back({ray.ray.org_x,ray.ray.org_y,0});double nx=ray.hit.Ng_x,ny=ray.hit.Ng_y,nz=ray.hit.Ng_z,len=sqrt(nx*nx+ny*ny+nz*nz);assert(len>0);values.push_back(std::abs((nx*.3+ny*.4+nz*.8660254)/len));}}assert(points.size()>300);std::cout<<"{\"radius\":0.014,\"points\":[";for(size_t i=0;i<points.size();i++){if(i)std::cout<<",";point(points[i]);}std::cout<<"],\"values\":[";for(size_t i=0;i<values.size();i++){if(i)std::cout<<",";std::cout<<values[i];}std::cout<<"]}";rtcReleaseScene(scene);assert(rtcGetDeviceError(device)==RTC_ERROR_NONE);}rtcReleaseDevice(device);std::cout<<"]}";}

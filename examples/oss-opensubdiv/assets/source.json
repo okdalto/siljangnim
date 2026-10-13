@@ -1,0 +1,9 @@
+{
+  "id": "opensubdiv",
+  "repo": "https://github.com/pixaranimationstudios/opensubdiv",
+  "sha": "c826d2713b51b64a9a6f6641c8c1e9a69f7aaa20",
+  "url": "https://codeload.github.com/pixaranimationstudios/opensubdiv/tar.gz/c826d2713b51b64a9a6f6641c8c1e9a69f7aaa20",
+  "sha256": "3e523f4992f03684b867135ac192a007fbe0128a4ac70d24001f1b0e61d86c22",
+  "license": "LicenseRef-Tomorrow-Open-Source-Technology-1.0",
+  "frames": 3
+}

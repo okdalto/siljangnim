@@ -1,0 +1,9 @@
+{
+  "id": "box2d",
+  "repo": "https://github.com/erincatto/box2d",
+  "sha": "956ce4e1e8acddd05a21102629e268ff9321ec50",
+  "url": "https://codeload.github.com/erincatto/box2d/tar.gz/956ce4e1e8acddd05a21102629e268ff9321ec50",
+  "sha256": "1fa571b56dddabfaacad49280408b07f0cd6e108e30dabad7e92fc0d03d970f1",
+  "license": "MIT",
+  "frames": 3
+}

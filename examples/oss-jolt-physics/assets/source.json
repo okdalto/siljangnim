@@ -1,0 +1,9 @@
+{
+  "id": "jolt-physics",
+  "repo": "https://github.com/jrouwe/joltphysics",
+  "sha": "5830c342b90fa087f118aa0f086d541a4950b1d9",
+  "url": "https://codeload.github.com/jrouwe/joltphysics/tar.gz/5830c342b90fa087f118aa0f086d541a4950b1d9",
+  "sha256": "2f1a13544e2c59b8beea7ef0ae37ecce6827753acee33997f9ae1dc995d5f659",
+  "license": "MIT",
+  "frames": 3
+}

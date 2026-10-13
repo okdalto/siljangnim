@@ -1,0 +1,9 @@
+{
+  "id": "bullet-physics",
+  "repo": "https://github.com/bulletphysics/bullet3",
+  "sha": "63c4d67e337017f9d8b298c900e9aabdb69296e7",
+  "url": "https://codeload.github.com/bulletphysics/bullet3/tar.gz/63c4d67e337017f9d8b298c900e9aabdb69296e7",
+  "sha256": "33a284eb5411c35f62f92ca2777021bdc91158c55c1e89cacd5beeb2954e949b",
+  "license": "Zlib",
+  "frames": 3
+}

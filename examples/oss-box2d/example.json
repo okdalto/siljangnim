@@ -1,0 +1,30 @@
+{
+  "order": 393,
+  "title": "Bounce histories from Box2D (Box2D)",
+  "title_ko": "Box2D로 계산한 반동 기록 (Box2D)",
+  "description": "Box2D simulates a falling circle with three restitution settings. The curves show five seconds of actual center height at 120 Hz.",
+  "description_ko": "Box2D로 세 반발계수에서 원의 낙하를 계산했어요. 120 Hz로 직접 계산한 5초간의 중심 높이를 비교해요.",
+  "prompt": "Bounce histories from Box2D. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "box2d"
+  ],
+  "summary": "Box2D simulates a falling circle with three restitution settings.",
+  "summary_ko": "Box2D로 세 반발계수에서 원의 낙하를 계산했어요. 120 Hz로 직접 계산한 5초간의 중심 높이를 비교해요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "Box2D simulates a falling circle with three restitution settings. The curves show five seconds of actual center height at 120 Hz. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "Box2D로 세 반발계수에서 원의 낙하를 계산했어요. 120 Hz로 직접 계산한 5초간의 중심 높이를 비교해요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

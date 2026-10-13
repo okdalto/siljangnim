@@ -1,0 +1,30 @@
+{
+  "order": 397,
+  "title": "Ray queries against a faceted solid (Embree)",
+  "title_ko": "다면체에 대한 광선 질의 (Embree)",
+  "description": "Embree traces orthographic rays against an original octahedron at three rotations. Hit positions and geometric normals form these directly computed views.",
+  "description_ko": "Embree로 직접 만든 팔면체의 세 회전에 직교 광선을 추적했어요. 실제 계산한 교차 위치와 기하 법선으로 결과를 표시해요.",
+  "prompt": "Ray queries against a faceted solid. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "embree"
+  ],
+  "summary": "Embree traces orthographic rays against an original octahedron at three rotations.",
+  "summary_ko": "Embree로 직접 만든 팔면체의 세 회전에 직교 광선을 추적했어요. 실제 계산한 교차 위치와 기하 법선으로 결과를 표시해요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "Embree traces orthographic rays against an original octahedron at three rotations. Hit positions and geometric normals form these directly computed views. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "Embree로 직접 만든 팔면체의 세 회전에 직교 광선을 추적했어요. 실제 계산한 교차 위치와 기하 법선으로 결과를 표시해요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

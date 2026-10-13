@@ -15,6 +15,32 @@
       "sha256": "4fe969f57b3d70920b22b768737db9c4219f0061d789427428021592bff79ec2"
     },
     {
+      "id": "box2d.gallery",
+      "version": 1,
+      "title": "Bounce histories from Box2D",
+      "capability": "box2d geometry native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/box2d.gallery/recipe.md",
+      "sha256": "65c98335d11ef68b03716ab61492ac6d4a36ac5a911d6abd158d8113910f8c82"
+    },
+    {
+      "id": "bullet-physics.gallery",
+      "version": 1,
+      "title": "Restitution in a rigid-body world",
+      "capability": "bullet-physics geometry native",
+      "kind": "python",
+      "license": "Zlib",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/bullet-physics.gallery/recipe.md",
+      "sha256": "7fc6ff1603a156863465d70a803a39567c2e0cd0609d1cda15e65bd1c0a9fc0d"
+    },
+    {
       "id": "caire.gallery",
       "version": 1,
       "title": "Removing low-energy seams",
@@ -195,6 +221,19 @@
       ],
       "path": "recipes/eclipse-sumo.gallery/recipe.md",
       "sha256": "511c9c438ff8be10a9ab4dda64585f8ee686f1b3770766b32c0c195a555d9b27"
+    },
+    {
+      "id": "embree.gallery",
+      "version": 1,
+      "title": "Ray queries against a faceted solid",
+      "capability": "embree geometry native",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/embree.gallery/recipe.md",
+      "sha256": "a0d33754c707e562ee474957db3974fe463c3fc25b9d354aee14b23609a2bede"
     },
     {
       "id": "fastnoise-lite.gallery",
@@ -416,6 +455,19 @@
       ],
       "path": "recipes/inkscape.gallery/recipe.md",
       "sha256": "cf077dcd6edb2b2116d7c6bb2616681bb1e639b54e4b72135220ec2bc85ec857"
+    },
+    {
+      "id": "jolt-physics.gallery",
+      "version": 1,
+      "title": "Contact and rebound with Jolt",
+      "capability": "jolt-physics geometry native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/jolt-physics.gallery/recipe.md",
+      "sha256": "3dbc5547ba794a61695efc38359695fd9f363b32fe73e4812eae6b5b6d43594e"
     },
     {
       "id": "kurbo.gallery",
@@ -780,6 +832,19 @@
       ],
       "path": "recipes/opensimplex2.gallery/recipe.md",
       "sha256": "0fa4b7311f59dd81c79ad1ba9c70a3ae0d1ccacca2128faff14318d94519bb21"
+    },
+    {
+      "id": "opensubdiv.gallery",
+      "version": 1,
+      "title": "Catmull-Clark refinement levels",
+      "capability": "opensubdiv geometry native",
+      "kind": "python",
+      "license": "LicenseRef-Tomorrow-Open-Source-Technology-1.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/opensubdiv.gallery/recipe.md",
+      "sha256": "b17a1dc7e6f81d62c42a44cbbf8664632d01f7f7db424fe0298ac4c9d84f1ce2"
     },
     {
       "id": "p5-hershey-js.gallery",

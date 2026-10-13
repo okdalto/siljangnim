@@ -6736,6 +6736,129 @@
     "program": "node"
    },
    "notes": "The Python standard-library recipe requires Node.js, downloads and caches a SHA-256 verified source archive, and runs its original JavaScript. Viewing only downloads prepared results."
+  },
+  {
+   "id": "box2d",
+   "name": "Box2D",
+   "repo": "https://github.com/erincatto/box2d",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Box2D simulates a falling circle with three restitution settings. The curves show five seconds of actual center height at 120 Hz.",
+   "tags": [
+    "rigid bodies",
+    "collisions",
+    "joints",
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The Python recipe installs CMake 4.4.3 and requires native C/C++ compilers. It verifies and caches source archives and native builds; every rerun executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "bullet-physics",
+   "name": "Bullet Physics",
+   "repo": "https://github.com/bulletphysics/bullet3",
+   "license": "Zlib",
+   "tier": "D",
+   "purpose": "Bullet simulates a sphere falling onto a plane with three restitution settings. The directly computed height curves include contact and rebound.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The Python recipe installs CMake 4.4.3 and requires native C/C++ compilers. It verifies and caches source archives and native builds; every rerun executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "jolt-physics",
+   "name": "Jolt Physics",
+   "repo": "https://github.com/jrouwe/joltphysics",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Jolt simulates a falling sphere at three restitution settings. The original HelloWorld collision-layer helpers configure the directly executed world.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The Python recipe installs CMake 4.4.3 and requires native C/C++ compilers. It verifies and caches source archives and native builds; every rerun executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "opensubdiv",
+   "name": "OpenSubdiv",
+   "repo": "https://github.com/pixaranimationstudios/opensubdiv",
+   "license": "LicenseRef-Tomorrow-Open-Source-Technology-1.0",
+   "tier": "D",
+   "purpose": "OpenSubdiv refines the upstream tutorial cube at three levels. Its Far topology and primvar interpolation produce the displayed vertices and faces.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The Python recipe installs CMake 4.4.3 and requires native C/C++ compilers. It verifies and caches source archives and native builds; every rerun executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "embree",
+   "name": "Embree",
+   "repo": "https://github.com/renderkit/embree",
+   "license": "Apache-2.0",
+   "tier": "D",
+   "purpose": "Embree traces orthographic rays against an original octahedron at three rotations. Hit positions and geometric normals form these directly computed views.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The Python recipe installs CMake 4.4.3 and requires native C/C++ compilers. It verifies and caches source archives and native builds; every rerun executes the original tool. Viewing only downloads prepared results."
   }
  ]
 }

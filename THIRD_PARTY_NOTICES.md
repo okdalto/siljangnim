@@ -26,6 +26,8 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Black Hole Shader (index.opensource #384) | BSD-3-Clause | [github.com/ebruneton/black_hole_shader](https://github.com/ebruneton/black_hole_shader) | [oss-black-hole](examples/oss-black-hole/) | fetched from a CDN by the scene at run time (not bundled) |
 | Blender (index.opensource #333) | GPL-2.0-or-later | [github.com/blender/blender](https://github.com/blender/blender) | [oss-blender](examples/oss-blender/) | an installed program, run by a recipe (not bundled) |
 | box-intersect (index.opensource #109) | MIT | [github.com/mikolalysenko/box-intersect](https://github.com/mikolalysenko/box-intersect) | [oss-box-intersect](examples/oss-box-intersect/) | fetched from a CDN by the scene at run time (not bundled) |
+| Box2D (index.opensource #149) | MIT | [github.com/erincatto/box2d](https://github.com/erincatto/box2d) | [oss-box2d](examples/oss-box2d/) | an installed program, run by a recipe (not bundled) |
+| Bullet Physics (index.opensource #156) | Zlib | [github.com/bulletphysics/bullet3](https://github.com/bulletphysics/bullet3) | [oss-bullet-physics](examples/oss-bullet-physics/) | an installed program, run by a recipe (not bundled) |
 | caire (index.opensource #375) | MIT | [github.com/esimov/caire](https://github.com/esimov/caire) | [oss-caire](examples/oss-caire/) | an installed program, run by a recipe (not bundled) |
 | cannon-es | MIT | [github.com/pmndrs/cannon-es](https://github.com/pmndrs/cannon-es) | [oss-cannon-es](examples/oss-cannon-es/) | fetched from a CDN by the scene at run time (not bundled) |
 | cannon.js (index.opensource #169) | MIT | [github.com/schteppe/cannon.js](https://github.com/schteppe/cannon.js) | [oss-cannon-js](examples/oss-cannon-js/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -77,6 +79,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Draco (index.opensource #97) | Apache-2.0 | [github.com/google/draco](https://github.com/google/draco) | [oss-draco](examples/oss-draco/) | installed with pip on the person's computer by a recipe (not bundled) |
 | earcut (index.opensource #18) | ISC | [github.com/mapbox/earcut](https://github.com/mapbox/earcut) | [oss-earcut](examples/oss-earcut/) | fetched from a CDN by the scene at run time (not bundled) |
 | Eclipse SUMO (index.opensource #403) | EPL-2.0 / GPL-2.0-or-later | [github.com/eclipse-sumo/sumo](https://github.com/eclipse-sumo/sumo) | [oss-eclipse-sumo](examples/oss-eclipse-sumo/) | installed with pip on the person's computer by a recipe (not bundled) |
+| Embree (index.opensource #95) | Apache-2.0 | [github.com/renderkit/embree](https://github.com/renderkit/embree) | [oss-embree](examples/oss-embree/) | an installed program, run by a recipe (not bundled) |
 | extrude-polyline (index.opensource #51) | MIT | [github.com/mattdesl/extrude-polyline](https://github.com/mattdesl/extrude-polyline) | [oss-extrude-polyline](examples/oss-extrude-polyline/) | fetched from a CDN by the scene at run time (not bundled) |
 | FastNoise Lite (index.opensource #137) | MIT | [github.com/auburn/fastnoiselite](https://github.com/auburn/fastnoiselite) | [oss-fastnoise-lite](examples/oss-fastnoise-lite/) | an installed program, run by a recipe (not bundled) |
 | FFmpeg (index.opensource #228) | LGPL-2.1-or-later | [github.com/FFmpeg/FFmpeg](https://github.com/FFmpeg/FFmpeg) | [oss-ffmpeg](examples/oss-ffmpeg/) | an installed program, run by a recipe (not bundled) |
@@ -129,6 +132,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | imagetracerjs (index.opensource #177) | Unlicense | [github.com/jankovicsandras/imagetracerjs](https://github.com/jankovicsandras/imagetracerjs) | [oss-imagetracerjs](examples/oss-imagetracerjs/) | fetched from a CDN by the scene at run time (not bundled) |
 | Inkscape | GPL-2.0-or-later | [gitlab.com/inkscape/inkscape](https://gitlab.com/inkscape/inkscape) | [oss-inkscape](examples/oss-inkscape/) | an installed program, run by a recipe (not bundled) |
 | isosurface (index.opensource #72) | MIT | [github.com/mikolalysenko/isosurface](https://github.com/mikolalysenko/isosurface) | [oss-isosurface](examples/oss-isosurface/) | fetched from a CDN by the scene at run time (not bundled) |
+| Jolt Physics (index.opensource #157) | MIT | [github.com/jrouwe/joltphysics](https://github.com/jrouwe/joltphysics) | [oss-jolt-physics](examples/oss-jolt-physics/) | an installed program, run by a recipe (not bundled) |
 | JSCAD modeling (index.opensource #91) | MIT | [github.com/jscad/OpenJSCAD.org](https://github.com/jscad/OpenJSCAD.org) | [oss-jscad](examples/oss-jscad/) | fetched from a CDN by the scene at run time (not bundled) |
 | KDBush (index.opensource #317) | ISC | [github.com/mourner/kdbush](https://github.com/mourner/kdbush) | [oss-kdbush](examples/oss-kdbush/) | fetched from a CDN by the scene at run time (not bundled) |
 | Kurbo (index.opensource #39) | MIT OR Apache-2.0 | [github.com/linebender/kurbo](https://github.com/linebender/kurbo) | [oss-kurbo](examples/oss-kurbo/) | an installed program, run by a recipe (not bundled) |
@@ -181,6 +185,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | OpenCV (opencv-python-headless) (index.opensource #227) | Apache-2.0 | [github.com/opencv/opencv](https://github.com/opencv/opencv) | [oss-opencv](examples/oss-opencv/) | installed with pip on the person's computer by a recipe (not bundled) |
 | OpenSCAD (index.opensource #90) | GPL-2.0 | [github.com/openscad/openscad](https://github.com/openscad/openscad) | [oss-openscad](examples/oss-openscad/) | an installed program, run by a recipe (not bundled) |
 | OpenSimplex2 (index.opensource #124) | CC0-1.0 / some files Unlicense | [github.com/kdotjpg/opensimplex2](https://github.com/kdotjpg/opensimplex2) | [oss-opensimplex2](examples/oss-opensimplex2/) | an installed program, run by a recipe (not bundled) |
+| OpenSubdiv (index.opensource #77) | LicenseRef-Tomorrow-Open-Source-Technology-1.0 | [github.com/pixaranimationstudios/opensubdiv](https://github.com/pixaranimationstudios/opensubdiv) | [oss-opensubdiv](examples/oss-opensubdiv/) | an installed program, run by a recipe (not bundled) |
 | opentype.js | MIT | [github.com/opentypejs/opentype.js](https://github.com/opentypejs/opentype.js) | [mix-opentype-flow](examples/mix-opentype-flow/), [oss-opentype](examples/oss-opentype/) | fetched from a CDN by the scene at run time (not bundled) |
 | p5-hershey-js (index.opensource #13) | MIT (library code) | [github.com/lingdong-/p5-hershey-js](https://github.com/lingdong-/p5-hershey-js) | [oss-p5-hershey-js](examples/oss-p5-hershey-js/) | an installed program, run by a recipe (not bundled) |
 | p5.js (index.opensource #330) | LGPL-2.1 | [github.com/processing/p5.js](https://github.com/processing/p5.js) | [oss-p5](examples/oss-p5/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -365,6 +370,8 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Official H3 JavaScript bindings loaded from CDN | [h3-js 4.5.0](https://github.com/uber/h3-js) | Apache-2.0 | [oss-h3](examples/oss-h3/) |
 | Supporting ndarray library loaded from CDN | [ndarray 1.0.19](https://github.com/scijs/ndarray) | MIT | [oss-greedy-mesher](examples/oss-greedy-mesher/) |
 | Supporting graph data structure loaded from CDN | [ngraph.graph 20.1.2](https://github.com/anvaka/ngraph.graph) | BSD-3-Clause | [oss-ngraph](examples/oss-ngraph/) |
+| HelloWorld collision-layer helpers | [Jolt Physics contributors](https://github.com/jrouwe/joltphysics/blob/5830c342b90fa087f118aa0f086d541a4950b1d9/HelloWorld/HelloWorld.cpp) | MIT | [oss-jolt-physics](examples/oss-jolt-physics/) |
+| Far tutorial cube and vertex adapter | [Pixar / OpenSubdiv contributors](https://github.com/pixaranimationstudios/opensubdiv/blob/c826d2713b51b64a9a6f6641c8c1e9a69f7aaa20/tutorials/far/tutorial_1_1/far_tutorial_1_1.cpp) | LicenseRef-Tomorrow-Open-Source-Technology-1.0 | [oss-opensubdiv](examples/oss-opensubdiv/) |
 
 ## Studio (the app's web code): bundled npm packages
 
