@@ -1,0 +1,22 @@
+{
+  "id": "rvo2-orca",
+  "repo": "https://github.com/snape/rvo2",
+  "sha": "75822bba14462c2e872ca96423825017ecd24764",
+  "url": "https://codeload.github.com/snape/rvo2/tar.gz/75822bba14462c2e872ca96423825017ecd24764",
+  "sha256": "a4cc94656b0b6ae48a3789de9b0f250cd94e20ed0160cef3e9e1e6063c9d9022",
+  "license": "Apache-2.0 / CC BY-SA 4.0",
+  "includes": [
+    "src"
+  ],
+  "files": [
+    "src/Agent.cc",
+    "src/KdTree.cc",
+    "src/Obstacle.cc",
+    "src/RVOSimulator.cc",
+    "src/Vector2.cc",
+    "src/Line.cc"
+  ],
+  "frames": 3,
+  "flags": [],
+  "audio": false
+}

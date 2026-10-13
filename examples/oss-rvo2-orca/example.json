@@ -1,0 +1,30 @@
+{
+  "order": 382,
+  "title": "Agents avoiding each other (RVO2 / ORCA)",
+  "title_ko": "서로 피하는 에이전트 (RVO2 / ORCA)",
+  "description": "RVO2 computes reciprocal collision avoidance for twelve agents crossing a circle. Paths show their actual simulated positions with a minimum-separation check. A small tangential preference breaks perfect symmetry.",
+  "description_ko": "RVO2로 원을 가로지르는 에이전트 12개의 상호 충돌 회피를 계산했어요. 최소 거리를 검사한 실제 이동 경로예요. 작은 접선 방향 선호로 완전한 대칭 정체를 피했어요.",
+  "prompt": "Agents avoiding each other. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "rvo2-orca"
+  ],
+  "summary": "RVO2 computes reciprocal collision avoidance for twelve agents crossing a circle.",
+  "summary_ko": "RVO2로 원을 가로지르는 에이전트 12개의 상호 충돌 회피를 계산했어요. 최소 거리를 검사한 실제 이동 경로예요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "RVO2 computes reciprocal collision avoidance for twelve agents crossing a circle. Paths show their actual simulated positions with a minimum-separation check. A small tangential preference breaks perfect symmetry. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "RVO2로 원을 가로지르는 에이전트 12개의 상호 충돌 회피를 계산했어요. 최소 거리를 검사한 실제 이동 경로예요. 작은 접선 방향 선호로 완전한 대칭 정체를 피했어요. 레시피에서 원본 엔진을 실행해요."
+}

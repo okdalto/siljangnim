@@ -1,0 +1,22 @@
+{
+  "id": "libnoise",
+  "repo": "https://github.com/expl0it3r/libnoise",
+  "sha": "d9e8f82945c3c19e3411628742e5c813411346a4",
+  "url": "https://codeload.github.com/expl0it3r/libnoise/tar.gz/d9e8f82945c3c19e3411628742e5c813411346a4",
+  "sha256": "d8580f690d91b1fa19eb640503911865b95f0e91c03f034b85d8db0be925add1",
+  "license": "LGPL-2.1-or-later",
+  "includes": [
+    "include",
+    "include/noise"
+  ],
+  "files": [
+    "src/noisegen.cpp",
+    "src/module/modulebase.cpp",
+    "src/module/perlin.cpp",
+    "src/module/billow.cpp",
+    "src/module/ridgedmulti.cpp"
+  ],
+  "frames": 3,
+  "flags": [],
+  "audio": false
+}

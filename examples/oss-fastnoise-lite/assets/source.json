@@ -1,0 +1,15 @@
+{
+  "id": "fastnoise-lite",
+  "repo": "https://github.com/auburn/fastnoiselite",
+  "sha": "785f37a9ad76e283586a379675085f2063ae03f7",
+  "url": "https://codeload.github.com/auburn/fastnoiselite/tar.gz/785f37a9ad76e283586a379675085f2063ae03f7",
+  "sha256": "5bb93f5417b9ff3b52396a8d8f4f135a771b418c3a686933d05b50445c43c5c2",
+  "license": "MIT",
+  "includes": [
+    "Cpp"
+  ],
+  "files": [],
+  "frames": 3,
+  "flags": [],
+  "audio": false
+}

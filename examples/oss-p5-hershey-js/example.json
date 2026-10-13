@@ -1,0 +1,30 @@
+{
+  "order": 390,
+  "title": "Stroke fonts from Hershey data (p5-hershey-js)",
+  "title_ko": "허시 데이터의 획 글꼴 (p5-hershey-js)",
+  "description": "p5-hershey-js parses its original font data and emits strokes for STUDIO. A small p5 drawing adapter records the actual vertex commands for three character maps.",
+  "description_ko": "p5-hershey-js가 원본 글꼴 데이터를 읽고 STUDIO의 획을 생성해요. 작은 p5 그리기 어댑터로 세 글꼴의 실제 꼭짓점 명령을 기록했어요.",
+  "prompt": "Stroke fonts from Hershey data. Rerun the included recipe to change inputs.",
+  "made_with": "Original JavaScript source at a pinned commit; Node.js 25.6.1 executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "p5-hershey-js"
+  ],
+  "summary": "p5-hershey-js parses its original font data and emits strokes for STUDIO.",
+  "summary_ko": "p5-hershey-js가 원본 글꼴 데이터를 읽고 STUDIO의 획을 생성해요. 작은 p5 그리기 어댑터로 세 글꼴의 실제 꼭짓점 명령을 기록했어요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "p5-hershey-js parses its original font data and emits strokes for STUDIO. A small p5 drawing adapter records the actual vertex commands for three character maps. The recipe runs the original JavaScript engine.",
+  "tool_about_ko": "p5-hershey-js가 원본 글꼴 데이터를 읽고 STUDIO의 획을 생성해요. 작은 p5 그리기 어댑터로 세 글꼴의 실제 꼭짓점 명령을 기록했어요. 레시피에서 원본 JavaScript 엔진을 실행해요."
+}

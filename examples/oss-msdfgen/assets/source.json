@@ -1,0 +1,42 @@
+{
+  "id": "msdfgen",
+  "repo": "https://github.com/chlumsky/msdfgen",
+  "sha": "1c106ed8117893bf943e577f62eb0665fb271e46",
+  "url": "https://codeload.github.com/chlumsky/msdfgen/tar.gz/1c106ed8117893bf943e577f62eb0665fb271e46",
+  "sha256": "56576be23c2d6c8a4201cb1507698191403cbffd820d17473cf31f7339d78074",
+  "license": "MIT",
+  "includes": [
+    "."
+  ],
+  "files": [
+    "core/Contour.cpp",
+    "core/DistanceMapping.cpp",
+    "core/EdgeHolder.cpp",
+    "core/MSDFErrorCorrection.cpp",
+    "core/Projection.cpp",
+    "core/Scanline.cpp",
+    "core/Shape.cpp",
+    "core/contour-combiners.cpp",
+    "core/convergent-curve-ordering.cpp",
+    "core/edge-coloring.cpp",
+    "core/edge-segments.cpp",
+    "core/edge-selectors.cpp",
+    "core/equation-solver.cpp",
+    "core/export-svg.cpp",
+    "core/msdf-error-correction.cpp",
+    "core/msdfgen.cpp",
+    "core/rasterization.cpp",
+    "core/render-sdf.cpp",
+    "core/save-bmp.cpp",
+    "core/save-fl32.cpp",
+    "core/save-rgba.cpp",
+    "core/save-tiff.cpp",
+    "core/sdf-error-estimation.cpp",
+    "core/shape-description.cpp"
+  ],
+  "frames": 3,
+  "flags": [
+    "-DMSDFGEN_PUBLIC="
+  ],
+  "audio": false
+}

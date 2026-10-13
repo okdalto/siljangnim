@@ -1,0 +1,18 @@
+{
+  "id": "daisysp",
+  "repo": "https://github.com/electro-smith/daisysp",
+  "sha": "2c72eaf9eac5fc0dca1919d65d606da907832618",
+  "url": "https://codeload.github.com/electro-smith/daisysp/tar.gz/2c72eaf9eac5fc0dca1919d65d606da907832618",
+  "sha256": "78db7ee9da2d472bf7316a1d16ad7100d174dc1bc90422bc3a55a11760d6014d",
+  "license": "MIT",
+  "includes": [
+    "Source",
+    "Source/Utility"
+  ],
+  "files": [
+    "Source/Synthesis/oscillator.cpp"
+  ],
+  "frames": 3,
+  "flags": [],
+  "audio": true
+}

@@ -1,0 +1,30 @@
+{
+  "order": 379,
+  "title": "Fractal noise terrain (FastNoise Lite)",
+  "title_ko": "프랙털 노이즈 지형 (FastNoise Lite)",
+  "description": "FastNoise Lite generates OpenSimplex2, cellular and fractal terrain from the same seed. Mesh heights come directly from the C++ implementation.",
+  "description_ko": "FastNoise Lite의 같은 시드로 OpenSimplex2·셀룰러·프랙털 지형을 계산했어요. C++ 구현이 생성한 높이를 메시로 보여 줘요.",
+  "prompt": "Fractal noise terrain. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "fastnoise-lite"
+  ],
+  "summary": "FastNoise Lite generates OpenSimplex2, cellular and fractal terrain from the same seed.",
+  "summary_ko": "FastNoise Lite의 같은 시드로 OpenSimplex2·셀룰러·프랙털 지형을 계산했어요. C++ 구현이 생성한 높이를 메시로 보여 줘요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale and rotation"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율과 회전을 바꿔 보세요"
+  ],
+  "tool_about": "FastNoise Lite generates OpenSimplex2, cellular and fractal terrain from the same seed. Mesh heights come directly from the C++ implementation. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "FastNoise Lite의 같은 시드로 OpenSimplex2·셀룰러·프랙털 지형을 계산했어요. C++ 구현이 생성한 높이를 메시로 보여 줘요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

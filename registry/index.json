@@ -80,6 +80,32 @@
       "sha256": "508aa6f89691b826fae64e28366ed0ae201ab78d5137a61490b016280aa866e2"
     },
     {
+      "id": "csg-js.gallery",
+      "version": 1,
+      "title": "Boolean solids with BSP trees",
+      "capability": "csg-js geometry native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/csg-js.gallery/recipe.md",
+      "sha256": "757846ff9d558dbf9941dc22c5ac4629cbf2b9ab234eeb3cfbccdc7b531ea6c7"
+    },
+    {
+      "id": "daisysp.gallery",
+      "version": 1,
+      "title": "Three oscillator waveforms",
+      "capability": "daisysp audio synthesis native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/daisysp.gallery/recipe.md",
+      "sha256": "dbbcc439f3116637b2050941eb6e43fcd121c90bd55aa92bd5fdff7228138451"
+    },
+    {
       "id": "datashader.gallery",
       "version": 1,
       "title": "Aggregating a point cloud",
@@ -171,6 +197,19 @@
       "sha256": "511c9c438ff8be10a9ab4dda64585f8ee686f1b3770766b32c0c195a555d9b27"
     },
     {
+      "id": "fastnoise-lite.gallery",
+      "version": 1,
+      "title": "Fractal noise terrain",
+      "capability": "fastnoise-lite geometry native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/fastnoise-lite.gallery/recipe.md",
+      "sha256": "fdef9d354870cd1ac5f3a7a3588c04101bbbfe0a644919f409a3c429b02f99fe"
+    },
+    {
       "id": "ffmpeg.mandelbrot-zoom",
       "version": 2,
       "title": "Mandelbrot zoom video from ffmpeg's lavfi source",
@@ -223,6 +262,19 @@
       "sha256": "45daadf05da76e8a6995ba1785b09457e4980ac5fa46f5b02ab4cecbd5bf8d15"
     },
     {
+      "id": "flomat.gallery",
+      "version": 1,
+      "title": "Scale axes inside an outline",
+      "capability": "flomat geometry native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/flomat.gallery/recipe.md",
+      "sha256": "d2e1822044dfaf247831f0cd153b2f2c315e3f3270a4a31d980b325c0a893874"
+    },
+    {
       "id": "fonttools.gallery",
       "version": 1,
       "title": "Building original glyph outlines",
@@ -247,6 +299,19 @@
       ],
       "path": "recipes/freetype.gallery/recipe.md",
       "sha256": "0e5713eefac954a2ce18dbc720bd620907c2a69e5a20ab073d697eebe73e6f3c"
+    },
+    {
+      "id": "fullik-fabrik.gallery",
+      "version": 1,
+      "title": "Reaching with an articulated chain",
+      "capability": "fullik-fabrik geometry native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/fullik-fabrik.gallery/recipe.md",
+      "sha256": "8261755b17e521f125779b0f13e6b827f84d9f88e88a79cc62af067b35119a8f"
     },
     {
       "id": "geos.gallery",
@@ -431,6 +496,19 @@
       "sha256": "5fa55ebb0c1d2c1b4151e3bfed5e85a8b3f6f488852883aecda41ea359d51dde"
     },
     {
+      "id": "libnoise.gallery",
+      "version": 1,
+      "title": "Combining coherent-noise modules",
+      "capability": "libnoise geometry native",
+      "kind": "python",
+      "license": "LGPL-2.1-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/libnoise.gallery/recipe.md",
+      "sha256": "eaf6cb9e948b40f18582e2734bc9d67d3efd156c7eb7aeecacc84dfc31e55e32"
+    },
+    {
       "id": "librosa.beat-track",
       "version": 1,
       "title": "Beats, tempo and onset envelope (librosa)",
@@ -509,6 +587,19 @@
       "sha256": "837823e625ea2530311982ddfe34b95049935b57bd947349eb0a75a118de9e52"
     },
     {
+      "id": "maximilian.gallery",
+      "version": 1,
+      "title": "Native oscillator shapes",
+      "capability": "maximilian audio synthesis native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/maximilian.gallery/recipe.md",
+      "sha256": "798d80aec93439884902aacaeed975e5be53ca17238b44b8d874e9f217d68958"
+    },
+    {
       "id": "meanderpy.migration",
       "version": 1,
       "title": "River meander migration with oxbow cutoffs (meanderpy)",
@@ -535,6 +626,19 @@
       "sha256": "7508a0be1b955f3794477ce1f852c9600b456df2dcb7fade3c72f16fd7822abd"
     },
     {
+      "id": "msdfgen.gallery",
+      "version": 1,
+      "title": "Reconstructing an outline from distances",
+      "capability": "msdfgen geometry native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/msdfgen.gallery/recipe.md",
+      "sha256": "520a0647add94ceca1a14b85d431bc3052293670817424ad182c18c3a29067c6"
+    },
+    {
       "id": "mujoco.gallery",
       "version": 1,
       "title": "Double pendulum dynamics",
@@ -559,6 +663,19 @@
       ],
       "path": "recipes/nanogpt.gallery/recipe.md",
       "sha256": "e9c3a95f4a80277a5ea6a199b0e41cb05738f4d46728e4fb23a2272782719389"
+    },
+    {
+      "id": "ndwfc.gallery",
+      "version": 1,
+      "title": "Constraint-based tile fields",
+      "capability": "ndwfc geometry native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ndwfc.gallery/recipe.md",
+      "sha256": "bebd4dfddc58d99c78051d5a550fadf2c6ab8b05dd1b0baa976ac6885f1e4ef8"
     },
     {
       "id": "networkx.les-miserables-layout",
@@ -665,6 +782,19 @@
       "sha256": "0fa4b7311f59dd81c79ad1ba9c70a3ae0d1ccacca2128faff14318d94519bb21"
     },
     {
+      "id": "p5-hershey-js.gallery",
+      "version": 1,
+      "title": "Stroke fonts from Hershey data",
+      "capability": "p5-hershey-js geometry native",
+      "kind": "python",
+      "license": "MIT (library code)",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/p5-hershey-js.gallery/recipe.md",
+      "sha256": "88b0ac16db71f2d72dd5013b0003dbb9e7c0957c99eef65dd05c2ae90cf2eb1d"
+    },
+    {
       "id": "pillow.poster-sunset",
       "version": 1,
       "title": "Original sunset and median-cut palettes (Pillow)",
@@ -676,6 +806,19 @@
       ],
       "path": "recipes/pillow.poster-sunset/recipe.md",
       "sha256": "e76351c9721849b387dbb75f514912e75619cc9b175adf10435330d0d577a3da"
+    },
+    {
+      "id": "pink-trombone-c.gallery",
+      "version": 1,
+      "title": "A physical vocal-tract model",
+      "capability": "pink-trombone-c audio synthesis native",
+      "kind": "python",
+      "license": "MIT (C++ port)",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/pink-trombone-c.gallery/recipe.md",
+      "sha256": "13d1ddad850230706e99f59e70b6e23da75c49e855db9bdeb53d30f4360b7a24"
     },
     {
       "id": "polypartition.gallery",
@@ -873,6 +1016,19 @@
       "sha256": "99efcccf929bf1cc53740ff1ba154ce2ac1e3611db0a2ed564261d113203821a"
     },
     {
+      "id": "rvo2-orca.gallery",
+      "version": 1,
+      "title": "Agents avoiding each other",
+      "capability": "rvo2-orca geometry native",
+      "kind": "python",
+      "license": "Apache-2.0 / CC BY-SA 4.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/rvo2-orca.gallery/recipe.md",
+      "sha256": "e4e844998d81362ca05cc25f0ea00339d166c73569230882bf541ddcf2a947f9"
+    },
+    {
       "id": "sam-2.gallery",
       "version": 1,
       "title": "Point-guided image regions",
@@ -975,6 +1131,19 @@
       ],
       "path": "recipes/skan.gallery/recipe.md",
       "sha256": "dc9ae5218bb5738e45aae6a432d46c1849a103342fb71e0e012bf7c89e653004"
+    },
+    {
+      "id": "skeleton-tracing.gallery",
+      "version": 1,
+      "title": "Vector skeletons of thick strokes",
+      "capability": "skeleton-tracing geometry native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/skeleton-tracing.gallery/recipe.md",
+      "sha256": "595675243256ca5ba216caeca1c82b556f07883ddcf5a944f918a2479dddcedb"
     },
     {
       "id": "sunpy.gallery",
@@ -1157,6 +1326,19 @@
       ],
       "path": "recipes/vello.gallery/recipe.md",
       "sha256": "e09f5d13c0472f3be33de88a8733a102b4762191603fa85488632d7ce3872cb5"
+    },
+    {
+      "id": "voro.gallery",
+      "version": 1,
+      "title": "A cell clipped by planes",
+      "capability": "voro geometry native",
+      "kind": "python",
+      "license": "BSD-style 3 clauses + grant for contributed improvements",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/voro.gallery/recipe.md",
+      "sha256": "1f12d6b69c02a05a188966b492c7e20ea9b35060cb3abe189f7378a2d5126110"
     },
     {
       "id": "vpype.gallery",

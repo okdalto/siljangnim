@@ -1,0 +1,30 @@
+{
+  "order": 387,
+  "title": "Reconstructing an outline from distances (msdfgen)",
+  "title_ko": "거리장으로 윤곽 복원 (msdfgen)",
+  "description": "MSDFgen computes a multichannel signed distance field of an original concave outline at three resolutions. Median-channel thresholding reconstructs its filled shape.",
+  "description_ko": "MSDFgen으로 직접 만든 오목 윤곽의 다중 채널 부호 거리장을 세 해상도에서 계산했어요. 채널 중앙값을 기준으로 내부를 복원해요.",
+  "prompt": "Reconstructing an outline from distances. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "msdfgen"
+  ],
+  "summary": "MSDFgen computes a multichannel signed distance field of an original concave outline at three resolutions.",
+  "summary_ko": "MSDFgen으로 직접 만든 오목 윤곽의 다중 채널 부호 거리장을 세 해상도에서 계산했어요. 채널 중앙값을 기준으로 내부를 복원해요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "MSDFgen computes a multichannel signed distance field of an original concave outline at three resolutions. Median-channel thresholding reconstructs its filled shape. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "MSDFgen으로 직접 만든 오목 윤곽의 다중 채널 부호 거리장을 세 해상도에서 계산했어요. 채널 중앙값을 기준으로 내부를 복원해요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

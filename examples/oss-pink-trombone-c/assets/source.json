@@ -1,0 +1,17 @@
+{
+  "id": "pink-trombone-c",
+  "repo": "https://github.com/kaiidams/pinktrombone_cpp",
+  "sha": "a4fe891d22cb4134a1c0083d789d7be862140255",
+  "url": "https://codeload.github.com/kaiidams/pinktrombone_cpp/tar.gz/a4fe891d22cb4134a1c0083d789d7be862140255",
+  "sha256": "18adf110060ea760995dc606b44283688fb92f1f80d763de4d293df53f4b3b9c",
+  "license": "MIT (C++ port)",
+  "includes": [
+    "include"
+  ],
+  "files": [
+    "csrc/noise.cpp"
+  ],
+  "frames": 3,
+  "flags": [],
+  "audio": true
+}

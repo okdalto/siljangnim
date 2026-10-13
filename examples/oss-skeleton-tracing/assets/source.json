@@ -1,0 +1,15 @@
+{
+  "id": "skeleton-tracing",
+  "repo": "https://github.com/lingdong-/skeleton-tracing",
+  "sha": "f5dd65e2389f9311dd3c24b9a83bd852c28c49e9",
+  "url": "https://codeload.github.com/lingdong-/skeleton-tracing/tar.gz/f5dd65e2389f9311dd3c24b9a83bd852c28c49e9",
+  "sha256": "4fffc9f0509bbc17a28a16070929891140da296a8401deef8776fd9138431019",
+  "license": "MIT",
+  "includes": [
+    "cpp"
+  ],
+  "files": [],
+  "frames": 3,
+  "flags": [],
+  "audio": false
+}

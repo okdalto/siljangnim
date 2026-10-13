@@ -28,6 +28,10 @@ Shader examples run original GLSL included with its license. MuJoCo, VTK, PyVist
 
 Rust examples include directly computed Kurbo, Lyon and Cavalier Contours curves, OpenSimplex2 terrain, Fidget slices and Truck solid models. Vello and Velato outputs were rendered on a local Metal GPU. Included Cargo lockfiles support rerunning; crates download and cache only when the recipe runs.
 
+FastNoise Lite and libnoise terrain, Voro++ cells, RVO2 paths, Skeleton Tracing centerlines and MSDFgen distance fields are computed from original C++ sources. DaisySP, Maximilian and Pink Trombone examples let you select and listen to directly synthesized one-second clips.
+
+CSG.js boolean solids, NDWFC tiles, p5-hershey-js stroke fonts, Fullik articulated chains and FloMat medial axes were computed by their original JavaScript in Node.js. Their Python recipes cache verified source archives and rerun them through Node.js.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

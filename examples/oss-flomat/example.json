@@ -1,0 +1,30 @@
+{
+  "order": 392,
+  "title": "Scale axes inside an outline (FloMat)",
+  "title_ko": "윤곽 내부의 스케일 축 (FloMat)",
+  "description": "FloMat computes the medial axis of an original concave outline, then prunes it at three scale factors. The displayed curves come from the actual MAT graph.",
+  "description_ko": "FloMat으로 직접 만든 오목 윤곽의 중앙축을 구하고 세 스케일 계수로 가지를 줄였어요. 실제 MAT 그래프에서 꺼낸 곡선을 보여 줘요.",
+  "prompt": "Scale axes inside an outline. Rerun the included recipe to change inputs.",
+  "made_with": "Original JavaScript source at a pinned commit; Node.js 25.6.1 executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "flomat"
+  ],
+  "summary": "FloMat computes the medial axis of an original concave outline, then prunes it at three scale factors.",
+  "summary_ko": "FloMat으로 직접 만든 오목 윤곽의 중앙축을 구하고 세 스케일 계수로 가지를 줄였어요. 실제 MAT 그래프에서 꺼낸 곡선을 보여 줘요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "FloMat computes the medial axis of an original concave outline, then prunes it at three scale factors. The displayed curves come from the actual MAT graph. The recipe runs the original JavaScript engine.",
+  "tool_about_ko": "FloMat으로 직접 만든 오목 윤곽의 중앙축을 구하고 세 스케일 계수로 가지를 줄였어요. 실제 MAT 그래프에서 꺼낸 곡선을 보여 줘요. 레시피에서 원본 JavaScript 엔진을 실행해요."
+}

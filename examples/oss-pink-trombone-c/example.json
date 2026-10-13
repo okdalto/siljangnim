@@ -1,0 +1,33 @@
+{
+  "order": 386,
+  "title": "A physical vocal-tract model (Pink Trombone C++)",
+  "title_ko": "물리적 성도 모델 (Pink Trombone C++)",
+  "description": "Pink Trombone C++ generates voiced tones at three pitches through its glottis and vocal-tract model. These are synthetic vowels, not recorded speech.",
+  "description_ko": "Pink Trombone C++의 성문·성도 모델로 세 음높이의 소리를 생성했어요. 녹음된 말소리가 아닌 합성 모음이에요.",
+  "prompt": "A physical vocal-tract model. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive",
+    "audio"
+  ],
+  "mode": "live",
+  "uses": [
+    "pink-trombone-c"
+  ],
+  "summary": "Pink Trombone C++ generates voiced tones at three pitches through its glottis and vocal-tract model.",
+  "summary_ko": "Pink Trombone C++의 성문·성도 모델로 세 음높이의 소리를 생성했어요. 녹음된 말소리가 아닌 합성 모음이에요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale",
+    "Toggle Listen to hear the selected one-second clip"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요",
+    "Listen을 켜서 선택한 1초 음원을 들어 보세요"
+  ],
+  "tool_about": "Pink Trombone C++ generates voiced tones at three pitches through its glottis and vocal-tract model. These are synthetic vowels, not recorded speech. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "Pink Trombone C++의 성문·성도 모델로 세 음높이의 소리를 생성했어요. 녹음된 말소리가 아닌 합성 모음이에요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

@@ -1,0 +1,17 @@
+{
+  "id": "voro",
+  "repo": "https://github.com/chr1shr/voro",
+  "sha": "b0dac575a47af0f90b5b100e6dc199a493c7cb83",
+  "url": "https://codeload.github.com/chr1shr/voro/tar.gz/b0dac575a47af0f90b5b100e6dc199a493c7cb83",
+  "sha256": "e11371cbee00aae8357d0b9d6b2acdf97b2e043153ec38de0d2cee3dd59203c3",
+  "license": "BSD-style 3 clauses + grant for contributed improvements",
+  "includes": [
+    "src"
+  ],
+  "files": [
+    "src/voro++.cc"
+  ],
+  "frames": 3,
+  "flags": [],
+  "audio": false
+}

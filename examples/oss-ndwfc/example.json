@@ -1,0 +1,30 @@
+{
+  "order": 389,
+  "title": "Constraint-based tile fields (NDWFC)",
+  "title_ko": "제약 조건으로 만드는 타일 (NDWFC)",
+  "description": "NDWFC fills three original tile systems under adjacency constraints. Every generated neighbour pair is checked against its rule set.",
+  "description_ko": "NDWFC로 세 가지 타일 체계를 인접 제약에 맞춰 채웠어요. 생성된 모든 이웃 쌍이 규칙을 지키는지 검사해요.",
+  "prompt": "Constraint-based tile fields. Rerun the included recipe to change inputs.",
+  "made_with": "Original JavaScript source at a pinned commit; Node.js 25.6.1 executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "ndwfc"
+  ],
+  "summary": "NDWFC fills three original tile systems under adjacency constraints.",
+  "summary_ko": "NDWFC로 세 가지 타일 체계를 인접 제약에 맞춰 채웠어요. 생성된 모든 이웃 쌍이 규칙을 지키는지 검사해요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "NDWFC fills three original tile systems under adjacency constraints. Every generated neighbour pair is checked against its rule set. The recipe runs the original JavaScript engine.",
+  "tool_about_ko": "NDWFC로 세 가지 타일 체계를 인접 제약에 맞춰 채웠어요. 생성된 모든 이웃 쌍이 규칙을 지키는지 검사해요. 레시피에서 원본 JavaScript 엔진을 실행해요."
+}

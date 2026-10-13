@@ -1,0 +1,30 @@
+{
+  "order": 388,
+  "title": "Boolean solids with BSP trees (csg.js)",
+  "title_ko": "BSP 트리의 입체 불리언 (csg.js)",
+  "description": "The original csg.js combines a cube and sphere by union, intersection and subtraction. Its polygon output is triangulated only for the viewer.",
+  "description_ko": "원본 csg.js로 정육면체와 구의 합집합·교집합·차집합을 계산했어요. 결과 다각형은 표시를 위해 삼각분할해요.",
+  "prompt": "Boolean solids with BSP trees. Rerun the included recipe to change inputs.",
+  "made_with": "Original JavaScript source at a pinned commit; Node.js 25.6.1 executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "csg-js"
+  ],
+  "summary": "The original csg.js combines a cube and sphere by union, intersection and subtraction.",
+  "summary_ko": "원본 csg.js로 정육면체와 구의 합집합·교집합·차집합을 계산했어요. 결과 다각형은 표시를 위해 삼각분할해요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale and rotation"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율과 회전을 바꿔 보세요"
+  ],
+  "tool_about": "The original csg.js combines a cube and sphere by union, intersection and subtraction. Its polygon output is triangulated only for the viewer. The recipe runs the original JavaScript engine.",
+  "tool_about_ko": "원본 csg.js로 정육면체와 구의 합집합·교집합·차집합을 계산했어요. 결과 다각형은 표시를 위해 삼각분할해요. 레시피에서 원본 JavaScript 엔진을 실행해요."
+}

@@ -1,0 +1,17 @@
+{
+  "id": "maximilian",
+  "repo": "https://github.com/micknoise/maximilian",
+  "sha": "f937afb71aee841607f87a7f8bbd9783581fbd30",
+  "url": "https://codeload.github.com/micknoise/maximilian/tar.gz/f937afb71aee841607f87a7f8bbd9783581fbd30",
+  "sha256": "1f3ae99774947466209413c1c9386cac550d0e84c2afec0a03c629def0b06d2c",
+  "license": "MIT",
+  "includes": [
+    "src"
+  ],
+  "files": [
+    "src/maximilian.cpp"
+  ],
+  "frames": 3,
+  "flags": [],
+  "audio": true
+}

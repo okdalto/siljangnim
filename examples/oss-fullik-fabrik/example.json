@@ -1,0 +1,30 @@
+{
+  "order": 391,
+  "title": "Reaching with an articulated chain (fullik · FABRIK)",
+  "title_ko": "관절 체인으로 목표에 닿기 (fullik · FABRIK)",
+  "description": "Fullik solves a three-bone planar chain toward three targets using FABRIK. Bone lengths and endpoint error are checked after each solve.",
+  "description_ko": "Fullik의 FABRIK 알고리즘으로 세 뼈 체인을 세 목표점으로 풀었어요. 각 계산 뒤 뼈 길이와 끝점 오차를 검사했어요.",
+  "prompt": "Reaching with an articulated chain. Rerun the included recipe to change inputs.",
+  "made_with": "Original JavaScript source at a pinned commit; Node.js 25.6.1 executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "fullik-fabrik"
+  ],
+  "summary": "Fullik solves a three-bone planar chain toward three targets using FABRIK.",
+  "summary_ko": "Fullik의 FABRIK 알고리즘으로 세 뼈 체인을 세 목표점으로 풀었어요. 각 계산 뒤 뼈 길이와 끝점 오차를 검사했어요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "Fullik solves a three-bone planar chain toward three targets using FABRIK. Bone lengths and endpoint error are checked after each solve. The recipe runs the original JavaScript engine.",
+  "tool_about_ko": "Fullik의 FABRIK 알고리즘으로 세 뼈 체인을 세 목표점으로 풀었어요. 각 계산 뒤 뼈 길이와 끝점 오차를 검사했어요. 레시피에서 원본 JavaScript 엔진을 실행해요."
+}

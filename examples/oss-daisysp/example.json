@@ -1,0 +1,33 @@
+{
+  "order": 384,
+  "title": "Three oscillator waveforms (DaisySP)",
+  "title_ko": "세 가지 발진기 파형 (DaisySP)",
+  "description": "DaisySP synthesizes sine, triangle and band-limited saw tones at 220 Hz. Listen to the actual native output and inspect a short waveform window.",
+  "description_ko": "DaisySP로 220 Hz 사인·삼각·대역 제한 톱니파를 합성했어요. 실제 네이티브 출력과 짧은 파형 구간을 비교하세요.",
+  "prompt": "Three oscillator waveforms. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive",
+    "audio"
+  ],
+  "mode": "live",
+  "uses": [
+    "daisysp"
+  ],
+  "summary": "DaisySP synthesizes sine, triangle and band-limited saw tones at 220 Hz.",
+  "summary_ko": "DaisySP로 220 Hz 사인·삼각·대역 제한 톱니파를 합성했어요. 실제 네이티브 출력과 짧은 파형 구간을 비교하세요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale",
+    "Toggle Listen to hear the selected one-second clip"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요",
+    "Listen을 켜서 선택한 1초 음원을 들어 보세요"
+  ],
+  "tool_about": "DaisySP synthesizes sine, triangle and band-limited saw tones at 220 Hz. Listen to the actual native output and inspect a short waveform window. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "DaisySP로 220 Hz 사인·삼각·대역 제한 톱니파를 합성했어요. 실제 네이티브 출력과 짧은 파형 구간을 비교하세요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

@@ -1,0 +1,33 @@
+{
+  "order": 385,
+  "title": "Native oscillator shapes (Maximilian)",
+  "title_ko": "네이티브 발진기의 파형 (Maximilian)",
+  "description": "Maximilian synthesizes sine, square and saw tones at 220 Hz. The saved audio and waveform window are computed by its original oscillators.",
+  "description_ko": "Maximilian의 원본 발진기로 220 Hz 사인·사각·톱니파를 합성했어요. 직접 계산한 음원과 파형 구간이에요.",
+  "prompt": "Native oscillator shapes. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive",
+    "audio"
+  ],
+  "mode": "live",
+  "uses": [
+    "maximilian"
+  ],
+  "summary": "Maximilian synthesizes sine, square and saw tones at 220 Hz.",
+  "summary_ko": "Maximilian의 원본 발진기로 220 Hz 사인·사각·톱니파를 합성했어요. 직접 계산한 음원과 파형 구간이에요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale",
+    "Toggle Listen to hear the selected one-second clip"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요",
+    "Listen을 켜서 선택한 1초 음원을 들어 보세요"
+  ],
+  "tool_about": "Maximilian synthesizes sine, square and saw tones at 220 Hz. The saved audio and waveform window are computed by its original oscillators. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "Maximilian의 원본 발진기로 220 Hz 사인·사각·톱니파를 합성했어요. 직접 계산한 음원과 파형 구간이에요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

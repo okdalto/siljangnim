@@ -26,6 +26,10 @@ AI 예제를 보는 것만으로 대형 모델이나 도구를 설치하지 않�
 
 Rust 예제는 Kurbo·Lyon·Cavalier Contours의 곡선 계산, OpenSimplex2 지형, Fidget 단면, Truck 입체 모델링을 직접 실행한 결과를 제공합니다. Vello·Velato는 이 Mac의 Metal GPU에서 직접 렌더한 결과입니다. 포함된 Cargo 잠금 파일로 재실행하며 크레이트는 재실행 시에만 다운로드·캐시합니다.
 
+FastNoise Lite·libnoise 지형, Voro++ 셀, RVO2 이동 경로, Skeleton Tracing 중심선과 MSDFgen 거리장도 원본 C++를 직접 실행한 결과입니다. DaisySP·Maximilian·Pink Trombone 예제에서는 직접 합성한 1초 음원을 선택해 들을 수 있습니다.
+
+CSG.js 입체 불리언, NDWFC 타일, p5-hershey-js 획 글꼴, Fullik 관절, FloMat 중앙축 예제는 원본 JavaScript를 Node.js에서 직접 실행했습니다. Python 레시피가 검증된 소스를 캐시하고 Node.js로 재실행합니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

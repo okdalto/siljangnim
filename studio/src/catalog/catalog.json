@@ -626,7 +626,7 @@
   {
    "id": "blender",
    "name": "Blender",
-   "repo": "https://projects.blender.org/blender/blender",
+   "repo": "https://github.com/blender/blender",
    "license": "GPL-2.0-or-later",
    "tier": "D",
    "purpose": "Render or process 3D scenes headless (blender -b -P script.py).",
@@ -6383,6 +6383,359 @@
     "program": "cargo"
    },
    "notes": "Tested with Rust 1.90.0. Supplied Cargo.toml/Cargo.lock pin the selected dependencies. Crates download only when rerunning; viewing uses prepared outputs. A compute-capable wgpu adapter is required; verified on Apple M5 Metal. Other GPU backends have not been verified."
+  },
+  {
+   "id": "fastnoise-lite",
+   "name": "FastNoise Lite",
+   "repo": "https://github.com/auburn/fastnoiselite",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "FastNoise Lite generates OpenSimplex2, cellular and fractal terrain from the same seed. Mesh heights come directly from the C++ implementation.",
+   "tags": [
+    "noise",
+    "textures",
+    "warping",
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "libnoise",
+   "name": "libnoise",
+   "repo": "https://github.com/expl0it3r/libnoise",
+   "license": "LGPL-2.1-or-later",
+   "tier": "D",
+   "purpose": "libnoise evaluates Perlin, billow and ridged multifractal modules on a shared grid. Compare their directly computed terrain shapes.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "voro",
+   "name": "Voro++",
+   "repo": "https://github.com/chr1shr/voro",
+   "license": "BSD-style 3 clauses + grant for contributed improvements",
+   "tier": "D",
+   "purpose": "Voro++ clips a convex cell with increasing numbers of deterministic planes. Its native vertex and face lists form the displayed meshes.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "rvo2-orca",
+   "name": "RVO2 / ORCA",
+   "repo": "https://github.com/snape/rvo2",
+   "license": "Apache-2.0 / CC BY-SA 4.0",
+   "tier": "D",
+   "purpose": "RVO2 computes reciprocal collision avoidance for twelve agents crossing a circle. Paths show their actual simulated positions with a minimum-separation check.",
+   "tags": [
+    "crowds",
+    "velocity space",
+    "linear programming",
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "skeleton-tracing",
+   "name": "Skeleton Tracing",
+   "repo": "https://github.com/lingdong-/skeleton-tracing",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Skeleton Tracing thins three original binary stroke patterns and traces their centerlines. The polylines are computed by the upstream C++ implementation.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "daisysp",
+   "name": "DaisySP",
+   "repo": "https://github.com/electro-smith/daisysp",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "DaisySP synthesizes sine, triangle and band-limited saw tones at 220 Hz. Listen to the actual native output and inspect a short waveform window.",
+   "tags": [
+    "native",
+    "prepared result",
+    "audio"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "audio",
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "maximilian",
+   "name": "Maximilian",
+   "repo": "https://github.com/micknoise/maximilian",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Maximilian synthesizes sine, square and saw tones at 220 Hz. The saved audio and waveform window are computed by its original oscillators.",
+   "tags": [
+    "native",
+    "prepared result",
+    "audio"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "audio",
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "pink-trombone-c",
+   "name": "Pink Trombone C++",
+   "repo": "https://github.com/kaiidams/pinktrombone_cpp",
+   "license": "MIT (C++ port)",
+   "tier": "D",
+   "purpose": "Pink Trombone C++ generates voiced tones at three pitches through its glottis and vocal-tract model. These are synthetic vowels, not recorded speech.",
+   "tags": [
+    "Glottis · vocal-tract model",
+    "Sound · voice",
+    "native",
+    "prepared result",
+    "audio"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "audio",
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "msdfgen",
+   "name": "msdfgen",
+   "repo": "https://github.com/chlumsky/msdfgen",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "MSDFgen computes a multichannel signed distance field of an original concave outline at three resolutions. Median-channel thresholding reconstructs its filled shape.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "csg-js",
+   "name": "csg.js",
+   "repo": "https://github.com/evanw/csg.js",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "The original csg.js combines a cube and sphere by union, intersection and subtraction. Its polygon output is triangulated only for the viewer.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The Python standard-library recipe requires Node.js, downloads and caches a SHA-256 verified source archive, and runs its original JavaScript. Viewing only downloads prepared results."
+  },
+  {
+   "id": "ndwfc",
+   "name": "NDWFC",
+   "repo": "https://github.com/lingdong-/ndwfc",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "NDWFC fills three original tile systems under adjacency constraints. Every generated neighbour pair is checked against its rule set.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The Python standard-library recipe requires Node.js, downloads and caches a SHA-256 verified source archive, and runs its original JavaScript. Viewing only downloads prepared results."
+  },
+  {
+   "id": "p5-hershey-js",
+   "name": "p5-hershey-js",
+   "repo": "https://github.com/lingdong-/p5-hershey-js",
+   "license": "MIT (library code)",
+   "tier": "D",
+   "purpose": "p5-hershey-js parses its original font data and emits strokes for STUDIO. A small p5 drawing adapter records the actual vertex commands for three character maps.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The Python standard-library recipe requires Node.js, downloads and caches a SHA-256 verified source archive, and runs its original JavaScript. Viewing only downloads prepared results."
+  },
+  {
+   "id": "fullik-fabrik",
+   "name": "fullik · FABRIK",
+   "repo": "https://github.com/lo-th/fullik",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Fullik solves a three-bone planar chain toward three targets using FABRIK. Bone lengths and endpoint error are checked after each solve.",
+   "tags": [
+    "FABRIK",
+    "inverse kinematics",
+    "skeletons",
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The Python standard-library recipe requires Node.js, downloads and caches a SHA-256 verified source archive, and runs its original JavaScript. Viewing only downloads prepared results."
+  },
+  {
+   "id": "flomat",
+   "name": "FloMat",
+   "repo": "https://github.com/florissteenkamp/mat",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "FloMat computes the medial axis of an original concave outline, then prunes it at three scale factors. The displayed curves come from the actual MAT graph.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The Python standard-library recipe requires Node.js, downloads and caches a SHA-256 verified source archive, and runs its original JavaScript. Viewing only downloads prepared results."
   }
  ]
 }

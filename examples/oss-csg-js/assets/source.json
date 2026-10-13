@@ -1,0 +1,9 @@
+{
+  "id": "csg-js",
+  "repo": "https://github.com/evanw/csg.js",
+  "sha": "a8512afbac3cf503195870f7ef11c0a32f36c6d4",
+  "url": "https://codeload.github.com/evanw/csg.js/tar.gz/a8512afbac3cf503195870f7ef11c0a32f36c6d4",
+  "sha256": "9fa510efa5a4040f51dee565d6eb5a69881ecd2fb2a8643cfce8d6a6c5016868",
+  "license": "MIT",
+  "frames": 3
+}

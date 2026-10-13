@@ -1,0 +1,30 @@
+{
+  "order": 383,
+  "title": "Vector skeletons of thick strokes (Skeleton Tracing)",
+  "title_ko": "두꺼운 획에서 벡터 뼈대 추출 (Skeleton Tracing)",
+  "description": "Skeleton Tracing thins three original binary stroke patterns and traces their centerlines. The polylines are computed by the upstream C++ implementation.",
+  "description_ko": "Skeleton Tracing으로 직접 만든 이진 획 세 개를 세선화하고 중심선을 추적했어요. 원본 C++ 구현이 계산한 폴리라인이에요.",
+  "prompt": "Vector skeletons of thick strokes. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "skeleton-tracing"
+  ],
+  "summary": "Skeleton Tracing thins three original binary stroke patterns and traces their centerlines.",
+  "summary_ko": "Skeleton Tracing으로 직접 만든 이진 획 세 개를 세선화하고 중심선을 추적했어요. 원본 C++ 구현이 계산한 폴리라인이에요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "Skeleton Tracing thins three original binary stroke patterns and traces their centerlines. The polylines are computed by the upstream C++ implementation. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "Skeleton Tracing으로 직접 만든 이진 획 세 개를 세선화하고 중심선을 추적했어요. 원본 C++ 구현이 계산한 폴리라인이에요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}
