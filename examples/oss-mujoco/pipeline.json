@@ -1,0 +1,17 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "mujoco.gallery@1",
+      "packages": [
+        "mujoco==3.14.0",
+        "numpy==2.2.6"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

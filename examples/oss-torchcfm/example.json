@@ -1,0 +1,30 @@
+{
+  "order": 325,
+  "title": "Conditional probability paths (TorchCFM)",
+  "title_ko": "조건부 확률 경로 (TorchCFM)",
+  "description": "TorchCFM samples a noisy conditional path between a Gaussian cloud and a ring. Arrows are target conditional velocities; no learned model or pretrained weights are involved.",
+  "description_ko": "TorchCFM으로 가우시안 점 구름과 고리 사이의 조건부 확률 경로를 계산했어요. 화살표는 목표 조건부 속도이며 학습한 모델이나 사전 가중치를 쓰지 않아요.",
+  "prompt": "Conditional probability paths. Show the actual locally computed output and explain its limits.",
+  "made_with": "torchcfm==1.0.7, torch==2.9.1, numpy==2.2.6; locally executed on CPU",
+  "features": [
+    "prepared result",
+    "recipe",
+    "machine learning"
+  ],
+  "mode": "live",
+  "uses": [
+    "torchcfm"
+  ],
+  "summary": "TorchCFM samples a noisy conditional path between a Gaussian cloud and a ring.",
+  "summary_ko": "TorchCFM으로 가우시안 점 구름과 고리 사이의 조건부 확률 경로를 계산했어요. 화살표는 목표 조건부 속도이며 학습한 모델이나 사전 가중치를 쓰지 않아요.",
+  "try": [
+    "Inspect the prepared computation with the control",
+    "Rerun the included recipe to change inputs"
+  ],
+  "try_ko": [
+    "컨트롤로 직접 계산한 결과를 살펴보세요",
+    "입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "TorchCFM samples a noisy conditional path between a Gaussian cloud and a ring. Arrows are target conditional velocities; no learned model or pretrained weights are involved.",
+  "tool_about_ko": "TorchCFM으로 가우시안 점 구름과 고리 사이의 조건부 확률 경로를 계산했어요. 화살표는 목표 조건부 속도이며 학습한 모델이나 사전 가중치를 쓰지 않아요."
+}

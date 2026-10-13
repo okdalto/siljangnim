@@ -1,0 +1,17 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "healpy.gallery@1",
+      "packages": [
+        "healpy==1.20.0",
+        "numpy==2.2.6"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

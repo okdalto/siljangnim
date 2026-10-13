@@ -1,0 +1,27 @@
+{
+  "classes": [
+    {
+      "name": "table_lamp",
+      "probability": 0.35636281967163086
+    },
+    {
+      "name": "pinwheel",
+      "probability": 0.1910473108291626
+    },
+    {
+      "name": "lampshade",
+      "probability": 0.059851184487342834
+    },
+    {
+      "name": "goblet",
+      "probability": 0.048381634056568146
+    },
+    {
+      "name": "balloon",
+      "probability": 0.04135053977370262
+    }
+  ],
+  "model": "yolo11n-cls",
+  "model_sha256": "c62d41bf9625777760018bf914d2e6cd472420ccd01706d97a61cb6c82502bd7",
+  "input": "Original procedural flower and vase"
+}

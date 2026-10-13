@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;\ns.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float;\\n#define GLSLIFY 1\\nin vec2 v_uv;out vec4 outColor;uniform vec2 u_resolution;uniform sampler2D u_image;\\nuniform float u_scale;\\nuniform float u_seed;\\nhighp float random(vec2 co)\\n{\\n    highp float a = 12.9898;\\n    highp float b = 78.233;\\n    highp float c = 43758.5453;\\n    highp float dt= dot(co.xy ,vec2(a,b));\\n    highp float sn= mod(dt,3.14);\\n    return fract(sin(sn) * c);\\n}\\n\\nvoid main(){vec2 uv=v_uv,p=(uv*2.-1.)*u_resolution/min(u_resolution.x,u_resolution.y);vec3 color;vec2 cell=floor(uv*u_scale);float r=random(cell+u_seed);color=mix(vec3(.04,.1,.18),vec3(.96,.65,.4),r);vec2 f=fract(uv*u_scale);color*=smoothstep(0.,.07,min(min(f.x,f.y),min(1.-f.x,1.-f.y)));\\noutColor=vec4(color,1);}\");\n",
+    "render": "const s=ctx.state;ctx.gl.useProgram(s.program);if(s.texture)ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "ctx.gl.deleteTexture(ctx.state.texture);ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_scale": {
+      "type": "float",
+      "label": "Tile count",
+      "value": 22,
+      "min": 4,
+      "max": 60,
+      "step": 1
+    },
+    "u_seed": {
+      "type": "float",
+      "label": "Seed",
+      "value": 3,
+      "min": 0,
+      "max": 20,
+      "step": 1
+    }
+  }
+}

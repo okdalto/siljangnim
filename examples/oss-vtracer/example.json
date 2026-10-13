@@ -1,0 +1,30 @@
+{
+  "order": 322,
+  "title": "Raster contours become vectors (VTracer)",
+  "title_ko": "래스터 윤곽을 벡터로 (VTracer)",
+  "description": "VTracer converts an original binary drawing to SVG. FontTools samples the returned Bézier paths for display; both conversion modes are prepared locally.",
+  "description_ko": "VTracer로 직접 만든 이진 그림을 SVG로 바꾸고 FontTools로 베지어 경로를 표본화했어요. 두 변환 모드를 직접 실행했어요.",
+  "prompt": "Raster contours become vectors. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "vtracer==0.6.15, fonttools==4.66.0, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "vtracer"
+  ],
+  "summary": "VTracer converts an original binary drawing to SVG. FontTools samples the returned Bézier paths for display; both conversion modes are prepared locally.",
+  "summary_ko": "VTracer로 직접 만든 이진 그림을 SVG로 바꾸고 FontTools로 베지어 경로를 표본화했어요. 두 변환 모드를 직접 실행했어요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "VTracer converts an original binary drawing to SVG. FontTools samples the returned Bézier paths for display; both conversion modes are prepared locally. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "VTracer로 직접 만든 이진 그림을 SVG로 바꾸고 FontTools로 베지어 경로를 표본화했어요. 두 변환 모드를 직접 실행했어요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

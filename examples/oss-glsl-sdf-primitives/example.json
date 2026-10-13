@@ -1,0 +1,38 @@
+{
+  "order": 299,
+  "title": "Ray-marched primitives (glsl-sdf-primitives)",
+  "title_ko": "구·상자·토러스 거리장 (glsl-sdf-primitives)",
+  "description": "Actual sphere, box and torus distance functions drive a bounded ray marcher and finite-difference lighting.",
+  "description_ko": "원본 구·상자·토러스 거리 함수로 레이마칭하고 수치 미분으로 조명을 계산해요.",
+  "prompt": "Ray-marched primitives. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-sdf-primitives 0.0.1; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-sdf-primitives"
+  ],
+  "summary": "Actual sphere, box and torus distance functions drive a bounded ray marcher and finite-difference lighting.",
+  "summary_ko": "원본 구·상자·토러스 거리 함수로 레이마칭하고 수치 미분으로 조명을 계산해요.",
+  "try": [
+    "Change Primitive",
+    "Change Rotation"
+  ],
+  "try_ko": [
+    "Primitive 값을 바꾸어 비교하세요",
+    "Rotation 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "Actual sphere, box and torus distance functions drive a bounded ray marcher and finite-difference lighting.",
+  "tool_about_ko": "원본 구·상자·토러스 거리 함수로 레이마칭하고 수치 미분으로 조명을 계산해요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-sdf-primitives 0.0.1",
+      "what_ko": "컴파일한 원본 GLSL: glsl-sdf-primitives 0.0.1",
+      "source": "glsl-sdf-primitives",
+      "license": "MIT",
+      "url": "https://github.com/marklundin/glsl-sdf-primitives"
+    }
+  ]
+}

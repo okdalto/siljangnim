@@ -15,7 +15,7 @@ export const CatalogEntrySchema = z.object({
   purpose: z.string(),
   tags: z.array(z.string()),
   media: z.object({ in: z.array(z.string()), out: z.array(z.string()) }),
-  install: z.object({ cdn: z.string().url().optional(), pip: z.array(z.string()).optional(), program: z.string().optional() }),
+  install: z.object({ cdn: z.string().url().optional(), pip: z.array(z.string()).optional(), program: z.string().optional(), bundled: z.boolean().optional() }),
   weights_license: z.string().optional(),
   gpu: z.string().optional(),
   notes: z.string().optional(),

@@ -1,0 +1,38 @@
+{
+  "order": 302,
+  "title": "Deterministic random tiles (glsl-random)",
+  "title_ko": "재현 가능한 무작위 타일 (glsl-random)",
+  "description": "A GLSL hash gives each integer tile a deterministic value; changing the seed selects another pattern.",
+  "description_ko": "GLSL 해시로 각 정수 타일에 재현 가능한 값을 배정해요. Seed로 다른 무늬를 고르세요.",
+  "prompt": "Deterministic random tiles. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-random 0.0.5; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-random"
+  ],
+  "summary": "A GLSL hash gives each integer tile a deterministic value; changing the seed selects another pattern.",
+  "summary_ko": "GLSL 해시로 각 정수 타일에 재현 가능한 값을 배정해요. Seed로 다른 무늬를 고르세요.",
+  "try": [
+    "Change Tile count",
+    "Change Seed"
+  ],
+  "try_ko": [
+    "Tile count 값을 바꾸어 비교하세요",
+    "Seed 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "A GLSL hash gives each integer tile a deterministic value; changing the seed selects another pattern.",
+  "tool_about_ko": "GLSL 해시로 각 정수 타일에 재현 가능한 값을 배정해요. Seed로 다른 무늬를 고르세요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-random 0.0.5",
+      "what_ko": "컴파일한 원본 GLSL: glsl-random 0.0.5",
+      "source": "glsl-random",
+      "license": "BSD-3-Clause",
+      "url": "https://github.com/mattdesl/glsl-random"
+    }
+  ]
+}

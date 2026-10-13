@@ -1,0 +1,17 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "neuron.gallery@1",
+      "packages": [
+        "neuron==9.0.2",
+        "numpy==2.2.6"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

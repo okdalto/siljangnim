@@ -1,0 +1,38 @@
+{
+  "order": 297,
+  "title": "Barycentric wireframe (glsl-solid-wireframe)",
+  "title_ko": "무게중심 좌표 와이어프레임 (glsl-solid-wireframe)",
+  "description": "Derivative-scaled barycentric edges keep a triangular grid readable at different densities.",
+  "description_ko": "도함수로 보정한 무게중심 좌표로 격자 밀도가 바뀌어도 삼각형 모서리를 그려요.",
+  "prompt": "Barycentric wireframe. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-solid-wireframe 1.0.1; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-solid-wireframe"
+  ],
+  "summary": "Derivative-scaled barycentric edges keep a triangular grid readable at different densities.",
+  "summary_ko": "도함수로 보정한 무게중심 좌표로 격자 밀도가 바뀌어도 삼각형 모서리를 그려요.",
+  "try": [
+    "Change Grid density",
+    "Change Edge width"
+  ],
+  "try_ko": [
+    "Grid density 값을 바꾸어 비교하세요",
+    "Edge width 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "Derivative-scaled barycentric edges keep a triangular grid readable at different densities.",
+  "tool_about_ko": "도함수로 보정한 무게중심 좌표로 격자 밀도가 바뀌어도 삼각형 모서리를 그려요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-solid-wireframe 1.0.1",
+      "what_ko": "컴파일한 원본 GLSL: glsl-solid-wireframe 1.0.1",
+      "source": "glsl-solid-wireframe",
+      "license": "MIT",
+      "url": "https://github.com/rreusser/glsl-solid-wireframe"
+    }
+  ]
+}

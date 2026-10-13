@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;\ns.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float;\\n#define GLSLIFY 1\\nin vec2 v_uv;out vec4 outColor;uniform vec2 u_resolution;uniform sampler2D u_image;\\nuniform float u_density;\\nuniform float u_width;\\nfloat gridFactor (vec2 vBC, float width, float feather) {\\n  float w1 = width - feather * 0.5;\\n  vec3 bary = vec3(vBC.x, vBC.y, 1.0 - vBC.x - vBC.y);\\n  vec3 d = fwidth(bary);\\n  vec3 a3 = smoothstep(d * w1, d * (w1 + feather), bary);\\n  return min(min(a3.x, a3.y), a3.z);\\n}\\n\\nfloat gridFactor (vec2 vBC, float width) {\\n  vec3 bary = vec3(vBC.x, vBC.y, 1.0 - vBC.x - vBC.y);\\n  vec3 d = fwidth(bary);\\n  vec3 a3 = smoothstep(d * (width - 0.5), d * (width + 0.5), bary);\\n  return min(min(a3.x, a3.y), a3.z);\\n}\\n\\nvoid main(){vec2 uv=v_uv,p=(uv*2.-1.)*u_resolution/min(u_resolution.x,u_resolution.y);vec3 color;vec2 q=fract(uv*u_density);if(q.x+q.y>1.)q=1.-q;float f=gridFactor(q,u_width);color=mix(vec3(.92,.69,.4),vec3(.035,.08,.14),f);\\noutColor=vec4(color,1);}\");\n",
+    "render": "const s=ctx.state;ctx.gl.useProgram(s.program);if(s.texture)ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "ctx.gl.deleteTexture(ctx.state.texture);ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_density": {
+      "type": "float",
+      "label": "Grid density",
+      "value": 7,
+      "min": 3,
+      "max": 18,
+      "step": 1
+    },
+    "u_width": {
+      "type": "float",
+      "label": "Edge width",
+      "value": 1.5,
+      "min": 0.4,
+      "max": 4,
+      "step": 0.1
+    }
+  }
+}

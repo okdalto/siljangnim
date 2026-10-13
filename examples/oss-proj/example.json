@@ -1,0 +1,30 @@
+{
+  "order": 315,
+  "title": "Projection graticules (PROJ)",
+  "title_ko": "지도 투영의 경위선 (PROJ)",
+  "description": "PROJ, through pyproj, transforms a synthetic geographic grid into Mollweide and Mercator coordinates. No map tiles are downloaded.",
+  "description_ko": "pyproj를 통해 PROJ로 경위선을 몰바이데·메르카토르 좌표로 변환했어요. 지도 타일을 받지 않아요.",
+  "prompt": "Projection graticules. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "pyproj==3.7.2, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "proj"
+  ],
+  "summary": "PROJ, through pyproj, transforms a synthetic geographic grid into Mollweide and Mercator coordinates. No map tiles are downloaded.",
+  "summary_ko": "pyproj를 통해 PROJ로 경위선을 몰바이데·메르카토르 좌표로 변환했어요. 지도 타일을 받지 않아요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "PROJ, through pyproj, transforms a synthetic geographic grid into Mollweide and Mercator coordinates. No map tiles are downloaded. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "pyproj를 통해 PROJ로 경위선을 몰바이데·메르카토르 좌표로 변환했어요. 지도 타일을 받지 않아요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

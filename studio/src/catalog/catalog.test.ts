@@ -4,10 +4,16 @@ import { describe, expect, it } from "vitest";
 import { CATALOG, REFERENCES, referenceFor, searchCatalog, searchReferences } from "./catalog";
 
 describe("catalog", () => {
-  it("has unique ids and an install path for each grade", () => {
+  it("has unique ids and an install path for each grade", async () => {
+    const { EXAMPLES } = await import("../project/examples");
     expect(new Set(CATALOG.map((e) => e.id)).size).toBe(CATALOG.length);
     for (const e of CATALOG) {
-      if (e.tier === "B") expect(e.install.cdn, e.id).toMatch(/^https:\/\/(esm\.sh|cdn\.jsdelivr\.net|unpkg\.com)\//);
+      if (e.tier === "B" && !e.install.bundled) expect(e.install.cdn, e.id).toMatch(/^https:\/\/(esm\.sh|cdn\.jsdelivr\.net|unpkg\.com)\//);
+      if (e.install.bundled) {
+        const example = EXAMPLES.find((example) => example.uses?.includes(e.id));
+        expect(example?.credits?.length, e.id).toBeGreaterThan(0);
+        expect(example?.assets.some((asset) => /license/i.test(asset.name)), `${e.id} ships license text`).toBe(true);
+      }
       if (e.tier === "C" || e.tier === "E") expect(e.install.pip?.length, e.id).toBeGreaterThan(0);
       if (e.tier === "D") expect(e.install.program, e.id).toBeTruthy();
     }
@@ -32,6 +38,17 @@ describe("catalog", () => {
     expect(text).toContain('fetch(ctx.assets["beats.json"])');
     const search = CATALOG_TOOLS.find((t) => t.name === "catalog_search")!;
     expect(String((await search.run(search.input.parse({ query: "delaunay" }), stubEnv())).content)).toContain('Example: "Low-poly drift (d3-delaunay)"');
+  });
+
+  it("describes included shader sources without inventing a program or CDN install", async () => {
+    const { CATALOG_TOOLS } = await import("../agent/catalogTools");
+    const { stubEnv } = await import("../agent/testing");
+    const get = CATALOG_TOOLS.find((tool) => tool.name === "catalog_get")!;
+    const text = String((await get.run({ id: "glsl-worley" }, stubEnv())).content);
+    expect(text).toContain("GLSL included in the on-demand example");
+    expect(text).toContain("Source and licenses are included");
+    expect(text).not.toContain("program: undefined");
+    expect(text).not.toContain("via ctx.utils.import");
   });
 
   it("carries the index.opensource reference list, without repeating curated tools", () => {

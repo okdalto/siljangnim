@@ -28,6 +28,19 @@
       "sha256": "1271d82841f69db0f8286a604a7ceb2d498e2778f5accdb903af17cdc4068999"
     },
     {
+      "id": "datashader.gallery",
+      "version": 1,
+      "title": "Aggregating a point cloud",
+      "capability": "datashader prepared geometry simulation",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/datashader.gallery/recipe.md",
+      "sha256": "41189fa99db61833b570bae6c99b3ba57981dae4190297b48fcd0c0b4b25ccb3"
+    },
+    {
       "id": "demucs.gallery",
       "version": 1,
       "title": "Instrument stems (Demucs)",
@@ -78,6 +91,32 @@
       ],
       "path": "recipes/ffmpeg.mandelbrot-zoom/recipe.md",
       "sha256": "b23b25a3ede0a9298ab98c73ffb4c896d6f8b2788e75332ded29438d6f77c5be"
+    },
+    {
+      "id": "fipy.gallery",
+      "version": 1,
+      "title": "Diffusion of a pulse",
+      "capability": "fipy prepared geometry simulation",
+      "kind": "python",
+      "license": "NIST Terms of Use",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/fipy.gallery/recipe.md",
+      "sha256": "45daadf05da76e8a6995ba1785b09457e4980ac5fa46f5b02ab4cecbd5bf8d15"
+    },
+    {
+      "id": "healpy.gallery",
+      "version": 1,
+      "title": "Equal-area spherical samples",
+      "capability": "healpy prepared geometry simulation",
+      "kind": "python",
+      "license": "GPL-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/healpy.gallery/recipe.md",
+      "sha256": "7ff376e8f12024502eb959d6344c7e34242ec761a5a04a460e55694134ee1bca"
     },
     {
       "id": "hilbertcurve.orders",
@@ -145,6 +184,32 @@
       "sha256": "27b8f70b6164a379973aa8d2d9363d5c83be776f8b66dd44b2712b14af645985"
     },
     {
+      "id": "mujoco.gallery",
+      "version": 1,
+      "title": "Double pendulum dynamics",
+      "capability": "mujoco prepared geometry simulation",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/mujoco.gallery/recipe.md",
+      "sha256": "fdb2dcc6663b6dc65bbdb3460c1f81875224c9e0d7090387a1d9d7c36ee903f6"
+    },
+    {
+      "id": "nanogpt.gallery",
+      "version": 1,
+      "title": "Fitting a tiny character model",
+      "capability": "nanogpt local learning computation",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/nanogpt.gallery/recipe.md",
+      "sha256": "e9c3a95f4a80277a5ea6a199b0e41cb05738f4d46728e4fb23a2272782719389"
+    },
+    {
       "id": "networkx.les-miserables-layout",
       "version": 1,
       "title": "Character network layout and communities (NetworkX)",
@@ -156,6 +221,32 @@
       ],
       "path": "recipes/networkx.les-miserables-layout/recipe.md",
       "sha256": "0851b6175145270d386564700ce6be0967a219029aa07fb743a0ab479096da00"
+    },
+    {
+      "id": "neuron.gallery",
+      "version": 1,
+      "title": "A neuron responds to current",
+      "capability": "neuron prepared geometry simulation",
+      "kind": "python",
+      "license": "BSD-3-Clause compatible",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/neuron.gallery/recipe.md",
+      "sha256": "b01a080fa5837b461c095b35f486fe6ec114df7707ae4b8702b63e47513bee89"
+    },
+    {
+      "id": "nurbs-python-geomdl.gallery",
+      "version": 1,
+      "title": "Rational curve weights",
+      "capability": "nurbs-python-geomdl prepared geometry simulation",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/nurbs-python-geomdl.gallery/recipe.md",
+      "sha256": "e18f407e6674a53b9c557c7191be4b208b1f78d28bca8d2312b1821a82779a68"
     },
     {
       "id": "onnxruntime-web.gallery",
@@ -236,6 +327,19 @@
       "sha256": "c73a952483a30d19b11586fdc5b3d3c99033865b6bfde6428edc77ed44ffeef5"
     },
     {
+      "id": "proj.gallery",
+      "version": 1,
+      "title": "Projection graticules",
+      "capability": "proj prepared geometry simulation",
+      "kind": "python",
+      "license": "MIT-style",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/proj.gallery/recipe.md",
+      "sha256": "cba22ff0d70e96c4b5cb517a13f3e27a3694c7a272650c86b676e77568ca829e"
+    },
+    {
       "id": "pymcubes.gyroid-mesh",
       "version": 1,
       "title": "Mesh an implicit field with marching cubes (PyMCubes)",
@@ -260,6 +364,19 @@
       ],
       "path": "recipes/pymeshlab.gallery/recipe.md",
       "sha256": "40b15c6db0bb9fe9a677336dc0377fba3efceb064b30fe165e3822731d5264ae"
+    },
+    {
+      "id": "pyvista.gallery",
+      "version": 1,
+      "title": "Clipping a surface",
+      "capability": "pyvista prepared geometry simulation",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/pyvista.gallery/recipe.md",
+      "sha256": "664312a1fcc01f950ad5aeeb3d3e81b88ff6a74ba8152f6067b047f5dbd90246"
     },
     {
       "id": "real-esrgan.gallery",
@@ -353,6 +470,19 @@
       "sha256": "2f226b5c1adb3ffac381dd1ea4ae6fb91a5a6e41e0fb20056a5a40ed1dbe7b77"
     },
     {
+      "id": "skan.gallery",
+      "version": 1,
+      "title": "Skeleton branch graph",
+      "capability": "skan prepared geometry simulation",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/skan.gallery/recipe.md",
+      "sha256": "dc9ae5218bb5738e45aae6a432d46c1849a103342fb71e0e012bf7c89e653004"
+    },
+    {
       "id": "svgpathtools.path-lanterns",
       "version": 1,
       "title": "Equal arc-length SVG path samples (svgpathtools)",
@@ -364,6 +494,32 @@
       ],
       "path": "recipes/svgpathtools.path-lanterns/recipe.md",
       "sha256": "8922e6c237e8da8defb037c90a341dd2e42b78b8cd73e88e9165304002922086"
+    },
+    {
+      "id": "taichi.gallery",
+      "version": 1,
+      "title": "A diffusing grid",
+      "capability": "taichi prepared geometry simulation",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/taichi.gallery/recipe.md",
+      "sha256": "7a8d9f3e97ca38af00f1729f30fdf1cc671e2887e86299fdc04b0a9b13e2f559"
+    },
+    {
+      "id": "torchcfm.gallery",
+      "version": 1,
+      "title": "Conditional probability paths",
+      "capability": "torchcfm local learning computation",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/torchcfm.gallery/recipe.md",
+      "sha256": "d862d80143f03f21c9da3d914f6cae0a35d8ddd2f38a0b5868cd0f174fb3df55"
     },
     {
       "id": "trimesh.displaced-sphere-glb",
@@ -392,6 +548,32 @@
       "sha256": "efc3e9d676e1f16e23dba75cb7c6b119cdd528d344088e5911379e15466e1cc7"
     },
     {
+      "id": "u2-net.gallery",
+      "version": 1,
+      "title": "U2Netp foreground mask",
+      "capability": "image foreground segmentation",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/u2-net.gallery/recipe.md",
+      "sha256": "6227d0d066edcbd71d711163cd9c71b638d6f9aee5cdacee1ac06fbb1c8255e2"
+    },
+    {
+      "id": "ultralytics-yolo.gallery",
+      "version": 1,
+      "title": "A classifier’s guesses",
+      "capability": "ultralytics-yolo local learning computation",
+      "kind": "python",
+      "license": "AGPL-3.0 / Enterprise",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ultralytics-yolo.gallery/recipe.md",
+      "sha256": "c13d868a398f8c1231e33a38f725b13186b9c6ce8f67e42ba14b56dd124e2591"
+    },
+    {
       "id": "umap.digits-embedding",
       "version": 1,
       "title": "UMAP embedding of handwritten digits (umap-learn)",
@@ -416,6 +598,32 @@
       ],
       "path": "recipes/vpype.gallery/recipe.md",
       "sha256": "ffdb35a5de96eafa0c01900c850393dc64f1289a78878bb9700f58985d17a70b"
+    },
+    {
+      "id": "vtk.gallery",
+      "version": 1,
+      "title": "Isosurfaces of a scalar field",
+      "capability": "vtk prepared geometry simulation",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/vtk.gallery/recipe.md",
+      "sha256": "b46ccbafebb06f5982ee48a9a0ed987f3b527fef664ba2bebf24c490ef9f33d8"
+    },
+    {
+      "id": "vtracer.gallery",
+      "version": 1,
+      "title": "Raster contours become vectors",
+      "capability": "vtracer prepared geometry simulation",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/vtracer.gallery/recipe.md",
+      "sha256": "9d88acd76d3c1ab4c5b57988ef4d8313843a414f702be4462a361246b8b74f8f"
     },
     {
       "id": "whisper.gallery",

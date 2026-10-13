@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;\ns.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float;\\n#define GLSLIFY 1\\nin vec2 v_uv;out vec4 outColor;uniform vec2 u_resolution;uniform sampler2D u_image;\\nuniform float u_scale;\\nuniform float u_jitter;\\nuniform int u_mode;\\n  // Permutation polynomial: (34x^2 + x) mod 289\\n  vec3 permute(vec3 x) {\\n    return mod((34.0 * x + 1.0) * x, 289.0);\\n  }\\n\\nvec3 dist(vec3 x, vec3 y,  bool manhattanDistance) {\\n  return manhattanDistance ?  abs(x) + abs(y) :  (x * x + y * y);\\n}\\n\\n  vec2 worley(vec2 P, float jitter, bool manhattanDistance) {\\n  float K= 0.142857142857; // 1/7\\n  float Ko= 0.428571428571 ;// 3/7\\n  \\tvec2 Pi = mod(floor(P), 289.0);\\n   \\tvec2 Pf = fract(P);\\n  \\tvec3 oi = vec3(-1.0, 0.0, 1.0);\\n  \\tvec3 of = vec3(-0.5, 0.5, 1.5);\\n  \\tvec3 px = permute(Pi.x + oi);\\n  \\tvec3 p = permute(px.x + Pi.y + oi); // p11, p12, p13\\n  \\tvec3 ox = fract(p*K) - Ko;\\n  \\tvec3 oy = mod(floor(p*K),7.0)*K - Ko;\\n  \\tvec3 dx = Pf.x + 0.5 + jitter*ox;\\n  \\tvec3 dy = Pf.y - of + jitter*oy;\\n  \\tvec3 d1 = dist(dx,dy, manhattanDistance); // d11, d12 and d13, squared\\n  \\tp = permute(px.y + Pi.y + oi); // p21, p22, p23\\n  \\tox = fract(p*K) - Ko;\\n  \\toy = mod(floor(p*K),7.0)*K - Ko;\\n  \\tdx = Pf.x - 0.5 + jitter*ox;\\n  \\tdy = Pf.y - of + jitter*oy;\\n  \\tvec3 d2 = dist(dx,dy, manhattanDistance); // d21, d22 and d23, squared\\n  \\tp = permute(px.z + Pi.y + oi); // p31, p32, p33\\n  \\tox = fract(p*K) - Ko;\\n  \\toy = mod(floor(p*K),7.0)*K - Ko;\\n  \\tdx = Pf.x - 1.5 + jitter*ox;\\n  \\tdy = Pf.y - of + jitter*oy;\\n  \\tvec3 d3 = dist(dx,dy, manhattanDistance); // d31, d32 and d33, squared\\n  \\t// Sort out the two smallest distances (F1, F2)\\n  \\tvec3 d1a = min(d1, d2);\\n  \\td2 = max(d1, d2); // Swap to keep candidates for F2\\n  \\td2 = min(d2, d3); // neither F1 nor F2 are now in d3\\n  \\td1 = min(d1a, d2); // F1 is now in d1\\n  \\td2 = max(d1a, d2); // Swap to keep candidates for F2\\n  \\td1.xy = (d1.x < d1.y) ? d1.xy : d1.yx; // Swap if smaller\\n  \\td1.xz = (d1.x < d1.z) ? d1.xz : d1.zx; // F1 is in d1.x\\n  \\td1.yz = min(d1.yz, d2.yz); // F2 is now not in d2.yz\\n  \\td1.y = min(d1.y, d1.z); // nor in  d1.z\\n  \\td1.y = min(d1.y, d2.x); // F2 is in d1.y, we're done.\\n  \\treturn sqrt(d1.xy);\\n  }\\n\\nvoid main(){vec2 uv=v_uv,p=(uv*2.-1.)*u_resolution/min(u_resolution.x,u_resolution.y);vec3 color;vec2 f=worley(uv*u_scale,u_jitter,false);float v=u_mode==0?f.y-f.x:f.x;color=mix(vec3(.03,.09,.18),vec3(.42,.92,.78),clamp(v*1.7,0.,1.));\\noutColor=vec4(color,1);}\");\n",
+    "render": "const s=ctx.state;ctx.gl.useProgram(s.program);if(s.texture)ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "ctx.gl.deleteTexture(ctx.state.texture);ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_scale": {
+      "type": "float",
+      "label": "Cell scale",
+      "value": 8,
+      "min": 3,
+      "max": 20,
+      "step": 1
+    },
+    "u_jitter": {
+      "type": "float",
+      "label": "Jitter",
+      "value": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    "u_mode": {
+      "type": "int",
+      "label": "Distance",
+      "value": 0,
+      "widget": "select",
+      "options": [
+        {
+          "label": "F2 minus F1",
+          "value": 0
+        },
+        {
+          "label": "F1",
+          "value": 1
+        }
+      ]
+    }
+  }
+}

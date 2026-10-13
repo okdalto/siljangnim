@@ -1,0 +1,17 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "datashader.gallery@1",
+      "packages": [
+        "datashader==0.19.1",
+        "numpy==2.2.6"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

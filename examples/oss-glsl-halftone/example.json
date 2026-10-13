@@ -1,0 +1,52 @@
+{
+  "order": 309,
+  "title": "CMYK halftone screen (glsl-halftone)",
+  "title_ko": "CMYK 망점 스크린 (glsl-halftone)",
+  "description": "The original shader converts an analytic RGB field into rotated CMYK dot screens with simplex-noise paper variation.",
+  "description_ko": "원본 셰이더로 RGB 색상장을 회전한 CMYK 망점으로 바꾸고 simplex 노이즈로 종이 질감을 더해요.",
+  "prompt": "CMYK halftone screen. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-halftone 1.0.4; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-halftone"
+  ],
+  "summary": "The original shader converts an analytic RGB field into rotated CMYK dot screens with simplex-noise paper variation.",
+  "summary_ko": "원본 셰이더로 RGB 색상장을 회전한 CMYK 망점으로 바꾸고 simplex 노이즈로 종이 질감을 더해요.",
+  "try": [
+    "Change Screen frequency",
+    "Change Print mix"
+  ],
+  "try_ko": [
+    "Screen frequency 값을 바꾸어 비교하세요",
+    "Print mix 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "The original shader converts an analytic RGB field into rotated CMYK dot screens with simplex-noise paper variation.",
+  "tool_about_ko": "원본 셰이더로 RGB 색상장을 회전한 CMYK 망점으로 바꾸고 simplex 노이즈로 종이 질감을 더해요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-halftone 1.0.4",
+      "what_ko": "컴파일한 원본 GLSL: glsl-halftone 1.0.4",
+      "source": "glsl-halftone",
+      "license": "MIT",
+      "url": "https://github.com/glslify/glsl-halftone"
+    },
+    {
+      "what": "Compiled GLSL source: glsl-noise 0.0.0",
+      "what_ko": "컴파일한 원본 GLSL: glsl-noise 0.0.0",
+      "source": "glsl-noise",
+      "license": "MIT",
+      "url": "https://github.com/ashima/webgl-noise"
+    },
+    {
+      "what": "Compiled GLSL source: glsl-aastep 1.0.1",
+      "what_ko": "컴파일한 원본 GLSL: glsl-aastep 1.0.1",
+      "source": "glsl-aastep",
+      "license": "MIT",
+      "url": "https://github.com/stackgl/glsl-aastep"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "order": 316,
+  "title": "Diffusion of a pulse (FiPy)",
+  "title_ko": "펄스의 확산 (FiPy)",
+  "description": "FiPy solves one-dimensional diffusion with zero-flux boundaries. The prepared profiles conserve the initial mass.",
+  "description_ko": "FiPy로 무유량 경계를 가진 1차원 확산을 계산했어요. 준비된 곡선들은 초기 질량을 보존해요.",
+  "prompt": "Diffusion of a pulse. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "FiPy==4.0.3, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "fipy"
+  ],
+  "summary": "FiPy solves one-dimensional diffusion with zero-flux boundaries. The prepared profiles conserve the initial mass.",
+  "summary_ko": "FiPy로 무유량 경계를 가진 1차원 확산을 계산했어요. 준비된 곡선들은 초기 질량을 보존해요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "FiPy solves one-dimensional diffusion with zero-flux boundaries. The prepared profiles conserve the initial mass. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "FiPy로 무유량 경계를 가진 1차원 확산을 계산했어요. 준비된 곡선들은 초기 질량을 보존해요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

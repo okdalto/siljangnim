@@ -1,0 +1,38 @@
+{
+  "order": 305,
+  "title": "Anti-aliasing a raster edge (glsl-fxaa)",
+  "title_ko": "래스터 모서리 안티앨리어싱 (glsl-fxaa)",
+  "description": "FXAA filters a deliberately jagged synthetic image. The divider compares original pixels on the left with the filter on the right.",
+  "description_ko": "일부러 계단 모양으로 만든 영상에 FXAA를 적용해요. 왼쪽 원본과 오른쪽 필터 결과를 비교하세요.",
+  "prompt": "Anti-aliasing a raster edge. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-fxaa 3.0.0; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-fxaa"
+  ],
+  "summary": "FXAA filters a deliberately jagged synthetic image. The divider compares original pixels on the left with the filter on the right.",
+  "summary_ko": "일부러 계단 모양으로 만든 영상에 FXAA를 적용해요. 왼쪽 원본과 오른쪽 필터 결과를 비교하세요.",
+  "try": [
+    "Change Comparison divider",
+    "Change Zoom"
+  ],
+  "try_ko": [
+    "Comparison divider 값을 바꾸어 비교하세요",
+    "Zoom 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "FXAA filters a deliberately jagged synthetic image. The divider compares original pixels on the left with the filter on the right.",
+  "tool_about_ko": "일부러 계단 모양으로 만든 영상에 FXAA를 적용해요. 왼쪽 원본과 오른쪽 필터 결과를 비교하세요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-fxaa 3.0.0",
+      "what_ko": "컴파일한 원본 GLSL: glsl-fxaa 3.0.0",
+      "source": "glsl-fxaa",
+      "license": "MIT",
+      "url": "https://github.com/mattdesl/glsl-fxaa"
+    }
+  ]
+}

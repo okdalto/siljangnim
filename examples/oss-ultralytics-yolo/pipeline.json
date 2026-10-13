@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "ultralytics-yolo.gallery@1",
+      "packages": [
+        "ultralytics==8.3.230",
+        "torch==2.9.1",
+        "torchvision==0.24.1",
+        "numpy==2.2.6"
+      ],
+      "inputs": [
+        "input.png"
+      ],
+      "params": {},
+      "outputs": [
+        "yolo.json"
+      ]
+    }
+  ]
+}

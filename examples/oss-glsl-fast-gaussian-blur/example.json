@@ -1,0 +1,38 @@
+{
+  "order": 306,
+  "title": "Directional Gaussian blur (glsl-fast-gaussian-blur)",
+  "title_ko": "방향성 가우시안 흐림 (glsl-fast-gaussian-blur)",
+  "description": "The library’s nine-tap filter performs one directional blur pass. Rotate the direction and compare with the original at the left.",
+  "description_ko": "라이브러리의 9탭 필터로 한 방향의 흐림을 계산해요. 방향을 회전하고 왼쪽 원본과 비교하세요.",
+  "prompt": "Directional Gaussian blur. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-fast-gaussian-blur 1.0.2; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-fast-gaussian-blur"
+  ],
+  "summary": "The library’s nine-tap filter performs one directional blur pass. Rotate the direction and compare with the original at the left.",
+  "summary_ko": "라이브러리의 9탭 필터로 한 방향의 흐림을 계산해요. 방향을 회전하고 왼쪽 원본과 비교하세요.",
+  "try": [
+    "Change Radius",
+    "Change Direction"
+  ],
+  "try_ko": [
+    "Radius 값을 바꾸어 비교하세요",
+    "Direction 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "The library’s nine-tap filter performs one directional blur pass. Rotate the direction and compare with the original at the left.",
+  "tool_about_ko": "라이브러리의 9탭 필터로 한 방향의 흐림을 계산해요. 방향을 회전하고 왼쪽 원본과 비교하세요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-fast-gaussian-blur 1.0.2",
+      "what_ko": "컴파일한 원본 GLSL: glsl-fast-gaussian-blur 1.0.2",
+      "source": "glsl-fast-gaussian-blur",
+      "license": "MIT",
+      "url": "https://github.com/experience-monks/glsl-fast-gaussian-blur"
+    }
+  ]
+}

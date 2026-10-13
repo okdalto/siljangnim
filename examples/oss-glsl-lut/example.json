@@ -1,0 +1,36 @@
+{
+  "order": 303,
+  "title": "A synthetic color lookup table (glsl-lut)",
+  "title_ko": "직접 만든 색상 조회표 (glsl-lut)",
+  "description": "A 64³ color cube packed into a 512² texture warms an original gradient. Strength zero preserves the input.",
+  "description_ko": "64³ 색상 큐브를 512² 텍스처에 담아 직접 만든 그라디언트를 따뜻하게 바꿔요. 강도 0은 원본을 유지해요.",
+  "prompt": "A synthetic color lookup table. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-lut 1.1.3; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-lut"
+  ],
+  "summary": "A 64³ color cube packed into a 512² texture warms an original gradient. Strength zero preserves the input.",
+  "summary_ko": "64³ 색상 큐브를 512² 텍스처에 담아 직접 만든 그라디언트를 따뜻하게 바꿔요. 강도 0은 원본을 유지해요.",
+  "try": [
+    "Change Strength"
+  ],
+  "try_ko": [
+    "Strength 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "A 64³ color cube packed into a 512² texture warms an original gradient. Strength zero preserves the input.",
+  "tool_about_ko": "64³ 색상 큐브를 512² 텍스처에 담아 직접 만든 그라디언트를 따뜻하게 바꿔요. 강도 0은 원본을 유지해요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-lut 1.1.3",
+      "what_ko": "컴파일한 원본 GLSL: glsl-lut 1.1.3",
+      "source": "glsl-lut",
+      "license": "MIT",
+      "url": "https://github.com/mattdesl/glsl-lut"
+    }
+  ]
+}

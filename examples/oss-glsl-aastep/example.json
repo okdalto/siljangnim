@@ -1,0 +1,38 @@
+{
+  "order": 308,
+  "title": "Derivative-aware thresholds (glsl-aastep)",
+  "title_ko": "도함수를 이용한 임계값 (glsl-aastep)",
+  "description": "Compare hard thresholding on the left with derivative-smoothed concentric rings on the right.",
+  "description_ko": "왼쪽의 딱딱한 임계값과 오른쪽의 도함수 기반 부드러운 동심원을 비교해요.",
+  "prompt": "Derivative-aware thresholds. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-aastep 1.0.1; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-aastep"
+  ],
+  "summary": "Compare hard thresholding on the left with derivative-smoothed concentric rings on the right.",
+  "summary_ko": "왼쪽의 딱딱한 임계값과 오른쪽의 도함수 기반 부드러운 동심원을 비교해요.",
+  "try": [
+    "Change Ring frequency",
+    "Change Comparison divider"
+  ],
+  "try_ko": [
+    "Ring frequency 값을 바꾸어 비교하세요",
+    "Comparison divider 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "Compare hard thresholding on the left with derivative-smoothed concentric rings on the right.",
+  "tool_about_ko": "왼쪽의 딱딱한 임계값과 오른쪽의 도함수 기반 부드러운 동심원을 비교해요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-aastep 1.0.1",
+      "what_ko": "컴파일한 원본 GLSL: glsl-aastep 1.0.1",
+      "source": "glsl-aastep",
+      "license": "MIT",
+      "url": "https://github.com/glslify/glsl-aastep"
+    }
+  ]
+}

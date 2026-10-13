@@ -1,0 +1,30 @@
+{
+  "order": 319,
+  "title": "Skeleton branch graph (Skan)",
+  "title_ko": "골격의 가지 그래프 (Skan)",
+  "description": "Skan extracts paths and branch lengths from an original one-pixel-wide skeleton. Highlight a branch to inspect its topology.",
+  "description_ko": "Skan으로 직접 만든 1픽셀 골격에서 경로와 가지 길이를 구했어요. 가지별 결과를 살펴보세요.",
+  "prompt": "Skeleton branch graph. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "skan==0.13.1, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "skan"
+  ],
+  "summary": "Skan extracts paths and branch lengths from an original one-pixel-wide skeleton. Highlight a branch to inspect its topology.",
+  "summary_ko": "Skan으로 직접 만든 1픽셀 골격에서 경로와 가지 길이를 구했어요. 가지별 결과를 살펴보세요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Skan extracts paths and branch lengths from an original one-pixel-wide skeleton. Highlight a branch to inspect its topology. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "Skan으로 직접 만든 1픽셀 골격에서 경로와 가지 길이를 구했어요. 가지별 결과를 살펴보세요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

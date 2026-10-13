@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;\ns.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float;\\n#define GLSLIFY 1\\nin vec2 v_uv;out vec4 outColor;uniform vec2 u_resolution;uniform sampler2D u_image;\\nuniform float u_radius;\\nuniform int u_mode;\\nstruct Intersection {\\n  float t0;\\n  float t1;\\n  int hits; // forward hits\\n  bool isInside;\\n};\\n\\n// Finds the intersection of a ray with a sphere.\\n// origin is the ray origin relative to the sphere\\n// ray is the ray direction (normalized)\\n// radius is the sphere radius\\n//\\n// Implements the algorithm described here that bypasses precision issues:\\n// \\\"Precision Improvements for Ray/Sphere Intersection\\\"\\n// By: Eric Haines, Johannes Gunther, and Tomas Akenine-Moller\\n// https://link.springer.com/content/pdf/10.1007/978-1-4842-4427-2_7.pdf\\nIntersection sphereIntersection(vec3 origin, vec3 ray, float radius) {\\n  float b = -dot(origin, ray);\\n  vec3 w = origin + b * ray;\\n  float r2 = radius * radius;\\n  float d = r2 - dot(w, w);\\n  if(d < 0.0) {\\n    return Intersection(0.0, 0.0, 0, false);\\n  }\\n  if(d == 0.0) {\\n    return Intersection(b, b, 1, false);\\n  }\\n  float c = dot(origin, origin) - r2;\\n  float sqrtd = sqrt(d);\\n  float q = b + sign(b) * sqrtd;\\n  float t0 = c / q;\\n  float t1 = q;\\n  int hits = int(t0 >= 0.0) + int(t1 > 0.0);\\n  return Intersection(min(t0, t1), max(t0, t1), hits, c < 0.0);\\n}\\n\\nvoid main(){vec2 uv=v_uv,p=(uv*2.-1.)*u_resolution/min(u_resolution.x,u_resolution.y);vec3 color;vec3 ro=vec3(0,0,2.6),rd=normalize(vec3(p,-2.));Intersection hit=sphereIntersection(ro,rd,u_radius);color=vec3(.035,.075,.13);if(hit.hits>0){vec3 n=normalize(ro+rd*hit.t0);color=u_mode==0?n*.5+.5:mix(vec3(.15,.27,.65),vec3(1,.75,.3),clamp((hit.t1-hit.t0)/(2.*u_radius),0.,1.));}\\noutColor=vec4(color,1);}\");\n",
+    "render": "const s=ctx.state;ctx.gl.useProgram(s.program);if(s.texture)ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "ctx.gl.deleteTexture(ctx.state.texture);ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_radius": {
+      "type": "float",
+      "label": "Sphere radius",
+      "value": 0.72,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.01
+    },
+    "u_mode": {
+      "type": "int",
+      "label": "Display",
+      "value": 0,
+      "widget": "select",
+      "options": [
+        {
+          "label": "Surface normals",
+          "value": 0
+        },
+        {
+          "label": "Path length",
+          "value": 1
+        }
+      ]
+    }
+  }
+}

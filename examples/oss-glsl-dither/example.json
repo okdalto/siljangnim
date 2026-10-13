@@ -1,0 +1,45 @@
+{
+  "order": 304,
+  "title": "Ordered dithering (glsl-dither)",
+  "title_ko": "순서 디더링 (glsl-dither)",
+  "description": "An 8×8 ordered threshold matrix converts a continuous gradient to discrete dots. Pixel scale exposes the matrix.",
+  "description_ko": "8×8 임계값 행렬로 연속 그라디언트를 점으로 바꿔요. Pixel scale로 행렬을 확대해 보세요.",
+  "prompt": "Ordered dithering. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-dither 1.0.1; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-dither"
+  ],
+  "summary": "An 8×8 ordered threshold matrix converts a continuous gradient to discrete dots. Pixel scale exposes the matrix.",
+  "summary_ko": "8×8 임계값 행렬로 연속 그라디언트를 점으로 바꿔요. Pixel scale로 행렬을 확대해 보세요.",
+  "try": [
+    "Change Pixel scale",
+    "Change Exposure"
+  ],
+  "try_ko": [
+    "Pixel scale 값을 바꾸어 비교하세요",
+    "Exposure 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "An 8×8 ordered threshold matrix converts a continuous gradient to discrete dots. Pixel scale exposes the matrix.",
+  "tool_about_ko": "8×8 임계값 행렬로 연속 그라디언트를 점으로 바꿔요. Pixel scale로 행렬을 확대해 보세요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-dither 1.0.1",
+      "what_ko": "컴파일한 원본 GLSL: glsl-dither 1.0.1",
+      "source": "glsl-dither",
+      "license": "MIT",
+      "url": "https://github.com/hughsk/glsl-dither"
+    },
+    {
+      "what": "Compiled GLSL source: glsl-luma 1.0.1",
+      "what_ko": "컴파일한 원본 GLSL: glsl-luma 1.0.1",
+      "source": "glsl-luma",
+      "license": "MIT",
+      "url": "https://github.com/mattdesl/glsl-luma"
+    }
+  ]
+}

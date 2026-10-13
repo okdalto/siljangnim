@@ -1,0 +1,39 @@
+{
+  "order": 324,
+  "title": "Fitting a tiny character model (nanoGPT)",
+  "title_ko": "작은 문자 모델의 학습 (nanoGPT)",
+  "description": "The original nanoGPT model trains locally for 181 steps on three original sentences. The saved curve is training loss, not a generalization score; the text is a sample from the final checkpoint.",
+  "description_ko": "nanoGPT 원본 모델을 직접 쓴 세 문장으로 181단계 학습했어요. 저장된 곡선은 일반화 성능이 아닌 학습 손실이고, 문장은 마지막 체크포인트의 생성 결과예요.",
+  "prompt": "Fitting a tiny character model. Show the actual locally computed output and explain its limits.",
+  "made_with": "torch==2.9.1, numpy==2.2.6; locally executed on CPU",
+  "features": [
+    "prepared result",
+    "recipe",
+    "machine learning"
+  ],
+  "mode": "live",
+  "uses": [
+    "nanogpt"
+  ],
+  "summary": "The original nanoGPT model trains locally for 181 steps on three original sentences.",
+  "summary_ko": "nanoGPT 원본 모델을 직접 쓴 세 문장으로 181단계 학습했어요. 저장된 곡선은 일반화 성능이 아닌 학습 손실이고, 문장은 마지막 체크포인트의 생성 결과예요.",
+  "try": [
+    "Inspect the prepared computation with the control",
+    "Rerun the included recipe to change inputs"
+  ],
+  "try_ko": [
+    "컨트롤로 직접 계산한 결과를 살펴보세요",
+    "입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "The original nanoGPT model trains locally for 181 steps on three original sentences. The saved curve is training loss, not a generalization score; the text is a sample from the final checkpoint.",
+  "tool_about_ko": "nanoGPT 원본 모델을 직접 쓴 세 문장으로 181단계 학습했어요. 저장된 곡선은 일반화 성능이 아닌 학습 손실이고, 문장은 마지막 체크포인트의 생성 결과예요.",
+  "credits": [
+    {
+      "what": "Original nanoGPT model.py at revision 3adf61e154c3fe3fca428ad6bc3818b27a3b8291",
+      "what_ko": "nanoGPT 원본 model.py, 리비전 3adf61e154c3fe3fca428ad6bc3818b27a3b8291",
+      "source": "Andrej Karpathy",
+      "license": "MIT (assets/NANOGPT_LICENSE.txt)",
+      "url": "https://github.com/karpathy/nanoGPT/blob/3adf61e154c3fe3fca428ad6bc3818b27a3b8291/model.py"
+    }
+  ]
+}

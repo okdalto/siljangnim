@@ -1,0 +1,17 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "nurbs-python-geomdl.gallery@1",
+      "packages": [
+        "geomdl==5.4.0",
+        "numpy==2.2.6"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

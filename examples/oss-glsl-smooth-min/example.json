@@ -1,0 +1,38 @@
+{
+  "order": 298,
+  "title": "Soft unions of distance fields (glsl-smooth-min)",
+  "title_ko": "거리장의 부드러운 합집합 (glsl-smooth-min)",
+  "description": "The polynomial smooth minimum joins two circles; contour rings expose the changing distance field.",
+  "description_ko": "다항식 smooth minimum으로 두 원을 합쳐요. 등고선으로 거리장 변화를 살펴보세요.",
+  "prompt": "Soft unions of distance fields. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-smooth-min 1.0.0; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-smooth-min"
+  ],
+  "summary": "The polynomial smooth minimum joins two circles; contour rings expose the changing distance field.",
+  "summary_ko": "다항식 smooth minimum으로 두 원을 합쳐요. 등고선으로 거리장 변화를 살펴보세요.",
+  "try": [
+    "Change Blend radius",
+    "Change Center separation"
+  ],
+  "try_ko": [
+    "Blend radius 값을 바꾸어 비교하세요",
+    "Center separation 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "The polynomial smooth minimum joins two circles; contour rings expose the changing distance field.",
+  "tool_about_ko": "다항식 smooth minimum으로 두 원을 합쳐요. 등고선으로 거리장 변화를 살펴보세요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-smooth-min 1.0.0",
+      "what_ko": "컴파일한 원본 GLSL: glsl-smooth-min 1.0.0",
+      "source": "glsl-smooth-min",
+      "license": "MIT",
+      "url": "https://github.com/glslify/glsl-smooth-min"
+    }
+  ]
+}

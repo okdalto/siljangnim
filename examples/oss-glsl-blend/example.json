@@ -1,0 +1,38 @@
+{
+  "order": 307,
+  "title": "Layer blending modes (glsl-blend)",
+  "title_ko": "레이어 혼합 모드 (glsl-blend)",
+  "description": "Original color fields are combined using the library’s multiply, screen, overlay and difference operations.",
+  "description_ko": "직접 만든 색상장을 multiply·screen·overlay·difference 연산으로 혼합해요.",
+  "prompt": "Layer blending modes. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-blend 1.0.3; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-blend"
+  ],
+  "summary": "Original color fields are combined using the library’s multiply, screen, overlay and difference operations.",
+  "summary_ko": "직접 만든 색상장을 multiply·screen·overlay·difference 연산으로 혼합해요.",
+  "try": [
+    "Change Blend mode",
+    "Change Opacity"
+  ],
+  "try_ko": [
+    "Blend mode 값을 바꾸어 비교하세요",
+    "Opacity 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "Original color fields are combined using the library’s multiply, screen, overlay and difference operations.",
+  "tool_about_ko": "직접 만든 색상장을 multiply·screen·overlay·difference 연산으로 혼합해요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-blend 1.0.3",
+      "what_ko": "컴파일한 원본 GLSL: glsl-blend 1.0.3",
+      "source": "glsl-blend",
+      "license": "MIT",
+      "url": "https://github.com/jamieowen/glsl-blend"
+    }
+  ]
+}

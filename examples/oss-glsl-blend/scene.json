@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;\ns.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float;\\n#define GLSLIFY 1\\nin vec2 v_uv;out vec4 outColor;uniform vec2 u_resolution;uniform sampler2D u_image;\\nuniform int u_mode;\\nuniform float u_opacity;\\nvec3 blendMultiply(vec3 base, vec3 blend) {\\n\\treturn base*blend;\\n}\\n\\nvec3 blendMultiply(vec3 base, vec3 blend, float opacity) {\\n\\treturn (blendMultiply(base, blend) * opacity + base * (1.0 - opacity));\\n}\\n\\nfloat blendScreen(float base, float blend) {\\n\\treturn 1.0-((1.0-base)*(1.0-blend));\\n}\\n\\nvec3 blendScreen(vec3 base, vec3 blend) {\\n\\treturn vec3(blendScreen(base.r,blend.r),blendScreen(base.g,blend.g),blendScreen(base.b,blend.b));\\n}\\n\\nvec3 blendScreen(vec3 base, vec3 blend, float opacity) {\\n\\treturn (blendScreen(base, blend) * opacity + base * (1.0 - opacity));\\n}\\n\\nfloat blendOverlay(float base, float blend) {\\n\\treturn base<0.5?(2.0*base*blend):(1.0-2.0*(1.0-base)*(1.0-blend));\\n}\\n\\nvec3 blendOverlay(vec3 base, vec3 blend) {\\n\\treturn vec3(blendOverlay(base.r,blend.r),blendOverlay(base.g,blend.g),blendOverlay(base.b,blend.b));\\n}\\n\\nvec3 blendOverlay(vec3 base, vec3 blend, float opacity) {\\n\\treturn (blendOverlay(base, blend) * opacity + base * (1.0 - opacity));\\n}\\n\\nvec3 blendDifference(vec3 base, vec3 blend) {\\n\\treturn abs(base-blend);\\n}\\n\\nvec3 blendDifference(vec3 base, vec3 blend, float opacity) {\\n\\treturn (blendDifference(base, blend) * opacity + base * (1.0 - opacity));\\n}\\n\\nvoid main(){vec2 uv=v_uv,p=(uv*2.-1.)*u_resolution/min(u_resolution.x,u_resolution.y);vec3 color;vec3 a=vec3(uv,.3),b=mix(vec3(.2,.7,.9),vec3(.95,.3,.2),.5+.5*sin(uv.y*16.+uv.x*7.));vec3 c=u_mode==0?blendMultiply(a,b):u_mode==1?blendScreen(a,b):u_mode==2?blendOverlay(a,b):blendDifference(a,b);color=mix(a,c,u_opacity);\\noutColor=vec4(color,1);}\");\n",
+    "render": "const s=ctx.state;ctx.gl.useProgram(s.program);if(s.texture)ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "ctx.gl.deleteTexture(ctx.state.texture);ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_mode": {
+      "type": "int",
+      "label": "Blend mode",
+      "value": 0,
+      "widget": "select",
+      "options": [
+        {
+          "label": "Multiply",
+          "value": 0
+        },
+        {
+          "label": "Screen",
+          "value": 1
+        },
+        {
+          "label": "Overlay",
+          "value": 2
+        },
+        {
+          "label": "Difference",
+          "value": 3
+        }
+      ]
+    },
+    "u_opacity": {
+      "type": "float",
+      "label": "Opacity",
+      "value": 0.8,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    }
+  }
+}

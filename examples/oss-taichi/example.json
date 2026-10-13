@@ -1,0 +1,30 @@
+{
+  "order": 320,
+  "title": "A diffusing grid (Taichi)",
+  "title_ko": "격자 위의 확산 (Taichi)",
+  "description": "Taichi CPU kernels evolve a discrete heat field. Stored snapshots show diffusion while retaining total heat.",
+  "description_ko": "Taichi CPU 커널로 이산 열장을 직접 계산했어요. 총 열량을 보존하며 퍼지는 모습을 준비된 프레임으로 살펴보세요.",
+  "prompt": "A diffusing grid. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "taichi==1.7.4, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "taichi"
+  ],
+  "summary": "Taichi CPU kernels evolve a discrete heat field. Stored snapshots show diffusion while retaining total heat.",
+  "summary_ko": "Taichi CPU 커널로 이산 열장을 직접 계산했어요. 총 열량을 보존하며 퍼지는 모습을 준비된 프레임으로 살펴보세요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Taichi CPU kernels evolve a discrete heat field. Stored snapshots show diffusion while retaining total heat. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "Taichi CPU 커널로 이산 열장을 직접 계산했어요. 총 열량을 보존하며 퍼지는 모습을 준비된 프레임으로 살펴보세요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

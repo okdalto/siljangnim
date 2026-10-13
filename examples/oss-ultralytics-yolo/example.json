@@ -1,0 +1,30 @@
+{
+  "order": 326,
+  "title": "A classifier’s guesses (Ultralytics YOLO)",
+  "title_ko": "분류 모델의 추측 (Ultralytics YOLO)",
+  "description": "YOLO11n-cls classifies an original synthetic flower on the CPU. Its top guess is wrong: inspect the real top-five probabilities rather than treating the labels as truth.",
+  "description_ko": "YOLO11n-cls를 CPU에서 실행해 직접 만든 꽃 그림을 분류했어요. 첫 번째 추측은 틀렸어요. 라벨을 정답으로 보지 말고 실제 상위 5개 확률을 비교하세요.",
+  "prompt": "A classifier’s guesses. Show the actual locally computed output and explain its limits.",
+  "made_with": "ultralytics==8.3.230, torch==2.9.1, torchvision==0.24.1, numpy==2.2.6; locally executed on CPU",
+  "features": [
+    "prepared result",
+    "recipe",
+    "machine learning"
+  ],
+  "mode": "live",
+  "uses": [
+    "ultralytics-yolo"
+  ],
+  "summary": "YOLO11n-cls classifies an original synthetic flower on the CPU.",
+  "summary_ko": "YOLO11n-cls를 CPU에서 실행해 직접 만든 꽃 그림을 분류했어요. 첫 번째 추측은 틀렸어요. 라벨을 정답으로 보지 말고 실제 상위 5개 확률을 비교하세요.",
+  "try": [
+    "Inspect the prepared computation with the control",
+    "Rerun the included recipe to change inputs"
+  ],
+  "try_ko": [
+    "컨트롤로 직접 계산한 결과를 살펴보세요",
+    "입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "YOLO11n-cls classifies an original synthetic flower on the CPU. Its top guess is wrong: inspect the real top-five probabilities rather than treating the labels as truth.",
+  "tool_about_ko": "YOLO11n-cls를 CPU에서 실행해 직접 만든 꽃 그림을 분류했어요. 첫 번째 추측은 틀렸어요. 라벨을 정답으로 보지 말고 실제 상위 5개 확률을 비교하세요."
+}

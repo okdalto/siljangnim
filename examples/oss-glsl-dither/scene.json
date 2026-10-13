@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;\ns.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float;\\n#define GLSLIFY 1\\nin vec2 v_uv;out vec4 outColor;uniform vec2 u_resolution;uniform sampler2D u_image;\\nuniform float u_pixel;\\nuniform float u_exposure;\\nfloat luma(vec3 color) {\\n  return dot(color, vec3(0.299, 0.587, 0.114));\\n}\\n\\nfloat luma(vec4 color) {\\n  return dot(color.rgb, vec3(0.299, 0.587, 0.114));\\n}\\n\\nfloat dither8x8(vec2 position, float brightness) {\\n  int x = int(mod(position.x, 8.0));\\n  int y = int(mod(position.y, 8.0));\\n  int index = x + y * 8;\\n  float limit = 0.0;\\n\\n  if (x < 8) {\\n    if (index == 0) limit = 0.015625;\\n    if (index == 1) limit = 0.515625;\\n    if (index == 2) limit = 0.140625;\\n    if (index == 3) limit = 0.640625;\\n    if (index == 4) limit = 0.046875;\\n    if (index == 5) limit = 0.546875;\\n    if (index == 6) limit = 0.171875;\\n    if (index == 7) limit = 0.671875;\\n    if (index == 8) limit = 0.765625;\\n    if (index == 9) limit = 0.265625;\\n    if (index == 10) limit = 0.890625;\\n    if (index == 11) limit = 0.390625;\\n    if (index == 12) limit = 0.796875;\\n    if (index == 13) limit = 0.296875;\\n    if (index == 14) limit = 0.921875;\\n    if (index == 15) limit = 0.421875;\\n    if (index == 16) limit = 0.203125;\\n    if (index == 17) limit = 0.703125;\\n    if (index == 18) limit = 0.078125;\\n    if (index == 19) limit = 0.578125;\\n    if (index == 20) limit = 0.234375;\\n    if (index == 21) limit = 0.734375;\\n    if (index == 22) limit = 0.109375;\\n    if (index == 23) limit = 0.609375;\\n    if (index == 24) limit = 0.953125;\\n    if (index == 25) limit = 0.453125;\\n    if (index == 26) limit = 0.828125;\\n    if (index == 27) limit = 0.328125;\\n    if (index == 28) limit = 0.984375;\\n    if (index == 29) limit = 0.484375;\\n    if (index == 30) limit = 0.859375;\\n    if (index == 31) limit = 0.359375;\\n    if (index == 32) limit = 0.0625;\\n    if (index == 33) limit = 0.5625;\\n    if (index == 34) limit = 0.1875;\\n    if (index == 35) limit = 0.6875;\\n    if (index == 36) limit = 0.03125;\\n    if (index == 37) limit = 0.53125;\\n    if (index == 38) limit = 0.15625;\\n    if (index == 39) limit = 0.65625;\\n    if (index == 40) limit = 0.8125;\\n    if (index == 41) limit = 0.3125;\\n    if (index == 42) limit = 0.9375;\\n    if (index == 43) limit = 0.4375;\\n    if (index == 44) limit = 0.78125;\\n    if (index == 45) limit = 0.28125;\\n    if (index == 46) limit = 0.90625;\\n    if (index == 47) limit = 0.40625;\\n    if (index == 48) limit = 0.25;\\n    if (index == 49) limit = 0.75;\\n    if (index == 50) limit = 0.125;\\n    if (index == 51) limit = 0.625;\\n    if (index == 52) limit = 0.21875;\\n    if (index == 53) limit = 0.71875;\\n    if (index == 54) limit = 0.09375;\\n    if (index == 55) limit = 0.59375;\\n    if (index == 56) limit = 1.0;\\n    if (index == 57) limit = 0.5;\\n    if (index == 58) limit = 0.875;\\n    if (index == 59) limit = 0.375;\\n    if (index == 60) limit = 0.96875;\\n    if (index == 61) limit = 0.46875;\\n    if (index == 62) limit = 0.84375;\\n    if (index == 63) limit = 0.34375;\\n  }\\n\\n  return brightness < limit ? 0.0 : 1.0;\\n}\\n\\nvec3 dither8x8(vec2 position, vec3 color) {\\n  return color * dither8x8(position, luma(color));\\n}\\n\\nvec4 dither8x8(vec2 position, vec4 color) {\\n  return vec4(color.rgb * dither8x8(position, luma(color)), 1.0);\\n}\\n\\nvoid main(){vec2 uv=v_uv,p=(uv*2.-1.)*u_resolution/min(u_resolution.x,u_resolution.y);vec3 color;float v=clamp((uv.x*.65+(1.-length(p))*.35)*u_exposure,0.,1.);float q=dither8x8(floor(gl_FragCoord.xy/u_pixel),v);color=mix(vec3(.035,.075,.13),vec3(.85,.94,.84),q);\\noutColor=vec4(color,1);}\");\n",
+    "render": "const s=ctx.state;ctx.gl.useProgram(s.program);if(s.texture)ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "ctx.gl.deleteTexture(ctx.state.texture);ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_pixel": {
+      "type": "float",
+      "label": "Pixel scale",
+      "value": 4,
+      "min": 1,
+      "max": 12,
+      "step": 1
+    },
+    "u_exposure": {
+      "type": "float",
+      "label": "Exposure",
+      "value": 1,
+      "min": 0.3,
+      "max": 1.8,
+      "step": 0.01
+    }
+  }
+}

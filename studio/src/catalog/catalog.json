@@ -4237,6 +4237,790 @@
    "install": {
     "cdn": "https://esm.sh/meshoptimizer@1.3.0"
    }
+  },
+  {
+   "id": "glsl-solid-wireframe",
+   "name": "glsl-solid-wireframe",
+   "repo": "https://github.com/rreusser/glsl-solid-wireframe",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Derivative-scaled barycentric edges keep a triangular grid readable at different densities.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-smooth-min",
+   "name": "glsl-smooth-min",
+   "repo": "https://github.com/glslify/glsl-smooth-min",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "The polynomial smooth minimum joins two circles; contour rings expose the changing distance field.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-sdf-primitives",
+   "name": "glsl-sdf-primitives",
+   "repo": "https://github.com/marklundin/glsl-sdf-primitives",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Actual sphere, box and torus distance functions drive a bounded ray marcher and finite-difference lighting.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-ray-sphere",
+   "name": "glsl-ray-sphere",
+   "repo": "https://github.com/wellcaffeinated/glsl-ray-sphere",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "The library reports sphere intersections. Switch between surface normals and optical path length through the sphere.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-worley",
+   "name": "glsl-worley",
+   "repo": "https://github.com/erkaman/glsl-worley",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Worley noise returns the two nearest feature distances. Compare F1 with F2 minus F1 cell boundaries.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-random",
+   "name": "glsl-random",
+   "repo": "https://github.com/mattdesl/glsl-random",
+   "license": "BSD-3-Clause",
+   "tier": "B",
+   "purpose": "A GLSL hash gives each integer tile a deterministic value; changing the seed selects another pattern.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-lut",
+   "name": "glsl-lut",
+   "repo": "https://github.com/mattdesl/glsl-lut",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "A 64³ color cube packed into a 512² texture warms an original gradient. Strength zero preserves the input.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-dither",
+   "name": "glsl-dither",
+   "repo": "https://github.com/hughsk/glsl-dither",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "An 8×8 ordered threshold matrix converts a continuous gradient to discrete dots. Pixel scale exposes the matrix.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-fxaa",
+   "name": "glsl-fxaa",
+   "repo": "https://github.com/mattdesl/glsl-fxaa",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "FXAA filters a deliberately jagged synthetic image. The divider compares original pixels on the left with the filter on the right.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-fast-gaussian-blur",
+   "name": "glsl-fast-gaussian-blur",
+   "repo": "https://github.com/experience-monks/glsl-fast-gaussian-blur",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "The library’s nine-tap filter performs one directional blur pass. Rotate the direction and compare with the original at the left.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-blend",
+   "name": "glsl-blend",
+   "repo": "https://github.com/jamieowen/glsl-blend",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Original color fields are combined using the library’s multiply, screen, overlay and difference operations.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-aastep",
+   "name": "glsl-aastep",
+   "repo": "https://github.com/glslify/glsl-aastep",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Compare hard thresholding on the left with derivative-smoothed concentric rings on the right.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-halftone",
+   "name": "glsl-halftone",
+   "repo": "https://github.com/glslify/glsl-halftone",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "The original shader converts an analytic RGB field into rotated CMYK dot screens with simplex-noise paper variation.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "glsl-specular-blinn-phong",
+   "name": "glsl-specular-blinn-phong",
+   "repo": "https://github.com/glslify/glsl-specular-blinn-phong",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "The library evaluates the half-vector specular term on an analytic sphere. Shininess controls the highlight width.",
+   "tags": [
+    "shader"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Original GLSL compiled into this on-demand example; full licenses in assets/THIRD_PARTY_LICENSES.txt. No model download."
+  },
+  {
+   "id": "nurbs-python-geomdl",
+   "name": "NURBS-Python (geomdl)",
+   "repo": "https://github.com/orbingol/nurbs-python",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "Geomdl evaluates a quadratic rational curve at three middle-point weights. These are locally computed samples.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "geomdl==5.4.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "mujoco",
+   "name": "MuJoCo",
+   "repo": "https://github.com/google-deepmind/mujoco",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "MuJoCo integrates a two-link pendulum with damping. Time selects a locally simulated frame, not a new browser simulation.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "mujoco==3.14.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "pyvista",
+   "name": "PyVista",
+   "repo": "https://github.com/pyvista/pyvista",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "PyVista clips an original torus at three planes. Rotate the prepared meshes to inspect the open cut.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "pyvista==0.49.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "vtk",
+   "name": "VTK",
+   "repo": "https://github.com/kitware/vtk",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "VTK Flying Edges extracts three isosurfaces from a sampled gyroid field. The geometry was computed locally with VTK.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "vtk==9.7.1",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "proj",
+   "name": "PROJ",
+   "repo": "https://github.com/OSGeo/PROJ",
+   "license": "MIT-style",
+   "tier": "C",
+   "purpose": "PROJ, through pyproj, transforms a synthetic geographic grid into Mollweide and Mercator coordinates. No map tiles are downloaded.",
+   "tags": [
+    "Coordinate systems · map projections",
+    "Maps · surveying",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "pyproj==3.7.2",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "fipy",
+   "name": "FiPy",
+   "repo": "https://github.com/usnistgov/fipy",
+   "license": "NIST Terms of Use",
+   "tier": "C",
+   "purpose": "FiPy solves one-dimensional diffusion with zero-flux boundaries. The prepared profiles conserve the initial mass.",
+   "tags": [
+    "Finite volume · partial differential equations",
+    "Diffusion · materials",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "FiPy==4.0.3",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "neuron",
+   "name": "NEURON",
+   "repo": "https://github.com/neuronsimulator/nrn",
+   "license": "BSD-3-Clause compatible",
+   "tier": "C",
+   "purpose": "NEURON simulates a Hodgkin–Huxley membrane under three current pulses. The voltage traces are locally generated model outputs.",
+   "tags": [
+    "Neuron compartments · electrical signals",
+    "Neuroscience · models",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "neuron==9.0.2",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "healpy",
+   "name": "healpy",
+   "repo": "https://github.com/healpy/healpy",
+   "license": "GPL-2.0",
+   "tier": "C",
+   "purpose": "Healpy evaluates HEALPix pixel centers at three resolutions. Colors mark a synthetic spherical wave.",
+   "tags": [
+    "HEALPix spherical pixels",
+    "Astronomy · spherical maps",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "healpy==1.20.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "skan",
+   "name": "Skan",
+   "repo": "https://github.com/jni/skan",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "Skan extracts paths and branch lengths from an original one-pixel-wide skeleton. Highlight a branch to inspect its topology.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "skan==0.13.1",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "taichi",
+   "name": "Taichi",
+   "repo": "https://github.com/taichi-dev/taichi",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "Taichi CPU kernels evolve a discrete heat field. Stored snapshots show diffusion while retaining total heat.",
+   "tags": [
+    "particles",
+    "physics",
+    "parallel",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "taichi==1.7.4",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "datashader",
+   "name": "Datashader",
+   "repo": "https://github.com/holoviz/datashader",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "Datashader bins 100,000 deterministic points at three raster resolutions. Every aggregation accounts for all input points.",
+   "tags": [
+    "Pixel aggregation · density",
+    "Data · visualization",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "datashader==0.19.1",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "vtracer",
+   "name": "VTracer",
+   "repo": "https://github.com/visioncortex/vtracer",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "VTracer converts an original binary drawing to SVG. FontTools samples the returned Bézier paths for display; both conversion modes are prepared locally.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "vtracer==0.6.15",
+     "fonttools==4.66.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "u2-net",
+   "name": "U2-Net",
+   "repo": "https://github.com/xuebinqin/u-2-net",
+   "license": "Apache-2.0",
+   "tier": "E",
+   "purpose": "U²Netp runs through ONNX Runtime on the CPU and extracts a foreground mask from an original procedural flower. This saved prediction includes part of the shadow; compare it with the input.",
+   "tags": [
+    "ONNX",
+    "CPU"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image",
+     "mask"
+    ]
+   },
+   "install": {
+    "pip": [
+     "onnxruntime==1.23.2",
+     "numpy==2.2.6",
+     "Pillow==11.3.0"
+    ]
+   },
+   "gpu": "Not required for this U2Netp ONNX example; CPU verified.",
+   "notes": "4.6 MB weights downloaded and cached only when the recipe runs. Prepared images are downloaded with the example."
+  },
+  {
+   "id": "nanogpt",
+   "name": "nanoGPT",
+   "repo": "https://github.com/karpathy/nanoGPT",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "The original nanoGPT model trains locally for 181 steps on three original sentences. The saved curve is training loss, not a generalization score; the text is a sample from the final checkpoint.",
+   "tags": [
+    "Transformer · next-token prediction",
+    "Language · learning",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.9.1",
+     "numpy==2.2.6"
+    ],
+    "bundled": true
+   },
+   "notes": "Locally executed CPU recipe. Original model.py and MIT license are included."
+  },
+  {
+   "id": "torchcfm",
+   "name": "TorchCFM",
+   "repo": "https://github.com/atong01/conditional-flow-matching",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "TorchCFM samples a noisy conditional path between a Gaussian cloud and a ring. Arrows are target conditional velocities; no learned model or pretrained weights are involved.",
+   "tags": [
+    "Conditional flow matching",
+    "Generation · learning",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torchcfm==1.0.7",
+     "torch==2.9.1",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. "
+  },
+  {
+   "id": "ultralytics-yolo",
+   "name": "Ultralytics YOLO",
+   "repo": "https://github.com/ultralytics/ultralytics",
+   "license": "AGPL-3.0 / Enterprise",
+   "tier": "C",
+   "purpose": "YOLO11n-cls classifies an original synthetic flower on the CPU. Its top guess is wrong: inspect the real top-five probabilities rather than treating the labels as truth.",
+   "tags": [
+    "Object detection · segmentation · tracking",
+    "Vision · video",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "ultralytics==8.3.230",
+     "torch==2.9.1",
+     "torchvision==0.24.1",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. "
   }
  ]
 }

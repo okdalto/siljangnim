@@ -1,0 +1,39 @@
+{
+  "order": 323,
+  "title": "A learned foreground mask (U²Net)",
+  "title_ko": "모델이 추출한 전경 마스크 (U²Net)",
+  "description": "U²Netp runs through ONNX Runtime on the CPU and extracts a foreground mask from an original procedural flower. This saved prediction includes part of the shadow; compare it with the input.",
+  "description_ko": "U²Netp를 ONNX Runtime CPU로 직접 실행해 직접 만든 꽃 이미지의 전경 마스크를 구했어요. 그림자 일부도 포함된 예측을 원본과 비교하세요.",
+  "prompt": "Compare the original procedural flower with a locally computed U²Netp mask.",
+  "made_with": "u2netp ONNX; onnxruntime 1.23.2 CPU; original procedural input",
+  "features": [
+    "prepared result",
+    "model",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "u2-net"
+  ],
+  "summary": "U²Netp runs through ONNX Runtime on the CPU and extracts a foreground mask from an original procedural flower.",
+  "summary_ko": "U²Netp를 ONNX Runtime CPU로 직접 실행해 직접 만든 꽃 이미지의 전경 마스크를 구했어요. 그림자 일부도 포함된 예측을 원본과 비교하세요.",
+  "try": [
+    "Move Compare to inspect the predicted boundary",
+    "Change the background to reveal retained shadow"
+  ],
+  "try_ko": [
+    "Compare로 예측 경계를 살펴보세요",
+    "배경을 바꿔 남은 그림자를 확인하세요"
+  ],
+  "tool_about": "U²Netp runs through ONNX Runtime on the CPU and extracts a foreground mask from an original procedural flower. This saved prediction includes part of the shadow; compare it with the input. The model is only downloaded when rerunning the recipe; opening this example loads saved images.",
+  "tool_about_ko": "U²Netp를 ONNX Runtime CPU로 직접 실행해 직접 만든 꽃 이미지의 전경 마스크를 구했어요. 그림자 일부도 포함된 예측을 원본과 비교하세요. 모델은 레시피를 다시 실행할 때만 내려받고, 예제를 열면 저장된 이미지를 불러와요.",
+  "credits": [
+    {
+      "what": "U²Netp pretrained model, ONNX conversion distributed by rembg (weights are not bundled)",
+      "what_ko": "rembg가 배포한 U²Netp ONNX 변환 모델. 가중치는 포함하지 않아요.",
+      "source": "U²Net authors; rembg maintainers",
+      "license": "See the upstream model and distribution terms",
+      "url": "https://github.com/danielgatis/rembg/releases/tag/v0.0.0"
+    }
+  ]
+}

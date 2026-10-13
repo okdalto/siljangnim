@@ -1,0 +1,40 @@
+{
+  "order": 301,
+  "title": "Cell distances (glsl-worley)",
+  "title_ko": "세포 거리 무늬 (glsl-worley)",
+  "description": "Worley noise returns the two nearest feature distances. Compare F1 with F2 minus F1 cell boundaries.",
+  "description_ko": "Worley 노이즈가 가장 가까운 두 점까지의 거리를 구해요. F1과 F2−F1 경계를 비교하세요.",
+  "prompt": "Cell distances. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-worley 1.0.2; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-worley"
+  ],
+  "summary": "Worley noise returns the two nearest feature distances. Compare F1 with F2 minus F1 cell boundaries.",
+  "summary_ko": "Worley 노이즈가 가장 가까운 두 점까지의 거리를 구해요. F1과 F2−F1 경계를 비교하세요.",
+  "try": [
+    "Change Cell scale",
+    "Change Jitter",
+    "Change Distance"
+  ],
+  "try_ko": [
+    "Cell scale 값을 바꾸어 비교하세요",
+    "Jitter 값을 바꾸어 비교하세요",
+    "Distance 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "Worley noise returns the two nearest feature distances. Compare F1 with F2 minus F1 cell boundaries.",
+  "tool_about_ko": "Worley 노이즈가 가장 가까운 두 점까지의 거리를 구해요. F1과 F2−F1 경계를 비교하세요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-worley 1.0.2",
+      "what_ko": "컴파일한 원본 GLSL: glsl-worley 1.0.2",
+      "source": "glsl-worley",
+      "license": "MIT",
+      "url": "https://github.com/erkaman/glsl-worley"
+    }
+  ]
+}

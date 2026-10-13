@@ -1,0 +1,9 @@
+{
+  "model": "u2netp",
+  "provider": "CPUExecutionProvider",
+  "source": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx",
+  "model_sha256": "309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8",
+  "foreground_fraction": 0.20106875,
+  "input": "Original procedural flower and vase, generated in this recipe",
+  "onnxruntime": "1.23.2"
+}

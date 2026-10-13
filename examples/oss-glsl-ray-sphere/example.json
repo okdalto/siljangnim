@@ -1,0 +1,38 @@
+{
+  "order": 300,
+  "title": "Ray entry and exit (glsl-ray-sphere)",
+  "title_ko": "광선의 구 진입·이탈 (glsl-ray-sphere)",
+  "description": "The library reports sphere intersections. Switch between surface normals and optical path length through the sphere.",
+  "description_ko": "라이브러리가 구와 광선의 교점을 구해요. 표면 법선과 구 내부 통과 거리를 비교하세요.",
+  "prompt": "Ray entry and exit. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-ray-sphere 0.0.1; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-ray-sphere"
+  ],
+  "summary": "The library reports sphere intersections. Switch between surface normals and optical path length through the sphere.",
+  "summary_ko": "라이브러리가 구와 광선의 교점을 구해요. 표면 법선과 구 내부 통과 거리를 비교하세요.",
+  "try": [
+    "Change Sphere radius",
+    "Change Display"
+  ],
+  "try_ko": [
+    "Sphere radius 값을 바꾸어 비교하세요",
+    "Display 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "The library reports sphere intersections. Switch between surface normals and optical path length through the sphere.",
+  "tool_about_ko": "라이브러리가 구와 광선의 교점을 구해요. 표면 법선과 구 내부 통과 거리를 비교하세요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-ray-sphere 0.0.1",
+      "what_ko": "컴파일한 원본 GLSL: glsl-ray-sphere 0.0.1",
+      "source": "glsl-ray-sphere",
+      "license": "MIT",
+      "url": "https://github.com/wellcaffeinated/glsl-ray-sphere"
+    }
+  ]
+}

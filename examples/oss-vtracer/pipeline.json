@@ -1,0 +1,18 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "vtracer.gallery@1",
+      "packages": [
+        "vtracer==0.6.15",
+        "fonttools==4.66.0",
+        "numpy==2.2.6"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;\ns.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float;\\n#define GLSLIFY 1\\nin vec2 v_uv;out vec4 outColor;uniform vec2 u_resolution;uniform sampler2D u_image;\\nuniform int u_shape;\\nuniform float u_turn;\\nfloat sdTorus( vec3 p, vec2 t )\\n{\\n  vec2 q = vec2(length(p.xz)-t.x,p.y);\\n  return length(q)-t.y;\\n}\\n\\nfloat sdSphere( vec3 p, float s )\\n{\\n  return length( p ) - s;\\n}\\n\\nfloat sdBox( vec3 p, vec3 b )\\n{\\n  vec3 d = abs(p) - b;\\n  return min(max(d.x,max(d.y,d.z)),0.0) +\\n         length(max(d,0.0));\\n}\\n\\nfloat field(vec3 q){q.xz=mat2(cos(u_turn),-sin(u_turn),sin(u_turn),cos(u_turn))*q.xz;q.yz=mat2(.8,-.6,.6,.8)*q.yz;if(u_shape==1)return sdSphere(q,.7);if(u_shape==2)return sdBox(q,vec3(.5));return sdTorus(q,vec2(.55,.2));}\\nvoid main(){vec2 uv=v_uv,p=(uv*2.-1.)*u_resolution/min(u_resolution.x,u_resolution.y);vec3 color;vec3 ro=vec3(0,0,2.6),rd=normalize(vec3(p,-2.));float t=0.;bool hit=false;for(int i=0;i<100;i++){float d=field(ro+rd*t);if(d<.001){hit=true;break;}t+=d;if(t>6.)break;}color=vec3(.035,.075,.13);if(hit){vec3 q=ro+rd*t,e=vec3(.002,0,0),n=normalize(vec3(field(q+e.xyy)-field(q-e.xyy),field(q+e.yxy)-field(q-e.yxy),field(q+e.yyx)-field(q-e.yyx)));color=vec3(.29,.84,.74)*(.18+.82*max(dot(n,normalize(vec3(-1,2,3))),0.));}\\noutColor=vec4(color,1);}\");\n",
+    "render": "const s=ctx.state;ctx.gl.useProgram(s.program);if(s.texture)ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "ctx.gl.deleteTexture(ctx.state.texture);ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_shape": {
+      "type": "int",
+      "label": "Primitive",
+      "value": 0,
+      "widget": "select",
+      "options": [
+        {
+          "label": "Torus",
+          "value": 0
+        },
+        {
+          "label": "Sphere",
+          "value": 1
+        },
+        {
+          "label": "Box",
+          "value": 2
+        }
+      ]
+    },
+    "u_turn": {
+      "type": "float",
+      "label": "Rotation",
+      "value": 0.45,
+      "min": 0,
+      "max": 3.14,
+      "step": 0.01
+    }
+  }
+}

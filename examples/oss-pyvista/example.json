@@ -1,0 +1,30 @@
+{
+  "order": 313,
+  "title": "Clipping a surface (PyVista)",
+  "title_ko": "곡면의 절단 (PyVista)",
+  "description": "PyVista clips an original torus at three planes. Rotate the prepared meshes to inspect the open cut.",
+  "description_ko": "PyVista로 직접 만든 토러스를 세 평면에서 잘랐어요. 계산된 메시를 회전해 잘린 면을 살펴보세요.",
+  "prompt": "Clipping a surface. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "pyvista==0.49.0, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "pyvista"
+  ],
+  "summary": "PyVista clips an original torus at three planes. Rotate the prepared meshes to inspect the open cut.",
+  "summary_ko": "PyVista로 직접 만든 토러스를 세 평면에서 잘랐어요. 계산된 메시를 회전해 잘린 면을 살펴보세요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "PyVista clips an original torus at three planes. Rotate the prepared meshes to inspect the open cut. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "PyVista로 직접 만든 토러스를 세 평면에서 잘랐어요. 계산된 메시를 회전해 잘린 면을 살펴보세요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

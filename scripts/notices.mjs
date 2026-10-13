@@ -78,14 +78,14 @@ lines.push(
   "",
   "## Open-source tools in the examples",
   "",
-  "Each example is built around these tools. None of them is copied into this repository: browser libraries are loaded from a CDN when the scene runs, and Python packages and programs are installed on the person's computer when a recipe runs. Code in the examples and recipes is this project's own.",
+  "Each example is built around these tools. Browser libraries are normally loaded from a CDN when the scene runs; compiled GLSL and other credited source files are included in the indicated on-demand examples with their licenses. Python packages and programs are installed on the person's computer when a recipe runs. Copied material is credited below and in each example.",
   "",
   "| Tool | License | Source | Examples | How it is used |",
   "|---|---|---|---|---|",
 );
 for (const e of catalog.filter((c) => used.has(c.id)).sort((a, b) => a.name.localeCompare(b.name))) {
   const ref = reference.find((r) => r.repo && r.repo.toLowerCase() === e.repo.toLowerCase());
-  lines.push(`| ${cell(e.name)}${ref ? ` (index.opensource #${ref.index.no})` : ""} | ${cell(e.license)}${e.weights_license ? `; weights: ${cell(e.weights_license)}` : ""} | [${repoUrl(e.repo).replace("https://", "")}](${repoUrl(e.repo)}) | ${used.get(e.id).map((s) => `[${s}](examples/${s}/)`).join(", ")} | ${how[e.tier]} |`);
+  lines.push(`| ${cell(e.name)}${ref ? ` (index.opensource #${ref.index.no})` : ""} | ${cell(e.license)}${e.weights_license ? `; weights: ${cell(e.weights_license)}` : ""} | [${repoUrl(e.repo).replace("https://", "")}](${repoUrl(e.repo)}) | ${used.get(e.id).map((s) => `[${s}](examples/${s}/)`).join(", ")} | ${e.install.bundled ? "source included in the on-demand example; licenses and runtime requirements are included" : how[e.tier]} |`);
 }
 lines.push("", "## Material in the examples", "", "| Material | Source | License | Example |", "|---|---|---|---|");
 for (const e of examples) for (const c of e.credits ?? []) lines.push(`| ${cell(c.what)} | [${cell(c.source)}](${c.url}) | ${cell(c.license)} | [${e.slug}](examples/${e.slug}/) |`);

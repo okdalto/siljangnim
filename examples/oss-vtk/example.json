@@ -1,0 +1,30 @@
+{
+  "order": 314,
+  "title": "Isosurfaces of a scalar field (VTK)",
+  "title_ko": "스칼라장의 등위면 (VTK)",
+  "description": "VTK Flying Edges extracts three isosurfaces from a sampled gyroid field. The geometry was computed locally with VTK.",
+  "description_ko": "VTK Flying Edges로 자이로이드 스칼라장의 등위면 세 개를 직접 추출했어요.",
+  "prompt": "Isosurfaces of a scalar field. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "vtk==9.7.1, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "vtk"
+  ],
+  "summary": "VTK Flying Edges extracts three isosurfaces from a sampled gyroid field. The geometry was computed locally with VTK.",
+  "summary_ko": "VTK Flying Edges로 자이로이드 스칼라장의 등위면 세 개를 직접 추출했어요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "VTK Flying Edges extracts three isosurfaces from a sampled gyroid field. The geometry was computed locally with VTK. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "VTK Flying Edges로 자이로이드 스칼라장의 등위면 세 개를 직접 추출했어요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

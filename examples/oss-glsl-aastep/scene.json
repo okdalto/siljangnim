@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;\ns.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float;\\n#define GLSLIFY 1\\nin vec2 v_uv;out vec4 outColor;uniform vec2 u_resolution;uniform sampler2D u_image;\\nuniform float u_rings;\\nuniform float u_split;\\nfloat aastep(float threshold, float value) {\\n  #if 1 // derivatives are built into WebGL 2\\n    float afwidth = length(vec2(dFdx(value), dFdy(value))) * 0.70710678118654757;\\n    return smoothstep(threshold-afwidth, threshold+afwidth, value);\\n  #else\\n    return step(threshold, value);\\n  #endif  \\n}\\n\\nvoid main(){vec2 uv=v_uv,p=(uv*2.-1.)*u_resolution/min(u_resolution.x,u_resolution.y);vec3 color;float v=sin(length(p)*u_rings);float f=uv.x<u_split?step(0.,v):aastep(0.,v);color=mix(vec3(.035,.075,.13),vec3(.45,.88,.8),f);\\noutColor=vec4(color,1);}\");\n",
+    "render": "const s=ctx.state;ctx.gl.useProgram(s.program);if(s.texture)ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "ctx.gl.deleteTexture(ctx.state.texture);ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_rings": {
+      "type": "float",
+      "label": "Ring frequency",
+      "value": 65,
+      "min": 10,
+      "max": 160,
+      "step": 1
+    },
+    "u_split": {
+      "type": "float",
+      "label": "Comparison divider",
+      "value": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    }
+  }
+}

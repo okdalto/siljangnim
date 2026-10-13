@@ -14,10 +14,11 @@ const HOW: Record<CatalogEntry["tier"], string> = {
 
 /** The gallery example built around a tool: a working integration to learn from. */
 const exampleFor = (id: string): Example | undefined => EXAMPLES.find((x) => x.uses?.[0] === id) ?? EXAMPLES.find((x) => x.uses?.includes(id));
+const how = (e: CatalogEntry): string => e.tier === "B" && e.install.bundled ? "GLSL included in the on-demand example" : HOW[e.tier];
 
 function line(e: CatalogEntry): string {
   const example = exampleFor(e.id);
-  return `${e.id} [${e.tier}: ${HOW[e.tier]}] ${e.name} — ${e.purpose} License ${e.license}${e.weights_license ? `; weights: ${e.weights_license}` : ""}.${example ? ` Example: "${example.title}".` : ""}`;
+  return `${e.id} [${e.tier}: ${how(e)}] ${e.name} — ${e.purpose} License ${e.license}${e.weights_license ? `; weights: ${e.weights_license}` : ""}.${example ? ` Example: "${example.title}".` : ""}`;
 }
 
 const MAX_REFERENCE = 4000;
@@ -57,11 +58,14 @@ function referenceDetail(r: ReferenceEntry): string {
 }
 
 function detail(e: CatalogEntry): string {
-  const install = e.install.cdn ? `import: ${e.install.cdn}` : e.install.pip ? `packages: ${JSON.stringify(e.install.pip)}` : `program: ${e.install.program}`;
+  const install = [
+    e.install.bundled ? "Source and licenses are included in the example files." : "",
+    e.install.cdn ? `import: ${e.install.cdn}` : e.install.pip ? `packages: ${JSON.stringify(e.install.pip)}` : e.install.program ? `program: ${e.install.program}` : "",
+  ].filter(Boolean).join(" ");
   return [
     `${e.name} (${e.id}) — ${e.repo}`,
     e.purpose,
-    `Grade ${e.tier}: ${HOW[e.tier]}. ${install}`,
+    `Grade ${e.tier}: ${how(e)}. ${install}`,
     `Media in: ${e.media.in.join(", ") || "—"}; out: ${e.media.out.join(", ") || "—"}.`,
     `License: ${e.license}${e.weights_license ? `. Model weights: ${e.weights_license} (tell the person when it limits use)` : ""}.`,
     (() => {

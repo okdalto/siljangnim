@@ -1,0 +1,38 @@
+{
+  "order": 310,
+  "title": "Blinn–Phong highlight (glsl-specular-blinn-phong)",
+  "title_ko": "Blinn–Phong 반사광 (glsl-specular-blinn-phong)",
+  "description": "The library evaluates the half-vector specular term on an analytic sphere. Shininess controls the highlight width.",
+  "description_ko": "해석적으로 구한 구 표면에 라이브러리의 반각 벡터 반사를 적용해요. Shininess로 하이라이트 폭을 바꾸세요.",
+  "prompt": "Blinn–Phong highlight. Use the original library shader and expose meaningful controls.",
+  "made_with": "glsl-specular-blinn-phong 1.0.2; compiled original GLSL; original procedural inputs",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-specular-blinn-phong"
+  ],
+  "summary": "The library evaluates the half-vector specular term on an analytic sphere. Shininess controls the highlight width.",
+  "summary_ko": "해석적으로 구한 구 표면에 라이브러리의 반각 벡터 반사를 적용해요. Shininess로 하이라이트 폭을 바꾸세요.",
+  "try": [
+    "Change Shininess",
+    "Change Light angle"
+  ],
+  "try_ko": [
+    "Shininess 값을 바꾸어 비교하세요",
+    "Light angle 값을 바꾸어 비교하세요"
+  ],
+  "tool_about": "The library evaluates the half-vector specular term on an analytic sphere. Shininess controls the highlight width.",
+  "tool_about_ko": "해석적으로 구한 구 표면에 라이브러리의 반각 벡터 반사를 적용해요. Shininess로 하이라이트 폭을 바꾸세요.",
+  "credits": [
+    {
+      "what": "Compiled GLSL source: glsl-specular-blinn-phong 1.0.2",
+      "what_ko": "컴파일한 원본 GLSL: glsl-specular-blinn-phong 1.0.2",
+      "source": "glsl-specular-blinn-phong",
+      "license": "MIT",
+      "url": "https://github.com/glslify/glsl-specular-blinn-phong"
+    }
+  ]
+}
