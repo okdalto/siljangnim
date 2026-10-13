@@ -602,6 +602,15 @@ async function runExampleCacheScenario(win) {
   await wait(1000);
   return win.webContents.executeJavaScript(`(async () => {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    // CI machines under load are slow to render after a reload: wait for each control to exist before clicking it.
+    const el = async (selector) => {
+      for (let i = 0; i < 100; i++) {
+        const found = document.querySelector(selector);
+        if (found) return found;
+        await sleep(100);
+      }
+      throw new Error("not found: " + selector);
+    };
     const fetchOriginal = window.fetch;
     let requests = 0;
     window.fetch = (...args) => {
@@ -640,12 +649,13 @@ async function runExampleCacheScenario(win) {
         };
       });
       const before = await countProjects();
-      document.querySelector('[data-testid="view-examples"]').click();
+      (await el('[data-testid="view-examples"]')).click();
       await sleep(300);
-      document.querySelector('[data-testid="clear-example-downloads"]').click();
+      (await el('[data-testid="clear-example-downloads"]')).click();
       await sleep(300);
-      document.querySelector('[data-example="oss-blender"]').click();
+      (await el('[data-example="oss-blender"]')).click();
       await sleep(500);
+      for (let i = 0; i < 30 && !document.querySelector('[role="alert"]'); i++) await sleep(100);
       const failedCleanly = Boolean(document.querySelector('[role="alert"]')) && await countProjects() === before;
       window.fetch = (...args) => {
         const url = String(args[0]);
@@ -654,13 +664,14 @@ async function runExampleCacheScenario(win) {
         });
         return fetchOriginal(...args);
       };
-      document.querySelector('[data-example="oss-blender"]').click();
+      (await el('[data-example="oss-blender"]')).click();
       await sleep(300);
-      document.querySelector('[data-testid="cancel-example-download"]').click();
+      (await el('[data-testid="cancel-example-download"]')).click();
       await sleep(300);
+      for (let i = 0; i < 30 && document.querySelector('[data-testid="example-download"]'); i++) await sleep(100);
       const cancelledCleanly = !document.querySelector('[data-testid="example-download"]') && await countProjects() === before;
       window.fetch = fetchOriginal;
-      document.querySelector('[data-example="oss-blender"]').click();
+      (await el('[data-example="oss-blender"]')).click();
       for (let i = 0; i < 100; i++) {
         await sleep(100);
         if (!document.querySelector('[data-testid="examples"]')) break;
