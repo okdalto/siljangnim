@@ -1,0 +1,31 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "astrometry-net.gallery@1",
+      "packages": [
+        "astropy==8.0.1",
+        "numpy==2.2.6",
+        "pyerfa==2.0.1.5",
+        "astropy-iers-data==0.2026.9.28.0.59.37",
+        "PyYAML==6.0.3",
+        "packaging==26.3"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "catalog.fits",
+        "index-original.fits",
+        "stars-0.xyls",
+        "stars-1.xyls",
+        "stars-2.xyls",
+        "solved-0.wcs",
+        "solved-1.wcs",
+        "solved-2.wcs"
+      ]
+    }
+  ]
+}

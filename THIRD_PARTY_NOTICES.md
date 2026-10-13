@@ -19,6 +19,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | alpha-shape (index.opensource #36) | MIT | [github.com/mikolalysenko/alpha-shape](https://github.com/mikolalysenko/alpha-shape) | [oss-alpha-shape](examples/oss-alpha-shape/) | fetched from a CDN by the scene at run time (not bundled) |
 | animal-proc-anim (index.opensource #240) | MIT | [github.com/argonautcode/animal-proc-anim](https://github.com/argonautcode/animal-proc-anim) | [oss-animal-proc-anim](examples/oss-animal-proc-anim/) | fetched from a CDN by the scene at run time (not bundled) |
 | Anime.js (index.opensource #252) | MIT | [github.com/juliangarnier/anime](https://github.com/juliangarnier/anime) | [oss-anime-js](examples/oss-anime-js/) | fetched from a CDN by the scene at run time (not bundled) |
+| Astrometry.net (index.opensource #376) | BSD / GPL-3.0-or-later | [github.com/dstndstn/astrometry.net](https://github.com/dstndstn/astrometry.net) | [oss-astrometry-net](examples/oss-astrometry-net/) | an installed program, run by a recipe (not bundled) |
 | aubio (index.opensource #236) | GPL-3.0-or-later | [github.com/aubio/aubio](https://github.com/aubio/aubio) | [oss-aubio](examples/oss-aubio/) | an installed program, run by a recipe (not bundled) |
 | AutoTrace (index.opensource #181) | GPL-2+ / LGPL-2.1+ | [github.com/autotrace/autotrace](https://github.com/autotrace/autotrace) | [oss-autotrace](examples/oss-autotrace/) | an installed program, run by a recipe (not bundled) |
 | b-spline (index.opensource #54) | MIT | [github.com/thibauts/b-spline](https://github.com/thibauts/b-spline) | [oss-b-spline](examples/oss-b-spline/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -82,6 +83,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Depth Anything V2 (index.opensource #277) | Apache-2.0; weights: Small: Apache-2.0; Base/Large/Giant: CC-BY-NC-4.0 (non-commercial) | [github.com/DepthAnything/Depth-Anything-V2](https://github.com/DepthAnything/Depth-Anything-V2) | [oss-depth-anything-v2](examples/oss-depth-anything-v2/) | a model installed on the person's computer (not bundled) |
 | differential-line (index.opensource #114) | MIT | [github.com/inconvergent/differential-line](https://github.com/inconvergent/differential-line) | [oss-differential-line](examples/oss-differential-line/) | fetched from a CDN by the scene at run time (not bundled) |
 | Diffusers (Stable Diffusion and others) (index.opensource #292) | Apache-2.0; weights: depends on the model (e.g. CreativeML OpenRAIL-M, which restricts some uses) | [github.com/huggingface/diffusers](https://github.com/huggingface/diffusers) | [oss-diffusers](examples/oss-diffusers/) | a model installed on the person's computer (not bundled) |
+| diffvg (index.opensource #182) | Apache-2.0 | [github.com/bachili/diffvg](https://github.com/bachili/diffvg) | [oss-diffvg](examples/oss-diffvg/) | an installed program, run by a recipe (not bundled) |
 | distance-transform (index.opensource #105) | MIT | [github.com/scijs/distance-transform](https://github.com/scijs/distance-transform) | [oss-distance-transform](examples/oss-distance-transform/) | fetched from a CDN by the scene at run time (not bundled) |
 | dither (index.opensource #189) | MPL-2.0 | [github.com/makew0rld/dither](https://github.com/makew0rld/dither) | [oss-dither](examples/oss-dither/) | an installed program, run by a recipe (not bundled) |
 | dlaf (index.opensource #354) | MIT | [github.com/fogleman/dlaf](https://github.com/fogleman/dlaf) | [oss-dlaf](examples/oss-dlaf/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -162,6 +164,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | libigl · ARAP (index.opensource #70) | MPL-2.0 (the ARAP code in question) | [github.com/libigl/libigl](https://github.com/libigl/libigl) | [oss-libigl-arap](examples/oss-libigl-arap/) | installed with pip on the person's computer by a recipe (not bundled) |
 | libjpeg-turbo (index.opensource #378) | IJG / BSD-3-Clause | [github.com/libjpeg-turbo/libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo) | [oss-libjpeg-turbo](examples/oss-libjpeg-turbo/) | installed with pip on the person's computer by a recipe (not bundled) |
 | libmorton (index.opensource #107) | MIT | [github.com/forceflow/libmorton](https://github.com/forceflow/libmorton) | [oss-libmorton](examples/oss-libmorton/) | an installed program, run by a recipe (not bundled) |
+| libmypaint (index.opensource #184) | ISC | [github.com/mypaint/libmypaint](https://github.com/mypaint/libmypaint) | [oss-libmypaint](examples/oss-libmypaint/) | an installed program, run by a recipe (not bundled) |
 | libnoise (index.opensource #126) | LGPL-2.1-or-later | [github.com/expl0it3r/libnoise](https://github.com/expl0it3r/libnoise) | [oss-libnoise](examples/oss-libnoise/) | an installed program, run by a recipe (not bundled) |
 | LibRaw (index.opensource #382) | LGPL-2.1 / CDDL-1.0 | [github.com/LibRaw/LibRaw](https://github.com/LibRaw/LibRaw) | [oss-libraw](examples/oss-libraw/) | installed with pip on the person's computer by a recipe (not bundled) |
 | librosa (index.opensource #237) | ISC | [github.com/librosa/librosa](https://github.com/librosa/librosa) | [oss-librosa](examples/oss-librosa/) | installed with pip on the person's computer by a recipe (not bundled) |
@@ -249,6 +252,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | python-sgp4 (index.opensource #371) | MIT | [github.com/brandon-rhodes/python-sgp4](https://github.com/brandon-rhodes/python-sgp4) | [oss-sgp4](examples/oss-sgp4/) | installed with pip on the person's computer by a recipe (not bundled) |
 | PythonRobotics (index.opensource #356) | MIT | [github.com/AtsushiSakai/PythonRobotics](https://github.com/AtsushiSakai/PythonRobotics) | [oss-pythonrobotics](examples/oss-pythonrobotics/) | installed with pip on the person's computer by a recipe (not bundled) |
 | PyTopo3D (index.opensource #408) | MIT | [github.com/jihoonkim888/PyTopo3D](https://github.com/jihoonkim888/PyTopo3D) | [oss-pytopo3d](examples/oss-pytopo3d/) | installed with pip on the person's computer by a recipe (not bundled) |
+| PyTorch3D (index.opensource #96) | BSD-3-Clause | [github.com/facebookresearch/pytorch3d](https://github.com/facebookresearch/pytorch3d) | [oss-pytorch3d](examples/oss-pytorch3d/) | an installed program, run by a recipe (not bundled) |
 | PyVista (index.opensource #305) | MIT | [github.com/pyvista/pyvista](https://github.com/pyvista/pyvista) | [oss-pyvista](examples/oss-pyvista/) | installed with pip on the person's computer by a recipe (not bundled) |
 | QMsolve (index.opensource #389) | BSD-3-Clause | [github.com/quantum-visualizations/qmsolve](https://github.com/quantum-visualizations/qmsolve) | [oss-qmsolve](examples/oss-qmsolve/) | installed with pip on the person's computer by a recipe (not bundled) |
 | QuickHull (index.opensource #78) | Public Domain (stated by author) | [github.com/akuukka/quickhull](https://github.com/akuukka/quickhull) | [oss-quickhull](examples/oss-quickhull/) | an installed program, run by a recipe (not bundled) |
@@ -276,6 +280,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Shan Shui Infinite (index.opensource #123) | MIT | [github.com/LingDong-/shan-shui-inf](https://github.com/LingDong-/shan-shui-inf) | [oss-shan-shui](examples/oss-shan-shui/) | fetched from a CDN by the scene at run time (not bundled) |
 | Shapely (index.opensource #58) | BSD-3-Clause | [github.com/shapely/shapely](https://github.com/shapely/shapely) | [oss-shapely](examples/oss-shapely/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Sigma.js (index.opensource #322) | MIT | [github.com/jacomyal/sigma.js](https://github.com/jacomyal/sigma.js) | [oss-sigma-js](examples/oss-sigma-js/) | fetched from a CDN by the scene at run time (not bundled) |
+| Simbody (index.opensource #160) | Apache-2.0 | [github.com/simbody/simbody](https://github.com/simbody/simbody) | [oss-simbody](examples/oss-simbody/) | an installed program, run by a recipe (not bundled) |
 | simplex-noise (index.opensource #129) | MIT | [github.com/jwagner/simplex-noise.js](https://github.com/jwagner/simplex-noise.js) | [mix-opentype-flow](examples/mix-opentype-flow/), [oss-simplex-noise](examples/oss-simplex-noise/) | fetched from a CDN by the scene at run time (not bundled) |
 | simplify (index.opensource #80) | MIT | [github.com/fogleman/simplify](https://github.com/fogleman/simplify) | [oss-simplify](examples/oss-simplify/) | an installed program, run by a recipe (not bundled) |
 | Simplify.js (index.opensource #17) | BSD-2-Clause | [github.com/mourner/simplify-js](https://github.com/mourner/simplify-js) | [oss-simplify-js](examples/oss-simplify-js/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -474,6 +479,13 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Original engine | [Tippecanoe contributors](https://github.com/felt/tippecanoe) | BSD-2-Clause | [oss-tippecanoe](examples/oss-tippecanoe/) |
 | Original engine | [myPhysicsLab contributors](https://github.com/myphysicslab/myphysicslab) | Apache-2.0 | [oss-myphysicslab](examples/oss-myphysicslab/) |
 | Original index.glsl shader and MIT license | [glsl-fft contributors](https://github.com/rreusser/glsl-fft/blob/a62f14d16f7d589d1d2deb4fcf67f51b19909ea9/index.glsl) | MIT | [oss-glsl-fft](examples/oss-glsl-fft/) |
+| Original engine | [libmypaint contributors](https://github.com/mypaint/libmypaint) | ISC | [oss-libmypaint](examples/oss-libmypaint/) |
+| Original engine | [Astrometry.net contributors](https://github.com/dstndstn/astrometry.net) | BSD / GPL-3.0-or-later | [oss-astrometry-net](examples/oss-astrometry-net/) |
+| Original engine | [Simbody contributors](https://github.com/simbody/simbody) | Apache-2.0 | [oss-simbody](examples/oss-simbody/) |
+| Original engine | [PyTorch3D contributors](https://github.com/facebookresearch/pytorch3d) | BSD-3-Clause | [oss-pytorch3d](examples/oss-pytorch3d/) |
+| Original engine | [diffvg contributors](https://github.com/bachili/diffvg) | Apache-2.0 | [oss-diffvg](examples/oss-diffvg/) |
+| Python binding compatibility dependency pybind11 2.13.6 | [pybind11 contributors](https://github.com/pybind/pybind11/tree/v2.13.6) | BSD-3-Clause | [oss-diffvg](examples/oss-diffvg/) |
+| Pinned Thrust dependency, source revision in source.json | [NVIDIA and Thrust contributors](https://github.com/thrust/thrust) | Apache-2.0 | [oss-diffvg](examples/oss-diffvg/) |
 
 ## Studio (the app's web code): bundled npm packages
 

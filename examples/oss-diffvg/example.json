@@ -1,0 +1,50 @@
+{
+  "order": 450,
+  "title": "Area gradients from vector rasterization (diffvg)",
+  "title_ko": "벡터 래스터화로 계산한 면적 미분 (diffvg)",
+  "description": "Original diffvg renders circles and differentiates coverage with respect to radius; native gradients match the analytic circumference.",
+  "description_ko": "diffvg 원본 엔진으로 원을 렌더링하고 반지름에 대한 면적 미분을 계산해 해석적인 원둘레와 비교했어요.",
+  "prompt": "Area gradients from vector rasterization. Use the original engine.",
+  "made_with": "Pinned diffvg CPU renderer, PyTorch 2.9.1, CMake 3.31.10, pybind11 2.13.6 and C++ compiler",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "diffvg"
+  ],
+  "summary": "Original diffvg renders circles and differentiates coverage with respect to radius; native gradients match the analytic circumference.",
+  "summary_ko": "diffvg 원본 엔진으로 원을 렌더링하고 반지름에 대한 면적 미분을 계산해 해석적인 원둘레와 비교했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Original diffvg renders circles and differentiates coverage with respect to radius; native gradients match the analytic circumference.",
+  "tool_about_ko": "diffvg 원본 엔진으로 원을 렌더링하고 반지름에 대한 면적 미분을 계산해 해석적인 원둘레와 비교했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "diffvg contributors",
+      "url": "https://github.com/bachili/diffvg",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Python binding compatibility dependency pybind11 2.13.6",
+      "source": "pybind11 contributors",
+      "url": "https://github.com/pybind/pybind11/tree/v2.13.6",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "what": "Pinned Thrust dependency, source revision in source.json",
+      "source": "NVIDIA and Thrust contributors",
+      "url": "https://github.com/thrust/thrust",
+      "license": "Apache-2.0"
+    }
+  ]
+}

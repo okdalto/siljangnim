@@ -54,6 +54,8 @@ Faust compiles DSP to WAV using its official WASM engine; FontForge exports an o
 
 The original myPhysicsLab pendulum solver is checked for energy conservation. glsl-fft runs its original GLSL on the GPU and checks forward/inverse reconstruction whenever the frequency changes.
 
+Directly executed examples cover MyPaint native brushes, Astrometry.net synthetic plate solving, Simbody multibody dynamics, PyTorch3D native mesh rendering and diffvg differentiable rasterization. Prepared outputs and rerun recipes are included; large sources and runtime environments are verified and cached only when rerun.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

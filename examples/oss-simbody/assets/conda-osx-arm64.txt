@@ -1,0 +1,12 @@
+@EXPLICIT
+https://conda.anaconda.org/conda-forge/osx-arm64/_openmp_mutex-4.5-8_kmp_llvm.conda#a2d706b4a7d603524133037c34f7fb76
+https://conda.anaconda.org/conda-forge/osx-arm64/libblas-3.11.0-11_h51639a9_openblas.conda#364639b771dbb4ede335d965f55a23ac
+https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-23.1.2-h55c6f16_0.conda#01af3f03d850cbab9ae9b86d726a9921
+https://conda.anaconda.org/conda-forge/osx-arm64/libgcc-16.2.0-h3cf6597_7.conda#f100c8baeb0c816052b0d43948555bf6
+https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran-16.2.0-h07b0088_7.conda#2efa9518e126c501a7c7d638b2fa3a21
+https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran5-16.2.0-hdb7a957_7.conda#c9d80dd8775b8fe76e825d63d8ccaf1b
+https://conda.anaconda.org/conda-forge/osx-arm64/liblapack-3.11.0-11_hd9741b5_openblas.conda#d67ef1462e77d20cd3e0d27c876c3c9a
+https://conda.anaconda.org/conda-forge/osx-arm64/libopenblas-0.3.34-openmp_h5e6e99c_1.conda#9c874eb9d4441a658ef3acf6ac56dc3e
+https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-23.1.2-hdb3d66b_0.conda#97fa48b6e1d996689e6d3f822a41f1bf
+https://conda.anaconda.org/conda-forge/osx-arm64/lodepng-20220109-hf86a087_0.tar.bz2#bba20599e9b8bc090ce1963609321042
+https://conda.anaconda.org/conda-forge/osx-arm64/simbody-3.8-h865d22b_1.conda#5419f00e4831ca8e4034d852dadb1c26

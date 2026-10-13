@@ -1,0 +1,22 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "libmypaint.gallery@1",
+      "packages": [
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "main.py",
+        "main.c"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png"
+      ]
+    }
+  ]
+}

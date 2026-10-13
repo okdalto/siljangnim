@@ -1,0 +1,20 @@
+{
+  "url": "https://codeload.github.com/BachiLi/diffvg/tar.gz/85802a71fbcc72d79cb75716eb4da4392fd09532",
+  "sha256": "5dba3a41c4089e45a35e9d4670f56b3fabcaeff39368c3cb40ff2be832acf94a",
+  "commit": "85802a71fbcc72d79cb75716eb4da4392fd09532",
+  "submodules": [
+    {
+      "path": "pybind11",
+      "url": "https://codeload.github.com/pybind/pybind11/tar.gz/refs/tags/v2.13.6",
+      "version": "2.13.6",
+      "sha256": "e08cb87f4773da97fa7b5f035de8763abc656d87d5773e62f6da0587d1f0ec20",
+      "reason": "Python 3.12 binding compatibility; original renderer unchanged"
+    },
+    {
+      "path": "thrust",
+      "url": "https://codeload.github.com/thrust/thrust/tar.gz/ff00c813aa3a6bbfd1d8c338313f382b6b340005",
+      "commit": "ff00c813aa3a6bbfd1d8c338313f382b6b340005",
+      "sha256": "c6272fc266ecd5ab4b8b3451cb0003f2acc8fe27d5afd0f31d4caff9fde5acb5"
+    }
+  ]
+}

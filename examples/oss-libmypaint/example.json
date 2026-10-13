@@ -1,0 +1,38 @@
+{
+  "order": 446,
+  "title": "Pressure-sensitive native brush strokes (libmypaint)",
+  "title_ko": "압력에 반응하는 네이티브 브러시 (libmypaint)",
+  "description": "The original MyPaint brush engine paints pressure-sensitive strokes on its native tiled surface at three hardness settings.",
+  "description_ko": "MyPaint 원본 브러시 엔진과 타일 표면으로 압력에 반응하는 세 경도의 붓질을 그렸어요.",
+  "prompt": "Pressure-sensitive native brush strokes. Use the original engine.",
+  "made_with": "libmypaint 1.6.1 and C compiler",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "libmypaint"
+  ],
+  "summary": "The original MyPaint brush engine paints pressure-sensitive strokes on its native tiled surface at three hardness settings.",
+  "summary_ko": "MyPaint 원본 브러시 엔진과 타일 표면으로 압력에 반응하는 세 경도의 붓질을 그렸어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "The original MyPaint brush engine paints pressure-sensitive strokes on its native tiled surface at three hardness settings.",
+  "tool_about_ko": "MyPaint 원본 브러시 엔진과 타일 표면으로 압력에 반응하는 세 경도의 붓질을 그렸어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "libmypaint contributors",
+      "url": "https://github.com/mypaint/libmypaint",
+      "license": "ISC"
+    }
+  ]
+}

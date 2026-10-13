@@ -52,6 +52,8 @@ Faust는 공식 WASM 컴파일러로 WAV를 생성하고, FontForge는 직접 �
 
 myPhysicsLab 원본 적분기의 진자 결과는 에너지 보존을 확인했습니다. glsl-fft는 원본 GLSL을 GPU에서 실행하며 주파수 조절 때마다 순·역변환 복원 오차를 검사해요.
 
+MyPaint 원본 브러시, Astrometry.net 합성 별 좌표 풀이, Simbody 이중 진자, PyTorch3D 네이티브 메시 렌더링, diffvg 미분 래스터화를 직접 실행했습니다. 계산 결과와 재실행 레시피를 제공하며 큰 소스·실행 환경은 재실행할 때만 검증해 캐시합니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

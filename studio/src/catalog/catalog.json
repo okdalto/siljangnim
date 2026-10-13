@@ -8100,6 +8100,114 @@
     "bundled": true
    },
    "notes": "Bundled original MIT shader; requires WebGL2 float color buffers. GLSL 300 wrapper aliases texture2D to texture and removes only the glslify export directive."
+  },
+  {
+   "id": "libmypaint",
+   "name": "libmypaint",
+   "repo": "https://github.com/mypaint/libmypaint",
+   "license": "ISC",
+   "tier": "D",
+   "purpose": "The original MyPaint brush engine paints pressure-sensitive strokes on its native tiled surface at three hardness settings.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "cc"
+   },
+   "notes": "The original MyPaint brush engine paints pressure-sensitive strokes on its native tiled surface at three hardness settings."
+  },
+  {
+   "id": "astrometry-net",
+   "name": "Astrometry.net",
+   "repo": "https://github.com/dstndstn/astrometry.net",
+   "license": "BSD / GPL-3.0-or-later",
+   "tier": "D",
+   "purpose": "Astrometry.net builds a synthetic star index and directly solves three rotated observations, recovering sky coordinates.",
+   "tags": [
+    "Star patterns · sky coordinates",
+    "Astronomy · photography"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "solve-field"
+   },
+   "notes": "Astrometry.net builds a synthetic star index and directly solves three rotated observations, recovering sky coordinates."
+  },
+  {
+   "id": "simbody",
+   "name": "Simbody",
+   "repo": "https://github.com/simbody/simbody",
+   "license": "Apache-2.0",
+   "tier": "D",
+   "purpose": "Simbody integrates a two-link mechanism with native multibody dynamics and checks total energy throughout the simulation.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "conda"
+   },
+   "notes": "Simbody integrates a two-link mechanism with native multibody dynamics and checks total energy throughout the simulation."
+  },
+  {
+   "id": "pytorch3d",
+   "name": "PyTorch3D",
+   "repo": "https://github.com/facebookresearch/pytorch3d",
+   "license": "BSD-3-Clause",
+   "tier": "D",
+   "purpose": "PyTorch3D directly rasterizes three meshes on CPU and backpropagates image intensity to their vertices using its native extension.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "PyTorch3D directly rasterizes three meshes on CPU and backpropagates image intensity to their vertices using its native extension."
+  },
+  {
+   "id": "diffvg",
+   "name": "diffvg",
+   "repo": "https://github.com/bachili/diffvg",
+   "license": "Apache-2.0",
+   "tier": "D",
+   "purpose": "Original diffvg renders circles and differentiates coverage with respect to radius; native gradients match the analytic circumference.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "Original diffvg renders circles and differentiates coverage with respect to radius; native gradients match the analytic circumference."
   }
  ]
 }

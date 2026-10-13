@@ -1,0 +1,38 @@
+{
+  "order": 448,
+  "title": "Articulated double pendulum (Simbody)",
+  "title_ko": "관절로 연결한 이중 진자 (Simbody)",
+  "description": "Simbody integrates a two-link mechanism with native multibody dynamics and checks total energy throughout the simulation.",
+  "description_ko": "Simbody 원본 다물체 동역학 엔진으로 두 관절 진자를 적분하고 시뮬레이션 전체의 에너지 보존을 검사했어요.",
+  "prompt": "Articulated double pendulum. Use the original engine.",
+  "made_with": "Simbody 3.8, locked Conda Apple Silicon environment and C++17 compiler",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "simbody"
+  ],
+  "summary": "Simbody integrates a two-link mechanism with native multibody dynamics and checks total energy throughout the simulation.",
+  "summary_ko": "Simbody 원본 다물체 동역학 엔진으로 두 관절 진자를 적분하고 시뮬레이션 전체의 에너지 보존을 검사했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Simbody integrates a two-link mechanism with native multibody dynamics and checks total energy throughout the simulation.",
+  "tool_about_ko": "Simbody 원본 다물체 동역학 엔진으로 두 관절 진자를 적분하고 시뮬레이션 전체의 에너지 보존을 검사했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Simbody contributors",
+      "url": "https://github.com/simbody/simbody",
+      "license": "Apache-2.0"
+    }
+  ]
+}

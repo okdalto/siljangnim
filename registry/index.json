@@ -2,6 +2,19 @@
   "version": 1,
   "recipes": [
     {
+      "id": "astrometry-net.gallery",
+      "version": 1,
+      "title": "Recovering a rotated star field",
+      "capability": "astrometry-net graphics",
+      "kind": "python",
+      "license": "BSD / GPL-3.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/astrometry-net.gallery/recipe.md",
+      "sha256": "def33dc676bc79fa5bdcd6e53550e402c113b69cd79583eef67b830795594f62"
+    },
+    {
       "id": "aubio.gallery",
       "version": 1,
       "title": "Native pitch estimation",
@@ -247,6 +260,19 @@
       ],
       "path": "recipes/diffusers.gallery/recipe.md",
       "sha256": "df7bfe4d39c7479d16ab363fdf4d0e0b658a636402e1a57be59a858311233e30"
+    },
+    {
+      "id": "diffvg.gallery",
+      "version": 1,
+      "title": "Area gradients from vector rasterization",
+      "capability": "diffvg graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/diffvg.gallery/recipe.md",
+      "sha256": "7029fe7d6a645a181cbe323caccf5710682ccf52d84bc3331e76d2b0c9d1bb95"
     },
     {
       "id": "dither.gallery",
@@ -728,6 +754,19 @@
       ],
       "path": "recipes/libmorton.gallery/recipe.md",
       "sha256": "5fa55ebb0c1d2c1b4151e3bfed5e85a8b3f6f488852883aecda41ea359d51dde"
+    },
+    {
+      "id": "libmypaint.gallery",
+      "version": 1,
+      "title": "Pressure-sensitive native brush strokes",
+      "capability": "libmypaint graphics",
+      "kind": "python",
+      "license": "ISC",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/libmypaint.gallery/recipe.md",
+      "sha256": "96bb7948147f48f57e566b144270402d512cd57feddd296caeaae535a465b22d"
     },
     {
       "id": "libnoise.gallery",
@@ -1302,6 +1341,19 @@
       "sha256": "7b2ca94b89370724bca827e963be725ea34a5ee7b7ef962d96583d6e6c3e9c6e"
     },
     {
+      "id": "pytorch3d.gallery",
+      "version": 1,
+      "title": "Differentiable native mesh rendering",
+      "capability": "pytorch3d graphics",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/pytorch3d.gallery/recipe.md",
+      "sha256": "ae8f06437346d9b7118af2248875aaadb7cff03c812e137de4ee2a9a6a47ce23"
+    },
+    {
       "id": "pyvista.gallery",
       "version": 1,
       "title": "Clipping a surface",
@@ -1495,6 +1547,19 @@
       ],
       "path": "recipes/shapely.offset-rings/recipe.md",
       "sha256": "2f226b5c1adb3ffac381dd1ea4ae6fb91a5a6e41e0fb20056a5a40ed1dbe7b77"
+    },
+    {
+      "id": "simbody.gallery",
+      "version": 1,
+      "title": "Articulated double pendulum",
+      "capability": "simbody graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/simbody.gallery/recipe.md",
+      "sha256": "7a8611cc4f0c07529477c4fd1cd6f00d551cae894f3e12648ea7e34c8f50951c"
     },
     {
       "id": "simplify.gallery",

@@ -1,0 +1,17 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "simbody.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.cpp",
+        "conda-osx-arm64.txt"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

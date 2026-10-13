@@ -1,0 +1,38 @@
+{
+  "order": 447,
+  "title": "Recovering a rotated star field (Astrometry.net)",
+  "title_ko": "회전한 별 좌표 복원 (Astrometry.net)",
+  "description": "Astrometry.net builds a synthetic star index and directly solves three rotated observations, recovering sky coordinates.",
+  "description_ko": "Astrometry.net으로 합성 별 인덱스를 만들고 세 회전 관측 좌표를 직접 풀어 천구 좌표를 복원했어요.",
+  "prompt": "Recovering a rotated star field. Use the original engine.",
+  "made_with": "Astrometry.net 0.97 CLI",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "astrometry-net"
+  ],
+  "summary": "Astrometry.net builds a synthetic star index and directly solves three rotated observations, recovering sky coordinates.",
+  "summary_ko": "Astrometry.net으로 합성 별 인덱스를 만들고 세 회전 관측 좌표를 직접 풀어 천구 좌표를 복원했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Astrometry.net builds a synthetic star index and directly solves three rotated observations, recovering sky coordinates.",
+  "tool_about_ko": "Astrometry.net으로 합성 별 인덱스를 만들고 세 회전 관측 좌표를 직접 풀어 천구 좌표를 복원했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Astrometry.net contributors",
+      "url": "https://github.com/dstndstn/astrometry.net",
+      "license": "BSD / GPL-3.0-or-later"
+    }
+  ]
+}
