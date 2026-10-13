@@ -58,6 +58,8 @@ Penrose 제약 다이어그램, Context Free 재귀 도형 문법, geometry3Shar
 
 NanoVG 네이티브 벡터 렌더링, hole_fixer 메시 복구, ORIPA 종이접기, FLAM3 프랙털, differential-mesh 성장과 Csound 음향 합성을 직접 실행한 예제도 제공합니다. Csound 결과는 직접 들을 수 있으며, 각 원본 엔진과 실행 환경은 재실행할 때만 받아 캐시합니다.
 
+Threading은 직접 만든 입력으로 계산한 실 그림과 원본 SVG를, mapgen4는 강수량에 따른 하천망을 제공합니다. Field Play의 입자장과 v86의 x86 부트 프로그램은 원본 엔진에서 실시간 실행하며, 필요한 엔진 파일은 예제를 열 때 받아 캐시합니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

@@ -977,6 +977,19 @@
       "sha256": "837823e625ea2530311982ddfe34b95049935b57bd947349eb0a75a118de9e52"
     },
     {
+      "id": "mapgen4.gallery",
+      "version": 1,
+      "title": "Rainfall and river networks on an island",
+      "capability": "mapgen4 graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/mapgen4.gallery/recipe.md",
+      "sha256": "f1b6d2d0b4171b0a48a54113ce2f9ad895699804a5e8d855adec43edced40c80"
+    },
+    {
       "id": "mapgenerator.gallery",
       "version": 1,
       "title": "Tensor-field city roads",
@@ -1846,6 +1859,19 @@
       ],
       "path": "recipes/tesseract.gallery/recipe.md",
       "sha256": "801ec4b011fa20dfd089a4c8f51163304118281ffd390b60930fdf1f6038fdad"
+    },
+    {
+      "id": "threading.gallery",
+      "version": 1,
+      "title": "String art from an original spiral",
+      "capability": "threading graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/threading.gallery/recipe.md",
+      "sha256": "d075d259934e6af273f33c268d54b5828ac750a1470cea8895ba915d38764f21"
     },
     {
       "id": "tinyrenderer.gallery",

@@ -1,0 +1,18 @@
+{
+  "v86": "0.5.462",
+  "biosCommit": "5f9a90f2be01243dd0ea4fe014cce12686cf3ced",
+  "files": {
+    "v86.wasm": "aa0d0e149d6b60063b85de4871e78505637ce92821e14a9f9802c4008ba2336e",
+    "fetch-and-build-seabios.sh": "057856a817ae3dc85b18dc00f19274f6e877e6f28a36dce1afc5be751739e24a",
+    "v86-LICENSE.txt": "3f61ba65e3215b09ef264ba8d777d73c19644309fbb705967634eb5147e500a0",
+    "boot.asm": "2f5e0d27397525125542a6f09b6e4f46648dabf0e4aac6700dc32880eb6d4436",
+    "boot.bin": "ac0caf7279a9d8329fff2fecfc3dc8537001b9a0ad465226137948f6e879fd19",
+    "SeaBIOS-GPL.txt": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+    "seabios.bin": "73e3f359102e3a9982c35fce98eb7cd08f18303ac7f1ba6ebfbe6cdc1c244d98",
+    "seabios.config": "28672dabbaa31367b75622efc0f7faae0965818d2aa70ed4bcd58dd1547feb17",
+    "vgabios.bin": "a4bc0d80cc3ca028c73dafa8fee396b8d054ce87ebd8abfbd31b06b437607880",
+    "SeaBIOS-LICENSE.txt": "a853c2ffec17057872340eee242ae4d96cbf2b520ae27d903e1b2fef1a5f9d1c",
+    "seabios-debug.config": "7cf244b858d49a2e1879a54ea1526d918ba8818d6187571d9d8badc3d7c1b801"
+  },
+  "biosSource": "https://github.com/coreboot/seabios/tree/rel-1.16.2"
+}

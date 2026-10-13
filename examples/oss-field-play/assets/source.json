@@ -1,0 +1,7 @@
+{
+  "url": "https://codeload.github.com/anvaka/fieldplay/tar.gz/11d602df5338e7bd80b10c01334f60594c396539",
+  "sha256": "2cbad5f286048fd2dc544cf221fe3548a8df80e77bc71002e576cda250c92418",
+  "commit": "11d602df5338e7bd80b10c01334f60594c396539",
+  "bundler": "esbuild 0.27.7",
+  "bundleSha256": "64c0c2394e5734d5890d606060e80bd752678a6ecf2d98f8068e9a89b289e54a"
+}

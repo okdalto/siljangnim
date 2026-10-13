@@ -1,0 +1,13 @@
+{
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@redblobgames/prng": "https://codeload.github.com/redblobgames/prng/tar.gz/1104cf92f9824d71cf631eeeedd5866e9b62ea9f",
+    "delaunator": "5.0.1",
+    "fast-2d-poisson-disk-sampling": "1.0.3",
+    "flatqueue": "2.0.3",
+    "gl-matrix": "3.4.4",
+    "simplex-noise": "4.0.3",
+    "esbuild": "0.27.7"
+  }
+}

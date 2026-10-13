@@ -60,6 +60,8 @@ Original-engine examples now cover Penrose constraint diagrams, Context Free rec
 
 Directly executed examples also cover NanoVG native rendering, hole_fixer surface repair, ORIPA folding, FLAM3 fractals, differential-mesh growth and Csound synthesis. Listen to original Csound output; original engines and environments are downloaded and cached only when rerunning recipes.
 
+Threading includes string art and native SVG exports computed from an original input, while mapgen4 shows rainfall-dependent drainage. Field Play particles and a v86 x86 boot program run live in their original engines; required engine assets are downloaded and cached when opening each example.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

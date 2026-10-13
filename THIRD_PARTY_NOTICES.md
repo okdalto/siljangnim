@@ -103,6 +103,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | FFmpeg (index.opensource #228) | LGPL-2.1-or-later | [github.com/FFmpeg/FFmpeg](https://github.com/FFmpeg/FFmpeg) | [oss-ffmpeg](examples/oss-ffmpeg/) | an installed program, run by a recipe (not bundled) |
 | fft.js (index.opensource #235) | MIT | [github.com/indutny/fft.js](https://github.com/indutny/fft.js) | [oss-fft-js](examples/oss-fft-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | Fidget (index.opensource #83) | MPL-2.0 | [github.com/mkeeter/fidget](https://github.com/mkeeter/fidget) | [oss-fidget](examples/oss-fidget/) | an installed program, run by a recipe (not bundled) |
+| Field Play (index.opensource #99) | MIT | [github.com/anvaka/fieldplay](https://github.com/anvaka/fieldplay) | [oss-field-play](examples/oss-field-play/) | source included in the on-demand example; licenses and runtime requirements are included |
 | Finite Volume Python (index.opensource #363) | GPL-3.0 | [github.com/pmocz/finitevolume-python](https://github.com/pmocz/finitevolume-python) | [oss-finite-volume-python](examples/oss-finite-volume-python/) | installed with pip on the person's computer by a recipe (not bundled) |
 | FiPy (index.opensource #411) | NIST Terms of Use | [github.com/usnistgov/fipy](https://github.com/usnistgov/fipy) | [oss-fipy](examples/oss-fipy/) | installed with pip on the person's computer by a recipe (not bundled) |
 | fishdraw (index.opensource #115) | MIT | [github.com/LingDong-/fishdraw](https://github.com/LingDong-/fishdraw) | [oss-fishdraw](examples/oss-fishdraw/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -185,6 +186,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Lottie Web (index.opensource #255) | MIT | [github.com/airbnb/lottie-web](https://github.com/airbnb/lottie-web) | [oss-lottie-web](examples/oss-lottie-web/) | fetched from a CDN by the scene at run time (not bundled) |
 | Lyon (index.opensource #38) | MIT OR Apache-2.0 OR MPL-2.0 | [github.com/nical/lyon](https://github.com/nical/lyon) | [oss-lyon](examples/oss-lyon/) | an installed program, run by a recipe (not bundled) |
 | Manifold (index.opensource #64) | Apache-2.0 | [github.com/elalish/manifold](https://github.com/elalish/manifold) | [oss-manifold](examples/oss-manifold/) | fetched from a CDN by the scene at run time (not bundled) |
+| mapgen4 (index.opensource #136) | Apache-2.0 | [github.com/redblobgames/mapgen4](https://github.com/redblobgames/mapgen4) | [oss-mapgen4](examples/oss-mapgen4/) | an installed program, run by a recipe (not bundled) |
 | MapGenerator (index.opensource #1) | LGPL-3.0-only | [github.com/probabletrain/mapgenerator](https://github.com/probabletrain/mapgenerator) | [oss-mapgenerator](examples/oss-mapgenerator/) | an installed program, run by a recipe (not bundled) |
 | MapLibre GL JS (index.opensource #325) | BSD-3-Clause | [github.com/maplibre/maplibre-gl-js](https://github.com/maplibre/maplibre-gl-js) | [oss-maplibre-gl-js](examples/oss-maplibre-gl-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | MarchingSquaresJS (index.opensource #52) | AGPL-3+ / exception for unmodified use | [github.com/raumzeit/marchingsquares.js](https://github.com/raumzeit/marchingsquares.js) | [oss-marchingsquaresjs](examples/oss-marchingsquaresjs/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -315,6 +317,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Ten Minute Physics / PBD (index.opensource #151) | 3 demos under MIT | [github.com/matthias-research/pages](https://github.com/matthias-research/pages) | [oss-ten-minute-physics-pbd](examples/oss-ten-minute-physics-pbd/) | an installed program, run by a recipe (not bundled) |
 | TensorFlow Playground (index.opensource #407) | Apache-2.0 | [github.com/tensorflow/playground](https://github.com/tensorflow/playground) | [oss-tensorflow-playground](examples/oss-tensorflow-playground/) | an installed program, run by a recipe (not bundled) |
 | Tesseract (index.opensource #289) | Apache-2.0 | [github.com/tesseract-ocr/tesseract](https://github.com/tesseract-ocr/tesseract) | [oss-tesseract](examples/oss-tesseract/) | installed with pip on the person's computer by a recipe (not bundled) |
+| Threading (index.opensource #352) | GPL-3.0 | [github.com/piellardj/image-stylization-threading](https://github.com/piellardj/image-stylization-threading) | [oss-threading](examples/oss-threading/) | an installed program, run by a recipe (not bundled) |
 | three-mesh-bvh (index.opensource #98) | MIT | [github.com/gkjohnson/three-mesh-bvh](https://github.com/gkjohnson/three-mesh-bvh) | [oss-three-mesh-bvh](examples/oss-three-mesh-bvh/) | fetched from a CDN by the scene at run time (not bundled) |
 | Three.js (index.opensource #334) | MIT | [github.com/mrdoob/three.js](https://github.com/mrdoob/three.js) | [oss-three](examples/oss-three/), [oss-three-mesh-bvh](examples/oss-three-mesh-bvh/) | fetched from a CDN by the scene at run time (not bundled) |
 | tinyrenderer (index.opensource #373) | Tiny Renderer License | [github.com/ssloy/tinyrenderer](https://github.com/ssloy/tinyrenderer) | [oss-tinyrenderer](examples/oss-tinyrenderer/) | an installed program, run by a recipe (not bundled) |
@@ -334,6 +337,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | U2-Net (index.opensource #260) | Apache-2.0 | [github.com/xuebinqin/u-2-net](https://github.com/xuebinqin/u-2-net) | [oss-u2-net](examples/oss-u2-net/) | a model installed on the person's computer (not bundled) |
 | Ultralytics YOLO (index.opensource #360) | AGPL-3.0 / Enterprise | [github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics) | [oss-ultralytics-yolo](examples/oss-ultralytics-yolo/) | installed with pip on the person's computer by a recipe (not bundled) |
 | UMAP (index.opensource #410) | BSD-3-Clause | [github.com/lmcinnes/umap](https://github.com/lmcinnes/umap) | [oss-umap](examples/oss-umap/) | installed with pip on the person's computer by a recipe (not bundled) |
+| v86 (index.opensource #395) | BSD-2-Clause | [github.com/copy/v86](https://github.com/copy/v86) | [oss-v86](examples/oss-v86/) | fetched from a CDN by the scene at run time (not bundled) |
 | Velato (index.opensource #256) | MIT OR Apache-2.0 | [github.com/linebender/velato](https://github.com/linebender/velato) | [oss-velato](examples/oss-velato/) | an installed program, run by a recipe (not bundled) |
 | Vello (index.opensource #329) | MIT OR Apache-2.0 | [github.com/linebender/vello](https://github.com/linebender/vello) | [oss-vello](examples/oss-vello/) | an installed program, run by a recipe (not bundled) |
 | Voro++ (index.opensource #76) | BSD-style 3 clauses + grant for contributed improvements | [github.com/chr1shr/voro](https://github.com/chr1shr/voro) | [oss-voro](examples/oss-voro/) | an installed program, run by a recipe (not bundled) |
@@ -512,6 +516,14 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Original engine | [Differential Mesh contributors](https://github.com/inconvergent/differential-mesh) | MIT | [oss-differential-mesh](examples/oss-differential-mesh/) |
 | Original spatial lookup dependency | [Zonemap by inconvergent](https://github.com/inconvergent/zonemap) | MIT | [oss-differential-mesh](examples/oss-differential-mesh/) |
 | Original engine | [Csound contributors](https://github.com/csound/csound) | LGPL-2.1-or-later | [oss-csound](examples/oss-csound/) |
+| Original engine | [Threading contributors](https://github.com/piellardj/image-stylization-threading) | GPL-3.0 | [oss-threading](examples/oss-threading/) |
+| Original engine | [mapgen4 contributors](https://github.com/redblobgames/mapgen4) | Apache-2.0 | [oss-mapgen4](examples/oss-mapgen4/) |
+| Original engine | [Field Play contributors](https://github.com/anvaka/fieldplay) | MIT | [oss-field-play](examples/oss-field-play/) |
+| Original particle rendering foundation | [Mapbox webgl-wind by Vladimir Agafonkin](https://github.com/mapbox/webgl-wind) | ISC | [oss-field-play](examples/oss-field-play/) |
+| Bundled reactive state library, Vue 3.5.29 | [Vue contributors](https://github.com/vuejs/core) | MIT | [oss-field-play](examples/oss-field-play/) |
+| Bundled glsl-parser, panzoom, query-state and helpers; exact versions and notices in assets | [Andrei Kashcha and dependency contributors](https://github.com/anvaka/fieldplay) | MIT; BSD-3-Clause | [oss-field-play](examples/oss-field-play/) |
+| Original engine | [v86 contributors](https://github.com/copy/v86) | BSD-2-Clause | [oss-v86](examples/oss-v86/) |
+| SeaBIOS 1.16.2 BIOS and VGA BIOS, matching source/build instructions in assets | [SeaBIOS contributors](https://github.com/coreboot/seabios/tree/rel-1.16.2) | LGPL-3.0-or-later | [oss-v86](examples/oss-v86/) |
 
 ## Studio (the app's web code): bundled npm packages
 

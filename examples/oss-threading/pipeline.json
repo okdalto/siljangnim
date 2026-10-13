@@ -1,0 +1,23 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "threading.gallery@1",
+      "packages": [],
+      "inputs": [
+        "runner.cjs",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json",
+        "threads-0.svg",
+        "threads-1.svg",
+        "threads-2.svg"
+      ]
+    }
+  ]
+}

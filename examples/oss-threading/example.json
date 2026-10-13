@@ -1,0 +1,38 @@
+{
+  "order": 462,
+  "title": "String art from an original spiral (Threading)",
+  "title_ko": "나선 이미지를 실로 그리기 (Threading)",
+  "description": "The original Threading app converts an original spiral image into 500, 1,500 and 3,000 thread segments and exports native SVG results.",
+  "description_ko": "Threading 원본 앱에 직접 만든 나선 이미지를 넣어 500·1,500·3,000개 실 선분과 SVG 결과를 생성했어요.",
+  "prompt": "String art from an original spiral. Use the original engine.",
+  "made_with": "Pinned original Threading app in Electron 44.4.4",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "threading"
+  ],
+  "summary": "The original Threading app converts an original spiral image into 500, 1,500 and 3,000 thread segments and exports native SVG results.",
+  "summary_ko": "Threading 원본 앱에 직접 만든 나선 이미지를 넣어 500·1,500·3,000개 실 선분과 SVG 결과를 생성했어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "The original Threading app converts an original spiral image into 500, 1,500 and 3,000 thread segments and exports native SVG results.",
+  "tool_about_ko": "Threading 원본 앱에 직접 만든 나선 이미지를 넣어 500·1,500·3,000개 실 선분과 SVG 결과를 생성했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Threading contributors",
+      "url": "https://github.com/piellardj/image-stylization-threading",
+      "license": "GPL-3.0"
+    }
+  ]
+}

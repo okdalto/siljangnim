@@ -8443,6 +8443,100 @@
     "program": "csound"
    },
    "notes": "Csound directly synthesizes three FM tones; listen to the original WAV files and compare their waveforms and spectra."
+  },
+  {
+   "id": "threading",
+   "name": "Threading",
+   "repo": "https://github.com/piellardj/image-stylization-threading",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "The original Threading app converts an original spiral image into 500, 1,500 and 3,000 thread segments and exports native SVG results.",
+   "tags": [
+    "Thread paths · image approximation",
+    "Images · thread art"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "electron"
+   },
+   "notes": "The original Threading app converts an original spiral image into 500, 1,500 and 3,000 thread segments and exports native SVG results."
+  },
+  {
+   "id": "mapgen4",
+   "name": "mapgen4",
+   "repo": "https://github.com/redblobgames/mapgen4",
+   "license": "Apache-2.0",
+   "tier": "D",
+   "purpose": "Original mapgen4 computes terrain, rainfall and drainage on a seeded island; three rain levels produce different river networks.",
+   "tags": [
+    "maps",
+    "rivers",
+    "terrain"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "Original mapgen4 computes terrain, rainfall and drainage on a seeded island; three rain levels produce different river networks."
+  },
+  {
+   "id": "field-play",
+   "name": "Field Play",
+   "repo": "https://github.com/anvaka/fieldplay",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Field Play runs its original WebGL particle integrator live, tracing 16,384 particles through a periodic vector field.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Field Play runs its original WebGL particle integrator live, tracing 16,384 particles through a periodic vector field."
+  },
+  {
+   "id": "v86",
+   "name": "v86",
+   "repo": "https://github.com/copy/v86",
+   "license": "BSD-2-Clause",
+   "tier": "B",
+   "purpose": "v86 boots an original 16-bit x86 program that writes animated VGA pixels; pause the virtual CPU and inspect its instruction count.",
+   "tags": [
+    "x86 emulation",
+    "Computers · web"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/npm/v86@0.5.462/build/libv86.mjs"
+   },
+   "notes": "v86 boots an original 16-bit x86 program that writes animated VGA pixels; pause the virtual CPU and inspect its instruction count."
   }
  ]
 }

@@ -1,0 +1,38 @@
+{
+  "order": 463,
+  "title": "Rainfall and river networks on an island (mapgen4)",
+  "title_ko": "강수량에 따른 섬의 하천망 (mapgen4)",
+  "description": "Original mapgen4 computes terrain, rainfall and drainage on a seeded island; three rain levels produce different river networks.",
+  "description_ko": "mapgen4 원본 알고리즘으로 섬의 지형·강수·배수를 계산하고 강수량에 따른 하천망 변화를 비교했어요.",
+  "prompt": "Rainfall and river networks on an island. Use the original engine.",
+  "made_with": "Pinned mapgen4 source with locked Node.js dependencies",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "mapgen4"
+  ],
+  "summary": "Original mapgen4 computes terrain, rainfall and drainage on a seeded island; three rain levels produce different river networks.",
+  "summary_ko": "mapgen4 원본 알고리즘으로 섬의 지형·강수·배수를 계산하고 강수량에 따른 하천망 변화를 비교했어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "Original mapgen4 computes terrain, rainfall and drainage on a seeded island; three rain levels produce different river networks.",
+  "tool_about_ko": "mapgen4 원본 알고리즘으로 섬의 지형·강수·배수를 계산하고 강수량에 따른 하천망 변화를 비교했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "mapgen4 contributors",
+      "url": "https://github.com/redblobgames/mapgen4",
+      "license": "Apache-2.0"
+    }
+  ]
+}

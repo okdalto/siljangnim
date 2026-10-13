@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "mapgen4.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.ts",
+        "source.json",
+        "package.json",
+        "package-lock.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

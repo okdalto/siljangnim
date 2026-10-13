@@ -1,0 +1,54 @@
+{
+  "order": 464,
+  "title": "Particles flowing through a vector field (Field Play)",
+  "title_ko": "벡터장을 따라 흐르는 입자 (Field Play)",
+  "description": "Field Play runs its original WebGL particle integrator live, tracing 16,384 particles through a periodic vector field.",
+  "description_ko": "Field Play 원본 WebGL 적분기로 16,384개 입자가 주기적인 벡터장을 따라 움직이는 과정을 실시간으로 계산해요.",
+  "prompt": "Particles flowing through a vector field. Use the original engine.",
+  "made_with": "Pinned original Field Play source bundle",
+  "features": [
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "field-play"
+  ],
+  "summary": "Field Play runs its original WebGL particle integrator live, tracing 16,384 particles through a periodic vector field.",
+  "summary_ko": "Field Play 원본 WebGL 적분기로 16,384개 입자가 주기적인 벡터장을 따라 움직이는 과정을 실시간으로 계산해요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "Field Play runs its original WebGL particle integrator live, tracing 16,384 particles through a periodic vector field.",
+  "tool_about_ko": "Field Play 원본 WebGL 적분기로 16,384개 입자가 주기적인 벡터장을 따라 움직이는 과정을 실시간으로 계산해요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Field Play contributors",
+      "url": "https://github.com/anvaka/fieldplay",
+      "license": "MIT"
+    },
+    {
+      "what": "Original particle rendering foundation",
+      "source": "Mapbox webgl-wind by Vladimir Agafonkin",
+      "url": "https://github.com/mapbox/webgl-wind",
+      "license": "ISC"
+    },
+    {
+      "what": "Bundled reactive state library, Vue 3.5.29",
+      "source": "Vue contributors",
+      "url": "https://github.com/vuejs/core",
+      "license": "MIT"
+    },
+    {
+      "what": "Bundled glsl-parser, panzoom, query-state and helpers; exact versions and notices in assets",
+      "source": "Andrei Kashcha and dependency contributors",
+      "url": "https://github.com/anvaka/fieldplay",
+      "license": "MIT; BSD-3-Clause"
+    }
+  ]
+}

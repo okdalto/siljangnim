@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.texture=gl.createTexture();s.show=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\nprecision highp float;in vec2 v_uv;out vec4 color;uniform sampler2D u_image;void main(){color=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);s.div=document.createElement('div');s.div.style.cssText='position:absolute;left:-10000px;top:0';s.div.innerHTML='<div style=\"white-space:pre;font-family:monospace\"></div><canvas style=\"display:none\"></canvas>';document.body.appendChild(s.div);const {V86}=await ctx.utils.import('https://cdn.jsdelivr.net/npm/v86@0.5.462/build/libv86.mjs');const disk=new Uint8Array(1474560);disk.set(new Uint8Array(await (await fetch(ctx.assets['boot.bin'])).arrayBuffer()));s.serial='';s.emulator=new V86({wasm_path:ctx.assets['v86.wasm'],memory_size:16*1024*1024,vga_memory_size:2*1024*1024,screen_container:s.div,bios:{url:ctx.assets['seabios.bin']},vga_bios:{url:ctx.assets['vgabios.bin']},fda:{buffer:disk.buffer},autostart:true,disable_keyboard:true,disable_mouse:true,disable_speaker:true});s.emulator.add_listener('serial0-output-byte',b=>{s.serial+=String.fromCharCode(b);});for(let n=0;n<150;n++){await new Promise(r=>setTimeout(r,100));s.canvas=s.div.querySelector('canvas');if(s.serial.includes('BOOT OK')&&s.canvas?.width===320)break;}if(!s.serial.includes('BOOT OK')||s.canvas.width!==320)throw Error('x86 guest failed to boot into VGA: '+s.serial);s.running=true;",
+    "render": "const s=ctx.state,u=ctx.uniforms,gl=ctx.gl;if(s.running!==u.u_running){s.running=u.u_running;(s.running?s.emulator.run():s.emulator.stop()).catch(e=>{s.error=String(e);});}if(s.error)throw Error(s.error);gl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,u.u_pixelated?gl.NEAREST:gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,u.u_pixelated?gl.NEAREST:gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.show);ctx.utils.bindTexture(s.show,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.show);ctx.publish('guest',s.serial.trim());ctx.publish('x86 instructions',s.emulator.get_instruction_counter());",
+    "cleanup": "const s=ctx.state;s.emulator?.destroy().catch(()=>{});s.div?.remove();ctx.gl.deleteTexture(s.texture);ctx.gl.deleteProgram(s.show);"
+  },
+  "uniforms": {
+    "u_running": {
+      "type": "bool",
+      "value": true,
+      "label": "Run virtual CPU"
+    },
+    "u_pixelated": {
+      "type": "bool",
+      "value": true,
+      "label": "Crisp VGA pixels"
+    }
+  }
+}

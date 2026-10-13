@@ -1,0 +1,42 @@
+{
+  "order": 465,
+  "title": "A boot program painting VGA pixels (v86)",
+  "title_ko": "VGA 픽셀을 그리는 부트 프로그램 (v86)",
+  "description": "v86 boots an original 16-bit x86 program that writes animated VGA pixels; pause the virtual CPU and inspect its instruction count.",
+  "description_ko": "v86에서 직접 만든 16비트 x86 프로그램을 부팅해 VGA 픽셀을 그려요. 가상 CPU를 정지하거나 실행 명령 수를 확인하세요.",
+  "prompt": "A boot program painting VGA pixels. Use the original engine.",
+  "made_with": "v86 0.5.462 and SeaBIOS 1.16.2",
+  "features": [
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "v86"
+  ],
+  "summary": "v86 boots an original 16-bit x86 program that writes animated VGA pixels; pause the virtual CPU and inspect its instruction count.",
+  "summary_ko": "v86에서 직접 만든 16비트 x86 프로그램을 부팅해 VGA 픽셀을 그려요. 가상 CPU를 정지하거나 실행 명령 수를 확인하세요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "v86 boots an original 16-bit x86 program that writes animated VGA pixels; pause the virtual CPU and inspect its instruction count.",
+  "tool_about_ko": "v86에서 직접 만든 16비트 x86 프로그램을 부팅해 VGA 픽셀을 그려요. 가상 CPU를 정지하거나 실행 명령 수를 확인하세요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "v86 contributors",
+      "url": "https://github.com/copy/v86",
+      "license": "BSD-2-Clause"
+    },
+    {
+      "what": "SeaBIOS 1.16.2 BIOS and VGA BIOS, matching source/build instructions in assets",
+      "source": "SeaBIOS contributors",
+      "url": "https://github.com/coreboot/seabios/tree/rel-1.16.2",
+      "license": "LGPL-3.0-or-later"
+    }
+  ]
+}
