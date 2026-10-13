@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "cavalier-contours.gallery@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "main.rs"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

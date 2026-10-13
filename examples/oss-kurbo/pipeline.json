@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "kurbo.gallery@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "main.rs"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

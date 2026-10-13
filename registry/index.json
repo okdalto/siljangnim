@@ -28,6 +28,19 @@
       "sha256": "f6eb766240d5cb82bb8ade8e28ac7721a424ba9c13df8ac85dc1d46d8ac4a78c"
     },
     {
+      "id": "cavalier-contours.gallery",
+      "version": 1,
+      "title": "Offsets that preserve circular arcs",
+      "capability": "cavalier-contours geometry rendering",
+      "kind": "command",
+      "license": "MIT OR Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/cavalier-contours.gallery/recipe.md",
+      "sha256": "b7cee3bbe1185f9ff90b4d69d80c280cc70c0ef591b517a7936215baec24c109"
+    },
+    {
       "id": "circlify.stdlib-packing",
       "version": 1,
       "title": "Circle packing of the Python standard library by lines of code (circlify)",
@@ -169,6 +182,19 @@
       ],
       "path": "recipes/ffmpeg.mandelbrot-zoom/recipe.md",
       "sha256": "b23b25a3ede0a9298ab98c73ffb4c896d6f8b2788e75332ded29438d6f77c5be"
+    },
+    {
+      "id": "fidget.gallery",
+      "version": 1,
+      "title": "Slices through implicit surfaces",
+      "capability": "fidget geometry rendering",
+      "kind": "command",
+      "license": "MPL-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/fidget.gallery/recipe.md",
+      "sha256": "6ab10aa8a2c6e43f89c4178c7b2bd500ebf56e12d74b7ee5acdd4d468d4c0572"
     },
     {
       "id": "finite-volume-python.gallery",
@@ -327,6 +353,19 @@
       "sha256": "cf077dcd6edb2b2116d7c6bb2616681bb1e639b54e4b72135220ec2bc85ec857"
     },
     {
+      "id": "kurbo.gallery",
+      "version": 1,
+      "title": "Approximating a cubic path",
+      "capability": "kurbo geometry rendering",
+      "kind": "command",
+      "license": "MIT OR Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/kurbo.gallery/recipe.md",
+      "sha256": "2d319f8af6d28f98489c0d8c5d297791ab2a859d55857a8192551a8d759f2786"
+    },
+    {
       "id": "lammps.gallery",
       "version": 1,
       "title": "Particles in a periodic Lennard-Jones box",
@@ -455,6 +494,19 @@
       ],
       "path": "recipes/ln.gallery/recipe.md",
       "sha256": "aef7a5d662c914ac0e0d88e92e7d19cc385cbda7c82403a2fb261d3985056f80"
+    },
+    {
+      "id": "lyon.gallery",
+      "version": 1,
+      "title": "Triangles inside a curved contour",
+      "capability": "lyon geometry rendering",
+      "kind": "command",
+      "license": "MIT OR Apache-2.0 OR MPL-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/lyon.gallery/recipe.md",
+      "sha256": "837823e625ea2530311982ddfe34b95049935b57bd947349eb0a75a118de9e52"
     },
     {
       "id": "meanderpy.migration",
@@ -598,6 +650,19 @@
       ],
       "path": "recipes/openscad.gallery/recipe.md",
       "sha256": "48e318c83e024c521ac3ffbebdeb5f20b33e3618ea1eb33ef22d5bda98ec6fa3"
+    },
+    {
+      "id": "opensimplex2.gallery",
+      "version": 1,
+      "title": "Noise variants as height fields",
+      "capability": "opensimplex2 geometry rendering",
+      "kind": "command",
+      "license": "CC0-1.0 / some files Unlicense",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/opensimplex2.gallery/recipe.md",
+      "sha256": "0fa4b7311f59dd81c79ad1ba9c70a3ae0d1ccacca2128faff14318d94519bb21"
     },
     {
       "id": "pillow.poster-sunset",
@@ -1016,6 +1081,19 @@
       "sha256": "efc3e9d676e1f16e23dba75cb7c6b119cdd528d344088e5911379e15466e1cc7"
     },
     {
+      "id": "truck.gallery",
+      "version": 1,
+      "title": "A cylinder built by sweeps",
+      "capability": "truck geometry rendering",
+      "kind": "command",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/truck.gallery/recipe.md",
+      "sha256": "97f995551c6eb0e117223d775d55aa4710878a54bcc341492b6ae029c4e78e2b"
+    },
+    {
       "id": "u2-net.gallery",
       "version": 1,
       "title": "U2Netp foreground mask",
@@ -1053,6 +1131,32 @@
       ],
       "path": "recipes/umap.digits-embedding/recipe.md",
       "sha256": "67b5fcf3ef9bf8157e2aad125babf50213451d6d812e9f3cc60ff3b0c29701c2"
+    },
+    {
+      "id": "velato.gallery",
+      "version": 1,
+      "title": "Frames from a Lottie composition",
+      "capability": "velato geometry rendering",
+      "kind": "command",
+      "license": "MIT OR Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/velato.gallery/recipe.md",
+      "sha256": "93c516d643a3c8f6f08527cbca44307a5c0ad7bd4a117cae0bb02a0f14e157c6"
+    },
+    {
+      "id": "vello.gallery",
+      "version": 1,
+      "title": "Compute-rendered Bézier ribbons",
+      "capability": "vello geometry rendering",
+      "kind": "command",
+      "license": "MIT OR Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/vello.gallery/recipe.md",
+      "sha256": "e09f5d13c0472f3be33de88a8733a102b4762191603fa85488632d7ce3872cb5"
     },
     {
       "id": "vpype.gallery",

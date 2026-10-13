@@ -1,0 +1,30 @@
+{
+  "order": 371,
+  "title": "Approximating a cubic path (Kurbo)",
+  "title_ko": "3차 곡선을 선분으로 근사 (Kurbo)",
+  "description": "Kurbo flattens an original cubic path at three tolerances. The prepared polylines expose the precision-versus-segment-count tradeoff.",
+  "description_ko": "Kurbo로 직접 만든 3차 곡선을 세 오차 허용치에서 선분으로 근사했어요. 정밀도와 선분 수의 관계를 비교하세요.",
+  "prompt": "Approximating a cubic path. Edit the supplied Rust source and rerun the recipe to change computation inputs.",
+  "made_with": "Rust 1.90.0; exact Cargo.toml/Cargo.lock; executed on macOS arm64 CPU",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "kurbo"
+  ],
+  "summary": "Kurbo flattens an original cubic path at three tolerances.",
+  "summary_ko": "Kurbo로 직접 만든 3차 곡선을 세 오차 허용치에서 선분으로 근사했어요. 정밀도와 선분 수의 관계를 비교하세요.",
+  "try": [
+    "Select a prepared result",
+    "Adjust scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "Kurbo flattens an original cubic path at three tolerances. The prepared polylines expose the precision-versus-segment-count tradeoff. Viewing uses directly computed outputs; rerunning invokes the original crate.",
+  "tool_about_ko": "Kurbo로 직접 만든 3차 곡선을 세 오차 허용치에서 선분으로 근사했어요. 정밀도와 선분 수의 관계를 비교하세요. 화면은 직접 실행한 결과를 읽으며 레시피는 원본 크레이트를 실행해요."
+}

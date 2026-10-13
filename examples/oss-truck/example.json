@@ -1,0 +1,30 @@
+{
+  "order": 376,
+  "title": "A cylinder built by sweeps (truck)",
+  "title_ko": "스윕으로 만든 원기둥 (truck)",
+  "description": "Truck creates a circular boundary, attaches a planar face and extrudes it into a solid. Three tessellation tolerances expose the resulting boundary-representation mesh.",
+  "description_ko": "Truck으로 원형 경계와 평면 면을 만들고 밀어내 입체를 생성했어요. 세 삼각분할 오차에서 경계 표현 모델의 메시를 비교하세요.",
+  "prompt": "A cylinder built by sweeps. Edit the supplied Rust source and rerun the recipe to change computation inputs.",
+  "made_with": "Rust 1.90.0; exact Cargo.toml/Cargo.lock; executed on macOS arm64 CPU",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "truck"
+  ],
+  "summary": "Truck creates a circular boundary, attaches a planar face and extrudes it into a solid.",
+  "summary_ko": "Truck으로 원형 경계와 평면 면을 만들고 밀어내 입체를 생성했어요. 세 삼각분할 오차에서 경계 표현 모델의 메시를 비교하세요.",
+  "try": [
+    "Select a prepared result",
+    "Adjust scale and rotation"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율과 회전을 바꿔 보세요"
+  ],
+  "tool_about": "Truck creates a circular boundary, attaches a planar face and extrudes it into a solid. Three tessellation tolerances expose the resulting boundary-representation mesh. Viewing uses directly computed outputs; rerunning invokes the original crate.",
+  "tool_about_ko": "Truck으로 원형 경계와 평면 면을 만들고 밀어내 입체를 생성했어요. 세 삼각분할 오차에서 경계 표현 모델의 메시를 비교하세요. 화면은 직접 실행한 결과를 읽으며 레시피는 원본 크레이트를 실행해요."
+}

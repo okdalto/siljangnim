@@ -1,0 +1,30 @@
+{
+  "order": 373,
+  "title": "Offsets that preserve circular arcs (Cavalier Contours)",
+  "title_ko": "원호를 유지하는 오프셋 (Cavalier Contours)",
+  "description": "Cavalier Contours offsets an arc-and-line capsule at three distances. Native arc results are flattened only for display with a fixed 0.002 tolerance.",
+  "description_ko": "Cavalier Contours로 원호와 직선으로 만든 캡슐을 세 거리만큼 오프셋했어요. 결과 원호는 표시할 때만 0.002 오차로 선분화해요.",
+  "prompt": "Offsets that preserve circular arcs. Edit the supplied Rust source and rerun the recipe to change computation inputs.",
+  "made_with": "Rust 1.90.0; exact Cargo.toml/Cargo.lock; executed on macOS arm64 CPU",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "cavalier-contours"
+  ],
+  "summary": "Cavalier Contours offsets an arc-and-line capsule at three distances.",
+  "summary_ko": "Cavalier Contours로 원호와 직선으로 만든 캡슐을 세 거리만큼 오프셋했어요. 결과 원호는 표시할 때만 0.002 오차로 선분화해요.",
+  "try": [
+    "Select a prepared result",
+    "Adjust scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "Cavalier Contours offsets an arc-and-line capsule at three distances. Native arc results are flattened only for display with a fixed 0.002 tolerance. Viewing uses directly computed outputs; rerunning invokes the original crate.",
+  "tool_about_ko": "Cavalier Contours로 원호와 직선으로 만든 캡슐을 세 거리만큼 오프셋했어요. 결과 원호는 표시할 때만 0.002 오차로 선분화해요. 화면은 직접 실행한 결과를 읽으며 레시피는 원본 크레이트를 실행해요."
+}

@@ -6191,6 +6191,198 @@
     "program": "go"
    },
    "notes": "Tested with Go 1.25.10. Included go.mod/go.sum pin dependencies. Rerunning downloads modules into the Go cache; viewing downloads prepared results only."
+  },
+  {
+   "id": "kurbo",
+   "name": "Kurbo",
+   "repo": "https://github.com/linebender/kurbo",
+   "license": "MIT OR Apache-2.0",
+   "tier": "D",
+   "purpose": "Kurbo flattens an original cubic path at three tolerances. The prepared polylines expose the precision-versus-segment-count tradeoff.",
+   "tags": [
+    "Rust",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "cargo"
+   },
+   "notes": "Tested with Rust 1.90.0. Supplied Cargo.toml/Cargo.lock pin the selected dependencies. Crates download only when rerunning; viewing uses prepared outputs."
+  },
+  {
+   "id": "lyon",
+   "name": "Lyon",
+   "repo": "https://github.com/nical/lyon",
+   "license": "MIT OR Apache-2.0 OR MPL-2.0",
+   "tier": "D",
+   "purpose": "Lyon tessellates an original curved contour at three tolerances. The displayed edges are the triangles produced by the native Rust tessellator.",
+   "tags": [
+    "Rust",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "cargo"
+   },
+   "notes": "Tested with Rust 1.90.0. Supplied Cargo.toml/Cargo.lock pin the selected dependencies. Crates download only when rerunning; viewing uses prepared outputs."
+  },
+  {
+   "id": "cavalier-contours",
+   "name": "Cavalier Contours",
+   "repo": "https://github.com/jbuckmccready/cavalier_contours",
+   "license": "MIT OR Apache-2.0",
+   "tier": "D",
+   "purpose": "Cavalier Contours offsets an arc-and-line capsule at three distances. Native arc results are flattened only for display with a fixed 0.002 tolerance.",
+   "tags": [
+    "Rust",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "cargo"
+   },
+   "notes": "Tested with Rust 1.90.0. Supplied Cargo.toml/Cargo.lock pin the selected dependencies. Crates download only when rerunning; viewing uses prepared outputs."
+  },
+  {
+   "id": "opensimplex2",
+   "name": "OpenSimplex2",
+   "repo": "https://github.com/kdotjpg/opensimplex2",
+   "license": "CC0-1.0 / some files Unlicense",
+   "tier": "D",
+   "purpose": "OpenSimplex2 generates fast, smooth and four-octave smooth noise on the same grid. Rotate the directly computed terrain meshes.",
+   "tags": [
+    "Rust",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "cargo"
+   },
+   "notes": "Tested with Rust 1.90.0. Supplied Cargo.toml/Cargo.lock pin the selected dependencies. Crates download only when rerunning; viewing uses prepared outputs."
+  },
+  {
+   "id": "fidget",
+   "name": "Fidget",
+   "repo": "https://github.com/mkeeter/fidget",
+   "license": "MPL-2.0",
+   "tier": "D",
+   "purpose": "Fidget compiles an original sphere-union expression into its virtual-machine evaluator. Compare directly evaluated cross-sections at three heights.",
+   "tags": [
+    "Rust",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "cargo"
+   },
+   "notes": "Tested with Rust 1.90.0. Supplied Cargo.toml/Cargo.lock pin the selected dependencies. Crates download only when rerunning; viewing uses prepared outputs."
+  },
+  {
+   "id": "truck",
+   "name": "truck",
+   "repo": "https://github.com/ricosjp/truck",
+   "license": "Apache-2.0",
+   "tier": "D",
+   "purpose": "Truck creates a circular boundary, attaches a planar face and extrudes it into a solid. Three tessellation tolerances expose the resulting boundary-representation mesh.",
+   "tags": [
+    "Rust",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "cargo"
+   },
+   "notes": "Tested with Rust 1.90.0. Supplied Cargo.toml/Cargo.lock pin the selected dependencies. Crates download only when rerunning; viewing uses prepared outputs."
+  },
+  {
+   "id": "vello",
+   "name": "Vello",
+   "repo": "https://github.com/linebender/vello",
+   "license": "MIT OR Apache-2.0",
+   "tier": "D",
+   "purpose": "Vello renders original Bézier paths through the local Metal compute backend. Compare three actual stroke-width renders; these are saved GPU outputs.",
+   "tags": [
+    "Rust",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "cargo"
+   },
+   "notes": "Tested with Rust 1.90.0. Supplied Cargo.toml/Cargo.lock pin the selected dependencies. Crates download only when rerunning; viewing uses prepared outputs. A compute-capable wgpu adapter is required; verified on Apple M5 Metal. Other GPU backends have not been verified."
+  },
+  {
+   "id": "velato",
+   "name": "Velato",
+   "repo": "https://github.com/linebender/velato",
+   "license": "MIT OR Apache-2.0",
+   "tier": "D",
+   "purpose": "Velato parses an original Lottie animation and evaluates three frames. Vello renders the evaluated scenes on the local Metal GPU.",
+   "tags": [
+    "Rust",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "cargo"
+   },
+   "notes": "Tested with Rust 1.90.0. Supplied Cargo.toml/Cargo.lock pin the selected dependencies. Crates download only when rerunning; viewing uses prepared outputs. A compute-capable wgpu adapter is required; verified on Apple M5 Metal. Other GPU backends have not been verified."
   }
  ]
 }

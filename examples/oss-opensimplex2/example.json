@@ -1,0 +1,30 @@
+{
+  "order": 374,
+  "title": "Noise variants as height fields (OpenSimplex2)",
+  "title_ko": "높이장으로 비교하는 노이즈 변형 (OpenSimplex2)",
+  "description": "OpenSimplex2 generates fast, smooth and four-octave smooth noise on the same grid. Rotate the directly computed terrain meshes.",
+  "description_ko": "OpenSimplex2의 빠른 노이즈·매끄러운 노이즈·4옥타브 노이즈를 같은 격자에서 계산했어요. 직접 계산한 지형 메시를 회전해 보세요.",
+  "prompt": "Noise variants as height fields. Edit the supplied Rust source and rerun the recipe to change computation inputs.",
+  "made_with": "Rust 1.90.0; exact Cargo.toml/Cargo.lock; executed on macOS arm64 CPU",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "opensimplex2"
+  ],
+  "summary": "OpenSimplex2 generates fast, smooth and four-octave smooth noise on the same grid.",
+  "summary_ko": "OpenSimplex2의 빠른 노이즈·매끄러운 노이즈·4옥타브 노이즈를 같은 격자에서 계산했어요. 직접 계산한 지형 메시를 회전해 보세요.",
+  "try": [
+    "Select a prepared result",
+    "Adjust scale and rotation"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율과 회전을 바꿔 보세요"
+  ],
+  "tool_about": "OpenSimplex2 generates fast, smooth and four-octave smooth noise on the same grid. Rotate the directly computed terrain meshes. Viewing uses directly computed outputs; rerunning invokes the original crate.",
+  "tool_about_ko": "OpenSimplex2의 빠른 노이즈·매끄러운 노이즈·4옥타브 노이즈를 같은 격자에서 계산했어요. 직접 계산한 지형 메시를 회전해 보세요. 화면은 직접 실행한 결과를 읽으며 레시피는 원본 크레이트를 실행해요."
+}
