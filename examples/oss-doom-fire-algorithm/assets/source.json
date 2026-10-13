@@ -1,0 +1,18 @@
+{
+  "id": "doom-fire-algorithm",
+  "repo": "https://github.com/filipedeschamps/doom-fire-algorithm",
+  "commit": "854c39ff00f6f4688a674a4086d3c9f7c02497e1",
+  "frames": 3,
+  "files": [
+    {
+      "path": "playground/1st-implementation-with-tables/fire.js",
+      "url": "https://raw.githubusercontent.com/filipedeschamps/doom-fire-algorithm/854c39ff00f6f4688a674a4086d3c9f7c02497e1/playground/1st-implementation-with-tables/fire.js",
+      "sha256": "a82826b601db14ad38266b0302c71b6b1e6a355a3724e92a6b4df9d0364fbac0"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/filipedeschamps/doom-fire-algorithm/854c39ff00f6f4688a674a4086d3c9f7c02497e1/LICENSE",
+      "sha256": "6c60b549980d42c1024894e737b9037c1a24c7bf37ae00631d69dcb3c8409af2"
+    }
+  ]
+}

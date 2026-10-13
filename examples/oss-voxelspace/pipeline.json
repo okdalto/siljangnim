@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "voxelspace.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.mjs",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png"
+      ]
+    }
+  ]
+}

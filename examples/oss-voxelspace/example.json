@@ -1,0 +1,38 @@
+{
+  "order": 407,
+  "title": "Height-field terrain columns (VoxelSpace)",
+  "title_ko": "높이 지형의 세로 기둥 렌더링 (VoxelSpace)",
+  "description": "VoxelSpace renders an original procedural height map with its column renderer. Three camera headings are computed directly without the bundled game maps.",
+  "description_ko": "VoxelSpace의 세로 기둥 렌더러로 직접 만든 높이 지도를 그렸어요. 게임 지도 없이 세 카메라 방향을 실제 계산했어요.",
+  "prompt": "Height-field terrain columns. Rerun the included recipe to change the computation.",
+  "made_with": "Pinned original source, directly executed on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "voxelspace"
+  ],
+  "summary": "VoxelSpace renders an original procedural height map with its column renderer.",
+  "summary_ko": "VoxelSpace의 세로 기둥 렌더러로 직접 만든 높이 지도를 그렸어요. 게임 지도 없이 세 카메라 방향을 실제 계산했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "레시피의 입력을 바꿔 재실행하세요"
+  ],
+  "tool_about": "VoxelSpace renders an original procedural height map with its column renderer. Three camera headings are computed directly without the bundled game maps. The driver supplies deterministic inputs and reads the actual engine output. It does not replace the original computation. The original HTML script runs without its final UI Init() call; the original Render() writes the captured pixel buffer. Terrain and colors are generated locally.",
+  "tool_about_ko": "VoxelSpace의 세로 기둥 렌더러로 직접 만든 높이 지도를 그렸어요. 게임 지도 없이 세 카메라 방향을 실제 계산했어요. 보기는 저장된 결과를 선택하며 실제 계산을 바꾸려면 레시피를 재실행하세요.",
+  "credits": [
+    {
+      "what": "Original engine source at 60d7ae12f232f940805afafd5720fa908c173833",
+      "source": "VoxelSpace contributors",
+      "url": "https://github.com/s-macke/voxelspace/tree/60d7ae12f232f940805afafd5720fa908c173833",
+      "license": "MIT"
+    }
+  ]
+}

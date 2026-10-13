@@ -7059,6 +7059,157 @@
     ]
    },
    "notes": "Actual GFPGAN v1.4 CPU inference on manually cropped inputs. The recipe downloads and SHA-256 verifies source packages and a 349 MB model only when rerun, then reuses the cache."
+  },
+  {
+   "id": "doom-fire-algorithm",
+   "name": "doom-fire-algorithm",
+   "repo": "https://github.com/filipedeschamps/doom-fire-algorithm",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "The original Doom fire algorithm propagates heat upward. Three snapshots use a seeded random source; the original palette turns intensities into pixels.",
+   "tags": [
+    "Grid · decay · palette",
+    "Pixels · effects",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The wrapper downloads only the listed upstream source files, verifies SHA-256 hashes and caches them under (XDG_CACHE_HOME or ~/.cache)/siljangnim/source-files. The original engine runs on every invocation."
+  },
+  {
+   "id": "voxelspace",
+   "name": "VoxelSpace",
+   "repo": "https://github.com/s-macke/voxelspace",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "VoxelSpace renders an original procedural height map with its column renderer. Three camera headings are computed directly without the bundled game maps.",
+   "tags": [
+    "Heightmaps · terrain projection",
+    "Terrain · games",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The wrapper downloads only the listed upstream source files, verifies SHA-256 hashes and caches them under (XDG_CACHE_HOME or ~/.cache)/siljangnim/source-files. The original engine runs on every invocation."
+  },
+  {
+   "id": "ten-minute-physics-pbd",
+   "name": "Ten Minute Physics / PBD",
+   "repo": "https://github.com/matthias-research/pages",
+   "license": "3 demos under MIT",
+   "tier": "D",
+   "purpose": "Ten Minute Physics runs its original position-based triple pendulum solver for three initial angles. Recorded endpoint trails and rod-length errors come from actual simulation.",
+   "tags": [
+    "PBD",
+    "constraints",
+    "cloth",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The wrapper downloads only the listed upstream source files, verifies SHA-256 hashes and caches them under (XDG_CACHE_HOME or ~/.cache)/siljangnim/source-files. The original engine runs on every invocation."
+  },
+  {
+   "id": "tinyrenderer",
+   "name": "tinyrenderer",
+   "repo": "https://github.com/ssloy/tinyrenderer",
+   "license": "Tiny Renderer License",
+   "tier": "D",
+   "purpose": "TinyRenderer rasterizes an original cube with its C++ perspective-correct triangle and depth-buffer code. Three camera angles are directly computed on CPU.",
+   "tags": [
+    "Triangle rasterization",
+    "Rendering · education",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The wrapper downloads only the listed upstream source files, verifies SHA-256 hashes and caches them under (XDG_CACHE_HOME or ~/.cache)/siljangnim/source-files. The original engine runs on every invocation."
+  },
+  {
+   "id": "meep",
+   "name": "Meep",
+   "repo": "https://github.com/NanoComp/meep",
+   "license": "GPL-2.0-or-later",
+   "tier": "D",
+   "purpose": "Meep 1.34.0 directly computes a 2D electric field for three dielectric slit widths using finite-difference time-domain simulation on CPU.",
+   "tags": [
+    "FDTD · Maxwell equations",
+    "Light · electromagnetic fields",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "conda"
+   },
+   "notes": "The exact Conda package URLs and SHA-256 hashes are in conda-osx-arm64.txt. The wrapper creates an isolated environment under (XDG_CACHE_HOME or ~/.cache)/siljangnim/meep only on first execution, then reruns the simulation in that cached environment. This lock is verified only on Apple Silicon macOS."
+  },
+  {
+   "id": "psrdnoise",
+   "name": "psrdnoise",
+   "repo": "https://github.com/stegu/psrdnoise",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "The original GLSL psrdnoise function runs on the GPU with rotating gradients. Switch between scalar noise, its analytic gradient and contours.",
+   "tags": [
+    "noise",
+    "shader",
+    "GPU"
+   ],
+   "media": {
+    "in": [
+     "parameters"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "notes": "The pinned upstream GLSL file, with its MIT header, loads as an example asset and runs on the GPU.",
+   "install": {
+    "bundled": true
+   }
   }
  ]
 }

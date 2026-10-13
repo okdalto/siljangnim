@@ -1,0 +1,37 @@
+{
+  "order": 411,
+  "title": "Tiling flow noise (psrdnoise)",
+  "title_ko": "이어지는 흐름 노이즈 (psrdnoise)",
+  "description": "The original GLSL psrdnoise function runs on the GPU with rotating gradients. Switch between scalar noise, its analytic gradient and contours.",
+  "description_ko": "원본 GLSL psrdnoise 함수를 GPU에서 실행해요. 회전하는 노이즈, 해석적 기울기, 등고선을 바꿔 볼 수 있어요.",
+  "prompt": "Explore tiling simplex flow noise and its analytic gradient.",
+  "made_with": "Original psrdnoise2.glsl at 419175a270862ce7ae692038fafafb42ec0427e9",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "psrdnoise"
+  ],
+  "summary": "GPU flow noise, analytic gradients and contours.",
+  "summary_ko": "GPU 흐름 노이즈, 해석적 기울기, 등고선.",
+  "try": [
+    "Switch Noise view",
+    "Change Spatial scale and Flow speed"
+  ],
+  "try_ko": [
+    "Noise view를 바꿔 보세요",
+    "Spatial scale과 Flow speed를 조절하세요"
+  ],
+  "tool_about": "Periodic simplex noise with rotating gradients and analytic derivatives.",
+  "tool_about_ko": "주기성과 회전 기울기, 해석적 미분을 제공하는 심플렉스 노이즈예요.",
+  "credits": [
+    {
+      "what": "psrdnoise2.glsl, including MIT license header",
+      "source": "Stefan Gustavson and Ian McEwan",
+      "url": "https://github.com/stegu/psrdnoise/blob/419175a270862ce7ae692038fafafb42ec0427e9/src/psrdnoise2.glsl",
+      "license": "MIT"
+    }
+  ]
+}

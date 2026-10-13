@@ -1,0 +1,46 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const code=await(await fetch(ctx.assets['psrdnoise2.glsl'])).text();ctx.state.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform float u_time;uniform vec2 u_resolution;uniform float u_scale;uniform float u_speed;uniform int u_mode;\\n\"+code+\"\\nvoid main(){vec2 p=(v_uv-.5)*u_resolution/min(u_resolution.x,u_resolution.y)*u_scale;vec2 gradient;float n=psrdnoise(p,vec2(8.,8.),u_time*u_speed,gradient);vec3 color=mix(vec3(.035,.075,.13),vec3(.34,.85,.77),.5+.5*n);if(u_mode==1)color=vec3(.5+.14*gradient.x,.5+.14*gradient.y,.65);if(u_mode==2){float bands=abs(fract((n+1.)*6.)-.5);float line=1.-smoothstep(.035,.035+fwidth(n)*6.,bands);color=mix(vec3(.04,.09,.15),vec3(1.,.74,.47),line);}outColor=vec4(color,1.);}\\n\");",
+    "render": "ctx.gl.useProgram(ctx.state.program);ctx.utils.drawFullscreen(ctx.state.program);",
+    "cleanup": "ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_scale": {
+      "type": "float",
+      "label": "Spatial scale",
+      "value": 7,
+      "min": 2,
+      "max": 14,
+      "step": 0.5
+    },
+    "u_speed": {
+      "type": "float",
+      "label": "Flow speed",
+      "value": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    "u_mode": {
+      "type": "int",
+      "label": "Noise view",
+      "value": 0,
+      "widget": "select",
+      "options": [
+        {
+          "label": "Noise",
+          "value": 0
+        },
+        {
+          "label": "Analytic gradient",
+          "value": 1
+        },
+        {
+          "label": "Contours",
+          "value": 2
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "voxelspace",
+  "repo": "https://github.com/s-macke/voxelspace",
+  "commit": "60d7ae12f232f940805afafd5720fa908c173833",
+  "frames": 3,
+  "files": [
+    {
+      "path": "VoxelSpace.html",
+      "url": "https://raw.githubusercontent.com/s-macke/voxelspace/60d7ae12f232f940805afafd5720fa908c173833/VoxelSpace.html",
+      "sha256": "34b5d97f35d9763f99c22db5b8492b63022a2124a29baefe6ba8618038f21dbf"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/s-macke/voxelspace/60d7ae12f232f940805afafd5720fa908c173833/LICENSE",
+      "sha256": "dc9cfc66379a60e26eb172c017016f37daf8bb3887edf00a7ef191610ac0c202"
+    }
+  ]
+}

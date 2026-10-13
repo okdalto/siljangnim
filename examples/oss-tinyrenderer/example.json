@@ -1,0 +1,38 @@
+{
+  "order": 409,
+  "title": "Rasterizing a lit cube on CPU (tinyrenderer)",
+  "title_ko": "CPU에서 빛나는 정육면체 래스터화 (tinyrenderer)",
+  "description": "TinyRenderer rasterizes an original cube with its C++ perspective-correct triangle and depth-buffer code. Three camera angles are directly computed on CPU.",
+  "description_ko": "TinyRenderer의 원본 C++ 삼각형 래스터라이저와 깊이 버퍼로 정육면체를 그렸어요. 세 카메라 각도를 CPU에서 직접 계산했어요.",
+  "prompt": "Rasterizing a lit cube on CPU. Rerun the included recipe to change the computation.",
+  "made_with": "Pinned original source, directly executed on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "tinyrenderer"
+  ],
+  "summary": "TinyRenderer rasterizes an original cube with its C++ perspective-correct triangle and depth-buffer code.",
+  "summary_ko": "TinyRenderer의 원본 C++ 삼각형 래스터라이저와 깊이 버퍼로 정육면체를 그렸어요. 세 카메라 각도를 CPU에서 직접 계산했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "레시피의 입력을 바꿔 재실행하세요"
+  ],
+  "tool_about": "TinyRenderer rasterizes an original cube with its C++ perspective-correct triangle and depth-buffer code. Three camera angles are directly computed on CPU. The driver compiles the original rasterizer and supplies procedural cube geometry and a flat lighting shader. It asserts finite depth values and nonempty coverage.",
+  "tool_about_ko": "TinyRenderer의 원본 C++ 삼각형 래스터라이저와 깊이 버퍼로 정육면체를 그렸어요. 세 카메라 각도를 CPU에서 직접 계산했어요. 보기는 저장된 결과를 선택하며 실제 계산을 바꾸려면 레시피를 재실행하세요.",
+  "credits": [
+    {
+      "what": "Original engine source at 97eb7a480e762285899a93c5d21e70a79e60782e",
+      "source": "tinyrenderer contributors",
+      "url": "https://github.com/ssloy/tinyrenderer/tree/97eb7a480e762285899a93c5d21e70a79e60782e",
+      "license": "Tiny Renderer License"
+    }
+  ]
+}

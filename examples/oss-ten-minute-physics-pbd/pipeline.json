@@ -1,0 +1,17 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "ten-minute-physics-pbd.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.mjs",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

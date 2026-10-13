@@ -1,0 +1,38 @@
+{
+  "order": 408,
+  "title": "A constrained triple pendulum (Ten Minute Physics / PBD)",
+  "title_ko": "위치 제약으로 푸는 삼중 진자 (Ten Minute Physics / PBD)",
+  "description": "Ten Minute Physics runs its original position-based triple pendulum solver for three initial angles. Recorded endpoint trails and rod-length errors come from actual simulation.",
+  "description_ko": "Ten Minute Physics의 원본 위치 기반 삼중 진자를 세 초기 각도로 실행했어요. 실제 시뮬레이션의 끝점 궤적과 막대 길이 오차를 기록했어요.",
+  "prompt": "A constrained triple pendulum. Rerun the included recipe to change the computation.",
+  "made_with": "Pinned original source, directly executed on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "ten-minute-physics-pbd"
+  ],
+  "summary": "Ten Minute Physics runs its original position-based triple pendulum solver for three initial angles.",
+  "summary_ko": "Ten Minute Physics의 원본 위치 기반 삼중 진자를 세 초기 각도로 실행했어요. 실제 시뮬레이션의 끝점 궤적과 막대 길이 오차를 기록했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "레시피의 입력을 바꿔 재실행하세요"
+  ],
+  "tool_about": "Ten Minute Physics runs its original position-based triple pendulum solver for three initial angles. Recorded endpoint trails and rod-length errors come from actual simulation. The driver supplies deterministic inputs and reads the actual engine output. It does not replace the original computation. The unchanged Pendulum class is extracted from the upstream HTML; browser controls and canvas drawing are omitted. Rod-length errors are checked throughout the run.",
+  "tool_about_ko": "Ten Minute Physics의 원본 위치 기반 삼중 진자를 세 초기 각도로 실행했어요. 실제 시뮬레이션의 끝점 궤적과 막대 길이 오차를 기록했어요. 보기는 저장된 결과를 선택하며 실제 계산을 바꾸려면 레시피를 재실행하세요.",
+  "credits": [
+    {
+      "what": "Original engine source at 568d9a9040a5e44e9b737decc63f7cc4c546b2c5",
+      "source": "Ten Minute Physics / PBD contributors",
+      "url": "https://github.com/matthias-research/pages/tree/568d9a9040a5e44e9b737decc63f7cc4c546b2c5",
+      "license": "3 demos under MIT"
+    }
+  ]
+}

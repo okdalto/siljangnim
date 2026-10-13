@@ -36,6 +36,8 @@ Leaflet·Sigma·3D Force Graph·MapLibre GL·deck.gl 예제는 가상 도형과 
 
 GFPGAN v1.4 얼굴 복원은 공개 NASA 사진을 잘라 만든 세 손상 입력을 CPU에서 직접 계산했습니다. 입력·복원·원본 크롭을 비교할 수 있으며 약 349 MB 모델과 소스는 재실행할 때만 검증해 캐시합니다.
 
+Doom 불꽃·VoxelSpace 지형·Ten Minute Physics 진자·TinyRenderer는 필요한 원본 소스 파일만 검증해 캐시하고 직접 실행합니다. psrdnoise는 원본 GLSL을 GPU에서 실행합니다. Meep 파동 시뮬레이션은 CPU로 직접 계산했으며, 재실행에는 Conda와 Apple Silicon macOS가 필요합니다. 고정된 실행 환경은 첫 실행에만 받습니다. 필드 색상은 결과마다 따로 정규화됩니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

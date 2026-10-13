@@ -1,0 +1,38 @@
+{
+  "id": "tinyrenderer",
+  "repo": "https://github.com/ssloy/tinyrenderer",
+  "commit": "97eb7a480e762285899a93c5d21e70a79e60782e",
+  "frames": 3,
+  "files": [
+    {
+      "path": "our_gl.h",
+      "url": "https://raw.githubusercontent.com/ssloy/tinyrenderer/97eb7a480e762285899a93c5d21e70a79e60782e/our_gl.h",
+      "sha256": "e2cb2bb88b49180f2c3f63f342bf752f02fd0a7bb4d67ba3ac014fdbe2e5cf13"
+    },
+    {
+      "path": "our_gl.cpp",
+      "url": "https://raw.githubusercontent.com/ssloy/tinyrenderer/97eb7a480e762285899a93c5d21e70a79e60782e/our_gl.cpp",
+      "sha256": "b08b7b39e16358db2d3fcce94a1accf89852b9af6498aec91d25f4d5f6b61e7e"
+    },
+    {
+      "path": "geometry.h",
+      "url": "https://raw.githubusercontent.com/ssloy/tinyrenderer/97eb7a480e762285899a93c5d21e70a79e60782e/geometry.h",
+      "sha256": "864128c2ef9dc32b71ebfa3d1cfcd4de538b9d04cab090e62605de67654a8a11"
+    },
+    {
+      "path": "tgaimage.h",
+      "url": "https://raw.githubusercontent.com/ssloy/tinyrenderer/97eb7a480e762285899a93c5d21e70a79e60782e/tgaimage.h",
+      "sha256": "9d666a5f046c7f497106a09aa34f7d296cef2bd09e765d27e5ff43fe4d9a9647"
+    },
+    {
+      "path": "tgaimage.cpp",
+      "url": "https://raw.githubusercontent.com/ssloy/tinyrenderer/97eb7a480e762285899a93c5d21e70a79e60782e/tgaimage.cpp",
+      "sha256": "688133915f33cbb7a8dbf288a72277a43c204cf441197be633a4d6dffad910f9"
+    },
+    {
+      "path": "LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/ssloy/tinyrenderer/97eb7a480e762285899a93c5d21e70a79e60782e/LICENSE.txt",
+      "sha256": "c2d814ae3f6acbe6ceee8a0822c1ea1933e3bc2e2a61d9c18194699d29e75f8b"
+    }
+  ]
+}

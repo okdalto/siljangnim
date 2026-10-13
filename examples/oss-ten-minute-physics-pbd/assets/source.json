@@ -1,0 +1,13 @@
+{
+  "id": "ten-minute-physics-pbd",
+  "repo": "https://github.com/matthias-research/pages",
+  "commit": "568d9a9040a5e44e9b737decc63f7cc4c546b2c5",
+  "frames": 3,
+  "files": [
+    {
+      "path": "tenMinutePhysics/06-pendulum.html",
+      "url": "https://raw.githubusercontent.com/matthias-research/pages/568d9a9040a5e44e9b737decc63f7cc4c546b2c5/tenMinutePhysics/06-pendulum.html",
+      "sha256": "6a12deba9fe92a08d2b8d0d49b8a7266c36298963a5522a3af6ce44a71708a83"
+    }
+  ]
+}

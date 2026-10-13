@@ -160,7 +160,7 @@ args = ["-y", "siljangnim-mcp@latest"]
 - **넘겨주기** — 프로젝트는 `project.md`(무엇을 요청했고, 어떤 도구로 어떻게 만들었는지)로 내보냅니다. 받은 사람의
   에이전트가 그 문서로 다시 만들고, 또 리믹스합니다.
 
-오픈소스 하나하나를 바탕으로 만든 **예제 278개**(Shan Shui Infinite, MarkovJunior, Growing NCA, Three.js, p5.js,
+오픈소스 하나하나를 바탕으로 만든 **예제 284개**(Shan Shui Infinite, MarkovJunior, Growing NCA, Three.js, p5.js,
 OpenCV, librosa 등, 출처와 라이선스 포함)에서 출발해 다른 곳으로 가져가 보세요.
 
 [창작 흐름 자세히 보기](docs/creative.md)

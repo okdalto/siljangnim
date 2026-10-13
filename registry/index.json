@@ -197,6 +197,19 @@
       "sha256": "1c75a343f7508e10c96a8b1217f725ce38d069c9db8596f9a42d368c7fb4810a"
     },
     {
+      "id": "doom-fire-algorithm.gallery",
+      "version": 1,
+      "title": "Palette fire propagation",
+      "capability": "doom-fire-algorithm render native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/doom-fire-algorithm.gallery/recipe.md",
+      "sha256": "cf7206a83a392a7b28365abbb29e5d7ca19a41717cff8b0199edb12030df672b"
+    },
+    {
       "id": "draco.gallery",
       "version": 1,
       "title": "Quantized mesh compression",
@@ -676,6 +689,19 @@
       ],
       "path": "recipes/meanderpy.migration/recipe.md",
       "sha256": "27b8f70b6164a379973aa8d2d9363d5c83be776f8b66dd44b2712b14af645985"
+    },
+    {
+      "id": "meep.gallery",
+      "version": 1,
+      "title": "Waves passing through a dielectric slit",
+      "capability": "meep render native",
+      "kind": "python",
+      "license": "GPL-2.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/meep.gallery/recipe.md",
+      "sha256": "60d389379dbec5a84594b085b52b0337a9e5c958f304c55016185f29e874cbd3"
     },
     {
       "id": "mitsuba-3.gallery",
@@ -1263,6 +1289,32 @@
       "sha256": "7a8d9f3e97ca38af00f1729f30fdf1cc671e2887e86299fdc04b0a9b13e2f559"
     },
     {
+      "id": "ten-minute-physics-pbd.gallery",
+      "version": 1,
+      "title": "A constrained triple pendulum",
+      "capability": "ten-minute-physics-pbd render native",
+      "kind": "python",
+      "license": "3 demos under MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ten-minute-physics-pbd.gallery/recipe.md",
+      "sha256": "bb055b4819938a6f667d41943e46727cc935883fd939397c9ddadcea915dc64f"
+    },
+    {
+      "id": "tinyrenderer.gallery",
+      "version": 1,
+      "title": "Rasterizing a lit cube on CPU",
+      "capability": "tinyrenderer render native",
+      "kind": "python",
+      "license": "Tiny Renderer License",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/tinyrenderer.gallery/recipe.md",
+      "sha256": "6023644ec2238db805fc57d0c7402212477518defc2581508efc97bdcba034ba"
+    },
+    {
       "id": "tinyspline.gallery",
       "version": 1,
       "title": "Clamped cubic B-splines",
@@ -1417,6 +1469,19 @@
       ],
       "path": "recipes/voro.gallery/recipe.md",
       "sha256": "1f12d6b69c02a05a188966b492c7e20ea9b35060cb3abe189f7378a2d5126110"
+    },
+    {
+      "id": "voxelspace.gallery",
+      "version": 1,
+      "title": "Height-field terrain columns",
+      "capability": "voxelspace render native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/voxelspace.gallery/recipe.md",
+      "sha256": "e1065f03f689f171ed9189ac15041daa79833efe0dca8234db9e73eceef0b652"
     },
     {
       "id": "vpype.gallery",

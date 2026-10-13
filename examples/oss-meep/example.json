@@ -1,0 +1,38 @@
+{
+  "order": 410,
+  "title": "Waves passing through a dielectric slit (Meep)",
+  "title_ko": "유전체 슬릿을 통과하는 파동 (Meep)",
+  "description": "Meep 1.34.0 directly computes a 2D electric field for three dielectric slit widths using finite-difference time-domain simulation on CPU.",
+  "description_ko": "Meep 1.34.0으로 세 유전체 슬릿 폭의 2차원 전기장을 CPU 유한차분 시간영역 시뮬레이션으로 직접 계산했어요.",
+  "prompt": "Waves passing through a dielectric slit. Rerun the included recipe to change the computation.",
+  "made_with": "Meep 1.34.0, CPU, macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "meep"
+  ],
+  "summary": "Meep 1.34.0 directly computes a 2D electric field for three dielectric slit widths using finite-difference time-domain simulation on CPU..",
+  "summary_ko": "Meep 1.34.0으로 세 유전체 슬릿 폭의 2차원 전기장을 CPU 유한차분 시간영역 시뮬레이션으로 직접 계산했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "레시피의 입력을 바꿔 재실행하세요"
+  ],
+  "tool_about": "Meep 1.34.0 directly computes a 2D electric field for three dielectric slit widths using finite-difference time-domain simulation on CPU. Field colors are normalized separately for each result; gray marks dielectric material. This is a small illustrative 2D simulation, not a calibrated experiment.",
+  "tool_about_ko": "Meep 1.34.0으로 세 유전체 슬릿 폭의 2차원 전기장을 CPU 유한차분 시간영역 시뮬레이션으로 직접 계산했어요. 보기는 저장된 결과를 선택하며 실제 계산을 바꾸려면 레시피를 재실행하세요.",
+  "credits": [
+    {
+      "what": "Meep CPU FDTD engine; original procedural slit geometry",
+      "source": "Meep contributors",
+      "url": "https://github.com/NanoComp/meep",
+      "license": "GPL-2.0-or-later"
+    }
+  ]
+}
