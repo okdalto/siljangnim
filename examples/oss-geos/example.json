@@ -1,0 +1,30 @@
+{
+  "order": 327,
+  "title": "Offsets around a polyline (GEOS)",
+  "title_ko": "폴리라인 주변의 오프셋 (GEOS)",
+  "description": "The native GEOS engine, called through Shapely, buffers an original polyline with round, mitre and bevel joins.",
+  "description_ko": "Shapely를 통해 GEOS 엔진을 직접 실행해 폴리라인의 원형·마이터·베벨 접합 오프셋을 계산했어요.",
+  "prompt": "Offsets around a polyline. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "shapely==2.1.2, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "geos"
+  ],
+  "summary": "The native GEOS engine, called through Shapely, buffers an original polyline with round, mitre and bevel joins.",
+  "summary_ko": "Shapely를 통해 GEOS 엔진을 직접 실행해 폴리라인의 원형·마이터·베벨 접합 오프셋을 계산했어요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "The native GEOS engine, called through Shapely, buffers an original polyline with round, mitre and bevel joins. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "Shapely를 통해 GEOS 엔진을 직접 실행해 폴리라인의 원형·마이터·베벨 접합 오프셋을 계산했어요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

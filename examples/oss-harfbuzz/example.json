@@ -1,0 +1,30 @@
+{
+  "order": 333,
+  "title": "Shaping a ligature (HarfBuzz)",
+  "title_ko": "합자를 만드는 문자 조형 (HarfBuzz)",
+  "description": "HarfBuzz shapes “fifi” using an original font with an fi ligature. Compare four glyphs with two substituted ligatures.",
+  "description_ko": "HarfBuzz로 직접 만든 fi 합자 폰트의 “fifi”를 조형했어요. 네 글리프와 합자로 치환된 두 글리프를 비교하세요.",
+  "prompt": "Shaping a ligature. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "uharfbuzz==0.56.2, fonttools==4.66.0, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "harfbuzz"
+  ],
+  "summary": "HarfBuzz shapes “fifi” using an original font with an fi ligature. Compare four glyphs with two substituted ligatures.",
+  "summary_ko": "HarfBuzz로 직접 만든 fi 합자 폰트의 “fifi”를 조형했어요. 네 글리프와 합자로 치환된 두 글리프를 비교하세요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "HarfBuzz shapes “fifi” using an original font with an fi ligature. Compare four glyphs with two substituted ligatures. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "HarfBuzz로 직접 만든 fi 합자 폰트의 “fifi”를 조형했어요. 네 글리프와 합자로 치환된 두 글리프를 비교하세요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

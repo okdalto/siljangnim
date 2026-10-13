@@ -5021,6 +5021,341 @@
     ]
    },
    "notes": "Locally executed CPU recipe. "
+  },
+  {
+   "id": "geos",
+   "name": "GEOS",
+   "repo": "https://github.com/libgeos/geos",
+   "license": "LGPL-2.1",
+   "tier": "C",
+   "purpose": "The native GEOS engine, called through Shapely, buffers an original polyline with round, mitre and bevel joins.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "shapely==2.1.2",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "draco",
+   "name": "Draco",
+   "repo": "https://github.com/google/draco",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "Draco encodes and decodes a synthetic wavy grid at three quantization levels. Vertex reordering is checked with nearest-neighbor distances.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "DracoPy==2.1.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "xatlas",
+   "name": "xatlas",
+   "repo": "https://github.com/jpcy/xatlas",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "xatlas parameterizes and packs a cube mesh into a texture atlas. The prepared chart shows the actual seam splits and UV triangles.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "xatlas==0.0.11",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "libigl-arap",
+   "name": "libigl · ARAP",
+   "repo": "https://github.com/libigl/libigl",
+   "license": "MPL-2.0 (the ARAP code in question)",
+   "tier": "C",
+   "purpose": "libigl solves a 2D ARAP deformation of a triangulated strip with pinned ends. Three right-edge rotations are computed locally.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "libigl==2.6.3",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "tinyspline",
+   "name": "TinySpline",
+   "repo": "https://github.com/msteinbeck/tinyspline",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "TinySpline evaluates three cubic B-splines from six control points. Clamped endpoints remain fixed as the middle points move.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "tinyspline==0.6.0.post2",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "fonttools",
+   "name": "FontTools",
+   "repo": "https://github.com/fonttools/fonttools",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "FontTools builds and reloads an original TrueType font. Inspect the f, i and custom fi glyph contours and control points.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "fonttools==4.66.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "harfbuzz",
+   "name": "HarfBuzz",
+   "repo": "https://github.com/harfbuzz/harfbuzz",
+   "license": "MIT-old",
+   "tier": "C",
+   "purpose": "HarfBuzz shapes “fifi” using an original font with an fi ligature. Compare four glyphs with two substituted ligatures.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "uharfbuzz==0.56.2",
+     "fonttools==4.66.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "freetype",
+   "name": "FreeType",
+   "repo": "https://github.com/freetype/freetype",
+   "license": "FTL / GPL-2.0-or-later",
+   "tier": "C",
+   "purpose": "FreeType rasterizes an original f glyph at three pixel sizes. The dots show actual grayscale coverage samples.",
+   "tags": [
+    "Font outlines · rasterization",
+    "Letters · typography",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "freetype-py==2.5.1",
+     "fonttools==4.66.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed recipe; prepared result is downloaded with the example. Viewing does not install Python packages."
+  },
+  {
+   "id": "mitsuba-3",
+   "name": "Mitsuba 3",
+   "repo": "https://github.com/mitsuba-renderer/mitsuba3",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "Mitsuba 3 path-traces an original sphere scene on the CPU at three roughness values. Compare the prepared 24-sample renders; visible grain is sampling noise.",
+   "tags": [
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "mitsuba==3.9.1",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening the example downloads prepared output only."
+  },
+  {
+   "id": "libvips",
+   "name": "libvips",
+   "repo": "https://github.com/libvips/libvips",
+   "license": "LGPL-2.1-or-later",
+   "tier": "C",
+   "purpose": "libvips blurs an original raster image at three scales. The viewer compares saved pixels; change the recipe to run another image operation.",
+   "tags": [
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "pyvips==3.2.0",
+     "pyvips-binary==8.18.7",
+     "numpy==2.2.6",
+     "Pillow==11.3.0"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening the example downloads prepared output only."
+  },
+  {
+   "id": "libjpeg-turbo",
+   "name": "libjpeg-turbo",
+   "repo": "https://github.com/libjpeg-turbo/libjpeg-turbo",
+   "license": "IJG / BSD-3-Clause",
+   "tier": "C",
+   "purpose": "Pillow’s verified libjpeg-turbo backend encodes an original image at three JPEG qualities. Compare artifacts and actual file sizes.",
+   "tags": [
+    "JPEG · SIMD transforms",
+    "Images · codecs",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "Pillow==11.3.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening the example downloads prepared output only."
+  },
+  {
+   "id": "pysstv",
+   "name": "PySSTV",
+   "repo": "https://github.com/dnet/pySSTV",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "PySSTV encodes an original grayscale image into an 8.95-second Robot8BW signal. Inspect the actual WAV spectrum and enable Listen to hear it.",
+   "tags": [
+    "SSTV · image-to-audio encoding",
+    "Radio · images",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "audio"
+    ]
+   },
+   "install": {
+    "pip": [
+     "PySSTV==0.5.7",
+     "numpy==2.2.6",
+     "Pillow==11.3.0"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening the example downloads prepared output only."
   }
  ]
 }

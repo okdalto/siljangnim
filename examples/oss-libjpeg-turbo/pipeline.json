@@ -1,0 +1,22 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "libjpeg-turbo.gallery@1",
+      "packages": [
+        "Pillow==11.3.0",
+        "numpy==2.2.6"
+      ],
+      "inputs": [
+        "input.png"
+      ],
+      "params": {},
+      "outputs": [
+        "compressed-0.jpg",
+        "compressed-1.jpg",
+        "compressed-2.jpg",
+        "result.json"
+      ]
+    }
+  ]
+}

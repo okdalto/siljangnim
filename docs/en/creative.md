@@ -24,7 +24,7 @@ Viewing an AI example does not install large models or tools; those are prepared
 Cached example files can be reused offline, but external JS libraries, cameras and online services may still be required.
 Clearing site data or browser storage eviction removes the cache and requires downloading again.
 
-Shader examples run original GLSL included with its license. MuJoCo, VTK, PyVista, Taichi, FiPy and NEURON examples load locally computed results. Their controls select stored time steps or results; rerun the included recipe to change computation inputs. U²Net and YOLO weights download and cache only when their recipes run. The nanoGPT example shows a locally trained small model’s loss curve and generated text from an original sentence corpus.
+Shader examples run original GLSL included with its license. MuJoCo, VTK, PyVista, Taichi, FiPy and NEURON examples load locally computed results. Their controls select stored time steps or results; rerun the included recipe to change computation inputs. U²Net and YOLO weights download and cache only when their recipes run. The nanoGPT example shows a locally trained small model’s loss curve and generated text from an original sentence corpus. Prepared outputs also cover Mitsuba CPU rendering, Draco compression, xatlas UV unwrapping, libigl deformation, font shaping and rasterization, JPEG encoding, and a PySSTV signal.
 
 ### Bringing in Shadertoy code
 

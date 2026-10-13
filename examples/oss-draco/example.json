@@ -1,0 +1,30 @@
+{
+  "order": 328,
+  "title": "Quantized mesh compression (Draco)",
+  "title_ko": "양자화 메시 압축 (Draco)",
+  "description": "Draco encodes and decodes a synthetic wavy grid at three quantization levels. Vertex reordering is checked with nearest-neighbor distances.",
+  "description_ko": "Draco로 물결 격자 메시를 세 양자화 수준에서 압축·복원했어요. 정점 재정렬을 고려해 최근접 거리로 오차를 확인했어요.",
+  "prompt": "Quantized mesh compression. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "DracoPy==2.1.0, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "draco"
+  ],
+  "summary": "Draco encodes and decodes a synthetic wavy grid at three quantization levels. Vertex reordering is checked with nearest-neighbor distances.",
+  "summary_ko": "Draco로 물결 격자 메시를 세 양자화 수준에서 압축·복원했어요. 정점 재정렬을 고려해 최근접 거리로 오차를 확인했어요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Draco encodes and decodes a synthetic wavy grid at three quantization levels. Vertex reordering is checked with nearest-neighbor distances. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "Draco로 물결 격자 메시를 세 양자화 수준에서 압축·복원했어요. 정점 재정렬을 고려해 최근접 거리로 오차를 확인했어요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

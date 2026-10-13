@@ -1,0 +1,24 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "libvips.gallery@1",
+      "packages": [
+        "pyvips==3.2.0",
+        "pyvips-binary==8.18.7",
+        "numpy==2.2.6",
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "input.png"
+      ],
+      "params": {},
+      "outputs": [
+        "blur-0.png",
+        "blur-1.png",
+        "blur-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

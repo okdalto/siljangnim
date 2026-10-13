@@ -1,0 +1,30 @@
+{
+  "order": 332,
+  "title": "Building original glyph outlines (FontTools)",
+  "title_ko": "직접 만든 글리프 윤곽 (FontTools)",
+  "description": "FontTools builds and reloads an original TrueType font. Inspect the f, i and custom fi glyph contours and control points.",
+  "description_ko": "FontTools로 직접 만든 TrueType 폰트를 저장하고 다시 읽었어요. f·i·fi 글리프 윤곽과 제어점을 살펴보세요.",
+  "prompt": "Building original glyph outlines. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "fonttools==4.66.0, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "fonttools"
+  ],
+  "summary": "FontTools builds and reloads an original TrueType font. Inspect the f, i and custom fi glyph contours and control points.",
+  "summary_ko": "FontTools로 직접 만든 TrueType 폰트를 저장하고 다시 읽었어요. f·i·fi 글리프 윤곽과 제어점을 살펴보세요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "FontTools builds and reloads an original TrueType font. Inspect the f, i and custom fi glyph contours and control points. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "FontTools로 직접 만든 TrueType 폰트를 저장하고 다시 읽었어요. f·i·fi 글리프 윤곽과 제어점을 살펴보세요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

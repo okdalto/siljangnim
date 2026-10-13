@@ -1,0 +1,14 @@
+{
+  "roughness": [
+    0.05,
+    0.25,
+    0.65
+  ],
+  "variant": "scalar_rgb",
+  "samples_per_pixel": 24,
+  "seed": 9,
+  "resolution": [
+    256,
+    256
+  ]
+}

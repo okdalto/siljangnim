@@ -1,0 +1,30 @@
+{
+  "order": 329,
+  "title": "Unwrapping a cube (xatlas)",
+  "title_ko": "큐브의 UV 펼치기 (xatlas)",
+  "description": "xatlas parameterizes and packs a cube mesh into a texture atlas. The prepared chart shows the actual seam splits and UV triangles.",
+  "description_ko": "xatlas로 큐브 메시를 파라미터화하고 텍스처 아틀라스에 배치했어요. 실제 이음새 분할과 UV 삼각형을 살펴보세요.",
+  "prompt": "Unwrapping a cube. Inspect the locally generated results and rerun the included recipe when changing simulation inputs.",
+  "made_with": "xatlas==0.0.11, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "xatlas"
+  ],
+  "summary": "xatlas parameterizes and packs a cube mesh into a texture atlas. The prepared chart shows the actual seam splits and UV triangles.",
+  "summary_ko": "xatlas로 큐브 메시를 파라미터화하고 텍스처 아틀라스에 배치했어요. 실제 이음새 분할과 UV 삼각형을 살펴보세요.",
+  "try": [
+    "Select a prepared result or time step",
+    "Use the included recipe to recompute the data"
+  ],
+  "try_ko": [
+    "준비된 결과나 시간 단계를 선택하세요",
+    "계산 입력을 바꾸려면 포함된 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "xatlas parameterizes and packs a cube mesh into a texture atlas. The prepared chart shows the actual seam splits and UV triangles. The viewer only reads prepared data; computation is in the recipe.",
+  "tool_about_ko": "xatlas로 큐브 메시를 파라미터화하고 텍스처 아틀라스에 배치했어요. 실제 이음새 분할과 UV 삼각형을 살펴보세요. 화면은 준비된 데이터를 읽으며 계산은 레시피에 있어요."
+}

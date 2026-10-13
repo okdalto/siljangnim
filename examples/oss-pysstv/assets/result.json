@@ -1,0 +1,10 @@
+{
+  "mode": "Robot8BW",
+  "sample_rate": 11025,
+  "duration": 8.949931972789116,
+  "image_size": [
+    160,
+    120
+  ],
+  "spectrum_max_hz": 3014.6484375
+}

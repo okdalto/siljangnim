@@ -80,6 +80,19 @@
       "sha256": "df7bfe4d39c7479d16ab363fdf4d0e0b658a636402e1a57be59a858311233e30"
     },
     {
+      "id": "draco.gallery",
+      "version": 1,
+      "title": "Quantized mesh compression",
+      "capability": "draco prepared geometry simulation",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/draco.gallery/recipe.md",
+      "sha256": "e29bad9ad1696f0a4dc9129fb3a5e7085334ca975e6a64a496af641c06164557"
+    },
+    {
       "id": "ffmpeg.mandelbrot-zoom",
       "version": 2,
       "title": "Mandelbrot zoom video from ffmpeg's lavfi source",
@@ -104,6 +117,58 @@
       ],
       "path": "recipes/fipy.gallery/recipe.md",
       "sha256": "45daadf05da76e8a6995ba1785b09457e4980ac5fa46f5b02ab4cecbd5bf8d15"
+    },
+    {
+      "id": "fonttools.gallery",
+      "version": 1,
+      "title": "Building original glyph outlines",
+      "capability": "fonttools prepared geometry simulation",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/fonttools.gallery/recipe.md",
+      "sha256": "31c967b0f74fd9dbaddde64e5c5019540820c735ca60b225aed463e6d6393e66"
+    },
+    {
+      "id": "freetype.gallery",
+      "version": 1,
+      "title": "Rasterizing a glyph",
+      "capability": "freetype prepared geometry simulation",
+      "kind": "python",
+      "license": "FTL / GPL-2.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/freetype.gallery/recipe.md",
+      "sha256": "0e5713eefac954a2ce18dbc720bd620907c2a69e5a20ab073d697eebe73e6f3c"
+    },
+    {
+      "id": "geos.gallery",
+      "version": 1,
+      "title": "Offsets around a polyline",
+      "capability": "geos prepared geometry simulation",
+      "kind": "python",
+      "license": "LGPL-2.1",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/geos.gallery/recipe.md",
+      "sha256": "5521257a461de130a379ea839e7daedd06a0734854c6e9ea1e0d9e810345c7e0"
+    },
+    {
+      "id": "harfbuzz.gallery",
+      "version": 1,
+      "title": "Shaping a ligature",
+      "capability": "harfbuzz prepared geometry simulation",
+      "kind": "python",
+      "license": "MIT-old",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/harfbuzz.gallery/recipe.md",
+      "sha256": "7240dd67812ec4c3c19bbebb1c2b91c955369fb5652de7ae36ab5ac875fd9039"
     },
     {
       "id": "healpy.gallery",
@@ -158,6 +223,32 @@
       "sha256": "cf077dcd6edb2b2116d7c6bb2616681bb1e639b54e4b72135220ec2bc85ec857"
     },
     {
+      "id": "libigl-arap.gallery",
+      "version": 1,
+      "title": "As-rigid-as-possible bending",
+      "capability": "libigl-arap prepared geometry simulation",
+      "kind": "python",
+      "license": "MPL-2.0 (the ARAP code in question)",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/libigl-arap.gallery/recipe.md",
+      "sha256": "285e08beb1603e2d487bcd65eefc8964bc5c6a9f3452c3affb35ad719ddb95af"
+    },
+    {
+      "id": "libjpeg-turbo.gallery",
+      "version": 1,
+      "title": "Quality versus compressed size",
+      "capability": "libjpeg-turbo image audio rendering",
+      "kind": "python",
+      "license": "IJG / BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/libjpeg-turbo.gallery/recipe.md",
+      "sha256": "5f0fa4b22672753cffbe8199e12f16b18771f64bbc57824c7ef400c49e3737b9"
+    },
+    {
       "id": "librosa.beat-track",
       "version": 1,
       "title": "Beats, tempo and onset envelope (librosa)",
@@ -171,6 +262,19 @@
       "sha256": "f125ae55cb449eff526566c1611b8b6f34421f8c1c7d563289a702cd54b5e133"
     },
     {
+      "id": "libvips.gallery",
+      "version": 1,
+      "title": "A streamed blur pipeline",
+      "capability": "libvips image audio rendering",
+      "kind": "python",
+      "license": "LGPL-2.1-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/libvips.gallery/recipe.md",
+      "sha256": "e14f8e605ac25b28aa7b5be404e5aa755c30f84ac0edefc938263a04147adb8e"
+    },
+    {
       "id": "meanderpy.migration",
       "version": 1,
       "title": "River meander migration with oxbow cutoffs (meanderpy)",
@@ -182,6 +286,19 @@
       ],
       "path": "recipes/meanderpy.migration/recipe.md",
       "sha256": "27b8f70b6164a379973aa8d2d9363d5c83be776f8b66dd44b2712b14af645985"
+    },
+    {
+      "id": "mitsuba-3.gallery",
+      "version": 1,
+      "title": "Microfacet roughness under light",
+      "capability": "mitsuba-3 image audio rendering",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/mitsuba-3.gallery/recipe.md",
+      "sha256": "7508a0be1b955f3794477ce1f852c9600b456df2dcb7fade3c72f16fd7822abd"
     },
     {
       "id": "mujoco.gallery",
@@ -366,6 +483,19 @@
       "sha256": "40b15c6db0bb9fe9a677336dc0377fba3efceb064b30fe165e3822731d5264ae"
     },
     {
+      "id": "pysstv.gallery",
+      "version": 1,
+      "title": "An image encoded as sound",
+      "capability": "pysstv image audio rendering",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/pysstv.gallery/recipe.md",
+      "sha256": "e1f02b91a988cb033f1030f6fd11b928cbc8bd539e89127a04bdfe6f29d70588"
+    },
+    {
       "id": "pyvista.gallery",
       "version": 1,
       "title": "Clipping a surface",
@@ -509,6 +639,19 @@
       "sha256": "7a8d9f3e97ca38af00f1729f30fdf1cc671e2887e86299fdc04b0a9b13e2f559"
     },
     {
+      "id": "tinyspline.gallery",
+      "version": 1,
+      "title": "Clamped cubic B-splines",
+      "capability": "tinyspline prepared geometry simulation",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/tinyspline.gallery/recipe.md",
+      "sha256": "027c5d010e3afacabef27134b7629d3afbaa27e9880f747972e7f9eeb71b030e"
+    },
+    {
       "id": "torchcfm.gallery",
       "version": 1,
       "title": "Conditional probability paths",
@@ -558,7 +701,7 @@
         "mac-arm64"
       ],
       "path": "recipes/u2-net.gallery/recipe.md",
-      "sha256": "6227d0d066edcbd71d711163cd9c71b638d6f9aee5cdacee1ac06fbb1c8255e2"
+      "sha256": "a6ac327165c92a2d97283118331f46d6c6d3a291c697e6844d09230e4df025df"
     },
     {
       "id": "ultralytics-yolo.gallery",
@@ -637,6 +780,19 @@
       ],
       "path": "recipes/whisper.gallery/recipe.md",
       "sha256": "844688e068bba2c90c426861b0e628a8cb7d049502e416e94f6206523f134db4"
+    },
+    {
+      "id": "xatlas.gallery",
+      "version": 1,
+      "title": "Unwrapping a cube",
+      "capability": "xatlas prepared geometry simulation",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/xatlas.gallery/recipe.md",
+      "sha256": "fdf70a4e551957c92dd5f1645e015b4e79f9253f779919026ba3a0627e5054cf"
     }
   ]
 }

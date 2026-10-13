@@ -1,0 +1,30 @@
+{
+  "order": 338,
+  "title": "An image encoded as sound (PySSTV)",
+  "title_ko": "소리로 부호화한 그림 (PySSTV)",
+  "description": "PySSTV encodes an original grayscale image into an 8.95-second Robot8BW signal. Inspect the actual WAV spectrum and enable Listen to hear it.",
+  "description_ko": "PySSTV로 직접 만든 회색조 그림을 8.95초 Robot8BW 신호로 부호화했어요. 실제 WAV의 스펙트럼을 살펴보고 Listen을 켜서 들어 보세요.",
+  "prompt": "An image encoded as sound. Inspect locally computed output and rerun the included recipe for new inputs.",
+  "made_with": "PySSTV==0.5.7, numpy==2.2.6, Pillow==11.3.0; verified local CPU computation",
+  "features": [
+    "prepared result",
+    "recipe",
+    "audio"
+  ],
+  "mode": "live",
+  "uses": [
+    "pysstv"
+  ],
+  "summary": "PySSTV encodes an original grayscale image into an 8.95-second Robot8BW signal.",
+  "summary_ko": "PySSTV로 직접 만든 회색조 그림을 8.95초 Robot8BW 신호로 부호화했어요. 실제 WAV의 스펙트럼을 살펴보고 Listen을 켜서 들어 보세요.",
+  "try": [
+    "Inspect the input image and WAV spectrum",
+    "Enable Listen to play the saved signal"
+  ],
+  "try_ko": [
+    "입력 그림과 WAV 스펙트럼을 살펴보세요",
+    "Listen을 켜서 저장된 신호를 재생하세요"
+  ],
+  "tool_about": "PySSTV encodes an original grayscale image into an 8.95-second Robot8BW signal. Inspect the actual WAV spectrum and enable Listen to hear it.",
+  "tool_about_ko": "PySSTV로 직접 만든 회색조 그림을 8.95초 Robot8BW 신호로 부호화했어요. 실제 WAV의 스펙트럼을 살펴보고 Listen을 켜서 들어 보세요."
+}

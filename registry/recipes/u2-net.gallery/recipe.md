@@ -3,7 +3,7 @@ id: u2-net.gallery
 version: 1
 title: U2Netp foreground mask
 capability: image foreground segmentation
-tier: E
+tier: C
 kind: python
 packages:
 - onnxruntime==1.23.2

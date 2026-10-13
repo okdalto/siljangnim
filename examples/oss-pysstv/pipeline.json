@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "pysstv.gallery@1",
+      "packages": [
+        "PySSTV==0.5.7",
+        "numpy==2.2.6",
+        "Pillow==11.3.0"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "input.png",
+        "spectrum.png",
+        "signal.wav",
+        "result.json"
+      ]
+    }
+  ]
+}
