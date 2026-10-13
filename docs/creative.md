@@ -42,6 +42,8 @@ geometry-central 표면 거리, HatViz 모자 타일, ORCA 클록, Spring-It-On 
 
 SVGNest 배치, Ray Optics 렌즈, LibRaw 합성 RAW 현상, Tesseract OCR은 원본 엔진을 직접 실행한 결과와 재실행 레시피를 제공합니다. React Three Fiber 매듭과 Cesium 타원체는 브라우저에서 실시간 렌더링합니다. OCR 모델과 소스는 재실행 시에만 내려받아 캐시합니다.
 
+MapGenerator 도로, triangulate-image 삼각분할, TensorFlow Playground 학습 경계, LIC 벡터장, aubio 음높이 예제도 원본 엔진을 직접 실행했습니다. 준비된 계산 결과를 고르고 레시피로 다시 실행할 수 있어요. p5.brush 획은 브라우저 WebGL2에서 실시간으로 그립니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

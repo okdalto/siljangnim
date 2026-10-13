@@ -1,0 +1,1 @@
+{"engine": "Original TensorFlow Playground TypeScript neural-network engine", "frames": [{"epoch": 0, "loss": 0.6218668376640999, "accuracy": 0.5}, {"epoch": 30, "loss": 0.2517085253796628, "accuracy": 0.8166666666666667}, {"epoch": 500, "loss": 0.03229950594137294, "accuracy": 0.9766666666666667}]}

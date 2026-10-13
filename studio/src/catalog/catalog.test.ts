@@ -66,8 +66,11 @@ describe("catalog", () => {
     const { CATALOG_TOOLS } = await import("../agent/catalogTools");
     const { stubEnv } = await import("../agent/testing");
     const search = CATALOG_TOOLS.find((t) => t.name === "catalog_search")!;
-    const text = String((await search.run(search.input.parse({ query: "streamlines" }), stubEnv())).content);
+    // Streamline tools are now curated; mesh still spans both collections.
+    const text = String((await search.run(search.input.parse({ query: "mesh" }), stubEnv())).content);
+    expect(text).toContain("Catalog matches (set up in Siljangnim");
     expect(text).toContain("From the reference list (index.opensource");
+    expect(text.indexOf("Catalog matches")).toBeLessThan(text.indexOf("From the reference list"));
     const get = CATALOG_TOOLS.find((t) => t.name === "catalog_get")!;
     const ref = REFERENCES.find((r) => r.name === "Context Free")!;
     expect(String((await get.run({ id: ref.id }, stubEnv())).content)).toContain("Not set up in Siljangnim yet");

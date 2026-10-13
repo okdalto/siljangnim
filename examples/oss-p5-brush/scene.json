@@ -1,0 +1,46 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);s.div=document.createElement('div');s.div.style.cssText='position:absolute;left:-10000px;top:0;width:512px;height:512px';document.body.appendChild(s.div);s.surface=document.createElement('canvas');s.surface.width=512;s.surface.height=512;s.div.appendChild(s.surface);s.brush=await ctx.utils.import('https://cdn.jsdelivr.net/npm/p5.brush@2.2.3/dist/brush.esm.js');s.paint=new OffscreenCanvas(512,512);s.brush.load(s.paint);s.paintCopy=s.surface.getContext('2d');",
+    "render": "const s=ctx.state,u=ctx.uniforms,c=s.c,gl=ctx.gl,[w,h]=ctx.resolution,m=Math.min(w,h),size=m*.85;if(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#0b1625';c.fillRect(0,0,w,h);const key=JSON.stringify(u);if(key!==s.key){const B=s.brush;B.load(s.paint);B.seed(u.u_seed);B.noiseSeed(u.u_seed);B.clear('#f4eddf');B.noFill();B.noHatch();B.noField();const names=['HB','charcoal','marker'];for(let i=0;i<10;i++){B.set(names[u.u_brush],['#247b80','#cc6655','#b59238'][i%3],u.u_weight);const y=-190+i*40;B.line(-195,y,195,y+40*Math.sin(i*.8));}B.render();s.paintCopy.clearRect(0,0,512,512);s.paintCopy.drawImage(s.paint,0,0);s.key=key;}ctx.publish('engine','p5.brush 2.2.3 \u00b7 standalone WebGL2');c.drawImage(s.surface,(w-size)/2,(h-size)/2,size,size);gl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.program);ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "ctx.state.paint?.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext();ctx.state.div?.remove();ctx.gl.deleteTexture(ctx.state.texture);ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_brush": {
+      "type": "int",
+      "label": "Brush",
+      "value": 1,
+      "widget": "select",
+      "options": [
+        {
+          "label": "HB pencil",
+          "value": 0
+        },
+        {
+          "label": "Charcoal",
+          "value": 1
+        },
+        {
+          "label": "Marker",
+          "value": 2
+        }
+      ]
+    },
+    "u_weight": {
+      "type": "float",
+      "label": "Pressure",
+      "value": 2,
+      "min": 0.5,
+      "max": 4,
+      "step": 0.25
+    },
+    "u_seed": {
+      "type": "int",
+      "label": "Texture seed",
+      "value": 12,
+      "min": 1,
+      "max": 30,
+      "step": 1
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "order": 426,
+  "title": "Image to colored triangles (triangulate-image)",
+  "title_ko": "이미지를 색 삼각형으로 (triangulate-image)",
+  "description": "Original triangulate-image synchronous methods turn a synthetic gradient and disk into colored triangles.",
+  "description_ko": "triangulate-image 원본 동기 API로 직접 만든 그라데이션과 원을 색 삼각형으로 변환했어요.",
+  "prompt": "Image to colored triangles. Use the original engine.",
+  "made_with": "Pinned original source executed on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "triangulate-image"
+  ],
+  "summary": "Original triangulate-image synchronous methods turn a synthetic gradient and disk into colored triangles.",
+  "summary_ko": "triangulate-image 원본 동기 API로 직접 만든 그라데이션과 원을 색 삼각형으로 변환했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Original triangulate-image synchronous methods turn a synthetic gradient and disk into colored triangles.",
+  "tool_about_ko": "triangulate-image 원본 동기 API로 직접 만든 그라데이션과 원을 색 삼각형으로 변환했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "triangulate-image contributors",
+      "url": "https://github.com/snorpey/triangulate-image",
+      "license": "MIT"
+    }
+  ]
+}

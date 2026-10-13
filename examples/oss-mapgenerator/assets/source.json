@@ -1,0 +1,145 @@
+{
+  "id": "mapgenerator",
+  "repo": "https://github.com/probabletrain/mapgenerator",
+  "commit": "f487e4cee321d105d5b0e14258363fa8b4d004ef",
+  "url": "https://codeload.github.com/probabletrain/mapgenerator/tar.gz/f487e4cee321d105d5b0e14258363fa8b4d004ef",
+  "sha256": "ef783832c3cf0b85a097842f7b21f61a51dbd0a6e26c9ebdce4f0412ed7c3307",
+  "frames": 3,
+  "files": [
+    {
+      "path": "src/ts/impl/tensor_field.ts",
+      "url": "https://raw.githubusercontent.com/probabletrain/mapgenerator/f487e4cee321d105d5b0e14258363fa8b4d004ef/src/ts/impl/tensor_field.ts",
+      "sha256": "8375484881f8c1e91d8636ca6e149185de17e5e062afb43947b3b809509aee17"
+    },
+    {
+      "path": "src/ts/impl/tensor.ts",
+      "url": "https://raw.githubusercontent.com/probabletrain/mapgenerator/f487e4cee321d105d5b0e14258363fa8b4d004ef/src/ts/impl/tensor.ts",
+      "sha256": "afc1c3320c83308048bb5209600460e564596808170eb020e220a327aaba13a3"
+    },
+    {
+      "path": "src/ts/vector.ts",
+      "url": "https://raw.githubusercontent.com/probabletrain/mapgenerator/f487e4cee321d105d5b0e14258363fa8b4d004ef/src/ts/vector.ts",
+      "sha256": "f584c40d71033c2b30ac0d2a3d18a76c04f53b0454cc8a56569f161418a7736d"
+    },
+    {
+      "path": "src/ts/impl/basis_field.ts",
+      "url": "https://raw.githubusercontent.com/probabletrain/mapgenerator/f487e4cee321d105d5b0e14258363fa8b4d004ef/src/ts/impl/basis_field.ts",
+      "sha256": "80428e5e68afd6cd34dc51440bf6a9603261532093ce5cd167d1f6ddc68cbf76"
+    },
+    {
+      "path": "src/ts/impl/polygon_util.ts",
+      "url": "https://raw.githubusercontent.com/probabletrain/mapgenerator/f487e4cee321d105d5b0e14258363fa8b4d004ef/src/ts/impl/polygon_util.ts",
+      "sha256": "861a24bb2c145c97fd7d79d1892d28ade5560de706248545e421ed4968e4c486"
+    },
+    {
+      "path": "src/ts/impl/streamlines.ts",
+      "url": "https://raw.githubusercontent.com/probabletrain/mapgenerator/f487e4cee321d105d5b0e14258363fa8b4d004ef/src/ts/impl/streamlines.ts",
+      "sha256": "83473268f71759a1d1fd2736f3c2186c7ea0c250315ddfa06928a0ca99f34255"
+    },
+    {
+      "path": "src/ts/impl/grid_storage.ts",
+      "url": "https://raw.githubusercontent.com/probabletrain/mapgenerator/f487e4cee321d105d5b0e14258363fa8b4d004ef/src/ts/impl/grid_storage.ts",
+      "sha256": "e8d4b0229592c0ebb6414af983d08d28b56868bc644a18dfafb7ed113367f903"
+    },
+    {
+      "path": "src/ts/impl/integrator.ts",
+      "url": "https://raw.githubusercontent.com/probabletrain/mapgenerator/f487e4cee321d105d5b0e14258363fa8b4d004ef/src/ts/impl/integrator.ts",
+      "sha256": "deef72a4ddc79785229a00faa0a418d582cde3242666e5892a8fbf59b1a4e2cb"
+    },
+    {
+      "path": "COPYING",
+      "url": "https://raw.githubusercontent.com/probabletrain/mapgenerator/f487e4cee321d105d5b0e14258363fa8b4d004ef/COPYING",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "path": "COPYING.LESSER",
+      "url": "https://raw.githubusercontent.com/probabletrain/mapgenerator/f487e4cee321d105d5b0e14258363fa8b4d004ef/COPYING.LESSER",
+      "sha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b"
+    },
+    {
+      "path": "node_modules/typescript/LICENSE.txt",
+      "url": "https://cdn.jsdelivr.net/npm/typescript@5.9.3/LICENSE.txt",
+      "sha256": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47"
+    },
+    {
+      "path": "node_modules/typescript/package.json",
+      "url": "https://cdn.jsdelivr.net/npm/typescript@5.9.3/package.json",
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "path": "node_modules/typescript/lib/typescript.js",
+      "url": "https://cdn.jsdelivr.net/npm/typescript@5.9.3/lib/typescript.js",
+      "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+    },
+    {
+      "path": "node_modules/loglevel/lib/loglevel.js",
+      "url": "https://cdn.jsdelivr.net/npm/loglevel@1.9.2/lib/loglevel.js",
+      "sha256": "a8d7245f41954420c44bdb559f0c66b289c0ac0ffd4c374e9fa8c51a995c1401"
+    },
+    {
+      "path": "node_modules/loglevel/package.json",
+      "url": "https://cdn.jsdelivr.net/npm/loglevel@1.9.2/package.json",
+      "sha256": "aa689ceb5c6fa7468424cc5734d221eeb1aabc99cb37702942307018866e0685"
+    },
+    {
+      "path": "node_modules/loglevel/LICENSE-MIT",
+      "url": "https://cdn.jsdelivr.net/npm/loglevel@1.9.2/LICENSE-MIT",
+      "sha256": "18e8cf5f0dbaf13d9562e93b9bef79aff2acff18fab698c2d589d2159375a1f9"
+    },
+    {
+      "path": "node_modules/polyk/LICENSE",
+      "url": "https://cdn.jsdelivr.net/npm/polyk@0.24.0/LICENSE",
+      "sha256": "578f98a3f4c7ce70ea17e18a4116527ad046bef3b66517fcca8682ada97d042a"
+    },
+    {
+      "path": "node_modules/polyk/index.js",
+      "url": "https://cdn.jsdelivr.net/npm/polyk@0.24.0/index.js",
+      "sha256": "d9caaf6d6520edcde9b33af198e361fc547c12da6de6a9e83b26d25bd5c0471c"
+    },
+    {
+      "path": "node_modules/polyk/package.json",
+      "url": "https://cdn.jsdelivr.net/npm/polyk@0.24.0/package.json",
+      "sha256": "b3f6eb8e2080200a6de504667e68372838b22d10804c3147505e3c8c4aea46e5"
+    },
+    {
+      "path": "node_modules/jsts/dist/jsts.min.js",
+      "url": "https://cdn.jsdelivr.net/npm/jsts@2.1.2/dist/jsts.min.js",
+      "sha256": "4cba5fcf8ee61ba986621f0da43042b5ea60452fcd518bfcf54ffe5eeaa35b74"
+    },
+    {
+      "path": "node_modules/jsts/package.json",
+      "url": "https://cdn.jsdelivr.net/npm/jsts@2.1.2/package.json",
+      "sha256": "bfe85d5e43c6427c41e59638fb3b2561380eaa1144fd5dd94946d00ce0fc3b36"
+    },
+    {
+      "path": "node_modules/simplex-noise/LICENSE",
+      "url": "https://cdn.jsdelivr.net/npm/simplex-noise@2.4.0/LICENSE",
+      "sha256": "f1f3a7fd9895e26924bfbf71d28e353e68d387df6a430621d65d05b6dff26bed"
+    },
+    {
+      "path": "node_modules/simplex-noise/simplex-noise.js",
+      "url": "https://cdn.jsdelivr.net/npm/simplex-noise@2.4.0/simplex-noise.js",
+      "sha256": "bbc9e3369cc4ffb7f3291493ec4bb7f271022b015111e2cc922a546aeaa03e96"
+    },
+    {
+      "path": "node_modules/simplex-noise/package.json",
+      "url": "https://cdn.jsdelivr.net/npm/simplex-noise@2.4.0/package.json",
+      "sha256": "d03118fb0ed9cf24fb885b27038d658af31bb72341cb20d3b21915ce3cf63c0b"
+    },
+    {
+      "path": "node_modules/simplify-js/simplify.js",
+      "url": "https://cdn.jsdelivr.net/npm/simplify-js@1.2.4/simplify.js",
+      "sha256": "e4c7a1a8a141d47103eb82c64eb5286b483ed0efae28ecd238f6232b6d0b7b85"
+    },
+    {
+      "path": "node_modules/simplify-js/LICENSE",
+      "url": "https://cdn.jsdelivr.net/npm/simplify-js@1.2.4/LICENSE",
+      "sha256": "a901a67db860508f95e4915c58dff092eec045b8b852d06aa0e12c7f40536d07"
+    },
+    {
+      "path": "node_modules/simplify-js/package.json",
+      "url": "https://cdn.jsdelivr.net/npm/simplify-js@1.2.4/package.json",
+      "sha256": "690218aef8a8814937a91d537641292f7064afa4606783048dd02893613948fc"
+    }
+  ]
+}

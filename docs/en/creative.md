@@ -44,6 +44,8 @@ geometry-central surface distances, HatViz tilings, ORCA clocks, Spring-It-On da
 
 SVGNest packing, Ray Optics lenses, LibRaw synthetic RAW development and Tesseract OCR include directly computed results and rerun recipes. React Three Fiber knots and Cesium ellipsoids render live in the browser. OCR weights and source files download and cache only when rerunning a recipe.
 
+MapGenerator roads, triangulate-image triangles, TensorFlow Playground decision boundaries, LIC vector fields and aubio pitch examples directly execute their original engines. Select prepared results or rerun the recipes. p5.brush strokes render live through browser WebGL2.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

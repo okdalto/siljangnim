@@ -2,6 +2,19 @@
   "version": 1,
   "recipes": [
     {
+      "id": "aubio.gallery",
+      "version": 1,
+      "title": "Native pitch estimation",
+      "capability": "aubio graphics",
+      "kind": "python",
+      "license": "GPL-3.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/aubio.gallery/recipe.md",
+      "sha256": "af91ecf61bbc1b065024d765082914ba8d42f6f3a8b2ca70e3f85db194d3988d"
+    },
+    {
       "id": "blender.gallery",
       "version": 1,
       "title": "Rendered still life (Blender)",
@@ -678,6 +691,19 @@
       "sha256": "e14f8e605ac25b28aa7b5be404e5aa755c30f84ac0edefc938263a04147adb8e"
     },
     {
+      "id": "lineintegralconvolutions.gallery",
+      "version": 1,
+      "title": "Vector flow through convolution",
+      "capability": "lineintegralconvolutions graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/lineintegralconvolutions.gallery/recipe.md",
+      "sha256": "4aa3f421d218f26ddb27ed4cbb7ef4a901457330320bb58ee1952caea562dbea"
+    },
+    {
       "id": "ln.gallery",
       "version": 1,
       "title": "Hidden lines around solids",
@@ -702,6 +728,19 @@
       ],
       "path": "recipes/lyon.gallery/recipe.md",
       "sha256": "837823e625ea2530311982ddfe34b95049935b57bd947349eb0a75a118de9e52"
+    },
+    {
+      "id": "mapgenerator.gallery",
+      "version": 1,
+      "title": "Tensor-field city roads",
+      "capability": "mapgenerator graphics",
+      "kind": "python",
+      "license": "LGPL-3.0-only",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/mapgenerator.gallery/recipe.md",
+      "sha256": "c1824a90ba29d1d41608492a3e48ce782f997cc2929db39fa9ce29caa3e8a987"
     },
     {
       "id": "maximilian.gallery",
@@ -1419,6 +1458,19 @@
       "sha256": "bb055b4819938a6f667d41943e46727cc935883fd939397c9ddadcea915dc64f"
     },
     {
+      "id": "tensorflow-playground.gallery",
+      "version": 1,
+      "title": "Learning a circular decision boundary",
+      "capability": "tensorflow-playground graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/tensorflow-playground.gallery/recipe.md",
+      "sha256": "10014e00a218780e19d7617f31a65d0ac405c3aca974aeb4cd7a61b6463c934f"
+    },
+    {
       "id": "tesseract.gallery",
       "version": 1,
       "title": "Native OCR under image distortion",
@@ -1482,6 +1534,19 @@
       ],
       "path": "recipes/triangula.gallery/recipe.md",
       "sha256": "17f65257d60f8656f9d018bba4805cad26402195a5493dfeedfec9f051cfab56"
+    },
+    {
+      "id": "triangulate-image.gallery",
+      "version": 1,
+      "title": "Image to colored triangles",
+      "capability": "triangulate-image graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/triangulate-image.gallery/recipe.md",
+      "sha256": "2cbccd574c0c4a54ae034cd191afe3b37d2d3aa588126f53c8415fa6a3c9990a"
     },
     {
       "id": "trimesh.displaced-sphere-glb",

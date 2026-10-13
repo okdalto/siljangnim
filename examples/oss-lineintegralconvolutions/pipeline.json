@@ -1,0 +1,27 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "lineintegralconvolutions.gallery@1",
+      "packages": [
+        "line-integral-convolutions==2.1.0",
+        "rlic==0.5.3",
+        "ahe==0.1.0",
+        "numpy==2.2.6",
+        "scipy==1.17.1",
+        "matplotlib==3.11.2",
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png"
+      ]
+    }
+  ]
+}

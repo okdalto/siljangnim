@@ -1,0 +1,38 @@
+{
+  "order": 425,
+  "title": "Learning a circular decision boundary (TensorFlow Playground)",
+  "title_ko": "원형 결정 경계 학습 (TensorFlow Playground)",
+  "description": "The original TensorFlow Playground neural-network engine learns a synthetic circular classification problem.",
+  "description_ko": "TensorFlow Playground 원본 신경망 엔진으로 합성 원형 분류 문제를 직접 학습했어요.",
+  "prompt": "Learning a circular decision boundary. Use the original engine.",
+  "made_with": "Original TypeScript neural network via Node.js 25.6.1",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "tensorflow-playground"
+  ],
+  "summary": "The original TensorFlow Playground neural-network engine learns a synthetic circular classification problem.",
+  "summary_ko": "TensorFlow Playground 원본 신경망 엔진으로 합성 원형 분류 문제를 직접 학습했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "The original TensorFlow Playground neural-network engine learns a synthetic circular classification problem.",
+  "tool_about_ko": "TensorFlow Playground 원본 신경망 엔진으로 합성 원형 분류 문제를 직접 학습했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "TensorFlow Playground contributors",
+      "url": "https://github.com/tensorflow/playground",
+      "license": "Apache-2.0"
+    }
+  ]
+}

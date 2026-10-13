@@ -1,0 +1,23 @@
+{
+  "engine": "line-integral-convolutions 2.1.0 with rLIC 0.5.3",
+  "frames": [
+    {
+      "streamlength": 8,
+      "minimum": 0.008264462809917356,
+      "maximum": 1.0,
+      "standardDeviation": 0.2600112618488826
+    },
+    {
+      "streamlength": 24,
+      "minimum": 0.00847457627118644,
+      "maximum": 1.0,
+      "standardDeviation": 0.27569517656668857
+    },
+    {
+      "streamlength": 48,
+      "minimum": 0.008403361344537815,
+      "maximum": 1.0,
+      "standardDeviation": 0.2812167284832079
+    }
+  ]
+}

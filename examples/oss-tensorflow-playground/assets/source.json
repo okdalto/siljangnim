@@ -1,0 +1,20 @@
+{
+  "id": "tensorflow-playground",
+  "repo": "https://github.com/tensorflow/playground",
+  "commit": "02469bd3751764b20486015d4202b792af5362a6",
+  "url": "https://codeload.github.com/tensorflow/playground/tar.gz/02469bd3751764b20486015d4202b792af5362a6",
+  "sha256": "a2f1405ef2a9ef9d10fa3379772488c064af47dd4bd5694d712ecbf1db84c2c2",
+  "frames": 3,
+  "files": [
+    {
+      "path": "src/nn.ts",
+      "url": "https://raw.githubusercontent.com/tensorflow/playground/02469bd3751764b20486015d4202b792af5362a6/src/nn.ts",
+      "sha256": "eca97b4c0ca3787aa7d516fb8a560107f70f4809d036af1fb2db49b4bb27c9db"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/tensorflow/playground/02469bd3751764b20486015d4202b792af5362a6/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    }
+  ]
+}

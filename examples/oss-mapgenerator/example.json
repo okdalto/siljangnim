@@ -1,0 +1,38 @@
+{
+  "order": 427,
+  "title": "Tensor-field city roads (MapGenerator)",
+  "title_ko": "텐서장으로 만드는 도시 도로 (MapGenerator)",
+  "description": "Original MapGenerator tensor fields and streamline integration generate roads for three grid orientations.",
+  "description_ko": "MapGenerator 원본 텐서장과 유선 적분 엔진으로 세 방향의 도로망을 생성했어요.",
+  "prompt": "Tensor-field city roads. Use the original engine.",
+  "made_with": "Pinned original source executed on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "mapgenerator"
+  ],
+  "summary": "Original MapGenerator tensor fields and streamline integration generate roads for three grid orientations.",
+  "summary_ko": "MapGenerator 원본 텐서장과 유선 적분 엔진으로 세 방향의 도로망을 생성했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Original MapGenerator tensor fields and streamline integration generate roads for three grid orientations.",
+  "tool_about_ko": "MapGenerator 원본 텐서장과 유선 적분 엔진으로 세 방향의 도로망을 생성했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "MapGenerator contributors",
+      "url": "https://github.com/probabletrain/mapgenerator",
+      "license": "LGPL-3.0-only"
+    }
+  ]
+}

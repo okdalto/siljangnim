@@ -7536,6 +7536,147 @@
     "cdn": "https://esm.sh/@cesium/engine@26.3.0?bundle"
    },
    "notes": "Cesium renders a live WGS84 ellipsoid and original graticule geometry without external map tiles."
+  },
+  {
+   "id": "tensorflow-playground",
+   "name": "TensorFlow Playground",
+   "repo": "https://github.com/tensorflow/playground",
+   "license": "Apache-2.0",
+   "tier": "D",
+   "purpose": "The original TensorFlow Playground neural-network engine learns a synthetic circular classification problem.",
+   "tags": [
+    "Neural networks · gradient descent",
+    "Learning · education"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The original TensorFlow Playground neural-network engine learns a synthetic circular classification problem."
+  },
+  {
+   "id": "triangulate-image",
+   "name": "triangulate-image",
+   "repo": "https://github.com/snorpey/triangulate-image",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Original triangulate-image synchronous methods turn a synthetic gradient and disk into colored triangles.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "Original triangulate-image synchronous methods turn a synthetic gradient and disk into colored triangles."
+  },
+  {
+   "id": "mapgenerator",
+   "name": "MapGenerator",
+   "repo": "https://github.com/probabletrain/mapgenerator",
+   "license": "LGPL-3.0-only",
+   "tier": "D",
+   "purpose": "Original MapGenerator tensor fields and streamline integration generate roads for three grid orientations.",
+   "tags": [
+    "tensor fields",
+    "cities",
+    "roads"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "Original MapGenerator tensor fields and streamline integration generate roads for three grid orientations."
+  },
+  {
+   "id": "lineintegralconvolutions",
+   "name": "LineIntegralConvolutions",
+   "repo": "https://github.com/astrokriel/lineintegralconvolutions",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "Line Integral Convolutions directly computes three LIC images from an original synthetic vector field.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "line-integral-convolutions==2.1.0",
+     "rlic==0.5.3",
+     "ahe==0.1.0",
+     "numpy==2.2.6",
+     "scipy==1.17.1",
+     "matplotlib==3.11.2",
+     "Pillow==11.3.0"
+    ]
+   },
+   "notes": "Line Integral Convolutions directly computes three LIC images from an original synthetic vector field."
+  },
+  {
+   "id": "aubio",
+   "name": "aubio",
+   "repo": "https://github.com/aubio/aubio",
+   "license": "GPL-3.0-or-later",
+   "tier": "D",
+   "purpose": "Original aubio C YIN detects the pitch of three synthetic harmonic tones, with frequency and confidence saved.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "cc"
+   },
+   "notes": "Original aubio C YIN detects the pitch of three synthetic harmonic tones, with frequency and confidence saved."
+  },
+  {
+   "id": "p5-brush",
+   "name": "p5.brush",
+   "repo": "https://github.com/acamposuribe/p5.brush",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "p5.brush standalone WebGL2 renders live seeded pencil, charcoal and marker strokes.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://cdn.jsdelivr.net/npm/p5.brush@2.2.3/dist/brush.esm.js"
+   },
+   "notes": "p5.brush standalone WebGL2 renders live seeded pencil, charcoal and marker strokes."
   }
  ]
 }

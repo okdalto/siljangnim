@@ -1,0 +1,20 @@
+{
+  "id": "triangulate-image",
+  "repo": "https://github.com/snorpey/triangulate-image",
+  "commit": "8f057f647a42c426aeb799fcbf549321a4c7a200",
+  "url": "https://codeload.github.com/snorpey/triangulate-image/tar.gz/8f057f647a42c426aeb799fcbf549321a4c7a200",
+  "sha256": "55cc7ccbf4a0c983524dcd1ce594e29e780a840ed58d4c024edf4c5fb64cc0e5",
+  "frames": 3,
+  "files": [
+    {
+      "path": "dist/triangulate-image-browser.js",
+      "url": "https://raw.githubusercontent.com/snorpey/triangulate-image/8f057f647a42c426aeb799fcbf549321a4c7a200/dist/triangulate-image-browser.js",
+      "sha256": "ba64bcded8f34cece087f8d657c798e41c11771c411a0976e8e2a41d82054507"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/snorpey/triangulate-image/8f057f647a42c426aeb799fcbf549321a4c7a200/LICENSE",
+      "sha256": "6c498b0a6db44307bb177f2129b6eb3925fe986da9a523ff1edfb8f403993b7b"
+    }
+  ]
+}

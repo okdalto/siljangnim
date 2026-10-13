@@ -1,0 +1,38 @@
+{
+  "order": 429,
+  "title": "Native pitch estimation (aubio)",
+  "title_ko": "네이티브 음높이 검출 (aubio)",
+  "description": "Original aubio C YIN detects the pitch of three synthetic harmonic tones, with frequency and confidence saved.",
+  "description_ko": "aubio 원본 C YIN으로 세 합성 배음 신호의 주파수와 신뢰도를 직접 계산했어요.",
+  "prompt": "Native pitch estimation. Use the original engine.",
+  "made_with": "aubio 0.4.9 C engine, Apple clang 17",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "aubio"
+  ],
+  "summary": "Original aubio C YIN detects the pitch of three synthetic harmonic tones, with frequency and confidence saved.",
+  "summary_ko": "aubio 원본 C YIN으로 세 합성 배음 신호의 주파수와 신뢰도를 직접 계산했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Original aubio C YIN detects the pitch of three synthetic harmonic tones, with frequency and confidence saved.",
+  "tool_about_ko": "aubio 원본 C YIN으로 세 합성 배음 신호의 주파수와 신뢰도를 직접 계산했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "aubio contributors",
+      "url": "https://github.com/aubio/aubio",
+      "license": "GPL-3.0-or-later"
+    }
+  ]
+}
