@@ -1,0 +1,38 @@
+{
+  "order": 474,
+  "title": "Iterative reconstruction from projections (ASTRA Toolbox)",
+  "title_ko": "투영 데이터에서 반복 재구성 (ASTRA Toolbox)",
+  "description": "ASTRA 2.5.0 computes projections and CPU SIRT reconstruction of an original phantom; 5, 25 and 100 iterations reduce error.",
+  "description_ko": "ASTRA 2.5.0 원본 CPU 알고리즘으로 직접 만든 팬텀을 투영·재구성하고 5·25·100회 반복에 따른 오차 감소를 확인했어요.",
+  "prompt": "Iterative reconstruction from projections. Use the original engine.",
+  "made_with": "ASTRA Toolbox original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "astra-toolbox"
+  ],
+  "summary": "ASTRA 2.5.0 computes projections and CPU SIRT reconstruction of an original phantom; 5, 25 and 100 iterations reduce error.",
+  "summary_ko": "ASTRA 2.5.0 원본 CPU 알고리즘으로 직접 만든 팬텀을 투영·재구성하고 5·25·100회 반복에 따른 오차 감소를 확인했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "ASTRA 2.5.0 computes projections and CPU SIRT reconstruction of an original phantom; 5, 25 and 100 iterations reduce error.",
+  "tool_about_ko": "ASTRA 2.5.0 원본 CPU 알고리즘으로 직접 만든 팬텀을 투영·재구성하고 5·25·100회 반복에 따른 오차 감소를 확인했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "ASTRA Toolbox contributors",
+      "url": "https://github.com/astra-toolbox/astra-toolbox",
+      "license": "GPL-3.0"
+    }
+  ]
+}

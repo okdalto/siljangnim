@@ -1,0 +1,18 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "origami-simulator.gallery@1",
+      "packages": [],
+      "inputs": [
+        "accordion.fold",
+        "runner.cjs",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

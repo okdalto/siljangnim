@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "libfive.gallery@1",
+      "packages": [
+        "cmake==4.4.3"
+      ],
+      "inputs": [
+        "CMakeLists.txt",
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

@@ -8700,6 +8700,121 @@
     ]
    },
    "notes": "Requires Python 3.12+ and RubikTwoPhase 1.1.1. The original solver generates about 80 MB of search tables on first execution, which can take several minutes or longer. The recipe places them in a locked cache keyed by package version, byte order and native array width. Later runs reuse the tables; opening the gallery only loads the small prepared solution."
+  },
+  {
+   "id": "libfive",
+   "name": "libfive",
+   "repo": "https://github.com/libfive/libfive",
+   "license": "MPL-2.0 / GPL-2+",
+   "tier": "D",
+   "purpose": "Original libfive evaluates implicit solid differences and meshes three bore radii; every output is checked as a closed manifold.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "Requires Python 3.12+, CMake, a C++17 compiler, tar with Zstandard support, and libpng development files. The recipe verifies and caches pinned libfive, Boost 1.86 headers and Eigen 3.4.0 sources, then builds the original core with a small CMake dependency wrapper. No Studio UI or Guile is required. Tested on Apple Silicon with libpng 1.6.59."
+  },
+  {
+   "id": "astra-toolbox",
+   "name": "ASTRA Toolbox",
+   "repo": "https://github.com/astra-toolbox/astra-toolbox",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "ASTRA 2.5.0 computes projections and CPU SIRT reconstruction of an original phantom; 5, 25 and 100 iterations reduce error.",
+   "tags": [
+    "Projection · tomographic inverse problems",
+    "Tomography · medical imaging"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "conda"
+   },
+   "notes": "This exact Conda lock targets Apple Silicon macOS. Install Conda and place conda on PATH. The recipe creates and caches an isolated, version-locked ASTRA 2.5.0 environment with CPU-only 2D support; no CUDA GPU is needed. The native environment is roughly 300 MB installed and is only created on recipe rerun."
+  },
+  {
+   "id": "specfem2d",
+   "name": "SPECFEM2D",
+   "repo": "https://github.com/SPECFEM/specfem2d",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "SPECFEM2D runs a native spectral-element simulation and exports three wavefields, receiver traces and energy data.",
+   "tags": [
+    "Spectral elements · waves",
+    "Seismology · numerical experiments"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "gfortran"
+   },
+   "notes": "Requires Python 3.12+, gfortran, a C compiler and make (tested with gfortran 16.2.0). The pinned source download is about 200 MB. The recipe verifies its SHA-256, builds the original serial CPU mesher and solver, and caches the build. No MPI or CUDA runtime is needed. Allow several hundred MB for the source and build cache."
+  },
+  {
+   "id": "origami-simulator",
+   "name": "Origami Simulator",
+   "repo": "https://github.com/amandaghassaei/origamisimulator",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Original Origami Simulator GPU dynamics folds a new four-panel pattern at 0%, 35% and 70%, with edge strain checked below 0.2%.",
+   "tags": [
+    "origami",
+    "constraints",
+    "structures"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "electron"
+   },
+   "notes": "Requires Python 3.12+ and Electron with WebGL support (tested with Electron 44.4.4). Set ELECTRON to the executable if needed. Original app files are SHA-256 verified and cached; an isolated temporary browser profile runs them through a loopback-only server."
+  },
+  {
+   "id": "three-js-pathtracing-renderer",
+   "name": "THREE.js-PathTracing-Renderer",
+   "repo": "https://github.com/erichlof/three.js-pathtracing-renderer",
+   "license": "CC0-1.0 (project LICENSE)",
+   "tier": "D",
+   "purpose": "The original THREE.js PathTracing Renderer accumulates 96 samples for diffuse clearcoat, copper and refractive materials.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "electron"
+   },
+   "notes": "Requires Python 3.12+ and Electron with WebGL2 support (tested with Electron 44.4.4). Set ELECTRON to its executable if needed. The source archive is about 79 MB and is verified and cached only when rerunning the recipe. The app runs against a loopback-only server in a temporary browser profile."
   }
  ]
 }

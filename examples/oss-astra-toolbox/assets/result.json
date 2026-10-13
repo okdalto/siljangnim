@@ -1,0 +1,1 @@
+{"frames": [{"iterations": 5, "rmse": 0.1306428164243698, "label": "5 SIRT iterations", "engine": "2.5.0"}, {"iterations": 25, "rmse": 0.06247735023498535, "label": "25 SIRT iterations", "engine": "2.5.0"}, {"iterations": 100, "rmse": 0.03676670044660568, "label": "100 SIRT iterations", "engine": "2.5.0"}]}

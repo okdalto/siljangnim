@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "astra-toolbox.gallery@1",
+      "packages": [],
+      "inputs": [
+        "conda-osx-arm64.txt",
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "phantom.npy",
+        "reconstruction-0.npy",
+        "reconstruction-1.npy",
+        "reconstruction-2.npy",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json",
+        "sinogram.npy"
+      ]
+    }
+  ]
+}

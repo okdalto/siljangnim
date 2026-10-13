@@ -1,0 +1,44 @@
+{
+  "order": 476,
+  "title": "A dynamically folded accordion (Origami Simulator)",
+  "title_ko": "동적으로 접히는 아코디언 (Origami Simulator)",
+  "description": "Original Origami Simulator GPU dynamics folds a new four-panel pattern at 0%, 35% and 70%, with edge strain checked below 0.2%.",
+  "description_ko": "Origami Simulator 원본 GPU 솔버로 직접 만든 네 칸 접기 패턴을 0%·35%·70% 접고 모서리 변형률을 검증했어요.",
+  "prompt": "A dynamically folded accordion. Use the original engine.",
+  "made_with": "Origami Simulator original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "origami-simulator"
+  ],
+  "summary": "Original Origami Simulator GPU dynamics folds a new four-panel pattern at 0%, 35% and 70%, with edge strain checked below 0.2%.",
+  "summary_ko": "Origami Simulator 원본 GPU 솔버로 직접 만든 네 칸 접기 패턴을 0%·35%·70% 접고 모서리 변형률을 검증했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original Origami Simulator GPU dynamics folds a new four-panel pattern at 0%, 35% and 70%, with edge strain checked below 0.2%.",
+  "tool_about_ko": "Origami Simulator 원본 GPU 솔버로 직접 만든 네 칸 접기 패턴을 0%·35%·70% 접고 모서리 변형률을 검증했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Origami Simulator contributors",
+      "url": "https://github.com/amandaghassaei/origamisimulator",
+      "license": "MIT"
+    },
+    {
+      "what": "Original rendering dependency",
+      "source": "Three.js contributors",
+      "url": "https://github.com/mrdoob/three.js",
+      "license": "MIT"
+    }
+  ]
+}

@@ -64,6 +64,8 @@ Threading includes string art and native SVG exports computed from an original i
 
 Hyphae growth, RubikTwoPhase cube solving, PGS circle packing, Galaxy Renderer stellar orbits, diamond-webgl refraction, py5 vector rendering and SuperCollider synthesis use results computed with the original engines. Compare prepared results or inspect the inputs and runtime requirements to rerun each recipe.
 
+Original-engine results also cover libfive implicit solids, ASTRA tomography, SPECFEM2D wavefields, Origami Simulator GPU folding and THREE.js PathTracing Renderer materials. Larger runtimes are downloaded and cached only when rerunning their recipe.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

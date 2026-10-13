@@ -1,0 +1,31 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "specfem2d.gallery@1",
+      "packages": [
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "Par_file",
+        "SOURCE",
+        "interfaces_elastic_analytic.dat",
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "AA.S0001.BXX.semd",
+        "AA.S0001.BXZ.semd",
+        "energy.dat",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json",
+        "wavefield-0.jpg",
+        "wavefield-1.jpg",
+        "wavefield-2.jpg"
+      ]
+    }
+  ]
+}

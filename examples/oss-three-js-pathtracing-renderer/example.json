@@ -1,0 +1,44 @@
+{
+  "order": 477,
+  "title": "Materials under native path tracing (THREE.js-PathTracing-Renderer)",
+  "title_ko": "원본 경로 추적으로 비교하는 재질 (THREE.js-PathTracing-Renderer)",
+  "description": "The original THREE.js PathTracing Renderer accumulates 96 samples for diffuse clearcoat, copper and refractive materials.",
+  "description_ko": "THREE.js PathTracing Renderer 원본에서 코팅 확산·구리·굴절 재질을 각각 96개 샘플로 누적 렌더했어요.",
+  "prompt": "Materials under native path tracing. Use the original engine.",
+  "made_with": "THREE.js-PathTracing-Renderer original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "three-js-pathtracing-renderer"
+  ],
+  "summary": "The original THREE.js PathTracing Renderer accumulates 96 samples for diffuse clearcoat, copper and refractive materials.",
+  "summary_ko": "THREE.js PathTracing Renderer 원본에서 코팅 확산·구리·굴절 재질을 각각 96개 샘플로 누적 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "The original THREE.js PathTracing Renderer accumulates 96 samples for diffuse clearcoat, copper and refractive materials.",
+  "tool_about_ko": "THREE.js PathTracing Renderer 원본에서 코팅 확산·구리·굴절 재질을 각각 96개 샘플로 누적 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "THREE.js-PathTracing-Renderer contributors",
+      "url": "https://github.com/erichlof/three.js-pathtracing-renderer",
+      "license": "CC0-1.0 (project LICENSE)"
+    },
+    {
+      "what": "Original rendering dependency",
+      "source": "Three.js contributors",
+      "url": "https://github.com/mrdoob/three.js",
+      "license": "MIT"
+    }
+  ]
+}

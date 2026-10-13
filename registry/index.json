@@ -2,6 +2,19 @@
   "version": 1,
   "recipes": [
     {
+      "id": "astra-toolbox.gallery",
+      "version": 1,
+      "title": "Iterative reconstruction from projections",
+      "capability": "astra-toolbox graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/astra-toolbox.gallery/recipe.md",
+      "sha256": "448c2460adf6734e9eedf1e52299829cad7e7f25933fb2b0c95ea16e7056097f"
+    },
+    {
       "id": "astrometry-net.gallery",
       "version": 1,
       "title": "Recovering a rotated star field",
@@ -847,6 +860,19 @@
       "sha256": "a7e6170ce5b72ca851133d20e0d97baaf28a35bfbac184aae616383ad340514f"
     },
     {
+      "id": "libfive.gallery",
+      "version": 1,
+      "title": "Implicit solids with cylindrical bores",
+      "capability": "libfive graphics",
+      "kind": "python",
+      "license": "MPL-2.0 / GPL-2+",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/libfive.gallery/recipe.md",
+      "sha256": "6d7ec2fff8f5f3bf141fd854680f2caad35dd39fc6aa8d912040e313627a899a"
+    },
+    {
       "id": "libigl-arap.gallery",
       "version": 1,
       "title": "As-rigid-as-possible bending",
@@ -1300,6 +1326,19 @@
       ],
       "path": "recipes/orca.gallery/recipe.md",
       "sha256": "bfd97412baf079c266ab2b4ad8435ba08516dc6979f05464d9e354f7b512ccbf"
+    },
+    {
+      "id": "origami-simulator.gallery",
+      "version": 1,
+      "title": "A dynamically folded accordion",
+      "capability": "origami-simulator graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/origami-simulator.gallery/recipe.md",
+      "sha256": "d834ce0e13c6e35679d2f2d1b49fabf939d031479740c8fd62f2c6f2fe3c2c75"
     },
     {
       "id": "oripa.gallery",
@@ -1822,6 +1861,19 @@
       "sha256": "595675243256ca5ba216caeca1c82b556f07883ddcf5a944f918a2479dddcedb"
     },
     {
+      "id": "specfem2d.gallery",
+      "version": 1,
+      "title": "Elastic waves in a half-space",
+      "capability": "specfem2d graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/specfem2d.gallery/recipe.md",
+      "sha256": "45d859f627b471e553e6894ba98cda98c87bf9d31fa70bf4510193960cecd20c"
+    },
+    {
       "id": "splishsplash.gallery",
       "version": 1,
       "title": "Colliding fluid blocks with DFSPH",
@@ -1963,6 +2015,19 @@
       ],
       "path": "recipes/threading.gallery/recipe.md",
       "sha256": "d075d259934e6af273f33c268d54b5828ac750a1470cea8895ba915d38764f21"
+    },
+    {
+      "id": "three-js-pathtracing-renderer.gallery",
+      "version": 1,
+      "title": "Materials under native path tracing",
+      "capability": "three-js-pathtracing-renderer graphics",
+      "kind": "python",
+      "license": "CC0-1.0 (project LICENSE)",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/three-js-pathtracing-renderer.gallery/recipe.md",
+      "sha256": "227954af289d4d909d833d3fccf5a25fdb2bc4a5c76621910e9278ed05d62896"
     },
     {
       "id": "tinyrenderer.gallery",
