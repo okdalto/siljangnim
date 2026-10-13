@@ -40,6 +40,8 @@ GFPGAN v1.4 face restoration was run on CPU for three degraded crops of a public
 
 Doom fire, VoxelSpace terrain, the Ten Minute Physics pendulum and TinyRenderer cache verified source files and execute the original engines. psrdnoise runs the original GLSL on the GPU. Meep wave simulations were computed on CPU; their rerun recipe requires Conda and Apple Silicon macOS and downloads a pinned environment only on first use. Field colors are normalized separately for each result.
 
+geometry-central surface distances, HatViz tilings, ORCA clocks, Spring-It-On damping, RoutingKit routes, Turing Patterns reaction-diffusion and PyTopo3D topology optimization were directly computed by their original engines. Recipes verify and cache only the needed source files. PyTopo3D is a small CPU demonstration with a 60-iteration budget; stored outputs include densities and actual material fractions.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

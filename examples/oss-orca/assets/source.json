@@ -1,0 +1,28 @@
+{
+  "id": "orca",
+  "repo": "https://github.com/hundredrabbits/orca",
+  "commit": "223e45c84db14cb77fb1d31e29a3ad94652080d8",
+  "frames": 3,
+  "files": [
+    {
+      "path": "desktop/sources/scripts/core/orca.js",
+      "url": "https://raw.githubusercontent.com/hundredrabbits/orca/223e45c84db14cb77fb1d31e29a3ad94652080d8/desktop/sources/scripts/core/orca.js",
+      "sha256": "e1891f257680c3056bec3053fb50d8e26d5f1d5c7a3b1d09379314c1e8ef737f"
+    },
+    {
+      "path": "desktop/sources/scripts/core/operator.js",
+      "url": "https://raw.githubusercontent.com/hundredrabbits/orca/223e45c84db14cb77fb1d31e29a3ad94652080d8/desktop/sources/scripts/core/operator.js",
+      "sha256": "f9ce46da399453cd3b27d3261d3a9d6df4ba35e729b0190f6baf3401e27bb42f"
+    },
+    {
+      "path": "desktop/sources/scripts/core/library.js",
+      "url": "https://raw.githubusercontent.com/hundredrabbits/orca/223e45c84db14cb77fb1d31e29a3ad94652080d8/desktop/sources/scripts/core/library.js",
+      "sha256": "a0a20db009fcb090bfee81400cc791141ca2bccaaa62a2d06ac64140cabe8304"
+    },
+    {
+      "path": "LICENSE.md",
+      "url": "https://raw.githubusercontent.com/hundredrabbits/orca/223e45c84db14cb77fb1d31e29a3ad94652080d8/LICENSE.md",
+      "sha256": "d6c6f0c7b36370fc9607fe710b9fa7eed5d8196ceedb5263ed6e025d1b312519"
+    }
+  ]
+}

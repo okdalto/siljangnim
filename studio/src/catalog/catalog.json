@@ -7210,6 +7210,188 @@
    "install": {
     "bundled": true
    }
+  },
+  {
+   "id": "hatviz",
+   "name": "hatviz",
+   "repo": "https://github.com/isohedral/hatviz",
+   "license": "BSD-3-Clause",
+   "tier": "D",
+   "purpose": "HatViz constructs three substitution levels of its original hat tiling. Paths come from the actual recursive affine transforms, normalized only for the viewer.",
+   "tags": [
+    "Aperiodic · hat tiles",
+    "Patterns · tiling",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The recipe caches SHA-256 verified source files or archives, then directly executes the engine. The original substitution and getText traversal produce affine transforms. The driver converts transformed hat outlines into display paths; it does not run the p5 UI."
+  },
+  {
+   "id": "orca",
+   "name": "Orca",
+   "repo": "https://github.com/hundredrabbits/orca",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "ORCA executes three clock operators at rates 1, 2 and 4. Actual interpreter outputs are recorded for three cycle lengths and checked against their expected timing.",
+   "tags": [
+    "live coding",
+    "MIDI",
+    "Euclidean rhythms",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The recipe caches SHA-256 verified source files or archives, then directly executes the engine. Runs the original ORCA interpreter and clock operators in Node.js, with no MIDI, OSC or external-device output. Values are recorded after each interpreter frame."
+  },
+  {
+   "id": "spring-it-on",
+   "name": "Spring-It-On",
+   "repo": "https://github.com/orangeduck/spring-it-on",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Spring-It-On computes underdamped, critical and overdamped step responses with its original scalar spring functions. Samples come from direct C++ execution.",
+   "tags": [
+    "springs",
+    "damping",
+    "cameras",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The recipe caches SHA-256 verified source files or archives, then directly executes the engine. The wrapper omits only the raylib/raygui UI includes from common.h. Its numerical functions are unchanged. The driver checks settling and underdamped overshoot."
+  },
+  {
+   "id": "routingkit",
+   "name": "RoutingKit",
+   "repo": "https://github.com/RoutingKit/RoutingKit",
+   "license": "BSD-2-Clause",
+   "tier": "D",
+   "purpose": "RoutingKit runs its original Dijkstra implementation on three synthetic road grids. Paths and costs are checked against the wall-gap geometry.",
+   "tags": [
+    "Road graphs · route search",
+    "Maps · transport",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The recipe caches SHA-256 verified source files or archives, then directly executes the engine. Original procedural grid inputs, with unit edge costs. No external maps or road data are used."
+  },
+  {
+   "id": "turing-patterns",
+   "name": "Turing Patterns",
+   "repo": "https://github.com/ijmbarr/turing-patterns",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "The original Turing Patterns notebook solver evolves three Gray-Scott systems for 6,000 steps. Images use the directly computed concentration field.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "numpy==2.2.6",
+     "matplotlib==3.11.2",
+     "Pillow==11.3.0"
+    ]
+   },
+   "notes": "The recipe caches SHA-256 verified source files or archives, then directly executes the engine. The driver extracts unchanged solver definitions from the pinned notebook with Python AST, omitting demonstration plotting commands. It uses the original initializer and a fixed random seed."
+  },
+  {
+   "id": "pytopo3d",
+   "name": "PyTopo3D",
+   "repo": "https://github.com/jihoonkim888/PyTopo3D",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "PyTopo3D runs up to 60 CPU SIMP iterations on a 12×6×3 cantilever for three material fractions. Exposed voxel faces display its actual density output.",
+   "tags": [
+    "Finite elements · topology optimization",
+    "Structures · making",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "numpy==2.2.6",
+     "scipy==1.17.1",
+     "matplotlib==3.11.2",
+     "Pillow==11.3.0"
+    ]
+   },
+   "notes": "The recipe caches SHA-256 verified source files or archives, then directly executes the engine. Uses the upstream SciPy CPU fallback, with no PyPardiso or CUDA. This is a coarse illustrative problem with a 60-iteration budget, not a converged engineering design. Display threshold is 0.3; the stored density array and mean retain the actual output."
+  },
+  {
+   "id": "geometry-central-heat-method",
+   "name": "Geometry Central · Heat Method",
+   "repo": "https://github.com/nmwsharp/geometry-central",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "geometry-central computes geodesic distances from three cylinder vertices with its heat-method solver. Colors show distances on the unwrapped surface.",
+   "tags": [
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The recipe caches SHA-256 verified source files or archives, then directly executes the engine. The original native library is built with Eigen 3.4.0 and its pinned happly submodule. Mean distance error is checked against the exact cylindrical geodesic formula. The map unwraps angle and height for display; colors are normalized per source. The recipe caches checksum-verified archives and the compiled binary, and reruns the heat solve every time."
   }
  ]
 }

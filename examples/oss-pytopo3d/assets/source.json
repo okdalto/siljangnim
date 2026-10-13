@@ -1,0 +1,163 @@
+{
+  "id": "pytopo3d",
+  "repo": "https://github.com/jihoonkim888/PyTopo3D",
+  "commit": "b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3",
+  "frames": 3,
+  "files": [
+    {
+      "path": "pytopo3d/__init__.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "pytopo3d/visualization/runner.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/visualization/runner.py",
+      "sha256": "5507115d6fed67fe161f7fecb98214bce75ecd322170a5114ff42313ce8f64a2"
+    },
+    {
+      "path": "pytopo3d/visualization/__init__.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/visualization/__init__.py",
+      "sha256": "a93344efa6f20400aa9afa0b63f5e62815536300d509e11a44cd2457e45e7934"
+    },
+    {
+      "path": "pytopo3d/visualization/display.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/visualization/display.py",
+      "sha256": "f47b3d7d8ae81372777580470e929ad80b6d425a7c10647a6c393a9649e185b5"
+    },
+    {
+      "path": "pytopo3d/visualization/animation.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/visualization/animation.py",
+      "sha256": "f2751e9fa77cf0b90cf53de7c030712ea6ded1362b433e0175c0529eda8461b8"
+    },
+    {
+      "path": "pytopo3d/visualization/visualizer.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/visualization/visualizer.py",
+      "sha256": "a8285dcc08bf83e07ff4b7690506d99f815920c30bcb637d3f5b577ae3542102"
+    },
+    {
+      "path": "pytopo3d/core/compliance.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/core/compliance.py",
+      "sha256": "63def27a7517fb08746f497f07eaddb69d98691065fd9138438b9a6e4ff9c97a"
+    },
+    {
+      "path": "pytopo3d/core/__init__.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/core/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "pytopo3d/core/optimizer.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/core/optimizer.py",
+      "sha256": "97a2a260a883843d77a52f7b19128118ab5163e58f05bc00f8007a54a244cad1"
+    },
+    {
+      "path": "pytopo3d/core/evaluator.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/core/evaluator.py",
+      "sha256": "d645215384bf41cc94b4f04d25be6e47b48b1180304b4229c802d933ad00392e"
+    },
+    {
+      "path": "pytopo3d/utils/metrics.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/metrics.py",
+      "sha256": "35724b3d2d8401c5983b9ee3803f3c50ce718a5c2fc5240c9d3b4b122cc7fba7"
+    },
+    {
+      "path": "pytopo3d/utils/boundary.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/boundary.py",
+      "sha256": "5dbab3f468c3dd52943f75ffc3fcefe1fa2d17cef7329c598c76388a1fb1df63"
+    },
+    {
+      "path": "pytopo3d/utils/axis_convention.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/axis_convention.py",
+      "sha256": "86f9a7dcd6cc6ce350ae3fa453ed88d37c4e6d7e3715033cd656d3cdf518fba0"
+    },
+    {
+      "path": "pytopo3d/utils/oc_update.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/oc_update.py",
+      "sha256": "fd1acdee4fe9cb613575488f69f15d5ba038f7da245600fd01d5cb727a383594"
+    },
+    {
+      "path": "pytopo3d/utils/solver.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/solver.py",
+      "sha256": "923aea6952a687fcbb50e5ebb145410449a1153afb7708842fcd7319e3b4a462"
+    },
+    {
+      "path": "pytopo3d/utils/__init__.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/__init__.py",
+      "sha256": "b13223fa3e29b092dccef04cca9c3c95695ea521a8cd920657e605b4fc279873"
+    },
+    {
+      "path": "pytopo3d/utils/export.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/export.py",
+      "sha256": "649f651f0f5342148c9ccb6c916366dd05637b5e704106a2d73e78348e65c4c5"
+    },
+    {
+      "path": "pytopo3d/utils/logger.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/logger.py",
+      "sha256": "ae842ae82ea58c394f1b341591f403953132c12b26c407ba327eae3e36144599"
+    },
+    {
+      "path": "pytopo3d/utils/results_manager.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/results_manager.py",
+      "sha256": "89a1911c9cd86162326466e8366e9402840182af4c0351b179f3f1c7e690e49d"
+    },
+    {
+      "path": "pytopo3d/utils/obstacles.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/obstacles.py",
+      "sha256": "2ebe82c6efa9ee7a48ab2e41c04cd452e2819f6ba651a5f27611a532b703f51f"
+    },
+    {
+      "path": "pytopo3d/utils/assembly.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/assembly.py",
+      "sha256": "a9a20a5e8b3942da44aaf92bff88e12c3fd2e5cfea5a5e0f9cc7d20de97bde92"
+    },
+    {
+      "path": "pytopo3d/utils/stiffness.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/stiffness.py",
+      "sha256": "fc37001898e49d05455e939686b4c0d8ae6da29fca2bae75f44e62bada8781c6"
+    },
+    {
+      "path": "pytopo3d/utils/import_design_space.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/import_design_space.py",
+      "sha256": "14e7be64e98e4384e09e0378046f899ff294d598a819fce339282ea8e2adde7e"
+    },
+    {
+      "path": "pytopo3d/utils/filter.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/utils/filter.py",
+      "sha256": "0daeeabb5a186c678b0206dc582bbc42dc59eb03e9ef0f0051cd4bc87b1f98f0"
+    },
+    {
+      "path": "pytopo3d/cli/__init__.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/cli/__init__.py",
+      "sha256": "6bb54fbfb59351009e6c21e6d01c03fb0b044aecd227678604b556293dd4f119"
+    },
+    {
+      "path": "pytopo3d/cli/parser.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/cli/parser.py",
+      "sha256": "e37a0c9120707b095c894d0d68f187a5e4706186c53c1e87573b9030a4ee775d"
+    },
+    {
+      "path": "pytopo3d/runners/__init__.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/runners/__init__.py",
+      "sha256": "07affe739a49b1776e33131985ea0b172229af2a601166369cf51cbccb1ecc4e"
+    },
+    {
+      "path": "pytopo3d/runners/experiment.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/runners/experiment.py",
+      "sha256": "cd430a65449d976acb16b5e612d47b79e5f85d03477048f1c2779a5bf3ed3e9e"
+    },
+    {
+      "path": "pytopo3d/preprocessing/__init__.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/preprocessing/__init__.py",
+      "sha256": "e8300d344fdfd66fbdecf0289ad5d5c5fb28c61bc6ef7f80347871e3d3dd06df"
+    },
+    {
+      "path": "pytopo3d/preprocessing/geometry.py",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/pytopo3d/preprocessing/geometry.py",
+      "sha256": "7db132b29aec57c12c877cd3b7a777c73b8d43a3fc35fe303b5768e30494dbde"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/jihoonkim888/PyTopo3D/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3/LICENSE",
+      "sha256": "2fc0068534997ee587d853ad02495f38c35e893a5ae332f9dcf1f9a972c4243d"
+    }
+  ]
+}

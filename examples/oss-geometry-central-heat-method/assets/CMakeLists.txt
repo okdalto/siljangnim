@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.14)
+project(gallery LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(SUITESPARSE OFF CACHE BOOL "" FORCE)
+add_subdirectory(${SOURCE_DIR} geometry-central)
+add_executable(gallery main.cpp)
+target_link_libraries(gallery PRIVATE geometry-central)
+target_compile_options(gallery PRIVATE -UNDEBUG)

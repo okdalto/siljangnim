@@ -1,0 +1,9 @@
+#include "geometrycentral/surface/manifold_surface_mesh.h"
+#include "geometrycentral/surface/vertex_position_geometry.h"
+#include "geometrycentral/surface/heat_method_distance.h"
+#include <cassert>
+#include <cmath>
+#include <fstream>
+#include <filesystem>
+using namespace geometrycentral;using namespace geometrycentral::surface;
+int main(int argc,char**argv){assert(argc==2);std::filesystem::create_directories(argv[1]);const int n=32,m=12;std::vector<std::vector<size_t>> faces;for(int y=0;y<m-1;y++)for(int x=0;x<n;x++){size_t a=y*n+x,b=y*n+(x+1)%n,c=(y+1)*n+(x+1)%n,d=(y+1)*n+x;faces.push_back({a,b,c});faces.push_back({a,c,d});}ManifoldSurfaceMesh mesh(faces);VertexData<Vector3> positions(mesh);for(auto v:mesh.vertices()){int i=v.getIndex();double a=2*M_PI*(i%n)/n;positions[v]={std::cos(a),std::sin(a),2.*(i/n)/(m-1)-1};}VertexPositionGeometry geometry(mesh,positions);HeatMethodDistanceSolver solver(geometry);std::ofstream o(std::string(argv[1])+"/result.json");o<<"{\"frames\":[";int sources[]={6*n+3,3*n+16,9*n+26};for(int k=0;k<3;k++){if(k)o<<",";auto values=solver.computeDistance(mesh.vertex(sources[k]));double maxd=0,error=0;for(auto v:mesh.vertices()){double d=values[v];assert(std::isfinite(d)&&d>-.01);maxd=std::max(maxd,d);int i=v.getIndex(),dx=std::abs(i%n-sources[k]%n);dx=std::min(dx,n-dx);double expected=std::hypot(2*M_PI*dx/n,2.*((i/n)-(sources[k]/n))/(m-1));error+=std::abs(d-expected);}error/=n*m;assert(std::abs(values[mesh.vertex(sources[k])])<1e-8&&maxd>2&&error<.3);o<<"{\"points\":[";for(int i=0;i<n*m;i++){if(i)o<<",";o<<"["<<-.8+1.6*(i%n)/(n-1)<<","<<-.65+1.3*(i/n)/(m-1)<<",0]";}o<<"],\"values\":[";for(int i=0;i<n*m;i++){if(i)o<<",";o<<values[mesh.vertex(i)]/maxd;}o<<"],\"radius\":0.025,\"sourceIndex\":"<<sources[k]<<",\"maxDistance\":"<<maxd<<",\"meanGeodesicError\":"<<error<<"}";}o<<"]}";}

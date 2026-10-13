@@ -366,6 +366,19 @@
       "sha256": "8261755b17e521f125779b0f13e6b827f84d9f88e88a79cc62af067b35119a8f"
     },
     {
+      "id": "geometry-central-heat-method.gallery",
+      "version": 1,
+      "title": "Heat-method distance on a cylinder",
+      "capability": "geometry-central-heat-method simulation native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/geometry-central-heat-method.gallery/recipe.md",
+      "sha256": "f8cab5494f41a0de1d9d1e5cf3340ea9f60c3ad5c57b79c3a0cfe8721709039e"
+    },
+    {
       "id": "geos.gallery",
       "version": 1,
       "title": "Offsets around a polyline",
@@ -429,6 +442,19 @@
       ],
       "path": "recipes/harfbuzz.gallery/recipe.md",
       "sha256": "7240dd67812ec4c3c19bbebb1c2b91c955369fb5652de7ae36ab5ac875fd9039"
+    },
+    {
+      "id": "hatviz.gallery",
+      "version": 1,
+      "title": "Aperiodic hat supertiles",
+      "capability": "hatviz simulation native",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/hatviz.gallery/recipe.md",
+      "sha256": "8f6a2cb424aab03aa8af595efc3d61008e9b3a4f1f668c571964e2662b250cdc"
     },
     {
       "id": "healpy.gallery",
@@ -886,6 +912,19 @@
       "sha256": "b17a1dc7e6f81d62c42a44cbbf8664632d01f7f7db424fe0298ac4c9d84f1ce2"
     },
     {
+      "id": "orca.gallery",
+      "version": 1,
+      "title": "Clock divisions in a live-code grid",
+      "capability": "orca simulation native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/orca.gallery/recipe.md",
+      "sha256": "bfd97412baf079c266ab2b4ad8435ba08516dc6979f05464d9e354f7b512ccbf"
+    },
+    {
       "id": "p5-hershey-js.gallery",
       "version": 1,
       "title": "Stroke fonts from Hershey data",
@@ -1042,6 +1081,19 @@
       "sha256": "ad0a1756f489d52d506cdc81556e8316dc5ba502f76e4447ce48dba049353c33"
     },
     {
+      "id": "pytopo3d.gallery",
+      "version": 1,
+      "title": "CPU topology optimization of a small beam",
+      "capability": "pytopo3d simulation native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/pytopo3d.gallery/recipe.md",
+      "sha256": "7b2ca94b89370724bca827e963be725ea34a5ee7b7ef962d96583d6e6c3e9c6e"
+    },
+    {
       "id": "pyvista.gallery",
       "version": 1,
       "title": "Clipping a surface",
@@ -1118,6 +1170,19 @@
       ],
       "path": "recipes/rembg.gallery/recipe.md",
       "sha256": "99efcccf929bf1cc53740ff1ba154ce2ac1e3611db0a2ed564261d113203821a"
+    },
+    {
+      "id": "routingkit.gallery",
+      "version": 1,
+      "title": "Shortest routes through a wall gap",
+      "capability": "routingkit simulation native",
+      "kind": "python",
+      "license": "BSD-2-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/routingkit.gallery/recipe.md",
+      "sha256": "8fac610378b7f810fbd7f0e3c97786e01e86baabca34f3c19e2dd660e4782a97"
     },
     {
       "id": "rvo2-orca.gallery",
@@ -1248,6 +1313,19 @@
       ],
       "path": "recipes/skeleton-tracing.gallery/recipe.md",
       "sha256": "595675243256ca5ba216caeca1c82b556f07883ddcf5a944f918a2479dddcedb"
+    },
+    {
+      "id": "spring-it-on.gallery",
+      "version": 1,
+      "title": "Damped spring step responses",
+      "capability": "spring-it-on simulation native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/spring-it-on.gallery/recipe.md",
+      "sha256": "978a54acf728c82523d375d65d7de4e430f003ed6793815d56450ef2e755a5c5"
     },
     {
       "id": "sunpy.gallery",
@@ -1391,6 +1469,19 @@
       ],
       "path": "recipes/truck.gallery/recipe.md",
       "sha256": "97f995551c6eb0e117223d775d55aa4710878a54bcc341492b6ae029c4e78e2b"
+    },
+    {
+      "id": "turing-patterns.gallery",
+      "version": 1,
+      "title": "Reaction-diffusion patterns from the notebook",
+      "capability": "turing-patterns simulation native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/turing-patterns.gallery/recipe.md",
+      "sha256": "228204e17e95fb6e016a63725b6d9b0aaa4fd04ef689e78d22c3428fd48d2cfb"
     },
     {
       "id": "u2-net.gallery",

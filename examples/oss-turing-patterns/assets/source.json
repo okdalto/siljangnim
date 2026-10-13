@@ -1,0 +1,23 @@
+{
+  "id": "turing-patterns",
+  "repo": "https://github.com/ijmbarr/turing-patterns",
+  "commit": "33a20dd006df8dbf24facce758262f57eab472c7",
+  "frames": 3,
+  "files": [
+    {
+      "path": "turing-patterns.ipynb",
+      "url": "https://raw.githubusercontent.com/ijmbarr/turing-patterns/33a20dd006df8dbf24facce758262f57eab472c7/turing-patterns.ipynb",
+      "sha256": "3e40600a2926b29dc1ed74697316c58d1dae42dc418eef8c1947df08b40304aa"
+    },
+    {
+      "path": "tutils.py",
+      "url": "https://raw.githubusercontent.com/ijmbarr/turing-patterns/33a20dd006df8dbf24facce758262f57eab472c7/tutils.py",
+      "sha256": "b13330cad8cbe3e167e80bf4df914a2dd23e3fc81614c8135974425c010b6b37"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/ijmbarr/turing-patterns/33a20dd006df8dbf24facce758262f57eab472c7/LICENSE",
+      "sha256": "b82a3f10808ef52c5fc8a9705fead6c6102a350a7a642930ae853ae78a318178"
+    }
+  ]
+}

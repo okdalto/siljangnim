@@ -1,0 +1,38 @@
+{
+  "order": 416,
+  "title": "Reaction-diffusion patterns from the notebook (Turing Patterns)",
+  "title_ko": "노트북에서 직접 계산한 반응 확산 패턴 (Turing Patterns)",
+  "description": "The original Turing Patterns notebook solver evolves three Gray-Scott systems for 6,000 steps. Images use the directly computed concentration field.",
+  "description_ko": "Turing Patterns 노트북의 원본 솔버로 세 Gray-Scott 계를 6,000단계 계산했어요. 실제 농도장을 이미지로 표시해요.",
+  "prompt": "Reaction-diffusion patterns from the notebook. Rerun the included recipe for different inputs.",
+  "made_with": "Pinned original source, directly executed on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "turing-patterns"
+  ],
+  "summary": "The original Turing Patterns notebook solver evolves three Gray-Scott systems for 6,000 steps.",
+  "summary_ko": "Turing Patterns 노트북의 원본 솔버로 세 Gray-Scott 계를 6,000단계 계산했어요. 실제 농도장을 이미지로 표시해요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "The original Turing Patterns notebook solver evolves three Gray-Scott systems for 6,000 steps. Images use the directly computed concentration field. The driver extracts unchanged solver definitions from the pinned notebook with Python AST, omitting demonstration plotting commands. It uses the original initializer and a fixed random seed.",
+  "tool_about_ko": "Turing Patterns 노트북의 원본 솔버로 세 Gray-Scott 계를 6,000단계 계산했어요. 실제 농도장을 이미지로 표시해요. 보기는 저장된 결과를 선택하며 계산을 바꾸려면 레시피를 재실행하세요.",
+  "credits": [
+    {
+      "what": "Original engine at 33a20dd006df8dbf24facce758262f57eab472c7",
+      "source": "Turing Patterns contributors",
+      "url": "https://github.com/ijmbarr/turing-patterns/tree/33a20dd006df8dbf24facce758262f57eab472c7",
+      "license": "MIT"
+    }
+  ]
+}

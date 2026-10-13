@@ -1,0 +1,22 @@
+{
+  "id": "geometry-central-heat-method",
+  "repo": "https://github.com/nmwsharp/geometry-central",
+  "sha": "019669ddabda05e0f71fa3587cfb3c1dadf19cb8",
+  "url": "https://codeload.github.com/nmwsharp/geometry-central/tar.gz/019669ddabda05e0f71fa3587cfb3c1dadf19cb8",
+  "sha256": "c154b06a8fec61ee05720b3083586af3c62f1c1248523909b8a6622f096f95f6",
+  "license": "MIT",
+  "dependencies": [
+    {
+      "name": "happly",
+      "url": "https://codeload.github.com/nmwsharp/happly/tar.gz/88f79725d32d78e0e637ebf42d8432d519e1c7d0",
+      "sha256": "61c6d112ac011408eab2154f145a9b71e188fa4b60cf3903b95e08f3a0d1fb17",
+      "destination": "deps/happly"
+    },
+    {
+      "name": "eigen",
+      "url": "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz",
+      "sha256": "8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72"
+    }
+  ],
+  "frames": 3
+}

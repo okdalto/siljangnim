@@ -1,0 +1,38 @@
+{
+  "order": 417,
+  "title": "CPU topology optimization of a small beam (PyTopo3D)",
+  "title_ko": "작은 보의 CPU 위상 최적화 (PyTopo3D)",
+  "description": "PyTopo3D runs up to 60 CPU SIMP iterations on a 12×6×3 cantilever for three material fractions. Exposed voxel faces display its actual density output.",
+  "description_ko": "PyTopo3D로 12×6×3 외팔보를 세 재료 비율에서 CPU SIMP 최대 60회씩 계산했어요. 실제 밀도 결과의 노출 복셀 면을 표시해요.",
+  "prompt": "CPU topology optimization of a small beam. Rerun the included recipe for different inputs.",
+  "made_with": "Pinned original source, directly executed on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "pytopo3d"
+  ],
+  "summary": "PyTopo3D runs up to 60 CPU SIMP iterations on a 12×6×3 cantilever for three material fractions.",
+  "summary_ko": "PyTopo3D로 12×6×3 외팔보를 세 재료 비율에서 CPU SIMP 최대 60회씩 계산했어요. 실제 밀도 결과의 노출 복셀 면을 표시해요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "PyTopo3D runs up to 60 CPU SIMP iterations on a 12×6×3 cantilever for three material fractions. Exposed voxel faces display its actual density output. Uses the upstream SciPy CPU fallback, with no PyPardiso or CUDA. This is a coarse illustrative problem with a 60-iteration budget, not a converged engineering design. Display threshold is 0.3; the stored density array and mean retain the actual output.",
+  "tool_about_ko": "PyTopo3D로 12×6×3 외팔보를 세 재료 비율에서 CPU SIMP 최대 60회씩 계산했어요. 실제 밀도 결과의 노출 복셀 면을 표시해요. 보기는 저장된 결과를 선택하며 계산을 바꾸려면 레시피를 재실행하세요.",
+  "credits": [
+    {
+      "what": "Original engine at b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3",
+      "source": "PyTopo3D contributors",
+      "url": "https://github.com/jihoonkim888/PyTopo3D/tree/b6af66c5bfe0cd73fbeb117269ea624a04cc9ab3",
+      "license": "MIT"
+    }
+  ]
+}

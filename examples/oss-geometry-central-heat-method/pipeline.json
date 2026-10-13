@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "geometry-central-heat-method.gallery@1",
+      "packages": [
+        "cmake==4.4.3"
+      ],
+      "inputs": [
+        "main.cpp",
+        "source.json",
+        "CMakeLists.txt"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

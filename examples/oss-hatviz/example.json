@@ -1,0 +1,38 @@
+{
+  "order": 412,
+  "title": "Aperiodic hat supertiles (hatviz)",
+  "title_ko": "비주기 모자 타일의 확장 (hatviz)",
+  "description": "HatViz constructs three substitution levels of its original hat tiling. Paths come from the actual recursive affine transforms, normalized only for the viewer.",
+  "description_ko": "HatViz의 원본 모자 타일을 세 치환 단계로 확장했어요. 실제 재귀 아핀 변환에서 꺼낸 윤곽을 화면 크기에 맞춰 표시해요.",
+  "prompt": "Aperiodic hat supertiles. Rerun the included recipe for different inputs.",
+  "made_with": "Pinned original source, directly executed on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "hatviz"
+  ],
+  "summary": "HatViz constructs three substitution levels of its original hat tiling.",
+  "summary_ko": "HatViz의 원본 모자 타일을 세 치환 단계로 확장했어요. 실제 재귀 아핀 변환에서 꺼낸 윤곽을 화면 크기에 맞춰 표시해요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "HatViz constructs three substitution levels of its original hat tiling. Paths come from the actual recursive affine transforms, normalized only for the viewer. The original substitution and getText traversal produce affine transforms. The driver converts transformed hat outlines into display paths; it does not run the p5 UI.",
+  "tool_about_ko": "HatViz의 원본 모자 타일을 세 치환 단계로 확장했어요. 실제 재귀 아핀 변환에서 꺼낸 윤곽을 화면 크기에 맞춰 표시해요. 보기는 저장된 결과를 선택하며 계산을 바꾸려면 레시피를 재실행하세요.",
+  "credits": [
+    {
+      "what": "Original engine at 4bb9d01999e4e84accc2a78d0fa279ef20b47263",
+      "source": "hatviz contributors",
+      "url": "https://github.com/isohedral/hatviz/tree/4bb9d01999e4e84accc2a78d0fa279ef20b47263",
+      "license": "BSD-3-Clause"
+    }
+  ]
+}

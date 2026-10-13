@@ -1,0 +1,17 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "spring-it-on.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.cpp",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

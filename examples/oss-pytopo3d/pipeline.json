@@ -1,0 +1,22 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "pytopo3d.gallery@1",
+      "packages": [
+        "numpy==2.2.6",
+        "scipy==1.17.1",
+        "matplotlib==3.11.2",
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

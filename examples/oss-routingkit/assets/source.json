@@ -1,0 +1,33 @@
+{
+  "id": "routingkit",
+  "repo": "https://github.com/RoutingKit/RoutingKit",
+  "commit": "54d49bb0cdea56dde182357522e4e86a03c57852",
+  "frames": 3,
+  "files": [
+    {
+      "path": "include/routingkit/dijkstra.h",
+      "url": "https://raw.githubusercontent.com/RoutingKit/RoutingKit/54d49bb0cdea56dde182357522e4e86a03c57852/include/routingkit/dijkstra.h",
+      "sha256": "17118a3c34cc3bbba4390653ef366b381f1945f940b3562ce2db262d7912ef28"
+    },
+    {
+      "path": "include/routingkit/id_queue.h",
+      "url": "https://raw.githubusercontent.com/RoutingKit/RoutingKit/54d49bb0cdea56dde182357522e4e86a03c57852/include/routingkit/id_queue.h",
+      "sha256": "fc84440d17e2d1e3ceb8c26e42e6256465b77e644ba33cc66d1aa6ba17b98399"
+    },
+    {
+      "path": "include/routingkit/constants.h",
+      "url": "https://raw.githubusercontent.com/RoutingKit/RoutingKit/54d49bb0cdea56dde182357522e4e86a03c57852/include/routingkit/constants.h",
+      "sha256": "c9099948cf03087bc3c4f770d9622f22d1bb618e67b453f00ab1460b48b9f204"
+    },
+    {
+      "path": "include/routingkit/timestamp_flag.h",
+      "url": "https://raw.githubusercontent.com/RoutingKit/RoutingKit/54d49bb0cdea56dde182357522e4e86a03c57852/include/routingkit/timestamp_flag.h",
+      "sha256": "cc3911f04d875970a73ee738a5ff2313366a249362212de80bb5aa42464f68d2"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/RoutingKit/RoutingKit/54d49bb0cdea56dde182357522e4e86a03c57852/LICENSE",
+      "sha256": "e3ddf21a71912370873e6935635dddb3e925a9943433cdfc4ede4a261cac4e54"
+    }
+  ]
+}

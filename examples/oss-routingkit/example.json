@@ -1,0 +1,38 @@
+{
+  "order": 415,
+  "title": "Shortest routes through a wall gap (RoutingKit)",
+  "title_ko": "벽의 틈을 지나는 최단 경로 (RoutingKit)",
+  "description": "RoutingKit runs its original Dijkstra implementation on three synthetic road grids. Paths and costs are checked against the wall-gap geometry.",
+  "description_ko": "RoutingKit의 원본 Dijkstra 구현으로 가상 도로 격자 세 개의 최단 경로를 구했어요. 벽의 틈을 고려한 경로와 비용을 검사해요.",
+  "prompt": "Shortest routes through a wall gap. Rerun the included recipe for different inputs.",
+  "made_with": "Pinned original source, directly executed on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "routingkit"
+  ],
+  "summary": "RoutingKit runs its original Dijkstra implementation on three synthetic road grids.",
+  "summary_ko": "RoutingKit의 원본 Dijkstra 구현으로 가상 도로 격자 세 개의 최단 경로를 구했어요. 벽의 틈을 고려한 경로와 비용을 검사해요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "RoutingKit runs its original Dijkstra implementation on three synthetic road grids. Paths and costs are checked against the wall-gap geometry. Original procedural grid inputs, with unit edge costs. No external maps or road data are used.",
+  "tool_about_ko": "RoutingKit의 원본 Dijkstra 구현으로 가상 도로 격자 세 개의 최단 경로를 구했어요. 벽의 틈을 고려한 경로와 비용을 검사해요. 보기는 저장된 결과를 선택하며 계산을 바꾸려면 레시피를 재실행하세요.",
+  "credits": [
+    {
+      "what": "Original engine at 54d49bb0cdea56dde182357522e4e86a03c57852",
+      "source": "RoutingKit contributors",
+      "url": "https://github.com/RoutingKit/RoutingKit/tree/54d49bb0cdea56dde182357522e4e86a03c57852",
+      "license": "BSD-2-Clause"
+    }
+  ]
+}

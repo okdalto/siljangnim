@@ -1,0 +1,38 @@
+{
+  "order": 418,
+  "title": "Heat-method distance on a cylinder (Geometry Central · Heat Method)",
+  "title_ko": "원통 표면의 열 방법 거리 (Geometry Central · Heat Method)",
+  "description": "geometry-central computes geodesic distances from three cylinder vertices with its heat-method solver. Colors show distances on the unwrapped surface.",
+  "description_ko": "geometry-central 열 방법 솔버로 원통 표면의 세 꼭짓점에서 거리를 계산했어요. 펼친 표면에 실제 거리를 색으로 표시해요.",
+  "prompt": "Heat-method distance on a cylinder. Rerun the included recipe for different inputs.",
+  "made_with": "Pinned original source, directly executed on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "geometry-central-heat-method"
+  ],
+  "summary": "geometry-central computes geodesic distances from three cylinder vertices with its heat-method solver.",
+  "summary_ko": "geometry-central 열 방법 솔버로 원통 표면의 세 꼭짓점에서 거리를 계산했어요. 펼친 표면에 실제 거리를 색으로 표시해요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "geometry-central computes geodesic distances from three cylinder vertices with its heat-method solver. Colors show distances on the unwrapped surface. The original native library is built with Eigen 3.4.0 and its pinned happly submodule. Mean distance error is checked against the exact cylindrical geodesic formula. The map unwraps angle and height for display; colors are normalized per source. The recipe caches checksum-verified archives and the compiled binary, and reruns the heat solve every time.",
+  "tool_about_ko": "geometry-central 열 방법 솔버로 원통 표면의 세 꼭짓점에서 거리를 계산했어요. 펼친 표면에 실제 거리를 색으로 표시해요. 보기는 저장된 결과를 선택하며 계산을 바꾸려면 레시피를 재실행하세요.",
+  "credits": [
+    {
+      "what": "Original engine at 019669ddabda05e0f71fa3587cfb3c1dadf19cb8",
+      "source": "Geometry Central · Heat Method contributors",
+      "url": "https://github.com/nmwsharp/geometry-central/tree/019669ddabda05e0f71fa3587cfb3c1dadf19cb8",
+      "license": "MIT"
+    }
+  ]
+}

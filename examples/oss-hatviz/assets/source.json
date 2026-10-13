@@ -1,0 +1,23 @@
+{
+  "id": "hatviz",
+  "repo": "https://github.com/isohedral/hatviz",
+  "commit": "4bb9d01999e4e84accc2a78d0fa279ef20b47263",
+  "frames": 3,
+  "files": [
+    {
+      "path": "geometry.js",
+      "url": "https://raw.githubusercontent.com/isohedral/hatviz/4bb9d01999e4e84accc2a78d0fa279ef20b47263/geometry.js",
+      "sha256": "a6d4ab9b8baf5513bf03a7414c6cc41c1fb8108c18b89370a279d4ad47ec9d8c"
+    },
+    {
+      "path": "hat.js",
+      "url": "https://raw.githubusercontent.com/isohedral/hatviz/4bb9d01999e4e84accc2a78d0fa279ef20b47263/hat.js",
+      "sha256": "577deec32bf67d1620f7453572b7dc6db86d9642490ad8260b6e3daf1fdf1041"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/isohedral/hatviz/4bb9d01999e4e84accc2a78d0fa279ef20b47263/LICENSE",
+      "sha256": "a5690b1ca33c5d13194d9a68b9c276c8ee042dcae671332a4a72d7f6038057eb"
+    }
+  ]
+}
