@@ -55,10 +55,18 @@ jobs:
         with:
           node-version: 22
       - run: npm install
+      # Signed when the repository has the certificate secrets (see desktop/electron-builder.signed.yml);
+      # unsigned otherwise.
       - name: Build installer
         run: npm run dist
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          CSC_LINK: ${{ matrix.os == 'macos-14' && secrets.MAC_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.os == 'macos-14' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
       - name: Smoke test packaged app
         working-directory: desktop
         run: npm run smoke
