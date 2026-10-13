@@ -1,0 +1,29 @@
+{
+  "order": 262,
+  "title": "A ring of perceptual color (d3-color)",
+  "title_ko": "지각 색상환 (d3-color)",
+  "description": "D3 Color converts CIELCH coordinates to display RGB. Gray crosses mark colors outside the sRGB gamut before display clipping.",
+  "description_ko": "D3 Color가 CIELCH 좌표를 화면 RGB로 변환해요. 회색 십자는 화면 색역 밖의 색을 표시하고, 실제 색은 표시 가능한 범위로 잘라요.",
+  "prompt": "A ring of perceptual color. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-color 3.1.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-color"
+  ],
+  "summary": "A ring of perceptual color. Change the controls to explore the actual algorithm.",
+  "summary_ko": "지각 색상환. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Adjust Lightness",
+    "Increase Chroma and watch gamut markers appear"
+  ],
+  "try_ko": [
+    "Lightness로 밝기를 바꿔 보세요",
+    "Chroma를 올려 색역 표시를 확인하세요"
+  ],
+  "tool_about": "D3 Color converts CIELCH coordinates to display RGB. Gray crosses mark colors outside the sRGB gamut before display clipping.",
+  "tool_about_ko": "D3 Color가 CIELCH 좌표를 화면 RGB로 변환해요. 회색 십자는 화면 색역 밖의 색을 표시하고, 실제 색은 표시 가능한 범위로 잘라요."
+}

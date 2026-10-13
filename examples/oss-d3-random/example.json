@@ -1,0 +1,29 @@
+{
+  "order": 261,
+  "title": "Shapes of chance (d3-random)",
+  "title_ko": "확률이 쌓이는 모양 (d3-random)",
+  "description": "D3 Random samples seeded distributions and bins them into a histogram. The sample count is preserved, including the two overflow bins.",
+  "description_ko": "D3 Random으로 같은 난수 시작점에서 확률분포를 뽑아 히스토그램에 쌓아요. 양 끝 구간에는 범위 밖 표본도 포함돼요.",
+  "prompt": "Shapes of chance. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-random 3.0.1; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-random"
+  ],
+  "summary": "Shapes of chance. Change the controls to explore the actual algorithm.",
+  "summary_ko": "확률이 쌓이는 모양. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Compare the four distributions",
+    "Change Spread to widen the sample cloud"
+  ],
+  "try_ko": [
+    "Distribution으로 네 분포를 비교하세요",
+    "Spread로 표본의 퍼짐을 바꿔 보세요"
+  ],
+  "tool_about": "D3 Random samples seeded distributions and bins them into a histogram. The sample count is preserved, including the two overflow bins.",
+  "tool_about_ko": "D3 Random으로 같은 난수 시작점에서 확률분포를 뽑아 히스토그램에 쌓아요. 양 끝 구간에는 범위 밖 표본도 포함돼요."
+}

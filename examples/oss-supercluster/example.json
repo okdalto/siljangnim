@@ -1,0 +1,29 @@
+{
+  "order": 273,
+  "title": "From clusters to points (Supercluster)",
+  "title_ko": "덩어리에서 점으로 (Supercluster)",
+  "description": "Supercluster builds zoom-dependent clusters from 360 original geographic points. Bubble numbers show how many source points each cluster represents.",
+  "description_ko": "Supercluster가 직접 만든 지리 좌표 360개를 확대 단계에 따라 묶어요. 원 안 숫자는 해당 묶음의 원래 점 개수예요.",
+  "prompt": "From clusters to points. Make the algorithm visible and let the controls change its input.",
+  "made_with": "supercluster 9.1.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "supercluster"
+  ],
+  "summary": "From clusters to points. Change the controls to explore the actual algorithm.",
+  "summary_ko": "덩어리에서 점으로. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Increase Zoom to split clusters",
+    "Change Cluster radius"
+  ],
+  "try_ko": [
+    "Zoom을 올려 묶음을 풀어 보세요",
+    "Cluster radius로 묶는 거리를 바꾸세요"
+  ],
+  "tool_about": "Supercluster builds zoom-dependent clusters from 360 original geographic points. Bubble numbers show how many source points each cluster represents.",
+  "tool_about_ko": "Supercluster가 직접 만든 지리 좌표 360개를 확대 단계에 따라 묶어요. 원 안 숫자는 해당 묶음의 원래 점 개수예요."
+}

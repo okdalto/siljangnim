@@ -1,0 +1,29 @@
+{
+  "order": 265,
+  "title": "Designing a timing curve (bezier-easing)",
+  "title_ko": "타이밍 곡선 설계 (bezier-easing)",
+  "description": "Bezier Easing solves a cubic timing curve from its two control points. Pink handles show the curve and the mint point shows the solved progress.",
+  "description_ko": "Bezier Easing이 두 제어점으로 만든 3차 타이밍 곡선의 진행값을 계산해요. 분홍 제어점과 민트색 계산 결과를 함께 보여요.",
+  "prompt": "Designing a timing curve. Make the algorithm visible and let the controls change its input.",
+  "made_with": "bezier-easing 3.1.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "bezier-easing"
+  ],
+  "summary": "Designing a timing curve. Change the controls to explore the actual algorithm.",
+  "summary_ko": "타이밍 곡선 설계. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Move the two handles",
+    "Slide Progress to inspect the solved value"
+  ],
+  "try_ko": [
+    "두 제어점을 움직여 보세요",
+    "Progress로 계산된 진행값을 확인하세요"
+  ],
+  "tool_about": "Bezier Easing solves a cubic timing curve from its two control points. Pink handles show the curve and the mint point shows the solved progress.",
+  "tool_about_ko": "Bezier Easing이 두 제어점으로 만든 3차 타이밍 곡선의 진행값을 계산해요. 분홍 제어점과 민트색 계산 결과를 함께 보여요."
+}

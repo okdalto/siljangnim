@@ -1,0 +1,29 @@
+{
+  "order": 269,
+  "title": "Finding the closest point (d3-quadtree)",
+  "title_ko": "가장 가까운 점 찾기 (d3-quadtree)",
+  "description": "D3 Quadtree partitions seeded points into cells and finds the point nearest a query within a radius. Empty searches are shown explicitly.",
+  "description_ko": "D3 Quadtree가 점들을 사분면으로 나누고 반경 안의 가장 가까운 점을 찾아요. 찾은 점이 없을 때도 표시해요.",
+  "prompt": "Finding the closest point. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-quadtree 3.0.1; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-quadtree"
+  ],
+  "summary": "Finding the closest point. Change the controls to explore the actual algorithm.",
+  "summary_ko": "가장 가까운 점 찾기. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Move Query X across the cells",
+    "Shrink Radius until the search is empty"
+  ],
+  "try_ko": [
+    "Query X로 검색점을 옮기세요",
+    "Radius를 줄여 검색 결과를 비교하세요"
+  ],
+  "tool_about": "D3 Quadtree partitions seeded points into cells and finds the point nearest a query within a radius. Empty searches are shown explicitly.",
+  "tool_about_ko": "D3 Quadtree가 점들을 사분면으로 나누고 반경 안의 가장 가까운 점을 찾아요. 찾은 점이 없을 때도 표시해요."
+}

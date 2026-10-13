@@ -1,0 +1,29 @@
+{
+  "order": 275,
+  "title": "Contours of an island (MarchingSquaresJS)",
+  "title_ko": "섬의 등고선 (MarchingSquaresJS)",
+  "description": "MarchingSquares.js extracts isolines from an original scalar field. Contour spacing and the height of the second peak reshape the terrain drawing.",
+  "description_ko": "MarchingSquares.js가 직접 만든 높이장에서 등고선을 추출해요. 선 간격과 두 번째 봉우리의 높이를 바꿔 지형을 살펴봐요.",
+  "prompt": "Contours of an island. Make the algorithm visible and let the controls change its input.",
+  "made_with": "marchingsquares 1.3.3; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "marchingsquaresjs"
+  ],
+  "summary": "Contours of an island. Change the controls to explore the actual algorithm.",
+  "summary_ko": "섬의 등고선. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Raise Second peak",
+    "Increase Contour levels"
+  ],
+  "try_ko": [
+    "Second peak로 봉우리를 높여 보세요",
+    "Contour levels로 등고선을 촘촘히 만드세요"
+  ],
+  "tool_about": "MarchingSquares.js extracts isolines from an original scalar field. Contour spacing and the height of the second peak reshape the terrain drawing.",
+  "tool_about_ko": "MarchingSquares.js가 직접 만든 높이장에서 등고선을 추출해요. 선 간격과 두 번째 봉우리의 높이를 바꿔 지형을 살펴봐요."
+}

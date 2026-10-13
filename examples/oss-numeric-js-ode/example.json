@@ -1,0 +1,29 @@
+{
+  "order": 277,
+  "title": "A damped orbit (Numeric.js · ODE)",
+  "title_ko": "감쇠하는 궤도 (Numeric.js · ODE)",
+  "description": "Numeric.js integrates a damped oscillator with adaptive Dormand–Prince steps. The phase portrait shows position against velocity; the marker follows the computed solution.",
+  "description_ko": "Numeric.js가 적응형 Dormand–Prince 적분으로 감쇠 진동을 계산해요. 위치와 속도의 위상 궤적을 그리고 계산된 해 위에 진행점을 표시해요.",
+  "prompt": "A damped orbit. Make the algorithm visible and let the controls change its input.",
+  "made_with": "numeric 1.2.6; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "numeric-js-ode"
+  ],
+  "summary": "A damped orbit. Change the controls to explore the actual algorithm.",
+  "summary_ko": "감쇠하는 궤도. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Remove Damping for a closed orbit",
+    "Move Time along the solution"
+  ],
+  "try_ko": [
+    "Damping을 0으로 내려 닫힌 궤적을 보세요",
+    "Time으로 계산된 해를 따라가 보세요"
+  ],
+  "tool_about": "Numeric.js integrates a damped oscillator with adaptive Dormand–Prince steps. The phase portrait shows position against velocity; the marker follows the computed solution.",
+  "tool_about_ko": "Numeric.js가 적응형 Dormand–Prince 적분으로 감쇠 진동을 계산해요. 위치와 속도의 위상 궤적을 그리고 계산된 해 위에 진행점을 표시해요."
+}

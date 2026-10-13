@@ -1,0 +1,29 @@
+{
+  "order": 274,
+  "title": "Two tones, one spectrum (fft.js)",
+  "title_ko": "두 파형 하나의 스펙트럼 (fft.js)",
+  "description": "FFT.js transforms a synthetic two-frequency signal into a spectrum. No microphone or audio playback is required.",
+  "description_ko": "FFT.js가 직접 만든 두 주파수의 합성 신호를 스펙트럼으로 바꿔요. 마이크나 소리 재생 없이 파형과 주파수 성분을 비교해요.",
+  "prompt": "Two tones, one spectrum. Make the algorithm visible and let the controls change its input.",
+  "made_with": "fft.js 4.0.4; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "fft-js"
+  ],
+  "summary": "Two tones, one spectrum. Change the controls to explore the actual algorithm.",
+  "summary_ko": "두 파형 하나의 스펙트럼. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Second frequency",
+    "Lower Second amplitude to remove its peak"
+  ],
+  "try_ko": [
+    "Second frequency로 두 번째 주파수를 바꾸세요",
+    "Second amplitude를 내려 봉우리를 없애 보세요"
+  ],
+  "tool_about": "FFT.js transforms a synthetic two-frequency signal into a spectrum. No microphone or audio playback is required.",
+  "tool_about_ko": "FFT.js가 직접 만든 두 주파수의 합성 신호를 스펙트럼으로 바꿔요. 마이크나 소리 재생 없이 파형과 주파수 성분을 비교해요."
+}

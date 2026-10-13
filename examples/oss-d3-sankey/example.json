@@ -1,0 +1,29 @@
+{
+  "order": 267,
+  "title": "A river of resources (d3-sankey)",
+  "title_ko": "자원이 흐르는 강 (d3-sankey)",
+  "description": "D3 Sankey computes node positions and flow widths for an original three-stage resource network. Changing the branch share preserves the total flow.",
+  "description_ko": "D3 Sankey가 직접 만든 3단계 흐름망의 노드 위치와 선 두께를 계산해요. 갈림길 비율을 바꿔도 전체 흐름의 양은 유지돼요.",
+  "prompt": "A river of resources. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-sankey 0.12.3; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-sankey"
+  ],
+  "summary": "A river of resources. Change the controls to explore the actual algorithm.",
+  "summary_ko": "자원이 흐르는 강. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Branch share",
+    "Adjust Node gap without changing the flows"
+  ],
+  "try_ko": [
+    "Branch share로 갈림길 비율을 바꾸세요",
+    "Node gap으로 노드 사이를 벌려 보세요"
+  ],
+  "tool_about": "D3 Sankey computes node positions and flow widths for an original three-stage resource network. Changing the branch share preserves the total flow.",
+  "tool_about_ko": "D3 Sankey가 직접 만든 3단계 흐름망의 노드 위치와 선 두께를 계산해요. 갈림길 비율을 바꿔도 전체 흐름의 양은 유지돼요."
+}

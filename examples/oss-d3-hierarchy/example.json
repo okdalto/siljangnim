@@ -1,0 +1,29 @@
+{
+  "order": 266,
+  "title": "A garden of nested values (d3-hierarchy)",
+  "title_ko": "값을 담은 정원 (d3-hierarchy)",
+  "description": "D3 Hierarchy lays out the same weighted hierarchy as a treemap or packed circles. Synthetic groups and values are generated from a fixed seed.",
+  "description_ko": "D3 Hierarchy가 같은 계층 데이터를 트리맵과 원 포장으로 배치해요. 직접 만든 그룹과 값에 고정된 난수 시작점을 사용해요.",
+  "prompt": "A garden of nested values. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-hierarchy 3.1.2; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-hierarchy"
+  ],
+  "summary": "A garden of nested values. Change the controls to explore the actual algorithm.",
+  "summary_ko": "값을 담은 정원. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Switch Layout while preserving the data",
+    "Increase First group weight"
+  ],
+  "try_ko": [
+    "같은 데이터로 Layout을 바꿔 보세요",
+    "첫 그룹의 비중을 높여 보세요"
+  ],
+  "tool_about": "D3 Hierarchy lays out the same weighted hierarchy as a treemap or packed circles. Synthetic groups and values are generated from a fixed seed.",
+  "tool_about_ko": "D3 Hierarchy가 같은 계층 데이터를 트리맵과 원 포장으로 배치해요. 직접 만든 그룹과 값에 고정된 난수 시작점을 사용해요."
+}

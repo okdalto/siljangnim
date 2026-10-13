@@ -3406,6 +3406,469 @@
    "install": {
     "cdn": "https://esm.sh/@anvaka/streamlines@1.6.0"
    }
+  },
+  {
+   "id": "d3-random",
+   "name": "d3-random",
+   "repo": "https://github.com/d3/d3-random",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "D3 Random samples seeded distributions and bins them into a histogram. The sample count is preserved, including the two overflow bins.",
+   "tags": [
+    "d3-random"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-random@3.0.1"
+   }
+  },
+  {
+   "id": "d3-color",
+   "name": "d3-color",
+   "repo": "https://github.com/d3/d3-color",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "D3 Color converts CIELCH coordinates to display RGB. Gray crosses mark colors outside the sRGB gamut before display clipping.",
+   "tags": [
+    "d3-color"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-color@3.1.0"
+   }
+  },
+  {
+   "id": "d3-interpolate",
+   "name": "d3-interpolate",
+   "repo": "https://github.com/d3/d3-interpolate",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "D3 Interpolate blends the same colors in RGB, Lab, HCL and Cubehelix. The moving marker samples the same fraction in every color space.",
+   "tags": [
+    "d3-interpolate"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-interpolate@3.0.1"
+   }
+  },
+  {
+   "id": "d3-ease",
+   "name": "d3-ease",
+   "repo": "https://github.com/d3/d3-ease",
+   "license": "BSD-3-Clause",
+   "tier": "B",
+   "purpose": "D3 Ease remaps progress through linear, cubic, bounce, back and elastic curves. A manual progress control keeps overshoot and endpoint behavior easy to inspect.",
+   "tags": [
+    "d3-ease"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-ease@3.0.1"
+   }
+  },
+  {
+   "id": "bezier-easing",
+   "name": "bezier-easing",
+   "repo": "https://github.com/gre/bezier-easing",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Bezier Easing solves a cubic timing curve from its two control points. Pink handles show the curve and the mint point shows the solved progress.",
+   "tags": [
+    "bezier-easing"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/bezier-easing@3.1.0"
+   }
+  },
+  {
+   "id": "d3-hierarchy",
+   "name": "d3-hierarchy",
+   "repo": "https://github.com/d3/d3-hierarchy",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "D3 Hierarchy lays out the same weighted hierarchy as a treemap or packed circles. Synthetic groups and values are generated from a fixed seed.",
+   "tags": [
+    "d3-hierarchy"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-hierarchy@3.1.2"
+   }
+  },
+  {
+   "id": "d3-sankey",
+   "name": "d3-sankey",
+   "repo": "https://github.com/d3/d3-sankey",
+   "license": "BSD-3-Clause",
+   "tier": "B",
+   "purpose": "D3 Sankey computes node positions and flow widths for an original three-stage resource network. Changing the branch share preserves the total flow.",
+   "tags": [
+    "d3-sankey"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-sankey@0.12.3"
+   }
+  },
+  {
+   "id": "d3-chord",
+   "name": "d3-chord",
+   "repo": "https://github.com/d3/d3-chord",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "D3 Chord converts an original exchange matrix into arcs and ribbons. The highlight control dims unrelated exchanges.",
+   "tags": [
+    "d3-chord"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-chord@3.0.1"
+   }
+  },
+  {
+   "id": "d3-quadtree",
+   "name": "d3-quadtree",
+   "repo": "https://github.com/d3/d3-quadtree",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "D3 Quadtree partitions seeded points into cells and finds the point nearest a query within a radius. Empty searches are shown explicitly.",
+   "tags": [
+    "d3-quadtree"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-quadtree@3.0.1"
+   }
+  },
+  {
+   "id": "rbush",
+   "name": "RBush",
+   "repo": "https://github.com/mourner/rbush",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "RBush indexes original rectangles in an R-tree and returns the ones intersecting the orange search window.",
+   "tags": [
+    "rbush"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/rbush@4.0.1"
+   }
+  },
+  {
+   "id": "kdbush",
+   "name": "KDBush",
+   "repo": "https://github.com/mourner/kdbush",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "KDBush indexes a fixed point set in a flat KD-tree. A radius query highlights every point inside the orange circle.",
+   "tags": [
+    "kdbush"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/kdbush@4.1.0"
+   }
+  },
+  {
+   "id": "flatqueue",
+   "name": "flatqueue",
+   "repo": "https://github.com/mourner/flatqueue",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "FlatQueue stores points with their distance as priority and pops the nearest points first. Numbered dots show the queue order.",
+   "tags": [
+    "flatqueue"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/flatqueue@3.1.0"
+   }
+  },
+  {
+   "id": "supercluster",
+   "name": "Supercluster",
+   "repo": "https://github.com/mapbox/supercluster",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "Supercluster builds zoom-dependent clusters from 360 original geographic points. Bubble numbers show how many source points each cluster represents.",
+   "tags": [
+    "supercluster"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/supercluster@9.1.0"
+   }
+  },
+  {
+   "id": "fft-js",
+   "name": "fft.js",
+   "repo": "https://github.com/indutny/fft.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "FFT.js transforms a synthetic two-frequency signal into a spectrum. No microphone or audio playback is required.",
+   "tags": [
+    "Fourier",
+    "frequency",
+    "rotation",
+    "fft-js"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/fft.js@4.0.4"
+   }
+  },
+  {
+   "id": "marchingsquaresjs",
+   "name": "MarchingSquaresJS",
+   "repo": "https://github.com/raumzeit/marchingsquares.js",
+   "license": "AGPL-3+ / exception for unmodified use",
+   "tier": "B",
+   "purpose": "MarchingSquares.js extracts isolines from an original scalar field. Contour spacing and the height of the second peak reshape the terrain drawing.",
+   "tags": [
+    "marchingsquaresjs"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/marchingsquares@1.3.3"
+   }
+  },
+  {
+   "id": "flobezier",
+   "name": "FloBezier",
+   "repo": "https://github.com/florissteenkamp/flobezier",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "FloBezier calculates curve length and inverts arc length to place evenly spaced samples. The gray dots use uniform parameter steps for comparison.",
+   "tags": [
+    "flobezier"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/flo-bezier3@8.1.1"
+   }
+  },
+  {
+   "id": "numeric-js-ode",
+   "name": "Numeric.js · ODE",
+   "repo": "https://github.com/sloisel/numeric",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Numeric.js integrates a damped oscillator with adaptive Dormand–Prince steps. The phase portrait shows position against velocity; the marker follows the computed solution.",
+   "tags": [
+    "numeric-js-ode"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/numeric@1.2.6"
+   }
+  },
+  {
+   "id": "color-js",
+   "name": "Color.js",
+   "repo": "https://github.com/color-js/color.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Color.js interpolates between two original colors in sRGB, OKLCH or Lab and converts the result to display sRGB. The lower row shows the chosen midpoint.",
+   "tags": [
+    "color-js"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/colorjs.io@0.7.1?bundle"
+   }
+  },
+  {
+   "id": "d3-geo",
+   "name": "d3-geo",
+   "repo": "https://github.com/d3/d3-geo",
+   "license": "ISC + MIT (GeographicLib portions)",
+   "tier": "B",
+   "purpose": "D3 Geo projects a spherical graticule and original evenly distributed markers. Rotation reveals how orthographic, stereographic and equirectangular projections differ.",
+   "tags": [
+    "d3-geo"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-geo@3.1.1"
+   }
+  },
+  {
+   "id": "d3-geo-projection",
+   "name": "d3-geo-projection",
+   "repo": "https://github.com/d3/d3-geo-projection",
+   "license": "ISC / some integration code MIT",
+   "tier": "B",
+   "purpose": "D3 Geo Projection draws the same spherical grid with four additional world projections. All markers are original synthetic coordinates.",
+   "tags": [
+    "d3-geo-projection"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-geo-projection@4.0.0"
+   }
   }
  ]
 }

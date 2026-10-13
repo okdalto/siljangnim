@@ -153,6 +153,27 @@ pipeline.json  how the assets were made (copied into the project, so project.md 
 | [Three colors, one triangle (barycentric)](oss-barycentric/) | [barycentric](https://github.com/mikolalysenko/barycentric) (MIT, in the scene) | barycentric computes coordinates relative to a triangle. The three weights become red, green and blue for the probe and the interior grid. |
 | [Evenly spaced currents (streamlines)](oss-streamlines/) | [streamlines](https://github.com/anvaka/streamlines) (MIT, in the scene) | Streamlines integrates an original vector field with RK4 while keeping paths apart. Four spacing settings are computed when the scene opens. |
 
+| [Shapes of chance (d3-random)](oss-d3-random/) | [d3-random](https://github.com/d3/d3-random) (ISC, in the scene) | D3 Random samples seeded distributions and bins them into a histogram. The sample count is preserved, including the two overflow bins. |
+| [A ring of perceptual color (d3-color)](oss-d3-color/) | [d3-color](https://github.com/d3/d3-color) (ISC, in the scene) | D3 Color converts CIELCH coordinates to display RGB. Gray crosses mark colors outside the sRGB gamut before display clipping. |
+| [Four routes between colors (d3-interpolate)](oss-d3-interpolate/) | [d3-interpolate](https://github.com/d3/d3-interpolate) (ISC, in the scene) | D3 Interpolate blends the same colors in RGB, Lab, HCL and Cubehelix. The moving marker samples the same fraction in every color space. |
+| [Time follows a curve (d3-ease)](oss-d3-ease/) | [d3-ease](https://github.com/d3/d3-ease) (BSD-3-Clause, in the scene) | D3 Ease remaps progress through linear, cubic, bounce, back and elastic curves. A manual progress control keeps overshoot and endpoint behavior easy to inspect. |
+| [Designing a timing curve (bezier-easing)](oss-bezier-easing/) | [bezier-easing](https://github.com/gre/bezier-easing) (MIT, in the scene) | Bezier Easing solves a cubic timing curve from its two control points. Pink handles show the curve and the mint point shows the solved progress. |
+| [A garden of nested values (d3-hierarchy)](oss-d3-hierarchy/) | [d3-hierarchy](https://github.com/d3/d3-hierarchy) (ISC, in the scene) | D3 Hierarchy lays out the same weighted hierarchy as a treemap or packed circles. Synthetic groups and values are generated from a fixed seed. |
+| [A river of resources (d3-sankey)](oss-d3-sankey/) | [d3-sankey](https://github.com/d3/d3-sankey) (BSD-3-Clause, in the scene) | D3 Sankey computes node positions and flow widths for an original three-stage resource network. Changing the branch share preserves the total flow. |
+| [Connections around a ring (d3-chord)](oss-d3-chord/) | [d3-chord](https://github.com/d3/d3-chord) (ISC, in the scene) | D3 Chord converts an original exchange matrix into arcs and ribbons. The highlight control dims unrelated exchanges. |
+| [Finding the closest point (d3-quadtree)](oss-d3-quadtree/) | [d3-quadtree](https://github.com/d3/d3-quadtree) (ISC, in the scene) | D3 Quadtree partitions seeded points into cells and finds the point nearest a query within a radius. Empty searches are shown explicitly. |
+| [Searching a field of boxes (RBush)](oss-rbush/) | [RBush](https://github.com/mourner/rbush) (MIT, in the scene) | RBush indexes original rectangles in an R-tree and returns the ones intersecting the orange search window. |
+| [Neighbors inside a circle (KDBush)](oss-kdbush/) | [KDBush](https://github.com/mourner/kdbush) (ISC, in the scene) | KDBush indexes a fixed point set in a flat KD-tree. A radius query highlights every point inside the orange circle. |
+| [A queue ordered by distance (flatqueue)](oss-flatqueue/) | [flatqueue](https://github.com/mourner/flatqueue) (ISC, in the scene) | FlatQueue stores points with their distance as priority and pops the nearest points first. Numbered dots show the queue order. |
+| [From clusters to points (Supercluster)](oss-supercluster/) | [Supercluster](https://github.com/mapbox/supercluster) (ISC, in the scene) | Supercluster builds zoom-dependent clusters from 360 original geographic points. Bubble numbers show how many source points each cluster represents. |
+| [Two tones, one spectrum (fft.js)](oss-fft-js/) | [fft.js](https://github.com/indutny/fft.js) (MIT, in the scene) | FFT.js transforms a synthetic two-frequency signal into a spectrum. No microphone or audio playback is required. |
+| [Contours of an island (MarchingSquaresJS)](oss-marchingsquaresjs/) | [MarchingSquaresJS](https://github.com/raumzeit/marchingsquares.js) (AGPL-3+ / exception for unmodified use, in the scene) | MarchingSquares.js extracts isolines from an original scalar field. Contour spacing and the height of the second peak reshape the terrain drawing. |
+| [Equal steps along a curve (FloBezier)](oss-flobezier/) | [FloBezier](https://github.com/florissteenkamp/flobezier) (MIT, in the scene) | FloBezier calculates curve length and inverts arc length to place evenly spaced samples. The gray dots use uniform parameter steps for comparison. |
+| [A damped orbit (Numeric.js · ODE)](oss-numeric-js-ode/) | [Numeric.js · ODE](https://github.com/sloisel/numeric) (MIT, in the scene) | Numeric.js integrates a damped oscillator with adaptive Dormand–Prince steps. The phase portrait shows position against velocity; the marker follows the computed solution. |
+| [Gamut and color journeys (Color.js)](oss-color-js/) | [Color.js](https://github.com/color-js/color.js) (MIT, in the scene) | Color.js interpolates between two original colors in sRGB, OKLCH or Lab and converts the result to display sRGB. The lower row shows the chosen midpoint. |
+| [A globe of meridians (d3-geo)](oss-d3-geo/) | [d3-geo](https://github.com/d3/d3-geo) (ISC + MIT (GeographicLib portions), in the scene) | D3 Geo projects a spherical graticule and original evenly distributed markers. Rotation reveals how orthographic, stereographic and equirectangular projections differ. |
+| [Unfolding the globe (d3-geo-projection)](oss-d3-geo-projection/) | [d3-geo-projection](https://github.com/d3/d3-geo-projection) (ISC / some integration code MIT, in the scene) | D3 Geo Projection draws the same spherical grid with four additional world projections. All markers are original synthetic coordinates. |
+
 ## Remixes
 
 Two examples blended into one by an agent with **Mix in** (example details), to show what mixing looks like.
@@ -209,3 +230,17 @@ index.opensource에서 추가한 기하·벡터 예제 28개는 고정 버전의
 직접 만든 입력 도형으로 결과를 계산하며, 모델 다운로드나 Python 설치가 필요하지 않아요.
 예제를 열면 장면을 내려받아 캐시하고, 라이브러리는 처음 사용할 때 CDN에서 별도로 받아요.
 컨트롤을 바꾸면 기하 데이터를 다시 계산해요. Streamlines는 열 때 네 가지 선 간격을 계산해 둬요.
+
+## Lightweight data, color and motion / 가벼운 데이터·색·움직임 예제
+
+20 more index.opensource tools run directly in the scene: color-space interpolation, timing curves,
+hierarchical and flow layouts, spatial queries, map projections, contours, FFT and an ODE solver.
+All inputs are original synthetic data. No map tiles, audio files, API keys, models or Python are required.
+The scene is downloaded and cached when selected; pinned JavaScript libraries load separately from a CDN.
+Progress sliders in the easing and oscillator examples let you inspect each point at your own pace.
+
+index.opensource의 도구 20개를 더 추가했어요. 색 보간·타이밍 곡선·계층과 흐름 배치·공간 검색·
+지도 투영·등고선·FFT·미분방정식 계산을 장면에서 직접 실행해요. 입력은 모두 직접 만든 데이터이며,
+지도 타일·음원·API 키·모델·Python이 필요하지 않아요. 선택한 장면은 내려받아 캐시하고,
+고정 버전의 JavaScript 라이브러리는 CDN에서 별도로 받아요. 이징과 진동 예제에서는 진행률을
+직접 조절하며 원하는 지점의 계산 결과를 살펴볼 수 있어요.

@@ -1,0 +1,29 @@
+{
+  "order": 278,
+  "title": "Gamut and color journeys (Color.js)",
+  "title_ko": "색역과 색의 여정 (Color.js)",
+  "description": "Color.js interpolates between two original colors in sRGB, OKLCH or Lab and converts the result to display sRGB. The lower row shows the chosen midpoint.",
+  "description_ko": "Color.js가 두 색을 sRGB·OKLCH·Lab 공간에서 보간하고 화면 sRGB로 변환해요. 아래 큰 원은 선택한 위치의 중간색이에요.",
+  "prompt": "Gamut and color journeys. Make the algorithm visible and let the controls change its input.",
+  "made_with": "colorjs.io 0.7.1; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "color-js"
+  ],
+  "summary": "Gamut and color journeys. Change the controls to explore the actual algorithm.",
+  "summary_ko": "색역과 색의 여정. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Switch Space to compare color paths",
+    "Move Position through the gradient"
+  ],
+  "try_ko": [
+    "Space로 색의 경로를 비교하세요",
+    "Position으로 중간색을 골라 보세요"
+  ],
+  "tool_about": "Color.js interpolates between two original colors in sRGB, OKLCH or Lab and converts the result to display sRGB. The lower row shows the chosen midpoint.",
+  "tool_about_ko": "Color.js가 두 색을 sRGB·OKLCH·Lab 공간에서 보간하고 화면 sRGB로 변환해요. 아래 큰 원은 선택한 위치의 중간색이에요."
+}

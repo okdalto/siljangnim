@@ -1,0 +1,29 @@
+{
+  "order": 272,
+  "title": "A queue ordered by distance (flatqueue)",
+  "title_ko": "거리순으로 꺼내는 점 (flatqueue)",
+  "description": "FlatQueue stores points with their distance as priority and pops the nearest points first. Numbered dots show the queue order.",
+  "description_ko": "FlatQueue에 거리를 우선순위로 넣고 가까운 점부터 꺼내요. 점 위 숫자가 큐에서 나온 순서예요.",
+  "prompt": "A queue ordered by distance. Make the algorithm visible and let the controls change its input.",
+  "made_with": "flatqueue 3.1.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "flatqueue"
+  ],
+  "summary": "A queue ordered by distance. Change the controls to explore the actual algorithm.",
+  "summary_ko": "거리순으로 꺼내는 점. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Move Origin X to reorder the queue",
+    "Increase Take first"
+  ],
+  "try_ko": [
+    "Origin X로 거리순을 바꿔 보세요",
+    "Take first로 더 많은 점을 꺼내 보세요"
+  ],
+  "tool_about": "FlatQueue stores points with their distance as priority and pops the nearest points first. Numbered dots show the queue order.",
+  "tool_about_ko": "FlatQueue에 거리를 우선순위로 넣고 가까운 점부터 꺼내요. 점 위 숫자가 큐에서 나온 순서예요."
+}

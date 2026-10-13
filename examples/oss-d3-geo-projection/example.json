@@ -1,0 +1,29 @@
+{
+  "order": 280,
+  "title": "Unfolding the globe (d3-geo-projection)",
+  "title_ko": "지구를 펼치는 방식 (d3-geo-projection)",
+  "description": "D3 Geo Projection draws the same spherical grid with four additional world projections. All markers are original synthetic coordinates.",
+  "description_ko": "D3 Geo Projection의 네 세계지도 투영으로 같은 구면 격자를 펼쳐요. 표식은 모두 직접 만든 좌표예요.",
+  "prompt": "Unfolding the globe. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-geo-projection 4.0.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-geo-projection"
+  ],
+  "summary": "Unfolding the globe. Change the controls to explore the actual algorithm.",
+  "summary_ko": "지구를 펼치는 방식. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Switch Projection",
+    "Rotate Longitude to move the seam"
+  ],
+  "try_ko": [
+    "Projection으로 투영법을 고르세요",
+    "Longitude로 펼침 경계를 옮겨 보세요"
+  ],
+  "tool_about": "D3 Geo Projection draws the same spherical grid with four additional world projections. All markers are original synthetic coordinates.",
+  "tool_about_ko": "D3 Geo Projection의 네 세계지도 투영으로 같은 구면 격자를 펼쳐요. 표식은 모두 직접 만든 좌표예요."
+}

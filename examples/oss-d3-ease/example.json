@@ -1,0 +1,29 @@
+{
+  "order": 264,
+  "title": "Time follows a curve (d3-ease)",
+  "title_ko": "곡선으로 흐르는 시간 (d3-ease)",
+  "description": "D3 Ease remaps progress through linear, cubic, bounce, back and elastic curves. A manual progress control keeps overshoot and endpoint behavior easy to inspect.",
+  "description_ko": "D3 Ease가 진행률을 직선·가속·바운스·반동 곡선으로 바꿔요. 진행률을 직접 조절하며 끝점과 범위를 넘는 움직임을 볼 수 있어요.",
+  "prompt": "Time follows a curve. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-ease 3.0.1; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-ease"
+  ],
+  "summary": "Time follows a curve. Change the controls to explore the actual algorithm.",
+  "summary_ko": "곡선으로 흐르는 시간. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Move Progress from start to end",
+    "Compare bounce and elastic overshoot"
+  ],
+  "try_ko": [
+    "Progress를 처음부터 끝까지 움직여 보세요",
+    "바운스와 탄성 곡선을 비교하세요"
+  ],
+  "tool_about": "D3 Ease remaps progress through linear, cubic, bounce, back and elastic curves. A manual progress control keeps overshoot and endpoint behavior easy to inspect.",
+  "tool_about_ko": "D3 Ease가 진행률을 직선·가속·바운스·반동 곡선으로 바꿔요. 진행률을 직접 조절하며 끝점과 범위를 넘는 움직임을 볼 수 있어요."
+}

@@ -1,0 +1,29 @@
+{
+  "order": 271,
+  "title": "Neighbors inside a circle (KDBush)",
+  "title_ko": "원 안의 이웃들 (KDBush)",
+  "description": "KDBush indexes a fixed point set in a flat KD-tree. A radius query highlights every point inside the orange circle.",
+  "description_ko": "KDBush가 고정된 점들을 평면 KD-tree에 넣어요. 반경 검색으로 주황 원 안의 모든 점을 밝혀요.",
+  "prompt": "Neighbors inside a circle. Make the algorithm visible and let the controls change its input.",
+  "made_with": "kdbush 4.1.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "kdbush"
+  ],
+  "summary": "Neighbors inside a circle. Change the controls to explore the actual algorithm.",
+  "summary_ko": "원 안의 이웃들. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Move Query X",
+    "Expand Radius to include more neighbors"
+  ],
+  "try_ko": [
+    "Query X로 검색 중심을 옮기세요",
+    "Radius로 더 많은 이웃을 찾아 보세요"
+  ],
+  "tool_about": "KDBush indexes a fixed point set in a flat KD-tree. A radius query highlights every point inside the orange circle.",
+  "tool_about_ko": "KDBush가 고정된 점들을 평면 KD-tree에 넣어요. 반경 검색으로 주황 원 안의 모든 점을 밝혀요."
+}

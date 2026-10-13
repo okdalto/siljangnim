@@ -1,0 +1,29 @@
+{
+  "order": 279,
+  "title": "A globe of meridians (d3-geo)",
+  "title_ko": "경선으로 만든 지구 (d3-geo)",
+  "description": "D3 Geo projects a spherical graticule and original evenly distributed markers. Rotation reveals how orthographic, stereographic and equirectangular projections differ.",
+  "description_ko": "D3 Geo가 구면 격자와 직접 만든 균등 분포 표식을 투영해요. 지구를 돌리며 정사·평사·정거원통 투영을 비교해요.",
+  "prompt": "A globe of meridians. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-geo 3.1.1; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-geo"
+  ],
+  "summary": "A globe of meridians. Change the controls to explore the actual algorithm.",
+  "summary_ko": "경선으로 만든 지구. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Rotate Longitude",
+    "Compare three projections"
+  ],
+  "try_ko": [
+    "Longitude로 지구를 돌려 보세요",
+    "세 투영법을 비교하세요"
+  ],
+  "tool_about": "D3 Geo projects a spherical graticule and original evenly distributed markers. Rotation reveals how orthographic, stereographic and equirectangular projections differ.",
+  "tool_about_ko": "D3 Geo가 구면 격자와 직접 만든 균등 분포 표식을 투영해요. 지구를 돌리며 정사·평사·정거원통 투영을 비교해요."
+}

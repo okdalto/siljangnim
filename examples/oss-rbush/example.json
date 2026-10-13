@@ -1,0 +1,29 @@
+{
+  "order": 270,
+  "title": "Searching a field of boxes (RBush)",
+  "title_ko": "상자 밭 검색 (RBush)",
+  "description": "RBush indexes original rectangles in an R-tree and returns the ones intersecting the orange search window.",
+  "description_ko": "RBush가 직접 만든 사각형들을 R-tree에 넣고 주황색 검색 창과 겹치는 사각형을 찾아요.",
+  "prompt": "Searching a field of boxes. Make the algorithm visible and let the controls change its input.",
+  "made_with": "rbush 4.0.1; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "rbush"
+  ],
+  "summary": "Searching a field of boxes. Change the controls to explore the actual algorithm.",
+  "summary_ko": "상자 밭 검색. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Slide Window X",
+    "Change Window size to compare hits"
+  ],
+  "try_ko": [
+    "Window X로 검색 창을 옮겨 보세요",
+    "Window size로 검색 범위를 바꾸세요"
+  ],
+  "tool_about": "RBush indexes original rectangles in an R-tree and returns the ones intersecting the orange search window.",
+  "tool_about_ko": "RBush가 직접 만든 사각형들을 R-tree에 넣고 주황색 검색 창과 겹치는 사각형을 찾아요."
+}

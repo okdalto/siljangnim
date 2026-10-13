@@ -1,0 +1,29 @@
+{
+  "order": 276,
+  "title": "Equal steps along a curve (FloBezier)",
+  "title_ko": "곡선 위 같은 거리 (FloBezier)",
+  "description": "FloBezier calculates curve length and inverts arc length to place evenly spaced samples. The gray dots use uniform parameter steps for comparison.",
+  "description_ko": "FloBezier가 곡선 길이를 계산하고 거리에서 매개변수를 역으로 찾아 점을 균등 배치해요. 회색 점은 단순 매개변수 등분과 비교하는 기준이에요.",
+  "prompt": "Equal steps along a curve. Make the algorithm visible and let the controls change its input.",
+  "made_with": "flo-bezier3 8.1.1; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "flobezier"
+  ],
+  "summary": "Equal steps along a curve. Change the controls to explore the actual algorithm.",
+  "summary_ko": "곡선 위 같은 거리. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Bend the curve",
+    "Compare gold arc-length samples with gray parameter samples"
+  ],
+  "try_ko": [
+    "Bend로 곡선을 휘어 보세요",
+    "금색 거리 등분과 회색 매개변수 등분을 비교하세요"
+  ],
+  "tool_about": "FloBezier calculates curve length and inverts arc length to place evenly spaced samples. The gray dots use uniform parameter steps for comparison.",
+  "tool_about_ko": "FloBezier가 곡선 길이를 계산하고 거리에서 매개변수를 역으로 찾아 점을 균등 배치해요. 회색 점은 단순 매개변수 등분과 비교하는 기준이에요."
+}

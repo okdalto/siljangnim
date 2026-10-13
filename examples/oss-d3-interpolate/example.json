@@ -1,0 +1,29 @@
+{
+  "order": 263,
+  "title": "Four routes between colors (d3-interpolate)",
+  "title_ko": "두 색 사이 네 갈래 길 (d3-interpolate)",
+  "description": "D3 Interpolate blends the same colors in RGB, Lab, HCL and Cubehelix. The moving marker samples the same fraction in every color space.",
+  "description_ko": "D3 Interpolate가 같은 두 색을 RGB·Lab·HCL·Cubehelix 공간에서 섞어요. 같은 진행 위치에서 중간색이 어떻게 다른지 비교해요.",
+  "prompt": "Four routes between colors. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-interpolate 3.0.1; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-interpolate"
+  ],
+  "summary": "Four routes between colors. Change the controls to explore the actual algorithm.",
+  "summary_ko": "두 색 사이 네 갈래 길. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Slide Position to compare intermediate colors",
+    "Switch Palette to reveal a different route"
+  ],
+  "try_ko": [
+    "Position으로 중간색을 비교하세요",
+    "Palette로 다른 두 색을 골라 보세요"
+  ],
+  "tool_about": "D3 Interpolate blends the same colors in RGB, Lab, HCL and Cubehelix. The moving marker samples the same fraction in every color space.",
+  "tool_about_ko": "D3 Interpolate가 같은 두 색을 RGB·Lab·HCL·Cubehelix 공간에서 섞어요. 같은 진행 위치에서 중간색이 어떻게 다른지 비교해요."
+}

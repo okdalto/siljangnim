@@ -1,0 +1,29 @@
+{
+  "order": 268,
+  "title": "Connections around a ring (d3-chord)",
+  "title_ko": "고리 안의 교류 (d3-chord)",
+  "description": "D3 Chord converts an original exchange matrix into arcs and ribbons. The highlight control dims unrelated exchanges.",
+  "description_ko": "D3 Chord가 직접 만든 교류 행렬을 원호와 리본으로 바꿔요. 그룹을 고르면 관련 교류만 밝게 보여요.",
+  "prompt": "Connections around a ring. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-chord 3.0.1; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-chord"
+  ],
+  "summary": "Connections around a ring. Change the controls to explore the actual algorithm.",
+  "summary_ko": "고리 안의 교류. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Highlight one group",
+    "Change A ↔ B to widen that exchange"
+  ],
+  "try_ko": [
+    "Highlight로 한 그룹을 골라 보세요",
+    "A ↔ B로 교류량을 바꿔 보세요"
+  ],
+  "tool_about": "D3 Chord converts an original exchange matrix into arcs and ribbons. The highlight control dims unrelated exchanges.",
+  "tool_about_ko": "D3 Chord가 직접 만든 교류 행렬을 원호와 리본으로 바꿔요. 그룹을 고르면 관련 교류만 밝게 보여요."
+}
