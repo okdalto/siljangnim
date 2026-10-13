@@ -8,7 +8,8 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { app } from "electron";
 
-const TIMEOUT_MS = 600_000;
+// Every example opens once (about 200, a few seconds each on CI), so the whole run gets 25 minutes.
+const TIMEOUT_MS = 1_500_000;
 const LLM_PROBE = "app://siljangnim/api/llm/anthropic/v1/messages";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
