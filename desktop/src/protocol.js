@@ -54,6 +54,9 @@ async function serveFile(root, pathname, { spaFallback }) {
   let file = join(root, rel);
   if (file !== root && !file.startsWith(root + sep)) return notFound();
   if (!extname(file)) {
+    // A file without an extension (an example's assets/LICENSE) is still a file; only other paths are app routes.
+    const found = await readFile(file).catch(() => null);
+    if (found) return new Response(found, { headers: { "Content-Type": "application/octet-stream" } });
     if (!spaFallback) return notFound();
     file = join(root, "index.html");
   }

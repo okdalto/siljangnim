@@ -686,8 +686,13 @@ export async function runSmokeTest(win, hub, keys, outDir) {
   try {
     await runSmoke(win, hub, keys, outDir);
   } catch (err) {
-    // A scenario threw: say where and why instead of waiting for the timeout.
+    // A scenario threw: say where and why instead of waiting for the timeout, with what the window showed.
     mkdirSync(outDir, { recursive: true });
+    try {
+      writeFileSync(join(outDir, "error-window.png"), (await win.webContents.capturePage()).toPNG());
+    } catch {
+      // the window is gone
+    }
     writeFileSync(join(outDir, "report.json"), JSON.stringify({ ok: false, reason: `error after step ${lastStep}: ${err instanceof Error ? err.stack : err}` }, null, 2));
     quit(hub, 1);
   }
