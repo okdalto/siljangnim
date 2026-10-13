@@ -505,6 +505,9 @@ async function runProjectFolderScenario(win) {
 }
 
 /** Opens every bundled example through the gallery and checks it runs, error-free, and draws something. */
+/** Examples a virtual GPU can't draw (see runExamplesScenario). */
+const VIRTUAL_GPU_DARK = new Set(["oss-babylonjs"]);
+
 async function runExamplesScenario(win, examplesOut) {
   const slugs = await win.webContents.executeJavaScript(`(async () => {
     document.querySelector('[title="Projects"]').click();
@@ -519,10 +522,22 @@ async function runExamplesScenario(win, examplesOut) {
   // WebGPU examples run where WebGPU does (macOS/Windows; not SwiftShader on Linux CI).
   const frameForGpu = await findSceneFrame(win);
   const gpu = frameForGpu ? await inFrame(frameForGpu, "(async () => Boolean(navigator.gpu && (await navigator.gpu.requestAdapter())))()", "webgpu check").catch(() => false) : false;
+  // CI's macOS runners have a virtual GPU (Apple Paravirtual device) that draws Babylon's PBR + GPU particle + post
+  // pipeline as black; it renders on real GPUs and on Linux CI's SwiftShader.
+  const renderer = frameForGpu
+    ? await inFrame(frameForGpu, `(() => { const g = document.createElement("canvas").getContext("webgl2"); const x = g?.getExtension("WEBGL_debug_renderer_info"); return x ? g.getParameter(x.UNMASKED_RENDERER_WEBGL) : ""; })()`, "gpu name").catch(() => "")
+    : "";
+  const virtualGpu = /paravirtual/i.test(renderer);
+  log(`gpu: ${renderer || "unknown"}`);
   for (const { slug, requires } of slugs) {
     if (requires?.includes("webgpu") && !gpu) {
       results[slug] = { skipped: "no WebGPU here" };
       log(`example ${slug}: skipped (no WebGPU)`);
+      continue;
+    }
+    if (virtualGpu && VIRTUAL_GPU_DARK.has(slug)) {
+      results[slug] = { skipped: `draws black on a virtual GPU (${renderer})` };
+      log(`example ${slug}: skipped (virtual GPU)`);
       continue;
     }
     // A camera and the network can't be assumed on a test machine.
