@@ -1,0 +1,38 @@
+{
+  "order": 480,
+  "title": "Field-aligned quadrilateral remeshing (Instant Meshes)",
+  "title_ko": "방향장을 따르는 사각형 재메시 (Instant Meshes)",
+  "description": "Original Instant Meshes remeshes a new rippled torus at three target densities, producing closed, all-quad native OBJ meshes.",
+  "description_ko": "Instant Meshes 원본으로 직접 만든 굴곡진 토러스를 세 밀도로 재메시하고 닫힌 사각형 메시인지 검증했어요.",
+  "prompt": "Field-aligned quadrilateral remeshing. Use the original engine.",
+  "made_with": "Instant Meshes original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "instant-meshes"
+  ],
+  "summary": "Original Instant Meshes remeshes a new rippled torus at three target densities, producing closed, all-quad native OBJ meshes.",
+  "summary_ko": "Instant Meshes 원본으로 직접 만든 굴곡진 토러스를 세 밀도로 재메시하고 닫힌 사각형 메시인지 검증했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original Instant Meshes remeshes a new rippled torus at three target densities, producing closed, all-quad native OBJ meshes.",
+  "tool_about_ko": "Instant Meshes 원본으로 직접 만든 굴곡진 토러스를 세 밀도로 재메시하고 닫힌 사각형 메시인지 검증했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Instant Meshes contributors",
+      "url": "https://github.com/wjakob/instant-meshes",
+      "license": "BSD-style 3 clauses + grant for contributed improvements"
+    }
+  ]
+}

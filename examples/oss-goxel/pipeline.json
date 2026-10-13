@@ -1,0 +1,26 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "goxel.gallery@1",
+      "packages": [
+        "scons==4.9.1",
+        "cmake==4.4.3"
+      ],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "surface-0.ply",
+        "surface-1.ply",
+        "surface-2.ply",
+        "volume-0.vox",
+        "volume-1.vox",
+        "volume-2.vox"
+      ]
+    }
+  ]
+}

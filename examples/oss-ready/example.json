@@ -1,0 +1,44 @@
+{
+  "order": 479,
+  "title": "Reaction-diffusion spots on OpenCL (Ready)",
+  "title_ko": "OpenCL로 증식하는 반응·확산 점무늬 (Ready)",
+  "description": "Ready 0.11.4 runs its original OpenCL Gray-Scott solver for 1000, 5000 and 15000 steps from a deterministic initial pattern.",
+  "description_ko": "Ready 0.11.4 원본 OpenCL 솔버에서 고정된 초기 조건으로 Gray–Scott 반응·확산을 1000·5000·15000단계 계산했어요.",
+  "prompt": "Reaction-diffusion spots on OpenCL. Use the original engine.",
+  "made_with": "Ready original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "ready"
+  ],
+  "summary": "Ready 0.11.4 runs its original OpenCL Gray-Scott solver for 1000, 5000 and 15000 steps from a deterministic initial pattern.",
+  "summary_ko": "Ready 0.11.4 원본 OpenCL 솔버에서 고정된 초기 조건으로 Gray–Scott 반응·확산을 1000·5000·15000단계 계산했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Ready 0.11.4 runs its original OpenCL Gray-Scott solver for 1000, 5000 and 15000 steps from a deterministic initial pattern.",
+  "tool_about_ko": "Ready 0.11.4 원본 OpenCL 솔버에서 고정된 초기 조건으로 Gray–Scott 반응·확산을 1000·5000·15000단계 계산했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Ready contributors",
+      "url": "https://github.com/gollygang/ready",
+      "license": "GPL-3.0"
+    },
+    {
+      "what": "Adapted self-replicating-spots input",
+      "source": "Ready contributors",
+      "url": "https://github.com/gollygang/ready/blob/gh-pages/Patterns/GrayScott1984/self-replicating_spots.vti",
+      "license": "GPL-3.0"
+    }
+  ]
+}

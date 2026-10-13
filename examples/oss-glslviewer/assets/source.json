@@ -1,0 +1,26 @@
+{
+  "version": "3.5.2",
+  "archives": [
+    {
+      "name": "glslviewer",
+      "url": "https://codeload.github.com/patriciogonzalezvivo/glslViewer/tar.gz/refs/tags/3.5.2",
+      "commit": "edb58380ba8523d32e72966d0d0508ba78c28ffd",
+      "destination": ".",
+      "sha256": "6d32b3eb4745c2245f3d3df3855ddbf9faf8b6d3e82046bf14fd00682fe8588f"
+    },
+    {
+      "name": "vera",
+      "url": "https://codeload.github.com/patriciogonzalezvivo/vera/tar.gz/cae504ddf35b0d4676b7e4091ec59092507baef0",
+      "commit": "cae504ddf35b0d4676b7e4091ec59092507baef0",
+      "destination": "deps/vera",
+      "sha256": "8d0d14018e61bbee9896321de0e513fe3c1d5a5451cb6940e1aae7cb39e823d3"
+    },
+    {
+      "name": "lygia",
+      "url": "https://codeload.github.com/patriciogonzalezvivo/lygia/tar.gz/0ba6b2537d33b363734f651ab267edfe23bd2f6b",
+      "commit": "0ba6b2537d33b363734f651ab267edfe23bd2f6b",
+      "destination": "deps/vera/deps/lygia",
+      "sha256": "f30bf5a3f3278e505eed6599f8e4aa9c2daec94e314462b549cbef6f60e887ef"
+    }
+  ]
+}

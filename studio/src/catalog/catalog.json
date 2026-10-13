@@ -8815,6 +8815,140 @@
     "program": "electron"
    },
    "notes": "Requires Python 3.12+ and Electron with WebGL2 support (tested with Electron 44.4.4). Set ELECTRON to its executable if needed. The source archive is about 79 MB and is verified and cached only when rerunning the recipe. The app runs against a loopback-only server in a temporary browser profile."
+  },
+  {
+   "id": "goxel",
+   "name": "Goxel",
+   "repo": "https://github.com/guillaumechereau/goxel",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "Goxel 0.15.1 stores original voxel solids and exports PLY surfaces and MagicaVoxel volumes for three cylindrical bore sizes.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "This build recipe targets macOS with Xcode command-line tools and an active graphical desktop. It verifies and caches Goxel 0.15.1 sources and GLFW 3.4, builds static GLFW and the original Goxel CLI, and disables the unused Yocto ray tracer. The only build-file adaptation points dependency discovery to the pinned GLFW. Python 3.12+ is required."
+  },
+  {
+   "id": "ready",
+   "name": "Ready",
+   "repo": "https://github.com/gollygang/ready",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "Ready 0.11.4 runs its original OpenCL Gray-Scott solver for 1000, 5000 and 15000 steps from a deterministic initial pattern.",
+   "tags": [
+    "reaction diffusion",
+    "patterns",
+    "simulation"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "rdy"
+   },
+   "notes": "This recipe downloads and caches the official Ready 0.11.4 macOS disk image, then runs its bundled rdy command-line engine from a read-only temporary mount. Apple Silicon needs Rosetta 2 for this Intel binary. Python 3.12+ and an OpenCL device are required. Tested on Apple M5. The package download is about 35 MB."
+  },
+  {
+   "id": "instant-meshes",
+   "name": "Instant Meshes",
+   "repo": "https://github.com/wjakob/instant-meshes",
+   "license": "BSD-style 3 clauses + grant for contributed improvements",
+   "tier": "D",
+   "purpose": "Original Instant Meshes remeshes a new rippled torus at three target densities, producing closed, all-quad native OBJ meshes.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "instant-meshes"
+   },
+   "notes": "The SHA-256-pinned official macOS binary was last modified on 2019-11-03. It is downloaded from the original project binary link and cached. Apple Silicon requires Rosetta 2. Python 3.12+ is required; no GUI interaction or dataset download is needed. The archive is about 1.4 MB."
+  },
+  {
+   "id": "the-powder-toy",
+   "name": "The Powder Toy",
+   "repo": "https://github.com/thepowdertoy/the-powder-toy",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "The Powder Toy 100.1.400 runs original sand and water physics in a closed vessel and captures three native simulation frames.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "powder"
+   },
+   "notes": "This recipe targets Apple Silicon macOS with a graphical desktop and Python 3.12+. It verifies and caches the official Powder Toy 100.1.400 ARM64 disk image (about 3 MB), mounts it read-only, and runs in a temporary data directory with networking disabled."
+  },
+  {
+   "id": "mandelbulber",
+   "name": "Mandelbulber",
+   "repo": "https://github.com/buddhi1980/mandelbulber2",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "Mandelbulber 2.34 renders three Mandelbulb powers with its original CPU distance-estimation renderer and ambient occlusion.",
+   "tags": [
+    "fractals",
+    "iteration",
+    "rendering"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "mandelbulber2"
+   },
+   "notes": "This recipe targets Apple Silicon macOS with Python 3.12+. It verifies and caches the official Mandelbulber 2.34 M1 disk image (about 201 MB), mounts it read-only and invokes the original no-GUI CPU renderer. No OpenCL/CUDA device or external texture is required."
+  },
+  {
+   "id": "glslviewer",
+   "name": "glslViewer",
+   "repo": "https://github.com/patriciogonzalezvivo/glslviewer",
+   "license": "BSD-3-Clause",
+   "tier": "D",
+   "purpose": "glslViewer 3.5.2 compiles and runs an original GLSL shader at three phase values, then exports native OpenGL screenshots.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "This verified build recipe targets macOS with Xcode command-line tools, Python 3.12+ and an OpenGL-capable desktop session. Source archives for glslViewer 3.5.2 and its exact Vera and Lygia submodule revisions are SHA-256 verified and cached. The first source download is about 125 MB; the CMake build is cached. Git submodule updates are disabled because every source revision is supplied explicitly."
   }
  ]
 }

@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "instant-meshes.gallery@1",
+      "packages": [],
+      "inputs": [
+        "input.obj",
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "remesh-0.obj",
+        "remesh-1.obj",
+        "remesh-2.obj",
+        "result.json"
+      ]
+    }
+  ]
+}

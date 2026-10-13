@@ -1,0 +1,26 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "the-powder-toy.gallery@1",
+      "packages": [
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "autorun.lua",
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json",
+        "stats-0.txt",
+        "stats-1.txt",
+        "stats-2.txt"
+      ]
+    }
+  ]
+}

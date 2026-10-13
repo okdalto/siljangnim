@@ -652,6 +652,19 @@
       "sha256": "dfd4c6e7aca6f9d338542a77472c96f14e76a0ba205fdd7c81be7f4cd1462dc7"
     },
     {
+      "id": "glslviewer.gallery",
+      "version": 1,
+      "title": "Native OpenGL shader rosettes",
+      "capability": "glslviewer graphics",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/glslviewer.gallery/recipe.md",
+      "sha256": "eddf192d7c1db84ec6754095128a248726fde6215d8cb609252d2630163325f6"
+    },
+    {
       "id": "go-graphics-gg.gallery",
       "version": 1,
       "title": "Layered radial petals",
@@ -663,6 +676,19 @@
       ],
       "path": "recipes/go-graphics-gg.gallery/recipe.md",
       "sha256": "e12956df8d814d723e5d1da17582736d66185a4558943c7d25b66aa247abf661"
+    },
+    {
+      "id": "goxel.gallery",
+      "version": 1,
+      "title": "Voxel solids exported as native meshes",
+      "capability": "goxel graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/goxel.gallery/recipe.md",
+      "sha256": "5ac600669db2c466ae0d1ba78f82a8f911f671baad3923e75fbbccd8613b271e"
     },
     {
       "id": "gplates.gallery",
@@ -793,6 +819,19 @@
       ],
       "path": "recipes/inkscape.gallery/recipe.md",
       "sha256": "cf077dcd6edb2b2116d7c6bb2616681bb1e639b54e4b72135220ec2bc85ec857"
+    },
+    {
+      "id": "instant-meshes.gallery",
+      "version": 1,
+      "title": "Field-aligned quadrilateral remeshing",
+      "capability": "instant-meshes graphics",
+      "kind": "python",
+      "license": "BSD-style 3 clauses + grant for contributed improvements",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/instant-meshes.gallery/recipe.md",
+      "sha256": "a9dbd130a782db0b51bf79d0a22eaeb7cfa9b63c902ff979a55f5933b5a73976"
     },
     {
       "id": "jolt-physics.gallery",
@@ -1040,6 +1079,19 @@
       ],
       "path": "recipes/lyon.gallery/recipe.md",
       "sha256": "837823e625ea2530311982ddfe34b95049935b57bd947349eb0a75a118de9e52"
+    },
+    {
+      "id": "mandelbulber.gallery",
+      "version": 1,
+      "title": "Native CPU Mandelbulb powers",
+      "capability": "mandelbulber graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/mandelbulber.gallery/recipe.md",
+      "sha256": "e05172e25f8edd088711b372518c4fa230d3dc64f0c04954572b74d60833aabb"
     },
     {
       "id": "mapgen4.gallery",
@@ -1653,6 +1705,19 @@
       "sha256": "68dd21fd3e7ced16d79de1bf38ea2f138c010b0b40b090d7c53a0a096160f7ad"
     },
     {
+      "id": "ready.gallery",
+      "version": 1,
+      "title": "Reaction-diffusion spots on OpenCL",
+      "capability": "ready graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ready.gallery/recipe.md",
+      "sha256": "66d1f450a515cb992b18ae4c486c26629b686df2c4cb8816656506e892822773"
+    },
+    {
       "id": "real-esrgan.gallery",
       "version": 1,
       "title": "Four-times detail (Real-ESRGAN)",
@@ -2002,6 +2067,19 @@
       ],
       "path": "recipes/tesseract.gallery/recipe.md",
       "sha256": "801ec4b011fa20dfd089a4c8f51163304118281ffd390b60930fdf1f6038fdad"
+    },
+    {
+      "id": "the-powder-toy.gallery",
+      "version": 1,
+      "title": "Sand and water settling under gravity",
+      "capability": "the-powder-toy graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/the-powder-toy.gallery/recipe.md",
+      "sha256": "6d95f420ca8de157aae3755aaaaacb5109e288dfc0dc75140bf9e462c637e99c"
     },
     {
       "id": "threading.gallery",

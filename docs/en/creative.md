@@ -66,6 +66,8 @@ Hyphae growth, RubikTwoPhase cube solving, PGS circle packing, Galaxy Renderer s
 
 Original-engine results also cover libfive implicit solids, ASTRA tomography, SPECFEM2D wavefields, Origami Simulator GPU folding and THREE.js PathTracing Renderer materials. Larger runtimes are downloaded and cached only when rerunning their recipe.
 
+Original-engine examples also include Goxel voxel exports, Ready reaction-diffusion, Instant Meshes quadrilateral remeshing, Powder Toy particle simulation, Mandelbulber fractals and glslViewer shaders. Recipes include fixed inputs and requirements for rerunning the native engines.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

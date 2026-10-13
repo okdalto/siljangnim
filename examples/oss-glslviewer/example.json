@@ -1,0 +1,38 @@
+{
+  "order": 483,
+  "title": "Native OpenGL shader rosettes (glslViewer)",
+  "title_ko": "원본 OpenGL 셰이더로 그린 로제트 (glslViewer)",
+  "description": "glslViewer 3.5.2 compiles and runs an original GLSL shader at three phase values, then exports native OpenGL screenshots.",
+  "description_ko": "glslViewer 3.5.2 원본에서 직접 만든 GLSL 셰이더를 세 위상 값으로 실행하고 OpenGL 결과를 저장했어요.",
+  "prompt": "Native OpenGL shader rosettes. Use the original engine.",
+  "made_with": "glslViewer original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "glslviewer"
+  ],
+  "summary": "glslViewer 3.5.2 compiles and runs an original GLSL shader at three phase values, then exports native OpenGL screenshots.",
+  "summary_ko": "glslViewer 3.5.2 원본에서 직접 만든 GLSL 셰이더를 세 위상 값으로 실행하고 OpenGL 결과를 저장했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "glslViewer 3.5.2 compiles and runs an original GLSL shader at three phase values, then exports native OpenGL screenshots.",
+  "tool_about_ko": "glslViewer 3.5.2 원본에서 직접 만든 GLSL 셰이더를 세 위상 값으로 실행하고 OpenGL 결과를 저장했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "glslViewer contributors",
+      "url": "https://github.com/patriciogonzalezvivo/glslviewer",
+      "license": "BSD-3-Clause"
+    }
+  ]
+}

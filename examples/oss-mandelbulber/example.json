@@ -1,0 +1,44 @@
+{
+  "order": 482,
+  "title": "Native CPU Mandelbulb powers (Mandelbulber)",
+  "title_ko": "원본 CPU 렌더러로 비교하는 만델벌브 차수 (Mandelbulber)",
+  "description": "Mandelbulber 2.34 renders three Mandelbulb powers with its original CPU distance-estimation renderer and ambient occlusion.",
+  "description_ko": "Mandelbulber 2.34 원본 CPU 렌더러로 만델벌브 차수 6·8·10의 프랙탈 이미지를 직접 렌더했어요.",
+  "prompt": "Native CPU Mandelbulb powers. Use the original engine.",
+  "made_with": "Mandelbulber original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "mandelbulber"
+  ],
+  "summary": "Mandelbulber 2.34 renders three Mandelbulb powers with its original CPU distance-estimation renderer and ambient occlusion.",
+  "summary_ko": "Mandelbulber 2.34 원본 CPU 렌더러로 만델벌브 차수 6·8·10의 프랙탈 이미지를 직접 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Mandelbulber 2.34 renders three Mandelbulb powers with its original CPU distance-estimation renderer and ambient occlusion.",
+  "tool_about_ko": "Mandelbulber 2.34 원본 CPU 렌더러로 만델벌브 차수 6·8·10의 프랙탈 이미지를 직접 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Mandelbulber contributors",
+      "url": "https://github.com/buddhi1980/mandelbulber2",
+      "license": "GPL-3.0"
+    },
+    {
+      "what": "Mandelbulb001 scene settings",
+      "source": "Mandelbulber contributors",
+      "url": "https://github.com/buddhi1980/mandelbulber2/blob/2.34/mandelbulber2/deploy/share/mandelbulber2/examples/mandelbulb001.fract",
+      "license": "GPL-3.0"
+    }
+  ]
+}

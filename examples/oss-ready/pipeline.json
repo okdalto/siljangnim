@@ -1,0 +1,29 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "ready.gallery@1",
+      "packages": [
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "main.py",
+        "seed.vti",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "concentrations-0.json",
+        "concentrations-1.json",
+        "concentrations-2.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json",
+        "state-0.vti",
+        "state-1.vti",
+        "state-2.vti"
+      ]
+    }
+  ]
+}

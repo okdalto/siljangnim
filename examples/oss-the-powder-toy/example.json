@@ -1,0 +1,38 @@
+{
+  "order": 481,
+  "title": "Sand and water settling under gravity (The Powder Toy)",
+  "title_ko": "중력에 따라 가라앉는 모래와 물 (The Powder Toy)",
+  "description": "The Powder Toy 100.1.400 runs original sand and water physics in a closed vessel and captures three native simulation frames.",
+  "description_ko": "The Powder Toy 100.1.400 원본에서 닫힌 용기 안의 가루와 물을 시뮬레이션하고 세 시점의 화면을 직접 저장했어요.",
+  "prompt": "Sand and water settling under gravity. Use the original engine.",
+  "made_with": "The Powder Toy original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "the-powder-toy"
+  ],
+  "summary": "The Powder Toy 100.1.400 runs original sand and water physics in a closed vessel and captures three native simulation frames.",
+  "summary_ko": "The Powder Toy 100.1.400 원본에서 닫힌 용기 안의 가루와 물을 시뮬레이션하고 세 시점의 화면을 직접 저장했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "The Powder Toy 100.1.400 runs original sand and water physics in a closed vessel and captures three native simulation frames.",
+  "tool_about_ko": "The Powder Toy 100.1.400 원본에서 닫힌 용기 안의 가루와 물을 시뮬레이션하고 세 시점의 화면을 직접 저장했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "The Powder Toy contributors",
+      "url": "https://github.com/thepowdertoy/the-powder-toy",
+      "license": "GPL-3.0"
+    }
+  ]
+}

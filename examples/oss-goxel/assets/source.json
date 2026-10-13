@@ -1,0 +1,15 @@
+{
+  "name": "goxel",
+  "url": "https://codeload.github.com/guillaumechereau/goxel/tar.gz/ef7302fda2acde3e414a3e0493b5bac1d4221078",
+  "sha256": "311f323a37ab5f0972e15ec1d753ce51417cd03ae5939a55c7ff1a36b1d37a29",
+  "commit": "ef7302fda2acde3e414a3e0493b5bac1d4221078",
+  "version": "0.15.1",
+  "dependencies": [
+    {
+      "name": "glfw",
+      "url": "https://codeload.github.com/glfw/glfw/tar.gz/refs/tags/3.4",
+      "sha256": "c038d34200234d071fae9345bc455e4a8f2f544ab60150765d7704e08f3dac01",
+      "version": "3.4"
+    }
+  ]
+}

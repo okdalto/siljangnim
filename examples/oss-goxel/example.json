@@ -1,0 +1,38 @@
+{
+  "order": 478,
+  "title": "Voxel solids exported as native meshes (Goxel)",
+  "title_ko": "복셀 입체를 원본 메시로 내보내기 (Goxel)",
+  "description": "Goxel 0.15.1 stores original voxel solids and exports PLY surfaces and MagicaVoxel volumes for three cylindrical bore sizes.",
+  "description_ko": "Goxel 0.15.1 원본으로 세 가지 구멍 크기의 복셀 입체를 만들고 PLY 메시와 VOX 파일로 내보냈어요.",
+  "prompt": "Voxel solids exported as native meshes. Use the original engine.",
+  "made_with": "Goxel original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "goxel"
+  ],
+  "summary": "Goxel 0.15.1 stores original voxel solids and exports PLY surfaces and MagicaVoxel volumes for three cylindrical bore sizes.",
+  "summary_ko": "Goxel 0.15.1 원본으로 세 가지 구멍 크기의 복셀 입체를 만들고 PLY 메시와 VOX 파일로 내보냈어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Goxel 0.15.1 stores original voxel solids and exports PLY surfaces and MagicaVoxel volumes for three cylindrical bore sizes.",
+  "tool_about_ko": "Goxel 0.15.1 원본으로 세 가지 구멍 크기의 복셀 입체를 만들고 PLY 메시와 VOX 파일로 내보냈어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Goxel contributors",
+      "url": "https://github.com/guillaumechereau/goxel",
+      "license": "GPL-3.0"
+    }
+  ]
+}

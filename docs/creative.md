@@ -64,6 +64,8 @@ Hyphae 성장과 RubikTwoPhase 큐브 해법, PGS의 원 채우기, Galaxy Rende
 
 libfive의 암시적 입체, ASTRA의 단층 재구성, SPECFEM2D의 파동장, Origami Simulator의 GPU 접힘과 THREE.js PathTracing Renderer의 재질 비교도 원본 엔진으로 직접 계산합니다. 큰 실행 환경은 해당 레시피를 다시 돌릴 때만 준비하고 캐시합니다.
 
+Goxel 복셀 내보내기, Ready 반응·확산, Instant Meshes 사각형 재메시, Powder Toy 입자 시뮬레이션, Mandelbulber 프랙탈과 glslViewer 셰이더도 원본 엔진으로 직접 실행한 결과를 제공합니다. 레시피에는 고정된 입력과 재실행 조건을 함께 담았습니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라
