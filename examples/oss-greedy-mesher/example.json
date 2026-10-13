@@ -1,0 +1,37 @@
+{
+  "order": 363,
+  "title": "Fewer rectangles for a tile field (greedy-mesher)",
+  "title_ko": "타일을 더 적은 직사각형으로 (greedy-mesher)",
+  "description": "Greedy Mesher merges equal-valued cells into rectangles. The example verifies that merged rectangle areas cover every occupied input cell exactly once.",
+  "description_ko": "Greedy Mesher로 값이 같은 셀을 직사각형으로 합쳐요. 합쳐진 면적이 모든 입력 셀을 정확히 한 번 덮는지 확인해요.",
+  "prompt": "Fewer rectangles for a tile field. Change the real algorithm inputs with the controls.",
+  "made_with": "greedy-mesher 1.0.3; original synthetic inputs",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "greedy-mesher"
+  ],
+  "summary": "Fewer rectangles for a tile field. Recompute the actual algorithm with the controls.",
+  "summary_ko": "타일을 더 적은 직사각형으로. 컨트롤로 실제 알고리즘을 다시 계산해요.",
+  "try": [
+    "Change Pattern",
+    "Change Scan direction"
+  ],
+  "try_ko": [
+    "Pattern 값을 바꿔 보세요",
+    "Scan direction 값을 바꿔 보세요"
+  ],
+  "tool_about": "Greedy Mesher merges equal-valued cells into rectangles. The example verifies that merged rectangle areas cover every occupied input cell exactly once.",
+  "tool_about_ko": "Greedy Mesher로 값이 같은 셀을 직사각형으로 합쳐요. 합쳐진 면적이 모든 입력 셀을 정확히 한 번 덮는지 확인해요.",
+  "credits": [
+    {
+      "what": "Supporting ndarray library loaded from CDN",
+      "source": "ndarray 1.0.19",
+      "url": "https://github.com/scijs/ndarray",
+      "license": "MIT"
+    }
+  ]
+}

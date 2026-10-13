@@ -1,0 +1,23 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "dither.gallery@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "main.go",
+        "go.mod",
+        "go.sum",
+        "input.png"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png"
+      ]
+    }
+  ]
+}

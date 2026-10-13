@@ -5889,6 +5889,308 @@
     ]
    },
    "notes": "Actual CPU inference with SAM 2.1 Hiera Tiny. Included recipe downloads and SHA-256 verifies pinned model/source only when rerun, then reuses the cache. Gallery viewing downloads prepared results only."
+  },
+  {
+   "id": "pythonrobotics",
+   "name": "PythonRobotics",
+   "repo": "https://github.com/AtsushiSakai/PythonRobotics",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "PythonRobotics runs its original A* planner for three robot radii. Prepared routes are checked against the obstacle clearance used by the planner.",
+   "tags": [
+    "Localization · planning · control",
+    "Robotics · education",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "numpy==2.2.6",
+     "matplotlib==3.11.2"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening downloads prepared files; packages install only when rerunning. "
+  },
+  {
+   "id": "sdf",
+   "name": "sdf",
+   "repo": "https://github.com/fogleman/sdf",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "Fogleman’s sdf library meshes an original sphere-and-torus union at three smoothing strengths. Rotate the locally extracted surfaces.",
+   "tags": [
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "numpy==2.2.6",
+     "scipy==1.18.1",
+     "scikit-image==0.25.2",
+     "meshio==5.3.5",
+     "matplotlib==3.11.2",
+     "Pillow==11.3.0"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening downloads prepared files; packages install only when rerunning. "
+  },
+  {
+   "id": "d3-cloud",
+   "name": "d3-cloud",
+   "repo": "https://github.com/jasondavies/d3-cloud",
+   "license": "BSD-3-Clause",
+   "tier": "B",
+   "purpose": "D3 Cloud packs original words using raster collision masks. Change padding, rotation and the random seed to recompute the layout.",
+   "tags": [
+    "d3-cloud"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-cloud@1.2.9"
+   },
+   "notes": ""
+  },
+  {
+   "id": "h3",
+   "name": "H3",
+   "repo": "https://github.com/uber/h3",
+   "license": "Apache-2.0",
+   "tier": "B",
+   "purpose": "H3 indexes Seoul and computes neighbouring hexagons on the globe. Resolution changes cell size; rings change the indexed neighbourhood.",
+   "tags": [
+    "h3"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/h3-js@4.5.0"
+   },
+   "notes": ""
+  },
+  {
+   "id": "greedy-mesher",
+   "name": "greedy-mesher",
+   "repo": "https://github.com/mikolalysenko/greedy-mesher",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Greedy Mesher merges equal-valued cells into rectangles. The example verifies that merged rectangle areas cover every occupied input cell exactly once.",
+   "tags": [
+    "greedy-mesher"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/greedy-mesher@1.0.3"
+   },
+   "notes": ""
+  },
+  {
+   "id": "voxelize",
+   "name": "voxelize",
+   "repo": "https://github.com/mikolalysenko/voxelize",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Voxelize rasterizes an original tetrahedron into occupied grid cells. The display centers the returned index grid rather than aligning it to world coordinates.",
+   "tags": [
+    "voxelize"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/voxelize@1.0.0?bundle"
+   },
+   "notes": ""
+  },
+  {
+   "id": "motion",
+   "name": "Motion",
+   "repo": "https://github.com/motiondivision/motion",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Motion’s spring generator computes displacement over time. Change stiffness and damping to inspect overshoot and settling against the target.",
+   "tags": [
+    "motion"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/motion@13.4.4"
+   },
+   "notes": ""
+  },
+  {
+   "id": "hull-js",
+   "name": "hull.js",
+   "repo": "https://github.com/andriiheonia/hull",
+   "license": "BSD-3-Clause",
+   "tier": "B",
+   "purpose": "The archived hull.js library computes a concave boundary around original points. Compare its legacy algorithm at different concavity thresholds.",
+   "tags": [
+    "hull-js"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/hull.js@1.0.6"
+   },
+   "notes": "Upstream is archived and deprecated; this example demonstrates its historical algorithm."
+  },
+  {
+   "id": "ngraph",
+   "name": "ngraph",
+   "repo": "https://github.com/anvaka/ngraph",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "The ngraph ecosystem lays out an original network with spring and repulsive forces. The graph starts from identical positions for each parameter change.",
+   "tags": [
+    "ngraph"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry",
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/ngraph.forcelayout@3.3.1?bundle"
+   },
+   "notes": "Uses the ngraph project’s graph and forcelayout modules."
+  },
+  {
+   "id": "dither",
+   "name": "dither",
+   "repo": "https://github.com/makew0rld/dither",
+   "license": "MPL-2.0",
+   "tier": "D",
+   "purpose": "The dither Go library converts an original image to a strict black-and-white palette using Floyd–Steinberg, Atkinson and ordered Bayer dithering.",
+   "tags": [
+    "Go",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "go"
+   },
+   "notes": "Tested with Go 1.25.10. Included go.mod/go.sum pin dependencies. Rerunning downloads modules into the Go cache; viewing downloads prepared results only."
+  },
+  {
+   "id": "triangula",
+   "name": "Triangula",
+   "repo": "https://github.com/rh12503/triangula",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Triangula optimizes 50 points against an original image using its genetic algorithm. Compare actual results after 20, 60 and 120 generations.",
+   "tags": [
+    "Go",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "go"
+   },
+   "notes": "Tested with Go 1.25.10. Included go.mod/go.sum pin dependencies. Rerunning downloads modules into the Go cache; viewing downloads prepared results only."
+  },
+  {
+   "id": "caire",
+   "name": "caire",
+   "repo": "https://github.com/esimov/caire",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Caire seam-carves an original image to three widths. Padded previews preserve the actual output proportions; raw resized files are also supplied.",
+   "tags": [
+    "Seam carving · importance",
+    "Images · editing",
+    "Go",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "go"
+   },
+   "notes": "Tested with Go 1.25.10. Included go.mod/go.sum pin dependencies. Rerunning downloads modules into the Go cache; viewing downloads prepared results only."
   }
  ]
 }

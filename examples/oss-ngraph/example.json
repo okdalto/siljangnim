@@ -1,0 +1,37 @@
+{
+  "order": 367,
+  "title": "Forces inside a modular graph (ngraph)",
+  "title_ko": "모듈형 그래프 안의 힘 (ngraph)",
+  "description": "The ngraph ecosystem lays out an original network with spring and repulsive forces. The graph starts from identical positions for each parameter change.",
+  "description_ko": "ngraph 생태계의 스프링·반발력으로 직접 만든 관계망을 배치해요. 매번 같은 초기 위치에서 계산해 변화를 비교하세요.",
+  "prompt": "Forces inside a modular graph. Change the real algorithm inputs with the controls.",
+  "made_with": "ngraph.forcelayout 3.3.1; original synthetic inputs",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "ngraph"
+  ],
+  "summary": "Forces inside a modular graph. Recompute the actual algorithm with the controls.",
+  "summary_ko": "모듈형 그래프 안의 힘. 컨트롤로 실제 알고리즘을 다시 계산해요.",
+  "try": [
+    "Change Repulsion",
+    "Change Spring length"
+  ],
+  "try_ko": [
+    "Repulsion 값을 바꿔 보세요",
+    "Spring length 값을 바꿔 보세요"
+  ],
+  "tool_about": "The ngraph ecosystem lays out an original network with spring and repulsive forces. The graph starts from identical positions for each parameter change.",
+  "tool_about_ko": "ngraph 생태계의 스프링·반발력으로 직접 만든 관계망을 배치해요. 매번 같은 초기 위치에서 계산해 변화를 비교하세요.",
+  "credits": [
+    {
+      "what": "Supporting graph data structure loaded from CDN",
+      "source": "ngraph.graph 20.1.2",
+      "url": "https://github.com/anvaka/ngraph.graph",
+      "license": "BSD-3-Clause"
+    }
+  ]
+}

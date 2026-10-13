@@ -15,6 +15,19 @@
       "sha256": "4fe969f57b3d70920b22b768737db9c4219f0061d789427428021592bff79ec2"
     },
     {
+      "id": "caire.gallery",
+      "version": 1,
+      "title": "Removing low-energy seams",
+      "capability": "caire rendering geometry",
+      "kind": "command",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/caire.gallery/recipe.md",
+      "sha256": "f6eb766240d5cb82bb8ade8e28ac7721a424ba9c13df8ac85dc1d46d8ac4a78c"
+    },
+    {
       "id": "circlify.stdlib-packing",
       "version": 1,
       "title": "Circle packing of the Python standard library by lines of code (circlify)",
@@ -104,6 +117,19 @@
       ],
       "path": "recipes/diffusers.gallery/recipe.md",
       "sha256": "df7bfe4d39c7479d16ab363fdf4d0e0b658a636402e1a57be59a858311233e30"
+    },
+    {
+      "id": "dither.gallery",
+      "version": 1,
+      "title": "Three ways to distribute ink",
+      "capability": "dither rendering geometry",
+      "kind": "command",
+      "license": "MPL-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/dither.gallery/recipe.md",
+      "sha256": "1c75a343f7508e10c96a8b1217f725ce38d069c9db8596f9a42d368c7fb4810a"
     },
     {
       "id": "draco.gallery",
@@ -691,6 +717,19 @@
       "sha256": "e1f02b91a988cb033f1030f6fd11b928cbc8bd539e89127a04bdfe6f29d70588"
     },
     {
+      "id": "pythonrobotics.gallery",
+      "version": 1,
+      "title": "Planning around obstacles",
+      "capability": "pythonrobotics simulation science",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/pythonrobotics.gallery/recipe.md",
+      "sha256": "ad0a1756f489d52d506cdc81556e8316dc5ba502f76e4447ce48dba049353c33"
+    },
+    {
       "id": "pyvista.gallery",
       "version": 1,
       "title": "Clipping a surface",
@@ -793,6 +832,19 @@
       ],
       "path": "recipes/scikit-image.gallery/recipe.md",
       "sha256": "c636668ad6af280205101b53fde0227a86a62e939206da4c07a6b754fb35317d"
+    },
+    {
+      "id": "sdf.gallery",
+      "version": 1,
+      "title": "Rounded joins between distance fields",
+      "capability": "sdf simulation science",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/sdf.gallery/recipe.md",
+      "sha256": "668088c7a1ebef3ad2cefece9364a4fc69e6e6f2d798a0f35d0f90a04aef3625"
     },
     {
       "id": "segment-anything.gallery",
@@ -923,6 +975,19 @@
       ],
       "path": "recipes/torchcfm.gallery/recipe.md",
       "sha256": "d862d80143f03f21c9da3d914f6cae0a35d8ddd2f38a0b5868cd0f174fb3df55"
+    },
+    {
+      "id": "triangula.gallery",
+      "version": 1,
+      "title": "Learning a triangulated picture",
+      "capability": "triangula rendering geometry",
+      "kind": "command",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/triangula.gallery/recipe.md",
+      "sha256": "17f65257d60f8656f9d018bba4805cad26402195a5493dfeedfec9f051cfab56"
     },
     {
       "id": "trimesh.displaced-sphere-glb",

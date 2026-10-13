@@ -1,0 +1,31 @@
+{
+  "order": 361,
+  "title": "Words that avoid each other (d3-cloud)",
+  "title_ko": "서로 겹치지 않는 단어 (d3-cloud)",
+  "description": "D3 Cloud packs original words using raster collision masks. Change padding, rotation and the random seed to recompute the layout.",
+  "description_ko": "D3 Cloud가 래스터 충돌 마스크로 단어를 배치해요. 간격·회전·난수 시작점을 바꾸면 실제 배치를 다시 계산해요.",
+  "prompt": "Words that avoid each other. Change the real algorithm inputs with the controls.",
+  "made_with": "d3-cloud 1.2.9; original synthetic inputs",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-cloud"
+  ],
+  "summary": "Words that avoid each other. Recompute the actual algorithm with the controls.",
+  "summary_ko": "서로 겹치지 않는 단어. 컨트롤로 실제 알고리즘을 다시 계산해요.",
+  "try": [
+    "Change Word padding",
+    "Change Quarter-turns",
+    "Change Seed"
+  ],
+  "try_ko": [
+    "Word padding 값을 바꿔 보세요",
+    "Quarter-turns 값을 바꿔 보세요",
+    "Seed 값을 바꿔 보세요"
+  ],
+  "tool_about": "D3 Cloud packs original words using raster collision masks. Change padding, rotation and the random seed to recompute the layout.",
+  "tool_about_ko": "D3 Cloud가 래스터 충돌 마스크로 단어를 배치해요. 간격·회전·난수 시작점을 바꾸면 실제 배치를 다시 계산해요."
+}

@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "pythonrobotics.gallery@1",
+      "packages": [
+        "numpy==2.2.6",
+        "matplotlib==3.11.2"
+      ],
+      "inputs": [
+        "a_star.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

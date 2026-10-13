@@ -1,0 +1,38 @@
+{
+  "order": 359,
+  "title": "Planning around obstacles (PythonRobotics)",
+  "title_ko": "장애물 사이의 경로 계획 (PythonRobotics)",
+  "description": "PythonRobotics runs its original A* planner for three robot radii. Prepared routes are checked against the obstacle clearance used by the planner.",
+  "description_ko": "PythonRobotics의 원본 A* 계획기를 세 로봇 반지름으로 실행했어요. 계산한 경로가 계획기의 장애물 여유 거리를 지키는지 확인했어요.",
+  "prompt": "Planning around obstacles. Rerun the included recipe to change simulation inputs.",
+  "made_with": "numpy==2.2.6, matplotlib==3.11.2; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "pythonrobotics"
+  ],
+  "summary": "PythonRobotics runs its original A* planner for three robot radii.",
+  "summary_ko": "PythonRobotics의 원본 A* 계획기를 세 로봇 반지름으로 실행했어요. 계산한 경로가 계획기의 장애물 여유 거리를 지키는지 확인했어요.",
+  "try": [
+    "Select a computed result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "계산한 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "PythonRobotics runs its original A* planner for three robot radii. Prepared routes are checked against the obstacle clearance used by the planner.",
+  "tool_about_ko": "PythonRobotics의 원본 A* 계획기를 세 로봇 반지름으로 실행했어요. 계산한 경로가 계획기의 장애물 여유 거리를 지키는지 확인했어요.",
+  "credits": [
+    {
+      "what": "Original A* planner source (a_star.py)",
+      "source": "Atsushi Sakai and PythonRobotics contributors",
+      "url": "https://github.com/AtsushiSakai/PythonRobotics/blob/7298ec260fb0b85c9482acbb4843274af679729a/PathPlanning/AStar/a_star.py",
+      "license": "MIT"
+    }
+  ]
+}

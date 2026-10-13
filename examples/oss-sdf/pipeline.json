@@ -1,0 +1,23 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "sdf.gallery@1",
+      "packages": [
+        "numpy==2.2.6",
+        "scipy==1.18.1",
+        "scikit-image==0.25.2",
+        "meshio==5.3.5",
+        "matplotlib==3.11.2",
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "SOURCE.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

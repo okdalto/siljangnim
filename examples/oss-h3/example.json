@@ -1,0 +1,37 @@
+{
+  "order": 362,
+  "title": "Hexagons around Seoul (H3)",
+  "title_ko": "서울 주변의 육각 셀 (H3)",
+  "description": "H3 indexes Seoul and computes neighbouring hexagons on the globe. Resolution changes cell size; rings change the indexed neighbourhood.",
+  "description_ko": "H3로 서울과 지구 위의 이웃 육각 셀을 계산해요. 해상도는 셀 크기를, 고리 수는 이웃 범위를 바꿔요.",
+  "prompt": "Hexagons around Seoul. Change the real algorithm inputs with the controls.",
+  "made_with": "h3-js 4.5.0; original synthetic inputs",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "h3"
+  ],
+  "summary": "Hexagons around Seoul. Recompute the actual algorithm with the controls.",
+  "summary_ko": "서울 주변의 육각 셀. 컨트롤로 실제 알고리즘을 다시 계산해요.",
+  "try": [
+    "Change H3 resolution",
+    "Change Neighbour rings"
+  ],
+  "try_ko": [
+    "H3 resolution 값을 바꿔 보세요",
+    "Neighbour rings 값을 바꿔 보세요"
+  ],
+  "tool_about": "H3 indexes Seoul and computes neighbouring hexagons on the globe. Resolution changes cell size; rings change the indexed neighbourhood.",
+  "tool_about_ko": "H3로 서울과 지구 위의 이웃 육각 셀을 계산해요. 해상도는 셀 크기를, 고리 수는 이웃 범위를 바꿔요.",
+  "credits": [
+    {
+      "what": "Official H3 JavaScript bindings loaded from CDN",
+      "source": "h3-js 4.5.0",
+      "url": "https://github.com/uber/h3-js",
+      "license": "Apache-2.0"
+    }
+  ]
+}

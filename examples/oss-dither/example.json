@@ -1,0 +1,30 @@
+{
+  "order": 368,
+  "title": "Three ways to distribute ink (dither)",
+  "title_ko": "잉크를 분배하는 세 방법 (dither)",
+  "description": "The dither Go library converts an original image to a strict black-and-white palette using Floyd–Steinberg, Atkinson and ordered Bayer dithering.",
+  "description_ko": "Go dither 라이브러리로 직접 만든 그림을 Floyd–Steinberg·Atkinson·Bayer 방식의 흑백 팔레트로 변환했어요.",
+  "prompt": "Three ways to distribute ink. Recompute with the included Go recipe when changing inputs.",
+  "made_with": "Go 1.25.10; pinned modules in go.mod/go.sum; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "image"
+  ],
+  "mode": "live",
+  "uses": [
+    "dither"
+  ],
+  "summary": "The dither Go library converts an original image to a strict black-and-white palette using Floyd–Steinberg, Atkinson and ordered Bayer dithering..",
+  "summary_ko": "Go dither 라이브러리로 직접 만든 그림을 Floyd–Steinberg·Atkinson·Bayer 방식의 흑백 팔레트로 변환했어요.",
+  "try": [
+    "Select a prepared result",
+    "Move Compare with source"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "Compare with source로 비교하세요"
+  ],
+  "tool_about": "The dither Go library converts an original image to a strict black-and-white palette using Floyd–Steinberg, Atkinson and ordered Bayer dithering. Viewing reads locally computed outputs; the recipe runs the original tool.",
+  "tool_about_ko": "Go dither 라이브러리로 직접 만든 그림을 Floyd–Steinberg·Atkinson·Bayer 방식의 흑백 팔레트로 변환했어요. 화면은 직접 계산한 결과를 읽고 레시피는 원본 도구를 실행해요."
+}

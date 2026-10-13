@@ -1,0 +1,29 @@
+{
+  "order": 365,
+  "title": "Sampling a spring animation (Motion)",
+  "title_ko": "스프링 애니메이션의 표본 (Motion)",
+  "description": "Motion’s spring generator computes displacement over time. Change stiffness and damping to inspect overshoot and settling against the target.",
+  "description_ko": "Motion의 스프링 생성기로 시간별 변위를 계산해요. 강성과 감쇠를 바꿔 목표값 주변의 초과와 안정화를 살펴보세요.",
+  "prompt": "Sampling a spring animation. Change the real algorithm inputs with the controls.",
+  "made_with": "motion 13.4.4; original synthetic inputs",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "motion"
+  ],
+  "summary": "Sampling a spring animation. Recompute the actual algorithm with the controls.",
+  "summary_ko": "스프링 애니메이션의 표본. 컨트롤로 실제 알고리즘을 다시 계산해요.",
+  "try": [
+    "Change Stiffness",
+    "Change Damping"
+  ],
+  "try_ko": [
+    "Stiffness 값을 바꿔 보세요",
+    "Damping 값을 바꿔 보세요"
+  ],
+  "tool_about": "Motion’s spring generator computes displacement over time. Change stiffness and damping to inspect overshoot and settling against the target.",
+  "tool_about_ko": "Motion의 스프링 생성기로 시간별 변위를 계산해요. 강성과 감쇠를 바꿔 목표값 주변의 초과와 안정화를 살펴보세요."
+}

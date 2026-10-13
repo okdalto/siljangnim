@@ -1,0 +1,30 @@
+{
+  "order": 369,
+  "title": "Learning a triangulated picture (Triangula)",
+  "title_ko": "삼각형으로 맞춰 가는 그림 (Triangula)",
+  "description": "Triangula optimizes 50 points against an original image using its genetic algorithm. Compare actual results after 20, 60 and 120 generations.",
+  "description_ko": "Triangula의 유전 알고리즘으로 원본 그림에 맞는 점 50개를 최적화했어요. 20·60·120세대의 실제 결과를 비교하세요.",
+  "prompt": "Learning a triangulated picture. Recompute with the included Go recipe when changing inputs.",
+  "made_with": "Go 1.25.10; pinned modules in go.mod/go.sum; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "image"
+  ],
+  "mode": "live",
+  "uses": [
+    "triangula"
+  ],
+  "summary": "Triangula optimizes 50 points against an original image using its genetic algorithm.",
+  "summary_ko": "Triangula의 유전 알고리즘으로 원본 그림에 맞는 점 50개를 최적화했어요. 20·60·120세대의 실제 결과를 비교하세요.",
+  "try": [
+    "Select a prepared result",
+    "Move Compare with source"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "Compare with source로 비교하세요"
+  ],
+  "tool_about": "Triangula optimizes 50 points against an original image using its genetic algorithm. Compare actual results after 20, 60 and 120 generations. Viewing reads locally computed outputs; the recipe runs the original tool.",
+  "tool_about_ko": "Triangula의 유전 알고리즘으로 원본 그림에 맞는 점 50개를 최적화했어요. 20·60·120세대의 실제 결과를 비교하세요. 화면은 직접 계산한 결과를 읽고 레시피는 원본 도구를 실행해요."
+}

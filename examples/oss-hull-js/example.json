@@ -1,0 +1,27 @@
+{
+  "order": 366,
+  "title": "Concavity around a point cloud (hull.js)",
+  "title_ko": "점군을 둘러싼 오목 윤곽 (hull.js)",
+  "description": "The archived hull.js library computes a concave boundary around original points. Compare its legacy algorithm at different concavity thresholds.",
+  "description_ko": "보관 상태인 hull.js의 원본 알고리즘으로 점군의 오목 윤곽을 계산해요. 오목함 임계값에 따른 차이를 비교하세요.",
+  "prompt": "Concavity around a point cloud. Change the real algorithm inputs with the controls.",
+  "made_with": "hull.js 1.0.6; original synthetic inputs",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "hull-js"
+  ],
+  "summary": "Concavity around a point cloud. Recompute the actual algorithm with the controls.",
+  "summary_ko": "점군을 둘러싼 오목 윤곽. 컨트롤로 실제 알고리즘을 다시 계산해요.",
+  "try": [
+    "Change Concavity threshold"
+  ],
+  "try_ko": [
+    "Concavity threshold 값을 바꿔 보세요"
+  ],
+  "tool_about": "The archived hull.js library computes a concave boundary around original points. Compare its legacy algorithm at different concavity thresholds.",
+  "tool_about_ko": "보관 상태인 hull.js의 원본 알고리즘으로 점군의 오목 윤곽을 계산해요. 오목함 임계값에 따른 차이를 비교하세요."
+}

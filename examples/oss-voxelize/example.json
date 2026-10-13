@@ -1,0 +1,29 @@
+{
+  "order": 364,
+  "title": "A tetrahedron in a voxel grid (voxelize)",
+  "title_ko": "복셀 격자 안의 사면체 (voxelize)",
+  "description": "Voxelize rasterizes an original tetrahedron into occupied grid cells. The display centers the returned index grid rather than aligning it to world coordinates.",
+  "description_ko": "Voxelize로 직접 만든 사면체를 격자 셀로 바꿔요. 반환된 인덱스 격자의 중심을 맞춰 표시하며 월드 좌표 정합은 하지 않아요.",
+  "prompt": "A tetrahedron in a voxel grid. Change the real algorithm inputs with the controls.",
+  "made_with": "voxelize 1.0.0; original synthetic inputs",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "voxelize"
+  ],
+  "summary": "A tetrahedron in a voxel grid. Recompute the actual algorithm with the controls.",
+  "summary_ko": "복셀 격자 안의 사면체. 컨트롤로 실제 알고리즘을 다시 계산해요.",
+  "try": [
+    "Change Voxel spacing",
+    "Change View rotation"
+  ],
+  "try_ko": [
+    "Voxel spacing 값을 바꿔 보세요",
+    "View rotation 값을 바꿔 보세요"
+  ],
+  "tool_about": "Voxelize rasterizes an original tetrahedron into occupied grid cells. The display centers the returned index grid rather than aligning it to world coordinates.",
+  "tool_about_ko": "Voxelize로 직접 만든 사면체를 격자 셀로 바꿔요. 반환된 인덱스 격자의 중심을 맞춰 표시하며 월드 좌표 정합은 하지 않아요."
+}
