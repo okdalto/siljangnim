@@ -366,6 +366,19 @@
       "sha256": "5521257a461de130a379ea839e7daedd06a0734854c6e9ea1e0d9e810345c7e0"
     },
     {
+      "id": "gfpgan.gallery",
+      "version": 1,
+      "title": "Restoring a degraded face",
+      "capability": "gfpgan image restoration",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/gfpgan.gallery/recipe.md",
+      "sha256": "dfd4c6e7aca6f9d338542a77472c96f14e76a0ba205fdd7c81be7f4cd1462dc7"
+    },
+    {
       "id": "go-graphics-gg.gallery",
       "version": 1,
       "title": "Layered radial petals",

@@ -1,0 +1,21 @@
+{
+  "model": "GFPGANv1.4",
+  "device": "CPU",
+  "results": [
+    {
+      "inputSize": 32,
+      "seconds": 1.1084600000176579,
+      "outputMean": 136.51346969604492
+    },
+    {
+      "inputSize": 64,
+      "seconds": 1.0491722919978201,
+      "outputMean": 135.90571975708008
+    },
+    {
+      "inputSize": 128,
+      "seconds": 1.0493946250062436,
+      "outputMean": 136.64003880818686
+    }
+  ]
+}

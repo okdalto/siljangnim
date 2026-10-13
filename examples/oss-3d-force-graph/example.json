@@ -1,0 +1,37 @@
+{
+  "order": 402,
+  "title": "A force network in three dimensions (3D Force Graph)",
+  "title_ko": "3차원 힘 기반 관계망 (3D Force Graph)",
+  "description": "3D Force Graph computes and renders an original network with Three.js. Rotate its real WebGL scene and adjust link thickness.",
+  "description_ko": "3D Force Graph가 직접 만든 관계망을 계산하고 Three.js로 렌더해요. 실제 WebGL 장면의 시점과 연결선 두께를 바꿔 보세요.",
+  "prompt": "A force network in three dimensions. Use the real library renderer or solver with original synthetic inputs.",
+  "made_with": "3d-force-graph 1.80.0; original synthetic input",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "3d-force-graph"
+  ],
+  "summary": "A force network in three dimensions. Change inputs to rerun the original tool.",
+  "summary_ko": "3차원 힘 기반 관계망. 원본 도구의 입력을 바꿔 보세요.",
+  "try": [
+    "Change View rotation",
+    "Change Link width"
+  ],
+  "try_ko": [
+    "View rotation 값을 바꿔 보세요",
+    "Link width 값을 바꿔 보세요"
+  ],
+  "tool_about": "3D Force Graph computes and renders an original network with Three.js. Rotate its real WebGL scene and adjust link thickness.",
+  "tool_about_ko": "3D Force Graph가 직접 만든 관계망을 계산하고 Three.js로 렌더해요. 실제 WebGL 장면의 시점과 연결선 두께를 바꿔 보세요.",
+  "credits": [
+    {
+      "what": "Three.js 0.186.0 rendering dependency",
+      "source": "Three.js contributors",
+      "url": "https://github.com/mrdoob/three.js",
+      "license": "MIT"
+    }
+  ]
+}

@@ -34,6 +34,10 @@ CSG.js boolean solids, NDWFC tiles, p5-hershey-js stroke fonts, Fullik articulat
 
 Box2D, Bullet and Jolt rebound simulations, OpenSubdiv refinement and Embree CPU ray queries come from directly built and executed engines. These recipes install CMake and cache source archives and native builds. Computation runs on every invocation; the first build can take several minutes.
 
+Leaflet, Sigma, 3D Force Graph, MapLibre GL and deck.gl examples draw synthetic shapes and graphs with their original renderers. Maps use no real street data, external tiles, accounts or API keys. canvas-sketch rerenders through its original manager; React Spring advances its real solver in fixed time steps.
+
+GFPGAN v1.4 face restoration was run on CPU for three degraded crops of a public NASA photograph. Compare inputs, restorations and the reference crop. Its approximately 349 MB model and source archives are verified and cached only when the recipe reruns.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

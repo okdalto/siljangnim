@@ -1,0 +1,37 @@
+{
+  "order": 404,
+  "title": "Extruded synthetic map blocks (deck.gl)",
+  "title_ko": "가상 지도 블록의 입체 표현 (deck.gl)",
+  "description": "deck.gl renders original polygon blocks as extruded WebGL geometry. Height and camera pitch change the actual PolygonLayer rendering.",
+  "description_ko": "deck.gl이 직접 만든 다각형 블록을 WebGL 입체로 렌더해요. 높이와 카메라 기울기가 실제 PolygonLayer 결과를 바꿔요.",
+  "prompt": "Extruded synthetic map blocks. Use the real library renderer or solver with original synthetic inputs.",
+  "made_with": "deck.gl 9.4.0; original synthetic input",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "deck-gl"
+  ],
+  "summary": "Extruded synthetic map blocks. Change inputs to rerun the original tool.",
+  "summary_ko": "가상 지도 블록의 입체 표현. 원본 도구의 입력을 바꿔 보세요.",
+  "try": [
+    "Change Height multiplier",
+    "Change Camera pitch"
+  ],
+  "try_ko": [
+    "Height multiplier 값을 바꿔 보세요",
+    "Camera pitch 값을 바꿔 보세요"
+  ],
+  "tool_about": "deck.gl renders original polygon blocks as extruded WebGL geometry. Height and camera pitch change the actual PolygonLayer rendering.",
+  "tool_about_ko": "deck.gl이 직접 만든 다각형 블록을 WebGL 입체로 렌더해요. 높이와 카메라 기울기가 실제 PolygonLayer 결과를 바꿔요.",
+  "credits": [
+    {
+      "what": "deck.gl 9.4.0",
+      "source": "vis.gl contributors",
+      "url": "https://github.com/visgl/deck.gl",
+      "license": "MIT"
+    }
+  ]
+}

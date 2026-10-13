@@ -32,6 +32,10 @@ CSG.js 입체 불리언, NDWFC 타일, p5-hershey-js 획 글꼴, Fullik 관절, 
 
 Box2D·Bullet·Jolt의 반동 시뮬레이션, OpenSubdiv 세분화, Embree CPU 광선 질의도 원본 엔진을 빌드해 직접 계산했습니다. 이 레시피들은 CMake를 설치하고 소스와 네이티브 빌드를 캐시합니다. 캐시가 있어도 계산은 매번 실행하며 첫 빌드에는 시간이 걸릴 수 있습니다.
 
+Leaflet·Sigma·3D Force Graph·MapLibre GL·deck.gl 예제는 가상 도형과 그래프를 원본 렌더러로 그립니다. 지도는 실제 거리 데이터나 외부 타일을 사용하지 않으며 계정이나 API 키도 필요 없습니다. canvas-sketch는 원본 매니저로 드로잉을 다시 그리고 React Spring은 실제 솔버를 고정 시간 간격으로 계산합니다.
+
+GFPGAN v1.4 얼굴 복원은 공개 NASA 사진을 잘라 만든 세 손상 입력을 CPU에서 직접 계산했습니다. 입력·복원·원본 크롭을 비교할 수 있으며 약 349 MB 모델과 소스는 재실행할 때만 검증해 캐시합니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

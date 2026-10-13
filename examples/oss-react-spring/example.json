@@ -1,0 +1,37 @@
+{
+  "order": 399,
+  "title": "A spring sampled by React Spring (React Spring)",
+  "title_ko": "React Spring으로 표본화한 스프링 (React Spring)",
+  "description": "React Spring’s SpringValue advances the actual solver in fixed 10 ms steps. Inspect overshoot as tension and friction change.",
+  "description_ko": "React Spring의 SpringValue 실제 솔버를 10 ms 간격으로 진행해요. 장력과 마찰을 바꾸며 초과 진동을 비교하세요.",
+  "prompt": "A spring sampled by React Spring. Use the real library renderer or solver with original synthetic inputs.",
+  "made_with": "@react-spring/core 10.1.2; original synthetic input",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "react-spring"
+  ],
+  "summary": "A spring sampled by React Spring. Change inputs to rerun the original tool.",
+  "summary_ko": "React Spring으로 표본화한 스프링. 원본 도구의 입력을 바꿔 보세요.",
+  "try": [
+    "Change Tension",
+    "Change Friction"
+  ],
+  "try_ko": [
+    "Tension 값을 바꿔 보세요",
+    "Friction 값을 바꿔 보세요"
+  ],
+  "tool_about": "React Spring’s SpringValue advances the actual solver in fixed 10 ms steps. Inspect overshoot as tension and friction change.",
+  "tool_about_ko": "React Spring의 SpringValue 실제 솔버를 10 ms 간격으로 진행해요. 장력과 마찰을 바꾸며 초과 진동을 비교하세요.",
+  "credits": [
+    {
+      "what": "React peer dependency 19.3.0",
+      "source": "React contributors",
+      "url": "https://github.com/facebook/react",
+      "license": "MIT"
+    }
+  ]
+}

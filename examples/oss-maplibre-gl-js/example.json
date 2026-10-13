@@ -1,0 +1,37 @@
+{
+  "order": 403,
+  "title": "A self-contained vector map (MapLibre GL JS)",
+  "title_ko": "독립형 벡터 지도 (MapLibre GL JS)",
+  "description": "MapLibre GL renders original GeoJSON blocks with its vector map engine. Change zoom and bearing without external tiles, accounts or API keys.",
+  "description_ko": "MapLibre GL의 벡터 지도 엔진으로 직접 만든 GeoJSON 블록을 그려요. 외부 타일·계정·API 키 없이 확대와 방향을 바꿔요.",
+  "prompt": "A self-contained vector map. Use the real library renderer or solver with original synthetic inputs.",
+  "made_with": "maplibre-gl 6.11.2; original synthetic input",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "maplibre-gl-js"
+  ],
+  "summary": "A self-contained vector map. Change inputs to rerun the original tool.",
+  "summary_ko": "독립형 벡터 지도. 원본 도구의 입력을 바꿔 보세요.",
+  "try": [
+    "Change Map zoom",
+    "Change Bearing"
+  ],
+  "try_ko": [
+    "Map zoom 값을 바꿔 보세요",
+    "Bearing 값을 바꿔 보세요"
+  ],
+  "tool_about": "MapLibre GL renders original GeoJSON blocks with its vector map engine. Change zoom and bearing without external tiles, accounts or API keys.",
+  "tool_about_ko": "MapLibre GL의 벡터 지도 엔진으로 직접 만든 GeoJSON 블록을 그려요. 외부 타일·계정·API 키 없이 확대와 방향을 바꿔요.",
+  "credits": [
+    {
+      "what": "MapLibre GL 6.11.2 worker and shared module, bundled as a classic worker with Bun 1.3.14",
+      "source": "MapLibre contributors",
+      "url": "https://github.com/maplibre/maplibre-gl-js",
+      "license": "BSD-3-Clause"
+    }
+  ]
+}

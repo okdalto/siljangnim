@@ -1,0 +1,20 @@
+[
+  {
+    "name": "gfpgan",
+    "url": "https://files.pythonhosted.org/packages/80/a2/84bb50a2655fda1e6f35ae57399526051b8a8b96ad730aea82abeaac4de8/gfpgan-1.3.8-py3-none-any.whl",
+    "sha256": "3d8386df6320aa9dfb0dd4cd09d9f8ed12ae0bbd9b2df257c3d21aefac5d8b85",
+    "filename": "gfpgan-1.3.8-py3-none-any.whl"
+  },
+  {
+    "name": "basicsr",
+    "url": "https://files.pythonhosted.org/packages/86/41/00a6b000f222f0fa4c6d9e1d6dcc9811a374cabb8abb9d408b77de39648c/basicsr-1.4.2.tar.gz",
+    "sha256": "b89b595a87ef964cda9913b4d99380ddb6554c965577c0c10cb7b78e31301e87",
+    "filename": "basicsr-1.4.2.tar.gz"
+  },
+  {
+    "name": "model",
+    "url": "https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.4.pth",
+    "sha256": "e2cd4703ab14f4d01fd1383a8a8b266f9a5833dacee8e6a79d3bf21a1b6be5ad",
+    "filename": "GFPGANv1.4.pth"
+  }
+]

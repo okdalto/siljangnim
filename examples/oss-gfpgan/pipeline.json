@@ -1,0 +1,28 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "gfpgan.gallery@1",
+      "packages": [
+        "torch==2.9.1",
+        "torchvision==0.24.1",
+        "numpy==2.2.6",
+        "Pillow==11.3.0",
+        "setuptools==80.9.0"
+      ],
+      "inputs": [
+        "source.json",
+        "input-0.png",
+        "input-1.png",
+        "input-2.png"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "order": 405,
+  "title": "Restoring a degraded face (GFPGAN)",
+  "title_ko": "손상된 얼굴 복원 (GFPGAN)",
+  "description": "GFPGAN v1.4 restores three degraded versions of a manually cropped NASA photograph on the CPU. Compare with the reference: the model can invent facial details.",
+  "description_ko": "GFPGAN v1.4를 CPU에서 직접 실행해 NASA 사진을 잘라 손상시킨 세 입력을 복원했어요. 모델이 얼굴 세부를 만들어낼 수 있으니 원본 크롭과 비교하세요.",
+  "prompt": "Compare CPU GFPGAN restorations of three degraded inputs, then inspect differences from the reference crop.",
+  "made_with": "GFPGAN 1.3.8 clean architecture, GFPGANv1.4 weights; PyTorch 2.9.1 CPU on macOS arm64, Python 3.12.7",
+  "features": [
+    "image",
+    "model",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "gfpgan"
+  ],
+  "summary": "Actual CPU face restoration with GFPGAN v1.4, including the degraded input and reference crop.",
+  "summary_ko": "실제 CPU GFPGAN v1.4 복원 결과를 손상된 입력·원본 크롭과 비교해요.",
+  "try": [
+    "Select the degraded input resolution",
+    "Move the comparison slider",
+    "Use the reference crop to inspect invented details"
+  ],
+  "try_ko": [
+    "손상된 입력의 해상도를 선택하세요",
+    "비교 슬라이더를 움직이세요",
+    "원본 크롭을 켜서 만들어진 세부를 확인하세요"
+  ],
+  "tool_about": "GFPGAN v1.4 restores three degraded versions of a manually cropped NASA photograph on the CPU. Compare with the reference: the model can invent facial details.",
+  "tool_about_ko": "GFPGAN v1.4를 CPU에서 직접 실행해 NASA 사진을 잘라 손상시킨 세 입력을 복원했어요. 모델이 얼굴 세부를 만들어낼 수 있으니 원본 크롭과 비교하세요.",
+  "credits": [
+    {
+      "what": "NASA astronaut photograph; manually cropped and downsampled as model input",
+      "source": "NASA / scikit-image data.astronaut",
+      "url": "https://scikit-image.org/docs/0.25.x/api/skimage.data.html#skimage.data.astronaut",
+      "license": "Public domain (NASA; documented by scikit-image)"
+    },
+    {
+      "what": "BasicSR 1.4.2 architecture utilities, loaded unchanged from the verified source archive",
+      "source": "BasicSR contributors",
+      "url": "https://github.com/XPixelGroup/BasicSR",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "GFPGAN v1.4 trained weights, downloaded only on recipe execution",
+      "source": "TencentARC / GFPGAN contributors",
+      "url": "https://github.com/TencentARC/GFPGAN/releases/tag/v1.3.0",
+      "license": "Apache-2.0"
+    }
+  ]
+}

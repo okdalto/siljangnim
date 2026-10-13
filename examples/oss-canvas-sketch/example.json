@@ -1,0 +1,29 @@
+{
+  "order": 398,
+  "title": "A sketch managed by canvas-sketch (canvas-sketch)",
+  "title_ko": "canvas-sketch로 관리하는 스케치 (canvas-sketch)",
+  "description": "canvas-sketch runs an original rosette drawing function on its managed canvas. Controls rerender the sketch through the real manager.",
+  "description_ko": "canvas-sketch가 관리하는 캔버스에서 직접 만든 로제트 드로잉을 실행해요. 컨트롤은 실제 매니저를 통해 스케치를 다시 그려요.",
+  "prompt": "A sketch managed by canvas-sketch. Use the real library renderer or solver with original synthetic inputs.",
+  "made_with": "canvas-sketch 0.7.8; original synthetic input",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "canvas-sketch"
+  ],
+  "summary": "A sketch managed by canvas-sketch. Change inputs to rerun the original tool.",
+  "summary_ko": "canvas-sketch로 관리하는 스케치. 원본 도구의 입력을 바꿔 보세요.",
+  "try": [
+    "Change Petals",
+    "Change Phase"
+  ],
+  "try_ko": [
+    "Petals 값을 바꿔 보세요",
+    "Phase 값을 바꿔 보세요"
+  ],
+  "tool_about": "canvas-sketch runs an original rosette drawing function on its managed canvas. Controls rerender the sketch through the real manager.",
+  "tool_about_ko": "canvas-sketch가 관리하는 캔버스에서 직접 만든 로제트 드로잉을 실행해요. 컨트롤은 실제 매니저를 통해 스케치를 다시 그려요."
+}

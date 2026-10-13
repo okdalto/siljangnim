@@ -6859,6 +6859,206 @@
     "program": "c++"
    },
    "notes": "The Python recipe installs CMake 4.4.3 and requires native C/C++ compilers. It verifies and caches source archives and native builds; every rerun executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "canvas-sketch",
+   "name": "canvas-sketch",
+   "repo": "https://github.com/mattdesl/canvas-sketch",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "canvas-sketch runs an original rosette drawing function on its managed canvas. Controls rerender the sketch through the real manager.",
+   "tags": [
+    "interactive",
+    "browser"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/canvas-sketch@0.7.8?bundle"
+   },
+   "notes": "Runs the actual renderer or solver on original synthetic data. Modules load when the example opens."
+  },
+  {
+   "id": "react-spring",
+   "name": "React Spring",
+   "repo": "https://github.com/pmndrs/react-spring",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "React Spring’s SpringValue advances the actual solver in fixed 10 ms steps. Inspect overshoot as tension and friction change.",
+   "tags": [
+    "interactive",
+    "browser"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/@react-spring/core@10.1.2?bundle"
+   },
+   "notes": "Runs the actual renderer or solver on original synthetic data. Modules load when the example opens."
+  },
+  {
+   "id": "leaflet",
+   "name": "Leaflet",
+   "repo": "https://github.com/leaflet/leaflet",
+   "license": "BSD-2-Clause",
+   "tier": "B",
+   "purpose": "Leaflet projects and renders original synthetic GeoJSON blocks around Seoul using its canvas renderer. No external tiles or real street data are loaded.",
+   "tags": [
+    "interactive",
+    "browser"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/leaflet@1.9.4?bundle"
+   },
+   "notes": "Runs the actual renderer or solver on original synthetic data. Modules load when the example opens."
+  },
+  {
+   "id": "sigma-js",
+   "name": "Sigma.js",
+   "repo": "https://github.com/jacomyal/sigma.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Sigma renders an original three-group graph through its WebGL layers. Change the group separation and node size to inspect the graph.",
+   "tags": [
+    "interactive",
+    "browser"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/sigma@3.0.3?bundle"
+   },
+   "notes": "Runs the actual renderer or solver on original synthetic data. Modules load when the example opens."
+  },
+  {
+   "id": "3d-force-graph",
+   "name": "3D Force Graph",
+   "repo": "https://github.com/vasturiano/3d-force-graph",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "3D Force Graph computes and renders an original network with Three.js. Rotate its real WebGL scene and adjust link thickness.",
+   "tags": [
+    "interactive",
+    "browser"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/3d-force-graph@1.80.0?bundle"
+   },
+   "notes": "Runs the actual renderer or solver on original synthetic data. Modules load when the example opens."
+  },
+  {
+   "id": "maplibre-gl-js",
+   "name": "MapLibre GL JS",
+   "repo": "https://github.com/maplibre/maplibre-gl-js",
+   "license": "BSD-3-Clause",
+   "tier": "B",
+   "purpose": "MapLibre GL renders original GeoJSON blocks with its vector map engine. Change zoom and bearing without external tiles, accounts or API keys.",
+   "tags": [
+    "interactive",
+    "browser"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/maplibre-gl@6.11.2?bundle"
+   },
+   "notes": "Runs the actual renderer or solver on original synthetic data. Modules load when the example opens."
+  },
+  {
+   "id": "deck-gl",
+   "name": "deck.gl",
+   "repo": "https://github.com/visgl/deck.gl",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "deck.gl renders original polygon blocks as extruded WebGL geometry. Height and camera pitch change the actual PolygonLayer rendering.",
+   "tags": [
+    "interactive",
+    "browser"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/deck.gl@9.4.0?bundle&deps=react@19.3.0,react-dom@19.3.0"
+   },
+   "notes": "Runs the actual renderer or solver on original synthetic data. Modules load when the example opens."
+  },
+  {
+   "id": "gfpgan",
+   "name": "GFPGAN",
+   "repo": "https://github.com/TencentARC/GFPGAN",
+   "license": "Apache-2.0",
+   "tier": "E",
+   "purpose": "GFPGAN v1.4 restores three degraded versions of a manually cropped NASA photograph on the CPU. Compare with the reference: the model can invent facial details.",
+   "tags": [
+    "face restoration",
+    "PyTorch",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.9.1",
+     "torchvision==0.24.1",
+     "numpy==2.2.6",
+     "Pillow==11.3.0",
+     "setuptools==80.9.0"
+    ]
+   },
+   "notes": "Actual GFPGAN v1.4 CPU inference on manually cropped inputs. The recipe downloads and SHA-256 verifies source packages and a 349 MB model only when rerun, then reuses the cache."
   }
  ]
 }

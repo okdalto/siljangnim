@@ -1,0 +1,29 @@
+{
+  "order": 400,
+  "title": "Vector blocks on a Leaflet map (Leaflet)",
+  "title_ko": "Leaflet 지도의 벡터 블록 (Leaflet)",
+  "description": "Leaflet projects and renders original synthetic GeoJSON blocks around Seoul using its canvas renderer. No external tiles or real street data are loaded.",
+  "description_ko": "Leaflet의 캔버스 렌더러로 서울 주변의 직접 만든 가상 GeoJSON 블록을 투영하고 그려요. 외부 타일이나 실제 거리 데이터는 쓰지 않아요.",
+  "prompt": "Vector blocks on a Leaflet map. Use the real library renderer or solver with original synthetic inputs.",
+  "made_with": "leaflet 1.9.4; original synthetic input",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "leaflet"
+  ],
+  "summary": "Vector blocks on a Leaflet map. Change inputs to rerun the original tool.",
+  "summary_ko": "Leaflet 지도의 벡터 블록. 원본 도구의 입력을 바꿔 보세요.",
+  "try": [
+    "Change Map zoom",
+    "Change Outline width"
+  ],
+  "try_ko": [
+    "Map zoom 값을 바꿔 보세요",
+    "Outline width 값을 바꿔 보세요"
+  ],
+  "tool_about": "Leaflet projects and renders original synthetic GeoJSON blocks around Seoul using its canvas renderer. No external tiles or real street data are loaded.",
+  "tool_about_ko": "Leaflet의 캔버스 렌더러로 서울 주변의 직접 만든 가상 GeoJSON 블록을 투영하고 그려요. 외부 타일이나 실제 거리 데이터는 쓰지 않아요."
+}

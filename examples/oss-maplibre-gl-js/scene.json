@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);s.mount=()=>{const div=document.createElement('div');div.style.cssText='position:absolute;left:-10000px;top:0;width:512px;height:512px;overflow:hidden';document.body.appendChild(div);return div;};s.colors=['#57d8c6','#ffbc78','#ad9bff'];const mod=await ctx.utils.import('https://esm.sh/maplibre-gl@6.11.2?bundle');const M=mod.default??mod;s.workerUrl=URL.createObjectURL(new Blob([await(await fetch(ctx.assets['maplibre-worker.cjs'])).text()],{type:'text/javascript'}));M.setWorkerUrl(s.workerUrl+'#maplibre-worker.cjs');s.div=s.mount();s.blocks=Array.from({length:30},(_,i)=>{const x=i%6,y=Math.floor(i/6),lon=126.953+x*.008,lat=37.547+y*.008;return {type:'Feature',properties:{group:(x+y)%3,height:100+((i*17)%8)*100},geometry:{type:'Polygon',coordinates:[[[lon,lat],[lon+.006,lat],[lon+.006,lat+.006],[lon,lat+.006],[lon,lat]]]}};});s.geojson={type:'FeatureCollection',features:s.blocks};s.map=new M.Map({container:s.div,center:[126.978,37.5665],zoom:12,bearing:20,interactive:false,attributionControl:false,canvasContextAttributes:{preserveDrawingBuffer:true},style:{version:8,sources:{blocks:{type:'geojson',data:s.geojson}},layers:[{id:'background',type:'background',paint:{'background-color':'#0b1625'}},{id:'blocks',type:'fill',source:'blocks',paint:{'fill-color':['match',['get','group'],0,'#57d8c6',1,'#ffbc78','#ad9bff'],'fill-opacity':.85}},{id:'outlines',type:'line',source:'blocks',paint:{'line-color':'#182e3a','line-width':2}}]}});await new Promise((resolve,reject)=>{s.map.once('load',resolve);s.map.on('error',e=>{s.error=String(e.error||e);reject(Error(s.error));});});",
+    "render": "const s=ctx.state,u=ctx.uniforms,c=s.c,gl=ctx.gl,[w,h]=ctx.resolution,m=Math.min(w,h),size=m*.82,left=(w-size)/2,top=(h-size)/2,key=JSON.stringify(u);if(s.error)throw Error(s.error);if(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#0b1625';c.fillRect(0,0,w,h);if(s.key!==key){s.map.jumpTo({zoom:u.u_zoom,bearing:u.u_bearing});s.key=key;}c.drawImage(s.map.getCanvas(),left,top,size,size);s.note='Synthetic blocks \u00b7 MapLibre GL \u00b7 no basemap';c.fillStyle='#b7c9d8';c.font=Math.max(11,m*.022)+'px sans-serif';c.textAlign='center';c.fillText(s.note||'',w/2,h/2+m*.465);ctx.publish('tool',s.note||'ready');gl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.program);ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "const s=ctx.state;s.dead=true;s.map?.remove();s.sigma?.kill();s.manager?.destroy();s.graph3d?._destructor?.();s.deck?.finalize();s.div?.remove();s.style?.remove();ctx.gl.deleteTexture(s.texture);ctx.gl.deleteProgram(s.program);if(s.workerUrl)URL.revokeObjectURL(s.workerUrl);"
+  },
+  "uniforms": {
+    "u_zoom": {
+      "type": "float",
+      "label": "Map zoom",
+      "value": 12.5,
+      "min": 11.5,
+      "max": 13.5,
+      "step": 0.25
+    },
+    "u_bearing": {
+      "type": "float",
+      "label": "Bearing",
+      "value": 20,
+      "min": 0,
+      "max": 180,
+      "step": 5
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);s.mount=()=>{const div=document.createElement('div');div.style.cssText='position:absolute;left:-10000px;top:0;width:512px;height:512px;overflow:hidden';document.body.appendChild(div);return div;};s.colors=['#57d8c6','#ffbc78','#ad9bff'];const mod=await ctx.utils.import('https://esm.sh/leaflet@1.9.4?bundle');s.L=mod.default??mod;s.div=s.mount();s.map=s.L.map(s.div,{zoomControl:false,attributionControl:false,zoomSnap:0,zoomAnimation:false,fadeAnimation:false,markerZoomAnimation:false,preferCanvas:true}).setView([37.5665,126.978],12);s.blocks=Array.from({length:30},(_,i)=>{const x=i%6,y=Math.floor(i/6),lon=126.953+x*.008,lat=37.547+y*.008;return {type:'Feature',properties:{group:(x+y)%3,height:100+((i*17)%8)*100},geometry:{type:'Polygon',coordinates:[[[lon,lat],[lon+.006,lat],[lon+.006,lat+.006],[lon,lat+.006],[lon,lat]]]}};});s.geojson={type:'FeatureCollection',features:s.blocks};s.layer=s.L.geoJSON(s.geojson,{renderer:s.L.canvas({padding:0}),style:f=>({color:'#182e3a',weight:2,fillColor:s.colors[f.properties.group],fillOpacity:.85})}).addTo(s.map);await new Promise(r=>setTimeout(r,100));",
+    "render": "const s=ctx.state,u=ctx.uniforms,c=s.c,gl=ctx.gl,[w,h]=ctx.resolution,m=Math.min(w,h),size=m*.82,left=(w-size)/2,top=(h-size)/2,key=JSON.stringify(u);if(s.error)throw Error(s.error);if(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#0b1625';c.fillRect(0,0,w,h);if(s.key!==key){s.map.setView([37.5665,126.978],u.u_zoom,{animate:false});s.layer.setStyle({weight:u.u_weight});s.key=key;}const source=s.div.querySelector('canvas');if(source)c.drawImage(source,left,top,size,size);s.note='Synthetic blocks \u00b7 Leaflet zoom '+u.u_zoom;c.fillStyle='#b7c9d8';c.font=Math.max(11,m*.022)+'px sans-serif';c.textAlign='center';c.fillText(s.note||'',w/2,h/2+m*.465);ctx.publish('tool',s.note||'ready');gl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.program);ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "const s=ctx.state;s.dead=true;s.map?.remove();s.sigma?.kill();s.manager?.destroy();s.graph3d?._destructor?.();s.deck?.finalize();s.div?.remove();s.style?.remove();ctx.gl.deleteTexture(s.texture);ctx.gl.deleteProgram(s.program);"
+  },
+  "uniforms": {
+    "u_zoom": {
+      "type": "float",
+      "label": "Map zoom",
+      "value": 13.5,
+      "min": 12.5,
+      "max": 14.5,
+      "step": 0.25
+    },
+    "u_weight": {
+      "type": "float",
+      "label": "Outline width",
+      "value": 2,
+      "min": 1,
+      "max": 5,
+      "step": 0.5
+    }
+  }
+}

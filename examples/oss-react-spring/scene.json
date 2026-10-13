@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);s.mount=()=>{const div=document.createElement('div');div.style.cssText='position:absolute;left:-10000px;top:0;width:512px;height:512px;overflow:hidden';document.body.appendChild(div);return div;};s.colors=['#57d8c6','#ffbc78','#ad9bff'];s.lib=await ctx.utils.import('https://esm.sh/@react-spring/core@10.1.2?bundle&deps=react@19.3.0');",
+    "render": "const s=ctx.state,u=ctx.uniforms,c=s.c,gl=ctx.gl,[w,h]=ctx.resolution,m=Math.min(w,h),size=m*.82,left=(w-size)/2,top=(h-size)/2,key=JSON.stringify(u);if(s.error)throw Error(s.error);if(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#0b1625';c.fillRect(0,0,w,h);if(s.key!==key){const spring=new s.lib.SpringValue(0);spring.start({to:1,config:{tension:u.u_tension,friction:u.u_friction,mass:1}});s.points=[[0,0]];for(let i=1;i<=250;i++){spring.advance(10);const v=spring.get();if(!Number.isFinite(v))throw Error('Nonfinite spring');s.points.push([i/250,v]);}spring.stop();s.key=key;}c.strokeStyle='#ffbc78';c.lineWidth=1;c.beginPath();c.moveTo(left,top+size*.4);c.lineTo(left+size,top+size*.4);c.stroke();c.strokeStyle='#57d8c6';c.lineWidth=3;c.beginPath();s.points.forEach(([x,y],i)=>{const px=left+x*size,py=top+size*(.85-y*.45);i?c.lineTo(px,py):c.moveTo(px,py);});c.stroke();s.note='0–2.5 seconds · fixed 10 ms solver steps';c.fillStyle='#b7c9d8';c.font=Math.max(11,m*.022)+'px sans-serif';c.textAlign='center';c.fillText(s.note||'',w/2,h/2+m*.465);ctx.publish('tool',s.note||'ready');gl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.program);ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "const s=ctx.state;s.dead=true;s.map?.remove();s.sigma?.kill();s.manager?.destroy();s.graph3d?._destructor?.();s.deck?.finalize();s.div?.remove();s.style?.remove();ctx.gl.deleteTexture(s.texture);ctx.gl.deleteProgram(s.program);"
+  },
+  "uniforms": {
+    "u_tension": {
+      "type": "float",
+      "label": "Tension",
+      "value": 120,
+      "min": 40,
+      "max": 240,
+      "step": 10
+    },
+    "u_friction": {
+      "type": "float",
+      "label": "Friction",
+      "value": 12,
+      "min": 4,
+      "max": 35,
+      "step": 1
+    }
+  }
+}

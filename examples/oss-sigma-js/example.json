@@ -1,0 +1,37 @@
+{
+  "order": 401,
+  "title": "A network drawn by Sigma (Sigma.js)",
+  "title_ko": "Sigma로 그린 관계망 (Sigma.js)",
+  "description": "Sigma renders an original three-group graph through its WebGL layers. Change the group separation and node size to inspect the graph.",
+  "description_ko": "Sigma의 WebGL 레이어로 직접 만든 세 그룹 관계망을 그려요. 그룹 간격과 노드 크기를 바꿔 살펴보세요.",
+  "prompt": "A network drawn by Sigma. Use the real library renderer or solver with original synthetic inputs.",
+  "made_with": "sigma 3.0.3; original synthetic input",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "sigma-js"
+  ],
+  "summary": "A network drawn by Sigma. Change inputs to rerun the original tool.",
+  "summary_ko": "Sigma로 그린 관계망. 원본 도구의 입력을 바꿔 보세요.",
+  "try": [
+    "Change Group separation",
+    "Change Node size"
+  ],
+  "try_ko": [
+    "Group separation 값을 바꿔 보세요",
+    "Node size 값을 바꿔 보세요"
+  ],
+  "tool_about": "Sigma renders an original three-group graph through its WebGL layers. Change the group separation and node size to inspect the graph.",
+  "tool_about_ko": "Sigma의 WebGL 레이어로 직접 만든 세 그룹 관계망을 그려요. 그룹 간격과 노드 크기를 바꿔 살펴보세요.",
+  "credits": [
+    {
+      "what": "Graphology 0.26.0 graph data",
+      "source": "Graphology contributors",
+      "url": "https://github.com/graphology/graphology",
+      "license": "MIT"
+    }
+  ]
+}
