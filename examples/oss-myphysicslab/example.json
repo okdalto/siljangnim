@@ -1,0 +1,38 @@
+{
+  "order": 444,
+  "title": "Pendulum paths and phase portraits (myPhysicsLab)",
+  "title_ko": "진자의 궤적과 위상 공간 (myPhysicsLab)",
+  "description": "Original myPhysicsLab integrates three undamped pendulums; phase portraits and energy checks show its native solver results.",
+  "description_ko": "myPhysicsLab 원본 적분기로 세 무감쇠 진자를 계산하고 위상 공간과 에너지 보존을 확인했어요.",
+  "prompt": "Pendulum paths and phase portraits. Use the original engine.",
+  "made_with": "Node.js 25.6.1, esbuild 0.27.7 and pinned myPhysicsLab source",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "myphysicslab"
+  ],
+  "summary": "Original myPhysicsLab integrates three undamped pendulums; phase portraits and energy checks show its native solver results.",
+  "summary_ko": "myPhysicsLab 원본 적분기로 세 무감쇠 진자를 계산하고 위상 공간과 에너지 보존을 확인했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Original myPhysicsLab integrates three undamped pendulums; phase portraits and energy checks show its native solver results.",
+  "tool_about_ko": "myPhysicsLab 원본 적분기로 세 무감쇠 진자를 계산하고 위상 공간과 에너지 보존을 확인했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "myPhysicsLab contributors",
+      "url": "https://github.com/myphysicslab/myphysicslab",
+      "license": "Apache-2.0"
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "files": [
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/LICENSE",
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9"
+    },
+    {
+      "path": "src/lab/model/SimpleAdvance.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/SimpleAdvance.ts",
+      "sha256": "35ee9e9e14a266e03cf4196ed7cee4a38e9c40823f88869532cb83f29c2f4847"
+    },
+    {
+      "path": "src/lab/util/Util.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/util/Util.ts",
+      "sha256": "e5ef3cca6246f176809016ba6bf984ba64a56c1a43d4a0fa0fa51c5c85e4c1e2"
+    },
+    {
+      "path": "src/lab/model/RungeKutta.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/RungeKutta.ts",
+      "sha256": "5e4e1acb9be57c6cabc8dfcb31b2fa41581f43b39f2e35ba035eb332a0c1c73a"
+    },
+    {
+      "path": "src/lab/model/DiffEqSolver.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/DiffEqSolver.ts",
+      "sha256": "82aa2bb3bb7246102455188bfca8aa166f9d831bd01fad735b65f1185431b535"
+    },
+    {
+      "path": "src/lab/model/ODESim.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/ODESim.ts",
+      "sha256": "fe50b59d3a7528a6d92677ef5575b9d0519e3b833a665c2c6b1d98042b3ba4ba"
+    },
+    {
+      "path": "src/lab/model/VarsList.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/VarsList.ts",
+      "sha256": "73d5830d8a7d472e55ce0715a9cb54e9e726a04680f4c4c194740518d9fa87df"
+    },
+    {
+      "path": "src/lab/model/Variable.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/Variable.ts",
+      "sha256": "b451c1d34988146f21686f174fd7b131c83b25bab9fbba89fb544449e6413e14"
+    },
+    {
+      "path": "src/lab/util/Observe.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/util/Observe.ts",
+      "sha256": "be16f538a15538f427471ab3d08c3af2fbd9ee62a1fb2afbd324d7571115cc77"
+    },
+    {
+      "path": "src/lab/util/AbstractSubject.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/util/AbstractSubject.ts",
+      "sha256": "be9cd98fb3c11729ed182550fe5dc0252b592081d799a796030e81b6880daa82"
+    },
+    {
+      "path": "src/lab/util/Terminal.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/util/Terminal.ts",
+      "sha256": "54b1b0fb64663bc3b6df8b823d413880a94fd9393927d017ca61aa7a3867e4f5"
+    },
+    {
+      "path": "src/lab/util/Memo.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/util/Memo.ts",
+      "sha256": "1f62bba69fdba194e3c10aa47d313e8fd32a061196a9e194ae73cdb47cc4abbf"
+    },
+    {
+      "path": "src/lab/model/Simulation.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/Simulation.ts",
+      "sha256": "97135eab4e74520773c707da3ecca8434dedcf37093ef5e7e662fdb9041b5f9a"
+    },
+    {
+      "path": "src/lab/model/SimObject.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/SimObject.ts",
+      "sha256": "29541c604f23d3c54473708136a2738b0be0e44df5a75f98439d8b6392795a3a"
+    },
+    {
+      "path": "src/lab/util/Vector.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/util/Vector.ts",
+      "sha256": "3a8c7b649b4f5035cce59986075e42f383dcdeff203af59d3e24cb53f1010ab2"
+    },
+    {
+      "path": "src/lab/util/DoubleRect.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/util/DoubleRect.ts",
+      "sha256": "2c7cfb178a5b340d26735361873ebac3f3eb9b740d735879653b0be40cbc19ff"
+    },
+    {
+      "path": "src/lab/model/SimList.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/SimList.ts",
+      "sha256": "aea005bc8c8888ae60d7f6db302bbbead5eddb304ec61ac0f7b3cfadc80249f6"
+    },
+    {
+      "path": "src/lab/model/Spring.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/Spring.ts",
+      "sha256": "fc16c9ec94d46ced0b0d6612d9c17c60478e79df172a5a679bad47e05cc5ea36"
+    },
+    {
+      "path": "src/lab/model/MassObject.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/MassObject.ts",
+      "sha256": "28c8d9a46c6df17bb378a1cf504ede048499d8e95acb0fe17d6191565016b020"
+    },
+    {
+      "path": "src/lab/util/AffineTransform.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/util/AffineTransform.ts",
+      "sha256": "4fa018dcbb04853d476d7ad94e893e9403b32b53a0a455ea76cfab18c716eabb"
+    },
+    {
+      "path": "src/lab/model/Line.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/Line.ts",
+      "sha256": "b152f09dcc8e6ed9a8f572e7d76dd814a362334d5af4034c7f66e9eb3a49fbfc"
+    },
+    {
+      "path": "src/lab/model/ForceLaw.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/ForceLaw.ts",
+      "sha256": "8c7b8736a086a442a29f66f7ba1dc9f70afbe0526c63aa9900d52a836be9fb6f"
+    },
+    {
+      "path": "src/lab/model/Force.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/Force.ts",
+      "sha256": "ae616677f9521a31d227a74323019e57f6632747f569080288e97e11b8cd4807"
+    },
+    {
+      "path": "src/lab/model/CoordType.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/CoordType.ts",
+      "sha256": "5ebdfdc662ff4991e573a63cfe5b5ca683241651362fed29c6ee5f889d669d96"
+    },
+    {
+      "path": "src/lab/model/PointMass.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/PointMass.ts",
+      "sha256": "c77142f9ae4da55d15957b8867849f228c507560b37bd41249d48238e105b46e"
+    },
+    {
+      "path": "src/lab/model/ConcreteLine.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/ConcreteLine.ts",
+      "sha256": "533063f474d95c4db29e0ec0d8dedb89854e4daba017ddd43fdd5a27cb5d9a74"
+    },
+    {
+      "path": "src/lab/model/Arc.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/Arc.ts",
+      "sha256": "f3c2fa4e046a53b24d95a833e71846ac9f747d1ff80ee1fce816989f8ac9b2ea"
+    },
+    {
+      "path": "src/lab/model/AdvanceStrategy.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/AdvanceStrategy.ts",
+      "sha256": "8ea4ab400441d32040f07a82c1ee405458433c3cc7d5537ec80bafb909443f52"
+    },
+    {
+      "path": "src/sims/pendulum/PendulumSim.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/sims/pendulum/PendulumSim.ts",
+      "sha256": "f638af583c325d81963afcbdfb39ca74fb6b0fdfe236de418a450be66325adce"
+    },
+    {
+      "path": "src/lab/app/EventHandler.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/app/EventHandler.ts",
+      "sha256": "2abc351c08074dd54bdb9bbcceb3f4d5cb751ef619bd4021b72f6fc398faa262"
+    },
+    {
+      "path": "src/lab/model/EnergySystem.ts",
+      "url": "https://raw.githubusercontent.com/myphysicslab/myphysicslab/4b0bb8e1fa3b00889bb20dfa0d238674ac2e0b3c/src/lab/model/EnergySystem.ts",
+      "sha256": "75fb6c97d087cc4e38a281154d6b22f5d446bd3b1124f6e4af2ce38d011daadc"
+    }
+  ],
+  "frames": 3
+}

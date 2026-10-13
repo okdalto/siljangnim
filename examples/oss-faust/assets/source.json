@@ -1,0 +1,38 @@
+{
+  "id": "faust",
+  "repo": "https://github.com/grame-cncm/faustwasm",
+  "version": "0.18.5",
+  "files": [
+    {
+      "path": "package.json",
+      "url": "https://cdn.jsdelivr.net/npm/@grame/faustwasm@0.18.5/package.json",
+      "sha256": "0041a3b18dfb797eece149643114769779b6e9b89e4310b77930be8fc3c3a8ed"
+    },
+    {
+      "path": "COPYING.txt",
+      "url": "https://cdn.jsdelivr.net/npm/@grame/faustwasm@0.18.5/COPYING.txt",
+      "sha256": "c747ba23f84a8b47ebc6007bf536215b3ceeab6bfa2f803cab422a512e3f1ed3"
+    },
+    {
+      "path": "dist/esm/index.js",
+      "url": "https://cdn.jsdelivr.net/npm/@grame/faustwasm@0.18.5/dist/esm/index.js",
+      "sha256": "f749fcbb8c62b40f510d355a83c8b654bd103e4b5767aa1e0f6f4edfe7b24985"
+    },
+    {
+      "path": "libfaust-wasm/libfaust-wasm.js",
+      "url": "https://cdn.jsdelivr.net/npm/@grame/faustwasm@0.18.5/libfaust-wasm/libfaust-wasm.js",
+      "sha256": "73b9ee9ba0368f8a52d1e5feeeaee528930e38420acc9ea65b1198b480ed9e25"
+    },
+    {
+      "path": "libfaust-wasm/libfaust-wasm.wasm",
+      "url": "https://cdn.jsdelivr.net/npm/@grame/faustwasm@0.18.5/libfaust-wasm/libfaust-wasm.wasm",
+      "sha256": "b81cd9c08c5d230a193194286974a5403d0ca6c9fb2768987af8defca6527202"
+    },
+    {
+      "path": "libfaust-wasm/libfaust-wasm.data",
+      "url": "https://cdn.jsdelivr.net/npm/@grame/faustwasm@0.18.5/libfaust-wasm/libfaust-wasm.data",
+      "sha256": "12e89b91e9b9fce899b1cdf6f62fdea18d95ce1ae63a69a61d76c3d365e52050"
+    }
+  ],
+  "frames": 3
+}

@@ -1,0 +1,26 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "autotrace.gallery@1",
+      "packages": [
+        "Pillow==11.3.0",
+        "svgpathtools==1.7.1",
+        "numpy==2.2.6",
+        "scipy==1.17.1",
+        "svgwrite==1.4.3"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "input.ppm",
+        "trace-0.svg",
+        "trace-1.svg",
+        "trace-2.svg"
+      ]
+    }
+  ]
+}

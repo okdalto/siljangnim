@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "tippecanoe.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "input.geojson",
+        "roads.mbtiles",
+        "decoded-1.json",
+        "decoded-3.json",
+        "decoded-5.json"
+      ]
+    }
+  ]
+}

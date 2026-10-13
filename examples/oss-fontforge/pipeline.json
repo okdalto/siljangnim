@@ -1,0 +1,28 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "fontforge.gallery@1",
+      "packages": [
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "main.py",
+        "font.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "render-0.png",
+        "glyph-0.svg",
+        "font-0.ttf",
+        "render-1.png",
+        "glyph-1.svg",
+        "font-1.ttf",
+        "render-2.png",
+        "glyph-2.svg",
+        "font-2.ttf"
+      ]
+    }
+  ]
+}

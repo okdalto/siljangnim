@@ -1,0 +1,38 @@
+{
+  "order": 443,
+  "title": "Roads at three tile zoom levels (Tippecanoe)",
+  "title_ko": "세 타일 확대 수준의 도로 (Tippecanoe)",
+  "description": "Tippecanoe builds real vector tiles from original synthetic roads; decoded native geometry shows zoom-dependent detail.",
+  "description_ko": "Tippecanoe로 합성 도로의 실제 벡터 타일을 만들고 원본 디코더의 기하를 확대 수준별로 표시해요.",
+  "prompt": "Roads at three tile zoom levels. Use the original engine.",
+  "made_with": "Tippecanoe 2.79.0 and tippecanoe-decode",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "tippecanoe"
+  ],
+  "summary": "Tippecanoe builds real vector tiles from original synthetic roads; decoded native geometry shows zoom-dependent detail.",
+  "summary_ko": "Tippecanoe로 합성 도로의 실제 벡터 타일을 만들고 원본 디코더의 기하를 확대 수준별로 표시해요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Tippecanoe builds real vector tiles from original synthetic roads; decoded native geometry shows zoom-dependent detail.",
+  "tool_about_ko": "Tippecanoe로 합성 도로의 실제 벡터 타일을 만들고 원본 디코더의 기하를 확대 수준별로 표시해요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Tippecanoe contributors",
+      "url": "https://github.com/felt/tippecanoe",
+      "license": "BSD-2-Clause"
+    }
+  ]
+}

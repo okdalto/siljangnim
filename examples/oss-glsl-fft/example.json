@@ -1,0 +1,37 @@
+{
+  "order": 445,
+  "title": "GPU signal and frequency spectrum (glsl-fft)",
+  "title_ko": "GPU 신호와 주파수 스펙트럼 (glsl-fft)",
+  "description": "Original glsl-fft runs forward and inverse two-dimensional FFT passes on GPU; a readback check verifies reconstruction error.",
+  "description_ko": "원본 glsl-fft로 GPU에서 2차원 순·역변환을 실행하고 읽어온 결과의 복원 오차를 검증해요.",
+  "prompt": "Explore a signal and its two-dimensional Fourier transform.",
+  "made_with": "Original glsl-fft shader at a62f14d16f7d589d1d2deb4fcf67f51b19909ea9",
+  "features": [
+    "interactive",
+    "shader"
+  ],
+  "mode": "live",
+  "uses": [
+    "glsl-fft"
+  ],
+  "summary": "Original glsl-fft runs forward and inverse two-dimensional FFT passes on GPU; a readback check verifies reconstruction error.",
+  "summary_ko": "원본 glsl-fft로 GPU에서 2차원 순·역변환을 실행하고 읽어온 결과의 복원 오차를 검증해요.",
+  "try": [
+    "Change Horizontal frequency",
+    "Compare the input signal with its frequency peaks"
+  ],
+  "try_ko": [
+    "Horizontal frequency를 바꿔 보세요",
+    "입력 신호와 주파수 봉우리를 비교하세요"
+  ],
+  "tool_about": "Original glsl-fft runs forward and inverse two-dimensional FFT passes on GPU; a readback check verifies reconstruction error.",
+  "tool_about_ko": "원본 glsl-fft로 GPU에서 2차원 순·역변환을 실행하고 읽어온 결과의 복원 오차를 검증해요.",
+  "credits": [
+    {
+      "what": "Original index.glsl shader and MIT license",
+      "source": "glsl-fft contributors",
+      "url": "https://github.com/rreusser/glsl-fft/blob/a62f14d16f7d589d1d2deb4fcf67f51b19909ea9/index.glsl",
+      "license": "MIT"
+    }
+  ]
+}

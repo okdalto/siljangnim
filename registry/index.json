@@ -15,6 +15,19 @@
       "sha256": "af91ecf61bbc1b065024d765082914ba8d42f6f3a8b2ca70e3f85db194d3988d"
     },
     {
+      "id": "autotrace.gallery",
+      "version": 1,
+      "title": "Pixels fitted to vector curves",
+      "capability": "autotrace graphics",
+      "kind": "python",
+      "license": "GPL-2+ / LGPL-2.1+",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/autotrace.gallery/recipe.md",
+      "sha256": "3d79809e3047bb84563e1c3280bbf445d218a4fddb4310dc4094c708d915eda9"
+    },
+    {
       "id": "blender.gallery",
       "version": 1,
       "title": "Rendered still life (Blender)",
@@ -327,6 +340,19 @@
       "sha256": "fdef9d354870cd1ac5f3a7a3588c04101bbbfe0a644919f409a3c429b02f99fe"
     },
     {
+      "id": "faust.gallery",
+      "version": 1,
+      "title": "Compiled low-pass synthesis",
+      "capability": "faust graphics",
+      "kind": "python",
+      "license": "LGPL-2.1-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/faust.gallery/recipe.md",
+      "sha256": "620742dab005dfb1ad94690fe83fcbd21260fdf11a6c8396e01e9b5821b7051d"
+    },
+    {
       "id": "ffmpeg.mandelbrot-zoom",
       "version": 2,
       "title": "Mandelbrot zoom video from ffmpeg's lavfi source",
@@ -390,6 +416,19 @@
       ],
       "path": "recipes/flomat.gallery/recipe.md",
       "sha256": "d2e1822044dfaf247831f0cd153b2f2c315e3f3270a4a31d980b325c0a893874"
+    },
+    {
+      "id": "fontforge.gallery",
+      "version": 1,
+      "title": "An original glyph in three weights",
+      "capability": "fontforge graphics",
+      "kind": "python",
+      "license": "GPL-3.0-or-later / BSD parts",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/fontforge.gallery/recipe.md",
+      "sha256": "e9ddf777cb6157b1bb8769edfc440c8ed69940deea5b411f857e6ced23dc1af6"
     },
     {
       "id": "fonttools.gallery",
@@ -897,6 +936,19 @@
       ],
       "path": "recipes/mujoco.gallery/recipe.md",
       "sha256": "fdb2dcc6663b6dc65bbdb3460c1f81875224c9e0d7090387a1d9d7c36ee903f6"
+    },
+    {
+      "id": "myphysicslab.gallery",
+      "version": 1,
+      "title": "Pendulum paths and phase portraits",
+      "capability": "myphysicslab graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/myphysicslab.gallery/recipe.md",
+      "sha256": "fff49444fb495ded30247c5cea809601b6a5bf251b71b7e2a7de1d79b9ee48fc"
     },
     {
       "id": "nanogpt.gallery",
@@ -1625,6 +1677,19 @@
       ],
       "path": "recipes/tinyspline.gallery/recipe.md",
       "sha256": "027c5d010e3afacabef27134b7629d3afbaa27e9880f747972e7f9eeb71b030e"
+    },
+    {
+      "id": "tippecanoe.gallery",
+      "version": 1,
+      "title": "Roads at three tile zoom levels",
+      "capability": "tippecanoe graphics",
+      "kind": "python",
+      "license": "BSD-2-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/tippecanoe.gallery/recipe.md",
+      "sha256": "c20dd416edd624d42db0d0017d450222b91e56ab047817fe586953a48d649d42"
     },
     {
       "id": "torchcfm.gallery",

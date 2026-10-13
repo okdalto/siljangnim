@@ -7971,6 +7971,135 @@
     ]
    },
    "notes": "Original ByteTrack associates synthetic boxes through low scores and missed detections while preserving track IDs."
+  },
+  {
+   "id": "faust",
+   "name": "Faust",
+   "repo": "https://github.com/grame-cncm/faust",
+   "license": "LGPL-2.1-or-later",
+   "tier": "D",
+   "purpose": "The original Faust compiler renders three low-pass DSP programs to WAV using its official WebAssembly build.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "audio"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "The original Faust compiler renders three low-pass DSP programs to WAV using its official WebAssembly build."
+  },
+  {
+   "id": "fontforge",
+   "name": "FontForge",
+   "repo": "https://github.com/fontforge/fontforge",
+   "license": "GPL-3.0-or-later / BSD parts",
+   "tier": "D",
+   "purpose": "FontForge changes the weight of an original glyph and exports validated outlines and real TrueType fonts.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "fontforge"
+   },
+   "notes": "FontForge changes the weight of an original glyph and exports validated outlines and real TrueType fonts."
+  },
+  {
+   "id": "autotrace",
+   "name": "AutoTrace",
+   "repo": "https://github.com/autotrace/autotrace",
+   "license": "GPL-2+ / LGPL-2.1+",
+   "tier": "D",
+   "purpose": "AutoTrace converts an original raster drawing into SVG curves at three fitting error thresholds.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "autotrace"
+   },
+   "notes": "AutoTrace converts an original raster drawing into SVG curves at three fitting error thresholds."
+  },
+  {
+   "id": "tippecanoe",
+   "name": "Tippecanoe",
+   "repo": "https://github.com/felt/tippecanoe",
+   "license": "BSD-2-Clause",
+   "tier": "D",
+   "purpose": "Tippecanoe builds real vector tiles from original synthetic roads; decoded native geometry shows zoom-dependent detail.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "tippecanoe"
+   },
+   "notes": "Tippecanoe builds real vector tiles from original synthetic roads; decoded native geometry shows zoom-dependent detail."
+  },
+  {
+   "id": "myphysicslab",
+   "name": "myPhysicsLab",
+   "repo": "https://github.com/myphysicslab/myphysicslab",
+   "license": "Apache-2.0",
+   "tier": "D",
+   "purpose": "Original myPhysicsLab integrates three undamped pendulums; phase portraits and energy checks show its native solver results.",
+   "tags": [
+    "Forces · differential equations",
+    "Physics · education"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "Original myPhysicsLab integrates three undamped pendulums; phase portraits and energy checks show its native solver results."
+  },
+  {
+   "id": "glsl-fft",
+   "name": "glsl-fft",
+   "repo": "https://github.com/rreusser/glsl-fft",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Original glsl-fft runs forward and inverse two-dimensional FFT passes on GPU; a readback check verifies reconstruction error.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "bundled": true
+   },
+   "notes": "Bundled original MIT shader; requires WebGL2 float color buffers. GLSL 300 wrapper aliases texture2D to texture and removes only the glslify export directive."
   }
  ]
 }

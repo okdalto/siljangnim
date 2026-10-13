@@ -20,6 +20,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | animal-proc-anim (index.opensource #240) | MIT | [github.com/argonautcode/animal-proc-anim](https://github.com/argonautcode/animal-proc-anim) | [oss-animal-proc-anim](examples/oss-animal-proc-anim/) | fetched from a CDN by the scene at run time (not bundled) |
 | Anime.js (index.opensource #252) | MIT | [github.com/juliangarnier/anime](https://github.com/juliangarnier/anime) | [oss-anime-js](examples/oss-anime-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | aubio (index.opensource #236) | GPL-3.0-or-later | [github.com/aubio/aubio](https://github.com/aubio/aubio) | [oss-aubio](examples/oss-aubio/) | an installed program, run by a recipe (not bundled) |
+| AutoTrace (index.opensource #181) | GPL-2+ / LGPL-2.1+ | [github.com/autotrace/autotrace](https://github.com/autotrace/autotrace) | [oss-autotrace](examples/oss-autotrace/) | an installed program, run by a recipe (not bundled) |
 | b-spline (index.opensource #54) | MIT | [github.com/thibauts/b-spline](https://github.com/thibauts/b-spline) | [oss-b-spline](examples/oss-b-spline/) | fetched from a CDN by the scene at run time (not bundled) |
 | Babylon.js (index.opensource #335) | Apache-2.0 | [github.com/BabylonJS/Babylon.js](https://github.com/BabylonJS/Babylon.js) | [oss-babylonjs](examples/oss-babylonjs/) | fetched from a CDN by the scene at run time (not bundled) |
 | barycentric (index.opensource #112) | MIT | [github.com/mikolalysenko/barycentric](https://github.com/mikolalysenko/barycentric) | [oss-barycentric](examples/oss-barycentric/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -92,6 +93,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Essentia (index.opensource #238) | AGPL-3.0 | [github.com/mtg/essentia](https://github.com/mtg/essentia) | [oss-essentia](examples/oss-essentia/) | installed with pip on the person's computer by a recipe (not bundled) |
 | extrude-polyline (index.opensource #51) | MIT | [github.com/mattdesl/extrude-polyline](https://github.com/mattdesl/extrude-polyline) | [oss-extrude-polyline](examples/oss-extrude-polyline/) | fetched from a CDN by the scene at run time (not bundled) |
 | FastNoise Lite (index.opensource #137) | MIT | [github.com/auburn/fastnoiselite](https://github.com/auburn/fastnoiselite) | [oss-fastnoise-lite](examples/oss-fastnoise-lite/) | an installed program, run by a recipe (not bundled) |
+| Faust (index.opensource #343) | LGPL-2.1-or-later | [github.com/grame-cncm/faust](https://github.com/grame-cncm/faust) | [oss-faust](examples/oss-faust/) | an installed program, run by a recipe (not bundled) |
 | FFmpeg (index.opensource #228) | LGPL-2.1-or-later | [github.com/FFmpeg/FFmpeg](https://github.com/FFmpeg/FFmpeg) | [oss-ffmpeg](examples/oss-ffmpeg/) | an installed program, run by a recipe (not bundled) |
 | fft.js (index.opensource #235) | MIT | [github.com/indutny/fft.js](https://github.com/indutny/fft.js) | [oss-fft-js](examples/oss-fft-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | Fidget (index.opensource #83) | MPL-2.0 | [github.com/mkeeter/fidget](https://github.com/mkeeter/fidget) | [oss-fidget](examples/oss-fidget/) | an installed program, run by a recipe (not bundled) |
@@ -104,6 +106,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | FloBezier (index.opensource #43) | MIT | [github.com/florissteenkamp/flobezier](https://github.com/florissteenkamp/flobezier) | [oss-flobezier](examples/oss-flobezier/) | fetched from a CDN by the scene at run time (not bundled) |
 | FloMat (index.opensource #42) | MIT | [github.com/florissteenkamp/mat](https://github.com/florissteenkamp/mat) | [oss-flomat](examples/oss-flomat/) | an installed program, run by a recipe (not bundled) |
 | Flubber (index.opensource #247) | MIT | [github.com/veltman/flubber](https://github.com/veltman/flubber) | [oss-flubber](examples/oss-flubber/) | fetched from a CDN by the scene at run time (not bundled) |
+| FontForge (index.opensource #60) | GPL-3.0-or-later / BSD parts | [github.com/fontforge/fontforge](https://github.com/fontforge/fontforge) | [oss-fontforge](examples/oss-fontforge/) | an installed program, run by a recipe (not bundled) |
 | FontTools (index.opensource #61) | MIT | [github.com/fonttools/fonttools](https://github.com/fonttools/fonttools) | [oss-fonttools](examples/oss-fonttools/) | installed with pip on the person's computer by a recipe (not bundled) |
 | FreeType (index.opensource #402) | FTL / GPL-2.0-or-later | [github.com/freetype/freetype](https://github.com/freetype/freetype) | [oss-freetype](examples/oss-freetype/) | installed with pip on the person's computer by a recipe (not bundled) |
 | fullik · FABRIK (index.opensource #241) | MIT | [github.com/lo-th/fullik](https://github.com/lo-th/fullik) | [oss-fullik-fabrik](examples/oss-fullik-fabrik/) | an installed program, run by a recipe (not bundled) |
@@ -115,6 +118,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | glsl-blend (index.opensource #200) | MIT | [github.com/jamieowen/glsl-blend](https://github.com/jamieowen/glsl-blend) | [oss-glsl-blend](examples/oss-glsl-blend/) | source included in the on-demand example; licenses and runtime requirements are included |
 | glsl-dither (index.opensource #193) | MIT | [github.com/hughsk/glsl-dither](https://github.com/hughsk/glsl-dither) | [oss-glsl-dither](examples/oss-glsl-dither/) | source included in the on-demand example; licenses and runtime requirements are included |
 | glsl-fast-gaussian-blur (index.opensource #202) | MIT | [github.com/experience-monks/glsl-fast-gaussian-blur](https://github.com/experience-monks/glsl-fast-gaussian-blur) | [oss-glsl-fast-gaussian-blur](examples/oss-glsl-fast-gaussian-blur/) | source included in the on-demand example; licenses and runtime requirements are included |
+| glsl-fft (index.opensource #195) | MIT | [github.com/rreusser/glsl-fft](https://github.com/rreusser/glsl-fft) | [oss-glsl-fft](examples/oss-glsl-fft/) | source included in the on-demand example; licenses and runtime requirements are included |
 | glsl-fxaa (index.opensource #196) | MIT | [github.com/mattdesl/glsl-fxaa](https://github.com/mattdesl/glsl-fxaa) | [oss-glsl-fxaa](examples/oss-glsl-fxaa/) | source included in the on-demand example; licenses and runtime requirements are included |
 | glsl-halftone (index.opensource #204) | MIT | [github.com/glslify/glsl-halftone](https://github.com/glslify/glsl-halftone) | [oss-glsl-halftone](examples/oss-glsl-halftone/) | source included in the on-demand example; licenses and runtime requirements are included |
 | glsl-lut (index.opensource #192) | MIT | [github.com/mattdesl/glsl-lut](https://github.com/mattdesl/glsl-lut) | [oss-glsl-lut](examples/oss-glsl-lut/) | source included in the on-demand example; licenses and runtime requirements are included |
@@ -189,6 +193,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Motion (index.opensource #251) | MIT | [github.com/motiondivision/motion](https://github.com/motiondivision/motion) | [oss-motion](examples/oss-motion/) | fetched from a CDN by the scene at run time (not bundled) |
 | msdfgen (index.opensource #188) | MIT | [github.com/chlumsky/msdfgen](https://github.com/chlumsky/msdfgen) | [oss-msdfgen](examples/oss-msdfgen/) | an installed program, run by a recipe (not bundled) |
 | MuJoCo (index.opensource #161) | Apache-2.0 | [github.com/google-deepmind/mujoco](https://github.com/google-deepmind/mujoco) | [oss-mujoco](examples/oss-mujoco/) | installed with pip on the person's computer by a recipe (not bundled) |
+| myPhysicsLab (index.opensource #380) | Apache-2.0 | [github.com/myphysicslab/myphysicslab](https://github.com/myphysicslab/myphysicslab) | [oss-myphysicslab](examples/oss-myphysicslab/) | an installed program, run by a recipe (not bundled) |
 | nanoGPT (index.opensource #390) | MIT | [github.com/karpathy/nanoGPT](https://github.com/karpathy/nanoGPT) | [oss-nanogpt](examples/oss-nanogpt/) | source included in the on-demand example; licenses and runtime requirements are included |
 | ndarray-warp (index.opensource #205) | MIT | [github.com/scijs/ndarray-warp](https://github.com/scijs/ndarray-warp) | [oss-ndarray-warp](examples/oss-ndarray-warp/) | fetched from a CDN by the scene at run time (not bundled) |
 | NDWFC (index.opensource #121) | MIT | [github.com/lingdong-/ndwfc](https://github.com/lingdong-/ndwfc) | [oss-ndwfc](examples/oss-ndwfc/) | an installed program, run by a recipe (not bundled) |
@@ -299,6 +304,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | tinyrenderer (index.opensource #373) | Tiny Renderer License | [github.com/ssloy/tinyrenderer](https://github.com/ssloy/tinyrenderer) | [oss-tinyrenderer](examples/oss-tinyrenderer/) | an installed program, run by a recipe (not bundled) |
 | TinySDF (index.opensource #187) | BSD-2-Clause | [github.com/mapbox/tiny-sdf](https://github.com/mapbox/tiny-sdf) | [oss-tiny-sdf](examples/oss-tiny-sdf/) | fetched from a CDN by the scene at run time (not bundled) |
 | TinySpline (index.opensource #55) | MIT | [github.com/msteinbeck/tinyspline](https://github.com/msteinbeck/tinyspline) | [oss-tinyspline](examples/oss-tinyspline/) | installed with pip on the person's computer by a recipe (not bundled) |
+| Tippecanoe (index.opensource #328) | BSD-2-Clause | [github.com/felt/tippecanoe](https://github.com/felt/tippecanoe) | [oss-tippecanoe](examples/oss-tippecanoe/) | an installed program, run by a recipe (not bundled) |
 | Tone.js (index.opensource #231) | MIT | [github.com/Tonejs/Tone.js](https://github.com/Tonejs/Tone.js) | [oss-tone](examples/oss-tone/) | fetched from a CDN by the scene at run time (not bundled) |
 | TopoJSON Simplify (index.opensource #299) | ISC | [github.com/topojson/topojson-simplify](https://github.com/topojson/topojson-simplify) | [oss-topojson-simplify](examples/oss-topojson-simplify/) | fetched from a CDN by the scene at run time (not bundled) |
 | TorchCFM (index.opensource #385) | MIT | [github.com/atong01/conditional-flow-matching](https://github.com/atong01/conditional-flow-matching) | [oss-torchcfm](examples/oss-torchcfm/) | installed with pip on the person's computer by a recipe (not bundled) |
@@ -461,6 +467,13 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Original engine | [KataGo contributors](https://github.com/lightvector/KataGo) | MIT | [oss-katago](examples/oss-katago/) |
 | g170e 20-block neural network weights | [KataGo contributors](https://github.com/lightvector/KataGo/releases/tag/v1.4.5) | CC0-1.0 | [oss-katago](examples/oss-katago/) |
 | Original engine | [ByteTrack contributors](https://github.com/ifzhang/ByteTrack) | MIT | [oss-bytetrack](examples/oss-bytetrack/) |
+| Original engine | [Faust contributors](https://github.com/grame-cncm/faust) | LGPL-2.1-or-later | [oss-faust](examples/oss-faust/) |
+| Official Faust WebAssembly package 0.18.5 | [GRAME](https://github.com/grame-cncm/faustwasm) | LGPL-2.1-or-later | [oss-faust](examples/oss-faust/) |
+| Original engine | [FontForge contributors](https://github.com/fontforge/fontforge) | GPL-3.0-or-later / BSD parts | [oss-fontforge](examples/oss-fontforge/) |
+| Original engine | [AutoTrace contributors](https://github.com/autotrace/autotrace) | GPL-2+ / LGPL-2.1+ | [oss-autotrace](examples/oss-autotrace/) |
+| Original engine | [Tippecanoe contributors](https://github.com/felt/tippecanoe) | BSD-2-Clause | [oss-tippecanoe](examples/oss-tippecanoe/) |
+| Original engine | [myPhysicsLab contributors](https://github.com/myphysicslab/myphysicslab) | Apache-2.0 | [oss-myphysicslab](examples/oss-myphysicslab/) |
+| Original index.glsl shader and MIT license | [glsl-fft contributors](https://github.com/rreusser/glsl-fft/blob/a62f14d16f7d589d1d2deb4fcf67f51b19909ea9/index.glsl) | MIT | [oss-glsl-fft](examples/oss-glsl-fft/) |
 
 ## Studio (the app's web code): bundled npm packages
 

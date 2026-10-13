@@ -48,6 +48,10 @@ CGAL 제약 삼각분할, COLMAP 두 시점 복원, Essentia 음향 분석, GPla
 
 PaddleOCR의 경량 탐지·인식 모델은 CPU에서, KataGo 신경망은 Mac의 Metal에서 직접 실행했습니다. ByteTrack은 합성 검출 입력의 누락을 견디며 ID를 유지합니다. 모델은 레시피 실행 시에만 고정된 파일을 검증해 캐시하며 갤러리에는 계산 결과만 내려받아요.
 
+Faust는 공식 WASM 컴파일러로 WAV를 생성하고, FontForge는 직접 그린 글리프를 실제 TTF로 내보냅니다. AutoTrace는 래스터를 SVG로 추적하고 Tippecanoe는 합성 도로의 벡터 타일을 생성·디코딩합니다. 모두 원본 엔진을 직접 실행한 결과와 재실행 레시피를 제공합니다.
+
+myPhysicsLab 원본 적분기의 진자 결과는 에너지 보존을 확인했습니다. glsl-fft는 원본 GLSL을 GPU에서 실행하며 주파수 조절 때마다 순·역변환 복원 오차를 검사해요.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

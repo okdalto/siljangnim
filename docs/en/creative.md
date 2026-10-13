@@ -50,6 +50,10 @@ CGAL constrained triangulation, COLMAP two-view reconstruction, Essentia audio a
 
 PaddleOCR mobile detection and recognition models ran on CPU; KataGo neural analysis ran on Mac Metal. ByteTrack preserves identities through missing synthetic detections. Recipes verify and cache pinned model files only when rerun; the gallery downloads prepared results.
 
+Faust compiles DSP to WAV using its official WASM engine; FontForge exports an original glyph as TrueType. AutoTrace traces a raster into SVG, and Tippecanoe builds and decodes vector tiles from synthetic roads. Each includes directly executed original-engine results and a rerunnable recipe.
+
+The original myPhysicsLab pendulum solver is checked for energy conservation. glsl-fft runs its original GLSL on the GPU and checks forward/inverse reconstruction whenever the frequency changes.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just
