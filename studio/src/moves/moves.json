@@ -1,0 +1,523 @@
+{
+ "updated": "2026-10-13",
+ "moves": [
+  {
+   "id": "extrude-3d",
+   "category": "dimension",
+   "name": "Lift it into 3D",
+   "name_ko": "3D로 세우기",
+   "summary": "Read the 2D image as a height map and raise it into a lit terrain you can orbit.",
+   "summary_ko": "2D 화면을 높이 지도로 읽어, 돌려 볼 수 있는 입체 지형으로 세워요.",
+   "fits": [
+    "2d",
+    "field",
+    "image"
+   ],
+   "done": [
+    "3d"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Keep the existing 2D pass but render it into a square texture (createPingPong(512, 512, {depth: true})) instead of the screen: every ctx.resolution/u_resolution, viewport and bindFramebuffer(null) in that pass (including helpers) must use the texture's size and framebuffer; then rebind null + reset the viewport for the 3D draw. Draw ctx.utils.geometry.plane(2, 2, 255, 255) (XZ plane, normal +Y; at most 255 segments, since its indices are Uint16) and in the vertex shader displace y by luminance × u_height, sampling with textureLod(map, vec2(uv.x, 1.0 - uv.y), u_smooth) after gl.generateMipmap + LINEAR_MIPMAP_LINEAR each frame, so Smooth is a cheap blur. If the scene has its own height field (a sim state or noise field), prefer it to luminance. Normals in the fragment shader from normalize(cross(dFdx(v_pos), dFdy(v_pos))) (flip to face +Y), one key light + soft ambient + a little specular, colored by the original texture. ctx.utils.createOrbitCamera (phi ≈ 0.95, distance ≈ 3, autoRotate ≈ 0.12), depth test on, clear color + depth. In portrait keep the horizontal view: vp = mat4.multiply(cam.getProjectionMatrix(a, a < 1 ? 2·atan(tan(fov/2)/a) : fov), cam.getViewMatrix()). Uniforms: Height, Smooth.",
+   "verified": true
+  },
+  {
+   "id": "raymarch-sdf",
+   "category": "dimension",
+   "name": "Raymarched forms",
+   "name_ko": "레이마칭 입체",
+   "summary": "Rebuild the shapes as signed distance fields: soft shadows, ambient occlusion, infinite detail.",
+   "summary_ko": "모양을 거리장(SDF)으로 다시 만들어 부드러운 그림자와 무한한 디테일을 줘요.",
+   "fits": [
+    "2d",
+    "field"
+   ],
+   "done": [
+    "raymarch",
+    "3d"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Translate the scene's main forms into a 3D SDF in a fullscreen fragment shader (paste ctx.utils.glsl.SDF_SHAPES and SDF_OPS: sdBox, sdSphere, opSmoothUnion(d1, d2, k)…; k must stay > 0, min ≈ 0.001, or it divides by zero). Pass the orbit camera's getEye()/getTarget() as uniforms and build the ray per pixel from forward/right/up and tan(fov/2); in portrait multiply that by 1/aspect so the subject stays in frame. Loop to a constant (e.g. 256) and break at u_steps; hit when d < 0.001·t; step d·0.9. For repeated forms (grids, cities) with varying sizes, clamp the distance to the cell wall (min(d, wallDist + 0.05)) or rays skip into neighbours. Normals by central differences, soft shadows (k ≈ 8, ~40 steps), 5-tap AO, fade to the background color with distance so step-starved far hits don't show. Carry the original palette, emissive details and motion (time, audio, controls) into the SDF and its shading so it still feels like the same piece. Expose Steps (int, ~150) and Blend (smooth-union radius).",
+   "verified": true
+  },
+  {
+   "id": "point-cloud",
+   "category": "dimension",
+   "name": "Point cloud",
+   "name_ko": "포인트 클라우드",
+   "summary": "Turn the image or mesh into thousands of glowing points floating in space.",
+   "summary_ko": "이미지나 메쉬를 수천 개의 빛나는 점으로 바꿔 공간에 띄워요.",
+   "fits": [
+    "image",
+    "mesh",
+    "video"
+   ],
+   "done": [
+    "pointcloud"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Sample the source: for an image or video, one point per texel on a grid (e.g. 256×256) with z from luminance or a depth map; for a mesh, its vertices or random points on its triangles. Draw gl.POINTS with gl_VertexID from an empty VAO (bind one: gl.createVertexArray()), fetching color/position in the vertex shader (texture()/texelFetch on the live texture) so animated or video sources update for free; apply the same uv flip/crop the original pass used. Point size must be in world terms: gl_PointSize = max(1.0, u_size * u_resolution.y / 1000.0 * 10.0 / gl_Position.w) at orbit distance ~3 (the bare h/1000/w gives sub-pixel points). Round soft points: discard outside the circle, color × exp(-3r²) × ~0.6, additive blending (ONE, ONE) with depth test and depth write off, dark clear color. Orbit camera (autoRotate ≈ 0.15); in portrait widen the vertical fov (fov' = 2·atan(tan(fov/2)/aspect), via getProjectionMatrix × getViewMatrix) so the cloud stays in frame. Uniforms: Point size, Depth, Jitter (snoise drift from ctx.utils.glsl.SIMPLEX_3D).",
+   "verified": true
+  },
+  {
+   "id": "depth-parallax",
+   "category": "dimension",
+   "name": "Depth from a photo",
+   "name_ko": "사진에 깊이 주기",
+   "summary": "Estimate depth with Depth Anything V2 and turn a still photo into a 3D parallax scene.",
+   "summary_ko": "Depth Anything V2로 깊이를 추정해 사진 한 장을 입체 패럴랙스 장면으로 만들어요.",
+   "fits": [
+    "image"
+   ],
+   "done": [
+    "depth"
+   ],
+   "weight": "gpu-model",
+   "tools": [
+    "depth-anything-v2"
+   ],
+   "guide": "Needs an image asset. recipe_search \"depth\" first; otherwise python_run Depth Anything V2 (catalog_get depth-anything-v2 for packages and weights license) on the image and write a 16-bit grayscale depth PNG to out/. In the scene, displace a dense plane (ctx.utils.geometry.plane with ~512 segments) by the depth texture, color it with the photo, and drive the camera with a small orbit (or mouse parallax) so the layers separate. Fill stretched edges by fading alpha where the depth gradient is steep. Save the depth step as a recipe. Tell the person the model downloads once and is slow without a GPU."
+  },
+  {
+   "id": "gaussian-splatting",
+   "category": "dimension",
+   "name": "Gaussian splatting",
+   "name_ko": "가우시안 스플래팅",
+   "summary": "Render with 3D Gaussian splats: soft, photographic volumes from scans or from your own points.",
+   "summary_ko": "3D 가우시안 스플랫으로 렌더링해요. 스캔 데이터나 직접 만든 점으로 사진 같은 부드러운 입체를 만들어요.",
+   "fits": [
+    "3d",
+    "mesh",
+    "particles",
+    "image",
+    "pointcloud"
+   ],
+   "done": [
+    "splat"
+   ],
+   "weight": "heavy",
+   "tools": [
+    "three-js"
+   ],
+   "guide": "Use Spark (MIT, three.js-based): const THREE = await ctx.utils.import(\"https://esm.sh/three@0.186.0\"); const { SplatMesh, SparkRenderer } = await ctx.utils.import(\"https://esm.sh/@sparkjsdev/spark@2.2.0?deps=three@0.186.0\"). new THREE.WebGLRenderer({ canvas: ctx.canvas, context: ctx.gl, antialias: false }), a THREE.Scene with new SparkRenderer({ renderer }) added, PerspectiveCamera following createOrbitCamera getEye()/getTarget(); renderer.setSize(w, h, false) on resize; renderer.resetState() before render. A capture (.ply, .splat, .spz, .ksplat, .sog): new SplatMesh({ url: ctx.assets[name] }). Else from the scene's points/vertices/texels: new SplatMesh({ maxSplats: n, constructSplats: (p) => p.pushSplat(center, scales, quaternion, opacity, color) }) (THREE.Vector3/Quaternion/Color), then await mesh.initialized. Scales are σ (drawn to ~2.8σ): keep them ≈0.15× point spacing (anisotropic along the surface), or it looks defocused. Colors are linear (color.setRGB(r, g, b, THREE.SRGBColorSpace)). To animate: mesh.packedSplats.setSplat(i, …) per frame, then packedSplats.needsUpdate = true; mesh.updateVersion(). In cleanup set ctx.gl.clientWaitSync = () => ctx.gl.ALREADY_SIGNALED before dispose(), else Spark's pending readback rejects (\"Error: undefined\") into the next run. Uniforms: Splat scale, Opacity. Keep under ~1M splats.",
+   "verified": true
+  },
+  {
+   "id": "volume-render",
+   "category": "render",
+   "name": "Volume rendering",
+   "name_ko": "볼륨 렌더링",
+   "summary": "Treat the pattern as a density field and raymarch light through it: smoke, nebula, fog.",
+   "summary_ko": "패턴을 밀도장으로 보고 빛을 통과시켜요. 연기, 성운, 안개 같은 느낌이 나요.",
+   "fits": [
+    "field",
+    "3d",
+    "sim",
+    "particles"
+   ],
+   "done": [
+    "volume"
+   ],
+   "weight": "heavy",
+   "tools": [],
+   "guide": "Define density(p) in a box from the scene's own content: extrude the 2D field through the thin axis with a falloff that grows with the value (a·exp(-y²/2s²), s ≈ 0.03–0.06 of the box; thicker smears into streaks), or keep a simulation in a 3D texture (gl.texImage3D, R16F, 64–128³) or a 2D atlas of slices. Copy R32F state into an R16F LINEAR texture each frame (R32F isn't filterable everywhere). Fullscreen pass: ray = invert(proj·view of createOrbitCamera) · vec4(ndc, 1, 1) from getEye(); slab-intersect the box; 64–128 steps from a per-pixel jitter (interleaved gradient noise + u_frame); Beer–Lambert: col += T·(lit + emissive)·(1 − exp(−σΔt)), T *= exp(−σΔt); 6–8 steps toward one light for self-shadowing; Henyey–Greenstein g ≈ 0.3; color from the original palette, emissive where it was bright; ACES; a near-black background added as bg·T. Drag now orbits, so move painting to a modifier key or drop it. For portrait, widen fovY so the box keeps its width. Uniforms: Density, Absorption, Thickness, Glow, Light direction (pad), Steps. Render at half resolution into a target and upscale if slow.",
+   "verified": true
+  },
+  {
+   "id": "pbr-ibl",
+   "category": "render",
+   "name": "PBR materials",
+   "name_ko": "PBR 재질",
+   "summary": "Physically based materials lit by an environment: metal, glass-like coat, real reflections.",
+   "summary_ko": "환경광으로 비추는 물리 기반 재질을 써요. 금속, 코팅, 실제 같은 반사가 생겨요.",
+   "fits": [
+    "mesh",
+    "3d",
+    "raymarch"
+   ],
+   "done": [
+    "pbr"
+   ],
+   "weight": "light",
+   "tools": [
+    "three-js",
+    "babylon-js"
+   ],
+   "guide": "Shade with Cook–Torrance: GGX distribution, Smith-Schlick geometry, Schlick Fresnel with F0 = mix(0.04, albedo, metallic); energy-conserving diffuse. Keep the scene's own colors as albedo (Base color tints them). Environment: either a procedural studio evaluated by direction (a dark gradient with a warm lit floor below the horizon, otherwise metals go black underneath, plus 2–3 soft rectangular lights whose edges widen with roughness, divided by ~(1 + 3·roughness) so rough isn't brighter), or prefilter one in setup into a small cubemap mip chain by roughness. Specular IBL with the split-sum (analytic DFG fit, e.g. Karis), diffuse from the env at the normal with roughness 1, plus one key light matching the brightest softbox; clearcoat as a second Fresnel-weighted sharp env lookup. Remove the scene's own gamma, then ACES and 1/2.2. With three.js or Babylon, switch to MeshStandardMaterial / PBRMaterial and a PMREM-filtered environment instead. Uniforms: Base color, Metallic, Roughness, Clearcoat, Env intensity.",
+   "verified": true
+  },
+  {
+   "id": "path-tracing",
+   "category": "render",
+   "name": "Path tracing",
+   "name_ko": "패스 트레이싱",
+   "summary": "Trace light bounces progressively for soft shadows, color bleeding and glossy reflections.",
+   "summary_ko": "빛의 반사를 차곡차곡 쌓아 부드러운 그림자, 색 번짐, 광택 반사를 만들어요.",
+   "fits": [
+    "raymarch",
+    "mesh",
+    "3d"
+   ],
+   "done": [
+    "pathtrace"
+   ],
+   "weight": "heavy",
+   "tools": [
+    "three-mesh-bvh"
+   ],
+   "guide": "Progressive accumulation in a ping-pong RGBA32F target (enable EXT_color_buffer_float). Each frame trace 1 sample per pixel (PCG hash seeded by pixel + frame, jittered sub-pixel), up to 4 bounces: Fresnel-weighted choice of a GGX glossy lobe or a cosine diffuse one, Russian roulette after bounce 2. Light it with one rectangular area light plus a dim sky, and sample the light directly at every diffuse hit (next-event estimation, shadow ray against the scene), counting light hit by bounces only after glossy ones. Without this a small light is pure noise. Clamp each sample (≈4) against fireflies. Mix into the accumulation with weight 1/(n+1); reset n when a key of eye, target, uniforms and size changes; while the scene animates use max(1/(n+1), 0.15). Intersect an SDF (turn generated meshes back into their source, e.g. a smooth-min of the balls) or analytic primitives; for big triangle meshes use three-mesh-bvh. Add a floor so shadows and color bleeding show. Don't reuse a scene uniform's name for shader arrays. Display: small bilateral blur (Denoise), exposure, ACES, gamma; ctx.publish the sample count. Uniforms: Bounces, Exposure, Denoise.",
+   "verified": true
+  },
+  {
+   "id": "cinematic-post",
+   "category": "render",
+   "name": "Cinematic post",
+   "name_ko": "시네마틱 후처리",
+   "summary": "Bloom, depth of field, film grain, vignette and tonemapping for a filmed look.",
+   "summary_ko": "블룸, 피사계 심도, 필름 그레인, 비네팅, 톤매핑으로 영화 같은 질감을 더해요.",
+   "fits": [],
+   "done": [
+    "post"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Enable EXT_color_buffer_float and render the existing scene into an HDR target (createPingPong(w, h, {internalFormat: RGBA16F, type: HALF_FLOAT, depth: true}), recreated on ctx.resized) instead of the screen. Remove the scene's own gamma, let highlights go above 1, and write distance to the eye in alpha (clear alpha to a large value) for depth of field. Bloom: soft threshold, 5–6 half-size levels down with a 13-tap filter, then tent-upsample back up with blendFunc(ONE, ONE). Depth of field in its own pass (circle of confusion from distance vs Focus, golden-angle spiral, ~48 taps, radius from the frame height). Then the composite reads the DOF result: chromatic aberration (sample r and b offset toward the edges; doing it on the un-blurred source leaves colored halos), + bloom, exposure, vignette, ACES, film grain (per-frame hash, midtone-weighted, ~0.04), sRGB. Keep each stage switchable and subtle by default. Uniforms: Bloom, Exposure, Focus, Aperture, Vignette, Aberration, Grain.",
+   "verified": true
+  },
+  {
+   "id": "toon-outline",
+   "category": "render",
+   "name": "Toon & outlines",
+   "name_ko": "툰 셰이딩·윤곽선",
+   "summary": "Flat, stepped light with ink outlines, like an illustration or anime frame.",
+   "summary_ko": "계단식 명암과 잉크 윤곽선으로 일러스트나 애니메이션 같은 그림을 만들어요.",
+   "fits": [
+    "mesh",
+    "3d",
+    "raymarch"
+   ],
+   "done": [
+    "toon"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Shade from smooth vertex normals: flat facets (dFdx normals) turn bands into sawteeth, so compute normals (manifold-3d calculateNormals(0, ~25°), or average per vertex) and keep creases sharp. Quantise diffuse into 2–4 bands with fwidth-wide smoothstep edges, add a rim light and a hard specular dot. In one multi-target pass (createPingPong(w, h, {count: 2, internalFormat: RGBA16F, type: HALF_FLOAT, depth: true}); clear each attachment with clearBufferfv) write the toon color (alpha = shadow amount) and normal + distance to the eye. Ink pass: Sobel on normals (creases) and on distance divided by the center distance (silhouettes, scale-free), offset px = width·min(w, h)/1000 so landscape and portrait lines match; empty pixels (distance 0) get the paper color. Optionally hatch the darker bands with screen-space diagonal lines in ink. Uniforms: Bands, Outline width, Ink color, Paper color, Hatching.",
+   "verified": true
+  },
+  {
+   "id": "flow-field",
+   "category": "motion",
+   "name": "Flow-field particles",
+   "name_ko": "흐름장 파티클",
+   "summary": "Let thousands of particles stream along the image's own currents, leaving trails.",
+   "summary_ko": "수천 개의 입자가 화면의 흐름을 따라 흘러가며 자국을 남겨요.",
+   "fits": [
+    "field",
+    "image",
+    "2d"
+   ],
+   "done": [
+    "flowfield",
+    "particles"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Render the scene into a source target (bind it where its last pass binds null). Particles: RGBA32F NEAREST ping-pong (256²/512²/1024²; needs EXT_color_buffer_float), xy uv, z age, w lifetime 2–6 s. One full-screen update pass: velocity from the scene's luminance gradient over a few pixels (h/250, so lines and grain don't dominate), rotated 90° (−g.y, g.x) to follow contours, scaled up (~×40; gradients are tiny) and normalised together with a little curl noise (finite differences of snoise, ctx.utils.glsl.SIMPLEX_3D) so flat areas still move; step = Speed × h/500 px × dt·60. Respawn at a hash position when out of frame or age > life. Draw gl.drawArrays(gl.POINTS, 0, n) with bindVertexArray(null), fetching texelFetch(pos, ivec2(gl_VertexID % side, gl_VertexID / side)); colour from the source at the particle, alpha ~0.35 faded over life, alpha-blended into an RGBA16F trail target first multiplied by (1 − Fade); point size max(1, h/720 × 1.5). Add a little of the scene under the trails to keep it readable. Uniforms: Count (select), Speed, Fade, Noise scale, Show scene.",
+   "verified": true
+  },
+  {
+   "id": "feedback-trails",
+   "category": "motion",
+   "name": "Feedback & trails",
+   "name_ko": "피드백·잔상",
+   "summary": "Feed each frame back into the next, slightly zoomed and rotated: echoes and tunnels.",
+   "summary_ko": "이전 화면을 조금씩 확대·회전해 다시 그려 메아리와 터널 같은 잔상을 만들어요.",
+   "fits": [
+    "2d",
+    "particles",
+    "lines",
+    "video",
+    "field"
+   ],
+   "done": [
+    "feedback"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Render the scene into a target (bind it where its last pass binds null). Keep an RGBA16F ping-pong for the feedback (8-bit stalls at faint values instead of decaying). Each frame: prev = feedback sampled through a small inverse transform done in pixels around a centre (zoom ~1.01, rotate ~0.3°/frame; centre = pointer once it has moved, else the middle; black outside the frame), hue-rotated in YIQ, × Decay (~0.96). Combine by brightness, not by adding: k = smoothstep(−0.04, 0.04, lum(scene) − lum(prev)), out = mix(prev, scene, k); an opaque scene's background otherwise builds up to white. Write to the other buffer, swap, blit to the screen. Clear on ctx.resized and on a Clear button. Uniforms: Decay, Zoom, Twist, Hue drift, Clear (button).",
+   "verified": true
+  },
+  {
+   "id": "reaction-diffusion",
+   "category": "motion",
+   "name": "Reaction–diffusion",
+   "name_ko": "반응-확산",
+   "summary": "Grow living Turing patterns (spots, stripes, coral) seeded from the current image.",
+   "summary_ko": "지금 화면을 씨앗으로 점·줄무늬·산호 같은 튜링 패턴이 자라나게 해요.",
+   "fits": [
+    "2d",
+    "image",
+    "field"
+   ],
+   "done": [
+    "rd"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Gray–Scott on an RGBA16F ping-pong grid (512 on the long side, aspect from the first frame, kept on resize, cover-fit; clear to A=1, B=0). Render the scene into a target first (bind it where its last pass binds null). 8–16 iterations per frame (set the grid viewport inside the loop), 9-point Laplacian (0.2 edges, 0.05 corners, −1 centre), Da 1, Db 0.5. Scene mask m = smoothstep(0.08, 0.2, max over a few samples per cell of |scene − ground colour|): max, because a cell spans several pixels and lines are thin; difference from the ground, not brightness, so light grounds work and vignettes stay under the threshold. Seed on the first frame and on Reseed with B = 0.6 on a random ~40% of masked cells (a solid seed just fills flat), and each frame sprinkle B into rare masked cells so newly drawn parts catch. Regional params: K += 0.006·(1 − m), so patterns grow where the scene is and starve elsewhere. Display t = smoothstep(.1, .35, B) → mix(ground, palette(t) × shading from B's gradient, t), then the scene's strokes on top. Uniforms: Feed (0.0545), Kill (0.062), Speed (iterations), Show line, Reseed (button).",
+   "verified": true
+  },
+  {
+   "id": "physics",
+   "category": "motion",
+   "name": "Physics",
+   "name_ko": "물리 시뮬레이션",
+   "summary": "Give the shapes mass and let them fall, collide and pile up; drag them with the mouse.",
+   "summary_ko": "모양에 무게를 줘서 떨어지고 부딪히고 쌓이게 해요. 마우스로 집어 던질 수도 있어요.",
+   "fits": [
+    "mesh",
+    "particles",
+    "3d",
+    "lines"
+   ],
+   "done": [
+    "physics"
+   ],
+   "weight": "light",
+   "tools": [
+    "rapier",
+    "matter-js"
+   ],
+   "guide": "2D: matter-js; 3D: Rapier (catalog_get rapier / matter-js for the pinned import and the example that uses it). Build bodies from the scene's shapes (boxes/spheres/convex hulls approximating them), a floor and walls fitted to the current aspect (rebuild walls on ctx.resized), step with a fixed dt (1/60, max 3 substeps), and draw with the scene's existing rendering using the bodies' transforms. Mouse: pick and drag with a spring joint. Uniforms: Gravity, Bounce, Spawn (button)."
+  },
+  {
+   "id": "pixel-sorting",
+   "category": "image",
+   "name": "Pixel sorting",
+   "name_ko": "픽셀 소팅",
+   "summary": "Sort runs of pixels by brightness along a direction: melting, streaked glitch art.",
+   "summary_ko": "밝기 순서로 픽셀을 한 방향으로 정렬해 녹아내리는 듯한 글리치를 만들어요.",
+   "fits": [
+    "image",
+    "video",
+    "field",
+    "2d"
+   ],
+   "done": [
+    "pixelsort"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Render the scene into a target (bind it where the scene's last pass binds null). For any angle copy it into a rotated sort buffer sized |w·cos|+|h·sin| × |w·sin|+|h·cos| (RGBA8, NEAREST, alpha 0 outside the frame) so the sort always runs along x, and rotate back to show it. Each frame do N odd–even transposition passes in a ping-pong: pixel x pairs with x+1 when (x+parity) is even, else x−1, flipping parity every pass; swap when out of order by luminance and both are inside the interval mask (alpha 1, Low ≤ lum ≤ High), so edges stay intact. Use drawFullscreen for every pass (a bare drawArrays draws nothing: the quad VAO is unbound after each drawFullscreen) and set the viewport to the sort buffer inside the loop. It converges at N px per frame, which looks good animated; restart from the fresh frame every few seconds (ctx.time), on Reset and when the angle changes. Pick thresholds from the scene: on dark scenes Low ≈ 0.1 streaks the sky and keeps the lights, ≈ 0.03 melts everything. Uniforms: Threshold low/high, Direction (angle), Passes per frame (~24), Re-sort every (s), Reset (button).",
+   "verified": true
+  },
+  {
+   "id": "datamosh",
+   "category": "image",
+   "name": "Datamosh",
+   "name_ko": "데이터모싱",
+   "summary": "Smear the image along its own motion like a corrupted video codec: pixels melt and bloom.",
+   "summary_ko": "깨진 영상 코덱처럼 움직임을 따라 픽셀을 번지게 해서 화면이 녹아내리게 해요.",
+   "fits": [
+    "video",
+    "image",
+    "feedback",
+    "field"
+   ],
+   "done": [
+    "glitch"
+   ],
+   "weight": "light",
+   "tools": [
+    "ffmpeg"
+   ],
+   "guide": "Live version: render the scene into a source ping-pong (write = this frame, read = last frame; swap after). Block size B = Block size × h/720 px. Motion: one fragment per block into an RGBA16F NEAREST target of ceil(w/B)×ceil(h/B); brute-force block match over integer pixel offsets (±6 steps of B/8 px, 4×4 luminance samples, SAD plus a small |d|² penalty so flat areas pick 0), storing d with cur(x) ≈ prev(x+d). Each frame write output = previous output sampled at x + d_block(x)·Mosh (texelFetch the vector at floor(px/B)), with R/B sampled at ±0.35·d for chroma slip (\"P-frame without I-frame\"). Put the true frame back in a block when hash(block, random seed) < Refresh·dt, and everywhere on the first frame, on resize and on Keyframe. Output is a canvas-sized RGBA8 ping-pong blitted to the screen. Steady motion (rotation, scrolling, drift) moshes best; static scenes just freeze. For a rendered video file instead, ffmpeg can drop I-frames from an AVI/MPEG-4 Part 2 encode (command_run, catalog_get ffmpeg). Uniforms: Mosh amount (~1.5), Block size (16), Refresh rate (~0.15/s), Keyframe (button).",
+   "verified": true
+  },
+  {
+   "id": "dither-halftone",
+   "category": "image",
+   "name": "Dither & halftone",
+   "name_ko": "디더링·하프톤",
+   "summary": "Print-like rendering: ordered dither, halftone dots or a 1-bit palette.",
+   "summary_ko": "인쇄물처럼 디더링, 하프톤 점, 1비트 색으로 바꿔요.",
+   "fits": [
+    "image",
+    "field",
+    "video",
+    "2d"
+   ],
+   "done": [
+    "dither"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Post-process: render the scene into a target (bind it where its last pass binds null), then one full-screen pass. Bayer/blue noise: pixelate to cells of max(1, round(h/300 × Pixel size)) px, sample the cell centre, go to linear (pow 2.2), add (threshold − 0.5)·~0.35, pick the nearest palette colour (luma-weighted distance), back to sRGB. Bayer 8×8 from bit interleaving. There is no blue-noise asset: generate a 64² rank texture in setup by void filling (repeatedly take the empty cell with the lowest toroidal Gaussian energy, σ≈1.9; ~100 ms), upload R32F NEAREST. Make the first palette the scene's own colours (its colour uniforms + line colour/white) so it stays recognisable; add ink-on-paper and a 4-green handheld. Halftone: CMYK dots on grids at 15°/75°/0°/45°, cell ≈ h/120, radius ∝ sqrt(coverage), 1 px smoothstep edge; multiply real ink colours (cyan .0,.63,.89; magenta .89,0,.52; yellow 1,.92,0) over paper and use light grey replacement (K = smoothstep(.35, 1, 1−max(rgb))): pure CMY primaries and K = 1−max look neon or muddy. Uniforms: Style (select: Bayer, Blue noise, Halftone), Pixel size, Palette (select).",
+   "verified": true
+  },
+  {
+   "id": "ascii",
+   "category": "image",
+   "name": "ASCII / text mosaic",
+   "name_ko": "아스키·글자 모자이크",
+   "summary": "Rebuild the image from characters picked by brightness, terminal or newspaper style.",
+   "summary_ko": "밝기에 맞는 글자로 화면을 다시 그려요. 터미널이나 신문 같은 느낌이에요.",
+   "fits": [
+    "image",
+    "video",
+    "field"
+   ],
+   "done": [
+    "ascii"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Render the scene into a target (bind it where its last pass binds null). Glyph atlas in a 2D canvas: one row of square tiles, one per character of the ramp (\" .:-=+*#%@\", \" ░▒▓█\", \" 01\" or the person's text), white bold monospace at ~0.95 × tile on transparent, uploaded RGBA with UNPACK_FLIP_Y false (flip y inside the tile when sampling). Cell = round(min(w, h)/80 × Cell size) px, from the shorter side so portrait doesn't get 40 huge columns; rebuild the atlas whenever cell size or charset changes (covers ctx.resized). Post pass: average 4×4 samples per cell, map luminance with a gain and a soft gamma (pow ~0.75), since dark scenes otherwise become all spaces and dots; glyph = floor(l × count); multiply the glyph alpha by the cell colour (colour mode: colour / max channel × l; mono: one phosphor colour). Uniforms: Cell size, Charset (select), Color mode (toggle mono/color), Brightness.",
+   "verified": true
+  },
+  {
+   "id": "mic-reactive",
+   "category": "sound",
+   "name": "React to sound",
+   "name_ko": "소리에 반응하기",
+   "summary": "Make it listen: bass, mids and treble drive motion, color and scale live.",
+   "summary_ko": "마이크 소리를 듣고 베이스·중음·고음이 움직임과 색, 크기를 바꿔요.",
+   "fits": [],
+   "done": [
+    "audio"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Add \"microphone\" to inputs (or play an audio asset with ctx.utils.audio.play). Map ctx.audio.bass to scale/impulse, mid to motion speed, treble to sparkle/detail and level to brightness; smooth with an attack/release follower (fast up, slow down) so it pulses instead of flickering. For spectrum-driven visuals use ctx.utils.audioTexture(). Uniforms: Sensitivity, Smoothing, and which band drives what if useful."
+  },
+  {
+   "id": "beat-sync",
+   "category": "sound",
+   "name": "Sync to a song's beats",
+   "name_ko": "노래 비트에 맞추기",
+   "summary": "Analyse a song with librosa (beats, downbeats, sections) and cut the visuals on the beat.",
+   "summary_ko": "librosa로 곡의 비트와 구간을 분석해 박자에 딱 맞춰 화면을 바꿔요.",
+   "fits": [
+    "audio",
+    "timeline"
+   ],
+   "done": [
+    "beat"
+   ],
+   "weight": "python",
+   "tools": [
+    "librosa"
+   ],
+   "guide": "Needs an audio asset (ask for one if there is none). recipe_search \"beat\" first; otherwise python_run librosa (catalog_get librosa) to write out/beats.json: tempo, beat times, downbeats (every 4th, phase from onset strength), onset envelope (~50 fps) and section boundaries (librosa.segment.agglomerative on chroma/MFCC). In the scene, play the song with ctx.utils.audio.play(name, { output: true }) (or add a timeline of the song's duration so offline renders stay in sync), and drive events from the beat list using ctx.time: a decaying pulse after each beat, bigger changes on downbeats, a palette or form switch per section. Publish the current beat/section. Save the analysis as a recipe."
+  },
+  {
+   "id": "stems-reactive",
+   "category": "sound",
+   "name": "Instrument by instrument",
+   "name_ko": "악기별로 반응하기",
+   "summary": "Split the song into drums, bass, vocals and other with Demucs; each stem drives its own layer.",
+   "summary_ko": "Demucs로 곡을 드럼·베이스·보컬·나머지로 나눠, 악기마다 다른 층을 움직이게 해요.",
+   "fits": [
+    "audio",
+    "timeline"
+   ],
+   "done": [
+    "stems"
+   ],
+   "weight": "gpu-model",
+   "tools": [
+    "demucs",
+    "librosa"
+   ],
+   "guide": "Needs an audio asset. python_run Demucs (catalog_get demucs; htdemucs, slow on CPU) to split it, then librosa per stem to write out/stems.json with an RMS envelope per stem at ~60 fps plus drum onsets. In the scene play the original mix and read each stem's envelope at ctx.time: e.g. drums → impacts/shape, bass → scale/camera push, vocals → color/glow, other → texture. Use a timeline of the song's duration so offline export lines up. Save it as a recipe so the next song is one call."
+  },
+  {
+   "id": "music-video",
+   "category": "sound",
+   "name": "Song to music video",
+   "name_ko": "노래로 뮤직비디오",
+   "summary": "Give it a song: beats, sections and stems become a timed, cut-to-the-beat video you can export.",
+   "summary_ko": "노래를 주면 비트·구간·악기 분석으로 박자에 맞춰 편집된 영상을 만들어 내보낼 수 있어요.",
+   "fits": [],
+   "done": [
+    "musicvideo"
+   ],
+   "weight": "python",
+   "tools": [
+    "librosa",
+    "demucs"
+   ],
+   "guide": "Needs an audio asset. Run the beat-sync analysis (and stems if the person wants instrument-level motion). Build a timeline scene with duration = song length: one look per section (reuse the current scene as one of them and vary palette, camera and form for the others), hard cuts or fast transitions on downbeats at section boundaries, continuous reaction to the envelopes inside sections, keyframes for the big moments so the person can retime them. Then offer to record it offline (viewport_record, mp4, 1080×1920 for reels or 1920×1080) with the song as the soundtrack."
+  },
+  {
+   "id": "hand-tracking",
+   "category": "input",
+   "name": "Play it with your hands",
+   "name_ko": "손으로 연주하기",
+   "summary": "Track hands with the webcam (MediaPipe) and let fingers push, pinch and paint the scene.",
+   "summary_ko": "웹캠으로 손을 추적해 손가락으로 밀고, 집고, 그리게 해요.",
+   "fits": [],
+   "done": [
+    "camera-input"
+   ],
+   "weight": "light",
+   "tools": [
+    "mediapipe-tasks-vision"
+   ],
+   "guide": "Use MediaPipe HandLandmarker as described in the ctx reference (inputs: [\"camera\"]). Map index-finger tips to forces or brushes, pinch distance (thumb–index) to a grab/size control, and hand openness to intensity. Show the camera faintly (mirrored) or not at all. Smooth landmark positions over a few frames. Fall back to the mouse when no hand is visible so the scene still works."
+  },
+  {
+   "id": "midi-map",
+   "category": "input",
+   "name": "Map to a MIDI controller",
+   "name_ko": "MIDI 컨트롤러에 연결",
+   "summary": "Wire knobs and pads to the controls so it can be played live on stage.",
+   "summary_ko": "노브와 패드를 컨트롤에 연결해 무대에서 연주할 수 있게 해요.",
+   "fits": [],
+   "done": [
+    "midi"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Add \"midi\" to inputs. Map the scene's main uniforms to CC 1–8 (first eight knobs), pads/notes 36–51 to triggers (bursts, palette switches, cuts), pitch bend to a sweep; blend the MIDI value with the on-screen control (use the control until that CC first moves). Tell the person the mapping in the reply and publish the last CC/note."
+  },
+  {
+   "id": "plotter-svg",
+   "category": "output",
+   "name": "Pen-plotter drawing",
+   "name_ko": "펜 플로터 그림",
+   "summary": "Turn the piece into clean vector strokes and an optimised SVG ready for an AxiDraw.",
+   "summary_ko": "작업을 깔끔한 선으로 바꾸고, AxiDraw로 바로 그릴 수 있는 SVG로 정리해요.",
+   "fits": [
+    "lines",
+    "2d",
+    "image"
+   ],
+   "done": [
+    "plotter"
+   ],
+   "weight": "python",
+   "tools": [
+    "vpype"
+   ],
+   "guide": "Generate line work from the scene (contours/hatching of its luminance, flow-field streamlines, or the existing lines), render it as lines so the person sees the plot, and export the polylines (asset or python_run). Then vpype (catalog_get vpype) to merge, simplify, sort and fit to A4/A3 with margins: write out/plot.svg. Keep stroke count reasonable (< 20k segments). Uniforms: Line density, Pen width (preview)."
+  },
+  {
+   "id": "seamless-loop",
+   "category": "output",
+   "name": "Perfect loop",
+   "name_ko": "완벽한 루프",
+   "summary": "Make the motion loop seamlessly over N seconds, ready for a GIF, reel or LED wall.",
+   "summary_ko": "움직임이 N초마다 이음새 없이 반복되게 해서 GIF, 릴스, LED 월에 바로 쓸 수 있게 해요.",
+   "fits": [],
+   "done": [
+    "seamless"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Add a timeline with loop: true and duration T (default 6 s). Replace free-running time with phase = ctx.time / T and drive every motion with periodic functions of phase: angles 2π·phase, noise sampled on a circle (noise(cos 2πφ·r, sin 2πφ·r, z)), or crossfade the last 15% into the start. Simulations: keep preserveStateOnLoop false and seed deterministically. Offer to record one loop (viewport_record)."
+  }
+ ]
+}

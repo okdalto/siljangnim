@@ -27,6 +27,12 @@ export function createOrbitCamera(options = {}) {
   let phi = options.phi ?? 0.5;
   let target = options.target ? [...options.target] : [0, 0, 0];
   const fov = options.fov ?? 45;
+  /**
+   * Vertical fov (degrees) for an aspect ratio. In portrait it widens so the horizontal view stays what fov gives a
+   * square frame: a subject framed in landscape stays whole in 9:16 instead of being cropped at the sides.
+   */
+  const fovFor = (aspect) =>
+    aspect >= 1 ? fov : (2 * Math.atan(Math.tan((fov * Math.PI) / 360) / aspect) * 180) / Math.PI;
   const near = options.near ?? 0.05;
   const far = options.far ?? 1000;
   const minDistance = options.minDistance ?? 0.05;
@@ -116,12 +122,13 @@ export function createOrbitCamera(options = {}) {
       return mat4.lookAt(getEye(), target, [0, 1, 0]);
     },
     getProjectionMatrix(aspect, fovDeg, nearZ, farZ) {
-      return mat4.perspective(fovDeg ?? fov, aspect, nearZ ?? near, farZ ?? far);
+      return mat4.perspective(fovDeg ?? fovFor(aspect), aspect, nearZ ?? near, farZ ?? far);
     },
     /** projection × view for this aspect ratio. */
     getViewProjection(aspect) {
-      return mat4.multiply(mat4.perspective(fov, aspect, near, far), mat4.lookAt(getEye(), target, [0, 1, 0]));
+      return mat4.multiply(mat4.perspective(fovFor(aspect), aspect, near, far), mat4.lookAt(getEye(), target, [0, 1, 0]));
     },
+    fovFor,
     getEye,
     getTarget() {
       return [...target];

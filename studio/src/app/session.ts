@@ -28,6 +28,8 @@ import { hubClient, type HubClient, type HubJob, type HubRecipeSummary } from ".
 import { RECIPE_TOOLS } from "../agent/recipeTools";
 import { PROJECT_TOOLS } from "../agent/projectTools";
 import { CATALOG_TOOLS } from "../agent/catalogTools";
+import { MOVE_TOOLS } from "../agent/moveTools";
+import { MOVES, moveRequest } from "../moves/moves";
 import { EXTERNAL_TOOLS } from "../agent/external";
 import { USER_TOOLS } from "../agent/userTools";
 import { ASSET_TOOLS } from "../agent/assetTools";
@@ -334,6 +336,32 @@ export async function mixExample(slug: string): Promise<void> {
     exampleDownload = null;
     set({ exampleDownload: null, exampleCacheRevision: get().exampleCacheRevision + 1 });
   }
+}
+
+// --- moves (techniques to try next) ---
+
+const movesKey = (projectId: string) => `siljangnim.moves.${projectId}`;
+
+/** Moves picked in this project; they aren't offered again. */
+export function appliedMoves(projectId: string): string[] {
+  const raw = safeLocal(() => localStorage.getItem(movesKey(projectId)));
+  try {
+    const list: unknown = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Hand a move to the agent (or copy it for an external one) and stop offering it here. */
+export async function applyMove(id: string): Promise<void> {
+  const move = MOVES.find((m) => m.id === id);
+  const project = get().project;
+  if (!move || !project || get().live) return;
+  const list = [...new Set([...appliedMoves(project.id), id])];
+  safeLocal(() => localStorage.setItem(movesKey(project.id), JSON.stringify(list)));
+  set({ movesRevision: get().movesRevision + 1 });
+  await handToAgent(moveRequest(move), `"${move.name}"`);
 }
 
 /** Send a request to the built-in agent, or copy it for an external agent (or when no key is set yet). */
@@ -1632,7 +1660,7 @@ export async function sendPrompt(text: string): Promise<void> {
       model,
       effort: settings.effort,
       system: SYSTEM_PROMPT,
-      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...RUNTIME_TOOLS, ...CATALOG_TOOLS, ...RECIPE_TOOLS, ...PROJECT_TOOLS, ...USER_TOOLS],
+      tools: [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...RUNTIME_TOOLS, ...CATALOG_TOOLS, ...MOVE_TOOLS, ...RECIPE_TOOLS, ...PROJECT_TOOLS, ...USER_TOOLS],
       env: { scene: controller, history, assets: assetsEnv, user, runtime, recipes, project: projectEnvPart },
       messages,
       signal: abort.signal,

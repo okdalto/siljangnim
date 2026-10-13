@@ -44,6 +44,16 @@ Look at the result and keep talking.
   button, color) you can play with by hand.
 - "Use this image as a texture" — drag in images, video, sound, fonts, 3D models or data and the agent uses them.
 
+### Try next
+
+When you're not sure where to take it, look at the **Try next** cards under the chat. They pick techniques that fit
+the scene on screen: lift a 2D pattern into 3D or render it as a volume, give a 3D scene PBR materials or path
+tracing, and more — Gaussian splatting, pixel sorting, datamosh, dithering, reaction–diffusion, syncing to a song's
+beats (librosa), reacting instrument by instrument (Demucs), hand tracking, MIDI mapping, pen-plotter output, perfect
+loops. Press a card and the agent applies that technique to the scene. Ones marked "GPU heavy" or "Runs Python" are
+slow or run a tool on your computer (it asks first). Asking "what should we try next?" in the chat picks from the same
+list.
+
 Every change is kept in **History** with a thumbnail, so you can go back to any moment you liked and branch off from
 there. In the **Assets** tab you can read the code and shaders the agent wrote.
 
@@ -54,6 +64,7 @@ Try joining two pieces into one.
 - Open an example's **About** and press **Mix in**: the example's scene and assets come into the project you have
   open, and the agent is asked to blend them into a single scene. For example: paint swirls over REBOUND star
   orbits, or a Hydra video synth in an L-system garden.
+- Or drag a card in the examples gallery: a "Drop to mix it in" bar appears at the bottom; drop it there.
 - You can also paste a `project.md` someone sent you, or part of a project you made earlier, into the chat and say
   "merge this into the current scene."
 

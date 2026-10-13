@@ -7,7 +7,8 @@ import { fileURLToPath } from "node:url";
 import { createServer } from "vite";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const server = await createServer({ root, configFile: false, logLevel: "error", server: { middlewareMode: true }, appType: "custom" });
+// The studio's own config: the tools import virtual:example-library, which its plugin provides.
+const server = await createServer({ root, configFile: join(root, "vite.config.ts"), logLevel: "error", server: { middlewareMode: true }, appType: "custom" });
 try {
   const { mcpSpec } = await server.ssrLoadModule("/src/agent/external.ts");
   const out = join(root, "..", "mcp", "src", "spec.json");

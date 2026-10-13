@@ -38,7 +38,9 @@ const STRINGS = {
     technical: "Technical details",
     open: "Open",
     mix: "Mix in",
-    mixTitle: "Ask the agent to blend this into the project that's open now",
+    mixTitle: "Ask the agent to blend this into the project that's open now (or drag the card onto the bar at the bottom)",
+    dropMix: (name: string) => `Drop to mix it into “${name}”`,
+    dropMixNote: "The agent blends the two into one piece. Your project keeps a version to go back to.",
     link: "Link",
     linkTitle: "Copy a link that opens this example",
     about: "About",
@@ -77,7 +79,9 @@ const STRINGS = {
     technical: "기술 정보",
     open: "열기",
     mix: "섞기",
-    mixTitle: "지금 열린 프로젝트에 이 예제를 섞어 달라고 에이전트에게 요청해요",
+    mixTitle: "지금 열린 프로젝트에 이 예제를 섞어 달라고 에이전트에게 요청해요 (카드를 아래 막대로 끌어다 놓아도 돼요)",
+    dropMix: (name: string) => `여기에 놓으면 “${name}”에 섞어요`,
+    dropMixNote: "에이전트가 둘을 하나의 작품으로 섞어요. 이전 버전은 히스토리에 남아요.",
     link: "링크",
     linkTitle: "이 예제를 바로 여는 링크 복사",
     about: "소개",
@@ -174,6 +178,9 @@ export function ExamplesDialog() {
   const [picked, setPicked] = useState<string | null>(null);
   const [showUnbuilt, setShowUnbuilt] = useState(true);
   const [detail, setDetail] = useState<Item | null>(null);
+  /** The example card being dragged; the mix dock shows while it is. */
+  const [dragging, setDragging] = useState<string | null>(null);
+  const projectName = useApp((s) => s.project?.name ?? null);
   const gpu = typeof navigator !== "undefined" && "gpu" in navigator;
   const close = () => setExamplesOpen(false);
 
@@ -258,7 +265,17 @@ export function ExamplesDialog() {
           {examples.length > 0 && (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
               {examples.map((i) => (
-                <ExampleCard key={i.key} example={i.example!} cached={cache.ready.has(i.example!.slug)} busy={Boolean(download)} tools={i.tools!} gpu={gpu} korean={korean} onInfo={() => setDetail(i)} />
+                <ExampleCard
+                  key={i.key}
+                  example={i.example!}
+                  cached={cache.ready.has(i.example!.slug)}
+                  busy={Boolean(download)}
+                  tools={i.tools!}
+                  gpu={gpu}
+                  korean={korean}
+                  onInfo={() => setDetail(i)}
+                  onDrag={projectName ? setDragging : undefined}
+                />
               ))}
             </div>
           )}
@@ -278,6 +295,7 @@ export function ExamplesDialog() {
             </section>
           )}
           {!examples.length && !unbuilt.length && <p className="pt-10 text-center text-sm text-muted">{t.nothing(query)}</p>}
+          {dragging && projectName && <MixDock projectName={projectName} t={t} onDone={() => setDragging(null)} />}
         </div>
       </div>
       {detail?.example && <Detail example={detail.example} tools={detail.tools!} korean={korean} onClose={() => setDetail(null)} />}
@@ -359,6 +377,36 @@ function Detail({ example: e, tools, korean, onClose }: { example: Example; tool
   );
 }
 
+/** Where a dragged example card goes to be mixed into the open project. */
+function MixDock({ projectName, t, onDone }: { projectName: string; t: Strings; onDone: () => void }) {
+  const [over, setOver] = useState(false);
+  return (
+    <div
+      data-testid="mix-dock"
+      className={`fixed inset-x-6 bottom-6 z-50 mx-auto flex max-w-xl items-center gap-3 rounded-2xl border-2 border-dashed px-5 py-4 shadow-2xl backdrop-blur transition-colors ${over ? "border-accent bg-accent/15" : "border-faint bg-panel/90"}`}
+      onDragOver={(ev) => {
+        if (!ev.dataTransfer.types.includes(EXAMPLE_DRAG_TYPE)) return;
+        ev.preventDefault();
+        ev.dataTransfer.dropEffect = "copy";
+        setOver(true);
+      }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(ev) => {
+        ev.preventDefault();
+        const slug = ev.dataTransfer.getData(EXAMPLE_DRAG_TYPE);
+        onDone();
+        if (slug) void mixExample(slug);
+      }}
+    >
+      <MixIcon size={20} />
+      <div className="pointer-events-none">
+        <p className="text-sm text-fg">{t.dropMix(projectName)}</p>
+        <p className="text-[11px] text-muted">{t.dropMixNote}</p>
+      </div>
+    </div>
+  );
+}
+
 const NOTICES_URL = "https://github.com/okdalto/siljangnim/blob/main/THIRD_PARTY_NOTICES.md";
 
 /** Who made what this example uses: each tool's repository and license, and any outside material. */
@@ -429,11 +477,42 @@ function CopyLink({ slug, t }: { slug: string; t: Strings }) {
   );
 }
 
-function ExampleCard({ example: e, cached, busy, tools, gpu, korean, onInfo }: { example: Example; cached: boolean; busy: boolean; tools: CatalogEntry[]; gpu: boolean; korean: boolean; onInfo: () => void }) {
+/** Drag data for an example card dropped on the mix dock. */
+export const EXAMPLE_DRAG_TYPE = "application/x-siljangnim-example";
+
+function ExampleCard({
+  example: e,
+  cached,
+  busy,
+  tools,
+  gpu,
+  korean,
+  onInfo,
+  onDrag,
+}: {
+  example: Example;
+  cached: boolean;
+  busy: boolean;
+  tools: CatalogEntry[];
+  gpu: boolean;
+  korean: boolean;
+  onInfo: () => void;
+  /** Dragging starts (slug) and ends (null); left out when there is no project to mix into. */
+  onDrag?: (slug: string | null) => void;
+}) {
   const text = exampleText(e, korean);
   const t = STRINGS[korean ? "ko" : "en"];
   return (
-    <div className="overflow-hidden rounded-lg border border-line bg-panel transition-colors hover:border-faint">
+    <div
+      className="overflow-hidden rounded-lg border border-line bg-panel transition-colors hover:border-faint"
+      draggable={Boolean(onDrag) && !busy}
+      onDragStart={(ev) => {
+        ev.dataTransfer.setData(EXAMPLE_DRAG_TYPE, e.slug);
+        ev.dataTransfer.effectAllowed = "copy";
+        onDrag?.(e.slug);
+      }}
+      onDragEnd={() => onDrag?.(null)}
+    >
       <button type="button" disabled={busy} data-example={e.slug} data-requires={(e.requires ?? []).join(" ")} onClick={() => void openExample(e.slug)} className="block w-full text-left">
         {e.thumbnail ? <img src={e.thumbnail} alt="" loading="lazy" className="h-28 w-full bg-bg object-cover" /> : <div className="h-28 w-full bg-bg" />}
         <div className="p-2.5 pb-1.5">

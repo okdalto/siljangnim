@@ -8,10 +8,14 @@ import { answerQuestion, clearChat, detachAsset, dismissNotice, sendPrompt, setE
 import { activeModel } from "../settings";
 import { useApp, type LiveTurn } from "../state";
 import { ApprovalCard } from "./Approval";
+import { MoveCards } from "./Moves";
 import { FilePickerButton } from "./Assets";
 import { AlertIcon, CheckIcon, PaperclipIcon, SendIcon, Spinner, StopIcon, XIcon } from "./icons";
 
 type ToolResult = Anthropic.Beta.BetaToolResultBlockParam;
+
+/** A move picked from the "Try next" cards (moveRequest): shown by name, not as the full instruction. */
+const MOVE_MESSAGE = /^\[Move\] Apply "([^"]+)"/;
 
 const TOOL_LABELS: Record<string, string> = {
   scene_read: "Read scene",
@@ -27,6 +31,8 @@ const TOOL_LABELS: Record<string, string> = {
   command_run: "Ran a program",
   job_status: "Checked a job",
   recipe_search: "Searched recipes",
+  moves_suggest: "Looked for next moves",
+  move_get: "Read a technique",
   recipe_read: "Read a recipe",
   recipe_save: "Saved a recipe",
   recipe_verify: "Verified a recipe",
@@ -82,6 +88,7 @@ export function Chat() {
           <Message key={i} message={m} results={results} />
         ))}
         {live && <Live live={live} />}
+        {!live && <MoveCards />}
       </div>
 
       <Notice />
@@ -139,7 +146,11 @@ function Message({ message, results }: { message: MessageParam; results: Map<str
           </div>
         )}
         <div className="flex justify-end">
-          <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-raised px-3.5 py-2">{text}</div>
+          {MOVE_MESSAGE.test(text) ? (
+            <div className="rounded-full border border-line px-3 py-1 text-xs text-muted">→ {text.match(MOVE_MESSAGE)![1]}</div>
+          ) : (
+            <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-raised px-3.5 py-2">{text}</div>
+          )}
         </div>
       </div>
     );

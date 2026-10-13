@@ -32,6 +32,8 @@ const transport = new StdioClientTransport({
   env: {
     ...process.env,
     SILJANGNIM_OPEN: "0",
+    // Never attach to a Siljangnim app the person has open: its tools would act on their project and recipes.
+    SILJANGNIM_VIEWER: "browser",
     SILJANGNIM_PORT: "47911",
     // Reuse the desktop smoke's Python install instead of setting one up in ~/.siljangnim.
     SILJANGNIM_RUNTIME_ROOT: process.env.SILJANGNIM_SMOKE_RUNTIME || join(mcpDir, "..", "desktop", "release", "smoke-profile", "runtime"),
@@ -104,6 +106,9 @@ await call("python_run", {
 await call("command_run", { argv: ["node", "-e", "require('fs').writeFileSync('out/cli.txt', 'cli ok')"] });
 const status = await call("runtime_status");
 const catalog = await call("catalog_search", { query: "plotter svg" });
+// Techniques that fit the scene on screen, and how to apply one.
+const moves = await call("moves_suggest", {});
+const moveGuide = await call("move_get", { id: "pixel-sorting" });
 const registrySearch = await callTool({ name: "recipe_search", arguments: { query: "torus" } });
 const registryInstall = await callTool({ name: "recipe_install", arguments: { id: "trimesh.torus-knot" } });
 const installedRecipe = existsSync(join(out, "recipes", "trimesh.torus-knot", "recipe.md")) ? readFileSync(join(out, "recipes", "trimesh.torus-knot", "recipe.md"), "utf8") : "";
@@ -330,6 +335,8 @@ const checks = {
     /origin: imported/.test(importedRecipe) &&
     /status: draft/.test(importedRecipe),
   mdImported: !mdImport.isError && /Missing generated assets: .*points\.json \(step \d\)/.test(text(mdImport)) && /No errors/.test(text(afterImport)),
+  movesSuggested: !moves.isError && /^[a-z0-9-]+ \[(dimension|render|motion|image|sound|input|output), /m.test(text(moves)),
+  moveGuide: !moveGuide.isError && /^Pixel sorting \(pixel-sorting\)/.test(text(moveGuide)) && /odd.even/i.test(text(moveGuide)),
   catalogFound: !catalog.isError && /^Catalog matches[^\n]*\nvpype \[C: Python via python_run\]/.test(text(catalog)),
   jobQueue:
     Boolean(longId) &&

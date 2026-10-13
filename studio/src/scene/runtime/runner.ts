@@ -255,6 +255,9 @@ export class SceneRunner {
 
   /** Errors raised outside script phases (async callbacks, promise rejections). */
   reportUncaught(err: unknown): void {
+    // A promise rejected with no reason at all, e.g. a library polling the previous scene's lost context
+    // (three's readRenderTargetPixelsAsync), says nothing about this scene; reporting it would only mislead.
+    if (err === undefined) return;
     if (this.current) this.record("runtime", err);
   }
 
@@ -488,6 +491,9 @@ export class SceneRunner {
   private makeWebGl(canvas: HTMLCanvasElement, scene: Scene, assets: Record<string, string>, publish: SceneCtx["publish"], inputs: SceneInputs) {
     const gl = canvas.getContext("webgl2", { antialias: true, alpha: false, powerPreference: "high-performance" });
     if (!gl) throw new Error("WebGL2 is not available");
+    // Float render targets (HDR, simulations, accumulation) and linear filtering of float textures, where supported.
+    gl.getExtension("EXT_color_buffer_float");
+    gl.getExtension("OES_texture_float_linear");
     const { ctx, dispose, beforeFrame } = createCtx(gl, canvas, uniformValues(scene), assets, publish, inputs);
     const names: Record<number, string> = {
       [gl.INVALID_ENUM]: "INVALID_ENUM",

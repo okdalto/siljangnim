@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { setExamplesOpen } from "../session";
 import { useApp, type ExternalAgent } from "../state";
 import { Spinner } from "./icons";
+import { MoveCards } from "./Moves";
 import { ApprovalCard } from "./Approval";
 import { Notice, ToolChip } from "./Chat";
 
@@ -44,6 +45,7 @@ export function Activity() {
           </div>
         ))}
         <ApprovalCard />
+        <MoveCards />
       </div>
       <Notice />
     </div>

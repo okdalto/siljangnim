@@ -62,3 +62,15 @@ describe("orbit camera", () => {
     expect(eye(cam)[0]).toBeCloseTo(c[0], 6);
   });
 });
+
+describe("portrait framing", () => {
+  it("keeps the vertical fov in landscape and widens it in portrait so the sides stay in view", () => {
+    const cam = createOrbitCamera({ fov: 45 });
+    expect(cam.fovFor(16 / 9)).toBe(45);
+    const tallFov = cam.fovFor(9 / 16);
+    // Horizontal half-angle in portrait equals the vertical half-angle of a square frame.
+    expect(Math.tan((tallFov * Math.PI) / 360) * (9 / 16)).toBeCloseTo(Math.tan((45 * Math.PI) / 360), 6);
+    // An explicit fov is used as given.
+    expect(cam.getProjectionMatrix(9 / 16, 30)[5]).toBeCloseTo(1 / Math.tan((30 * Math.PI) / 360), 6);
+  });
+});

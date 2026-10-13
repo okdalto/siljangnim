@@ -8,12 +8,13 @@ import { MCP_INSTRUCTIONS } from "./prompt";
 import { RECIPE_TOOLS } from "./recipeTools";
 import { PROJECT_TOOLS } from "./projectTools";
 import { CATALOG_TOOLS } from "./catalogTools";
+import { MOVE_TOOLS } from "./moveTools";
 import { RUNTIME_TOOLS } from "./runtimeTools";
 import { SCENE_TOOLS } from "./sceneTools";
 import { toolSpec, type ToolDefinition } from "./tools";
 
 /** ask_user is left out: external agents ask in their own chat. */
-export const EXTERNAL_TOOLS: ToolDefinition[] = [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...RUNTIME_TOOLS, ...CATALOG_TOOLS, ...RECIPE_TOOLS, ...PROJECT_TOOLS];
+export const EXTERNAL_TOOLS: ToolDefinition[] = [...SCENE_TOOLS, ...HISTORY_TOOLS, ...ASSET_TOOLS, ...RUNTIME_TOOLS, ...CATALOG_TOOLS, ...MOVE_TOOLS, ...RECIPE_TOOLS, ...PROJECT_TOOLS];
 
 export interface McpSpec {
   instructions: string;

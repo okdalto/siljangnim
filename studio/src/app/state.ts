@@ -87,6 +87,8 @@ export interface AppState {
   keyStatus: Record<ProviderKeyId, boolean>;
   /** Desktop: whether Claude Code / Codex are installed and signed in (null until checked). */
   localEngines: Record<LocalEngineId, LocalEngineStatus> | null;
+  /** Bumped when a move is picked, so the "Try next" cards refresh. */
+  movesRevision: number;
   settingsOpen: boolean;
   examplesOpen: boolean;
   exampleDownload: { slug: string; loaded: number; total: number; preparing: boolean } | null;
@@ -128,6 +130,7 @@ export const useApp = create<AppState>(() => ({
   settings: loadSettings(),
   keyStatus: { anthropic: false, openai: false },
   localEngines: null,
+  movesRevision: 0,
   settingsOpen: false,
   examplesOpen: false,
   exampleDownload: null,

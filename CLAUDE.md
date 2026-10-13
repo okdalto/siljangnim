@@ -10,6 +10,8 @@ checks it runs and looks right, and refines it. Being rebuilt as a desktop app (
   - `src/scene/` — scene format (`schema.ts`), RPC protocol (`protocol.ts`), app-side host (`host.ts`),
     runtime that runs inside the iframe (`runtime/`), WebGL helpers (`gl/`; `.js` files are ported v1 code).
   - `src/agent/` — LLM providers (`llm/`), tool registry (`tools.ts`), scene tools, loop, system prompt.
+  - `src/moves/` — "moves": techniques to try next (3D, volume, PBR, path tracing, splatting, glitch, sound…) with a
+    guide each; `suggestMoves` picks them from scene traits for the app's "Try next" cards and the moves_suggest tool.
   - `src/project/` — IndexedDB store. `src/app/` — UI, state (`state.ts`), controller (`session.ts`).
   - `server/llmForward.js` — LLM forwarder shared by the Vite dev server and the desktop main process.
 - `desktop/` — Electron shell: `app://` protocol, key storage, hub process, packaging, smoke test.
