@@ -372,8 +372,17 @@ async function runLocalAgentScenario(win, outDir) {
   await wait(600);
   writeFileSync(join(outDir, "settings-agent.png"), (await win.webContents.capturePage()).toPNG());
   await win.webContents.executeJavaScript(`document.querySelector('[data-testid="close-settings"]')?.click()`);
-  const send = (text) =>
-    win.webContents.executeJavaScript(TYPE_PROMPT.replace('"Make a calm blue field"', JSON.stringify(text)));
+  const send = async (text) => {
+    // The previous scenario may have left another sidebar tab (or the examples view) on screen.
+    await win.webContents.executeJavaScript(`(async () => {
+      for (let i = 0; i < 50 && !document.querySelector("aside textarea"); i++) {
+        if (!document.querySelector("aside")) document.querySelector('[data-testid="view-studio"]')?.click();
+        [...document.querySelectorAll('[role="tab"]')].find((t) => t.innerText === "Chat")?.click();
+        await new Promise((r) => setTimeout(r, 100));
+      }
+    })()`);
+    await win.webContents.executeJavaScript(TYPE_PROMPT.replace('"Make a calm blue field"', JSON.stringify(text)));
+  };
   const waitFor = async (needle) => {
     let s = await state();
     for (let i = 0; i < 120 && (!s.text.includes(needle) || s.busy); i++) {
