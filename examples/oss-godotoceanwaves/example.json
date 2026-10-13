@@ -1,0 +1,44 @@
+{
+  "order": 490,
+  "title": "Ocean waves from native GPU FFT (GodotOceanWaves)",
+  "title_ko": "원본 GPU FFT로 시뮬레이션한 바다 (GodotOceanWaves)",
+  "description": "GodotOceanWaves executes original spectral wave and FFT shaders on Metal, then renders two wave cascades at three simulation frames.",
+  "description_ko": "GodotOceanWaves 원본 스펙트럼·FFT 셰이더를 Metal GPU에서 실행해 두 파도 계층의 세 시점을 직접 렌더했어요.",
+  "prompt": "Ocean waves from native GPU FFT. Use the original engine.",
+  "made_with": "GodotOceanWaves original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "godotoceanwaves"
+  ],
+  "summary": "GodotOceanWaves executes original spectral wave and FFT shaders on Metal, then renders two wave cascades at three simulation frames.",
+  "summary_ko": "GodotOceanWaves 원본 스펙트럼·FFT 셰이더를 Metal GPU에서 실행해 두 파도 계층의 세 시점을 직접 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "GodotOceanWaves executes original spectral wave and FFT shaders on Metal, then renders two wave cascades at three simulation frames.",
+  "tool_about_ko": "GodotOceanWaves 원본 스펙트럼·FFT 셰이더를 Metal GPU에서 실행해 두 파도 계층의 세 시점을 직접 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "GodotOceanWaves contributors",
+      "url": "https://github.com/2retr0/godotoceanwaves",
+      "license": "MIT"
+    },
+    {
+      "what": "Original rendering engine and procedural sky",
+      "source": "Godot Engine contributors",
+      "url": "https://github.com/godotengine/godot/tree/4.5.1-stable",
+      "license": "MIT"
+    }
+  ]
+}

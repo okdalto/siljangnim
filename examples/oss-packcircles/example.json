@@ -1,0 +1,38 @@
+{
+  "order": 489,
+  "title": "Native progressive circle packing (packcircles)",
+  "title_ko": "원본 알고리즘으로 원을 촘촘하게 배치하기 (packcircles)",
+  "description": "packcircles 0.3.7 arranges 48 circles with ascending, descending and shuffled radii, checking every pair for overlap.",
+  "description_ko": "packcircles 0.3.7 원본 R 알고리즘으로 48개 원을 세 순서로 배치하고 모든 원 쌍의 겹침 여부를 검증했어요.",
+  "prompt": "Native progressive circle packing. Use the original engine.",
+  "made_with": "packcircles original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "packcircles"
+  ],
+  "summary": "packcircles 0.3.7 arranges 48 circles with ascending, descending and shuffled radii, checking every pair for overlap.",
+  "summary_ko": "packcircles 0.3.7 원본 R 알고리즘으로 48개 원을 세 순서로 배치하고 모든 원 쌍의 겹침 여부를 검증했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "packcircles 0.3.7 arranges 48 circles with ascending, descending and shuffled radii, checking every pair for overlap.",
+  "tool_about_ko": "packcircles 0.3.7 원본 R 알고리즘으로 48개 원을 세 순서로 배치하고 모든 원 쌍의 겹침 여부를 검증했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "packcircles contributors",
+      "url": "https://github.com/mbedward/packcircles",
+      "license": "MIT"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "motion-canvas.gallery@1",
+      "packages": [
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "capture.html",
+        "capture.ts",
+        "package-lock.json",
+        "package.json",
+        "project.ts",
+        "runner.cjs",
+        "scene.tsx",
+        "vite.config.mjs"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

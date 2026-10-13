@@ -66,6 +66,8 @@ libfive의 암시적 입체, ASTRA의 단층 재구성, SPECFEM2D의 파동장, 
 
 Goxel 복셀 내보내기, Ready 반응·확산, Instant Meshes 사각형 재메시, Powder Toy 입자 시뮬레이션, Mandelbulber 프랙탈과 glslViewer 셰이더도 원본 엔진으로 직접 실행한 결과를 제공합니다. 레시피에는 고정된 입력과 재실행 조건을 함께 담았습니다.
 
+Swingline과 StippleGen 점묘, 원본 GPU 대기 산란 모델, ManimGL 수학 곡면, Motion Canvas 타임라인도 직접 실행한 결과를 비교할 수 있습니다. packcircles 원 배치와 GodotOceanWaves GPU 파도도 원본 엔진으로 계산했습니다. 각 레시피에 필요한 데스크톱·Java·Node 실행 환경을 안내합니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

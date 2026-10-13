@@ -1,0 +1,27 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "precomputed-atmospheric-scattering.gallery@1",
+      "packages": [
+        "cmake==4.4.3",
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "main.cpp",
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-0.ppm",
+        "render-1.png",
+        "render-1.ppm",
+        "render-2.png",
+        "render-2.ppm",
+        "result.json"
+      ]
+    }
+  ]
+}

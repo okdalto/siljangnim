@@ -1,0 +1,38 @@
+{
+  "order": 485,
+  "title": "Weighted Lloyd relaxation in Processing (StippleGen)",
+  "title_ko": "Processing 원본으로 계산한 가중 점묘 (StippleGen)",
+  "description": "StippleGen executes its original Processing sketch and captures 500 weighted stipples at generations 1, 4 and 12.",
+  "description_ko": "StippleGen 원본 Processing 스케치를 실행해 1·4·12세대의 가중 점 500개와 원본 화면을 저장했어요.",
+  "prompt": "Weighted Lloyd relaxation in Processing. Use the original engine.",
+  "made_with": "StippleGen original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "stipplegen"
+  ],
+  "summary": "StippleGen executes its original Processing sketch and captures 500 weighted stipples at generations 1, 4 and 12.",
+  "summary_ko": "StippleGen 원본 Processing 스케치를 실행해 1·4·12세대의 가중 점 500개와 원본 화면을 저장했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "StippleGen executes its original Processing sketch and captures 500 weighted stipples at generations 1, 4 and 12.",
+  "tool_about_ko": "StippleGen 원본 Processing 스케치를 실행해 1·4·12세대의 가중 점 500개와 원본 화면을 저장했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "StippleGen contributors",
+      "url": "https://github.com/evil-mad/stipplegen",
+      "license": "LGPL-2.1-or-later"
+    }
+  ]
+}

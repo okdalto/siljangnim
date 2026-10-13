@@ -1,0 +1,38 @@
+{
+  "order": 487,
+  "title": "Animation frames from the original timeline (Motion Canvas)",
+  "title_ko": "원본 타임라인에서 렌더한 애니메이션 (Motion Canvas)",
+  "description": "Motion Canvas 3.17.2 animates seven circles through a wave into a ring and renders exact timeline positions with its original Renderer.",
+  "description_ko": "Motion Canvas 3.17.2 원본 타임라인에서 일곱 원이 물결과 고리로 바뀌는 장면을 0·2·4초에 렌더했어요.",
+  "prompt": "Animation frames from the original timeline. Use the original engine.",
+  "made_with": "Motion Canvas original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "motion-canvas"
+  ],
+  "summary": "Motion Canvas 3.17.2 animates seven circles through a wave into a ring and renders exact timeline positions with its original Renderer.",
+  "summary_ko": "Motion Canvas 3.17.2 원본 타임라인에서 일곱 원이 물결과 고리로 바뀌는 장면을 0·2·4초에 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Motion Canvas 3.17.2 animates seven circles through a wave into a ring and renders exact timeline positions with its original Renderer.",
+  "tool_about_ko": "Motion Canvas 3.17.2 원본 타임라인에서 일곱 원이 물결과 고리로 바뀌는 장면을 0·2·4초에 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Motion Canvas contributors",
+      "url": "https://github.com/motion-canvas/motion-canvas",
+      "license": "MIT"
+    }
+  ]
+}

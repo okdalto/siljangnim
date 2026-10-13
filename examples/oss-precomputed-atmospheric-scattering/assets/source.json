@@ -1,0 +1,14 @@
+{
+  "name": "precomputed-atmospheric-scattering",
+  "commit": "34f14e745cff948f4ca3157d1b62a445ffa7286f",
+  "url": "https://codeload.github.com/ebruneton/precomputed_atmospheric_scattering/tar.gz/34f14e745cff948f4ca3157d1b62a445ffa7286f",
+  "sha256": "a514554dcefb39cdff6e4448bf3fc169402357a2445ea05a51a9ee84b49b1d06",
+  "dependencies": [
+    {
+      "name": "glfw",
+      "url": "https://codeload.github.com/glfw/glfw/tar.gz/refs/tags/3.4",
+      "sha256": "c038d34200234d071fae9345bc455e4a8f2f544ab60150765d7704e08f3dac01",
+      "version": "3.4"
+    }
+  ]
+}

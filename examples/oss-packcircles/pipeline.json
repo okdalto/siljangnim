@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "packcircles.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.R",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "circles-0.csv",
+        "circles-1.csv",
+        "circles-2.csv",
+        "result.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "godot": {
+    "version": "4.5.1",
+    "url": "https://github.com/godotengine/godot-builds/releases/download/4.5.1-stable/Godot_v4.5.1-stable_macos.universal.zip",
+    "sha256": "65c27959d02aaacfc131ec7ecb90179ba8045200cb02982bf2be96d117010b8a"
+  },
+  "source": {
+    "commit": "a171446f8174348895aaafc426576c26261058b9",
+    "url": "https://codeload.github.com/2retr0/GodotOceanWaves/tar.gz/a171446f8174348895aaafc426576c26261058b9",
+    "sha256": "c99db34c80f985e51f800a118edd37dba29bbbdb66aac123cd073740b1dd9d47"
+  }
+}

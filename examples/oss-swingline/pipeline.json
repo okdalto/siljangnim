@@ -1,0 +1,23 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "swingline.gallery@1",
+      "packages": [
+        "cmake==4.4.3"
+      ],
+      "inputs": [
+        "input.png",
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "stipples-0.svg",
+        "stipples-1.svg",
+        "stipples-2.svg"
+      ]
+    }
+  ]
+}

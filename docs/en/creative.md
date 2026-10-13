@@ -68,6 +68,8 @@ Original-engine results also cover libfive implicit solids, ASTRA tomography, SP
 
 Original-engine examples also include Goxel voxel exports, Ready reaction-diffusion, Instant Meshes quadrilateral remeshing, Powder Toy particle simulation, Mandelbulber fractals and glslViewer shaders. Recipes include fixed inputs and requirements for rerunning the native engines.
 
+Compare locally executed Swingline and StippleGen stippling, the original GPU atmosphere model, ManimGL mathematical surfaces, and Motion Canvas timeline frames. Native packcircles circle layouts and GodotOceanWaves GPU waves are included too. Each recipe lists its desktop, Java or Node runtime requirements.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

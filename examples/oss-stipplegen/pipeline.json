@@ -1,0 +1,28 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "stipplegen.gallery@1",
+      "packages": [
+        "JPype1==1.6.0",
+        "packaging==25.0",
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "input.png",
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "points-1.csv",
+        "points-12.csv",
+        "points-4.csv",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

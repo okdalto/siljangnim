@@ -1,0 +1,45 @@
+{
+  "commit": "ef2e3ca3c52af298e9e63b3c3d8f9a3414d18656",
+  "artifacts": [
+    {
+      "name": "source.pde",
+      "url": "https://raw.githubusercontent.com/evil-mad/stipplegen/ef2e3ca3c52af298e9e63b3c3d8f9a3414d18656/StippleGen/StippleGen.pde",
+      "sha256": "5f321ad9c3076ccc004b49f4d4491c76e63b4f1df412b5b8e4cd8029ff3563c3"
+    },
+    {
+      "name": "preprocessor.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/processing/preprocessor/4.4.0/preprocessor-4.4.0.jar",
+      "sha256": "6127032bd20147f87b303a545f1348750178be070ad9410d27875e5d2b57a020"
+    },
+    {
+      "name": "core.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/processing/core/4.4.0/core-4.4.0.jar",
+      "sha256": "d0392abdf6afe6eecf82e1a773fdd577af393838b4fb4942ee184b428591a410"
+    },
+    {
+      "name": "antlr.jar",
+      "url": "https://www.antlr.org/download/antlr-4.7.2-complete.jar",
+      "sha256": "6852386d7975eff29171dae002cc223251510d35f291ae277948f381a7b380b4"
+    },
+    {
+      "name": "jdt.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/eclipse/jdt/org.eclipse.jdt.core/3.16.0/org.eclipse.jdt.core-3.16.0.jar",
+      "sha256": "7c71886a76964a825eb734d22dedbd3a1efa2c19bec3af26d07b7bbe8167d943"
+    },
+    {
+      "name": "ecj.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/eclipse/jdt/ecj/3.39.0/ecj-3.39.0.jar",
+      "sha256": "01f5a92ac19bb2b3bf85e295a68f2c73c264369109158b566ce9b490af982948"
+    },
+    {
+      "name": "controlp5.zip",
+      "url": "https://github.com/sojamo/controlp5/releases/download/v2.2.6/controlP5-2.2.6.zip",
+      "sha256": "88bd4bdbb4f3d5cb77211004ac4796742eeae86d0a74726f3194cc316ad23fb3"
+    },
+    {
+      "name": "toxiclibs.zip",
+      "url": "https://github.com/postspectacular/toxiclibs/releases/download/0021/toxiclibs-complete-0021.zip",
+      "sha256": "183a0ba9c8533258c3a2447730f4d10ddfe5240b1bd211b164bf6a413f9f8980"
+    }
+  ]
+}

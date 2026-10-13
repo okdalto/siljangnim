@@ -1,0 +1,32 @@
+[
+  {
+    "name": "R",
+    "version": "4.5.3",
+    "url": "https://cran.r-project.org/bin/macosx/big-sur-arm64/base/R-4.5.3-arm64.pkg",
+    "sha256": "8c1d5005547926425037ffa7d9062099231e033022275648625b32791dd43eb5"
+  },
+  {
+    "name": "backports",
+    "version": "1.5.1",
+    "url": "https://cran.r-project.org/bin/macosx/big-sur-arm64/contrib/4.5/backports_1.5.1.tgz",
+    "sha256": "fbda87be61a45d785863f954249abd8521deaf1ea2a5bf9b5273e30bfb9c24c3"
+  },
+  {
+    "name": "Rcpp",
+    "version": "1.1.2",
+    "url": "https://cran.r-project.org/bin/macosx/big-sur-arm64/contrib/4.5/Rcpp_1.1.2.tgz",
+    "sha256": "d762da8219d2b23d783753b322fb34000cb20b88b396d052865beb96a99d8201"
+  },
+  {
+    "name": "checkmate",
+    "version": "2.3.4",
+    "url": "https://cran.r-project.org/bin/macosx/big-sur-arm64/contrib/4.5/checkmate_2.3.4.tgz",
+    "sha256": "26331dd83ca746872b0503f8dabbd821371398a79eb02ffc8de8e3407c51cdfb"
+  },
+  {
+    "name": "packcircles",
+    "version": "0.3.7",
+    "url": "https://cran.r-project.org/bin/macosx/big-sur-arm64/contrib/4.5/packcircles_0.3.7.tgz",
+    "sha256": "f7b64823e79057d881a9f50aa7ccd57f6a2cc120565bd27879e1f6877b744c6b"
+  }
+]

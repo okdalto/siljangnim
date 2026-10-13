@@ -8949,6 +8949,198 @@
     "program": "c++"
    },
    "notes": "This verified build recipe targets macOS with Xcode command-line tools, Python 3.12+ and an OpenGL-capable desktop session. Source archives for glslViewer 3.5.2 and its exact Vera and Lygia submodule revisions are SHA-256 verified and cached. The first source download is about 125 MB; the CMake build is cached. Git submodule updates are disabled because every source revision is supplied explicitly."
+  },
+  {
+   "id": "swingline",
+   "name": "Swingline",
+   "repo": "https://github.com/mkeeter/swingline",
+   "license": "GPL-2.0-or-later",
+   "tier": "D",
+   "purpose": "Swingline runs its original GPU Voronoi solver for 10, 30 and 60 iterations, exporting 300 weighted stipples as native SVG circles.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "cc"
+   },
+   "notes": "Requires macOS, Xcode command-line tools, Python 3.12+ and a desktop OpenGL 3.3 context. The recipe verifies and caches the original source revision d2a427585ac5449d036a3234bff66480a0605a03 and GLFW 3.4, then caches the compiled executable. The only platform adaptation replaces Linux OpenGL header discovery with Apple OpenGL headers and frameworks."
+  },
+  {
+   "id": "stipplegen",
+   "name": "StippleGen",
+   "repo": "https://github.com/evil-mad/stipplegen",
+   "license": "LGPL-2.1-or-later",
+   "tier": "D",
+   "purpose": "StippleGen executes its original Processing sketch and captures 500 weighted stipples at generations 1, 4 and 12.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "java"
+   },
+   "notes": "Requires Java 21, Python 3.12+ and a graphical desktop. Tested on macOS Apple Silicon. The recipe verifies and caches StippleGen revision ef2e3ca3c52af298e9e63b3c3d8f9a3414d18656, Processing 4.4.0, ControlP5 2.2.6, Toxiclibs 0021 and the pinned Java compilation dependencies. Processing preprocessor and Eclipse compiler compile the original PDE sketch; a Java runtime is sufficient without a separate JDK."
+  },
+  {
+   "id": "precomputed-atmospheric-scattering",
+   "name": "Precomputed Atmospheric Scattering",
+   "repo": "https://github.com/ebruneton/precomputed_atmospheric_scattering",
+   "license": "BSD-3-Clause",
+   "tier": "D",
+   "purpose": "The original atmospheric model precomputes four scattering orders on the GPU and renders skies at three solar elevations.",
+   "tags": [
+    "Atmospheric scattering · precomputation",
+    "Sky · rendering"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "Requires macOS, Xcode command-line tools with C++17, Python 3.12+ and a desktop OpenGL 4.1 context. Source revision 34f14e745cff948f4ca3157d1b62a445ffa7286f and GLFW 3.4 are SHA-256 verified and cached; the native executable is cached. The original model precomputes its scattering textures locally on every execution. No external lookup table or rendered sky is downloaded."
+  },
+  {
+   "id": "motion-canvas",
+   "name": "Motion Canvas",
+   "repo": "https://github.com/motion-canvas/motion-canvas",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Motion Canvas 3.17.2 animates seven circles through a wave into a ring and renders exact timeline positions with its original Renderer.",
+   "tags": [
+    "motion",
+    "explanation",
+    "code"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "electron"
+   },
+   "notes": "Requires Node.js 22+, npm, Python 3.12+ and Electron available on PATH or through the ELECTRON environment variable. Tested on macOS with Electron 44.4.4. Motion Canvas 3.17.2 and Vite 5.4.14 are installed on demand from the supplied npm lockfile into a reusable cache. npm verifies package integrity. No editor installation is added to the studio bundle."
+  },
+  {
+   "id": "manimgl",
+   "name": "ManimGL",
+   "repo": "https://github.com/3b1b/manim",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "ManimGL 1.7.2 renders three sinusoidal surfaces and their mesh lines with the original OpenGL camera and surface shaders.",
+   "tags": [
+    "mathematics",
+    "motion",
+    "Python"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "addict==2.4.0",
+     "appdirs==1.4.4",
+     "colour==0.1.5",
+     "diskcache==5.6.3",
+     "fonttools==4.66.0",
+     "ipython==9.17.1",
+     "isosurfaces==0.1.2",
+     "manimgl==1.7.2",
+     "manimpango==0.6.1",
+     "mapbox-earcut==2.1.0",
+     "matplotlib==3.11.2",
+     "moderngl==5.12.0",
+     "moderngl-window==3.1.1",
+     "numpy==2.5.3",
+     "pillow==12.3.0",
+     "pydub==0.25.1",
+     "pygments==2.21.0",
+     "pyopengl==3.1.10",
+     "pyperclip==1.11.0",
+     "pyyaml==6.0.3",
+     "rich==15.0.0",
+     "scipy==1.18.1",
+     "screeninfo==0.8.1",
+     "setuptools==75.8.0",
+     "skia-pathops==0.9.2",
+     "svgelements==1.9.6",
+     "sympy==1.14.0",
+     "tqdm==4.70.1",
+     "validators==0.35.0"
+    ]
+   },
+   "notes": "Requires Python 3.12 and a desktop OpenGL context. Tested on macOS Apple Silicon. The original engine and its direct Python dependencies are pinned, including the original manimgl 1.7.2 package. LaTeX and video encoding are not needed because this example uses mathematical surfaces and direct native image export. Packages are installed only when the recipe is run."
+  },
+  {
+   "id": "packcircles",
+   "name": "packcircles",
+   "repo": "https://github.com/mbedward/packcircles",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "packcircles 0.3.7 arranges 48 circles with ascending, descending and shuffled radii, checking every pair for overlap.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "R"
+   },
+   "notes": "This recipe targets Apple Silicon macOS with Python 3.12+. It verifies and caches the official R 4.5.3 runtime package and exact CRAN binaries: packcircles 0.3.7, Rcpp 1.1.2, checkmate 2.3.4 and backports 1.5.1. The runtime is extracted into the recipe cache without a system-wide installation or administrator privileges. The initial R runtime download is about 97 MB."
+  },
+  {
+   "id": "godotoceanwaves",
+   "name": "GodotOceanWaves",
+   "repo": "https://github.com/2retr0/godotoceanwaves",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "GodotOceanWaves executes original spectral wave and FFT shaders on Metal, then renders two wave cascades at three simulation frames.",
+   "tags": [
+    "ocean",
+    "FFT",
+    "GPU"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "godot"
+   },
+   "notes": "Requires Apple Silicon macOS with a Metal GPU, graphical desktop and Python 3.12+. The recipe verifies and caches Godot 4.5.1 and GodotOceanWaves revision a171446f8174348895aaafc426576c26261058b9. The first download is about 190 MB. The original compute and spatial shaders are imported once and cached. The only source compatibility change creates a read-only descriptor set for the modulation shader, as required by Godot 4.5 binding validation."
   }
  ]
 }

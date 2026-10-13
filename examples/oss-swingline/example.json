@@ -1,0 +1,38 @@
+{
+  "order": 484,
+  "title": "Weighted stipples computed on the GPU (Swingline)",
+  "title_ko": "GPU에서 계산한 가중 점묘 (Swingline)",
+  "description": "Swingline runs its original GPU Voronoi solver for 10, 30 and 60 iterations, exporting 300 weighted stipples as native SVG circles.",
+  "description_ko": "Swingline 원본 GPU 보로노이 솔버를 10·30·60회 실행해 가중 점 300개를 원본 SVG 원으로 내보냈어요.",
+  "prompt": "Weighted stipples computed on the GPU. Use the original engine.",
+  "made_with": "Swingline original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "swingline"
+  ],
+  "summary": "Swingline runs its original GPU Voronoi solver for 10, 30 and 60 iterations, exporting 300 weighted stipples as native SVG circles.",
+  "summary_ko": "Swingline 원본 GPU 보로노이 솔버를 10·30·60회 실행해 가중 점 300개를 원본 SVG 원으로 내보냈어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Swingline runs its original GPU Voronoi solver for 10, 30 and 60 iterations, exporting 300 weighted stipples as native SVG circles.",
+  "tool_about_ko": "Swingline 원본 GPU 보로노이 솔버를 10·30·60회 실행해 가중 점 300개를 원본 SVG 원으로 내보냈어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Swingline contributors",
+      "url": "https://github.com/mkeeter/swingline",
+      "license": "GPL-2.0-or-later"
+    }
+  ]
+}

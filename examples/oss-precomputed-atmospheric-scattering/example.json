@@ -1,0 +1,38 @@
+{
+  "order": 486,
+  "title": "Earth skies from native GPU scattering (Precomputed Atmospheric Scattering)",
+  "title_ko": "GPU 대기 산란으로 직접 계산한 지구 하늘 (Precomputed Atmospheric Scattering)",
+  "description": "The original atmospheric model precomputes four scattering orders on the GPU and renders skies at three solar elevations.",
+  "description_ko": "원본 대기 모델에서 4차 산란까지 GPU로 계산하고 태양 고도 5·20·60도의 하늘을 직접 렌더했어요.",
+  "prompt": "Earth skies from native GPU scattering. Use the original engine.",
+  "made_with": "Precomputed Atmospheric Scattering original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "precomputed-atmospheric-scattering"
+  ],
+  "summary": "The original atmospheric model precomputes four scattering orders on the GPU and renders skies at three solar elevations.",
+  "summary_ko": "원본 대기 모델에서 4차 산란까지 GPU로 계산하고 태양 고도 5·20·60도의 하늘을 직접 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "The original atmospheric model precomputes four scattering orders on the GPU and renders skies at three solar elevations.",
+  "tool_about_ko": "원본 대기 모델에서 4차 산란까지 GPU로 계산하고 태양 고도 5·20·60도의 하늘을 직접 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Precomputed Atmospheric Scattering contributors",
+      "url": "https://github.com/ebruneton/precomputed_atmospheric_scattering",
+      "license": "BSD-3-Clause"
+    }
+  ]
+}

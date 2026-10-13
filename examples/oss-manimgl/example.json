@@ -1,0 +1,38 @@
+{
+  "order": 488,
+  "title": "Native OpenGL mathematical surfaces (ManimGL)",
+  "title_ko": "원본 OpenGL로 그린 수학 곡면 (ManimGL)",
+  "description": "ManimGL 1.7.2 renders three sinusoidal surfaces and their mesh lines with the original OpenGL camera and surface shaders.",
+  "description_ko": "ManimGL 1.7.2 원본 OpenGL 카메라와 곡면 셰이더로 세 진폭의 사인 곡면과 격자선을 직접 렌더했어요.",
+  "prompt": "Native OpenGL mathematical surfaces. Use the original engine.",
+  "made_with": "ManimGL original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "manimgl"
+  ],
+  "summary": "ManimGL 1.7.2 renders three sinusoidal surfaces and their mesh lines with the original OpenGL camera and surface shaders.",
+  "summary_ko": "ManimGL 1.7.2 원본 OpenGL 카메라와 곡면 셰이더로 세 진폭의 사인 곡면과 격자선을 직접 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "ManimGL 1.7.2 renders three sinusoidal surfaces and their mesh lines with the original OpenGL camera and surface shaders.",
+  "tool_about_ko": "ManimGL 1.7.2 원본 OpenGL 카메라와 곡면 셰이더로 세 진폭의 사인 곡면과 격자선을 직접 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "ManimGL contributors",
+      "url": "https://github.com/3b1b/manim",
+      "license": "MIT"
+    }
+  ]
+}
