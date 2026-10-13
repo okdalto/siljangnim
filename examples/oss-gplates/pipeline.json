@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "gplates.gallery@1",
+      "packages": [
+        "pygplates==1.0.0",
+        "numpy==2.2.6"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

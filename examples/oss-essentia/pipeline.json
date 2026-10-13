@@ -1,0 +1,26 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "essentia.gallery@1",
+      "packages": [
+        "essentia==2.1b6.dev1389",
+        "numpy==2.2.6",
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "audio-0.wav",
+        "audio-1.wav",
+        "audio-2.wav"
+      ]
+    }
+  ]
+}

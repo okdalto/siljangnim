@@ -30,6 +30,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | box-intersect (index.opensource #109) | MIT | [github.com/mikolalysenko/box-intersect](https://github.com/mikolalysenko/box-intersect) | [oss-box-intersect](examples/oss-box-intersect/) | fetched from a CDN by the scene at run time (not bundled) |
 | Box2D (index.opensource #149) | MIT | [github.com/erincatto/box2d](https://github.com/erincatto/box2d) | [oss-box2d](examples/oss-box2d/) | an installed program, run by a recipe (not bundled) |
 | Bullet Physics (index.opensource #156) | Zlib | [github.com/bulletphysics/bullet3](https://github.com/bulletphysics/bullet3) | [oss-bullet-physics](examples/oss-bullet-physics/) | an installed program, run by a recipe (not bundled) |
+| ByteTrack (index.opensource #359) | MIT | [github.com/ifzhang/ByteTrack](https://github.com/ifzhang/ByteTrack) | [oss-bytetrack](examples/oss-bytetrack/) | installed with pip on the person's computer by a recipe (not bundled) |
 | caire (index.opensource #375) | MIT | [github.com/esimov/caire](https://github.com/esimov/caire) | [oss-caire](examples/oss-caire/) | an installed program, run by a recipe (not bundled) |
 | cannon-es | MIT | [github.com/pmndrs/cannon-es](https://github.com/pmndrs/cannon-es) | [oss-cannon-es](examples/oss-cannon-es/) | fetched from a CDN by the scene at run time (not bundled) |
 | cannon.js (index.opensource #169) | MIT | [github.com/schteppe/cannon.js](https://github.com/schteppe/cannon.js) | [oss-cannon-js](examples/oss-cannon-js/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -37,11 +38,13 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Cavalier Contours (index.opensource #12) | MIT OR Apache-2.0 | [github.com/jbuckmccready/cavalier_contours](https://github.com/jbuckmccready/cavalier_contours) | [oss-cavalier-contours](examples/oss-cavalier-contours/) | an installed program, run by a recipe (not bundled) |
 | cdt2d (index.opensource #29) | MIT | [github.com/mikolalysenko/cdt2d](https://github.com/mikolalysenko/cdt2d) | [oss-cdt2d](examples/oss-cdt2d/) | fetched from a CDN by the scene at run time (not bundled) |
 | CesiumJS (index.opensource #308) | Apache-2.0 | [github.com/cesiumgs/cesium](https://github.com/cesiumgs/cesium) | [oss-cesiumjs](examples/oss-cesiumjs/) | fetched from a CDN by the scene at run time (not bundled) |
+| CGAL (index.opensource #89) | GPL-3.0 / LGPL-3.0 by package | [github.com/cgal/cgal](https://github.com/cgal/cgal) | [oss-cgal](examples/oss-cgal/) | installed with pip on the person's computer by a recipe (not bundled) |
 | chaikin-smooth (index.opensource #27) | MIT | [github.com/experience-monks/chaikin-smooth](https://github.com/experience-monks/chaikin-smooth) | [oss-chaikin-smooth](examples/oss-chaikin-smooth/) | fetched from a CDN by the scene at run time (not bundled) |
 | chroma.js (index.opensource #208) | BSD-3-Clause AND Apache-2.0 | [github.com/gka/chroma.js](https://github.com/gka/chroma.js) | [oss-chroma](examples/oss-chroma/) | fetched from a CDN by the scene at run time (not bundled) |
 | circlify (index.opensource #56) | MIT | [github.com/elmotec/circlify](https://github.com/elmotec/circlify) | [oss-circlify](examples/oss-circlify/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Clipper2 (index.opensource #11) | BSL-1.0 | [github.com/angusjohnson/clipper2](https://github.com/angusjohnson/clipper2) | [oss-clipper2-native](examples/oss-clipper2-native/) | an installed program, run by a recipe (not bundled) |
 | Clipper2 (clipper2-ts) | BSL-1.0 | [github.com/countertype/clipper2-ts](https://github.com/countertype/clipper2-ts) | [oss-clipper2](examples/oss-clipper2/) | fetched from a CDN by the scene at run time (not bundled) |
+| COLMAP (index.opensource #358) | BSD-3-Clause | [github.com/colmap/colmap](https://github.com/colmap/colmap) | [oss-colmap](examples/oss-colmap/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Color.js (index.opensource #186) | MIT | [github.com/color-js/color.js](https://github.com/color-js/color.js) | [oss-color-js](examples/oss-color-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | concaveman (index.opensource #16) | ISC | [github.com/mapbox/concaveman](https://github.com/mapbox/concaveman) | [oss-concaveman](examples/oss-concaveman/) | fetched from a CDN by the scene at run time (not bundled) |
 | contourmap (index.opensource #34) | MIT | [github.com/fogleman/contourmap](https://github.com/fogleman/contourmap) | [oss-contourmap](examples/oss-contourmap/) | an installed program, run by a recipe (not bundled) |
@@ -86,6 +89,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | earcut (index.opensource #18) | ISC | [github.com/mapbox/earcut](https://github.com/mapbox/earcut) | [oss-earcut](examples/oss-earcut/) | fetched from a CDN by the scene at run time (not bundled) |
 | Eclipse SUMO (index.opensource #403) | EPL-2.0 / GPL-2.0-or-later | [github.com/eclipse-sumo/sumo](https://github.com/eclipse-sumo/sumo) | [oss-eclipse-sumo](examples/oss-eclipse-sumo/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Embree (index.opensource #95) | Apache-2.0 | [github.com/renderkit/embree](https://github.com/renderkit/embree) | [oss-embree](examples/oss-embree/) | an installed program, run by a recipe (not bundled) |
+| Essentia (index.opensource #238) | AGPL-3.0 | [github.com/mtg/essentia](https://github.com/mtg/essentia) | [oss-essentia](examples/oss-essentia/) | installed with pip on the person's computer by a recipe (not bundled) |
 | extrude-polyline (index.opensource #51) | MIT | [github.com/mattdesl/extrude-polyline](https://github.com/mattdesl/extrude-polyline) | [oss-extrude-polyline](examples/oss-extrude-polyline/) | fetched from a CDN by the scene at run time (not bundled) |
 | FastNoise Lite (index.opensource #137) | MIT | [github.com/auburn/fastnoiselite](https://github.com/auburn/fastnoiselite) | [oss-fastnoise-lite](examples/oss-fastnoise-lite/) | an installed program, run by a recipe (not bundled) |
 | FFmpeg (index.opensource #228) | LGPL-2.1-or-later | [github.com/FFmpeg/FFmpeg](https://github.com/FFmpeg/FFmpeg) | [oss-ffmpeg](examples/oss-ffmpeg/) | an installed program, run by a recipe (not bundled) |
@@ -124,6 +128,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | glTF Transform | MIT | [github.com/donmccurdy/glTF-Transform](https://github.com/donmccurdy/glTF-Transform) | [oss-gltf-transform](examples/oss-gltf-transform/) | fetched from a CDN by the scene at run time (not bundled) |
 | glur (index.opensource #203) | MIT | [github.com/nodeca/glur](https://github.com/nodeca/glur) | [oss-glur](examples/oss-glur/) | fetched from a CDN by the scene at run time (not bundled) |
 | Go Graphics (gg) (index.opensource #22) | MIT | [github.com/fogleman/gg](https://github.com/fogleman/gg) | [oss-go-graphics-gg](examples/oss-go-graphics-gg/) | an installed program, run by a recipe (not bundled) |
+| GPlates (index.opensource #405) | GPL-2.0-only | [github.com/GPlates/GPlates](https://github.com/GPlates/GPlates) | [oss-gplates](examples/oss-gplates/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Graphology (index.opensource #321) | MIT | [github.com/graphology/graphology](https://github.com/graphology/graphology) | [oss-graphology](examples/oss-graphology/) | fetched from a CDN by the scene at run time (not bundled) |
 | greedy-mesher (index.opensource #79) | MIT | [github.com/mikolalysenko/greedy-mesher](https://github.com/mikolalysenko/greedy-mesher) | [oss-greedy-mesher](examples/oss-greedy-mesher/) | fetched from a CDN by the scene at run time (not bundled) |
 | Growing Neural Cellular Automata (index.opensource #365) | Apache-2.0 | [github.com/google-research/self-organising-systems](https://github.com/google-research/self-organising-systems) | [oss-growing-nca](examples/oss-growing-nca/), [mix-nca-fluid](examples/mix-nca-fluid/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -143,6 +148,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | isosurface (index.opensource #72) | MIT | [github.com/mikolalysenko/isosurface](https://github.com/mikolalysenko/isosurface) | [oss-isosurface](examples/oss-isosurface/) | fetched from a CDN by the scene at run time (not bundled) |
 | Jolt Physics (index.opensource #157) | MIT | [github.com/jrouwe/joltphysics](https://github.com/jrouwe/joltphysics) | [oss-jolt-physics](examples/oss-jolt-physics/) | an installed program, run by a recipe (not bundled) |
 | JSCAD modeling (index.opensource #91) | MIT | [github.com/jscad/OpenJSCAD.org](https://github.com/jscad/OpenJSCAD.org) | [oss-jscad](examples/oss-jscad/) | fetched from a CDN by the scene at run time (not bundled) |
+| KataGo (index.opensource #374) | MIT | [github.com/lightvector/KataGo](https://github.com/lightvector/KataGo) | [oss-katago](examples/oss-katago/) | an installed program, run by a recipe (not bundled) |
 | KDBush (index.opensource #317) | ISC | [github.com/mourner/kdbush](https://github.com/mourner/kdbush) | [oss-kdbush](examples/oss-kdbush/) | fetched from a CDN by the scene at run time (not bundled) |
 | Kurbo (index.opensource #39) | MIT OR Apache-2.0 | [github.com/linebender/kurbo](https://github.com/linebender/kurbo) | [oss-kurbo](examples/oss-kurbo/) | an installed program, run by a recipe (not bundled) |
 | LAMMPS (index.opensource #367) | GPL-2.0 | [github.com/lammps/lammps](https://github.com/lammps/lammps) | [oss-lammps](examples/oss-lammps/) | installed with pip on the person's computer by a recipe (not bundled) |
@@ -207,6 +213,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | p5.brush (index.opensource #125) | MIT | [github.com/acamposuribe/p5.brush](https://github.com/acamposuribe/p5.brush) | [oss-p5-brush](examples/oss-p5-brush/) | fetched from a CDN by the scene at run time (not bundled) |
 | p5.js (index.opensource #330) | LGPL-2.1 | [github.com/processing/p5.js](https://github.com/processing/p5.js) | [oss-p5](examples/oss-p5/) | fetched from a CDN by the scene at run time (not bundled) |
 | pack-spheres (index.opensource #31) | MIT | [github.com/mattdesl/pack-spheres](https://github.com/mattdesl/pack-spheres) | [oss-pack-spheres](examples/oss-pack-spheres/) | fetched from a CDN by the scene at run time (not bundled) |
+| PaddleOCR (index.opensource #288) | Apache-2.0 | [github.com/paddlepaddle/paddleocr](https://github.com/paddlepaddle/paddleocr) | [oss-paddleocr](examples/oss-paddleocr/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Paper.js (index.opensource #10) | MIT | [github.com/paperjs/paper.js](https://github.com/paperjs/paper.js) | [oss-paperjs](examples/oss-paperjs/) | fetched from a CDN by the scene at run time (not bundled) |
 | PathFinding.js (index.opensource #318) | MIT | [github.com/qiao/PathFinding.js](https://github.com/qiao/PathFinding.js) | [oss-pathfinding](examples/oss-pathfinding/) | fetched from a CDN by the scene at run time (not bundled) |
 | Perfect Freehand (index.opensource #26) | MIT | [github.com/steveruizok/perfect-freehand](https://github.com/steveruizok/perfect-freehand) | [oss-perfect-freehand](examples/oss-perfect-freehand/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -222,6 +229,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | polylabel (index.opensource #101) | ISC | [github.com/mapbox/polylabel](https://github.com/mapbox/polylabel) | [oss-polylabel](examples/oss-polylabel/) | fetched from a CDN by the scene at run time (not bundled) |
 | polyline-normals (index.opensource #40) | MIT | [github.com/mattdesl/polyline-normals](https://github.com/mattdesl/polyline-normals) | [oss-polyline-normals](examples/oss-polyline-normals/) | fetched from a CDN by the scene at run time (not bundled) |
 | PolyPartition (index.opensource #33) | MIT | [github.com/ivanfratric/polypartition](https://github.com/ivanfratric/polypartition) | [oss-polypartition](examples/oss-polypartition/) | an installed program, run by a recipe (not bundled) |
+| PositionBasedDynamics (index.opensource #158) | MIT | [github.com/interactivecomputergraphics/positionbaseddynamics](https://github.com/interactivecomputergraphics/positionbaseddynamics) | [oss-positionbaseddynamics](examples/oss-positionbaseddynamics/) | an installed program, run by a recipe (not bundled) |
 | potpack (index.opensource #103) | ISC | [github.com/mapbox/potpack](https://github.com/mapbox/potpack) | [oss-potpack](examples/oss-potpack/) | fetched from a CDN by the scene at run time (not bundled) |
 | Potrace | GPL-2.0-or-later | [potrace.sourceforge.net](https://potrace.sourceforge.net) | [oss-potrace](examples/oss-potrace/) | an installed program, run by a recipe (not bundled) |
 | Primitive (index.opensource #183) | MIT | [github.com/fogleman/primitive](https://github.com/fogleman/primitive) | [oss-primitive](examples/oss-primitive/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -271,6 +279,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Slime-Simulation (index.opensource #139) | GPL-3.0 | [github.com/SebLague/Slime-Simulation](https://github.com/SebLague/Slime-Simulation) | [oss-slime-simulation](examples/oss-slime-simulation/) | fetched from a CDN by the scene at run time (not bundled) |
 | space-colonization (index.opensource #119) | MIT | [github.com/nicknikolov/space-colonization](https://github.com/nicknikolov/space-colonization) | [oss-space-colonization](examples/oss-space-colonization/) | fetched from a CDN by the scene at run time (not bundled) |
 | spectral.js (index.opensource #142) | MIT | [github.com/rvanwijnen/spectral.js](https://github.com/rvanwijnen/spectral.js) | [oss-spectral](examples/oss-spectral/) | fetched from a CDN by the scene at run time (not bundled) |
+| SPlisHSPlasH (index.opensource #159) | MIT | [github.com/interactivecomputergraphics/splishsplash](https://github.com/interactivecomputergraphics/splishsplash) | [oss-splishsplash](examples/oss-splishsplash/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Spring-It-On (index.opensource #166) | MIT | [github.com/orangeduck/spring-it-on](https://github.com/orangeduck/spring-it-on) | [oss-spring-it-on](examples/oss-spring-it-on/) | an installed program, run by a recipe (not bundled) |
 | streamlines (index.opensource #8) | MIT | [github.com/anvaka/streamlines](https://github.com/anvaka/streamlines) | [oss-streamlines](examples/oss-streamlines/) | fetched from a CDN by the scene at run time (not bundled) |
 | SunCalc (index.opensource #315) | BSD-2-Clause | [github.com/mourner/suncalc](https://github.com/mourner/suncalc) | [oss-suncalc](examples/oss-suncalc/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -441,6 +450,17 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Original engine | [LineIntegralConvolutions contributors](https://github.com/astrokriel/lineintegralconvolutions) | MIT | [oss-lineintegralconvolutions](examples/oss-lineintegralconvolutions/) |
 | Original engine | [aubio contributors](https://github.com/aubio/aubio) | GPL-3.0-or-later | [oss-aubio](examples/oss-aubio/) |
 | Original engine | [p5.brush contributors](https://github.com/acamposuribe/p5.brush) | MIT | [oss-p5-brush](examples/oss-p5-brush/) |
+| Original engine | [CGAL contributors](https://github.com/cgal/cgal) | GPL-3.0 / LGPL-3.0 by package | [oss-cgal](examples/oss-cgal/) |
+| Original engine | [COLMAP contributors](https://github.com/colmap/colmap) | BSD-3-Clause | [oss-colmap](examples/oss-colmap/) |
+| Original engine | [Essentia contributors](https://github.com/mtg/essentia) | AGPL-3.0 | [oss-essentia](examples/oss-essentia/) |
+| Original engine | [GPlates contributors](https://github.com/GPlates/GPlates) | GPL-2.0-only | [oss-gplates](examples/oss-gplates/) |
+| Original engine | [SPlisHSPlasH contributors](https://github.com/interactivecomputergraphics/splishsplash) | MIT | [oss-splishsplash](examples/oss-splishsplash/) |
+| Original engine | [PositionBasedDynamics contributors](https://github.com/interactivecomputergraphics/positionbaseddynamics) | MIT | [oss-positionbaseddynamics](examples/oss-positionbaseddynamics/) |
+| Original engine | [PaddleOCR contributors](https://github.com/paddlepaddle/paddleocr) | Apache-2.0 | [oss-paddleocr](examples/oss-paddleocr/) |
+| PP-OCRv5 mobile detection and recognition weights, immutable revisions in source.json | [PaddlePaddle contributors](https://huggingface.co/PaddlePaddle/PP-OCRv5_mobile_rec) | Apache-2.0 | [oss-paddleocr](examples/oss-paddleocr/) |
+| Original engine | [KataGo contributors](https://github.com/lightvector/KataGo) | MIT | [oss-katago](examples/oss-katago/) |
+| g170e 20-block neural network weights | [KataGo contributors](https://github.com/lightvector/KataGo/releases/tag/v1.4.5) | CC0-1.0 | [oss-katago](examples/oss-katago/) |
+| Original engine | [ByteTrack contributors](https://github.com/ifzhang/ByteTrack) | MIT | [oss-bytetrack](examples/oss-bytetrack/) |
 
 ## Studio (the app's web code): bundled npm packages
 

@@ -1,0 +1,24 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "bytetrack.gallery@1",
+      "packages": [
+        "numpy==2.2.6",
+        "torch==2.9.1",
+        "scipy==1.17.1",
+        "opencv-python-headless==4.12.0.88",
+        "lap==0.5.13",
+        "cython-bbox==0.1.5"
+      ],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

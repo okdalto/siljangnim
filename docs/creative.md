@@ -44,6 +44,10 @@ SVGNest 배치, Ray Optics 렌즈, LibRaw 합성 RAW 현상, Tesseract OCR은 �
 
 MapGenerator 도로, triangulate-image 삼각분할, TensorFlow Playground 학습 경계, LIC 벡터장, aubio 음높이 예제도 원본 엔진을 직접 실행했습니다. 준비된 계산 결과를 고르고 레시피로 다시 실행할 수 있어요. p5.brush 획은 브라우저 WebGL2에서 실시간으로 그립니다.
 
+CGAL 제약 삼각분할, COLMAP 두 시점 복원, Essentia 음향 분석, GPlates 합성 판 회전, SPlisHSPlasH 유체 충돌, PositionBasedDynamics 천 제약도 원본 네이티브 엔진으로 계산했습니다. 계산 결과만 필요할 때 받아 보고, 환경을 준비하면 레시피로 재실행할 수 있어요. 합성 입력을 사용하는 작은 CPU 예제입니다.
+
+PaddleOCR의 경량 탐지·인식 모델은 CPU에서, KataGo 신경망은 Mac의 Metal에서 직접 실행했습니다. ByteTrack은 합성 검출 입력의 누락을 견디며 ID를 유지합니다. 모델은 레시피 실행 시에만 고정된 파일을 검증해 캐시하며 갤러리에는 계산 결과만 내려받아요.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

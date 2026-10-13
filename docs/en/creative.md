@@ -46,6 +46,10 @@ SVGNest packing, Ray Optics lenses, LibRaw synthetic RAW development and Tessera
 
 MapGenerator roads, triangulate-image triangles, TensorFlow Playground decision boundaries, LIC vector fields and aubio pitch examples directly execute their original engines. Select prepared results or rerun the recipes. p5.brush strokes render live through browser WebGL2.
 
+CGAL constrained triangulation, COLMAP two-view reconstruction, Essentia audio analysis, GPlates synthetic plate rotation, SPlisHSPlasH fluid collision and PositionBasedDynamics cloth constraints directly execute their original native engines. Results load on demand; recipes rerun the small CPU demonstrations with original synthetic inputs.
+
+PaddleOCR mobile detection and recognition models ran on CPU; KataGo neural analysis ran on Mac Metal. ByteTrack preserves identities through missing synthetic detections. Recipes verify and cache pinned model files only when rerun; the gallery downloads prepared results.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

@@ -1,0 +1,38 @@
+{
+  "order": 434,
+  "title": "Reconstructing a synthetic plate (GPlates)",
+  "title_ko": "합성 판의 과거 위치 복원 (GPlates)",
+  "description": "pyGPlates reconstructs an original synthetic polygon using a time-dependent Euler rotation model.",
+  "description_ko": "pyGPlates로 직접 만든 오일러 회전 모델에 따라 합성 판 다각형의 위치를 복원했어요.",
+  "prompt": "Reconstructing a synthetic plate. Use the original engine.",
+  "made_with": "pyGPlates 1.0.0 native reconstruction",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "gplates"
+  ],
+  "summary": "pyGPlates reconstructs an original synthetic polygon using a time-dependent Euler rotation model.",
+  "summary_ko": "pyGPlates로 직접 만든 오일러 회전 모델에 따라 합성 판 다각형의 위치를 복원했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "pyGPlates reconstructs an original synthetic polygon using a time-dependent Euler rotation model.",
+  "tool_about_ko": "pyGPlates로 직접 만든 오일러 회전 모델에 따라 합성 판 다각형의 위치를 복원했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "GPlates contributors",
+      "url": "https://github.com/GPlates/GPlates",
+      "license": "GPL-2.0-only"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "order": 432,
+  "title": "Two-view reconstruction under noise (COLMAP)",
+  "title_ko": "잡음에 따른 두 시점 3D 복원 (COLMAP)",
+  "description": "Native COLMAP triangulates an original synthetic point cloud from two cameras at three observation noise levels.",
+  "description_ko": "COLMAP 네이티브 엔진으로 두 카메라의 합성 관측에서 세 잡음 수준의 3D 점을 복원했어요.",
+  "prompt": "Two-view reconstruction under noise. Use the original engine.",
+  "made_with": "COLMAP 4.2.0 native triangulation",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "colmap"
+  ],
+  "summary": "Native COLMAP triangulates an original synthetic point cloud from two cameras at three observation noise levels.",
+  "summary_ko": "COLMAP 네이티브 엔진으로 두 카메라의 합성 관측에서 세 잡음 수준의 3D 점을 복원했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Native COLMAP triangulates an original synthetic point cloud from two cameras at three observation noise levels.",
+  "tool_about_ko": "COLMAP 네이티브 엔진으로 두 카메라의 합성 관측에서 세 잡음 수준의 3D 점을 복원했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "COLMAP contributors",
+      "url": "https://github.com/colmap/colmap",
+      "license": "BSD-3-Clause"
+    }
+  ]
+}

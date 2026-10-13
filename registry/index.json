@@ -54,6 +54,19 @@
       "sha256": "7fc6ff1603a156863465d70a803a39567c2e0cd0609d1cda15e65bd1c0a9fc0d"
     },
     {
+      "id": "bytetrack.gallery",
+      "version": 1,
+      "title": "Tracks through missed detections",
+      "capability": "bytetrack graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/bytetrack.gallery/recipe.md",
+      "sha256": "e8870c192431df7c1fb50cdb6f7042f328e380d3288eafcbce060c147fac2f05"
+    },
+    {
       "id": "caire.gallery",
       "version": 1,
       "title": "Removing low-energy seams",
@@ -80,6 +93,19 @@
       "sha256": "b7cee3bbe1185f9ff90b4d69d80c280cc70c0ef591b517a7936215baec24c109"
     },
     {
+      "id": "cgal.gallery",
+      "version": 1,
+      "title": "Constrained Delaunay triangulation",
+      "capability": "cgal graphics",
+      "kind": "python",
+      "license": "GPL-3.0 / LGPL-3.0 by package",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/cgal.gallery/recipe.md",
+      "sha256": "c3386c0fd997e7eb8053037e087cfeeef299974f1f535daceec9f65223568f1f"
+    },
+    {
       "id": "circlify.stdlib-packing",
       "version": 1,
       "title": "Circle packing of the Python standard library by lines of code (circlify)",
@@ -104,6 +130,19 @@
       ],
       "path": "recipes/clipper2-native.gallery/recipe.md",
       "sha256": "e303fbf9bd54f95c6ca048373e4b7eda73a01f28a86205fcebe8b75f0ef2db5a"
+    },
+    {
+      "id": "colmap.gallery",
+      "version": 1,
+      "title": "Two-view reconstruction under noise",
+      "capability": "colmap graphics",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/colmap.gallery/recipe.md",
+      "sha256": "144ce44745c914afcaf451e747053ce8b82917a6e0cb0b6456f7ae4d19b0b642"
     },
     {
       "id": "contourmap.gallery",
@@ -260,6 +299,19 @@
       ],
       "path": "recipes/embree.gallery/recipe.md",
       "sha256": "a0d33754c707e562ee474957db3974fe463c3fc25b9d354aee14b23609a2bede"
+    },
+    {
+      "id": "essentia.gallery",
+      "version": 1,
+      "title": "Harmonics in native Mel analysis",
+      "capability": "essentia graphics",
+      "kind": "python",
+      "license": "AGPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/essentia.gallery/recipe.md",
+      "sha256": "cb0e30302c8155c99ecd23e71fe8284cd583b1eb6a2f4781ed092957cd0b064a"
     },
     {
       "id": "fastnoise-lite.gallery",
@@ -431,6 +483,19 @@
       "sha256": "e12956df8d814d723e5d1da17582736d66185a4558943c7d25b66aa247abf661"
     },
     {
+      "id": "gplates.gallery",
+      "version": 1,
+      "title": "Reconstructing a synthetic plate",
+      "capability": "gplates graphics",
+      "kind": "python",
+      "license": "GPL-2.0-only",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/gplates.gallery/recipe.md",
+      "sha256": "315f73cc384d2d58e32a7d805f95f99b4f23fd3fff642b22c232ef3402fb9c84"
+    },
+    {
       "id": "gwpy.gallery",
       "version": 1,
       "title": "Filtering a synthetic signal",
@@ -533,6 +598,19 @@
       ],
       "path": "recipes/jolt-physics.gallery/recipe.md",
       "sha256": "3dbc5547ba794a61695efc38359695fd9f363b32fe73e4812eae6b5b6d43594e"
+    },
+    {
+      "id": "katago.gallery",
+      "version": 1,
+      "title": "Neural move policy on a small Go board",
+      "capability": "katago graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/katago.gallery/recipe.md",
+      "sha256": "58e5ea0d5ac5989fe18d4f6ae294249d5e22ff2ba03f59eb2079311a317ed49e"
     },
     {
       "id": "kurbo.gallery",
@@ -990,6 +1068,19 @@
       "sha256": "88b0ac16db71f2d72dd5013b0003dbb9e7c0957c99eef65dd05c2ae90cf2eb1d"
     },
     {
+      "id": "paddleocr.gallery",
+      "version": 1,
+      "title": "Mobile neural OCR on CPU",
+      "capability": "paddleocr graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/paddleocr.gallery/recipe.md",
+      "sha256": "437a5cdf9b816d58eb2d8ebde09efefdac1a16e7fd87a56749816cf783ad208c"
+    },
+    {
       "id": "pillow.poster-sunset",
       "version": 1,
       "title": "Original sunset and median-cut palettes (Pillow)",
@@ -1027,6 +1118,19 @@
       ],
       "path": "recipes/polypartition.gallery/recipe.md",
       "sha256": "b3c50198db8d3a9582c698914d312b816228070b77312facd928ebf38aaadd95"
+    },
+    {
+      "id": "positionbaseddynamics.gallery",
+      "version": 1,
+      "title": "Cloth distance constraints",
+      "capability": "positionbaseddynamics graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/positionbaseddynamics.gallery/recipe.md",
+      "sha256": "657afafe27b16ab5c6979124d56f898cb2ba9966e7e4434b4465e6c936dd75bb"
     },
     {
       "id": "potrace.gallery",
@@ -1378,6 +1482,19 @@
       ],
       "path": "recipes/skeleton-tracing.gallery/recipe.md",
       "sha256": "595675243256ca5ba216caeca1c82b556f07883ddcf5a944f918a2479dddcedb"
+    },
+    {
+      "id": "splishsplash.gallery",
+      "version": 1,
+      "title": "Colliding fluid blocks with DFSPH",
+      "capability": "splishsplash graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/splishsplash.gallery/recipe.md",
+      "sha256": "7d3ea1229a535115adfc076aedac1258e9450991cbf60acdd2a33a61efd074aa"
     },
     {
       "id": "spring-it-on.gallery",

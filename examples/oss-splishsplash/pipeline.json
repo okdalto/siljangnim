@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "splishsplash.gallery@1",
+      "packages": [
+        "pysplishsplash==2.18.1",
+        "numpy==2.2.6"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "input-scene.json"
+      ]
+    }
+  ]
+}

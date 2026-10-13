@@ -1,0 +1,43 @@
+{
+  "id": "positionbaseddynamics",
+  "repo": "https://github.com/InteractiveComputerGraphics/PositionBasedDynamics",
+  "commit": "10a70bc146a97873dc3c8fef372f5217e010542e",
+  "files": [
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/InteractiveComputerGraphics/PositionBasedDynamics/10a70bc146a97873dc3c8fef372f5217e010542e/LICENSE",
+      "sha256": "825d46292692c501a88ddd745cddf69e2198b8354f44ae1f192627d79bad2ae7"
+    },
+    {
+      "path": "PositionBasedDynamics/PositionBasedDynamics.h",
+      "url": "https://raw.githubusercontent.com/InteractiveComputerGraphics/PositionBasedDynamics/10a70bc146a97873dc3c8fef372f5217e010542e/PositionBasedDynamics/PositionBasedDynamics.h",
+      "sha256": "09c29a70fc046709242b2cd15696ab22df2d57c30bc31d0320cf349c4b08fb45"
+    },
+    {
+      "path": "PositionBasedDynamics/PositionBasedDynamics.cpp",
+      "url": "https://raw.githubusercontent.com/InteractiveComputerGraphics/PositionBasedDynamics/10a70bc146a97873dc3c8fef372f5217e010542e/PositionBasedDynamics/PositionBasedDynamics.cpp",
+      "sha256": "9eab9c633258bb58bab99f9ed979da0ac9eb1499d86829b7637d28650eb84a52"
+    },
+    {
+      "path": "PositionBasedDynamics/MathFunctions.cpp",
+      "url": "https://raw.githubusercontent.com/InteractiveComputerGraphics/PositionBasedDynamics/10a70bc146a97873dc3c8fef372f5217e010542e/PositionBasedDynamics/MathFunctions.cpp",
+      "sha256": "dbe0f1d0f70814e77197406b2fb40ea2cc06cdc8f91ba11238ab74de489663d9"
+    },
+    {
+      "path": "PositionBasedDynamics/MathFunctions.h",
+      "url": "https://raw.githubusercontent.com/InteractiveComputerGraphics/PositionBasedDynamics/10a70bc146a97873dc3c8fef372f5217e010542e/PositionBasedDynamics/MathFunctions.h",
+      "sha256": "c7e28a2fe6591bf182cbb146fc8dc816def616b99ed6382f7b44fba9f184df90"
+    },
+    {
+      "path": "Common/Common.h",
+      "url": "https://raw.githubusercontent.com/InteractiveComputerGraphics/PositionBasedDynamics/10a70bc146a97873dc3c8fef372f5217e010542e/Common/Common.h",
+      "sha256": "f8e31d1f067a6d15aed61cdfc61794f52a93a08adc22a0c27f3320262dde6737"
+    }
+  ],
+  "eigen": {
+    "name": "eigen",
+    "url": "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz",
+    "sha256": "8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72"
+  },
+  "frames": 3
+}

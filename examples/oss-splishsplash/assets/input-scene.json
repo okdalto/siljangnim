@@ -1,0 +1,64 @@
+{
+  "Configuration": {
+    "particleRadius": 0.05,
+    "simulationMethod": 4,
+    "gravitation": [
+      0,
+      0,
+      0
+    ],
+    "cflMethod": 0,
+    "timeStepSize": 0.002,
+    "boundaryHandlingMethod": 0
+  },
+  "Materials": [
+    {
+      "id": "Fluid",
+      "density0": 1000,
+      "viscosityMethod": 1,
+      "Standard viscosity": {
+        "viscosity": 0.01
+      }
+    }
+  ],
+  "FluidBlocks": [
+    {
+      "id": "Fluid",
+      "denseMode": 0,
+      "start": [
+        -0.75,
+        -0.25,
+        -0.25
+      ],
+      "end": [
+        -0.25,
+        0.25,
+        0.25
+      ],
+      "initialVelocity": [
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "Fluid",
+      "denseMode": 0,
+      "start": [
+        0.25,
+        -0.25,
+        -0.25
+      ],
+      "end": [
+        0.75,
+        0.25,
+        0.25
+      ],
+      "initialVelocity": [
+        -2,
+        0,
+        0
+      ]
+    }
+  ]
+}

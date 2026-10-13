@@ -1,0 +1,38 @@
+{
+  "order": 431,
+  "title": "Constrained Delaunay triangulation (CGAL)",
+  "title_ko": "제약 조건을 지키는 삼각분할 (CGAL)",
+  "description": "Native CGAL triangulates original seeded points inside an octagonal boundary while preserving its constraints.",
+  "description_ko": "CGAL 네이티브 엔진으로 팔각형 경계와 내부 점을 제약 삼각분할했어요.",
+  "prompt": "Constrained Delaunay triangulation. Use the original engine.",
+  "made_with": "CGAL 6.0.1 native bindings",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "cgal"
+  ],
+  "summary": "Native CGAL triangulates original seeded points inside an octagonal boundary while preserving its constraints.",
+  "summary_ko": "CGAL 네이티브 엔진으로 팔각형 경계와 내부 점을 제약 삼각분할했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Native CGAL triangulates original seeded points inside an octagonal boundary while preserving its constraints.",
+  "tool_about_ko": "CGAL 네이티브 엔진으로 팔각형 경계와 내부 점을 제약 삼각분할했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "CGAL contributors",
+      "url": "https://github.com/cgal/cgal",
+      "license": "GPL-3.0 / LGPL-3.0 by package"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "cgal.gallery@1",
+      "packages": [
+        "cgal==6.0.1.post202410241521"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "order": 436,
+  "title": "Cloth distance constraints (PositionBasedDynamics)",
+  "title_ko": "천의 거리 제약 풀기 (PositionBasedDynamics)",
+  "description": "Original PositionBasedDynamics C++ constraints solve a small suspended cloth at three stiffness settings.",
+  "description_ko": "PositionBasedDynamics 원본 C++ 거리 제약으로 매달린 작은 천을 세 강성 값에서 계산했어요.",
+  "prompt": "Cloth distance constraints. Use the original engine.",
+  "made_with": "Pinned original C++ engine, Eigen 3.4.0, Apple clang 17",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "positionbaseddynamics"
+  ],
+  "summary": "Original PositionBasedDynamics C++ constraints solve a small suspended cloth at three stiffness settings.",
+  "summary_ko": "PositionBasedDynamics 원본 C++ 거리 제약으로 매달린 작은 천을 세 강성 값에서 계산했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Original PositionBasedDynamics C++ constraints solve a small suspended cloth at three stiffness settings.",
+  "tool_about_ko": "PositionBasedDynamics 원본 C++ 거리 제약으로 매달린 작은 천을 세 강성 값에서 계산했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "PositionBasedDynamics contributors",
+      "url": "https://github.com/interactivecomputergraphics/positionbaseddynamics",
+      "license": "MIT"
+    }
+  ]
+}

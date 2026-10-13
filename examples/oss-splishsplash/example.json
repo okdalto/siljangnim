@@ -1,0 +1,38 @@
+{
+  "order": 435,
+  "title": "Colliding fluid blocks with DFSPH (SPlisHSPlasH)",
+  "title_ko": "DFSPH로 계산한 유체 블록 충돌 (SPlisHSPlasH)",
+  "description": "SPlisHSPlasH directly simulates the collision of two original fluid blocks with 128 particles using DFSPH.",
+  "description_ko": "SPlisHSPlasH 원본 DFSPH 엔진으로 두 유체 블록의 128개 입자 충돌을 직접 계산했어요.",
+  "prompt": "Colliding fluid blocks with DFSPH. Use the original engine.",
+  "made_with": "SPlisHSPlasH 2.18.1 DFSPH",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "splishsplash"
+  ],
+  "summary": "SPlisHSPlasH directly simulates the collision of two original fluid blocks with 128 particles using DFSPH.",
+  "summary_ko": "SPlisHSPlasH 원본 DFSPH 엔진으로 두 유체 블록의 128개 입자 충돌을 직접 계산했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "SPlisHSPlasH directly simulates the collision of two original fluid blocks with 128 particles using DFSPH.",
+  "tool_about_ko": "SPlisHSPlasH 원본 DFSPH 엔진으로 두 유체 블록의 128개 입자 충돌을 직접 계산했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "SPlisHSPlasH contributors",
+      "url": "https://github.com/interactivecomputergraphics/splishsplash",
+      "license": "MIT"
+    }
+  ]
+}

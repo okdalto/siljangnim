@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "colmap.gallery@1",
+      "packages": [
+        "pycolmap==4.2.0",
+        "numpy==2.2.6"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

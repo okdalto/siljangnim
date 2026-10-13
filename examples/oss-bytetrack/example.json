@@ -1,0 +1,38 @@
+{
+  "order": 439,
+  "title": "Tracks through missed detections (ByteTrack)",
+  "title_ko": "검출 누락을 견디는 추적 (ByteTrack)",
+  "description": "Original ByteTrack associates synthetic boxes through low scores and missed detections while preserving track IDs.",
+  "description_ko": "ByteTrack 원본 엔진으로 낮은 신뢰도와 검출 누락을 거친 합성 상자의 추적 ID를 유지했어요.",
+  "prompt": "Tracks through missed detections. Use the original engine.",
+  "made_with": "Pinned original ByteTrack source and native assignment libraries",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "bytetrack"
+  ],
+  "summary": "Original ByteTrack associates synthetic boxes through low scores and missed detections while preserving track IDs.",
+  "summary_ko": "ByteTrack 원본 엔진으로 낮은 신뢰도와 검출 누락을 거친 합성 상자의 추적 ID를 유지했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Original ByteTrack associates synthetic boxes through low scores and missed detections while preserving track IDs.",
+  "tool_about_ko": "ByteTrack 원본 엔진으로 낮은 신뢰도와 검출 누락을 거친 합성 상자의 추적 ID를 유지했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "ByteTrack contributors",
+      "url": "https://github.com/ifzhang/ByteTrack",
+      "license": "MIT"
+    }
+  ]
+}

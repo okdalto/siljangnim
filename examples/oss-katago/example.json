@@ -1,0 +1,44 @@
+{
+  "order": 438,
+  "title": "Neural move policy on a small Go board (KataGo)",
+  "title_ko": "작은 바둑판의 신경망 착수 정책 (KataGo)",
+  "description": "KataGo directly analyzes three original nine-by-nine Go positions and renders its native neural move policy.",
+  "description_ko": "KataGo로 직접 구성한 9×9 바둑판 세 상태를 분석하고 원본 신경망 착수 정책을 표시해요.",
+  "prompt": "Neural move policy on a small Go board. Use the original engine.",
+  "made_with": "KataGo 1.18.2 Metal on Apple M5, g170e b20 network",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "katago"
+  ],
+  "summary": "KataGo directly analyzes three original nine-by-nine Go positions and renders its native neural move policy.",
+  "summary_ko": "KataGo로 직접 구성한 9×9 바둑판 세 상태를 분석하고 원본 신경망 착수 정책을 표시해요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "KataGo directly analyzes three original nine-by-nine Go positions and renders its native neural move policy.",
+  "tool_about_ko": "KataGo로 직접 구성한 9×9 바둑판 세 상태를 분석하고 원본 신경망 착수 정책을 표시해요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "KataGo contributors",
+      "url": "https://github.com/lightvector/KataGo",
+      "license": "MIT"
+    },
+    {
+      "what": "g170e 20-block neural network weights",
+      "source": "KataGo contributors",
+      "url": "https://github.com/lightvector/KataGo/releases/tag/v1.4.5",
+      "license": "CC0-1.0"
+    }
+  ]
+}
