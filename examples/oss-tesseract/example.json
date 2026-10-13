@@ -1,0 +1,44 @@
+{
+  "order": 422,
+  "title": "Native OCR under image distortion (Tesseract)",
+  "title_ko": "이미지 변형에 따른 네이티브 OCR (Tesseract)",
+  "description": "Tesseract recognizes original synthetic text in clean, rotated and blurred images and returns word boxes.",
+  "description_ko": "Tesseract로 직접 만든 문자의 원본·회전·흐림 이미지를 인식하고 단어 영역을 얻었어요.",
+  "prompt": "Native OCR under image distortion. Use the original engine.",
+  "made_with": "Tesseract 5.5.1 via tesserocr 2.11.0",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "tesseract"
+  ],
+  "summary": "Tesseract recognizes original synthetic text in clean, rotated and blurred images and returns word boxes.",
+  "summary_ko": "Tesseract로 직접 만든 문자의 원본·회전·흐림 이미지를 인식하고 단어 영역을 얻었어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Tesseract recognizes original synthetic text in clean, rotated and blurred images and returns word boxes.",
+  "tool_about_ko": "Tesseract로 직접 만든 문자의 원본·회전·흐림 이미지를 인식하고 단어 영역을 얻었어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Tesseract contributors",
+      "url": "https://github.com/tesseract-ocr/tesseract",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "English OCR weights, pinned in source.json",
+      "source": "tessdata_fast contributors",
+      "url": "https://github.com/tesseract-ocr/tessdata_fast/tree/87416418657359cb625c412a48b6e1d6d41c29bd",
+      "license": "Apache-2.0"
+    }
+  ]
+}

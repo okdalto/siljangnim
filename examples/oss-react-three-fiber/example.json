@@ -1,0 +1,34 @@
+{
+  "order": 423,
+  "title": "React-driven knot sculpture (React Three Fiber)",
+  "title_ko": "React로 움직이는 매듭 조형 (React Three Fiber)",
+  "description": "React Three Fiber renders a live Three.js knot using its React reconciler and useFrame animation.",
+  "description_ko": "React Three Fiber의 React 렌더러와 useFrame으로 Three.js 매듭을 실시간 렌더링해요.",
+  "prompt": "React-driven knot sculpture. Use the original engine.",
+  "made_with": "React Three Fiber 9.8.1, React 19.3.0, Three.js 0.186.0",
+  "features": [
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "react-three-fiber"
+  ],
+  "summary": "React Three Fiber renders a live Three.js knot using its React reconciler and useFrame animation.",
+  "summary_ko": "React Three Fiber의 React 렌더러와 useFrame으로 Three.js 매듭을 실시간 렌더링해요.",
+  "try": [
+    "Change the controls"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요"
+  ],
+  "tool_about": "React Three Fiber renders a live Three.js knot using its React reconciler and useFrame animation.",
+  "tool_about_ko": "React Three Fiber의 React 렌더러와 useFrame으로 Three.js 매듭을 실시간 렌더링해요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "React Three Fiber contributors",
+      "url": "https://github.com/pmndrs/react-three-fiber",
+      "license": "MIT"
+    }
+  ]
+}

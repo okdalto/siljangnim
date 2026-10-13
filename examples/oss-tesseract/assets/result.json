@@ -1,0 +1,231 @@
+{
+  "engine": "tesseract 5.5.1\n leptonica-1.85.0\n  libjpeg 8d (libjpeg-turbo 3.2.0) : libpng 1.6.58 : libtiff 4.7.2 : zlib 1.2.12 : libwebp 1.6.0",
+  "binding": "2.11.0",
+  "frames": [
+    {
+      "text": "SILJANGNIM\nOPEN SOURCE LAB\nNATIVE OCR 2026\n",
+      "words": [
+        {
+          "text": "SILJANGNIM",
+          "confidence": 62.75529479980469,
+          "box": [
+            39,
+            58,
+            290,
+            89
+          ]
+        },
+        {
+          "text": "OPEN",
+          "confidence": 96.59798431396484,
+          "box": [
+            38,
+            129,
+            148,
+            161
+          ]
+        },
+        {
+          "text": "SOURCE",
+          "confidence": 96.86186218261719,
+          "box": [
+            164,
+            129,
+            332,
+            161
+          ]
+        },
+        {
+          "text": "LAB",
+          "confidence": 96.86186218261719,
+          "box": [
+            347,
+            130,
+            421,
+            160
+          ]
+        },
+        {
+          "text": "NATIVE",
+          "confidence": 96.23126220703125,
+          "box": [
+            40,
+            202,
+            184,
+            232
+          ]
+        },
+        {
+          "text": "OCR",
+          "confidence": 96.1073989868164,
+          "box": [
+            197,
+            201,
+            284,
+            233
+          ]
+        },
+        {
+          "text": "2026",
+          "confidence": 95.43409729003906,
+          "box": [
+            299,
+            201,
+            397,
+            232
+          ]
+        }
+      ]
+    },
+    {
+      "text": "SILJANGNIM\nOPEN SOURCE LAB\nNATIVE OCR 2026\n",
+      "words": [
+        {
+          "text": "SILJANGNIM",
+          "confidence": 65.73818969726562,
+          "box": [
+            37,
+            59,
+            288,
+            98
+          ]
+        },
+        {
+          "text": "OPEN",
+          "confidence": 96.8624267578125,
+          "box": [
+            38,
+            136,
+            148,
+            170
+          ]
+        },
+        {
+          "text": "SOURCE",
+          "confidence": 95.75724792480469,
+          "box": [
+            164,
+            130,
+            332,
+            166
+          ]
+        },
+        {
+          "text": "LAB",
+          "confidence": 95.99276733398438,
+          "box": [
+            346,
+            127,
+            421,
+            159
+          ]
+        },
+        {
+          "text": "NATIVE",
+          "confidence": 95.55360412597656,
+          "box": [
+            42,
+            207,
+            187,
+            242
+          ]
+        },
+        {
+          "text": "OCR",
+          "confidence": 95.55360412597656,
+          "box": [
+            199,
+            204,
+            287,
+            236
+          ]
+        },
+        {
+          "text": "2026",
+          "confidence": 96.68287658691406,
+          "box": [
+            302,
+            199,
+            400,
+            233
+          ]
+        }
+      ]
+    },
+    {
+      "text": "SILJANGNIM\nOPEN SOURCE LAB\nNATIVE OCR 2026\n",
+      "words": [
+        {
+          "text": "SILJANGNIM",
+          "confidence": 34.85203170776367,
+          "box": [
+            39,
+            57,
+            290,
+            89
+          ]
+        },
+        {
+          "text": "OPEN",
+          "confidence": 96.78233337402344,
+          "box": [
+            38,
+            129,
+            148,
+            161
+          ]
+        },
+        {
+          "text": "SOURCE",
+          "confidence": 96.18679809570312,
+          "box": [
+            164,
+            129,
+            332,
+            161
+          ]
+        },
+        {
+          "text": "LAB",
+          "confidence": 96.18679809570312,
+          "box": [
+            347,
+            130,
+            421,
+            160
+          ]
+        },
+        {
+          "text": "NATIVE",
+          "confidence": 95.69696044921875,
+          "box": [
+            40,
+            202,
+            184,
+            232
+          ]
+        },
+        {
+          "text": "OCR",
+          "confidence": 95.69696044921875,
+          "box": [
+            197,
+            201,
+            284,
+            233
+          ]
+        },
+        {
+          "text": "2026",
+          "confidence": 94.82604217529297,
+          "box": [
+            299,
+            201,
+            397,
+            233
+          ]
+        }
+      ]
+    }
+  ]
+}

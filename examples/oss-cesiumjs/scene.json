@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);s.div=document.createElement('div');s.div.style.cssText='position:absolute;left:-10000px;top:0;width:512px;height:512px';document.body.appendChild(s.div);s.surface=document.createElement('canvas');s.surface.width=512;s.surface.height=512;s.div.appendChild(s.surface);const C=await ctx.utils.import('https://esm.sh/@cesium/engine@26.3.0?bundle');s.C=C;C.buildModuleUrl.setBaseUrl('https://cdn.jsdelivr.net/npm/@cesium/engine@26.3.0/Source/');s.scene=new C.Scene({canvas:s.surface,creditContainer:s.div,contextOptions:{webgl:{preserveDrawingBuffer:true,alpha:true,antialias:true}}});s.scene.backgroundColor=C.Color.TRANSPARENT;s.scene.light=new C.DirectionalLight({direction:C.Cartesian3.normalize(new C.Cartesian3(-1,1,-1),new C.Cartesian3())});s.scene.primitives.add(new C.Primitive({geometryInstances:new C.GeometryInstance({geometry:new C.EllipsoidGeometry({radii:C.Ellipsoid.WGS84.radii,vertexFormat:C.PerInstanceColorAppearance.VERTEX_FORMAT}),attributes:{color:C.ColorGeometryInstanceAttribute.fromColor(C.Color.fromCssColorString('#235f7a'))}}),appearance:new C.PerInstanceColorAppearance({closed:true,translucent:false}),asynchronous:false}));const instances=[];for(let lon=-180;lon<180;lon+=30){const positions=[];for(let lat=-89;lat<=89;lat+=2)positions.push(C.Cartesian3.fromDegrees(lon,lat,18000));instances.push(new C.GeometryInstance({geometry:new C.PolylineGeometry({positions,width:1.5,vertexFormat:C.PolylineColorAppearance.VERTEX_FORMAT}),attributes:{color:C.ColorGeometryInstanceAttribute.fromColor(C.Color.fromCssColorString('#ffbc78'))}}));}for(let lat=-60;lat<=60;lat+=30){const positions=[];for(let lon=-180;lon<=180;lon+=3)positions.push(C.Cartesian3.fromDegrees(lon,lat,18000));instances.push(new C.GeometryInstance({geometry:new C.PolylineGeometry({positions,width:1.5,vertexFormat:C.PolylineColorAppearance.VERTEX_FORMAT}),attributes:{color:C.ColorGeometryInstanceAttribute.fromColor(C.Color.fromCssColorString('#57d8c6'))}}));}s.scene.primitives.add(new C.Primitive({geometryInstances:instances,appearance:new C.PolylineColorAppearance({translucent:false}),asynchronous:false}));",
+    "render": "const s=ctx.state,u=ctx.uniforms,c=s.c,gl=ctx.gl,[w,h]=ctx.resolution,m=Math.min(w,h),size=m*.85;if(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#0b1625';c.fillRect(0,0,w,h);const C=s.C,d=C.Cartesian3.fromDegrees(u.u_longitude,u.u_latitude,10000000);s.scene.camera.setView({destination:d,orientation:{direction:C.Cartesian3.normalize(C.Cartesian3.negate(d,new C.Cartesian3()),new C.Cartesian3()),up:C.Cartesian3.UNIT_Z}});s.scene.initializeFrame();s.scene.render(C.JulianDate.fromIso8601('2026-09-01T12:00:00Z'));ctx.publish('engine','Cesium \u00b7 WGS84 ellipsoid \u00b7 no map tiles');c.drawImage(s.surface,(w-size)/2,(h-size)/2,size,size);gl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.program);ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "ctx.state.scene?.destroy();ctx.state.div?.remove();ctx.gl.deleteTexture(ctx.state.texture);ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_longitude": {
+      "type": "float",
+      "label": "Camera longitude",
+      "value": 30,
+      "min": -180,
+      "max": 180,
+      "step": 5
+    },
+    "u_latitude": {
+      "type": "float",
+      "label": "Camera latitude",
+      "value": 25,
+      "min": -60,
+      "max": 60,
+      "step": 5
+    }
+  }
+}

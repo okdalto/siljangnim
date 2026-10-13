@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.program=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);s.div=document.createElement('div');s.div.style.cssText='position:absolute;left:-10000px;top:0;width:512px;height:512px';document.body.appendChild(s.div);s.surface=document.createElement('canvas');s.surface.width=512;s.surface.height=512;s.div.appendChild(s.surface);const [R,F,T]=await Promise.all([ctx.utils.import('https://esm.sh/react@19.3.0'),ctx.utils.import('https://esm.sh/@react-three/fiber@9.8.1?bundle&deps=react@19.3.0,react-dom@19.3.0,three@0.186.0'),ctx.utils.import('https://esm.sh/three@0.186.0')]);s.fiber=F;F.extend(T);s.params={time:0,speed:.4,roughness:.3};function Sculpture(){const ref=R.useRef();F.useFrame(()=>{if(ref.current){ref.current.rotation.y=s.params.time*s.params.speed;ref.current.rotation.x=.35;ref.current.material.roughness=s.params.roughness;}});return R.createElement('mesh',{ref},R.createElement('torusKnotGeometry',{args:[.75,.22,128,16,2,3]}),R.createElement('meshStandardMaterial',{color:'#57d8c6',metalness:.3,roughness:.3}));}s.root=F.createRoot(s.surface);await s.root.configure({gl:{preserveDrawingBuffer:true,alpha:true,antialias:true},size:{width:512,height:512,top:0,left:0},dpr:1,camera:{position:[0,0,4],fov:42},frameloop:'never'});s.root.render(R.createElement(R.Fragment,null,R.createElement('ambientLight',{intensity:.9}),R.createElement('directionalLight',{position:[3,4,5],intensity:3}),R.createElement(Sculpture)));await new Promise(r=>setTimeout(r,300));F.advance(0);",
+    "render": "const s=ctx.state,u=ctx.uniforms,c=s.c,gl=ctx.gl,[w,h]=ctx.resolution,m=Math.min(w,h),size=m*.85;if(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#0b1625';c.fillRect(0,0,w,h);s.params.time=ctx.time;s.params.speed=u.u_speed;s.params.roughness=u.u_roughness;s.fiber.advance(ctx.time);ctx.publish('engine','React Three Fiber \u00b7 useFrame');c.drawImage(s.surface,(w-size)/2,(h-size)/2,size,size);gl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.program);ctx.utils.bindTexture(s.program,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.program);",
+    "cleanup": "ctx.state.root?.unmount();ctx.state.div?.remove();ctx.gl.deleteTexture(ctx.state.texture);ctx.gl.deleteProgram(ctx.state.program);"
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "label": "Rotation speed",
+      "value": 0.4,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    "u_roughness": {
+      "type": "float",
+      "label": "Roughness",
+      "value": 0.3,
+      "min": 0.05,
+      "max": 1,
+      "step": 0.05
+    }
+  }
+}

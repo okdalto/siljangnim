@@ -1,0 +1,38 @@
+{
+  "order": 421,
+  "title": "Synthetic Bayer RAW development (LibRaw)",
+  "title_ko": "합성 Bayer RAW 현상 (LibRaw)",
+  "description": "LibRaw directly decodes an original synthetic DNG and develops it with three demosaicing algorithms.",
+  "description_ko": "LibRaw로 직접 만든 합성 DNG를 읽고 세 가지 디모자이킹 알고리즘으로 현상했어요.",
+  "prompt": "Synthetic Bayer RAW development. Use the original engine.",
+  "made_with": "LibRaw 0.22.1 via rawpy 0.27.1",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "libraw"
+  ],
+  "summary": "LibRaw directly decodes an original synthetic DNG and develops it with three demosaicing algorithms.",
+  "summary_ko": "LibRaw로 직접 만든 합성 DNG를 읽고 세 가지 디모자이킹 알고리즘으로 현상했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "LibRaw directly decodes an original synthetic DNG and develops it with three demosaicing algorithms.",
+  "tool_about_ko": "LibRaw로 직접 만든 합성 DNG를 읽고 세 가지 디모자이킹 알고리즘으로 현상했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "LibRaw contributors",
+      "url": "https://github.com/LibRaw/LibRaw",
+      "license": "LGPL-2.1 / CDDL-1.0"
+    }
+  ]
+}

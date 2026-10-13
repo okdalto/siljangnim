@@ -40,6 +40,8 @@ Doom 불꽃·VoxelSpace 지형·Ten Minute Physics 진자·TinyRenderer는 필�
 
 geometry-central 표면 거리, HatViz 모자 타일, ORCA 클록, Spring-It-On 감쇠, RoutingKit 경로, Turing Patterns 반응 확산, PyTopo3D 위상 최적화도 원본 엔진으로 직접 계산했습니다. 레시피는 필요한 소스 파일만 검증·캐시해 재실행합니다. PyTopo3D는 GPU 없이 작은 격자를 60회 최적화한 데모이며 저장된 밀도와 재료 사용 비율을 함께 제공합니다.
 
+SVGNest 배치, Ray Optics 렌즈, LibRaw 합성 RAW 현상, Tesseract OCR은 원본 엔진을 직접 실행한 결과와 재실행 레시피를 제공합니다. React Three Fiber 매듭과 Cesium 타원체는 브라우저에서 실시간 렌더링합니다. OCR 모델과 소스는 재실행 시에만 내려받아 캐시합니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

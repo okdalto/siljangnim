@@ -1,0 +1,26 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "tesseract.gallery@1",
+      "packages": [
+        "Pillow==11.3.0",
+        "tesserocr==2.11.0"
+      ],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "input-0.png",
+        "input-1.png",
+        "input-2.png"
+      ]
+    }
+  ]
+}

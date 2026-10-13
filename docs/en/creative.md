@@ -42,6 +42,8 @@ Doom fire, VoxelSpace terrain, the Ten Minute Physics pendulum and TinyRenderer 
 
 geometry-central surface distances, HatViz tilings, ORCA clocks, Spring-It-On damping, RoutingKit routes, Turing Patterns reaction-diffusion and PyTopo3D topology optimization were directly computed by their original engines. Recipes verify and cache only the needed source files. PyTopo3D is a small CPU demonstration with a 60-iteration budget; stored outputs include densities and actual material fractions.
 
+SVGNest packing, Ray Optics lenses, LibRaw synthetic RAW development and Tesseract OCR include directly computed results and rerun recipes. React Three Fiber knots and Cesium ellipsoids render live in the browser. OCR weights and source files download and cache only when rerunning a recipe.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

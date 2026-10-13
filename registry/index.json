@@ -613,6 +613,19 @@
       "sha256": "eaf6cb9e948b40f18582e2734bc9d67d3efd156c7eb7aeecacc84dfc31e55e32"
     },
     {
+      "id": "libraw.gallery",
+      "version": 1,
+      "title": "Synthetic Bayer RAW development",
+      "capability": "libraw graphics",
+      "kind": "python",
+      "license": "LGPL-2.1 / CDDL-1.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/libraw.gallery/recipe.md",
+      "sha256": "db0ca82ed67a42917bca5a824d0001221f61d14b184acdfd956e402416ddd4bd"
+    },
+    {
       "id": "librosa.beat-track",
       "version": 1,
       "title": "Beats, tempo and onset envelope (librosa)",
@@ -1133,6 +1146,19 @@
       "sha256": "8fda560b81b4519ef85613ddce2c87e5f5edf089faedbcc654a143df4b61191c"
     },
     {
+      "id": "ray-optics-simulation.gallery",
+      "version": 1,
+      "title": "Ideal lens ray tracing",
+      "capability": "ray-optics-simulation graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ray-optics-simulation.gallery/recipe.md",
+      "sha256": "68dd21fd3e7ced16d79de1bf38ea2f138c010b0b40b090d7c53a0a096160f7ad"
+    },
+    {
       "id": "real-esrgan.gallery",
       "version": 1,
       "title": "Four-times detail (Real-ESRGAN)",
@@ -1341,6 +1367,19 @@
       "sha256": "429d4766726a39515eae3e7ee8f480dafb24cd4d324fdd5d803ffaa95ac453d8"
     },
     {
+      "id": "svgnest.gallery",
+      "version": 1,
+      "title": "Polygon nesting with original placement workers",
+      "capability": "svgnest graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/svgnest.gallery/recipe.md",
+      "sha256": "901536775d2dd2adab12045decbd00fd3361ded3418c27486de40e2bed8dbb4a"
+    },
+    {
       "id": "svgpathtools.path-lanterns",
       "version": 1,
       "title": "Equal arc-length SVG path samples (svgpathtools)",
@@ -1378,6 +1417,19 @@
       ],
       "path": "recipes/ten-minute-physics-pbd.gallery/recipe.md",
       "sha256": "bb055b4819938a6f667d41943e46727cc935883fd939397c9ddadcea915dc64f"
+    },
+    {
+      "id": "tesseract.gallery",
+      "version": 1,
+      "title": "Native OCR under image distortion",
+      "capability": "tesseract graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/tesseract.gallery/recipe.md",
+      "sha256": "801ec4b011fa20dfd089a4c8f51163304118281ffd390b60930fdf1f6038fdad"
     },
     {
       "id": "tinyrenderer.gallery",

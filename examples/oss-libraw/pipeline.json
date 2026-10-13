@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "libraw.gallery@1",
+      "packages": [
+        "numpy==2.2.6",
+        "Pillow==11.3.0",
+        "rawpy==0.27.1",
+        "tifffile==2026.3.3"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "input.dng"
+      ]
+    }
+  ]
+}

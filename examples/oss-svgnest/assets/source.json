@@ -1,0 +1,28 @@
+{
+  "id": "svgnest",
+  "repo": "https://github.com/jack000/svgnest",
+  "commit": "1248dc21efd3f90d1aa52ba5785e27e5217ed2c9",
+  "frames": 3,
+  "files": [
+    {
+      "path": "util/clipper.js",
+      "url": "https://raw.githubusercontent.com/jack000/svgnest/1248dc21efd3f90d1aa52ba5785e27e5217ed2c9/util/clipper.js",
+      "sha256": "2b8f6241f39fede1ebddcd827e82d422b44a6aa764d1b1b934a54a9b1560573f"
+    },
+    {
+      "path": "util/geometryutil.js",
+      "url": "https://raw.githubusercontent.com/jack000/svgnest/1248dc21efd3f90d1aa52ba5785e27e5217ed2c9/util/geometryutil.js",
+      "sha256": "692e2fd684c203900322a575f69e2611515b8e53af26506ae3861bb80ebe996a"
+    },
+    {
+      "path": "util/placementworker.js",
+      "url": "https://raw.githubusercontent.com/jack000/svgnest/1248dc21efd3f90d1aa52ba5785e27e5217ed2c9/util/placementworker.js",
+      "sha256": "6b560b72eed530c7a775ebdcd5f5fb2be6059f7480be01812562b8bcd0404d4b"
+    },
+    {
+      "path": "LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/jack000/svgnest/1248dc21efd3f90d1aa52ba5785e27e5217ed2c9/LICENSE.txt",
+      "sha256": "63249e67e62c3c4142252688c170ab27fa401f55a96f12b54cd6187ba2f699af"
+    }
+  ]
+}

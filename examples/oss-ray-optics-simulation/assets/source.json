@@ -1,0 +1,63 @@
+{
+  "id": "ray-optics-simulation",
+  "repo": "https://github.com/ricktu288/ray-optics",
+  "commit": "71efbeb4047ff17d74d14f48078cd0750a001914",
+  "frames": 3,
+  "files": [
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/ricktu288/ray-optics/71efbeb4047ff17d74d14f48078cd0750a001914/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "src/core/formula/dag-builder.js",
+      "url": "https://raw.githubusercontent.com/ricktu288/ray-optics/71efbeb4047ff17d74d14f48078cd0750a001914/src/core/formula/dag-builder.js",
+      "sha256": "a4af6bbd8c853a1d8ea052f6ab57fbf9ddee1b3f99bf19de6d1eb66cad0300ac"
+    },
+    {
+      "path": "src/core/formula/dag-util.js",
+      "url": "https://raw.githubusercontent.com/ricktu288/ray-optics/71efbeb4047ff17d74d14f48078cd0750a001914/src/core/formula/dag-util.js",
+      "sha256": "707d2c91dc7b2d5618ce71a8d47856053092bc52532fb1e727908a65d81a574f"
+    },
+    {
+      "path": "src/core/formula/formula-parser.js",
+      "url": "https://raw.githubusercontent.com/ricktu288/ray-optics/71efbeb4047ff17d74d14f48078cd0750a001914/src/core/formula/formula-parser.js",
+      "sha256": "a72dc414fe2fd2bbbb23e33dd26469ec67f1a0c4b3b02a305b148194ff766e9f"
+    },
+    {
+      "path": "src/core/formula/formula-syntax.js",
+      "url": "https://raw.githubusercontent.com/ricktu288/ray-optics/71efbeb4047ff17d74d14f48078cd0750a001914/src/core/formula/formula-syntax.js",
+      "sha256": "0c02360c071d27de053aad164000044143a5f1121bb4f0d1d48e29861e3b7848"
+    },
+    {
+      "path": "src/core/geometry.js",
+      "url": "https://raw.githubusercontent.com/ricktu288/ray-optics/71efbeb4047ff17d74d14f48078cd0750a001914/src/core/geometry.js",
+      "sha256": "5a6a91360f84af5c5acc96c20c485c5c1fdb831e4205bea313097718a34c3ee4"
+    },
+    {
+      "path": "src/core/sceneObjs/BaseSceneObj.js",
+      "url": "https://raw.githubusercontent.com/ricktu288/ray-optics/71efbeb4047ff17d74d14f48078cd0750a001914/src/core/sceneObjs/BaseSceneObj.js",
+      "sha256": "b8b16111056ff423186c3d536462da0b7e454d7e1ff85032ec874804cfa9071a"
+    },
+    {
+      "path": "src/core/sceneObjs/LineObjMixin.js",
+      "url": "https://raw.githubusercontent.com/ricktu288/ray-optics/71efbeb4047ff17d74d14f48078cd0750a001914/src/core/sceneObjs/LineObjMixin.js",
+      "sha256": "26d2593630197259f2fef738e9f37453d39c3868772d6ba90c3cadcee7bb85aa"
+    },
+    {
+      "path": "src/core/sceneObjs/glass/IdealLens.js",
+      "url": "https://raw.githubusercontent.com/ricktu288/ray-optics/71efbeb4047ff17d74d14f48078cd0750a001914/src/core/sceneObjs/glass/IdealLens.js",
+      "sha256": "4a62ce60879516e0495868b4b4147b628cfb7d9dcdc13a8fbc1381870afc39f3"
+    },
+    {
+      "path": "node_modules/i18next/index.js",
+      "url": "https://cdn.jsdelivr.net/npm/i18next@23.16.8/dist/esm/i18next.js",
+      "sha256": "4356b6ea369bc37df422f3859caf603bdc9844672f363e438072053ef5e5e7b6"
+    },
+    {
+      "path": "node_modules/i18next/LICENSE",
+      "url": "https://cdn.jsdelivr.net/npm/i18next@23.16.8/LICENSE",
+      "sha256": "c83b2035d5a4740f8739869a994acc24559e2946219b15091922b52e7b2a7287"
+    }
+  ]
+}

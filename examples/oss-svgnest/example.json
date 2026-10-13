@@ -1,0 +1,44 @@
+{
+  "order": 419,
+  "title": "Polygon nesting with original placement workers (SVGnest)",
+  "title_ko": "원본 배치 엔진으로 다각형 채우기 (SVGnest)",
+  "description": "Original SVGNest no-fit polygons and placement workers pack five rectangles in three input orders.",
+  "description_ko": "SVGNest 원본 NFP와 배치 워커로 다섯 직사각형을 세 가지 순서로 배치했어요.",
+  "prompt": "Polygon nesting with original placement workers. Use the original engine.",
+  "made_with": "Pinned original source, executed on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "svgnest"
+  ],
+  "summary": "Original SVGNest no-fit polygons and placement workers pack five rectangles in three input orders.",
+  "summary_ko": "SVGNest 원본 NFP와 배치 워커로 다섯 직사각형을 세 가지 순서로 배치했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Original SVGNest no-fit polygons and placement workers pack five rectangles in three input orders.",
+  "tool_about_ko": "SVGNest 원본 NFP와 배치 워커로 다섯 직사각형을 세 가지 순서로 배치했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "SVGnest contributors",
+      "url": "https://github.com/jack000/svgnest",
+      "license": "MIT"
+    },
+    {
+      "what": "Bundled Clipper polygon operations",
+      "source": "Angus Johnson",
+      "url": "https://github.com/Jack000/SVGnest",
+      "license": "BSL-1.0"
+    }
+  ]
+}

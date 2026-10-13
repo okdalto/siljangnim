@@ -7392,6 +7392,150 @@
     "program": "c++"
    },
    "notes": "The recipe caches SHA-256 verified source files or archives, then directly executes the engine. The original native library is built with Eigen 3.4.0 and its pinned happly submodule. Mean distance error is checked against the exact cylindrical geodesic formula. The map unwraps angle and height for display; colors are normalized per source. The recipe caches checksum-verified archives and the compiled binary, and reruns the heat solve every time."
+  },
+  {
+   "id": "svgnest",
+   "name": "SVGnest",
+   "repo": "https://github.com/jack000/svgnest",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Original SVGNest no-fit polygons and placement workers pack five rectangles in three input orders.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "Original SVGNest no-fit polygons and placement workers pack five rectangles in three input orders."
+  },
+  {
+   "id": "ray-optics-simulation",
+   "name": "Ray Optics Simulation",
+   "repo": "https://github.com/ricktu288/ray-optics",
+   "license": "Apache-2.0",
+   "tier": "D",
+   "purpose": "Original Ray Optics IdealLens intersection and refraction methods trace nine rays through three lenses.",
+   "tags": [
+    "Light rays · reflection · refraction",
+    "Optics · education"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "Original Ray Optics IdealLens intersection and refraction methods trace nine rays through three lenses."
+  },
+  {
+   "id": "libraw",
+   "name": "LibRaw",
+   "repo": "https://github.com/LibRaw/LibRaw",
+   "license": "LGPL-2.1 / CDDL-1.0",
+   "tier": "C",
+   "purpose": "LibRaw directly decodes an original synthetic DNG and develops it with three demosaicing algorithms.",
+   "tags": [
+    "RAW · sensor data decoding",
+    "Photography · development"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "numpy==2.2.6",
+     "Pillow==11.3.0",
+     "rawpy==0.27.1",
+     "tifffile==2026.3.3"
+    ]
+   },
+   "notes": "LibRaw directly decodes an original synthetic DNG and develops it with three demosaicing algorithms."
+  },
+  {
+   "id": "tesseract",
+   "name": "Tesseract",
+   "repo": "https://github.com/tesseract-ocr/tesseract",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "Tesseract recognizes original synthetic text in clean, rotated and blurred images and returns word boxes.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "Pillow==11.3.0",
+     "tesserocr==2.11.0"
+    ]
+   },
+   "notes": "Tesseract recognizes original synthetic text in clean, rotated and blurred images and returns word boxes."
+  },
+  {
+   "id": "react-three-fiber",
+   "name": "React Three Fiber",
+   "repo": "https://github.com/pmndrs/react-three-fiber",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "React Three Fiber renders a live Three.js knot using its React reconciler and useFrame animation.",
+   "tags": [
+    "web 3D",
+    "interaction",
+    "React"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/@react-three/fiber@9.8.1?bundle&deps=react@19.3.0,react-dom@19.3.0,three@0.186.0"
+   },
+   "notes": "React Three Fiber renders a live Three.js knot using its React reconciler and useFrame animation."
+  },
+  {
+   "id": "cesiumjs",
+   "name": "CesiumJS",
+   "repo": "https://github.com/cesiumgs/cesium",
+   "license": "Apache-2.0",
+   "tier": "B",
+   "purpose": "Cesium renders a live WGS84 ellipsoid and original graticule geometry without external map tiles.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/@cesium/engine@26.3.0?bundle"
+   },
+   "notes": "Cesium renders a live WGS84 ellipsoid and original graticule geometry without external map tiles."
   }
  ]
 }

@@ -1,0 +1,25 @@
+{
+  "librawVersion": [
+    0,
+    22,
+    1
+  ],
+  "rawpyVersion": "0.27.1",
+  "frames": [
+    {
+      "algorithm": "LINEAR",
+      "minimum": 0,
+      "maximum": 255
+    },
+    {
+      "algorithm": "VNG",
+      "minimum": 0,
+      "maximum": 255
+    },
+    {
+      "algorithm": "AHD",
+      "minimum": 0,
+      "maximum": 255
+    }
+  ]
+}

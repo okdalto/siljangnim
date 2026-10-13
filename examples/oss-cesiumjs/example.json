@@ -1,0 +1,34 @@
+{
+  "order": 424,
+  "title": "WGS84 ellipsoid and graticule (CesiumJS)",
+  "title_ko": "WGS84 타원체와 경위선 (CesiumJS)",
+  "description": "Cesium renders a live WGS84 ellipsoid and original graticule geometry without external map tiles.",
+  "description_ko": "Cesium으로 WGS84 타원체와 직접 만든 경위선을 실시간 렌더링해요. 외부 지도 타일은 사용하지 않아요.",
+  "prompt": "WGS84 ellipsoid and graticule. Use the original engine.",
+  "made_with": "Cesium engine 26.3.0",
+  "features": [
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "cesiumjs"
+  ],
+  "summary": "Cesium renders a live WGS84 ellipsoid and original graticule geometry without external map tiles.",
+  "summary_ko": "Cesium으로 WGS84 타원체와 직접 만든 경위선을 실시간 렌더링해요. 외부 지도 타일은 사용하지 않아요.",
+  "try": [
+    "Change the controls"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요"
+  ],
+  "tool_about": "Cesium renders a live WGS84 ellipsoid and original graticule geometry without external map tiles.",
+  "tool_about_ko": "Cesium으로 WGS84 타원체와 직접 만든 경위선을 실시간 렌더링해요. 외부 지도 타일은 사용하지 않아요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "CesiumJS contributors",
+      "url": "https://github.com/cesiumgs/cesium",
+      "license": "Apache-2.0"
+    }
+  ]
+}

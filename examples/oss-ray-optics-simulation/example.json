@@ -1,0 +1,44 @@
+{
+  "order": 420,
+  "title": "Ideal lens ray tracing (Ray Optics Simulation)",
+  "title_ko": "이상 렌즈의 광선 추적 (Ray Optics Simulation)",
+  "description": "Original Ray Optics IdealLens intersection and refraction methods trace nine rays through three lenses.",
+  "description_ko": "Ray Optics 원본 IdealLens 교차·굴절 메서드로 세 렌즈를 지나는 아홉 광선을 계산했어요.",
+  "prompt": "Ideal lens ray tracing. Use the original engine.",
+  "made_with": "Pinned original source, executed on macOS arm64",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "ray-optics-simulation"
+  ],
+  "summary": "Original Ray Optics IdealLens intersection and refraction methods trace nine rays through three lenses.",
+  "summary_ko": "Ray Optics 원본 IdealLens 교차·굴절 메서드로 세 렌즈를 지나는 아홉 광선을 계산했어요.",
+  "try": [
+    "Select a prepared result",
+    "Rerun the recipe with different inputs"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "입력을 바꿔 레시피를 재실행하세요"
+  ],
+  "tool_about": "Original Ray Optics IdealLens intersection and refraction methods trace nine rays through three lenses.",
+  "tool_about_ko": "Ray Optics 원본 IdealLens 교차·굴절 메서드로 세 렌즈를 지나는 아홉 광선을 계산했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Ray Optics Simulation contributors",
+      "url": "https://github.com/ricktu288/ray-optics",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "i18next 23.16.8 module dependency",
+      "source": "i18next contributors",
+      "url": "https://github.com/i18next/i18next",
+      "license": "MIT"
+    }
+  ]
+}
