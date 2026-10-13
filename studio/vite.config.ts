@@ -91,6 +91,11 @@ export default defineConfig({
         app: resolve(import.meta.dirname, "index.html"),
         scene: resolve(import.meta.dirname, "scene.html"),
       },
+      output: {
+        // electron-builder always leaves *.obj out of the app (it takes them for compiler output), so example
+        // meshes ship as .obj.txt. Projects know assets by their own names, not these URLs.
+        assetFileNames: (info) => (info.names.some((n) => n.endsWith(".obj")) ? "assets/[name]-[hash].obj.txt" : "assets/[name]-[hash][extname]"),
+      },
     },
   },
   test: {
