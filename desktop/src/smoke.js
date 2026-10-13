@@ -601,6 +601,15 @@ async function runExampleCacheScenario(win) {
   await wait(1000);
   return win.webContents.executeJavaScript(`(async () => {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    // CI machines are slow after a reload; wait for each control instead of a fixed delay.
+    const el = async (selector) => {
+      for (let i = 0; i < 100; i++) {
+        const found = document.querySelector(selector);
+        if (found) return found;
+        await sleep(100);
+      }
+      throw new Error("not found: " + selector);
+    };
     const fetchOriginal = window.fetch;
     let requests = 0;
     window.fetch = (...args) => {
@@ -612,9 +621,9 @@ async function runExampleCacheScenario(win) {
       return fetchOriginal(...args);
     };
     try {
-      document.querySelector('[data-testid="view-examples"]').click();
+      (await el('[data-testid="view-examples"]')).click();
       await sleep(300);
-      const card = document.querySelector('[data-example="oss-blender"]');
+      const card = await el('[data-example="oss-blender"]');
       const cachedLabel = /Downloaded|다운로드됨/.test(card?.textContent ?? "");
       card.click();
       for (let i = 0; i < 100; i++) {
@@ -635,11 +644,11 @@ async function runExampleCacheScenario(win) {
         };
       });
       const before = await countProjects();
-      document.querySelector('[data-testid="view-examples"]').click();
+      (await el('[data-testid="view-examples"]')).click();
       await sleep(300);
-      document.querySelector('[data-testid="clear-example-downloads"]').click();
+      (await el('[data-testid="clear-example-downloads"]')).click();
       await sleep(300);
-      document.querySelector('[data-example="oss-blender"]').click();
+      (await el('[data-example="oss-blender"]')).click();
       await sleep(500);
       const failedCleanly = Boolean(document.querySelector('[role="alert"]')) && await countProjects() === before;
       window.fetch = (...args) => {
@@ -649,13 +658,13 @@ async function runExampleCacheScenario(win) {
         });
         return fetchOriginal(...args);
       };
-      document.querySelector('[data-example="oss-blender"]').click();
+      (await el('[data-example="oss-blender"]')).click();
       await sleep(300);
-      document.querySelector('[data-testid="cancel-example-download"]').click();
+      (await el('[data-testid="cancel-example-download"]')).click();
       await sleep(300);
       const cancelledCleanly = !document.querySelector('[data-testid="example-download"]') && await countProjects() === before;
       window.fetch = fetchOriginal;
-      document.querySelector('[data-example="oss-blender"]').click();
+      (await el('[data-example="oss-blender"]')).click();
       for (let i = 0; i < 100; i++) {
         await sleep(100);
         if (!document.querySelector('[data-testid="examples"]')) break;

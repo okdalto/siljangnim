@@ -1,0 +1,2 @@
+# Same bytes on every OS: example files are hashed at build time and checked when downloaded.
+* text=auto eol=lf
