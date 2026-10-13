@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "csound.gallery@1",
+      "packages": [
+        "numpy==1.26.4"
+      ],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "audio-0.wav",
+        "audio-1.wav",
+        "audio-2.wav",
+        "patch-0.csd",
+        "patch-1.csd",
+        "patch-2.csd",
+        "result.json"
+      ]
+    }
+  ]
+}

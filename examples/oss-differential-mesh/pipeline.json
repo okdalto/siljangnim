@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "differential-mesh.gallery@1",
+      "packages": [
+        "Cython==0.29.37",
+        "numpy==1.26.4",
+        "setuptools==80.9.0"
+      ],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

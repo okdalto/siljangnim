@@ -1,0 +1,38 @@
+{
+  "order": 461,
+  "title": "FM synthesis with native Csound (Csound)",
+  "title_ko": "네이티브 Csound로 만든 FM 음색 (Csound)",
+  "description": "Csound directly synthesizes three FM tones; listen to the original WAV files and compare their waveforms and spectra.",
+  "description_ko": "Csound 원본 엔진으로 세 FM 음색을 합성했어요. WAV를 직접 듣고 파형과 주파수 스펙트럼을 비교하세요.",
+  "prompt": "FM synthesis with native Csound. Use the original engine.",
+  "made_with": "Csound 6.18.1 official macOS universal package",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "csound"
+  ],
+  "summary": "Csound directly synthesizes three FM tones; listen to the original WAV files and compare their waveforms and spectra.",
+  "summary_ko": "Csound 원본 엔진으로 세 FM 음색을 합성했어요. WAV를 직접 듣고 파형과 주파수 스펙트럼을 비교하세요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "Csound directly synthesizes three FM tones; listen to the original WAV files and compare their waveforms and spectra.",
+  "tool_about_ko": "Csound 원본 엔진으로 세 FM 음색을 합성했어요. WAV를 직접 듣고 파형과 주파수 스펙트럼을 비교하세요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Csound contributors",
+      "url": "https://github.com/csound/csound",
+      "license": "LGPL-2.1-or-later"
+    }
+  ]
+}

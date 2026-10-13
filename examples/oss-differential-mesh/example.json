@@ -1,0 +1,44 @@
+{
+  "order": 460,
+  "title": "Growing a native triangle network (Differential Mesh)",
+  "title_ko": "삼각형 연결망의 성장 (Differential Mesh)",
+  "description": "Original differential-mesh grows and relaxes a triangle network from 146 to 4,041 faces using its compiled Cython implementation.",
+  "description_ko": "differential-mesh 원본 Cython 코드로 삼각형 연결망을 성장시키고 이완해 146개에서 4,041개 면으로 확장했어요.",
+  "prompt": "Growing a native triangle network. Use the original engine.",
+  "made_with": "Pinned differential-mesh and Zonemap, Cython 0.29.37 on Python 3.12",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "differential-mesh"
+  ],
+  "summary": "Original differential-mesh grows and relaxes a triangle network from 146 to 4,041 faces using its compiled Cython implementation.",
+  "summary_ko": "differential-mesh 원본 Cython 코드로 삼각형 연결망을 성장시키고 이완해 146개에서 4,041개 면으로 확장했어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "Original differential-mesh grows and relaxes a triangle network from 146 to 4,041 faces using its compiled Cython implementation.",
+  "tool_about_ko": "differential-mesh 원본 Cython 코드로 삼각형 연결망을 성장시키고 이완해 146개에서 4,041개 면으로 확장했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Differential Mesh contributors",
+      "url": "https://github.com/inconvergent/differential-mesh",
+      "license": "MIT"
+    },
+    {
+      "what": "Original spatial lookup dependency",
+      "source": "Zonemap by inconvergent",
+      "url": "https://github.com/inconvergent/zonemap",
+      "license": "MIT"
+    }
+  ]
+}

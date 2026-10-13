@@ -1,0 +1,29 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "oripa.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "folded-0.fold",
+        "folded-0.svg",
+        "folded-1.fold",
+        "folded-1.svg",
+        "folded-2.fold",
+        "folded-2.svg",
+        "pattern-0.cp",
+        "pattern-1.cp",
+        "pattern-2.cp",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

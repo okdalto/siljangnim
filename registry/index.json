@@ -223,6 +223,19 @@
       "sha256": "757846ff9d558dbf9941dc22c5ac4629cbf2b9ab234eeb3cfbccdc7b531ea6c7"
     },
     {
+      "id": "csound.gallery",
+      "version": 1,
+      "title": "FM synthesis with native Csound",
+      "capability": "csound graphics",
+      "kind": "python",
+      "license": "LGPL-2.1-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/csound.gallery/recipe.md",
+      "sha256": "250c9df6bf9a9fd9aceba387ee8c1d1fff063c2a8ac1a6964098e8fffac94f77"
+    },
+    {
       "id": "daisysp.gallery",
       "version": 1,
       "title": "Three oscillator waveforms",
@@ -273,6 +286,19 @@
       ],
       "path": "recipes/depth-anything-v2.gallery/recipe.md",
       "sha256": "8e2219fc36d6861cc980c1fc5e791ef0fd380adcbc8ce875805b5fdbb7ebd584"
+    },
+    {
+      "id": "differential-mesh.gallery",
+      "version": 1,
+      "title": "Growing a native triangle network",
+      "capability": "differential-mesh graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/differential-mesh.gallery/recipe.md",
+      "sha256": "e8b5e339ee8183e9f7aa97b9d9c25e328afac2f2e9bb7573e4bbcc7356893089"
     },
     {
       "id": "diffusers.gallery",
@@ -455,6 +481,19 @@
       ],
       "path": "recipes/fipy.gallery/recipe.md",
       "sha256": "45daadf05da76e8a6995ba1785b09457e4980ac5fa46f5b02ab4cecbd5bf8d15"
+    },
+    {
+      "id": "flam3.gallery",
+      "version": 1,
+      "title": "Fractal flames from native transforms",
+      "capability": "flam3 graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/flam3.gallery/recipe.md",
+      "sha256": "26c37f7f025f72b79ae9b3587bb80d945ddfff8eb0897197aade8ae9367a8698"
     },
     {
       "id": "flomat.gallery",
@@ -663,6 +702,19 @@
       ],
       "path": "recipes/hilbertcurve.orders/recipe.md",
       "sha256": "060a337371c04fd9adec16874e17b0b05ce8ca92eda9870eada021a3d25cc7a7"
+    },
+    {
+      "id": "hole-fixer.gallery",
+      "version": 1,
+      "title": "Smooth repair of an open mesh",
+      "capability": "hole_fixer graphics",
+      "kind": "python",
+      "license": "MIT (this implementation) / dependencies separate",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/hole-fixer.gallery/recipe.md",
+      "sha256": "cb81cf58703e23016d10bb3162b6703e1bbb63903ce463fb713c122bea24a680"
     },
     {
       "id": "imagemagick.gallery",
@@ -1042,6 +1094,19 @@
       "sha256": "e9c3a95f4a80277a5ea6a199b0e41cb05738f4d46728e4fb23a2272782719389"
     },
     {
+      "id": "nanovg.gallery",
+      "version": 1,
+      "title": "Native vector paths on OpenGL",
+      "capability": "nanovg graphics",
+      "kind": "python",
+      "license": "Zlib",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/nanovg.gallery/recipe.md",
+      "sha256": "2836e04daeeaa352e474fff4525dfb21e8ee3e34539d66f0c2a5d204570158a3"
+    },
+    {
       "id": "ndwfc.gallery",
       "version": 1,
       "title": "Constraint-based tile fields",
@@ -1183,6 +1248,19 @@
       ],
       "path": "recipes/orca.gallery/recipe.md",
       "sha256": "bfd97412baf079c266ab2b4ad8435ba08516dc6979f05464d9e354f7b512ccbf"
+    },
+    {
+      "id": "oripa.gallery",
+      "version": 1,
+      "title": "Flat folding from crease patterns",
+      "capability": "oripa graphics",
+      "kind": "python",
+      "license": "GPL-3.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/oripa.gallery/recipe.md",
+      "sha256": "9b2940e894437c148556ba3c92f5d5eb5b776c35f6ff4d87acdc8f11c5fcecf3"
     },
     {
       "id": "p5-hershey-js.gallery",

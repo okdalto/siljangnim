@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg xmlns="http://www.w3.org/2000/svg"
+ xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve"
+ width="1000px" height="1000px"
+ viewBox="0 0 1000 1000" >
+<linearGradient id="Gradient1" x1="20%" y1="0%" x2="80%" y2="100%">
+    <stop offset="5%" stop-color="#DDEEFF" />
+    <stop offset="95%" stop-color="#7788FF" />
+</linearGradient>
+<linearGradient id="Gradient2" x1="20%" y1="0%" x2="80%" y2="100%">
+    <stop offset="5%" stop-color="#FFFFEE" />
+    <stop offset="95%" stop-color="#DDDDDD" />
+</linearGradient>
+<g><path style="fill:#FFFFFF;stroke:#000000;stroke-width:2.000000px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:1.000000"
+  d="M 954.5454545454545,45.45454545454578 45.45454545454601,954.5454545454543 45.454545454545496,45.45454545454578  z" />
+<path style="fill:#B3B3B3;stroke:#000000;stroke-width:2.000000px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:1.000000"
+  d="M 45.45454545454601,954.5454545454543 954.5454545454545,45.45454545454578 45.454545454545496,45.45454545454578  z" />
+</g></svg>

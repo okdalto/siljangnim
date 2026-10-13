@@ -1,0 +1,12 @@
+{
+  "differential-mesh": {
+    "url": "https://codeload.github.com/inconvergent/differential-mesh/tar.gz/c6fa82e75683cfb61fc7916b9132d50da0910598",
+    "sha256": "f5f6ce83d9649fef985487f6342695efcf82eb65a1c8ee900d60ec8514e7ff2c",
+    "commit": "c6fa82e75683cfb61fc7916b9132d50da0910598"
+  },
+  "zonemap": {
+    "url": "https://codeload.github.com/inconvergent/zonemap/tar.gz/d2830c5a879b5fc0b39f104b30d0b29a815df271",
+    "sha256": "13a961edf1aba70b37a0070b4372720ac6e9b6814c6a0a2b1420ab07256b852f",
+    "commit": "d2830c5a879b5fc0b39f104b30d0b29a815df271"
+  }
+}

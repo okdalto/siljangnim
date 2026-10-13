@@ -53,6 +53,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | contourmap (index.opensource #34) | MIT | [github.com/fogleman/contourmap](https://github.com/fogleman/contourmap) | [oss-contourmap](examples/oss-contourmap/) | an installed program, run by a recipe (not bundled) |
 | ConvChain (index.opensource #130) | MIT | [github.com/mxgmn/convchain](https://github.com/mxgmn/convchain) | [oss-convchain](examples/oss-convchain/) | an installed program, run by a recipe (not bundled) |
 | csg.js (index.opensource #69) | MIT | [github.com/evanw/csg.js](https://github.com/evanw/csg.js) | [oss-csg-js](examples/oss-csg-js/) | an installed program, run by a recipe (not bundled) |
+| Csound (index.opensource #232) | LGPL-2.1-or-later | [github.com/csound/csound](https://github.com/csound/csound) | [oss-csound](examples/oss-csound/) | an installed program, run by a recipe (not bundled) |
 | culori | MIT | [github.com/Evercoder/culori](https://github.com/Evercoder/culori) | [oss-culori](examples/oss-culori/) | fetched from a CDN by the scene at run time (not bundled) |
 | Cytoscape.js (index.opensource #323) | MIT | [github.com/cytoscape/cytoscape.js](https://github.com/cytoscape/cytoscape.js) | [oss-cytoscape-js](examples/oss-cytoscape-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | d3-chord (index.opensource #310) | ISC | [github.com/d3/d3-chord](https://github.com/d3/d3-chord) | [oss-d3-chord](examples/oss-d3-chord/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -83,6 +84,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | delaunay-triangulate (index.opensource #88) | MIT | [github.com/mikolalysenko/delaunay-triangulate](https://github.com/mikolalysenko/delaunay-triangulate) | [oss-delaunay-triangulate](examples/oss-delaunay-triangulate/) | fetched from a CDN by the scene at run time (not bundled) |
 | Demucs | MIT; weights: MIT | [github.com/facebookresearch/demucs](https://github.com/facebookresearch/demucs) | [oss-demucs](examples/oss-demucs/) | a model installed on the person's computer (not bundled) |
 | Depth Anything V2 (index.opensource #277) | Apache-2.0; weights: Small: Apache-2.0; Base/Large/Giant: CC-BY-NC-4.0 (non-commercial) | [github.com/DepthAnything/Depth-Anything-V2](https://github.com/DepthAnything/Depth-Anything-V2) | [oss-depth-anything-v2](examples/oss-depth-anything-v2/) | a model installed on the person's computer (not bundled) |
+| Differential Mesh (index.opensource #132) | MIT | [github.com/inconvergent/differential-mesh](https://github.com/inconvergent/differential-mesh) | [oss-differential-mesh](examples/oss-differential-mesh/) | an installed program, run by a recipe (not bundled) |
 | differential-line (index.opensource #114) | MIT | [github.com/inconvergent/differential-line](https://github.com/inconvergent/differential-line) | [oss-differential-line](examples/oss-differential-line/) | fetched from a CDN by the scene at run time (not bundled) |
 | Diffusers (Stable Diffusion and others) (index.opensource #292) | Apache-2.0; weights: depends on the model (e.g. CreativeML OpenRAIL-M, which restricts some uses) | [github.com/huggingface/diffusers](https://github.com/huggingface/diffusers) | [oss-diffusers](examples/oss-diffusers/) | a model installed on the person's computer (not bundled) |
 | diffvg (index.opensource #182) | Apache-2.0 | [github.com/bachili/diffvg](https://github.com/bachili/diffvg) | [oss-diffvg](examples/oss-diffvg/) | an installed program, run by a recipe (not bundled) |
@@ -105,6 +107,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | FiPy (index.opensource #411) | NIST Terms of Use | [github.com/usnistgov/fipy](https://github.com/usnistgov/fipy) | [oss-fipy](examples/oss-fipy/) | installed with pip on the person's computer by a recipe (not bundled) |
 | fishdraw (index.opensource #115) | MIT | [github.com/LingDong-/fishdraw](https://github.com/LingDong-/fishdraw) | [oss-fishdraw](examples/oss-fishdraw/) | fetched from a CDN by the scene at run time (not bundled) |
 | fit-curve (index.opensource #45) | MIT | [github.com/soswow/fit-curve](https://github.com/soswow/fit-curve) | [oss-fit-curve](examples/oss-fit-curve/) | fetched from a CDN by the scene at run time (not bundled) |
+| flam3 (index.opensource #355) | GPL-3.0 | [github.com/scottdraves/flam3](https://github.com/scottdraves/flam3) | [oss-flam3](examples/oss-flam3/) | an installed program, run by a recipe (not bundled) |
 | Flatbush (index.opensource #311) | ISC | [github.com/mourner/flatbush](https://github.com/mourner/flatbush) | [oss-flatbush](examples/oss-flatbush/) | fetched from a CDN by the scene at run time (not bundled) |
 | flatqueue (index.opensource #316) | ISC | [github.com/mourner/flatqueue](https://github.com/mourner/flatqueue) | [oss-flatqueue](examples/oss-flatqueue/) | fetched from a CDN by the scene at run time (not bundled) |
 | FloBezier (index.opensource #43) | MIT | [github.com/florissteenkamp/flobezier](https://github.com/florissteenkamp/flobezier) | [oss-flobezier](examples/oss-flobezier/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -148,6 +151,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | hatviz (index.opensource #391) | BSD-3-Clause | [github.com/isohedral/hatviz](https://github.com/isohedral/hatviz) | [oss-hatviz](examples/oss-hatviz/) | an installed program, run by a recipe (not bundled) |
 | healpy (index.opensource #400) | GPL-2.0 | [github.com/healpy/healpy](https://github.com/healpy/healpy) | [oss-healpy](examples/oss-healpy/) | installed with pip on the person's computer by a recipe (not bundled) |
 | hilbertcurve (index.opensource #4) | MIT | [github.com/galtay/hilbertcurve](https://github.com/galtay/hilbertcurve) | [oss-hilbertcurve](examples/oss-hilbertcurve/) | installed with pip on the person's computer by a recipe (not bundled) |
+| hole_fixer (index.opensource #85) | MIT (this implementation) / dependencies separate | [github.com/erkaman/hole_fixer](https://github.com/erkaman/hole_fixer) | [oss-hole-fixer](examples/oss-hole-fixer/) | an installed program, run by a recipe (not bundled) |
 | HSLuv (index.opensource #199) | MIT | [github.com/hsluv/hsluv-javascript](https://github.com/hsluv/hsluv-javascript) | [oss-hsluv](examples/oss-hsluv/) | fetched from a CDN by the scene at run time (not bundled) |
 | hull.js (index.opensource #48) | BSD-3-Clause | [github.com/andriiheonia/hull](https://github.com/andriiheonia/hull) | [oss-hull-js](examples/oss-hull-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | Hydra (index.opensource #229) | AGPL-3.0 | [github.com/hydra-synth/hydra-synth](https://github.com/hydra-synth/hydra-synth) | [oss-hydra](examples/oss-hydra/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -202,6 +206,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | MuJoCo (index.opensource #161) | Apache-2.0 | [github.com/google-deepmind/mujoco](https://github.com/google-deepmind/mujoco) | [oss-mujoco](examples/oss-mujoco/) | installed with pip on the person's computer by a recipe (not bundled) |
 | myPhysicsLab (index.opensource #380) | Apache-2.0 | [github.com/myphysicslab/myphysicslab](https://github.com/myphysicslab/myphysicslab) | [oss-myphysicslab](examples/oss-myphysicslab/) | an installed program, run by a recipe (not bundled) |
 | nanoGPT (index.opensource #390) | MIT | [github.com/karpathy/nanoGPT](https://github.com/karpathy/nanoGPT) | [oss-nanogpt](examples/oss-nanogpt/) | source included in the on-demand example; licenses and runtime requirements are included |
+| NanoVG (index.opensource #191) | Zlib | [github.com/memononen/nanovg](https://github.com/memononen/nanovg) | [oss-nanovg](examples/oss-nanovg/) | an installed program, run by a recipe (not bundled) |
 | ndarray-warp (index.opensource #205) | MIT | [github.com/scijs/ndarray-warp](https://github.com/scijs/ndarray-warp) | [oss-ndarray-warp](examples/oss-ndarray-warp/) | fetched from a CDN by the scene at run time (not bundled) |
 | NDWFC (index.opensource #121) | MIT | [github.com/lingdong-/ndwfc](https://github.com/lingdong-/ndwfc) | [oss-ndwfc](examples/oss-ndwfc/) | an installed program, run by a recipe (not bundled) |
 | NetworkX | BSD-3-Clause | [github.com/networkx/networkx](https://github.com/networkx/networkx) | [oss-networkx](examples/oss-networkx/) | installed with pip on the person's computer by a recipe (not bundled) |
@@ -221,6 +226,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | OpenSubdiv (index.opensource #77) | LicenseRef-Tomorrow-Open-Source-Technology-1.0 | [github.com/pixaranimationstudios/opensubdiv](https://github.com/pixaranimationstudios/opensubdiv) | [oss-opensubdiv](examples/oss-opensubdiv/) | an installed program, run by a recipe (not bundled) |
 | opentype.js | MIT | [github.com/opentypejs/opentype.js](https://github.com/opentypejs/opentype.js) | [mix-opentype-flow](examples/mix-opentype-flow/), [oss-opentype](examples/oss-opentype/) | fetched from a CDN by the scene at run time (not bundled) |
 | Orca (index.opensource #140) | MIT | [github.com/hundredrabbits/orca](https://github.com/hundredrabbits/orca) | [oss-orca](examples/oss-orca/) | an installed program, run by a recipe (not bundled) |
+| ORIPA (index.opensource #9) | GPL-3.0-or-later | [github.com/oripa/oripa](https://github.com/oripa/oripa) | [oss-oripa](examples/oss-oripa/) | an installed program, run by a recipe (not bundled) |
 | p5-hershey-js (index.opensource #13) | MIT (library code) | [github.com/lingdong-/p5-hershey-js](https://github.com/lingdong-/p5-hershey-js) | [oss-p5-hershey-js](examples/oss-p5-hershey-js/) | an installed program, run by a recipe (not bundled) |
 | p5.brush (index.opensource #125) | MIT | [github.com/acamposuribe/p5.brush](https://github.com/acamposuribe/p5.brush) | [oss-p5-brush](examples/oss-p5-brush/) | fetched from a CDN by the scene at run time (not bundled) |
 | p5.js (index.opensource #330) | LGPL-2.1 | [github.com/processing/p5.js](https://github.com/processing/p5.js) | [oss-p5](examples/oss-p5/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -497,6 +503,15 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Original engine | [ConvChain contributors](https://github.com/mxgmn/convchain) | MIT | [oss-convchain](examples/oss-convchain/) |
 | Original engine | [gl-react contributors](https://github.com/gre/gl-react) | MIT | [oss-gl-react](examples/oss-gl-react/) |
 | React 19.3.0 and React DOM 19.3.0 | [Meta and React contributors](https://github.com/facebook/react) | MIT | [oss-gl-react](examples/oss-gl-react/) |
+| Original engine | [NanoVG contributors](https://github.com/memononen/nanovg) | Zlib | [oss-nanovg](examples/oss-nanovg/) |
+| Original engine | [hole_fixer contributors](https://github.com/erkaman/hole_fixer) | MIT (this implementation) / dependencies separate | [oss-hole-fixer](examples/oss-hole-fixer/) |
+| Bundled surface fairing dependency | [libigl contributors](https://github.com/libigl/libigl) | MPL-2.0 | [oss-hole-fixer](examples/oss-hole-fixer/) |
+| Bundled linear algebra dependency | [Eigen contributors](https://eigen.tuxfamily.org) | MPL-2.0 | [oss-hole-fixer](examples/oss-hole-fixer/) |
+| Original engine | [ORIPA contributors](https://github.com/oripa/oripa) | GPL-3.0-or-later | [oss-oripa](examples/oss-oripa/) |
+| Original engine | [flam3 contributors](https://github.com/scottdraves/flam3) | GPL-3.0 | [oss-flam3](examples/oss-flam3/) |
+| Original engine | [Differential Mesh contributors](https://github.com/inconvergent/differential-mesh) | MIT | [oss-differential-mesh](examples/oss-differential-mesh/) |
+| Original spatial lookup dependency | [Zonemap by inconvergent](https://github.com/inconvergent/zonemap) | MIT | [oss-differential-mesh](examples/oss-differential-mesh/) |
+| Original engine | [Csound contributors](https://github.com/csound/csound) | LGPL-2.1-or-later | [oss-csound](examples/oss-csound/) |
 
 ## Studio (the app's web code): bundled npm packages
 

@@ -1,0 +1,38 @@
+{
+  "order": 458,
+  "title": "Flat folding from crease patterns (ORIPA)",
+  "title_ko": "접힌 선에서 계산한 종이접기 (ORIPA)",
+  "description": "ORIPA directly folds three crease patterns and exports folded SVG, PNG and FOLD data; face areas preserve the original paper area.",
+  "description_ko": "ORIPA 원본 CLI로 세 종이접기 도안을 접고 SVG·PNG·FOLD 데이터를 생성해 종이 면적 보존을 검사했어요.",
+  "prompt": "Flat folding from crease patterns. Use the original engine.",
+  "made_with": "ORIPA 1.80 and Temurin Java 21.0.8+9",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "oripa"
+  ],
+  "summary": "ORIPA directly folds three crease patterns and exports folded SVG, PNG and FOLD data; face areas preserve the original paper area.",
+  "summary_ko": "ORIPA 원본 CLI로 세 종이접기 도안을 접고 SVG·PNG·FOLD 데이터를 생성해 종이 면적 보존을 검사했어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "ORIPA directly folds three crease patterns and exports folded SVG, PNG and FOLD data; face areas preserve the original paper area.",
+  "tool_about_ko": "ORIPA 원본 CLI로 세 종이접기 도안을 접고 SVG·PNG·FOLD 데이터를 생성해 종이 면적 보존을 검사했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "ORIPA contributors",
+      "url": "https://github.com/oripa/oripa",
+      "license": "GPL-3.0-or-later"
+    }
+  ]
+}

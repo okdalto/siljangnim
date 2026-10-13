@@ -1,0 +1,50 @@
+{
+  "order": 457,
+  "title": "Smooth repair of an open mesh (hole_fixer)",
+  "title_ko": "열린 메시를 매끄럽게 복구하기 (hole_fixer)",
+  "description": "The original hole_fixer fills an open sphere cap with surface fairing at two subdivision levels, producing closed triangle meshes.",
+  "description_ko": "hole_fixer 원본 표면 보정 코드로 구의 열린 윗부분을 두 세분화 수준에서 채워 닫힌 메시를 만들었어요.",
+  "prompt": "Smooth repair of an open mesh. Use the original engine.",
+  "made_with": "Pinned hole_fixer with bundled libigl and Eigen",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "hole-fixer"
+  ],
+  "summary": "The original hole_fixer fills an open sphere cap with surface fairing at two subdivision levels, producing closed triangle meshes.",
+  "summary_ko": "hole_fixer 원본 표면 보정 코드로 구의 열린 윗부분을 두 세분화 수준에서 채워 닫힌 메시를 만들었어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "The original hole_fixer fills an open sphere cap with surface fairing at two subdivision levels, producing closed triangle meshes.",
+  "tool_about_ko": "hole_fixer 원본 표면 보정 코드로 구의 열린 윗부분을 두 세분화 수준에서 채워 닫힌 메시를 만들었어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "hole_fixer contributors",
+      "url": "https://github.com/erkaman/hole_fixer",
+      "license": "MIT (this implementation) / dependencies separate"
+    },
+    {
+      "what": "Bundled surface fairing dependency",
+      "source": "libigl contributors",
+      "url": "https://github.com/libigl/libigl",
+      "license": "MPL-2.0"
+    },
+    {
+      "what": "Bundled linear algebra dependency",
+      "source": "Eigen contributors",
+      "url": "https://eigen.tuxfamily.org",
+      "license": "MPL-2.0"
+    }
+  ]
+}

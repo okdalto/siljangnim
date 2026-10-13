@@ -1,0 +1,38 @@
+{
+  "order": 456,
+  "title": "Native vector paths on OpenGL (NanoVG)",
+  "title_ko": "OpenGL에서 렌더링한 벡터 경로 (NanoVG)",
+  "description": "NanoVG directly renders gradient-filled rounded shapes and cubic curves through its original native OpenGL backend.",
+  "description_ko": "NanoVG 원본 OpenGL 백엔드로 그라데이션 도형과 베지어 곡선을 직접 렌더링했어요.",
+  "prompt": "Native vector paths on OpenGL. Use the original engine.",
+  "made_with": "Pinned NanoVG source and macOS OpenGL 3.2",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "nanovg"
+  ],
+  "summary": "NanoVG directly renders gradient-filled rounded shapes and cubic curves through its original native OpenGL backend.",
+  "summary_ko": "NanoVG 원본 OpenGL 백엔드로 그라데이션 도형과 베지어 곡선을 직접 렌더링했어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "NanoVG directly renders gradient-filled rounded shapes and cubic curves through its original native OpenGL backend.",
+  "tool_about_ko": "NanoVG 원본 OpenGL 백엔드로 그라데이션 도형과 베지어 곡선을 직접 렌더링했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "NanoVG contributors",
+      "url": "https://github.com/memononen/nanovg",
+      "license": "Zlib"
+    }
+  ]
+}

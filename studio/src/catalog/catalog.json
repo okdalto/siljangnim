@@ -8313,6 +8313,136 @@
     "cdn": "https://esm.sh/gl-react@6.0.0?deps=react@19.3.0"
    },
    "notes": "gl-react runs a live React/WebGL graph: a spiral shader feeds a second node that separates color channels."
+  },
+  {
+   "id": "nanovg",
+   "name": "NanoVG",
+   "repo": "https://github.com/memononen/nanovg",
+   "license": "Zlib",
+   "tier": "D",
+   "purpose": "NanoVG directly renders gradient-filled rounded shapes and cubic curves through its original native OpenGL backend.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "cc"
+   },
+   "notes": "NanoVG directly renders gradient-filled rounded shapes and cubic curves through its original native OpenGL backend."
+  },
+  {
+   "id": "hole-fixer",
+   "name": "hole_fixer",
+   "repo": "https://github.com/erkaman/hole_fixer",
+   "license": "MIT (this implementation) / dependencies separate",
+   "tier": "D",
+   "purpose": "The original hole_fixer fills an open sphere cap with surface fairing at two subdivision levels, producing closed triangle meshes.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The original hole_fixer fills an open sphere cap with surface fairing at two subdivision levels, producing closed triangle meshes."
+  },
+  {
+   "id": "oripa",
+   "name": "ORIPA",
+   "repo": "https://github.com/oripa/oripa",
+   "license": "GPL-3.0-or-later",
+   "tier": "D",
+   "purpose": "ORIPA directly folds three crease patterns and exports folded SVG, PNG and FOLD data; face areas preserve the original paper area.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "java"
+   },
+   "notes": "ORIPA directly folds three crease patterns and exports folded SVG, PNG and FOLD data; face areas preserve the original paper area."
+  },
+  {
+   "id": "flam3",
+   "name": "flam3",
+   "repo": "https://github.com/scottdraves/flam3",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "Original FLAM3 renders three fractal flames with a fixed seed, changing the balance between linear and swirl transformations.",
+   "tags": [
+    "Iterated functions · fractal flames",
+    "Images · fractals"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "cc"
+   },
+   "notes": "Original FLAM3 renders three fractal flames with a fixed seed, changing the balance between linear and swirl transformations."
+  },
+  {
+   "id": "differential-mesh",
+   "name": "Differential Mesh",
+   "repo": "https://github.com/inconvergent/differential-mesh",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Original differential-mesh grows and relaxes a triangle network from 146 to 4,041 faces using its compiled Cython implementation.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "cc"
+   },
+   "notes": "Original differential-mesh grows and relaxes a triangle network from 146 to 4,041 faces using its compiled Cython implementation."
+  },
+  {
+   "id": "csound",
+   "name": "Csound",
+   "repo": "https://github.com/csound/csound",
+   "license": "LGPL-2.1-or-later",
+   "tier": "D",
+   "purpose": "Csound directly synthesizes three FM tones; listen to the original WAV files and compare their waveforms and spectra.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "audio",
+     "image"
+    ]
+   },
+   "install": {
+    "program": "csound"
+   },
+   "notes": "Csound directly synthesizes three FM tones; listen to the original WAV files and compare their waveforms and spectra."
   }
  ]
 }

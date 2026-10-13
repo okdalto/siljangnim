@@ -58,6 +58,8 @@ Directly executed examples cover MyPaint native brushes, Astrometry.net syntheti
 
 Original-engine examples now cover Penrose constraint diagrams, Context Free recursive shape grammars, geometry3Sharp hole repair and ConvChain pattern synthesis, with prepared outputs and rerun recipes. gl-react runs a two-pass shader graph live in the viewer.
 
+Directly executed examples also cover NanoVG native rendering, hole_fixer surface repair, ORIPA folding, FLAM3 fractals, differential-mesh growth and Csound synthesis. Listen to original Csound output; original engines and environments are downloaded and cached only when rerunning recipes.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

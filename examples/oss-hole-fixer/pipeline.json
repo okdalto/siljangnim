@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "hole-fixer.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "input.off",
+        "repaired-0.off",
+        "repaired-1.off",
+        "result.json"
+      ]
+    }
+  ]
+}

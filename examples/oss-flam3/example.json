@@ -1,0 +1,38 @@
+{
+  "order": 459,
+  "title": "Fractal flames from native transforms (flam3)",
+  "title_ko": "원본 변환으로 만든 프랙털 불꽃 (flam3)",
+  "description": "Original FLAM3 renders three fractal flames with a fixed seed, changing the balance between linear and swirl transformations.",
+  "description_ko": "FLAM3 원본 렌더러에서 시드를 고정하고 선형·소용돌이 변환 비율에 따른 세 프랙털을 렌더링했어요.",
+  "prompt": "Fractal flames from native transforms. Use the original engine.",
+  "made_with": "FLAM3 3.1.1 pinned source and macOS C compiler",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "flam3"
+  ],
+  "summary": "Original FLAM3 renders three fractal flames with a fixed seed, changing the balance between linear and swirl transformations.",
+  "summary_ko": "FLAM3 원본 렌더러에서 시드를 고정하고 선형·소용돌이 변환 비율에 따른 세 프랙털을 렌더링했어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "Original FLAM3 renders three fractal flames with a fixed seed, changing the balance between linear and swirl transformations.",
+  "tool_about_ko": "FLAM3 원본 렌더러에서 시드를 고정하고 선형·소용돌이 변환 비율에 따른 세 프랙털을 렌더링했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "flam3 contributors",
+      "url": "https://github.com/scottdraves/flam3",
+      "license": "GPL-3.0"
+    }
+  ]
+}
