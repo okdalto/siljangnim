@@ -563,10 +563,12 @@ async function runExamplesScenario(win, examplesOut) {
       await wait(250);
       state = await win.webContents.executeJavaScript(`(() => {
         const s = document.querySelector("[data-runtime-state]");
-        return s && { state: s.dataset.runtimeState, errors: Number(s.dataset.runtimeErrors), project: document.querySelector('header button[title="Rename project"]')?.innerText };
+        // An example that can't open shows why in the gallery (download or integrity errors); keep it for the report.
+        const alert = document.querySelector('[data-testid="examples"] [role="alert"]')?.innerText;
+        return s && { state: s.dataset.runtimeState, errors: Number(s.dataset.runtimeErrors), project: document.querySelector('header button[title="Rename project"]')?.innerText, ...(alert ? { alert } : {}) };
       })()`);
       const opened = await win.webContents.executeJavaScript(`!document.querySelector('[data-testid="examples"]')`);
-      if (opened && state?.state === "running" && state.project !== "Untitled") break;
+      if ((opened && state?.state === "running" && state.project !== "Untitled") || state?.alert) break;
     }
     await wait(1200);
     const frame = await findSceneFrame(win);
