@@ -33,6 +33,9 @@ const status = await new Promise((resolveExit) => {
     env: {
       ...process.env,
       SILJANGNIM_SMOKE_OUT: outDir,
+      // A packaged app checks the packaging; every example already runs in the unpackaged smoke (CI's check job).
+      // CI's macOS virtual GPU also gives out after a few hundred scenes in a row.
+      ...(appBinary ? { SILJANGNIM_SMOKE_EXAMPLE_SAMPLE: "40" } : {}),
       SILJANGNIM_USER_DATA: profile,
       SILJANGNIM_ANTHROPIC_BASE_URL: mock.url,
       SILJANGNIM_SMOKE_KEY: TEST_KEY,

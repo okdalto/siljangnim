@@ -530,7 +530,10 @@ async function runExamplesScenario(win, examplesOut) {
     : "";
   const virtualGpu = /paravirtual/i.test(renderer);
   log(`gpu: ${renderer || "unknown"}`);
-  for (const { slug, requires } of slugs) {
+  // SILJANGNIM_SMOKE_EXAMPLE_SAMPLE=n: n examples spread evenly over the list instead of all of them.
+  const sample = Number(process.env.SILJANGNIM_SMOKE_EXAMPLE_SAMPLE) || 0;
+  const picked = sample && slugs.length > sample ? slugs.filter((_, i) => i % Math.ceil(slugs.length / sample) === 0) : slugs;
+  for (const { slug, requires } of picked) {
     if (requires?.includes("webgpu") && !gpu) {
       results[slug] = { skipped: "no WebGPU here" };
       log(`example ${slug}: skipped (no WebGPU)`);
