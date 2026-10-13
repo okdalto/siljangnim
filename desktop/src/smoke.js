@@ -532,7 +532,8 @@ async function runExamplesScenario(win, examplesOut) {
   log(`gpu: ${renderer || "unknown"}`);
   // SILJANGNIM_SMOKE_EXAMPLE_SAMPLE=n: n examples spread evenly over the list instead of all of them.
   const sample = Number(process.env.SILJANGNIM_SMOKE_EXAMPLE_SAMPLE) || 0;
-  const picked = sample && slugs.length > sample ? slugs.filter((_, i) => i % Math.ceil(slugs.length / sample) === 0) : slugs;
+  // oss-blender always: the example-cache scenario reopens it from the cache afterwards.
+  const picked = sample && slugs.length > sample ? slugs.filter((e, i) => i % Math.ceil(slugs.length / sample) === 0 || e.slug === "oss-blender") : slugs;
   for (const { slug, requires } of picked) {
     if (requires?.includes("webgpu") && !gpu) {
       results[slug] = { skipped: "no WebGPU here" };
