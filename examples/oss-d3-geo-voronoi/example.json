@@ -1,0 +1,38 @@
+{
+  "order": 292,
+  "title": "Cells across a sphere (d3-geo-voronoi)",
+  "title_ko": "구면을 나누는 셀 (d3-geo-voronoi)",
+  "description": "D3 Geo Voronoi partitions a sphere around synthetic sites. The orthographic view clips cells at the horizon while rotating the globe.",
+  "description_ko": "D3 Geo Voronoi가 직접 만든 표식 주위로 구면을 나눠요. 정사 투영 화면에서 지구를 돌리면 지평선 뒤의 셀은 가려져요.",
+  "prompt": "Cells across a sphere. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-geo-voronoi 2.1.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-geo-voronoi"
+  ],
+  "summary": "Cells across a sphere. Change the controls to explore the actual algorithm.",
+  "summary_ko": "구면을 나누는 셀. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Rotate Longitude",
+    "Change Sites to repartition the sphere"
+  ],
+  "try_ko": [
+    "Longitude로 지구를 돌리세요",
+    "Sites로 셀 수를 바꾸세요"
+  ],
+  "tool_about": "D3 Geo Voronoi partitions a sphere around synthetic sites. The orthographic view clips cells at the horizon while rotating the globe.",
+  "tool_about_ko": "D3 Geo Voronoi가 직접 만든 표식 주위로 구면을 나눠요. 정사 투영 화면에서 지구를 돌리면 지평선 뒤의 셀은 가려져요.",
+  "credits": [
+    {
+      "what": "Supporting JavaScript library loaded from CDN: d3-geo 3.1.1",
+      "what_ko": "CDN에서 받는 보조 JavaScript 라이브러리: d3-geo 3.1.1",
+      "source": "d3-geo",
+      "license": "ISC",
+      "url": "https://github.com/d3/d3-geo"
+    }
+  ]
+}

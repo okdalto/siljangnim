@@ -1,0 +1,29 @@
+{
+  "order": 283,
+  "title": "Breadth-first branches (Cytoscape.js)",
+  "title_ko": "너비 우선으로 펼친 가지 (Cytoscape.js)",
+  "description": "Cytoscape computes a breadth-first layout and breadth-first traversal of an original directed network. Highlight depth reveals the discovered layers.",
+  "description_ko": "Cytoscape가 직접 만든 방향 그래프를 너비 우선으로 배치하고 탐색해요. Highlight depth로 발견한 층을 차례로 밝혀요.",
+  "prompt": "Breadth-first branches. Make the algorithm visible and let the controls change its input.",
+  "made_with": "cytoscape 3.34.3; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "cytoscape-js"
+  ],
+  "summary": "Breadth-first branches. Change the controls to explore the actual algorithm.",
+  "summary_ko": "너비 우선으로 펼친 가지. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Increase Highlight depth",
+    "Switch to Circular layout"
+  ],
+  "try_ko": [
+    "Highlight depth를 올려 층을 펼치세요",
+    "Circular layout으로 원형 배치를 비교하세요"
+  ],
+  "tool_about": "Cytoscape computes a breadth-first layout and breadth-first traversal of an original directed network. Highlight depth reveals the discovered layers.",
+  "tool_about_ko": "Cytoscape가 직접 만든 방향 그래프를 너비 우선으로 배치하고 탐색해요. Highlight depth로 발견한 층을 차례로 밝혀요."
+}

@@ -1,0 +1,29 @@
+{
+  "order": 287,
+  "title": "Heat across a mesh (mesh-laplacian)",
+  "title_ko": "메시 위로 퍼지는 열 (mesh-laplacian)",
+  "description": "mesh-laplacian computes cotangent weights for a triangle grid. Explicit diffusion steps spread a central heat pulse using that matrix.",
+  "description_ko": "mesh-laplacian이 삼각 격자의 코탄젠트 가중치를 계산해요. 그 행렬을 이용한 확산 단계로 가운데 열이 이웃으로 퍼져요.",
+  "prompt": "Heat across a mesh. Make the algorithm visible and let the controls change its input.",
+  "made_with": "mesh-laplacian 1.0.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "mesh-laplacian"
+  ],
+  "summary": "Heat across a mesh. Change the controls to explore the actual algorithm.",
+  "summary_ko": "메시 위로 퍼지는 열. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Increase Diffusion steps",
+    "Toggle Mesh edges to inspect the discretization"
+  ],
+  "try_ko": [
+    "Diffusion steps를 올려 열을 퍼뜨리세요",
+    "Mesh edges로 격자를 확인하세요"
+  ],
+  "tool_about": "mesh-laplacian computes cotangent weights for a triangle grid. Explicit diffusion steps spread a central heat pulse using that matrix.",
+  "tool_about_ko": "mesh-laplacian이 삼각 격자의 코탄젠트 가중치를 계산해요. 그 행렬을 이용한 확산 단계로 가운데 열이 이웃으로 퍼져요."
+}

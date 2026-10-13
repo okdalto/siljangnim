@@ -1,0 +1,38 @@
+{
+  "order": 288,
+  "title": "Measuring distance on a grid (distance-transform)",
+  "title_ko": "격자 위 거리 재기 (distance-transform)",
+  "description": "Distance Transform computes the nearest seed distance using Euclidean, Manhattan or Chebyshev metrics. Bands make their different unit circles visible.",
+  "description_ko": "Distance Transform이 유클리드·맨해튼·체비쇼프 방식으로 가장 가까운 씨앗까지의 거리를 계산해요. 띠 무늬로 거리 기준의 차이를 보여요.",
+  "prompt": "Measuring distance on a grid. Make the algorithm visible and let the controls change its input.",
+  "made_with": "distance-transform 1.0.2; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "distance-transform"
+  ],
+  "summary": "Measuring distance on a grid. Change the controls to explore the actual algorithm.",
+  "summary_ko": "격자 위 거리 재기. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Compare the three metrics",
+    "Add more Seeds"
+  ],
+  "try_ko": [
+    "세 거리 기준을 비교하세요",
+    "Seeds로 씨앗을 더 놓아 보세요"
+  ],
+  "tool_about": "Distance Transform computes the nearest seed distance using Euclidean, Manhattan or Chebyshev metrics. Bands make their different unit circles visible.",
+  "tool_about_ko": "Distance Transform이 유클리드·맨해튼·체비쇼프 방식으로 가장 가까운 씨앗까지의 거리를 계산해요. 띠 무늬로 거리 기준의 차이를 보여요.",
+  "credits": [
+    {
+      "what": "Supporting JavaScript library loaded from CDN: ndarray 1.1.1",
+      "what_ko": "CDN에서 받는 보조 JavaScript 라이브러리: ndarray 1.1.1",
+      "source": "ndarray",
+      "license": "MIT",
+      "url": "https://github.com/mikolalysenko/ndarray"
+    }
+  ]
+}

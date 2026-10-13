@@ -1,0 +1,38 @@
+{
+  "order": 282,
+  "title": "A route around tolls (ngraph.path)",
+  "title_ko": "통행료를 피해 가는 길 (ngraph.path)",
+  "description": "ngraph.path finds the least-cost route across an original grid. The central road has a variable toll; a zero heuristic makes A* an exact weighted shortest-path search.",
+  "description_ko": "ngraph.path가 직접 만든 격자에서 비용이 가장 작은 길을 찾아요. 가운데 길의 통행료를 바꾸면 우회할지 달라져요. 휴리스틱을 0으로 두어 가중 최단 경로를 구해요.",
+  "prompt": "A route around tolls. Make the algorithm visible and let the controls change its input.",
+  "made_with": "ngraph.path 1.6.1; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "ngraph-path"
+  ],
+  "summary": "A route around tolls. Change the controls to explore the actual algorithm.",
+  "summary_ko": "통행료를 피해 가는 길. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Raise Middle road cost to encourage a detour",
+    "Move Destination row"
+  ],
+  "try_ko": [
+    "Middle road cost를 올려 우회로를 만드세요",
+    "Destination row로 도착점을 바꾸세요"
+  ],
+  "tool_about": "ngraph.path finds the least-cost route across an original grid. The central road has a variable toll; a zero heuristic makes A* an exact weighted shortest-path search.",
+  "tool_about_ko": "ngraph.path가 직접 만든 격자에서 비용이 가장 작은 길을 찾아요. 가운데 길의 통행료를 바꾸면 우회할지 달라져요. 휴리스틱을 0으로 두어 가중 최단 경로를 구해요.",
+  "credits": [
+    {
+      "what": "Supporting JavaScript library loaded from CDN: ngraph.graph 20.1.2",
+      "what_ko": "CDN에서 받는 보조 JavaScript 라이브러리: ngraph.graph 20.1.2",
+      "source": "ngraph.graph",
+      "license": "BSD-3-Clause",
+      "url": "https://github.com/anvaka/ngraph.graph"
+    }
+  ]
+}

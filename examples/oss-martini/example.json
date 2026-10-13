@@ -1,0 +1,29 @@
+{
+  "order": 284,
+  "title": "Terrain where detail matters (MARTINI)",
+  "title_ko": "필요한 곳에만 지형 삼각형 (MARTINI)",
+  "description": "Martini creates an adaptive RTIN mesh from a 65 × 65 synthetic height grid. The refinement threshold controls triangle detail.",
+  "description_ko": "Martini가 직접 만든 65 × 65 높이장에서 적응형 RTIN 메시를 만들어요. 세분화 기준값을 올리면 삼각형 수가 줄어요.",
+  "prompt": "Terrain where detail matters. Make the algorithm visible and let the controls change its input.",
+  "made_with": "@mapbox/martini 0.2.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "martini"
+  ],
+  "summary": "Terrain where detail matters. Change the controls to explore the actual algorithm.",
+  "summary_ko": "필요한 곳에만 지형 삼각형. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Increase Detail threshold to simplify the terrain",
+    "Rotate View angle"
+  ],
+  "try_ko": [
+    "Detail threshold로 지형을 단순하게 만드세요",
+    "View angle로 시점을 돌려 보세요"
+  ],
+  "tool_about": "Martini creates an adaptive RTIN mesh from a 65 × 65 synthetic height grid. The refinement threshold controls triangle detail.",
+  "tool_about_ko": "Martini가 직접 만든 65 × 65 높이장에서 적응형 RTIN 메시를 만들어요. 세분화 기준값을 올리면 삼각형 수가 줄어요."
+}

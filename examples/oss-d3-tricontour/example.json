@@ -1,0 +1,29 @@
+{
+  "order": 291,
+  "title": "Contours between scattered samples (d3-tricontour)",
+  "title_ko": "흩어진 표본 사이 등고선 (d3-tricontour)",
+  "description": "D3 Tricontour extracts filled contours from irregular points with scalar values. The points are generated locally and are not a regular raster grid.",
+  "description_ko": "D3 Tricontour가 값이 붙은 불규칙 점들에서 등고 영역을 만들어요. 점은 직접 생성하며 규칙적인 이미지 격자를 쓰지 않아요.",
+  "prompt": "Contours between scattered samples. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-tricontour 1.1.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-tricontour"
+  ],
+  "summary": "Contours between scattered samples. Change the controls to explore the actual algorithm.",
+  "summary_ko": "흩어진 표본 사이 등고선. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Samples",
+    "Add more Levels"
+  ],
+  "try_ko": [
+    "Samples로 불규칙 표본 수를 바꾸세요",
+    "Levels로 등고 영역을 촘촘히 만드세요"
+  ],
+  "tool_about": "D3 Tricontour extracts filled contours from irregular points with scalar values. The points are generated locally and are not a regular raster grid.",
+  "tool_about_ko": "D3 Tricontour가 값이 붙은 불규칙 점들에서 등고 영역을 만들어요. 점은 직접 생성하며 규칙적인 이미지 격자를 쓰지 않아요."
+}

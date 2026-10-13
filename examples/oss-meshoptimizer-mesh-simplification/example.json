@@ -1,0 +1,29 @@
+{
+  "order": 296,
+  "title": "Keeping shape with fewer triangles (meshoptimizer · Mesh simplification)",
+  "title_ko": "삼각형을 줄여 남긴 형태 (meshoptimizer · Mesh simplification)",
+  "description": "Meshoptimizer simplifies an original wavy grid mesh with a geometric error limit. The requested ratio is a target; the error bound may retain more triangles.",
+  "description_ko": "Meshoptimizer가 직접 만든 물결 격자 메시를 오차 한도 안에서 단순화해요. 비율은 목표값이며 오차 조건 때문에 삼각형이 더 남을 수 있어요.",
+  "prompt": "Keeping shape with fewer triangles. Make the algorithm visible and let the controls change its input.",
+  "made_with": "meshoptimizer 1.3.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "meshoptimizer-mesh-simplification"
+  ],
+  "summary": "Keeping shape with fewer triangles. Change the controls to explore the actual algorithm.",
+  "summary_ko": "삼각형을 줄여 남긴 형태. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Lower Target ratio",
+    "Tighten Error limit to preserve more detail"
+  ],
+  "try_ko": [
+    "Target ratio를 내려 삼각형을 줄이세요",
+    "Error limit을 줄여 더 많은 세부를 남기세요"
+  ],
+  "tool_about": "Meshoptimizer simplifies an original wavy grid mesh with a geometric error limit. The requested ratio is a target; the error bound may retain more triangles.",
+  "tool_about_ko": "Meshoptimizer가 직접 만든 물결 격자 메시를 오차 한도 안에서 단순화해요. 비율은 목표값이며 오차 조건 때문에 삼각형이 더 남을 수 있어요."
+}

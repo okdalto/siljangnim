@@ -1,0 +1,45 @@
+{
+  "order": 293,
+  "title": "One shared border (TopoJSON Simplify)",
+  "title_ko": "함께 쓰는 경계선 (TopoJSON Simplify)",
+  "description": "TopoJSON Simplify reduces an original wavy border shared by two regions. The same topology arc is reused on both sides, preventing cracks.",
+  "description_ko": "TopoJSON Simplify가 두 영역이 함께 쓰는 물결 경계의 점을 줄여요. 같은 위상 호를 양쪽에서 재사용해 경계 틈을 막아요.",
+  "prompt": "One shared border. Make the algorithm visible and let the controls change its input.",
+  "made_with": "topojson-simplify 3.0.3; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "topojson-simplify"
+  ],
+  "summary": "One shared border. Change the controls to explore the actual algorithm.",
+  "summary_ko": "함께 쓰는 경계선. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Lower Retain detail",
+    "Compare the original and simplified shared border"
+  ],
+  "try_ko": [
+    "Retain detail을 내려 점을 줄이세요",
+    "원래 경계와 단순화한 경계를 비교하세요"
+  ],
+  "tool_about": "TopoJSON Simplify reduces an original wavy border shared by two regions. The same topology arc is reused on both sides, preventing cracks.",
+  "tool_about_ko": "TopoJSON Simplify가 두 영역이 함께 쓰는 물결 경계의 점을 줄여요. 같은 위상 호를 양쪽에서 재사용해 경계 틈을 막아요.",
+  "credits": [
+    {
+      "what": "Supporting JavaScript library loaded from CDN: topojson-server 3.0.1",
+      "what_ko": "CDN에서 받는 보조 JavaScript 라이브러리: topojson-server 3.0.1",
+      "source": "topojson-server",
+      "license": "ISC",
+      "url": "https://github.com/topojson/topojson-server"
+    },
+    {
+      "what": "Supporting JavaScript library loaded from CDN: topojson-client 3.1.0",
+      "what_ko": "CDN에서 받는 보조 JavaScript 라이브러리: topojson-client 3.1.0",
+      "source": "topojson-client",
+      "license": "ISC",
+      "url": "https://github.com/topojson/topojson-client"
+    }
+  ]
+}

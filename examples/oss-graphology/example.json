@@ -1,0 +1,29 @@
+{
+  "order": 281,
+  "title": "Neighbors in a network (Graphology)",
+  "title_ko": "관계망 속 이웃 (Graphology)",
+  "description": "Graphology stores an original undirected network and queries neighbors and degrees. Choose a node to highlight exactly its immediate connections.",
+  "description_ko": "Graphology에 직접 만든 무방향 관계망을 저장하고 이웃과 연결 수를 질의해요. 노드를 고르면 바로 연결된 이웃만 밝혀요.",
+  "prompt": "Neighbors in a network. Make the algorithm visible and let the controls change its input.",
+  "made_with": "graphology 0.26.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "graphology"
+  ],
+  "summary": "Neighbors in a network. Change the controls to explore the actual algorithm.",
+  "summary_ko": "관계망 속 이웃. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Choose a different Node",
+    "Toggle Cross-links"
+  ],
+  "try_ko": [
+    "Node로 다른 점을 고르세요",
+    "Cross-links로 가로지르는 연결을 켜 보세요"
+  ],
+  "tool_about": "Graphology stores an original undirected network and queries neighbors and degrees. Choose a node to highlight exactly its immediate connections.",
+  "tool_about_ko": "Graphology에 직접 만든 무방향 관계망을 저장하고 이웃과 연결 수를 질의해요. 노드를 고르면 바로 연결된 이웃만 밝혀요."
+}

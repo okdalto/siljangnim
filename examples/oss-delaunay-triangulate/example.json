@@ -1,0 +1,29 @@
+{
+  "order": 285,
+  "title": "Tetrahedra inside a cloud (delaunay-triangulate)",
+  "title_ko": "점 구름 속 사면체 (delaunay-triangulate)",
+  "description": "delaunay-triangulate computes a three-dimensional Delaunay tetrahedralization. Exploding the cells makes their four triangular faces visible.",
+  "description_ko": "delaunay-triangulate가 3차원 점 구름을 들로네 사면체로 나눠요. 조각을 벌려 각각의 네 삼각형 면을 볼 수 있어요.",
+  "prompt": "Tetrahedra inside a cloud. Make the algorithm visible and let the controls change its input.",
+  "made_with": "delaunay-triangulate 1.1.6; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "delaunay-triangulate"
+  ],
+  "summary": "Tetrahedra inside a cloud. Change the controls to explore the actual algorithm.",
+  "summary_ko": "점 구름 속 사면체. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Points to rebuild the tetrahedra",
+    "Use Explode to separate the cells"
+  ],
+  "try_ko": [
+    "Points로 사면체를 다시 만드세요",
+    "Explode로 조각 사이를 벌려 보세요"
+  ],
+  "tool_about": "delaunay-triangulate computes a three-dimensional Delaunay tetrahedralization. Exploding the cells makes their four triangular faces visible.",
+  "tool_about_ko": "delaunay-triangulate가 3차원 점 구름을 들로네 사면체로 나눠요. 조각을 벌려 각각의 네 삼각형 면을 볼 수 있어요."
+}

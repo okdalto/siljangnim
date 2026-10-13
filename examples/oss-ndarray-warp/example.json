@@ -1,0 +1,38 @@
+{
+  "order": 289,
+  "title": "Twisting a checkerboard (ndarray-warp)",
+  "title_ko": "체커보드 비틀기 (ndarray-warp)",
+  "description": "ndarray-warp inverse-maps a synthetic checkerboard through a swirl with linear interpolation. Zero twist reconstructs the source grid.",
+  "description_ko": "ndarray-warp가 직접 만든 체커보드를 소용돌이 좌표로 역매핑하고 선형 보간해요. Twist가 0이면 원래 격자로 돌아와요.",
+  "prompt": "Twisting a checkerboard. Make the algorithm visible and let the controls change its input.",
+  "made_with": "ndarray-warp 1.0.1; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "ndarray-warp"
+  ],
+  "summary": "Twisting a checkerboard. Change the controls to explore the actual algorithm.",
+  "summary_ko": "체커보드 비틀기. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Move Twist through zero",
+    "Reduce Scale to zoom into the pattern"
+  ],
+  "try_ko": [
+    "Twist를 0 앞뒤로 움직여 보세요",
+    "Scale을 내려 무늬를 확대해 보세요"
+  ],
+  "tool_about": "ndarray-warp inverse-maps a synthetic checkerboard through a swirl with linear interpolation. Zero twist reconstructs the source grid.",
+  "tool_about_ko": "ndarray-warp가 직접 만든 체커보드를 소용돌이 좌표로 역매핑하고 선형 보간해요. Twist가 0이면 원래 격자로 돌아와요.",
+  "credits": [
+    {
+      "what": "Supporting JavaScript library loaded from CDN: ndarray 1.1.1",
+      "what_ko": "CDN에서 받는 보조 JavaScript 라이브러리: ndarray 1.1.1",
+      "source": "ndarray",
+      "license": "MIT",
+      "url": "https://github.com/mikolalysenko/ndarray"
+    }
+  ]
+}

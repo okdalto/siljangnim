@@ -1,0 +1,38 @@
+{
+  "order": 295,
+  "title": "Weighted cells in a hexagon (d3-voronoi-treemap)",
+  "title_ko": "육각형 속 가중 셀 (d3-voronoi-treemap)",
+  "description": "D3 Voronoi Treemap iteratively assigns polygon areas to six weighted leaves. A fixed random seed and bounded iterations make weight changes reproducible.",
+  "description_ko": "D3 Voronoi Treemap이 여섯 가중값에 맞춰 다각형 면적을 반복 조정해요. 같은 난수 시작점과 제한된 반복 횟수로 비중 변화를 비교해요.",
+  "prompt": "Weighted cells in a hexagon. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-voronoi-treemap 1.1.2; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-voronoi-treemap"
+  ],
+  "summary": "Weighted cells in a hexagon. Change the controls to explore the actual algorithm.",
+  "summary_ko": "육각형 속 가중 셀. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Increase First cell weight",
+    "Change Boundary sides"
+  ],
+  "try_ko": [
+    "First cell weight로 첫 셀을 키우세요",
+    "Boundary sides로 바깥 경계를 바꾸세요"
+  ],
+  "tool_about": "D3 Voronoi Treemap iteratively assigns polygon areas to six weighted leaves. A fixed random seed and bounded iterations make weight changes reproducible.",
+  "tool_about_ko": "D3 Voronoi Treemap이 여섯 가중값에 맞춰 다각형 면적을 반복 조정해요. 같은 난수 시작점과 제한된 반복 횟수로 비중 변화를 비교해요.",
+  "credits": [
+    {
+      "what": "Supporting JavaScript library loaded from CDN: d3-hierarchy 3.1.2",
+      "what_ko": "CDN에서 받는 보조 JavaScript 라이브러리: d3-hierarchy 3.1.2",
+      "source": "d3-hierarchy",
+      "license": "ISC",
+      "url": "https://github.com/d3/d3-hierarchy"
+    }
+  ]
+}

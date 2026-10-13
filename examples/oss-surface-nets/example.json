@@ -1,0 +1,38 @@
+{
+  "order": 286,
+  "title": "A surface from a volume (surface-nets)",
+  "title_ko": "부피에서 꺼낸 표면 (surface-nets)",
+  "description": "Surface Nets extracts the level surface of a sampled sphere with a sinusoidal ripple. Resolution changes the sampling grid while Level changes the surface.",
+  "description_ko": "Surface Nets가 물결을 더한 구의 샘플 값에서 등위면을 꺼내요. Resolution은 격자 해상도를, Level은 꺼낼 표면을 바꿔요.",
+  "prompt": "A surface from a volume. Make the algorithm visible and let the controls change its input.",
+  "made_with": "surface-nets 1.0.2; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "surface-nets"
+  ],
+  "summary": "A surface from a volume. Change the controls to explore the actual algorithm.",
+  "summary_ko": "부피에서 꺼낸 표면. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Increase Resolution",
+    "Change Level to expand the surface"
+  ],
+  "try_ko": [
+    "Resolution을 올려 표면을 촘촘히 만드세요",
+    "Level로 표면을 키워 보세요"
+  ],
+  "tool_about": "Surface Nets extracts the level surface of a sampled sphere with a sinusoidal ripple. Resolution changes the sampling grid while Level changes the surface.",
+  "tool_about_ko": "Surface Nets가 물결을 더한 구의 샘플 값에서 등위면을 꺼내요. Resolution은 격자 해상도를, Level은 꺼낼 표면을 바꿔요.",
+  "credits": [
+    {
+      "what": "Supporting JavaScript library loaded from CDN: ndarray 1.1.1",
+      "what_ko": "CDN에서 받는 보조 JavaScript 라이브러리: ndarray 1.1.1",
+      "source": "ndarray",
+      "license": "MIT",
+      "url": "https://github.com/mikolalysenko/ndarray"
+    }
+  ]
+}

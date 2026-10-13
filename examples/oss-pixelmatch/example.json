@@ -1,0 +1,29 @@
+{
+  "order": 290,
+  "title": "Spotting changed pixels (Pixelmatch)",
+  "title_ko": "달라진 픽셀 찾기 (Pixelmatch)",
+  "description": "Pixelmatch compares two original RGBA drawings and highlights changed pixels. Threshold controls sensitivity to color differences as well as the shifted shape.",
+  "description_ko": "Pixelmatch가 직접 만든 RGBA 그림 두 장을 비교하고 달라진 픽셀을 밝혀요. Threshold로 색 차이의 민감도를 바꾸고 도형도 옮겨 볼 수 있어요.",
+  "prompt": "Spotting changed pixels. Make the algorithm visible and let the controls change its input.",
+  "made_with": "pixelmatch 7.2.0; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "pixelmatch"
+  ],
+  "summary": "Spotting changed pixels. Change the controls to explore the actual algorithm.",
+  "summary_ko": "달라진 픽셀 찾기. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Shift the circle",
+    "Raise Threshold to ignore subtle color changes"
+  ],
+  "try_ko": [
+    "원을 Shift pixels로 옮겨 보세요",
+    "Threshold를 올려 미세한 색 차이를 제외하세요"
+  ],
+  "tool_about": "Pixelmatch compares two original RGBA drawings and highlights changed pixels. Threshold controls sensitivity to color differences as well as the shifted shape.",
+  "tool_about_ko": "Pixelmatch가 직접 만든 RGBA 그림 두 장을 비교하고 달라진 픽셀을 밝혀요. Threshold로 색 차이의 민감도를 바꾸고 도형도 옮겨 볼 수 있어요."
+}

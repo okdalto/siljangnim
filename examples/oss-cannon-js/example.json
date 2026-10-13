@@ -1,0 +1,29 @@
+{
+  "order": 294,
+  "title": "Bouncing balls with restitution (cannon.js)",
+  "title_ko": "반발계수로 튀는 공 (cannon.js)",
+  "description": "Cannon.js simulates five falling spheres with contact response. The scene computes a four-second trajectory at fixed steps when restitution changes; Time scrubs the result.",
+  "description_ko": "Cannon.js가 떨어지는 구 다섯 개와 바닥의 접촉을 계산해요. 반발계수를 바꾸면 고정 시간 간격으로 4초 궤적을 계산하고 Time으로 결과를 살펴봐요.",
+  "prompt": "Bouncing balls with restitution. Make the algorithm visible and let the controls change its input.",
+  "made_with": "cannon 0.6.2; original synthetic input data",
+  "features": [
+    "interactive",
+    "data"
+  ],
+  "mode": "live",
+  "uses": [
+    "cannon-js"
+  ],
+  "summary": "Bouncing balls with restitution. Change the controls to explore the actual algorithm.",
+  "summary_ko": "반발계수로 튀는 공. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Scrub Time through the first collision",
+    "Change Restitution and compare bounce heights"
+  ],
+  "try_ko": [
+    "Time으로 첫 충돌 전후를 살펴보세요",
+    "Restitution으로 튀는 높이를 비교하세요"
+  ],
+  "tool_about": "Cannon.js simulates five falling spheres with contact response. The scene computes a four-second trajectory at fixed steps when restitution changes; Time scrubs the result.",
+  "tool_about_ko": "Cannon.js가 떨어지는 구 다섯 개와 바닥의 접촉을 계산해요. 반발계수를 바꾸면 고정 시간 간격으로 4초 궤적을 계산하고 Time으로 결과를 살펴봐요."
+}

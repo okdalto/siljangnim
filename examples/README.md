@@ -174,6 +174,23 @@ pipeline.json  how the assets were made (copied into the project, so project.md 
 | [A globe of meridians (d3-geo)](oss-d3-geo/) | [d3-geo](https://github.com/d3/d3-geo) (ISC + MIT (GeographicLib portions), in the scene) | D3 Geo projects a spherical graticule and original evenly distributed markers. Rotation reveals how orthographic, stereographic and equirectangular projections differ. |
 | [Unfolding the globe (d3-geo-projection)](oss-d3-geo-projection/) | [d3-geo-projection](https://github.com/d3/d3-geo-projection) (ISC / some integration code MIT, in the scene) | D3 Geo Projection draws the same spherical grid with four additional world projections. All markers are original synthetic coordinates. |
 
+| [Neighbors in a network (Graphology)](oss-graphology/) | [Graphology](https://github.com/graphology/graphology) (MIT, in the scene) | Graphology stores an original undirected network and queries neighbors and degrees. Choose a node to highlight exactly its immediate connections. |
+| [A route around tolls (ngraph.path)](oss-ngraph-path/) | [ngraph.path](https://github.com/anvaka/ngraph.path) (MIT, in the scene) | ngraph.path finds the least-cost route across an original grid. The central road has a variable toll; a zero heuristic makes A* an exact weighted shortest-path search. |
+| [Breadth-first branches (Cytoscape.js)](oss-cytoscape-js/) | [Cytoscape.js](https://github.com/cytoscape/cytoscape.js) (MIT, in the scene) | Cytoscape computes a breadth-first layout and breadth-first traversal of an original directed network. Highlight depth reveals the discovered layers. |
+| [Terrain where detail matters (MARTINI)](oss-martini/) | [MARTINI](https://github.com/mapbox/martini) (ISC, in the scene) | Martini creates an adaptive RTIN mesh from a 65 × 65 synthetic height grid. The refinement threshold controls triangle detail. |
+| [Tetrahedra inside a cloud (delaunay-triangulate)](oss-delaunay-triangulate/) | [delaunay-triangulate](https://github.com/mikolalysenko/delaunay-triangulate) (MIT, in the scene) | delaunay-triangulate computes a three-dimensional Delaunay tetrahedralization. Exploding the cells makes their four triangular faces visible. |
+| [A surface from a volume (surface-nets)](oss-surface-nets/) | [surface-nets](https://github.com/mikolalysenko/surface-nets) (MIT, in the scene) | Surface Nets extracts the level surface of a sampled sphere with a sinusoidal ripple. Resolution changes the sampling grid while Level changes the surface. |
+| [Heat across a mesh (mesh-laplacian)](oss-mesh-laplacian/) | [mesh-laplacian](https://github.com/mikolalysenko/mesh-laplacian) (MIT, in the scene) | mesh-laplacian computes cotangent weights for a triangle grid. Explicit diffusion steps spread a central heat pulse using that matrix. |
+| [Measuring distance on a grid (distance-transform)](oss-distance-transform/) | [distance-transform](https://github.com/scijs/distance-transform) (MIT, in the scene) | Distance Transform computes the nearest seed distance using Euclidean, Manhattan or Chebyshev metrics. Bands make their different unit circles visible. |
+| [Twisting a checkerboard (ndarray-warp)](oss-ndarray-warp/) | [ndarray-warp](https://github.com/scijs/ndarray-warp) (MIT, in the scene) | ndarray-warp inverse-maps a synthetic checkerboard through a swirl with linear interpolation. Zero twist reconstructs the source grid. |
+| [Spotting changed pixels (Pixelmatch)](oss-pixelmatch/) | [Pixelmatch](https://github.com/mapbox/pixelmatch) (ISC, in the scene) | Pixelmatch compares two original RGBA drawings and highlights changed pixels. Threshold controls sensitivity to color differences as well as the shifted shape. |
+| [Contours between scattered samples (d3-tricontour)](oss-d3-tricontour/) | [d3-tricontour](https://github.com/fil/d3-tricontour) (ISC, in the scene) | D3 Tricontour extracts filled contours from irregular points with scalar values. The points are generated locally and are not a regular raster grid. |
+| [Cells across a sphere (d3-geo-voronoi)](oss-d3-geo-voronoi/) | [d3-geo-voronoi](https://github.com/fil/d3-geo-voronoi) (ISC, in the scene) | D3 Geo Voronoi partitions a sphere around synthetic sites. The orthographic view clips cells at the horizon while rotating the globe. |
+| [One shared border (TopoJSON Simplify)](oss-topojson-simplify/) | [TopoJSON Simplify](https://github.com/topojson/topojson-simplify) (ISC, in the scene) | TopoJSON Simplify reduces an original wavy border shared by two regions. The same topology arc is reused on both sides, preventing cracks. |
+| [Bouncing balls with restitution (cannon.js)](oss-cannon-js/) | [cannon.js](https://github.com/schteppe/cannon.js) (MIT, in the scene) | Cannon.js simulates five falling spheres with contact response. The scene computes a four-second trajectory at fixed steps when restitution changes; Time scrubs the result. |
+| [Weighted cells in a hexagon (d3-voronoi-treemap)](oss-d3-voronoi-treemap/) | [d3-voronoi-treemap](https://github.com/kcnarf/d3-voronoi-treemap) (BSD-3-Clause, in the scene) | D3 Voronoi Treemap iteratively assigns polygon areas to six weighted leaves. A fixed random seed and bounded iterations make weight changes reproducible. |
+| [Keeping shape with fewer triangles (meshoptimizer · Mesh simplification)](oss-meshoptimizer-mesh-simplification/) | [meshoptimizer · Mesh simplification](https://github.com/zeux/meshoptimizer) (MIT, in the scene) | Meshoptimizer simplifies an original wavy grid mesh with a geometric error limit. The requested ratio is a target; the error bound may retain more triangles. |
+
 ## Remixes
 
 Two examples blended into one by an agent with **Mix in** (example details), to show what mixing looks like.
@@ -244,3 +261,18 @@ index.opensource의 도구 20개를 더 추가했어요. 색 보간·타이밍 �
 지도 타일·음원·API 키·모델·Python이 필요하지 않아요. 선택한 장면은 내려받아 캐시하고,
 고정 버전의 JavaScript 라이브러리는 CDN에서 별도로 받아요. 이징과 진동 예제에서는 진행률을
 직접 조절하며 원하는 지점의 계산 결과를 살펴볼 수 있어요.
+
+## Graphs, meshes and image grids / 그래프·메시·이미지 격자
+
+16 more lightweight tools cover graph queries and shortest paths, adaptive terrain and mesh simplification,
+spherical and weighted Voronoi cells, distance fields, image differences, inverse warps and rigid-body motion.
+Every scene runs its actual library on original synthetic inputs. No model weights, Python, map tiles or external
+images are required. Cannon.js computes a four-second fixed-step trajectory when restitution changes, then lets
+you scrub it with Time. Other controls recompute the relevant graph, mesh or grid.
+Scenes use the existing on-demand download cache; pinned supporting libraries load from a CDN and are credited.
+
+가벼운 도구 16개를 더 연결했어요. 그래프 질의·최단 경로·적응형 지형·메시 단순화·구면과 가중 보로노이·
+거리장·이미지 차이·역매핑·강체 운동을 직접 만든 입력으로 실제 계산해요. 모델 가중치·Python·지도 타일·
+외부 이미지가 필요하지 않아요. Cannon.js는 반발계수를 바꿀 때 고정 시간 간격으로 4초 궤적을 계산하고,
+Time으로 결과를 살펴볼 수 있어요. 다른 컨트롤은 관련 그래프·메시·격자를 다시 계산해요.
+기존 필요 시 다운로드·캐시 구조를 사용하며, 보조 라이브러리도 고정 버전과 출처를 명시했어요.
