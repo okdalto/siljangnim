@@ -1,0 +1,21 @@
+{
+  "id": "libtess2",
+  "repo": "https://github.com/memononen/libtess2",
+  "sha": "8dbd6483e920311a58c9af10a10beb278efebc36",
+  "url": "https://codeload.github.com/memononen/libtess2/tar.gz/8dbd6483e920311a58c9af10a10beb278efebc36",
+  "sha256": "083f507dd3b27eba01fa540b9efe3bbeed36d5bd4ea0e8869897d21f52c5f98b",
+  "license": "SGI-B-2.0",
+  "includes": [
+    "Include"
+  ],
+  "files": [
+    "Source/bucketalloc.c",
+    "Source/dict.c",
+    "Source/geom.c",
+    "Source/mesh.c",
+    "Source/priorityq.c",
+    "Source/sweep.c",
+    "Source/tess.c"
+  ],
+  "frames": 3
+}

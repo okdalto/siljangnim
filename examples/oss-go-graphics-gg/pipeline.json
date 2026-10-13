@@ -1,0 +1,22 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "go-graphics-gg.gallery@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "main.go",
+        "go.mod",
+        "go.sum"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png"
+      ]
+    }
+  ]
+}

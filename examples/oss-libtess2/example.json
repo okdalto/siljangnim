@@ -1,0 +1,30 @@
+{
+  "order": 348,
+  "title": "Winding rules around a hole (libtess2)",
+  "title_ko": "구멍과 와인딩 규칙 (libtess2)",
+  "description": "libtess2 tessellates nested contours under odd and nonzero winding rules, with both orientations of the inner contour.",
+  "description_ko": "libtess2로 중첩된 윤곽을 홀수·비영 와인딩 규칙에 따라 삼각분할했어요. 내부 윤곽의 방향도 비교해요.",
+  "prompt": "Winding rules around a hole. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "libtess2"
+  ],
+  "summary": "libtess2 tessellates nested contours under odd and nonzero winding rules, with both orientations of the inner contour..",
+  "summary_ko": "libtess2로 중첩된 윤곽을 홀수·비영 와인딩 규칙에 따라 삼각분할했어요. 내부 윤곽의 방향도 비교해요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "libtess2 tessellates nested contours under odd and nonzero winding rules, with both orientations of the inner contour. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "libtess2로 중첩된 윤곽을 홀수·비영 와인딩 규칙에 따라 삼각분할했어요. 내부 윤곽의 방향도 비교해요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

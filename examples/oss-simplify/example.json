@@ -1,0 +1,30 @@
+{
+  "order": 342,
+  "title": "Quadric-error mesh reduction (simplify)",
+  "title_ko": "이차 오차 기반 메시 축소 (simplify)",
+  "description": "Fogleman’s simplify reduces an original wavy mesh with quadric error metrics. Rotate three locally computed triangle budgets.",
+  "description_ko": "Fogleman의 simplify로 직접 만든 물결 메시를 이차 오차 지표에 따라 줄였어요. 세 삼각형 예산의 계산 결과를 회전해 보세요.",
+  "prompt": "Quadric-error mesh reduction. Recompute with the included Go recipe when changing inputs.",
+  "made_with": "Go 1.25.10; pinned modules in go.mod/go.sum; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "simplify"
+  ],
+  "summary": "Fogleman’s simplify reduces an original wavy mesh with quadric error metrics.",
+  "summary_ko": "Fogleman의 simplify로 직접 만든 물결 메시를 이차 오차 지표에 따라 줄였어요. 세 삼각형 예산의 계산 결과를 회전해 보세요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale and rotation"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율과 회전을 바꿔 보세요"
+  ],
+  "tool_about": "Fogleman’s simplify reduces an original wavy mesh with quadric error metrics. Rotate three locally computed triangle budgets. Viewing reads locally computed outputs; the recipe runs the original tool.",
+  "tool_about_ko": "Fogleman의 simplify로 직접 만든 물결 메시를 이차 오차 지표에 따라 줄였어요. 세 삼각형 예산의 계산 결과를 회전해 보세요. 화면은 직접 계산한 결과를 읽고 레시피는 원본 도구를 실행해요."
+}

@@ -1,0 +1,30 @@
+{
+  "order": 346,
+  "title": "Convex shells of point clouds (QuickHull)",
+  "title_ko": "점군을 감싼 볼록 껍질 (QuickHull)",
+  "description": "QuickHull computes convex hulls of three deterministic 3D point clouds. Rotate the locally generated triangular shells.",
+  "description_ko": "QuickHull로 세 가지 3D 점군의 볼록 껍질을 직접 계산했어요. 생성된 삼각형 표면을 회전해 보세요.",
+  "prompt": "Convex shells of point clouds. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "quickhull"
+  ],
+  "summary": "QuickHull computes convex hulls of three deterministic 3D point clouds.",
+  "summary_ko": "QuickHull로 세 가지 3D 점군의 볼록 껍질을 직접 계산했어요. 생성된 삼각형 표면을 회전해 보세요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale and rotation"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율과 회전을 바꿔 보세요"
+  ],
+  "tool_about": "QuickHull computes convex hulls of three deterministic 3D point clouds. Rotate the locally generated triangular shells. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "QuickHull로 세 가지 3D 점군의 볼록 껍질을 직접 계산했어요. 생성된 삼각형 표면을 회전해 보세요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

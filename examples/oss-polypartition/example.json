@@ -1,0 +1,30 @@
+{
+  "order": 347,
+  "title": "Three ways to divide a polygon (PolyPartition)",
+  "title_ko": "다각형을 나누는 세 방법 (PolyPartition)",
+  "description": "PolyPartition splits an original concave polygon using ear clipping, optimal triangulation and optimal convex partitioning.",
+  "description_ko": "PolyPartition으로 직접 만든 오목 다각형을 귀 자르기, 최적 삼각분할, 최적 볼록 분할로 나눴어요.",
+  "prompt": "Three ways to divide a polygon. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "polypartition"
+  ],
+  "summary": "PolyPartition splits an original concave polygon using ear clipping, optimal triangulation and optimal convex partitioning..",
+  "summary_ko": "PolyPartition으로 직접 만든 오목 다각형을 귀 자르기, 최적 삼각분할, 최적 볼록 분할로 나눴어요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "PolyPartition splits an original concave polygon using ear clipping, optimal triangulation and optimal convex partitioning. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "PolyPartition으로 직접 만든 오목 다각형을 귀 자르기, 최적 삼각분할, 최적 볼록 분할로 나눴어요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

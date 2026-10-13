@@ -1,0 +1,30 @@
+{
+  "order": 341,
+  "title": "Isolines at different grid resolutions (contourmap)",
+  "title_ko": "격자 해상도별 등고선 (contourmap)",
+  "description": "Contourmap extracts isolines of an original analytic field. Three sampling resolutions reveal how input grid detail changes the contours.",
+  "description_ko": "Contourmap으로 직접 만든 해석적 장의 등고선을 구했어요. 세 격자 해상도에 따른 선의 변화를 비교하세요.",
+  "prompt": "Isolines at different grid resolutions. Recompute with the included Go recipe when changing inputs.",
+  "made_with": "Go 1.25.10; pinned modules in go.mod/go.sum; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "contourmap"
+  ],
+  "summary": "Contourmap extracts isolines of an original analytic field.",
+  "summary_ko": "Contourmap으로 직접 만든 해석적 장의 등고선을 구했어요. 세 격자 해상도에 따른 선의 변화를 비교하세요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "Contourmap extracts isolines of an original analytic field. Three sampling resolutions reveal how input grid detail changes the contours. Viewing reads locally computed outputs; the recipe runs the original tool.",
+  "tool_about_ko": "Contourmap으로 직접 만든 해석적 장의 등고선을 구했어요. 세 격자 해상도에 따른 선의 변화를 비교하세요. 화면은 직접 계산한 결과를 읽고 레시피는 원본 도구를 실행해요."
+}

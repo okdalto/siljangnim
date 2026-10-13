@@ -1,0 +1,15 @@
+{
+  "id": "polypartition",
+  "repo": "https://github.com/ivanfratric/polypartition",
+  "sha": "b000a4a2a72b46e1305fb6e95b080448d7c12049",
+  "url": "https://codeload.github.com/ivanfratric/polypartition/tar.gz/b000a4a2a72b46e1305fb6e95b080448d7c12049",
+  "sha256": "d5370ea2dd03e3e3590fe94145bd01fc29dd5cbb01aca6d3443132385e4b89f6",
+  "license": "MIT",
+  "includes": [
+    "src"
+  ],
+  "files": [
+    "src/polypartition.cpp"
+  ],
+  "frames": 3
+}

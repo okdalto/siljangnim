@@ -161,7 +161,7 @@ writes the code, and the work keeps changing for as long as you keep talking to 
 - **Pass it on** — a project exports as `project.md`: what was asked, which tools were used and how. Another
   person's agent rebuilds it from that, and keeps remixing.
 
-Start from one of **211 examples**, each built on an open-source project (Shan Shui Infinite, MarkovJunior,
+Start from one of **223 examples**, each built on an open-source project (Shan Shui Infinite, MarkovJunior,
 Growing NCA, Three.js, p5.js, OpenCV, librosa …) with its credits and license, and take it somewhere else.
 
 [A longer walk-through of the creative workflow](docs/en/creative.md).

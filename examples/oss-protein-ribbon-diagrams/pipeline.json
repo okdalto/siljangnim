@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "protein-ribbon-diagrams.gallery@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "main.go",
+        "go.mod",
+        "go.sum",
+        "1CRN.pdb"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

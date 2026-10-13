@@ -1,0 +1,13 @@
+{
+  "id": "libmorton",
+  "repo": "https://github.com/forceflow/libmorton",
+  "sha": "69110d23664fc345c831fac5afb9e7d23cce65af",
+  "url": "https://codeload.github.com/forceflow/libmorton/tar.gz/69110d23664fc345c831fac5afb9e7d23cce65af",
+  "sha256": "e09a0922d286519ec22b8c03ae9b0b97c4b5e9d2e0fc25abf53d9e662fc8419f",
+  "license": "MIT",
+  "includes": [
+    "include"
+  ],
+  "files": [],
+  "frames": 3
+}

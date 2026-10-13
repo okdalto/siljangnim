@@ -1,0 +1,30 @@
+{
+  "order": 349,
+  "title": "Boolean operations with the native engine (Clipper2)",
+  "title_ko": "네이티브 엔진의 불리언 연산 (Clipper2)",
+  "description": "The original Clipper2 C++ engine computes union, intersection and difference of two overlapping shapes.",
+  "description_ko": "원본 Clipper2 C++ 엔진으로 겹친 두 도형의 합집합·교집합·차집합을 직접 계산했어요.",
+  "prompt": "Boolean operations with the native engine. Rerun the included recipe to change inputs.",
+  "made_with": "Original native source at a pinned commit; C/C++ compilation executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "clipper2-native"
+  ],
+  "summary": "The original Clipper2 C++ engine computes union, intersection and difference of two overlapping shapes..",
+  "summary_ko": "원본 Clipper2 C++ 엔진으로 겹친 두 도형의 합집합·교집합·차집합을 직접 계산했어요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "The original Clipper2 C++ engine computes union, intersection and difference of two overlapping shapes. The recipe compiles and runs the original engine.",
+  "tool_about_ko": "원본 Clipper2 C++ 엔진으로 겹친 두 도형의 합집합·교집합·차집합을 직접 계산했어요. 레시피에서 원본 엔진을 컴파일해 실행해요."
+}

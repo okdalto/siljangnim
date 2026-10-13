@@ -1,0 +1,15 @@
+{
+  "id": "quickhull",
+  "repo": "https://github.com/akuukka/quickhull",
+  "sha": "4ef66c68950cb4db11d3b75bfe4034d807485ad0",
+  "url": "https://codeload.github.com/akuukka/quickhull/tar.gz/4ef66c68950cb4db11d3b75bfe4034d807485ad0",
+  "sha256": "d1f5479f3bccf85db4c7f16989278b6d6af6ecabb981d0cc39a0416b168af7ad",
+  "license": "Public Domain (stated by author)",
+  "includes": [
+    "."
+  ],
+  "files": [
+    "QuickHull.cpp"
+  ],
+  "frames": 3
+}

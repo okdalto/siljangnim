@@ -1,0 +1,38 @@
+{
+  "order": 344,
+  "title": "Crambin backbone ribbons (Protein Ribbon Diagrams)",
+  "title_ko": "크램빈 주사슬 리본 (Protein Ribbon Diagrams)",
+  "description": "Fogleman’s ribbon generates a mesh from the public 1CRN structure. Rotate the locally computed backbone surface; this is a structural visualization, not a new molecular simulation.",
+  "description_ko": "Fogleman의 ribbon으로 공개 1CRN 구조의 메시를 직접 생성했어요. 계산한 주사슬 표면을 회전해 보세요. 새 분자 시뮬레이션이 아닌 구조 시각화예요.",
+  "prompt": "Crambin backbone ribbons. Recompute with the included Go recipe when changing inputs.",
+  "made_with": "Go 1.25.10; pinned modules in go.mod/go.sum; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "protein-ribbon-diagrams"
+  ],
+  "summary": "Fogleman’s ribbon generates a mesh from the public 1CRN structure.",
+  "summary_ko": "Fogleman의 ribbon으로 공개 1CRN 구조의 메시를 직접 생성했어요. 계산한 주사슬 표면을 회전해 보세요. 새 분자 시뮬레이션이 아닌 구조 시각화예요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale and rotation"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율과 회전을 바꿔 보세요"
+  ],
+  "tool_about": "Fogleman’s ribbon generates a mesh from the public 1CRN structure. Rotate the locally computed backbone surface; this is a structural visualization, not a new molecular simulation. Viewing reads locally computed outputs; the recipe runs the original tool.",
+  "tool_about_ko": "Fogleman의 ribbon으로 공개 1CRN 구조의 메시를 직접 생성했어요. 계산한 주사슬 표면을 회전해 보세요. 새 분자 시뮬레이션이 아닌 구조 시각화예요. 화면은 직접 계산한 결과를 읽고 레시피는 원본 도구를 실행해요.",
+  "credits": [
+    {
+      "what": "1CRN crambin structure (input data)",
+      "source": "W. A. Hendrickson and M. M. Teeter / wwPDB",
+      "url": "https://www.rcsb.org/structure/1CRN",
+      "license": "CC0-1.0"
+    }
+  ]
+}

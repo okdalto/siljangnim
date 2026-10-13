@@ -1,0 +1,30 @@
+{
+  "order": 340,
+  "title": "Hidden lines around solids (ln)",
+  "title_ko": "입체 뒤에 숨은 선 (ln)",
+  "description": "The ln engine ray-tests surface lines against solids and projects the visible segments. Three camera views are computed locally.",
+  "description_ko": "ln 엔진으로 표면의 선과 입체의 가림 관계를 검사했어요. 보이는 선만 투영한 세 시점을 직접 계산했어요.",
+  "prompt": "Hidden lines around solids. Recompute with the included Go recipe when changing inputs.",
+  "made_with": "Go 1.25.10; pinned modules in go.mod/go.sum; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "ln"
+  ],
+  "summary": "The ln engine ray-tests surface lines against solids and projects the visible segments.",
+  "summary_ko": "ln 엔진으로 표면의 선과 입체의 가림 관계를 검사했어요. 보이는 선만 투영한 세 시점을 직접 계산했어요.",
+  "try": [
+    "Select a prepared result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "준비된 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "The ln engine ray-tests surface lines against solids and projects the visible segments. Three camera views are computed locally. Viewing reads locally computed outputs; the recipe runs the original tool.",
+  "tool_about_ko": "ln 엔진으로 표면의 선과 입체의 가림 관계를 검사했어요. 보이는 선만 투영한 세 시점을 직접 계산했어요. 화면은 직접 계산한 결과를 읽고 레시피는 원본 도구를 실행해요."
+}

@@ -1,0 +1,17 @@
+{
+  "id": "libspiro",
+  "repo": "https://github.com/fontforge/libspiro",
+  "sha": "a2f38e13e32f6ba54a2647515cdd6d0a61228317",
+  "url": "https://codeload.github.com/fontforge/libspiro/tar.gz/a2f38e13e32f6ba54a2647515cdd6d0a61228317",
+  "sha256": "5ae644b60ed20d5d68ffebdcfc531506e2ecb1c662556f62765749ec09229b58",
+  "license": "GPL-3.0-or-later",
+  "includes": [
+    "."
+  ],
+  "files": [
+    "spiro.c",
+    "bezctx.c",
+    "spiroentrypoints.c"
+  ],
+  "frames": 3
+}

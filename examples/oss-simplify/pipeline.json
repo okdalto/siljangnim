@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "simplify.gallery@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "main.go",
+        "go.mod",
+        "go.sum"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

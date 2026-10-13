@@ -1,0 +1,18 @@
+{
+  "id": "clipper2",
+  "repo": "https://github.com/angusjohnson/clipper2",
+  "sha": "f9c5eb6e14a59f6f5d65fbfb3564519a561cf4fd",
+  "url": "https://codeload.github.com/angusjohnson/clipper2/tar.gz/f9c5eb6e14a59f6f5d65fbfb3564519a561cf4fd",
+  "sha256": "f9d8abb870bb92137d8bba35a13160993ebe2861979bb1195d337a33666b0bf7",
+  "license": "BSL-1.0",
+  "includes": [
+    "CPP/Clipper2Lib/include"
+  ],
+  "files": [
+    "CPP/Clipper2Lib/src/clipper.engine.cpp",
+    "CPP/Clipper2Lib/src/clipper.offset.cpp",
+    "CPP/Clipper2Lib/src/clipper.rectclip.cpp",
+    "CPP/Clipper2Lib/src/clipper.triangulation.cpp"
+  ],
+  "frames": 3
+}

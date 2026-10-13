@@ -28,6 +28,32 @@
       "sha256": "1271d82841f69db0f8286a604a7ceb2d498e2778f5accdb903af17cdc4068999"
     },
     {
+      "id": "clipper2-native.gallery",
+      "version": 1,
+      "title": "Boolean operations with the native engine",
+      "capability": "clipper2-native geometry native",
+      "kind": "python",
+      "license": "BSL-1.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/clipper2-native.gallery/recipe.md",
+      "sha256": "e303fbf9bd54f95c6ca048373e4b7eda73a01f28a86205fcebe8b75f0ef2db5a"
+    },
+    {
+      "id": "contourmap.gallery",
+      "version": 1,
+      "title": "Isolines at different grid resolutions",
+      "capability": "contourmap rendering geometry",
+      "kind": "command",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/contourmap.gallery/recipe.md",
+      "sha256": "508aa6f89691b826fae64e28366ed0ae201ab78d5137a61490b016280aa866e2"
+    },
+    {
       "id": "datashader.gallery",
       "version": 1,
       "title": "Aggregating a point cloud",
@@ -158,6 +184,19 @@
       "sha256": "5521257a461de130a379ea839e7daedd06a0734854c6e9ea1e0d9e810345c7e0"
     },
     {
+      "id": "go-graphics-gg.gallery",
+      "version": 1,
+      "title": "Layered radial petals",
+      "capability": "go-graphics-gg rendering geometry",
+      "kind": "command",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/go-graphics-gg.gallery/recipe.md",
+      "sha256": "e12956df8d814d723e5d1da17582736d66185a4558943c7d25b66aa247abf661"
+    },
+    {
       "id": "harfbuzz.gallery",
       "version": 1,
       "title": "Shaping a ligature",
@@ -249,6 +288,19 @@
       "sha256": "5f0fa4b22672753cffbe8199e12f16b18771f64bbc57824c7ef400c49e3737b9"
     },
     {
+      "id": "libmorton.gallery",
+      "version": 1,
+      "title": "Coordinates in Z order",
+      "capability": "libmorton geometry native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/libmorton.gallery/recipe.md",
+      "sha256": "5fa55ebb0c1d2c1b4151e3bfed5e85a8b3f6f488852883aecda41ea359d51dde"
+    },
+    {
       "id": "librosa.beat-track",
       "version": 1,
       "title": "Beats, tempo and onset envelope (librosa)",
@@ -262,6 +314,32 @@
       "sha256": "f125ae55cb449eff526566c1611b8b6f34421f8c1c7d563289a702cd54b5e133"
     },
     {
+      "id": "libspiro.gallery",
+      "version": 1,
+      "title": "Smoothness between curve knots",
+      "capability": "libspiro geometry native",
+      "kind": "python",
+      "license": "GPL-3.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/libspiro.gallery/recipe.md",
+      "sha256": "bb731a06dec4677b85723ed0fa3e30b2d999773ef1ff4f3f84731b82b242e693"
+    },
+    {
+      "id": "libtess2.gallery",
+      "version": 1,
+      "title": "Winding rules around a hole",
+      "capability": "libtess2 geometry native",
+      "kind": "python",
+      "license": "SGI-B-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/libtess2.gallery/recipe.md",
+      "sha256": "1274f459f677bb0465cd98590e23bee40159080cfcc1abf2c0dfbfee82b8be26"
+    },
+    {
       "id": "libvips.gallery",
       "version": 1,
       "title": "A streamed blur pipeline",
@@ -273,6 +351,19 @@
       ],
       "path": "recipes/libvips.gallery/recipe.md",
       "sha256": "e14f8e605ac25b28aa7b5be404e5aa755c30f84ac0edefc938263a04147adb8e"
+    },
+    {
+      "id": "ln.gallery",
+      "version": 1,
+      "title": "Hidden lines around solids",
+      "capability": "ln rendering geometry",
+      "kind": "command",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ln.gallery/recipe.md",
+      "sha256": "aef7a5d662c914ac0e0d88e92e7d19cc385cbda7c82403a2fb261d3985056f80"
     },
     {
       "id": "meanderpy.migration",
@@ -431,6 +522,19 @@
       "sha256": "e76351c9721849b387dbb75f514912e75619cc9b175adf10435330d0d577a3da"
     },
     {
+      "id": "polypartition.gallery",
+      "version": 1,
+      "title": "Three ways to divide a polygon",
+      "capability": "polypartition geometry native",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/polypartition.gallery/recipe.md",
+      "sha256": "b3c50198db8d3a9582c698914d312b816228070b77312facd928ebf38aaadd95"
+    },
+    {
       "id": "potrace.gallery",
       "version": 1,
       "title": "Leaf outline tracing (Potrace)",
@@ -455,6 +559,32 @@
       ],
       "path": "recipes/proj.gallery/recipe.md",
       "sha256": "cba22ff0d70e96c4b5cb517a13f3e27a3694c7a272650c86b676e77568ca829e"
+    },
+    {
+      "id": "protein-ribbon-diagrams.gallery",
+      "version": 1,
+      "title": "Crambin backbone ribbons",
+      "capability": "protein-ribbon-diagrams rendering geometry",
+      "kind": "command",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/protein-ribbon-diagrams.gallery/recipe.md",
+      "sha256": "96354d5e49c1c7364b81f609763f4a55d94585fd60fa0ea6779dcc2c75b0bf8e"
+    },
+    {
+      "id": "pt.gallery",
+      "version": 1,
+      "title": "CPU path-traced materials",
+      "capability": "pt rendering geometry",
+      "kind": "command",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/pt.gallery/recipe.md",
+      "sha256": "2d2058a920bce93641bb013804679a706c482a7f51be7d95b56c5deabc2b202a"
     },
     {
       "id": "pymcubes.gyroid-mesh",
@@ -507,6 +637,19 @@
       ],
       "path": "recipes/pyvista.gallery/recipe.md",
       "sha256": "664312a1fcc01f950ad5aeeb3d3e81b88ff6a74ba8152f6067b047f5dbd90246"
+    },
+    {
+      "id": "quickhull.gallery",
+      "version": 1,
+      "title": "Convex shells of point clouds",
+      "capability": "quickhull geometry native",
+      "kind": "python",
+      "license": "Public Domain (stated by author)",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/quickhull.gallery/recipe.md",
+      "sha256": "8fda560b81b4519ef85613ddce2c87e5f5edf089faedbcc654a143df4b61191c"
     },
     {
       "id": "real-esrgan.gallery",
@@ -598,6 +741,19 @@
       ],
       "path": "recipes/shapely.offset-rings/recipe.md",
       "sha256": "2f226b5c1adb3ffac381dd1ea4ae6fb91a5a6e41e0fb20056a5a40ed1dbe7b77"
+    },
+    {
+      "id": "simplify.gallery",
+      "version": 1,
+      "title": "Quadric-error mesh reduction",
+      "capability": "simplify rendering geometry",
+      "kind": "command",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/simplify.gallery/recipe.md",
+      "sha256": "1e37c0a06186ff9c3a5218f9ea5c2e4da3c41558bd47fd5e7d5e79b8ef852225"
     },
     {
       "id": "skan.gallery",

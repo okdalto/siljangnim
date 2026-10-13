@@ -5356,6 +5356,297 @@
     ]
    },
    "notes": "Locally executed CPU recipe. Opening the example downloads prepared output only."
+  },
+  {
+   "id": "go-graphics-gg",
+   "name": "Go Graphics (gg)",
+   "repo": "https://github.com/fogleman/gg",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Go Graphics draws an original radial pattern with affine transforms and alpha blending. Compare three prepared petal counts.",
+   "tags": [
+    "Go",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "go"
+   },
+   "notes": "Tested with Go 1.25.10. Included go.mod/go.sum pin dependencies. Rerunning downloads modules into the Go cache; viewing downloads prepared results only."
+  },
+  {
+   "id": "ln",
+   "name": "ln",
+   "repo": "https://github.com/fogleman/ln",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "The ln engine ray-tests surface lines against solids and projects the visible segments. Three camera views are computed locally.",
+   "tags": [
+    "line drawing",
+    "3D",
+    "vectors",
+    "Go",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "go"
+   },
+   "notes": "Tested with Go 1.25.10. Included go.mod/go.sum pin dependencies. Rerunning downloads modules into the Go cache; viewing downloads prepared results only."
+  },
+  {
+   "id": "contourmap",
+   "name": "contourmap",
+   "repo": "https://github.com/fogleman/contourmap",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Contourmap extracts isolines of an original analytic field. Three sampling resolutions reveal how input grid detail changes the contours.",
+   "tags": [
+    "Go",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "go"
+   },
+   "notes": "Tested with Go 1.25.10. Included go.mod/go.sum pin dependencies. Rerunning downloads modules into the Go cache; viewing downloads prepared results only."
+  },
+  {
+   "id": "simplify",
+   "name": "simplify",
+   "repo": "https://github.com/fogleman/simplify",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Fogleman’s simplify reduces an original wavy mesh with quadric error metrics. Rotate three locally computed triangle budgets.",
+   "tags": [
+    "Go",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "go"
+   },
+   "notes": "Tested with Go 1.25.10. Included go.mod/go.sum pin dependencies. Rerunning downloads modules into the Go cache; viewing downloads prepared results only."
+  },
+  {
+   "id": "pt",
+   "name": "pt",
+   "repo": "https://github.com/fogleman/pt",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "The pt renderer traces an original scene with diffuse, glossy and metallic materials. The three saved renders use independent Monte Carlo samples.",
+   "tags": [
+    "Go",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "go"
+   },
+   "notes": "Tested with Go 1.25.10. Included go.mod/go.sum pin dependencies. Rerunning downloads modules into the Go cache; viewing downloads prepared results only."
+  },
+  {
+   "id": "protein-ribbon-diagrams",
+   "name": "Protein Ribbon Diagrams",
+   "repo": "https://github.com/fogleman/ribbon",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Fogleman’s ribbon generates a mesh from the public 1CRN structure. Rotate the locally computed backbone surface; this is a structural visualization, not a new molecular simulation.",
+   "tags": [
+    "Go",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "go"
+   },
+   "notes": "Tested with Go 1.25.10. Included go.mod/go.sum pin dependencies. Rerunning downloads modules into the Go cache; viewing downloads prepared results only."
+  },
+  {
+   "id": "libmorton",
+   "name": "libmorton",
+   "repo": "https://github.com/forceflow/libmorton",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "libmorton interleaves coordinate bits to order three square grids. Every encoded coordinate is decoded and checked before drawing.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "quickhull",
+   "name": "QuickHull",
+   "repo": "https://github.com/akuukka/quickhull",
+   "license": "Public Domain (stated by author)",
+   "tier": "D",
+   "purpose": "QuickHull computes convex hulls of three deterministic 3D point clouds. Rotate the locally generated triangular shells.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "polypartition",
+   "name": "PolyPartition",
+   "repo": "https://github.com/ivanfratric/polypartition",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "PolyPartition splits an original concave polygon using ear clipping, optimal triangulation and optimal convex partitioning.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "libtess2",
+   "name": "libtess2",
+   "repo": "https://github.com/memononen/libtess2",
+   "license": "SGI-B-2.0",
+   "tier": "D",
+   "purpose": "libtess2 tessellates nested contours under odd and nonzero winding rules, with both orientations of the inner contour.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "clipper2-native",
+   "name": "Clipper2",
+   "repo": "https://github.com/angusjohnson/clipper2",
+   "license": "BSL-1.0",
+   "tier": "D",
+   "purpose": "The original Clipper2 C++ engine computes union, intersection and difference of two overlapping shapes.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "libspiro",
+   "name": "libspiro",
+   "repo": "https://github.com/fontforge/libspiro",
+   "license": "GPL-3.0-or-later",
+   "tier": "D",
+   "purpose": "libspiro solves spiral splines for the same knots using corner, G2 and G4 point types. The generated Bézier curves are sampled for display.",
+   "tags": [
+    "native",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "geometry"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
   }
  ]
 }
