@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.bitmaps=[];\ns.image=async name=>{const b=await createImageBitmap(await(await fetch(ctx.assets[name])).blob());s.bitmaps.push(b);return b;};\ns.json=async name=>await(await fetch(ctx.assets[name])).json();\ns.show=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);\ns.a=await s.image('source.png');s.b=await s.image('regions.png');s.data=await s.json('regions.json');",
+    "render": "const s=ctx.state,gl=ctx.gl,u=ctx.uniforms,[w,h]=ctx.resolution,c=s.c,m=Math.min(w,h);\nif(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#09131f';c.fillRect(0,0,w,h);\nconst size=m*.8,left=(w-size)/2,top=(h-size)/2;\nconst caption=(text)=>{c.fillStyle='#bccbd8';c.font=Math.max(12,m*.021)+'px sans-serif';c.textAlign='center';c.fillText(text,w/2,h/2+m*.46);};\nc.drawImage(s.a,left,top,size,size);c.save();c.beginPath();c.rect(left+size*u.u_compare,top,size*(1-u.u_compare),size);c.clip();c.drawImage(s.b,left,top,size,size);c.restore();c.strokeStyle='#fff9';c.lineWidth=2;c.beginPath();c.moveTo(left+size*u.u_compare,top);c.lineTo(left+size*u.u_compare,top+size);c.stroke();if(u.u_markers){c.fillStyle='#fff';for(const p of s.data.markers){c.beginPath();c.arc(left+p[0]/384*size,top+p[1]/384*size,m*.005,0,Math.PI*2);c.fill();}}caption('WATERSHED / '+s.data.regions+' REGIONS');\ngl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.show);ctx.utils.bindTexture(s.show,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.show);",
+    "cleanup": "const s=ctx.state;s.dead=true;s.bitmaps?.forEach(b=>b.close());ctx.gl.deleteTexture(s.texture);ctx.gl.deleteProgram(s.show);"
+  },
+  "uniforms": {
+    "u_compare": {
+      "type": "float",
+      "label": "Compare",
+      "value": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    "u_markers": {
+      "type": "bool",
+      "label": "Markers",
+      "value": false,
+      "widget": "toggle"
+    }
+  },
+  "inputs": [],
+  "keyframes": {}
+}

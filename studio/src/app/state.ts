@@ -89,6 +89,8 @@ export interface AppState {
   localEngines: Record<LocalEngineId, LocalEngineStatus> | null;
   settingsOpen: boolean;
   examplesOpen: boolean;
+  exampleDownload: { slug: string; loaded: number; total: number; preparing: boolean } | null;
+  exampleCacheRevision: number;
 }
 
 export const useApp = create<AppState>(() => ({
@@ -128,6 +130,8 @@ export const useApp = create<AppState>(() => ({
   localEngines: null,
   settingsOpen: false,
   examplesOpen: false,
+  exampleDownload: null,
+  exampleCacheRevision: 0,
 }));
 
 /** The language descriptions are shown in (Settings → Language, else the system's). */

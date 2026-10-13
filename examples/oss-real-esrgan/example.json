@@ -1,0 +1,38 @@
+{
+  "order": 231,
+  "title": "Rebuilt detail (Real-ESRGAN)",
+  "title_ko": "다시 만든 디테일 (Real-ESRGAN)",
+  "description": "Real-ESRGAN general-x4v3 inferred a 512px result from a 128px downsample of the original render. The baseline uses nearest-neighbor scaling; generated detail is an estimate, not recovered ground truth.",
+  "description_ko": "Real-ESRGAN general-x4v3가 원본을 줄인 128픽셀 입력에서 512픽셀 결과를 추론했어요. 비교 원본은 최근접 확대이며 생성된 디테일은 원본 복원이 아닌 추정이에요.",
+  "prompt": "Compare a 128px input with a learned four-times upscale.",
+  "made_with": "real-esrgan through a bundled, executed recipe",
+  "features": [
+    "real-esrgan",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "real-esrgan"
+  ],
+  "summary": "Compare a 128px input with a learned four-times upscale.",
+  "summary_ko": "128픽셀 입력과 모델이 네 배로 확대한 결과를 비교해요.",
+  "try": [
+    "Slide Compare to inspect the learned upscale",
+    "Zoom in to see edge differences"
+  ],
+  "try_ko": [
+    "Compare로 모델의 확대 결과를 비교하세요",
+    "Zoom으로 가장자리 차이를 살펴보세요"
+  ],
+  "tool_about": "Real-ESRGAN general-x4v3 inferred a 512px result from a 128px downsample of the original render. The baseline uses nearest-neighbor scaling; generated detail is an estimate, not recovered ground truth.",
+  "tool_about_ko": "Real-ESRGAN general-x4v3가 원본을 줄인 128픽셀 입력에서 512픽셀 결과를 추론했어요. 비교 원본은 최근접 확대이며 생성된 디테일은 원본 복원이 아닌 추정이에요.",
+  "credits": [
+    {
+      "what": "general-x4v3 model inference",
+      "source": "Real-ESRGAN",
+      "license": "BSD-3-Clause",
+      "url": "https://github.com/xinntao/Real-ESRGAN"
+    }
+  ]
+}

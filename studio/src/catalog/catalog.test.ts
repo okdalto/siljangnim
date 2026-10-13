@@ -1,3 +1,5 @@
+import { exampleFetchFixture } from "../project/exampleTestFixture";
+exampleFetchFixture();
 import { describe, expect, it } from "vitest";
 import { CATALOG, REFERENCES, referenceFor, searchCatalog, searchReferences } from "./catalog";
 

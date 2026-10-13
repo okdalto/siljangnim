@@ -1,0 +1,30 @@
+{
+  "order": 225,
+  "title": "A leaf becomes vector (Potrace)",
+  "title_ko": "벡터가 된 잎 (Potrace)",
+  "description": "Potrace traces the original PBM bitmap into SVG paths. The viewer draws that real SVG, with an optional pixelated source for comparison.",
+  "description_ko": "Potrace가 직접 만든 PBM 비트맵을 SVG 경로로 추적했어요. 실제 SVG 결과와 픽셀이 드러나는 원본을 비교해요.",
+  "prompt": "Compare a low-resolution leaf bitmap with its smooth traced vector outline.",
+  "made_with": "potrace through a bundled, executed recipe",
+  "features": [
+    "potrace",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "potrace"
+  ],
+  "summary": "Compare a low-resolution leaf bitmap with its smooth traced vector outline.",
+  "summary_ko": "작은 잎 비트맵과 매끈하게 추적한 벡터 윤곽을 비교해요.",
+  "try": [
+    "Switch View between bitmap and vector",
+    "Zoom in to inspect smooth edges"
+  ],
+  "try_ko": [
+    "View에서 비트맵과 벡터를 비교하세요",
+    "확대해서 매끈한 윤곽을 살펴보세요"
+  ],
+  "tool_about": "Potrace traces the original PBM bitmap into SVG paths. The viewer draws that real SVG, with an optional pixelated source for comparison.",
+  "tool_about_ko": "Potrace가 직접 만든 PBM 비트맵을 SVG 경로로 추적했어요. 실제 SVG 결과와 픽셀이 드러나는 원본을 비교해요."
+}

@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "pymeshlab.gallery@1",
+      "packages": [
+        "pymeshlab==2023.12.post3",
+        "numpy==1.26.4"
+      ],
+      "resolved": [
+        "numpy==1.26.4",
+        "pymeshlab==2023.12.post3"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "mesh.json"
+      ]
+    }
+  ]
+}

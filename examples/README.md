@@ -106,6 +106,24 @@ pipeline.json  how the assets were made (copied into the project, so project.md 
 | [Poster sunset (Pillow)](oss-pillow/) | [Pillow](https://github.com/python-pillow/Pillow) (HPND, Python, recipe) | image, quantization, palette, recipe |
 | [Path lanterns (svgpathtools)](oss-svgpathtools/) | [svgpathtools](https://github.com/mathandy/svgpathtools) (MIT, Python, recipe) | SVG, arc length, motion, recipe |
 
+| [Shorter pen journeys (vpype)](oss-vpype/) | [vpype](https://github.com/abey79/vpype) (MIT) | plotter, svg, pen plot |
+| [Touching cells (scikit-image)](oss-scikit-image/) | [scikit-image](https://github.com/scikit-image/scikit-image) (BSD-3-Clause) | image, segmentation, contours |
+| [Voxel constellation (Open3D)](oss-open3d/) | [Open3D](https://github.com/isl-org/Open3D) (MIT) | point cloud, mesh, 3d |
+| [Less mesh, same shape (PyMeshLab)](oss-pymeshlab/) | [PyMeshLab](https://github.com/cnr-isti-vclab/PyMeshLab) (GPL-3.0) | mesh, remesh, decimate |
+| [Inference waves (ONNX Runtime)](oss-onnxruntime-web/) | [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) (MIT) | ml, onnx, inference |
+| [Studio still life (Blender)](oss-blender/) | [Blender](https://projects.blender.org/blender/blender) (GPL-2.0-or-later) | 3d, render, mesh |
+| [Perforated lantern (OpenSCAD)](oss-openscad/) | [OpenSCAD](https://github.com/openscad/openscad) (GPL-2.0) | cad, csg, 3d |
+| [Etched light (ImageMagick)](oss-imagemagick/) | [ImageMagick](https://github.com/ImageMagick/ImageMagick) (ImageMagick) | image, convert, batch |
+| [Vector rosette (Inkscape)](oss-inkscape/) | [Inkscape](https://gitlab.com/inkscape/inkscape) (GPL-2.0-or-later) | svg, vector, export |
+| [A leaf becomes vector (Potrace)](oss-potrace/) | [Potrace](https://potrace.sourceforge.net) (GPL-2.0-or-later) | trace, vectorize, bitmap |
+| [Near and far (Depth Anything V2)](oss-depth-anything-v2/) | [Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2) (Apache-2.0) | depth, image, 3d |
+| [A new backdrop (rembg)](oss-rembg/) | [rembg](https://github.com/danielgatis/rembg) (MIT) | background removal, matting, segmentation |
+| [Three prompts (SAM)](oss-segment-anything/) | [Segment Anything (SAM)](https://github.com/facebookresearch/segment-anything) (Apache-2.0) | segmentation, mask, image |
+| [Words in time (Whisper)](oss-whisper/) | [Whisper](https://github.com/openai/whisper) (MIT) | speech, transcription, audio |
+| [Inside the mix (Demucs)](oss-demucs/) | [Demucs](https://github.com/facebookresearch/demucs) (MIT) | audio, music, stems |
+| [Rebuilt detail (Real-ESRGAN)](oss-real-esrgan/) | [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) (BSD-3-Clause) | upscale, super resolution, image |
+| [Out of the noise (Diffusers)](oss-diffusers/) | [Diffusers (Stable Diffusion and others)](https://github.com/huggingface/diffusers) (Apache-2.0) | image generation, diffusion, text to image |
+
 ## Remixes
 
 Two examples blended into one by an agent with **Mix in** (example details), to show what mixing looks like.
@@ -131,3 +149,22 @@ in the desktop app and checks it renders without errors. Thumbnails: `node mcp/s
 에이전트에게는 참고 구현이 된다(`catalog_get`이 그 도구로 만든 예제의 코드를 보여 준다).
 
 새 예제: **조각 종이 로제트(earcut)**는 구멍이 있는 도형의 삼각분할을, **포스터 노을(Pillow)**은 4·8·16·32색 변환을, **곡선 위의 등불(svgpathtools)**은 SVG 곡선의 등간격 이동을 보여 줍니다. Python 예제는 결과물과 재생성 레시피를 함께 포함합니다.
+
+## Local-tool and model examples / 로컬 도구와 모델 예제
+
+All catalog tools now have an example. ONNX Runtime Web executes an original computation graph in the browser.
+The Python, native-program and pretrained-model examples include actual generated output, the original inputs,
+and the recipe that produced them. Viewing those outputs needs no Python, native application, model download or API key.
+To change a model input or CAD design, rerun its recipe locally; moving a viewer control does not rerun the model.
+First-time model runs download weights separately. The model source and license are listed in each example's credits;
+Diffusers uses the Apache-2.0 DDPM CIFAR-10 model, not a text-to-image service. Whisper and Demucs start silently;
+use **Listen** to hear the included synthetic audio. The Whisper sentence is original text synthesized with macOS speech.
+
+카탈로그의 모든 도구에 예제가 있습니다. ONNX Runtime Web은 브라우저에서 직접 만든 계산 그래프를 실행합니다.
+Python·외부 프로그램·학습 모델 예제에는 실제 생성 결과, 원본 입력, 재생성 레시피가 들어 있습니다.
+결과 감상에는 Python, 외부 앱, 모델 다운로드나 API 키가 필요 없습니다. 입력 이미지나 CAD 설계를 바꾸려면
+로컬에서 레시피를 다시 실행하세요. 화면 컨트롤을 움직이는 것만으로 모델을 다시 실행하지는 않습니다.
+모델을 처음 실행할 때는 가중치를 별도로 받습니다. 출처와 라이선스는 각 예제에 표시돼 있습니다.
+Diffusers는 Apache-2.0 라이선스의 DDPM CIFAR-10 모델로 작은 이미지를 만듭니다.
+Whisper와 Demucs는 무음으로 시작하며 **Listen**을 켜면 포함된 합성 음원을 들을 수 있습니다.
+Whisper의 음성은 직접 작성한 문장을 macOS 음성 합성으로 만든 것입니다.

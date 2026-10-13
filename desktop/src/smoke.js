@@ -565,7 +565,8 @@ async function runExamplesScenario(win, examplesOut) {
         const s = document.querySelector("[data-runtime-state]");
         return s && { state: s.dataset.runtimeState, errors: Number(s.dataset.runtimeErrors), project: document.querySelector('header button[title="Rename project"]')?.innerText };
       })()`);
-      if (state?.state === "running" && state.project !== "Untitled") break;
+      const opened = await win.webContents.executeJavaScript(`!document.querySelector('[data-testid="examples"]')`);
+      if (opened && state?.state === "running" && state.project !== "Untitled") break;
     }
     await wait(1200);
     const frame = await findSceneFrame(win);
@@ -589,6 +590,78 @@ async function runExamplesScenario(win, examplesOut) {
     log(`example ${slug}: ${JSON.stringify(results[slug])}`);
   }
   return results;
+}
+
+/** Cache reuse must survive a renderer reload, with all example fetches blocked. */
+async function runExampleCacheScenario(win) {
+  win.webContents.reload();
+  await new Promise((resolve) => win.webContents.once("did-finish-load", resolve));
+  await wait(1000);
+  return win.webContents.executeJavaScript(`(async () => {
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const fetchOriginal = window.fetch;
+    let requests = 0;
+    window.fetch = (...args) => {
+      const url = String(args[0]);
+      if (url.includes("/example-library/") || url.includes("/examples/")) {
+        requests++;
+        return Promise.reject(new Error("offline cache smoke"));
+      }
+      return fetchOriginal(...args);
+    };
+    try {
+      document.querySelector('[data-testid="view-examples"]').click();
+      await sleep(300);
+      const card = document.querySelector('[data-example="oss-blender"]');
+      const cachedLabel = /Downloaded|다운로드됨/.test(card?.textContent ?? "");
+      card.click();
+      for (let i = 0; i < 100; i++) {
+        await sleep(100);
+        if (!document.querySelector('[data-testid="examples"]')) break;
+      }
+      const opened = !document.querySelector('[data-testid="examples"]');
+      await sleep(500);
+      const offlineRequests = requests;
+      const countProjects = () => new Promise((resolve, reject) => {
+        const request = indexedDB.open("siljangnim-studio");
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result;
+          const count = db.transaction("projects").objectStore("projects").count();
+          count.onsuccess = () => { resolve(count.result); db.close(); };
+          count.onerror = () => reject(count.error);
+        };
+      });
+      const before = await countProjects();
+      document.querySelector('[data-testid="view-examples"]').click();
+      await sleep(300);
+      document.querySelector('[data-testid="clear-example-downloads"]').click();
+      await sleep(300);
+      document.querySelector('[data-example="oss-blender"]').click();
+      await sleep(500);
+      const failedCleanly = Boolean(document.querySelector('[role="alert"]')) && await countProjects() === before;
+      window.fetch = (...args) => {
+        const url = String(args[0]);
+        if (url.includes("/example-library/") || url.includes("/examples/")) return new Promise((_resolve, reject) => {
+          args[1].signal.addEventListener("abort", () => reject(new DOMException("Cancelled", "AbortError")), { once: true });
+        });
+        return fetchOriginal(...args);
+      };
+      document.querySelector('[data-example="oss-blender"]').click();
+      await sleep(300);
+      document.querySelector('[data-testid="cancel-example-download"]').click();
+      await sleep(300);
+      const cancelledCleanly = !document.querySelector('[data-testid="example-download"]') && await countProjects() === before;
+      window.fetch = fetchOriginal;
+      document.querySelector('[data-example="oss-blender"]').click();
+      for (let i = 0; i < 100; i++) {
+        await sleep(100);
+        if (!document.querySelector('[data-testid="examples"]')) break;
+      }
+      const retried = !document.querySelector('[data-testid="examples"]') && await countProjects() === before + 1;
+      return { cachedLabel, opened, requests: offlineRequests, failedCleanly, cancelledCleanly, retried };
+    } finally { window.fetch = fetchOriginal; }
+  })()`);
 }
 
 export async function runSmokeTest(win, hub, keys, outDir) {
@@ -660,6 +733,8 @@ async function runSmoke(win, hub, keys, outDir) {
   const history = agent ? await runHistoryScenario(win, sceneFrame) : null;
   log("examples");
   const examples = await runExamplesScenario(win, outDir);
+  log("example cache offline reopen");
+  const exampleCache = await runExampleCacheScenario(win);
   log("frame menu");
   const frameCheck = await runFrameScenario(win).catch((err) => ({ error: String(err) }));
   log("v1 import");
@@ -747,12 +822,14 @@ async function runSmoke(win, hub, keys, outDir) {
           localAgentResumes: Boolean(localAgent.second?.text.includes("resumed mock-session-1")),
         }
       : {}),
+    exampleCacheReused: exampleCache.cachedLabel && exampleCache.opened && exampleCache.requests === 0,
+    exampleDownloadRecovery: exampleCache.failedCleanly && exampleCache.cancelledCleanly && exampleCache.retried,
     examplesRun:
       Object.keys(examples).length >= 10 && // 1% lit: sparse pieces (a graph of dots and thin lines on black) are real output too.
       Object.values(examples).every((e) => e.skipped || (e.state === "running" && e.errors === 0 && e.litFraction > 0.01)),
   };
   const ok = Object.values(checks).every(Boolean);
-  report({ ok, checks, scene, iframe, llm, agent, history, examples, frameCheck, v1, folder, attach, localAgent, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
+  report({ ok, checks, scene, iframe, llm, agent, history, examples, exampleCache, frameCheck, v1, folder, attach, localAgent, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
   clearTimeout(timer);
   quit(hub, ok ? 0 : 1);
 }

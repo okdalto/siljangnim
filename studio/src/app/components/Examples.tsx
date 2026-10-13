@@ -4,10 +4,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { CATALOG, REFERENCES, REFERENCE_SOURCE, referenceFor, referenceLabels, type CatalogEntry, type ReferenceEntry } from "../../catalog/catalog";
 import { EXAMPLES, exampleText, type Example } from "../../project/examples";
-import { buildWithAgent, exampleLink, mixExample, openExample, setExamplesOpen } from "../session";
+import { exampleCache } from "../../project/exampleCache";
+import { cancelExampleDownload, clearExampleDownloads, buildWithAgent, exampleLink, mixExample, openExample, setExamplesOpen } from "../session";
 import type { Language } from "../language";
 import { useApp, useLanguage } from "../state";
 import { CheckIcon, MixIcon, XIcon } from "./icons";
+
+function formatBytes(bytes: number): string {
+  return bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
+}
 
 const MADE_HERE = "Made in Siljangnim";
 
@@ -157,6 +162,15 @@ export function ExamplesDialog() {
   const korean = useLanguage() === "ko";
   const t = STRINGS[korean ? "ko" : "en"];
   const [query, setQuery] = useState("");
+  const download = useApp((s) => s.exampleDownload);
+  const cacheRevision = useApp((s) => s.exampleCacheRevision);
+  const notice = useApp((s) => s.notice);
+  const [cache, setCache] = useState({ bytes: 0, ready: new Set<string>() });
+  useEffect(() => {
+    let active = true;
+    void exampleCache.status(EXAMPLES).then((value) => { if (active) setCache(value); }).catch(() => {});
+    return () => { active = false; };
+  }, [cacheRevision]);
   const [picked, setPicked] = useState<string | null>(null);
   const [showUnbuilt, setShowUnbuilt] = useState(true);
   const [detail, setDetail] = useState<Item | null>(null);
@@ -225,11 +239,26 @@ export function ExamplesDialog() {
             ))}
           </div>
         </div>
+        <div className="border-b border-line px-6 py-2 text-xs text-muted" aria-live="polite">
+          {download ? (
+            <div className="flex items-center gap-3" data-testid="example-download">
+              <span>{exampleText(EXAMPLES.find((e) => e.slug === download.slug)!, korean).title} · {download.preparing ? (korean ? "프로젝트 준비 중…" : "Preparing project…") : `${formatBytes(download.loaded)} / ${formatBytes(download.total)}`}</span>
+              <progress aria-label={korean ? "예제 다운로드" : "Example download"} value={download.loaded} max={download.total} className="h-2 flex-1" />
+              <button type="button" data-testid="cancel-example-download" disabled={download.preparing} onClick={cancelExampleDownload} className="rounded border border-line px-2 py-1 disabled:opacity-40">{korean ? "취소" : "Cancel"}</button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-3">
+              <span>{korean ? "열 때 필요한 파일을 받고, 다음부터 저장된 파일을 사용해요." : "Files download when opened and are reused next time."}</span>
+              <button type="button" data-testid="clear-example-downloads" onClick={() => void clearExampleDownloads()} disabled={!cache.bytes} className="shrink-0 rounded border border-line px-2 py-1 disabled:opacity-40">{korean ? "다운로드 캐시 삭제" : "Clear downloads"} · {formatBytes(cache.bytes)}</button>
+            </div>
+          )}
+          {notice?.kind === "error" && <p role="alert" className="mt-2 text-red-400">{notice.text}</p>}
+        </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
           {examples.length > 0 && (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
               {examples.map((i) => (
-                <ExampleCard key={i.key} example={i.example!} tools={i.tools!} gpu={gpu} korean={korean} onInfo={() => setDetail(i)} />
+                <ExampleCard key={i.key} example={i.example!} cached={cache.ready.has(i.example!.slug)} busy={Boolean(download)} tools={i.tools!} gpu={gpu} korean={korean} onInfo={() => setDetail(i)} />
               ))}
             </div>
           )}
@@ -261,6 +290,7 @@ function Detail({ example: e, tools, korean, onClose }: { example: Example; tool
   const text = exampleText(e, korean);
   const t = STRINGS[korean ? "ko" : "en"];
   const hasProject = useApp((s) => Boolean(s.project));
+  const busy = useApp((s) => Boolean(s.exampleDownload));
   return (
     <aside className="flex w-[380px] shrink-0 flex-col border-l border-line bg-panel" data-testid="example-detail">
       <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
@@ -308,12 +338,13 @@ function Detail({ example: e, tools, korean, onClose }: { example: Example; tool
         </details>
       </div>
       <div className="flex items-center gap-2 border-t border-line p-3">
-        <button type="button" onClick={() => void openExample(e.slug)} className="flex-1 rounded-md bg-accent py-1.5 text-sm font-medium text-white hover:opacity-90" data-testid="example-open">
+        <button type="button" disabled={busy} onClick={() => void openExample(e.slug)} className="flex-1 rounded-md bg-accent py-1.5 text-sm font-medium text-white hover:opacity-90" data-testid="example-open">
           {t.open}
         </button>
         {hasProject && (
           <button
             type="button"
+            disabled={busy}
             onClick={() => void mixExample(e.slug)}
             title={t.mixTitle}
             data-testid="example-mix"
@@ -398,12 +429,12 @@ function CopyLink({ slug, t }: { slug: string; t: Strings }) {
   );
 }
 
-function ExampleCard({ example: e, tools, gpu, korean, onInfo }: { example: Example; tools: CatalogEntry[]; gpu: boolean; korean: boolean; onInfo: () => void }) {
+function ExampleCard({ example: e, cached, busy, tools, gpu, korean, onInfo }: { example: Example; cached: boolean; busy: boolean; tools: CatalogEntry[]; gpu: boolean; korean: boolean; onInfo: () => void }) {
   const text = exampleText(e, korean);
   const t = STRINGS[korean ? "ko" : "en"];
   return (
     <div className="overflow-hidden rounded-lg border border-line bg-panel transition-colors hover:border-faint">
-      <button type="button" data-example={e.slug} data-requires={(e.requires ?? []).join(" ")} onClick={() => void openExample(e.slug)} className="block w-full text-left">
+      <button type="button" disabled={busy} data-example={e.slug} data-requires={(e.requires ?? []).join(" ")} onClick={() => void openExample(e.slug)} className="block w-full text-left">
         {e.thumbnail ? <img src={e.thumbnail} alt="" loading="lazy" className="h-28 w-full bg-bg object-cover" /> : <div className="h-28 w-full bg-bg" />}
         <div className="p-2.5 pb-1.5">
           <div className="flex items-center justify-between gap-2">
@@ -417,6 +448,7 @@ function ExampleCard({ example: e, tools, gpu, korean, onInfo }: { example: Exam
             {e.requires?.includes("camera") && <span className="shrink-0 rounded bg-raised px-1.5 py-0.5 text-[10px] text-muted">{t.camera}</span>}
           </div>
           <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-muted">{text.summary}</p>
+          <p className="mt-1 text-[10px] text-faint">{cached ? (korean ? "다운로드됨" : "Downloaded") : (korean ? "첫 열기 다운로드" : "First download")} · {formatBytes(e.bytes)}</p>
         </div>
       </button>
       <div className="flex items-center gap-1 px-2.5 pb-2">
@@ -453,6 +485,7 @@ function ReferenceCard({ reference: r, korean }: { reference: ReferenceEntry; ko
   const external = useApp((s) => Boolean(s.external));
   const t = STRINGS[korean ? "ko" : "en"];
   const labels = referenceLabels(r, korean);
+  const busy = useApp((s) => Boolean(s.exampleDownload));
   return (
     <div className="flex flex-col rounded-lg border border-line/70 p-2.5 text-xs" data-reference={r.id}>
       <div className="flex items-center justify-between gap-2">
@@ -473,6 +506,7 @@ function ReferenceCard({ reference: r, korean }: { reference: ReferenceEntry; ko
       </p>
       <button
         type="button"
+        disabled={busy}
         onClick={() => void buildWithAgent(r)}
         title={external ? t.copyTitle : t.buildTitle}
         className="mt-2 self-start rounded-md border border-line px-2 py-1 text-[11px] text-muted hover:border-faint hover:text-fg"

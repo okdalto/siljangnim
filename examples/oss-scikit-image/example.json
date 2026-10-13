@@ -1,0 +1,30 @@
+{
+  "order": 218,
+  "title": "Touching cells (scikit-image)",
+  "title_ko": "맞닿은 세포 (scikit-image)",
+  "description": "scikit-image detects distance peaks and applies watershed to a procedural binary image. The colors represent computed segments, not hand-painted masks.",
+  "description_ko": "scikit-image가 직접 만든 이진 이미지에서 거리 봉우리를 찾고 워터셰드로 영역을 나눠요. 색은 손으로 그린 마스크가 아니라 계산 결과예요.",
+  "prompt": "Touching blobs separate into colored regions using distance-transform watershed.",
+  "made_with": "scikit-image through a bundled, executed recipe",
+  "features": [
+    "scikit-image",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "scikit-image"
+  ],
+  "summary": "Touching blobs separate into colored regions using distance-transform watershed.",
+  "summary_ko": "서로 맞닿은 덩어리를 거리 변환과 워터셰드로 서로 다른 영역으로 나눠요.",
+  "try": [
+    "Slide Compare between the binary input and regions",
+    "Turn Markers on to inspect segmentation seeds"
+  ],
+  "try_ko": [
+    "Compare로 입력과 영역 분리를 비교하세요",
+    "Markers를 켜서 분리 기준점을 살펴보세요"
+  ],
+  "tool_about": "scikit-image detects distance peaks and applies watershed to a procedural binary image. The colors represent computed segments, not hand-painted masks.",
+  "tool_about_ko": "scikit-image가 직접 만든 이진 이미지에서 거리 봉우리를 찾고 워터셰드로 영역을 나눠요. 색은 손으로 그린 마스크가 아니라 계산 결과예요."
+}

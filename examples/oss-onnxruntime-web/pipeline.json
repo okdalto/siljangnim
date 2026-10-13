@@ -1,0 +1,22 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "onnxruntime-web.gallery@1",
+      "packages": [
+        "onnx==1.17.0",
+        "numpy==1.26.4"
+      ],
+      "resolved": [
+        "numpy==1.26.4",
+        "onnx==1.17.0",
+        "protobuf==7.36.2"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "interference.onnx"
+      ]
+    }
+  ]
+}

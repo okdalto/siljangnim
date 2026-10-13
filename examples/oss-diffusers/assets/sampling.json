@@ -1,0 +1,1 @@
+{"frames": 11, "tile": 64, "steps": 50, "seed": 23, "model": "google/ddpm-cifar10-32", "revision": "267b167dc01f0e4e61923ea244e8b988f84deb80", "scheduler": "DDIM"}

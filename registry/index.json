@@ -2,6 +2,19 @@
   "version": 1,
   "recipes": [
     {
+      "id": "blender.gallery",
+      "version": 1,
+      "title": "Rendered still life (Blender)",
+      "capability": "3d render cycles still life",
+      "kind": "command",
+      "license": "GPL-2.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/blender.gallery/recipe.md",
+      "sha256": "4fe969f57b3d70920b22b768737db9c4219f0061d789427428021592bff79ec2"
+    },
+    {
       "id": "circlify.stdlib-packing",
       "version": 1,
       "title": "Circle packing of the Python standard library by lines of code (circlify)",
@@ -13,6 +26,45 @@
       ],
       "path": "recipes/circlify.stdlib-packing/recipe.md",
       "sha256": "1271d82841f69db0f8286a604a7ceb2d498e2778f5accdb903af17cdc4068999"
+    },
+    {
+      "id": "demucs.gallery",
+      "version": 1,
+      "title": "Instrument stems (Demucs)",
+      "capability": "audio separation stems music",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/demucs.gallery/recipe.md",
+      "sha256": "dc3f8e8be6eeaf67cf1ea80d8f97ffabe56e9ca78f5175d6eecca5be2fdad863"
+    },
+    {
+      "id": "depth-anything-v2.gallery",
+      "version": 1,
+      "title": "Still-life relative depth (Depth Anything V2)",
+      "capability": "image relative depth inference",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/depth-anything-v2.gallery/recipe.md",
+      "sha256": "8e2219fc36d6861cc980c1fc5e791ef0fd380adcbc8ce875805b5fdbb7ebd584"
+    },
+    {
+      "id": "diffusers.gallery",
+      "version": 1,
+      "title": "From noise to tiny images (Diffusers)",
+      "capability": "image diffusion denoise sampling",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/diffusers.gallery/recipe.md",
+      "sha256": "df7bfe4d39c7479d16ab363fdf4d0e0b658a636402e1a57be59a858311233e30"
     },
     {
       "id": "ffmpeg.mandelbrot-zoom",
@@ -39,6 +91,32 @@
       ],
       "path": "recipes/hilbertcurve.orders/recipe.md",
       "sha256": "060a337371c04fd9adec16874e17b0b05ce8ca92eda9870eada021a3d25cc7a7"
+    },
+    {
+      "id": "imagemagick.gallery",
+      "version": 4,
+      "title": "Etched edges (ImageMagick)",
+      "capability": "image edge detect grayscale",
+      "kind": "command",
+      "license": "ImageMagick",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/imagemagick.gallery/recipe.md",
+      "sha256": "744e945f7971e8f71b91e2d7e534c4976dbc0f891b04f784047ac73d37e9ed6d"
+    },
+    {
+      "id": "inkscape.gallery",
+      "version": 1,
+      "title": "Vector rosette export (Inkscape)",
+      "capability": "svg vector png export",
+      "kind": "command",
+      "license": "GPL-2.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/inkscape.gallery/recipe.md",
+      "sha256": "cf077dcd6edb2b2116d7c6bb2616681bb1e639b54e4b72135220ec2bc85ec857"
     },
     {
       "id": "librosa.beat-track",
@@ -80,6 +158,32 @@
       "sha256": "0851b6175145270d386564700ce6be0967a219029aa07fb743a0ab479096da00"
     },
     {
+      "id": "onnxruntime-web.gallery",
+      "version": 1,
+      "title": "Original ONNX interference graph",
+      "capability": "onnx graph procedural math browser",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/onnxruntime-web.gallery/recipe.md",
+      "sha256": "cc13e743b6a9a1319bb263d1668ad5a30ac4b5534f24546defd13e1f292ab4d5"
+    },
+    {
+      "id": "open3d.gallery",
+      "version": 1,
+      "title": "Voxel point-cloud sampling (Open3D)",
+      "capability": "geometry point cloud voxel downsample",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/open3d.gallery/recipe.md",
+      "sha256": "2c5e208fcf3332d652150e63af52ba8695d3f48010f2f262198d32a27c1f7512"
+    },
+    {
       "id": "opencv.contours",
       "version": 1,
       "title": "Edge contours as polylines (OpenCV)",
@@ -91,6 +195,19 @@
       ],
       "path": "recipes/opencv.contours/recipe.md",
       "sha256": "ab16e3e78ec41d198874c0706cb5a87ba5c968a4935b8d785abb8878dd58e257"
+    },
+    {
+      "id": "openscad.gallery",
+      "version": 1,
+      "title": "Perforated lantern (OpenSCAD)",
+      "capability": "cad csg stl lantern",
+      "kind": "command",
+      "license": "GPL-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/openscad.gallery/recipe.md",
+      "sha256": "48e318c83e024c521ac3ffbebdeb5f20b33e3618ea1eb33ef22d5bda98ec6fa3"
     },
     {
       "id": "pillow.poster-sunset",
@@ -106,6 +223,19 @@
       "sha256": "e76351c9721849b387dbb75f514912e75619cc9b175adf10435330d0d577a3da"
     },
     {
+      "id": "potrace.gallery",
+      "version": 1,
+      "title": "Leaf outline tracing (Potrace)",
+      "capability": "bitmap pbm svg trace",
+      "kind": "command",
+      "license": "GPL-2.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/potrace.gallery/recipe.md",
+      "sha256": "c73a952483a30d19b11586fdc5b3d3c99033865b6bfde6428edc77ed44ffeef5"
+    },
+    {
       "id": "pymcubes.gyroid-mesh",
       "version": 1,
       "title": "Mesh an implicit field with marching cubes (PyMCubes)",
@@ -119,6 +249,32 @@
       "sha256": "c07370580f0949849e57bee761c55d4511713bc89961f7613e4d7f859b04429f"
     },
     {
+      "id": "pymeshlab.gallery",
+      "version": 1,
+      "title": "Mesh simplification levels (PyMeshLab)",
+      "capability": "geometry mesh decimate quadric",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/pymeshlab.gallery/recipe.md",
+      "sha256": "40b15c6db0bb9fe9a677336dc0377fba3efceb064b30fe165e3822731d5264ae"
+    },
+    {
+      "id": "real-esrgan.gallery",
+      "version": 1,
+      "title": "Four-times detail (Real-ESRGAN)",
+      "capability": "image upscale super resolution",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/real-esrgan.gallery/recipe.md",
+      "sha256": "5a646712b687785a67f611b1e4c8461285ef808df23962fa3cfe7f4f7e24b060"
+    },
+    {
       "id": "rebound.disk-flyby",
       "version": 1,
       "title": "Debris disk torn by a passing star (REBOUND)",
@@ -130,6 +286,45 @@
       ],
       "path": "recipes/rebound.disk-flyby/recipe.md",
       "sha256": "d5f1dd477157ba709a522865a54bf95b00b69667f04f3fafd522747026e9e463"
+    },
+    {
+      "id": "rembg.gallery",
+      "version": 1,
+      "title": "Still-life cutout (rembg)",
+      "capability": "image background removal alpha",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/rembg.gallery/recipe.md",
+      "sha256": "99efcccf929bf1cc53740ff1ba154ce2ac1e3611db0a2ed564261d113203821a"
+    },
+    {
+      "id": "scikit-image.gallery",
+      "version": 1,
+      "title": "Watershed cell regions (scikit-image)",
+      "capability": "image segmentation watershed cells",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/scikit-image.gallery/recipe.md",
+      "sha256": "c636668ad6af280205101b53fde0227a86a62e939206da4c07a6b754fb35317d"
+    },
+    {
+      "id": "segment-anything.gallery",
+      "version": 1,
+      "title": "Prompted object masks (SAM)",
+      "capability": "image segmentation point mask",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/segment-anything.gallery/recipe.md",
+      "sha256": "cc3dec2fa329cdcd02637d6e861166cffb1cd6ded4bdeca74af82d71bf2a2081"
     },
     {
       "id": "sgp4.ground-tracks",
@@ -208,6 +403,32 @@
       ],
       "path": "recipes/umap.digits-embedding/recipe.md",
       "sha256": "67b5fcf3ef9bf8157e2aad125babf50213451d6d812e9f3cc60ff3b0c29701c2"
+    },
+    {
+      "id": "vpype.gallery",
+      "version": 1,
+      "title": "Plotter travel optimization (vpype)",
+      "capability": "plotter svg linesort pen travel",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/vpype.gallery/recipe.md",
+      "sha256": "ffdb35a5de96eafa0c01900c850393dc64f1289a78878bb9700f58985d17a70b"
+    },
+    {
+      "id": "whisper.gallery",
+      "version": 1,
+      "title": "Word timing (Whisper)",
+      "capability": "audio speech transcription word timestamps",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/whisper.gallery/recipe.md",
+      "sha256": "844688e068bba2c90c426861b0e628a8cb7d049502e416e94f6206523f134db4"
     }
   ]
 }

@@ -1,0 +1,43 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.bitmaps=[];\ns.image=async name=>{const b=await createImageBitmap(await(await fetch(ctx.assets[name])).blob());s.bitmaps.push(b);return b;};\ns.json=async name=>await(await fetch(ctx.assets[name])).json();\ns.show=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);\ns.a=await s.image('source.png');s.data=await s.json('prompts.json');s.masks=[];for(let i=0;i<3;i++){const b=await s.image('mask-'+i+'.png'),off=new OffscreenCanvas(b.width,b.height),cc=off.getContext('2d');cc.drawImage(b,0,0);const d=cc.getImageData(0,0,b.width,b.height);for(let j=0;j<d.data.length;j+=4){const a=d.data[j];d.data[j]=50;d.data[j+1]=235;d.data[j+2]=190;d.data[j+3]=a;}cc.putImageData(d,0,0);s.masks.push(off);}s.selected=0;s.menu=0;",
+    "render": "const s=ctx.state,gl=ctx.gl,u=ctx.uniforms,[w,h]=ctx.resolution,c=s.c,m=Math.min(w,h);\nif(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#09131f';c.fillRect(0,0,w,h);\nconst size=m*.8,left=(w-size)/2,top=(h-size)/2;\nconst caption=(text)=>{c.fillStyle='#bccbd8';c.font=Math.max(12,m*.021)+'px sans-serif';c.textAlign='center';c.fillText(text,w/2,h/2+m*.46);};\nif(s.menu!==u.u_prompt){s.menu=u.u_prompt;s.selected=u.u_prompt;}if(ctx.mouseDown&&!s.down){let best=-1,dist=30;for(let i=0;i<3;i++){const p=s.data.points[i],d=Math.hypot(ctx.mouse[0]*w-left-p[0]*size,ctx.mouse[1]*h-top-p[1]*size);if(d<dist){best=i;dist=d;}}if(best>=0)s.selected=best;}s.down=ctx.mouseDown;c.drawImage(s.a,left,top,size,size);c.globalAlpha=u.u_opacity;c.drawImage(s.masks[s.selected],left,top,size,size);c.globalAlpha=1;for(let i=0;i<3;i++){const p=s.data.points[i];c.beginPath();c.arc(left+p[0]*size,top+p[1]*size,m*.01,0,Math.PI*2);c.fillStyle=i===s.selected?'#44f4be':'#fff';c.fill();c.strokeStyle='#123';c.lineWidth=2;c.stroke();}caption('SAVED PROMPT '+(s.selected+1)+' / SAM SCORE '+s.data.scores[s.selected].toFixed(3));\ngl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.show);ctx.utils.bindTexture(s.show,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.show);",
+    "cleanup": "const s=ctx.state;s.dead=true;s.bitmaps?.forEach(b=>b.close());ctx.gl.deleteTexture(s.texture);ctx.gl.deleteProgram(s.show);"
+  },
+  "uniforms": {
+    "u_prompt": {
+      "type": "int",
+      "label": "Saved prompt",
+      "value": 0,
+      "widget": "select",
+      "options": [
+        {
+          "label": "Sphere",
+          "value": 0
+        },
+        {
+          "label": "Cube",
+          "value": 1
+        },
+        {
+          "label": "Ring",
+          "value": 2
+        }
+      ]
+    },
+    "u_opacity": {
+      "type": "float",
+      "label": "Opacity",
+      "value": 0.6,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    }
+  },
+  "inputs": [
+    "mouse"
+  ],
+  "keyframes": {}
+}

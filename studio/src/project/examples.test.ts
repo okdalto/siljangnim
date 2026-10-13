@@ -3,6 +3,8 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { CATALOG } from "../catalog/catalog";
 import { EXAMPLES } from "./examples";
+import { exampleFetchFixture } from "./exampleTestFixture";
+exampleFetchFixture();
 
 const ROOT = join(import.meta.dirname, "..", "..", "..");
 
@@ -29,7 +31,7 @@ describe("examples", () => {
     }
   });
 
-  it("name the open-source tools they're built around, and ship the recipes they ran", () => {
+  it("name the open-source tools they're built around, and ship the recipes they ran", async () => {
     const open = EXAMPLES.filter((e) => e.uses?.length);
     expect(open.length).toBeGreaterThanOrEqual(15);
     for (const e of open) for (const id of e.uses!) expect(CATALOG.map((c) => c.id), `${e.slug} uses ${id}`).toContain(id);
@@ -40,7 +42,7 @@ describe("examples", () => {
       for (const id of readdirSync(dir)) {
         expect(readFileSync(join(dir, id, "recipe.md"), "utf8"), `${e.slug}: ${id}`).toBe(readFileSync(join(ROOT, "registry", "recipes", id, "recipe.md"), "utf8"));
       }
-      const steps = (e.pipeline as { steps?: Array<{ recipe?: string; outputs: string[] }> } | null)?.steps ?? [];
+      const steps = ((await e.load()).pipeline as { steps?: Array<{ recipe?: string; outputs: string[] }> } | null)?.steps ?? [];
       for (const step of steps) for (const out of step.outputs) expect(e.assets.map((a) => a.name), `${e.slug}: ${out}`).toContain(out);
     }
   });
@@ -88,5 +90,61 @@ describe("SVG path lantern data", () => {
       expect(distance / spacing).toBeGreaterThan(0.98);
       expect(distance / spacing).toBeLessThan(1.001);
     });
+  });
+});
+
+describe("catalog recipe examples", () => {
+  const asset = (slug: string, name: string): unknown => JSON.parse(readFileSync(join(ROOT, "examples", slug, "assets", name), "utf8"));
+
+  it("provides a runnable reference for every catalog tool", () => {
+    const used = new Set(EXAMPLES.flatMap((e) => e.uses ?? []));
+    for (const tool of CATALOG) expect(used.has(tool.id), tool.id).toBe(true);
+  });
+
+  it("ships the recipe inputs as well as outputs", async () => {
+    for (const e of EXAMPLES) {
+      const steps = ((await e.load()).pipeline as { steps?: Array<{ inputs?: string[] }> } | null)?.steps ?? [];
+      for (const step of steps) for (const input of step.inputs ?? []) {
+        expect(e.assets.map((a) => a.name), `${e.slug}: input ${input}`).toContain(input);
+      }
+    }
+  });
+
+  it("preserves geometry while reducing travel, points and triangles", () => {
+    const paths = asset("oss-vpype", "paths.json") as { before: number[][][]; after: number[][][]; travelBefore: number; travelAfter: number };
+    expect(paths.travelAfter).toBeLessThan(paths.travelBefore);
+    // Sorting may reverse a path, but must not drop or change any coordinates.
+    const points = (lines: number[][][]) => lines.flat().map((p) => p.join(",")).sort();
+    expect(points(paths.after)).toEqual(points(paths.before));
+    const cloud = asset("oss-open3d", "cloud.json") as { levels: Array<{ points: number[][] }> };
+    cloud.levels.forEach((level, i) => {
+      expect(level.points.length).toBeGreaterThan(0);
+      expect(level.points.every((p) => p.length === 3 && p.every(Number.isFinite))).toBe(true);
+      if (i) expect(level.points.length).toBeLessThan(cloud.levels[i - 1]!.points.length);
+    });
+    const mesh = asset("oss-pymeshlab", "mesh.json") as { levels: Array<{ vertices: number[][]; faces: number[][] }> };
+    mesh.levels.forEach((level, i) => {
+      expect(level.vertices.every((p) => p.length === 3 && p.every(Number.isFinite))).toBe(true);
+      expect(level.faces.every((f) => f.length === 3 && f.every((v) => Number.isInteger(v) && v >= 0 && v < level.vertices.length))).toBe(true);
+      if (i) expect(level.faces.length).toBeLessThan(mesh.levels[i - 1]!.faces.length);
+    });
+  });
+
+  it("keeps speech timestamps and stem envelopes within the source duration", () => {
+    const speech = asset("oss-whisper", "transcript.json") as { duration: number; words: Array<{ word: string; start: number; end: number }> };
+    expect(speech.words.length).toBeGreaterThan(5);
+    speech.words.forEach((word, i) => {
+      expect(word.word.trim()).toBeTruthy();
+      expect(word.start).toBeGreaterThanOrEqual(i ? speech.words[i - 1]!.start : 0);
+      expect(word.end).toBeGreaterThanOrEqual(word.start);
+      expect(word.end).toBeLessThanOrEqual(speech.duration);
+    });
+    const audio = asset("oss-demucs", "stems.json") as { duration: number; stems: Array<{ name: string; rms: number[] }> };
+    expect(audio.duration).toBe(6);
+    expect(audio.stems.map((s) => s.name).sort()).toEqual(["bass", "drums", "other", "vocals"]);
+    for (const stem of audio.stems) {
+      expect(stem.rms).toHaveLength(240);
+      expect(stem.rms.every((x) => Number.isFinite(x) && x >= 0)).toBe(true);
+    }
   });
 });

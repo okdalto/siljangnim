@@ -1,0 +1,38 @@
+{
+  "order": 226,
+  "title": "Near and far (Depth Anything V2)",
+  "title_ko": "가까움과 멂 (Depth Anything V2)",
+  "description": "Depth Anything V2 Small predicts relative inverse depth from the bundled Blender render. Brighter values mean closer surfaces; this is not metric distance. The saved inference runs instantly in the viewer.",
+  "description_ko": "Depth Anything V2 Small이 포함된 Blender 렌더에서 상대 역깊이를 추정했어요. 밝을수록 가깝고 실제 거리 단위는 아니에요. 화면에는 저장된 추론 결과가 바로 열려요.",
+  "prompt": "Compare a still life with a model-estimated relative depth map.",
+  "made_with": "depth-anything-v2 through a bundled, executed recipe",
+  "features": [
+    "depth-anything-v2",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "depth-anything-v2"
+  ],
+  "summary": "Compare a still life with a model-estimated relative depth map.",
+  "summary_ko": "정물 사진과 모델이 추정한 상대 깊이 지도를 비교해요.",
+  "try": [
+    "Slide Compare between color and depth",
+    "Toggle Heat colors to read the depth structure"
+  ],
+  "try_ko": [
+    "Compare로 색상과 깊이를 비교하세요",
+    "Heat colors로 깊이 구조를 살펴보세요"
+  ],
+  "tool_about": "Depth Anything V2 Small predicts relative inverse depth from the bundled Blender render. Brighter values mean closer surfaces; this is not metric distance. The saved inference runs instantly in the viewer.",
+  "tool_about_ko": "Depth Anything V2 Small이 포함된 Blender 렌더에서 상대 역깊이를 추정했어요. 밝을수록 가깝고 실제 거리 단위는 아니에요. 화면에는 저장된 추론 결과가 바로 열려요.",
+  "credits": [
+    {
+      "what": "Inference with Small model",
+      "source": "Depth Anything V2",
+      "license": "Apache-2.0",
+      "url": "https://huggingface.co/depth-anything/Depth-Anything-V2-Small-hf"
+    }
+  ]
+}

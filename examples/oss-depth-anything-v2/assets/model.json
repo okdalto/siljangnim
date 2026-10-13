@@ -1,0 +1,1 @@
+{"model": "depth-anything/Depth-Anything-V2-Small-hf", "revision": "5426e4f0f36572d16453bbda7a8389317b1bef99", "meaning": "relative inverse depth; brighter is closer, not metric distance"}

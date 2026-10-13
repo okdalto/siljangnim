@@ -1,0 +1,18 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "potrace.gallery@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "leaf.pbm",
+        "source.png"
+      ],
+      "params": {},
+      "outputs": [
+        "trace.svg"
+      ]
+    }
+  ]
+}

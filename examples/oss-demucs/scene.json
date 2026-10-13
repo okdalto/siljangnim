@@ -1,0 +1,47 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.bitmaps=[];\ns.image=async name=>{const b=await createImageBitmap(await(await fetch(ctx.assets[name])).blob());s.bitmaps.push(b);return b;};\ns.json=async name=>await(await fetch(ctx.assets[name])).json();\ns.show=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);\ns.data=await s.json('stems.json');s.track=-1;s.audio=null;s.playing=false;s.error='';s.play=async name=>{try{s.audio=await ctx.utils.audio.play(name,{loop:true,volume:.7});}catch(e){s.error=String(e);}};",
+    "render": "const s=ctx.state,gl=ctx.gl,u=ctx.uniforms,[w,h]=ctx.resolution,c=s.c,m=Math.min(w,h);\nif(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#09131f';c.fillRect(0,0,w,h);\nconst size=m*.8,left=(w-size)/2,top=(h-size)/2;\nconst caption=(text)=>{c.fillStyle='#bccbd8';c.font=Math.max(12,m*.021)+'px sans-serif';c.textAlign='center';c.fillText(text,w/2,h/2+m*.46);};\nconst names=['mix','drums','bass','other','vocals'];if(u.u_listen&&(!s.playing||s.track!==u.u_stem)){ctx.utils.audio.stop();s.track=u.u_stem;s.playing=true;void s.play(names[u.u_stem]+'.wav');}if(!u.u_listen&&s.playing){ctx.utils.audio.stop();s.playing=false;s.audio=null;}const t=s.audio&&!s.audio.paused?s.audio.currentTime:ctx.time%s.data.duration;\nfor(let j=0;j<s.data.stems.length;j++){const stem=s.data.stems[j],cy=top+size*(.14+j*.23),peak=Math.max(.001,...s.data.stems.flatMap(stem=>stem.rms));c.fillStyle='#bcd0dd';c.font=Math.max(11,m*.02)+'px sans-serif';c.textAlign='left';c.fillText(stem.name.toUpperCase(),left,cy-size*.07);const selected=names[u.u_stem]===stem.name;for(let i=0;i<stem.rms.length;i++){const v=stem.rms[i]/peak*size*.065;c.fillStyle=selected?'#55e5c0':'#487593';c.fillRect(left+i/stem.rms.length*size,cy-v,size/stem.rms.length*.8,Math.max(1,v*2));}}c.fillStyle='#f6c476';c.fillRect(left+t/s.data.duration*size,top,2,size);caption('DEMUCS / '+names[u.u_stem].toUpperCase()+' / SHARED AMPLITUDE SCALE');\ngl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.show);ctx.utils.bindTexture(s.show,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.show);",
+    "cleanup": "const s=ctx.state;s.dead=true;s.bitmaps?.forEach(b=>b.close());ctx.gl.deleteTexture(s.texture);ctx.gl.deleteProgram(s.show); ctx.utils.audio.stop();"
+  },
+  "uniforms": {
+    "u_stem": {
+      "type": "int",
+      "label": "Stem",
+      "value": 0,
+      "widget": "select",
+      "options": [
+        {
+          "label": "Mix",
+          "value": 0
+        },
+        {
+          "label": "Drums",
+          "value": 1
+        },
+        {
+          "label": "Bass",
+          "value": 2
+        },
+        {
+          "label": "Other",
+          "value": 3
+        },
+        {
+          "label": "Vocals",
+          "value": 4
+        }
+      ]
+    },
+    "u_listen": {
+      "type": "bool",
+      "label": "Listen",
+      "value": false,
+      "widget": "toggle"
+    }
+  },
+  "inputs": [],
+  "keyframes": {}
+}

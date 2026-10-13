@@ -1,0 +1,17 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "openscad.gallery@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "lantern.scad"
+      ],
+      "params": {},
+      "outputs": [
+        "lantern.stl"
+      ]
+    }
+  ]
+}

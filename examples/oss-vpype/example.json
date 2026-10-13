@@ -1,0 +1,30 @@
+{
+  "order": 217,
+  "title": "Shorter pen journeys (vpype)",
+  "title_ko": "펜의 짧은 여행 (vpype)",
+  "description": "vpype linesort reorders and reverses original paths to reduce pen-up travel. Both orders and measured travel lengths come from the executed recipe.",
+  "description_ko": "vpype의 linesort가 경로 순서와 방향을 바꿔 펜을 들고 이동하는 거리를 줄여요. 실제 실행한 두 경로와 거리 측정값이 포함돼 있어요.",
+  "prompt": "Watch a plotter visit the same woven lines before and after travel optimization.",
+  "made_with": "vpype through a bundled, executed recipe",
+  "features": [
+    "vpype",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "vpype"
+  ],
+  "summary": "Watch a plotter visit the same woven lines before and after travel optimization.",
+  "summary_ko": "같은 물결무늬를 그릴 때 펜의 이동 경로가 얼마나 짧아지는지 비교해요.",
+  "try": [
+    "Switch Route between original and sorted",
+    "Enable Travel to reveal pen-up moves"
+  ],
+  "try_ko": [
+    "Route에서 원래 순서와 정렬된 순서를 비교하세요",
+    "Travel을 켜서 펜을 든 이동을 확인하세요"
+  ],
+  "tool_about": "vpype linesort reorders and reverses original paths to reduce pen-up travel. Both orders and measured travel lengths come from the executed recipe.",
+  "tool_about_ko": "vpype의 linesort가 경로 순서와 방향을 바꿔 펜을 들고 이동하는 거리를 줄여요. 실제 실행한 두 경로와 거리 측정값이 포함돼 있어요."
+}

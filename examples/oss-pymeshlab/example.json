@@ -1,0 +1,30 @@
+{
+  "order": 220,
+  "title": "Less mesh, same shape (PyMeshLab)",
+  "title_ko": "형태를 남기는 단순화 (PyMeshLab)",
+  "description": "PyMeshLab quadric edge-collapse decimates an original torus. Each menu option loads an actual simplified mesh, preserving the overall shape with fewer faces.",
+  "description_ko": "PyMeshLab의 quadric edge-collapse가 직접 만든 고리 메시를 단순화해요. 메뉴마다 실제로 계산된 메시가 들어 있어 삼각형 수와 형태를 비교할 수 있어요.",
+  "prompt": "Explore a rippled ring at four levels of mesh simplification.",
+  "made_with": "pymeshlab through a bundled, executed recipe",
+  "features": [
+    "pymeshlab",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "pymeshlab"
+  ],
+  "summary": "Explore a rippled ring at four levels of mesh simplification.",
+  "summary_ko": "굴곡진 고리의 삼각형 수를 네 단계로 줄이며 형태 변화를 살펴봐요.",
+  "try": [
+    "Switch Detail to compare triangle counts",
+    "Toggle Wireframe and drag to orbit"
+  ],
+  "try_ko": [
+    "Detail을 바꿔 삼각형 수를 비교하세요",
+    "Wireframe을 바꾸고 드래그로 돌려 보세요"
+  ],
+  "tool_about": "PyMeshLab quadric edge-collapse decimates an original torus. Each menu option loads an actual simplified mesh, preserving the overall shape with fewer faces.",
+  "tool_about_ko": "PyMeshLab의 quadric edge-collapse가 직접 만든 고리 메시를 단순화해요. 메뉴마다 실제로 계산된 메시가 들어 있어 삼각형 수와 형태를 비교할 수 있어요."
+}

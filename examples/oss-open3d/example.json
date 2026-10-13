@@ -1,0 +1,30 @@
+{
+  "order": 219,
+  "title": "Voxel constellation (Open3D)",
+  "title_ko": "복셀 별자리 (Open3D)",
+  "description": "Open3D voxel_down_sample averages points inside spatial cells. Four real downsampled point clouds are bundled; drag to orbit and scroll to zoom.",
+  "description_ko": "Open3D가 공간 격자 안의 점들을 평균 내어 점군을 줄여요. 실제 계산한 네 단계 점군이 들어 있어요. 드래그로 회전하고 스크롤로 확대하세요.",
+  "prompt": "A dense scanned-looking ring becomes a sparse constellation as voxel size grows.",
+  "made_with": "open3d through a bundled, executed recipe",
+  "features": [
+    "open3d",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "open3d"
+  ],
+  "summary": "A dense scanned-looking ring becomes a sparse constellation as voxel size grows.",
+  "summary_ko": "촘촘한 고리 점군이 복셀 크기를 키울수록 성긴 별자리로 바뀌어요.",
+  "try": [
+    "Change Voxel level and compare point counts",
+    "Drag to orbit; scroll to zoom"
+  ],
+  "try_ko": [
+    "Voxel level을 바꾸고 점 개수를 비교하세요",
+    "드래그로 회전하고 스크롤로 확대하세요"
+  ],
+  "tool_about": "Open3D voxel_down_sample averages points inside spatial cells. Four real downsampled point clouds are bundled; drag to orbit and scroll to zoom.",
+  "tool_about_ko": "Open3D가 공간 격자 안의 점들을 평균 내어 점군을 줄여요. 실제 계산한 네 단계 점군이 들어 있어요. 드래그로 회전하고 스크롤로 확대하세요."
+}

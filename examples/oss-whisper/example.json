@@ -1,0 +1,38 @@
+{
+  "order": 229,
+  "title": "Words in time (Whisper)",
+  "title_ko": "시간 속의 단어 (Whisper)",
+  "description": "Whisper tiny.en transcribed an original sentence synthesized with macOS speech. The words and timestamps are actual inference output. Preview is silent until Listen is enabled.",
+  "description_ko": "Whisper tiny.en이 macOS 음성 합성으로 만든 원문을 받아 적었어요. 단어와 시간은 실제 추론 결과이며 Listen을 켜기 전까지 미리보기는 무음이에요.",
+  "prompt": "Words light up along a timeline using real Whisper word timestamps.",
+  "made_with": "whisper through a bundled, executed recipe",
+  "features": [
+    "whisper",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "whisper"
+  ],
+  "summary": "Words light up along a timeline using real Whisper word timestamps.",
+  "summary_ko": "Whisper가 인식한 단어별 시간에 맞춰 글자가 빛나요.",
+  "try": [
+    "Enable Listen to hear the source aligned with words",
+    "Turn Listen off for the silent looping preview"
+  ],
+  "try_ko": [
+    "Listen을 켜서 단어와 원본 음성을 함께 들으세요",
+    "Listen을 끄면 무음 반복 미리보기로 돌아가요"
+  ],
+  "tool_about": "Whisper tiny.en transcribed an original sentence synthesized with macOS speech. The words and timestamps are actual inference output. Preview is silent until Listen is enabled.",
+  "tool_about_ko": "Whisper tiny.en이 macOS 음성 합성으로 만든 원문을 받아 적었어요. 단어와 시간은 실제 추론 결과이며 Listen을 켜기 전까지 미리보기는 무음이에요.",
+  "credits": [
+    {
+      "what": "tiny.en model inference",
+      "source": "OpenAI Whisper",
+      "license": "MIT",
+      "url": "https://github.com/openai/whisper"
+    }
+  ]
+}

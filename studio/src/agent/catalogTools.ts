@@ -1,6 +1,7 @@
 // Catalog tools: which open-source tool fits, before setting one up.
 import { z } from "zod";
 import { CATALOG, REFERENCES, REFERENCE_SOURCE, referenceFor, searchCatalog, searchReferences, type CatalogEntry, type ReferenceEntry } from "../catalog/catalog";
+import { exampleCache } from "../project/exampleCache";
 import { EXAMPLES, type Example } from "../project/examples";
 import { defineTool, type ToolDefinition } from "./tools";
 
@@ -27,7 +28,10 @@ async function reference(e: CatalogEntry): Promise<string> {
   if (!example) return "";
   const scene = await example.scene();
   const setup = scene.script.setup.length > MAX_REFERENCE ? `${scene.script.setup.slice(0, MAX_REFERENCE)}\n// …` : scene.script.setup;
-  const steps = (example.pipeline as { steps?: Array<{ recipe?: string; params?: unknown }> } | null)?.steps ?? [];
+  const pipelineFile = example.files.filter((f) => f.path === "pipeline.json");
+  const blobs = await exampleCache.read(example.slug, pipelineFile);
+  const pipeline = blobs.has("pipeline.json") ? JSON.parse(await blobs.get("pipeline.json")!.text()) : null;
+  const steps = (pipeline as { steps?: Array<{ recipe?: string; params?: unknown }> } | null)?.steps ?? [];
   const recipes = steps.flatMap((s) => (s.recipe ? [`${s.recipe}${s.params ? ` with params ${JSON.stringify(s.params)}` : ""}`] : []));
   return [
     `\nExample "${example.title}" (gallery: Projects → Examples) is built around it. ${example.description}`,
@@ -106,7 +110,10 @@ const catalogGet = defineTool({
   readOnly: true,
   async run({ id }) {
     const e = CATALOG.find((c) => c.id === id);
-    if (e) return { content: detail(e) + (await reference(e)) };
+    if (e) {
+      try { return { content: detail(e) + (await reference(e)) }; }
+      catch (err) { return { content: `${detail(e)}\nExample reference could not be downloaded: ${String(err)}. Retry catalog_get when the connection is available.` }; }
+    }
     const r = REFERENCES.find((c) => c.id === id);
     return r ? { content: referenceDetail(r) } : { isError: true, content: `No catalog entry "${id}"; use catalog_search.` };
   },

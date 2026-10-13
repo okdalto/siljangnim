@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.bitmaps=[];\ns.image=async name=>{const b=await createImageBitmap(await(await fetch(ctx.assets[name])).blob());s.bitmaps.push(b);return b;};\ns.json=async name=>await(await fetch(ctx.assets[name])).json();\ns.show=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);\ns.data=await s.json('transcript.json');s.audio=null;s.playing=false;s.error='';s.play=async name=>{try{s.audio=await ctx.utils.audio.play(name,{loop:true,volume:.7});}catch(e){s.error=String(e);}};",
+    "render": "const s=ctx.state,gl=ctx.gl,u=ctx.uniforms,[w,h]=ctx.resolution,c=s.c,m=Math.min(w,h);\nif(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#09131f';c.fillRect(0,0,w,h);\nconst size=m*.8,left=(w-size)/2,top=(h-size)/2;\nconst caption=(text)=>{c.fillStyle='#bccbd8';c.font=Math.max(12,m*.021)+'px sans-serif';c.textAlign='center';c.fillText(text,w/2,h/2+m*.46);};\nif(u.u_listen&&!s.playing){s.playing=true;void s.play('voice.wav');}if(!u.u_listen&&s.playing){ctx.utils.audio.stop();s.playing=false;s.audio=null;}const t=s.audio&&!s.audio.paused?s.audio.currentTime:ctx.time%s.data.duration;c.font='500 '+Math.max(18,m*.043)+'px sans-serif';c.textAlign='left';let x=left,y=h/2-size*.2;\nfor(const word of s.data.words){const width=c.measureText(word.word+' ').width;if(x+width>left+size){x=left;y+=m*.072;}const active=t>=word.start&&t<=word.end;c.fillStyle=active?'#59f1ce':t>word.end?'#d7e4ee':'#476174';c.fillText(word.word,x,y);x+=width;}\nfor(const word of s.data.words){c.fillStyle=t>=word.start&&t<=word.end?'#59f1ce':'#31536a';c.fillRect(left+word.start/s.data.duration*size,h/2+size*.3,Math.max(2,(word.end-word.start)/s.data.duration*size),m*.015);}c.fillStyle='#f7c778';c.fillRect(left+t/s.data.duration*size,h/2+size*.27,2,m*.07);caption(s.error?'Click Listen again to retry audio':'WHISPER tiny.en / '+t.toFixed(1)+'s');\ngl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.show);ctx.utils.bindTexture(s.show,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.show);",
+    "cleanup": "const s=ctx.state;s.dead=true;s.bitmaps?.forEach(b=>b.close());ctx.gl.deleteTexture(s.texture);ctx.gl.deleteProgram(s.show); ctx.utils.audio.stop();"
+  },
+  "uniforms": {
+    "u_listen": {
+      "type": "bool",
+      "label": "Listen",
+      "value": false,
+      "widget": "toggle"
+    }
+  },
+  "inputs": [],
+  "keyframes": {}
+}

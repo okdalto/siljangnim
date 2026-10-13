@@ -1,0 +1,30 @@
+{
+  "order": 216,
+  "title": "Inference waves (ONNX Runtime)",
+  "title_ko": "추론 파동 (ONNX Runtime)",
+  "description": "ONNX Runtime executes a small original MatMul/Add/Sin/Abs computation graph with WASM. This is a mathematical graph, not a pretrained image model. Frequency changes rerun real inference.",
+  "description_ko": "ONNX Runtime이 직접 만든 MatMul/Add/Sin/Abs 계산 그래프를 WASM으로 실행해요. 학습된 이미지 모델이 아닌 수학 그래프이며, 주파수를 바꾸면 실제 추론을 다시 실행해요.",
+  "prompt": "An ONNX graph turns coordinates into flowing color waves, running live in your browser.",
+  "made_with": "ONNX Runtime Web 1.22.0, original ONNX graph",
+  "features": [
+    "onnxruntime-web",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "onnxruntime-web"
+  ],
+  "summary": "An ONNX graph turns coordinates into flowing color waves, running live in your browser.",
+  "summary_ko": "브라우저에서 ONNX 그래프가 좌표를 흐르는 색 파동으로 바꿔요.",
+  "try": [
+    "Change Frequency to reshape the bands",
+    "Pause Animate to inspect a fixed pattern"
+  ],
+  "try_ko": [
+    "Frequency를 바꿔 줄무늬 모양을 조절해 보세요",
+    "Animate를 꺼서 무늬를 멈춰 보세요"
+  ],
+  "tool_about": "ONNX Runtime executes a small original MatMul/Add/Sin/Abs computation graph with WASM. This is a mathematical graph, not a pretrained image model. Frequency changes rerun real inference.",
+  "tool_about_ko": "ONNX Runtime이 직접 만든 MatMul/Add/Sin/Abs 계산 그래프를 WASM으로 실행해요. 학습된 이미지 모델이 아닌 수학 그래프이며, 주파수를 바꾸면 실제 추론을 다시 실행해요."
+}

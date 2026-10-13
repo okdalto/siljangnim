@@ -3,7 +3,8 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { resolve } from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import type { Plugin } from "vite";
+import { loadEnv, type Plugin } from "vite";
+import { exampleLibrary } from "./server/exampleLibrary";
 import { defineConfig } from "vitest/config";
 import { LLM_PREFIX, forwardLlmRequest } from "./server/llmForward.js";
 
@@ -73,8 +74,14 @@ if (!process.env.VITE_SCENE_ORIGIN && process.env.VERCEL_ENV === "preview" && pr
   process.env.VITE_SCENE_ORIGIN = `https://${process.env.VERCEL_URL}`;
 }
 
-export default defineConfig({
-  plugins: [react(), tailwindcss(), sceneCspPlugin(), devLlmProxy()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(), tailwindcss(), sceneCspPlugin(), devLlmProxy(),
+    exampleLibrary(
+      resolve(import.meta.dirname, "../examples"),
+      process.env.SILJANGNIM_EXAMPLES_BASE_URL || loadEnv(mode, import.meta.dirname, "SILJANGNIM_").SILJANGNIM_EXAMPLES_BASE_URL,
+    ),
+  ],
   server: {
     // The app runs on localhost and the scene runtime on 127.0.0.1, so they
     // are separate origins in dev too (see src/scene/host.ts).
@@ -102,4 +109,4 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts"],
   },
-});
+}));

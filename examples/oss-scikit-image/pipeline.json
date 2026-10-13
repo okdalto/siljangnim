@@ -1,0 +1,32 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "scikit-image.gallery@1",
+      "packages": [
+        "scikit-image==0.25.2",
+        "numpy==1.26.4",
+        "scipy==1.14.1",
+        "Pillow==11.3.0"
+      ],
+      "resolved": [
+        "imageio==2.38.1",
+        "lazy-loader==0.6",
+        "networkx==3.6.1",
+        "numpy==1.26.4",
+        "packaging==26.3",
+        "pillow==11.3.0",
+        "scikit-image==0.25.2",
+        "scipy==1.14.1",
+        "tifffile==2026.3.3"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "source.png",
+        "regions.png",
+        "regions.json"
+      ]
+    }
+  ]
+}

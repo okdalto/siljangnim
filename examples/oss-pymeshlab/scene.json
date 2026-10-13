@@ -1,0 +1,46 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.bitmaps=[];\ns.image=async name=>{const b=await createImageBitmap(await(await fetch(ctx.assets[name])).blob());s.bitmaps.push(b);return b;};\ns.json=async name=>await(await fetch(ctx.assets[name])).json();\ns.show=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);\ns.data=await s.json('mesh.json');s.camera=ctx.utils.createOrbitCamera({distance:3.2,phi:1.05,theta:.35,autoRotate:.18});",
+    "render": "const s=ctx.state,gl=ctx.gl,u=ctx.uniforms,[w,h]=ctx.resolution,c=s.c,m=Math.min(w,h);\nif(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#09131f';c.fillRect(0,0,w,h);\nconst size=m*.8,left=(w-size)/2,top=(h-size)/2;\nconst caption=(text)=>{c.fillStyle='#bccbd8';c.font=Math.max(12,m*.021)+'px sans-serif';c.textAlign='center';c.fillText(text,w/2,h/2+m*.46);};\ns.camera.update(ctx.mouse,ctx.mousePrev,ctx.mouseDown,ctx.keys,ctx.dt);const matrix=s.camera.getViewProjection(w/h);const project=v=>{const x=v[0],y=v[1],z=v[2],d=matrix[3]*x+matrix[7]*y+matrix[11]*z+matrix[15];return [(matrix[0]*x+matrix[4]*y+matrix[8]*z+matrix[12])/d*w/2+w/2,h/2-(matrix[1]*x+matrix[5]*y+matrix[9]*z+matrix[13])/d*h/2,(matrix[2]*x+matrix[6]*y+matrix[10]*z+matrix[14])/d];};const mesh=s.data.levels[u.u_level];const projected=mesh.vertices.map(project);const faces=mesh.faces.map(f=>({f,z:f.reduce((a,i)=>a+projected[i][2],0)/3})).sort((a,b)=>b.z-a.z);for(const {f} of faces){c.beginPath();f.forEach((i,j)=>j?c.lineTo(projected[i][0],projected[i][1]):c.moveTo(projected[i][0],projected[i][1]));c.closePath();const a=mesh.vertices[f[0]],b=mesh.vertices[f[1]],d=mesh.vertices[f[2]],nx=(b[1]-a[1])*(d[2]-a[2])-(b[2]-a[2])*(d[1]-a[1]),ny=(b[2]-a[2])*(d[0]-a[0])-(b[0]-a[0])*(d[2]-a[2]),nz=(b[0]-a[0])*(d[1]-a[1])-(b[1]-a[1])*(d[0]-a[0]),len=Math.hypot(nx,ny,nz)||1;const light=35+30*Math.abs((nx*.3+ny*.7+nz*.6)/len);c.fillStyle='hsl(175 45% '+light+'%)';c.fill();if(u.u_wire){c.strokeStyle='#102938aa';c.lineWidth=.7;c.stroke();}}caption(mesh.faces.length+' TRIANGLES / QUADRIC DECIMATION');\ngl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.show);ctx.utils.bindTexture(s.show,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.show);",
+    "cleanup": "const s=ctx.state;s.dead=true;s.bitmaps?.forEach(b=>b.close());ctx.gl.deleteTexture(s.texture);ctx.gl.deleteProgram(s.show);"
+  },
+  "uniforms": {
+    "u_level": {
+      "type": "int",
+      "label": "Detail",
+      "value": 2,
+      "widget": "select",
+      "options": [
+        {
+          "label": "Original",
+          "value": 0
+        },
+        {
+          "label": "1200 faces",
+          "value": 1
+        },
+        {
+          "label": "400 faces",
+          "value": 2
+        },
+        {
+          "label": "120 faces",
+          "value": 3
+        }
+      ]
+    },
+    "u_wire": {
+      "type": "bool",
+      "label": "Wireframe",
+      "value": true,
+      "widget": "toggle"
+    }
+  },
+  "inputs": [
+    "mouse",
+    "keyboard"
+  ],
+  "keyframes": {}
+}

@@ -1,0 +1,30 @@
+{
+  "order": 224,
+  "title": "Vector rosette (Inkscape)",
+  "title_ko": "벡터 로제트 (Inkscape)",
+  "description": "Inkscape rasterizes an original SVG containing gradients and transformed ellipses. Both the editable source SVG and the 768px PNG are included.",
+  "description_ko": "Inkscape가 그라디언트와 타원 변환으로 만든 원본 SVG를 렌더링했어요. 편집 가능한 SVG와 768픽셀 PNG가 함께 들어 있어요.",
+  "prompt": "A delicate SVG rosette exported to PNG by Inkscape.",
+  "made_with": "inkscape through a bundled, executed recipe",
+  "features": [
+    "inkscape",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "inkscape"
+  ],
+  "summary": "A delicate SVG rosette exported to PNG by Inkscape.",
+  "summary_ko": "섬세한 SVG 로제트를 Inkscape로 PNG에 내보냈어요.",
+  "try": [
+    "Zoom to inspect strokes",
+    "Open source.svg to edit and rerun the export recipe"
+  ],
+  "try_ko": [
+    "Zoom으로 선을 자세히 살펴보세요",
+    "source.svg를 편집하고 내보내기 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Inkscape rasterizes an original SVG containing gradients and transformed ellipses. Both the editable source SVG and the 768px PNG are included.",
+  "tool_about_ko": "Inkscape가 그라디언트와 타원 변환으로 만든 원본 SVG를 렌더링했어요. 편집 가능한 SVG와 768픽셀 PNG가 함께 들어 있어요."
+}

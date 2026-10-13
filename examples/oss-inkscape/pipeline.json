@@ -1,0 +1,17 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "inkscape.gallery@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "source.svg"
+      ],
+      "params": {},
+      "outputs": [
+        "rosette.png"
+      ]
+    }
+  ]
+}

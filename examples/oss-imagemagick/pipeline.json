@@ -1,0 +1,17 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "imagemagick.gallery@4",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "source.png"
+      ],
+      "params": {},
+      "outputs": [
+        "edges.png"
+      ]
+    }
+  ]
+}

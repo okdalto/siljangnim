@@ -1,0 +1,28 @@
+{
+  "order": 223,
+  "title": "Etched light (ImageMagick)",
+  "title_ko": "빛의 윤곽 (ImageMagick)",
+  "description": "ImageMagick converts the source to grayscale, blurs noise, computes morphological edges, then inverts the result. The comparison uses the real command output.",
+  "description_ko": "ImageMagick이 원본을 회색조로 바꾸고 노이즈를 흐리게 한 뒤 형태학적 윤곽선을 계산하고 반전했어요. 비교 화면은 실제 명령 실행 결과예요.",
+  "prompt": "A rendered still life becomes a monochrome edge print.",
+  "made_with": "imagemagick through a bundled, executed recipe",
+  "features": [
+    "imagemagick",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "imagemagick"
+  ],
+  "summary": "A rendered still life becomes a monochrome edge print.",
+  "summary_ko": "렌더링한 정물을 흑백 윤곽 인쇄물로 바꿔요.",
+  "try": [
+    "Move Compare to reveal the edge print"
+  ],
+  "try_ko": [
+    "Compare를 움직여 윤곽선 결과를 확인하세요"
+  ],
+  "tool_about": "ImageMagick converts the source to grayscale, blurs noise, computes morphological edges, then inverts the result. The comparison uses the real command output.",
+  "tool_about_ko": "ImageMagick이 원본을 회색조로 바꾸고 노이즈를 흐리게 한 뒤 형태학적 윤곽선을 계산하고 반전했어요. 비교 화면은 실제 명령 실행 결과예요."
+}

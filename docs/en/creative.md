@@ -15,6 +15,15 @@ answering.
 
 You can also start from an example. Open any piece from **Examples** and it becomes your own project as is.
 
+Examples download their scene and prepared images, audio and data when first opened. Each card shows the
+size; the gallery shows progress and lets you cancel. Downloads are cached in this browser/app for reuse.
+If a download fails or is cancelled, open it again to retry; verified files are reused.
+**Clear downloads** removes only the example cache, keeping projects you already created.
+
+Viewing an AI example does not install large models or tools; those are prepared separately when you regenerate it.
+Cached example files can be reused offline, but external JS libraries, cameras and online services may still be required.
+Clearing site data or browser storage eviction removes the cache and requires downloading again.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

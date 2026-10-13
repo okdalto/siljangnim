@@ -1,0 +1,38 @@
+{
+  "order": 230,
+  "title": "Inside the mix (Demucs)",
+  "title_ko": "믹스 안으로 (Demucs)",
+  "description": "Demucs htdemucs separated the supplied six-second mix into drums, bass, other and vocals. These are model estimates; the instrumental input produces little vocal content. Listen is opt-in.",
+  "description_ko": "Demucs htdemucs가 6초짜리 원본 믹스를 드럼·베이스·기타·보컬로 분리했어요. 모델의 추정 결과이며 악기만 있는 입력이라 보컬은 거의 없어요. Listen을 켜면 소리가 나요.",
+  "prompt": "Inspect and audition four separated stems from an original synthetic instrumental loop.",
+  "made_with": "demucs through a bundled, executed recipe",
+  "features": [
+    "demucs",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "demucs"
+  ],
+  "summary": "Inspect and audition four separated stems from an original synthetic instrumental loop.",
+  "summary_ko": "직접 만든 합성 연주 루프를 네 트랙으로 분리해 살펴보고 들어 보세요.",
+  "try": [
+    "Choose a Stem and enable Listen",
+    "Compare the envelopes; vocals can be nearly silent"
+  ],
+  "try_ko": [
+    "Stem을 선택하고 Listen을 켜 보세요",
+    "파형을 비교하세요. 보컬 트랙은 거의 무음일 수 있어요"
+  ],
+  "tool_about": "Demucs htdemucs separated the supplied six-second mix into drums, bass, other and vocals. These are model estimates; the instrumental input produces little vocal content. Listen is opt-in.",
+  "tool_about_ko": "Demucs htdemucs가 6초짜리 원본 믹스를 드럼·베이스·기타·보컬로 분리했어요. 모델의 추정 결과이며 악기만 있는 입력이라 보컬은 거의 없어요. Listen을 켜면 소리가 나요.",
+  "credits": [
+    {
+      "what": "htdemucs inference",
+      "source": "Meta Demucs",
+      "license": "MIT",
+      "url": "https://github.com/facebookresearch/demucs"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "demucs.gallery@1",
+      "packages": [
+        "demucs==4.0.1",
+        "torch==2.5.1",
+        "torchaudio==2.5.1",
+        "numpy==1.26.4",
+        "scipy==1.14.1"
+      ],
+      "resolved": [
+        "cloudpickle==3.1.2",
+        "demucs==4.0.1",
+        "dora-search==0.1.13",
+        "einops==0.8.2",
+        "filelock==4.1.1",
+        "fsspec==2026.9.0",
+        "jinja2==3.1.6",
+        "julius==0.2.8",
+        "lameenc==1.8.4",
+        "markupsafe==3.0.4",
+        "mpmath==1.3.0",
+        "networkx==3.6.1",
+        "numpy==1.26.4",
+        "omegaconf==2.4.0",
+        "openunmix==1.3.0",
+        "pyyaml==6.0.3",
+        "retrying==1.4.2",
+        "scipy==1.14.1",
+        "submitit==1.5.4",
+        "sympy==1.13.1",
+        "torch==2.5.1",
+        "torchaudio==2.5.1",
+        "tqdm==4.70.1",
+        "treetable==0.2.6",
+        "typing-extensions==4.16.0"
+      ],
+      "inputs": [
+        "mix.wav"
+      ],
+      "params": {},
+      "outputs": [
+        "drums.wav",
+        "bass.wav",
+        "other.wav",
+        "vocals.wav",
+        "stems.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "order": 228,
+  "title": "Three prompts (SAM)",
+  "title_ko": "세 개의 선택점 (SAM)",
+  "description": "SAM ViT-B was run with three positive point prompts. The viewer selects among those saved masks; it does not run a new model for arbitrary clicks. Scores come from SAM.",
+  "description_ko": "SAM ViT-B에 세 개의 양성 선택점을 넣어 실행했어요. 화면에서는 저장된 마스크를 선택하며, 임의 위치를 새로 추론하지는 않아요. 점수는 SAM의 예측값이에요.",
+  "prompt": "Explore three saved point-prompt masks on the same still life.",
+  "made_with": "segment-anything through a bundled, executed recipe",
+  "features": [
+    "segment-anything",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "segment-anything"
+  ],
+  "summary": "Explore three saved point-prompt masks on the same still life.",
+  "summary_ko": "같은 정물 위에서 세 선택점으로 얻은 마스크를 살펴봐요.",
+  "try": [
+    "Choose a Saved prompt or click one of the marked points",
+    "Change Opacity to inspect the boundary"
+  ],
+  "try_ko": [
+    "Saved prompt를 고르거나 표시된 점을 클릭하세요",
+    "Opacity로 마스크 경계를 살펴보세요"
+  ],
+  "tool_about": "SAM ViT-B was run with three positive point prompts. The viewer selects among those saved masks; it does not run a new model for arbitrary clicks. Scores come from SAM.",
+  "tool_about_ko": "SAM ViT-B에 세 개의 양성 선택점을 넣어 실행했어요. 화면에서는 저장된 마스크를 선택하며, 임의 위치를 새로 추론하지는 않아요. 점수는 SAM의 예측값이에요.",
+  "credits": [
+    {
+      "what": "ViT-B model inference",
+      "source": "Segment Anything",
+      "license": "Apache-2.0",
+      "url": "https://github.com/facebookresearch/segment-anything"
+    }
+  ]
+}

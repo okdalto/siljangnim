@@ -1,0 +1,38 @@
+{
+  "order": 232,
+  "title": "Out of the noise (Diffusers)",
+  "title_ko": "노이즈에서 이미지로 (Diffusers)",
+  "description": "Diffusers ran the public google/ddpm-cifar10-32 model with a DDIM scheduler, 50 steps and seed 23. Eleven saved states show the real trajectory. Images are 32px, unconditional samples, not text-to-image.",
+  "description_ko": "Diffusers로 공개 google/ddpm-cifar10-32 모델을 DDIM 50단계, 시드 23으로 실행했어요. 실제 중간 상태 11개가 저장돼 있어요. 텍스트 입력 없이 만드는 32픽셀 이미지예요.",
+  "prompt": "Scrub the actual denoising steps of four tiny generated images.",
+  "made_with": "diffusers through a bundled, executed recipe",
+  "features": [
+    "diffusers",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "diffusers"
+  ],
+  "summary": "Scrub the actual denoising steps of four tiny generated images.",
+  "summary_ko": "작은 이미지 네 장이 만들어지는 실제 노이즈 제거 단계를 훑어보세요.",
+  "try": [
+    "Turn Auto off and scrub Step",
+    "Enable Auto to watch noise gradually resolve"
+  ],
+  "try_ko": [
+    "Auto를 끄고 Step을 직접 움직여 보세요",
+    "Auto를 켜서 노이즈가 바뀌는 과정을 보세요"
+  ],
+  "tool_about": "Diffusers ran the public google/ddpm-cifar10-32 model with a DDIM scheduler, 50 steps and seed 23. Eleven saved states show the real trajectory. Images are 32px, unconditional samples, not text-to-image.",
+  "tool_about_ko": "Diffusers로 공개 google/ddpm-cifar10-32 모델을 DDIM 50단계, 시드 23으로 실행했어요. 실제 중간 상태 11개가 저장돼 있어요. 텍스트 입력 없이 만드는 32픽셀 이미지예요.",
+  "credits": [
+    {
+      "what": "DDPM CIFAR-10 model inference",
+      "source": "Google / Hugging Face Diffusers",
+      "license": "Apache-2.0",
+      "url": "https://huggingface.co/google/ddpm-cifar10-32"
+    }
+  ]
+}

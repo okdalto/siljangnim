@@ -43,7 +43,8 @@ import {
   visionImage,
   type AssetInfo,
 } from "../project/assets";
-import { EXAMPLES, exampleText } from "../project/examples";
+import { exampleCache } from "../project/exampleCache";
+import { EXAMPLES, exampleText, type Example } from "../project/examples";
 import { mixRequest } from "../project/mix";
 import { projectFolderName, sceneCodeFiles } from "../project/sceneFiles";
 import {
@@ -191,28 +192,56 @@ export async function createProject(name = "Untitled"): Promise<void> {
   await openProject(project.id);
 }
 
-/** A new project with an example's scene and assets (see /examples). */
+let exampleDownload: AbortController | null = null;
+
+export function cancelExampleDownload(): void { exampleDownload?.abort(); }
+
+export async function clearExampleDownloads(): Promise<void> {
+  if (exampleDownload) return;
+  try {
+    await exampleCache.clear();
+    set({ exampleCacheRevision: get().exampleCacheRevision + 1 });
+  } catch (err) {
+    set({ notice: { kind: "error", text: `Couldn't clear example downloads: ${String(err)}` } });
+  }
+}
+
+async function prepareExample(example: Example, signal: AbortSignal) {
+  return example.load({ signal, onProgress: (loaded, total) => {
+    set({ exampleDownload: { slug: example.slug, loaded, total, preparing: false } });
+  } });
+}
+
+/** Downloads finish before project creation; failed imports are rolled back. */
 export async function openExample(slug: string): Promise<void> {
   const example = EXAMPLES.find((e) => e.slug === slug);
-  if (!example) return;
-  set({ examplesOpen: false });
+  if (!example || exampleDownload) return;
+  const controller = exampleDownload = new AbortController();
+  let projectId: string | undefined;
+  set({ notice: null, examplesOpen: true, exampleDownload: { slug, loaded: 0, total: example.bytes, preparing: false } });
   try {
-    const scene = await example.scene();
-    // Named in the language its descriptions are shown in, so the header matches the intro card.
+    const prepared = await prepareExample(example, controller.signal);
+    controller.signal.throwIfAborted();
+    set({ exampleDownload: { slug, loaded: example.bytes, total: example.bytes, preparing: true } });
     const project = await store.createProject(exampleText(example, resolveLanguage(get().settings.language) === "ko").title);
-    await store.writeFile(project.id, SCENE_FILE, JSON.stringify(scene, null, 2));
-    // Assets go in before the project opens, so the first load already has them.
-    for (const asset of example.assets) {
-      const blob = await (await fetch(asset.url)).blob();
-      const typed = new Blob([blob], { type: assetMimeType(asset.name, blob.type) });
+    projectId = project.id;
+    await store.writeFile(project.id, SCENE_FILE, JSON.stringify(prepared.scene, null, 2));
+    for (const asset of prepared.assets) {
+      controller.signal.throwIfAborted();
+      const typed = new Blob([asset.blob], { type: assetMimeType(asset.name, asset.blob.type) });
       await store.writeFile(project.id, ASSET_DIR + asset.name, typed, await analyzeAsset(asset.name, typed));
     }
-    // Recipe examples say how their assets were made, so project.md can tell another machine.
-    if (example.pipeline) await store.writeFile(project.id, PIPELINE_FILE, JSON.stringify(example.pipeline, null, 2));
+    if (prepared.pipeline) await store.writeFile(project.id, PIPELINE_FILE, JSON.stringify(prepared.pipeline, null, 2));
+    controller.signal.throwIfAborted();
     await openProject(project.id);
-    set({ exampleIntro: example.slug });
+    projectId = undefined;
+    set({ examplesOpen: false, exampleIntro: example.slug });
   } catch (err) {
-    set({ notice: { kind: "error", text: `Couldn't open the example: ${err instanceof Error ? err.message : String(err)}` } });
+    if (projectId) await store.deleteProject(projectId);
+    if (!controller.signal.aborted) set({ notice: { kind: "error", text: `Couldn't open the example: ${err instanceof Error ? err.message : String(err)}` } });
+  } finally {
+    exampleDownload = null;
+    set({ exampleDownload: null, exampleCacheRevision: get().exampleCacheRevision + 1 });
   }
 }
 
@@ -239,6 +268,7 @@ export async function importV1Project(file: File): Promise<void> {
 }
 
 export function setExamplesOpen(open: boolean): void {
+  if (!open && !get().exampleDownload?.preparing) cancelExampleDownload();
   set({ examplesOpen: open });
 }
 
@@ -272,6 +302,7 @@ export function buildRequest(ref: { id: string; name: string; repo: string | nul
  * without an API key, the request is copied for the person to paste.
  */
 export async function buildWithAgent(ref: Parameters<typeof buildRequest>[0]): Promise<void> {
+  if (exampleDownload) return;
   set({ examplesOpen: false });
   await handToAgent(buildRequest(ref), ref.name, `${ref.name} (new)`);
 }
@@ -283,18 +314,25 @@ export async function buildWithAgent(ref: Parameters<typeof buildRequest>[0]): P
 export async function mixExample(slug: string): Promise<void> {
   const example = EXAMPLES.find((e) => e.slug === slug);
   const project = get().project;
-  if (!example || !project) return;
-  set({ examplesOpen: false });
+  if (!example || !project || exampleDownload) return;
+  const controller = exampleDownload = new AbortController();
+  set({ notice: null, exampleDownload: { slug, loaded: 0, total: example.bytes, preparing: false } });
   try {
-    const files = await Promise.all(
-      example.assets.map(async (a) => new File([await (await fetch(a.url)).blob()], a.name)),
-    );
+    const prepared = await prepareExample(example, controller.signal);
+    controller.signal.throwIfAborted();
+    if (get().project?.id !== project.id) throw new Error("The active project changed. Please try again.");
+    set({ exampleDownload: { slug, loaded: example.bytes, total: example.bytes, preparing: true } });
+    const files = prepared.assets.map((a) => new File([a.blob], a.name));
     const { names } = await addAssetFiles(project.id, files, { attach: false });
-    const renamed = new Map(example.assets.map((a, i) => [a.name, names[i] ?? a.name] as const));
+    const renamed = new Map(prepared.assets.map((a, i) => [a.name, names[i] ?? a.name] as const));
     const title = exampleText(example, resolveLanguage(get().settings.language) === "ko").title;
-    await handToAgent(mixRequest(title, await example.scene(), renamed), title);
+    set({ examplesOpen: false });
+    await handToAgent(mixRequest(title, prepared.scene, renamed), title);
   } catch (err) {
-    set({ notice: { kind: "error", text: `Couldn't mix in the example: ${err instanceof Error ? err.message : String(err)}` } });
+    if (!controller.signal.aborted) set({ notice: { kind: "error", text: `Couldn't mix in the example: ${err instanceof Error ? err.message : String(err)}` } });
+  } finally {
+    exampleDownload = null;
+    set({ exampleDownload: null, exampleCacheRevision: get().exampleCacheRevision + 1 });
   }
 }
 

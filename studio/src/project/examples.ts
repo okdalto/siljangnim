@@ -1,9 +1,8 @@
-// The examples in /examples, bundled into the studio so a new user can open
-// one right away (Projects menu → Examples). Each folder has example.json,
-// scene.json, thumbnail.png and optionally assets/.
+import library from "virtual:example-library";
+import { exampleCache, type DownloadOptions, type ExampleFile } from "./exampleCache";
 import { parseScene, type Scene } from "../scene/schema";
 
-interface ExampleMeta {
+export interface ExampleMeta {
   order: number;
   title: string;
   title_ko?: string;
@@ -39,43 +38,41 @@ export function exampleText(e: ExampleMeta, korean: boolean): { title: string; s
   };
 }
 
+export interface PreparedExample {
+  scene: Scene;
+  pipeline: unknown;
+  assets: Array<{ name: string; blob: Blob }>;
+}
 export interface Example extends ExampleMeta {
   slug: string;
   thumbnail: string;
-  assets: Array<{ name: string; url: string }>;
-  /** How its generated assets were made (pipeline.json; recipe examples), for project.md. */
-  pipeline: unknown;
-  /** The scene, validated (scene.json files load on demand to keep the app bundle small). */
+  files: ExampleFile[];
+  bytes: number;
+  assets: Array<{ name: string }>;
+  load(options?: DownloadOptions): Promise<PreparedExample>;
   scene(): Promise<Scene>;
 }
 
-const metas = import.meta.glob<ExampleMeta>("../../../examples/*/example.json", { eager: true, import: "default" });
-const scenes = import.meta.glob<unknown>("../../../examples/*/scene.json", { import: "default" });
-const thumbnails = import.meta.glob<string>("../../../examples/*/thumbnail.png", { eager: true, query: "?url", import: "default" });
-const pipelines = import.meta.glob<unknown>("../../../examples/*/pipeline.json", { eager: true, import: "default" });
-const assetUrls = import.meta.glob<string>("../../../examples/*/assets/*", { eager: true, query: "?url", import: "default" });
+function validatedScene(value: unknown, slug: string): Scene {
+  const parsed = parseScene(value);
+  if (!parsed.ok) throw new Error(`example ${slug}: ${parsed.errors.join("; ")}`);
+  return parsed.scene;
+}
 
-const slugOf = (path: string) => path.split("/").at(-2)!;
-const dirOf = (path: string) => path.slice(0, path.lastIndexOf("/"));
-
-export const EXAMPLES: Example[] = Object.entries(metas)
-  .map(([path, meta]) => {
-    const dir = dirOf(path);
-    return {
-      ...meta,
-      slug: slugOf(path),
-      thumbnail: thumbnails[`${dir}/thumbnail.png`] ?? "",
-      assets: Object.entries(assetUrls)
-        .filter(([p]) => p.startsWith(`${dir}/assets/`))
-        .map(([p, url]) => ({ name: p.slice(p.lastIndexOf("/") + 1), url })),
-      pipeline: pipelines[`${dir}/pipeline.json`] ?? null,
-      async scene() {
-        const load = scenes[`${dir}/scene.json`];
-        if (!load) throw new Error(`example ${slugOf(path)} has no scene.json`);
-        const parsed = parseScene(await load());
-        if (!parsed.ok) throw new Error(`example ${slugOf(path)}: ${parsed.errors.join("; ")}`);
-        return parsed.scene;
-      },
-    };
-  })
-  .sort((a, b) => a.order - b.order);
+export const EXAMPLES: Example[] = library.map((entry) => ({
+  ...entry,
+  bytes: entry.files.reduce((n, f) => n + f.bytes, 0),
+  assets: entry.files.filter((f) => f.path.startsWith("assets/")).map((f) => ({ name: f.path.slice(7) })),
+  async load(options?: DownloadOptions) {
+    const blobs = await exampleCache.read(entry.slug, entry.files, options);
+    const scene = validatedScene(JSON.parse(await blobs.get("scene.json")!.text()), entry.slug);
+    const pipeline = blobs.has("pipeline.json") ? JSON.parse(await blobs.get("pipeline.json")!.text()) : null;
+    await exampleCache.prune(entry.slug, entry.files);
+    return { scene, pipeline, assets: [...blobs].filter(([path]) => path.startsWith("assets/")).map(([path, blob]) => ({ name: path.slice(7), blob })) };
+  },
+  async scene() {
+    // Catalog lookups need only code; do not download media merely to read a reference.
+    const blobs = await exampleCache.read(entry.slug, entry.files.filter((f) => f.path === "scene.json"));
+    return validatedScene(JSON.parse(await blobs.get("scene.json")!.text()), entry.slug);
+  },
+})).sort((a, b) => a.order - b.order);

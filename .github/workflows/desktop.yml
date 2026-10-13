@@ -2,7 +2,7 @@ name: Desktop
 
 on:
   pull_request:
-    paths: ["desktop/**", "hub/**", "studio/**", "mcp/**", "package.json", ".github/workflows/desktop.yml"]
+    paths: ["desktop/**", "hub/**", "studio/**", "mcp/**", "examples/**", "package.json", ".github/workflows/desktop.yml"]
   push:
     branches: [main]
     tags: ["v*"]
@@ -67,6 +67,8 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          # Immutable sources match the build-time hashes; keep media out of installers.
+          SILJANGNIM_EXAMPLES_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/examples
       - name: Smoke test packaged app
         working-directory: desktop
         run: npm run smoke

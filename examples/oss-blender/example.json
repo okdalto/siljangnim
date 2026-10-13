@@ -1,0 +1,30 @@
+{
+  "order": 221,
+  "title": "Studio still life (Blender)",
+  "title_ko": "스튜디오 정물 (Blender)",
+  "description": "Blender builds the objects, materials, camera and area lights in the bundled Python script, then renders with Cycles. The .blend file and script can be edited and rerun.",
+  "description_ko": "Blender가 포함된 파이썬 스크립트로 물체·재질·카메라·조명을 만들고 Cycles로 렌더링했어요. .blend 파일과 스크립트를 수정해 다시 실행할 수 있어요.",
+  "prompt": "A jade sphere, gold ring and coral cube rendered with Cycles lighting.",
+  "made_with": "blender through a bundled, executed recipe",
+  "features": [
+    "blender",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "blender"
+  ],
+  "summary": "A jade sphere, gold ring and coral cube rendered with Cycles lighting.",
+  "summary_ko": "Cycles 조명으로 렌더링한 옥빛 구와 금색 고리, 산호색 큐브예요.",
+  "try": [
+    "Zoom in to inspect reflections",
+    "Adjust Exposure; rerun the recipe to change the actual scene"
+  ],
+  "try_ko": [
+    "Zoom으로 반사를 자세히 살펴보세요",
+    "Exposure를 바꾸거나 레시피를 수정해 다시 렌더링하세요"
+  ],
+  "tool_about": "Blender builds the objects, materials, camera and area lights in the bundled Python script, then renders with Cycles. The .blend file and script can be edited and rerun.",
+  "tool_about_ko": "Blender가 포함된 파이썬 스크립트로 물체·재질·카메라·조명을 만들고 Cycles로 렌더링했어요. .blend 파일과 스크립트를 수정해 다시 실행할 수 있어요."
+}

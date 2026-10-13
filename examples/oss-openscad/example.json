@@ -1,0 +1,30 @@
+{
+  "order": 222,
+  "title": "Perforated lantern (OpenSCAD)",
+  "title_ko": "구멍 난 랜턴 (OpenSCAD)",
+  "description": "OpenSCAD performs exact CSG differences on cylinders. The scene parses the exported ASCII STL; edit lantern.scad and rerun the recipe to change the model.",
+  "description_ko": "OpenSCAD가 원기둥을 빼는 CSG 연산으로 형태를 만들어요. 씬은 실제 ASCII STL을 읽어요. lantern.scad를 수정하고 레시피를 다시 실행하면 모델이 바뀌어요.",
+  "prompt": "A scripted solid lantern with staggered circular windows, exported as a real STL.",
+  "made_with": "openscad through a bundled, executed recipe",
+  "features": [
+    "openscad",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "openscad"
+  ],
+  "summary": "A scripted solid lantern with staggered circular windows, exported as a real STL.",
+  "summary_ko": "엇갈린 원형 창을 뚫은 랜턴을 코드로 설계하고 실제 STL로 내보냈어요.",
+  "try": [
+    "Drag to orbit and inspect the holes",
+    "Toggle Wireframe to see the exported triangles"
+  ],
+  "try_ko": [
+    "드래그로 회전하며 구멍을 살펴보세요",
+    "Wireframe으로 내보낸 삼각형을 확인하세요"
+  ],
+  "tool_about": "OpenSCAD performs exact CSG differences on cylinders. The scene parses the exported ASCII STL; edit lantern.scad and rerun the recipe to change the model.",
+  "tool_about_ko": "OpenSCAD가 원기둥을 빼는 CSG 연산으로 형태를 만들어요. 씬은 실제 ASCII STL을 읽어요. lantern.scad를 수정하고 레시피를 다시 실행하면 모델이 바뀌어요."
+}

@@ -1,0 +1,18 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "blender.gallery@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "build.py"
+      ],
+      "params": {},
+      "outputs": [
+        "still-life.png",
+        "still-life.blend"
+      ]
+    }
+  ]
+}

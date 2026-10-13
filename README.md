@@ -158,7 +158,7 @@ writes the code, and the work keeps changing for as long as you keep talking to 
 - **Pass it on** — a project exports as `project.md`: what was asked, which tools were used and how. Another
   person's agent rebuilds it from that, and keeps remixing.
 
-Start from one of **80+ examples**, each built on an open-source project (Shan Shui Infinite, MarkovJunior,
+Start from one of **105 examples**, each built on an open-source project (Shan Shui Infinite, MarkovJunior,
 Growing NCA, Three.js, p5.js, OpenCV, librosa …) with its credits and license, and take it somewhere else.
 
 [A longer walk-through of the creative workflow](docs/en/creative.md).
@@ -190,6 +190,15 @@ npm run dev      # the desktop app with hot reload
 | `npm run mcp` | The MCP server from this checkout (`claude mcp add siljangnim -- node "$PWD/mcp/bin/siljangnim-mcp.js"` after `npm --prefix studio run build`) |
 | `npm run dist` | Installer for the current platform into `desktop/release/` (CI builds both platforms on a `v*` tag) |
 | `npm run notices` | Regenerate `THIRD_PARTY_NOTICES.md` |
+
+
+Examples fetch files on first use and cache them in IndexedDB. Development/local builds serve separate files under
+`example-library/`; installer CI uses the matching commit on GitHub, excluding example payloads and thumbnails
+from installers. For a lightweight custom installer or MCP package, set `SILJANGNIM_EXAMPLES_BASE_URL` to
+`https://raw.githubusercontent.com/okdalto/siljangnim/<commit SHA>/examples` for an **already published commit**,
+then run `npm run dist` or `npm --prefix mcp pack`. Other HTTPS hosts must allow CORS and serve the same directory
+layout. Remote files must match the checkout; mismatches fail integrity checks. Omitting the variable produces
+a self-contained build with local example files.
 
 ```
 studio/     The app: React + TypeScript UI, built-in agent, isolated scene runtime

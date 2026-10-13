@@ -1,0 +1,38 @@
+{
+  "order": 227,
+  "title": "A new backdrop (rembg)",
+  "title_ko": "새로운 배경 (rembg)",
+  "description": "rembg with u2netp computes the actual alpha matte. Compare the original against the saved cutout; the recipe reruns background removal on the source image.",
+  "description_ko": "rembg의 u2netp가 실제 알파 마스크를 계산했어요. 원본과 저장된 누끼를 비교하며, 레시피로 원본 이미지의 배경 제거를 다시 실행할 수 있어요.",
+  "prompt": "An AI cutout lifts the still-life objects onto a changing backdrop.",
+  "made_with": "rembg through a bundled, executed recipe",
+  "features": [
+    "rembg",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "rembg"
+  ],
+  "summary": "An AI cutout lifts the still-life objects onto a changing backdrop.",
+  "summary_ko": "AI가 잘라낸 정물의 배경을 바꿔 보세요.",
+  "try": [
+    "Move Compare to reveal the cutout",
+    "Change Backdrop to inspect the edges"
+  ],
+  "try_ko": [
+    "Compare로 잘라낸 결과를 확인하세요",
+    "Backdrop을 바꿔 가장자리를 살펴보세요"
+  ],
+  "tool_about": "rembg with u2netp computes the actual alpha matte. Compare the original against the saved cutout; the recipe reruns background removal on the source image.",
+  "tool_about_ko": "rembg의 u2netp가 실제 알파 마스크를 계산했어요. 원본과 저장된 누끼를 비교하며, 레시피로 원본 이미지의 배경 제거를 다시 실행할 수 있어요.",
+  "credits": [
+    {
+      "what": "u2netp inference",
+      "source": "U²-Net / rembg",
+      "license": "Apache-2.0",
+      "url": "https://github.com/xuebinqin/U-2-Net"
+    }
+  ]
+}
