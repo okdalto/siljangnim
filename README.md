@@ -61,7 +61,7 @@ Restart it, then ask for something:
 Use siljangnim to make glowing jellyfish drifting in a dark sea, with a slider for how many there are.
 ```
 
-A viewer opens in your browser and the scene appears there. Keep chatting with your agent to change it.
+A viewer window opens (an app window in Chrome or Edge, or a browser tab) and the scene appears there. Keep chatting with your agent to change it.
 
 You need [Node.js 22 or newer](https://nodejs.org). Nothing else: the first time a tool needs Python, it is
 downloaded into `~/.siljangnim/runtime/`.

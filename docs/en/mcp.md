@@ -50,7 +50,8 @@ To remove it: `claude mcp remove siljangnim` (for Codex and others, delete the e
 ## How to use it
 
 - Ask your agent to "use siljangnim to make …". The first time it uses a tool, the viewer (`http://localhost:47823`)
-  opens in your browser.
+  opens. With Chrome or Edge installed (Brave and Chromium work too) it opens as an app window without tabs or an
+  address bar; otherwise as a tab in your default browser.
 - You chat on the agent's side, and the viewer's **Activity** tab shows what the agent did. Controls, History, Assets
   and recording work as usual.
 - **If the Siljangnim desktop app is open**, its window becomes the viewer instead of the browser, and the app's
@@ -74,6 +75,7 @@ You can change these with environment variables (put them in `env` in the MCP se
 | `SILJANGNIM_OPEN_ON_CONNECT=1` | Open the viewer when the server starts. Set by `setup codex`. |
 | `SILJANGNIM_OPEN=0` | Don't open the browser automatically (the address is written to the log). |
 | `SILJANGNIM_OPEN_COMMAND` | Program that opens the viewer (gets the address as an argument). For opening it in a specific browser. |
+| `SILJANGNIM_APP_WINDOW=0` | Open a tab in your default browser instead of an app window. |
 | `SILJANGNIM_VIEWER=browser` | Use the browser even when the desktop app is open. |
 
 ## Troubleshooting
