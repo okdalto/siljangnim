@@ -1,0 +1,29 @@
+{
+  "order": 238,
+  "title": "Corners into silk (chaikin-smooth)",
+  "title_ko": "모서리가 비단 곡선으로 (chaikin-smooth)",
+  "description": "Chaikin smoothing repeatedly cuts corners from an open zigzag. Endpoints remain fixed while the path rounds out.",
+  "description_ko": "차이킨 스무딩이 지그재그 선의 모서리를 반복해서 잘라 부드럽게 만들어요. 양 끝점은 유지돼요.",
+  "prompt": "Corners into silk. Make the algorithm visible and let the controls change its input.",
+  "made_with": "chaikin-smooth 1.0.4; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "chaikin-smooth"
+  ],
+  "summary": "Corners into silk. Change the controls to explore the actual algorithm.",
+  "summary_ko": "모서리가 비단 곡선으로. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Increase Passes from zero",
+    "Hide Guide to see only the smoothed path"
+  ],
+  "try_ko": [
+    "Passes를 0부터 올려 보세요",
+    "Guide를 꺼서 부드러운 선만 보세요"
+  ],
+  "tool_about": "Chaikin smoothing repeatedly cuts corners from an open zigzag. Endpoints remain fixed while the path rounds out.",
+  "tool_about_ko": "차이킨 스무딩이 지그재그 선의 모서리를 반복해서 잘라 부드럽게 만들어요. 양 끝점은 유지돼요."
+}

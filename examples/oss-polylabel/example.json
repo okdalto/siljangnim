@@ -1,0 +1,29 @@
+{
+  "order": 254,
+  "title": "A place for the label (polylabel)",
+  "title_ko": "이름표를 놓을 자리 (polylabel)",
+  "description": "Polylabel searches for the point farthest from a polygon’s edges and hole. The circle shows its clearance from the boundary.",
+  "description_ko": "Polylabel이 다각형의 경계와 구멍에서 가장 멀리 떨어진 점을 찾아요. 원은 경계까지의 여유 거리를 보여 줘요.",
+  "prompt": "A place for the label. Make the algorithm visible and let the controls change its input.",
+  "made_with": "polylabel 2.1.0; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "polylabel"
+  ],
+  "summary": "A place for the label. Change the controls to explore the actual algorithm.",
+  "summary_ko": "이름표를 놓을 자리. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Move the hole with Hole X",
+    "Change Hole size and watch the label move"
+  ],
+  "try_ko": [
+    "Hole X로 구멍을 옮겨 보세요",
+    "Hole size를 바꾸며 이름표 위치를 보세요"
+  ],
+  "tool_about": "Polylabel searches for the point farthest from a polygon’s edges and hole. The circle shows its clearance from the boundary.",
+  "tool_about_ko": "Polylabel이 다각형의 경계와 구멍에서 가장 멀리 떨어진 점을 찾아요. 원은 경계까지의 여유 거리를 보여 줘요."
+}

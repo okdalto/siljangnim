@@ -1,0 +1,29 @@
+{
+  "order": 243,
+  "title": "An island from scattered points (alpha-shape)",
+  "title_ko": "흩어진 점에서 태어나는 섬 (alpha-shape)",
+  "description": "alpha-shape extracts the boundary of an alpha complex. Increasing Alpha rejects larger circumcircles and can split the boundary.",
+  "description_ko": "alpha-shape가 점들의 알파 복합체 경계를 찾아요. Alpha를 높이면 큰 외접원을 가진 요소가 빠져 경계가 갈라질 수 있어요.",
+  "prompt": "An island from scattered points. Make the algorithm visible and let the controls change its input.",
+  "made_with": "alpha-shape 1.0.0; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "alpha-shape"
+  ],
+  "summary": "An island from scattered points. Change the controls to explore the actual algorithm.",
+  "summary_ko": "흩어진 점에서 태어나는 섬. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Increase Alpha until islands separate",
+    "Change the number of sample points"
+  ],
+  "try_ko": [
+    "Alpha를 높여 경계가 갈라지는 모습을 보세요",
+    "Points로 입력 점 수를 바꿔 보세요"
+  ],
+  "tool_about": "alpha-shape extracts the boundary of an alpha complex. Increasing Alpha rejects larger circumcircles and can split the boundary.",
+  "tool_about_ko": "alpha-shape가 점들의 알파 복합체 경계를 찾아요. Alpha를 높이면 큰 외접원을 가진 요소가 빠져 경계가 갈라질 수 있어요."
+}

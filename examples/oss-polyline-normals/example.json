@@ -1,0 +1,29 @@
+{
+  "order": 244,
+  "title": "A ribbon and its normals (polyline-normals)",
+  "title_ko": "리본을 만드는 법선 (polyline-normals)",
+  "description": "polyline-normals computes vertex normals and miter lengths for a zigzag ribbon. Width moves its two sides along those normals.",
+  "description_ko": "polyline-normals가 꺾인 선의 꼭짓점 법선과 이음 길이를 계산해요. Width로 법선을 따라 리본을 넓힐 수 있어요.",
+  "prompt": "A ribbon and its normals. Make the algorithm visible and let the controls change its input.",
+  "made_with": "polyline-normals 2.0.2; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "polyline-normals"
+  ],
+  "summary": "A ribbon and its normals. Change the controls to explore the actual algorithm.",
+  "summary_ko": "리본을 만드는 법선. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Width to expand the ribbon",
+    "Toggle Normals to inspect the construction"
+  ],
+  "try_ko": [
+    "Width로 리본을 넓혀 보세요",
+    "Normals로 법선 방향을 확인해 보세요"
+  ],
+  "tool_about": "polyline-normals computes vertex normals and miter lengths for a zigzag ribbon. Width moves its two sides along those normals.",
+  "tool_about_ko": "polyline-normals가 꺾인 선의 꼭짓점 법선과 이음 길이를 계산해요. Width로 법선을 따라 리본을 넓힐 수 있어요."
+}

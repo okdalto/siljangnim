@@ -1,0 +1,29 @@
+{
+  "order": 235,
+  "title": "Points where a curve bends (adaptive-bezier-curve)",
+  "title_ko": "휘어진 곳에 모이는 점 (adaptive-bezier-curve)",
+  "description": "adaptive-bezier-curve subdivides a cubic curve more finely near bends. Quality changes its adaptive sampling scale.",
+  "description_ko": "adaptive-bezier-curve가 많이 휘어진 부분에 더 많은 점을 배치해요. Quality는 곡선을 얼마나 촘촘히 나눌지 정해요.",
+  "prompt": "Points where a curve bends. Make the algorithm visible and let the controls change its input.",
+  "made_with": "adaptive-bezier-curve 1.0.3; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "adaptive-bezier-curve"
+  ],
+  "summary": "Points where a curve bends. Change the controls to explore the actual algorithm.",
+  "summary_ko": "휘어진 곳에 모이는 점. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Bend the control polygon",
+    "Raise Quality to add samples near curves"
+  ],
+  "try_ko": [
+    "Bend로 제어점을 움직여 보세요",
+    "Quality를 높여 곡선 주변의 점을 늘려 보세요"
+  ],
+  "tool_about": "adaptive-bezier-curve subdivides a cubic curve more finely near bends. Quality changes its adaptive sampling scale.",
+  "tool_about_ko": "adaptive-bezier-curve가 많이 휘어진 부분에 더 많은 점을 배치해요. Quality는 곡선을 얼마나 촘촘히 나눌지 정해요."
+}

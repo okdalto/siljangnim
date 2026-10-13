@@ -1,0 +1,29 @@
+{
+  "order": 250,
+  "title": "Rooms inside a stepped plan (rectangle-decomposition)",
+  "title_ko": "계단형 평면 속의 방 (rectangle-decomposition)",
+  "description": "rectangle-decomposition partitions a rectilinear region into non-overlapping rectangles. A movable courtyard remains empty.",
+  "description_ko": "rectangle-decomposition이 직각으로 이루어진 영역을 겹치지 않는 직사각형으로 나눠요. 안뜰은 빈 공간으로 남겨요.",
+  "prompt": "Rooms inside a stepped plan. Make the algorithm visible and let the controls change its input.",
+  "made_with": "rectangle-decomposition 1.0.0; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "rectangle-decomposition"
+  ],
+  "summary": "Rooms inside a stepped plan. Change the controls to explore the actual algorithm.",
+  "summary_ko": "계단형 평면 속의 방. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Resize Courtyard to change the partition",
+    "Reduce Explode to see the complete region"
+  ],
+  "try_ko": [
+    "Courtyard로 분할을 바꿔 보세요",
+    "Explode를 줄여 원래 영역을 보세요"
+  ],
+  "tool_about": "rectangle-decomposition partitions a rectilinear region into non-overlapping rectangles. A movable courtyard remains empty.",
+  "tool_about_ko": "rectangle-decomposition이 직각으로 이루어진 영역을 겹치지 않는 직사각형으로 나눠요. 안뜰은 빈 공간으로 남겨요."
+}

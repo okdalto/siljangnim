@@ -1,0 +1,29 @@
+{
+  "order": 252,
+  "title": "Contours growing outward (polygon-offset)",
+  "title_ko": "바깥으로 자라나는 윤곽 (polygon-offset)",
+  "description": "polygon-offset computes rounded parallel outlines of an original concave polygon. Distance changes the offset margin.",
+  "description_ko": "polygon-offset이 오목 다각형 주변에 둥근 평행 윤곽을 만들어요. Distance로 바깥쪽 여백을 조절해요.",
+  "prompt": "Contours growing outward. Make the algorithm visible and let the controls change its input.",
+  "made_with": "polygon-offset 0.3.2; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "polygon-offset"
+  ],
+  "summary": "Contours growing outward. Change the controls to explore the actual algorithm.",
+  "summary_ko": "바깥으로 자라나는 윤곽. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Distance to grow the outline",
+    "Increase Round segments to smooth corners"
+  ],
+  "try_ko": [
+    "Distance로 윤곽을 키워 보세요",
+    "Round segments로 모서리를 부드럽게 해 보세요"
+  ],
+  "tool_about": "polygon-offset computes rounded parallel outlines of an original concave polygon. Distance changes the offset margin.",
+  "tool_about_ko": "polygon-offset이 오목 다각형 주변에 둥근 평행 윤곽을 만들어요. Distance로 바깥쪽 여백을 조절해요."
+}

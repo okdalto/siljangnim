@@ -1,0 +1,29 @@
+{
+  "order": 253,
+  "title": "Weighted spline (b-spline)",
+  "title_ko": "가중치로 당기는 곡선 (b-spline)",
+  "description": "b-spline evaluates a rational B-spline with de Boor’s algorithm. Degree changes continuity and Weight pulls the curve toward one control point.",
+  "description_ko": "b-spline이 드 보어 알고리즘으로 유리 B-스플라인을 계산해요. Degree로 차수를 바꾸고 Weight로 한 제어점 쪽으로 당겨요.",
+  "prompt": "Weighted spline. Make the algorithm visible and let the controls change its input.",
+  "made_with": "b-spline 2.0.2; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "b-spline"
+  ],
+  "summary": "Weighted spline. Change the controls to explore the actual algorithm.",
+  "summary_ko": "가중치로 당기는 곡선. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Degree to compare smoothness",
+    "Increase Weight to pull toward the pink point"
+  ],
+  "try_ko": [
+    "Degree로 부드러움을 비교해 보세요",
+    "Weight를 높여 분홍 점 쪽으로 당겨 보세요"
+  ],
+  "tool_about": "b-spline evaluates a rational B-spline with de Boor’s algorithm. Degree changes continuity and Weight pulls the curve toward one control point.",
+  "tool_about_ko": "b-spline이 드 보어 알고리즘으로 유리 B-스플라인을 계산해요. Degree로 차수를 바꾸고 Weight로 한 제어점 쪽으로 당겨요."
+}

@@ -1,0 +1,29 @@
+{
+  "order": 247,
+  "title": "A stretched rubber band (monotone-convex-hull-2d)",
+  "title_ko": "팽팽한 고무줄 경계 (monotone-convex-hull-2d)",
+  "description": "monotone-convex-hull-2d finds the convex hull indices of a point cloud using a monotone chain.",
+  "description_ko": "monotone-convex-hull-2d가 모노톤 체인 알고리즘으로 점들을 둘러싼 볼록 껍질을 찾아요.",
+  "prompt": "A stretched rubber band. Make the algorithm visible and let the controls change its input.",
+  "made_with": "monotone-convex-hull-2d 1.0.1; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "monotone-convex-hull-2d"
+  ],
+  "summary": "A stretched rubber band. Change the controls to explore the actual algorithm.",
+  "summary_ko": "팽팽한 고무줄 경계. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Points to move the hull",
+    "Stretch the cloud vertically"
+  ],
+  "try_ko": [
+    "Points로 볼록 껍질을 바꿔 보세요",
+    "Stretch로 점 구름을 세로로 늘려 보세요"
+  ],
+  "tool_about": "monotone-convex-hull-2d finds the convex hull indices of a point cloud using a monotone chain.",
+  "tool_about_ko": "monotone-convex-hull-2d가 모노톤 체인 알고리즘으로 점들을 둘러싼 볼록 껍질을 찾아요."
+}

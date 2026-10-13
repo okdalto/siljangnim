@@ -1,0 +1,29 @@
+{
+  "order": 260,
+  "title": "Evenly spaced currents (streamlines)",
+  "title_ko": "고르게 흐르는 물결 (streamlines)",
+  "description": "Streamlines integrates an original vector field with RK4 while keeping paths apart. Four spacing settings are computed when the scene opens.",
+  "description_ko": "Streamlines가 직접 만든 벡터장을 RK4로 따라가며 선 사이 거리를 유지해요. 장면을 열 때 네 가지 간격을 실제 계산해요.",
+  "prompt": "Evenly spaced currents. Make the algorithm visible and let the controls change its input.",
+  "made_with": "@anvaka/streamlines 1.6.0; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "streamlines"
+  ],
+  "summary": "Evenly spaced currents. Change the controls to explore the actual algorithm.",
+  "summary_ko": "고르게 흐르는 물결. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Spacing to select a computed field",
+    "Lower Reveal to uncover the paths gradually"
+  ],
+  "try_ko": [
+    "Spacing으로 계산된 선 간격을 골라 보세요",
+    "Reveal로 선이 뻗는 모습을 살펴보세요"
+  ],
+  "tool_about": "Streamlines integrates an original vector field with RK4 while keeping paths apart. Four spacing settings are computed when the scene opens.",
+  "tool_about_ko": "Streamlines가 직접 만든 벡터장을 RK4로 따라가며 선 사이 거리를 유지해요. 장면을 열 때 네 가지 간격을 실제 계산해요."
+}

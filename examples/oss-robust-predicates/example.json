@@ -1,0 +1,29 @@
+{
+  "order": 256,
+  "title": "Which side of the line? (robust-predicates)",
+  "title_ko": "선의 어느 쪽일까 (robust-predicates)",
+  "description": "robust-predicates evaluates orient2d for points around a directed line. The moving probe displays the signed orientation result.",
+  "description_ko": "robust-predicates의 orient2d로 점이 선의 어느 쪽에 있는지 판정해요. 움직이는 점의 부호 있는 판정값도 보여 줘요.",
+  "prompt": "Which side of the line?. Make the algorithm visible and let the controls change its input.",
+  "made_with": "robust-predicates 3.0.3; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "robust-predicates"
+  ],
+  "summary": "Which side of the line?. Change the controls to explore the actual algorithm.",
+  "summary_ko": "선의 어느 쪽일까. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Move Probe offset through zero",
+    "Tilt the line to reclassify the grid"
+  ],
+  "try_ko": [
+    "Probe offset을 0 앞뒤로 움직여 보세요",
+    "Tilt로 선을 기울여 보세요"
+  ],
+  "tool_about": "robust-predicates evaluates orient2d for points around a directed line. The moving probe displays the signed orientation result.",
+  "tool_about_ko": "robust-predicates의 orient2d로 점이 선의 어느 쪽에 있는지 판정해요. 움직이는 점의 부호 있는 판정값도 보여 줘요."
+}

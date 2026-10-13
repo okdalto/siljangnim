@@ -1,0 +1,29 @@
+{
+  "order": 258,
+  "title": "A polygon’s balance point (d3-polygon)",
+  "title_ko": "다각형의 무게중심 (d3-polygon)",
+  "description": "D3 Polygon measures area, perimeter and centroid of a changing polygon. The bright point marks its geometric centroid.",
+  "description_ko": "D3 Polygon이 모양이 바뀌는 다각형의 면적·둘레·무게중심을 계산해요. 밝은 점이 기하학적 무게중심이에요.",
+  "prompt": "A polygon’s balance point. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-polygon 3.0.1; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-polygon"
+  ],
+  "summary": "A polygon’s balance point. Change the controls to explore the actual algorithm.",
+  "summary_ko": "다각형의 무게중심. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Corners to reshape the polygon",
+    "Adjust Skew and watch the centroid move"
+  ],
+  "try_ko": [
+    "Corners로 꼭짓점 수를 바꿔 보세요",
+    "Skew를 바꾸며 무게중심을 보세요"
+  ],
+  "tool_about": "D3 Polygon measures area, perimeter and centroid of a changing polygon. The bright point marks its geometric centroid.",
+  "tool_about_ko": "D3 Polygon이 모양이 바뀌는 다각형의 면적·둘레·무게중심을 계산해요. 밝은 점이 기하학적 무게중심이에요."
+}

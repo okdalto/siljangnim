@@ -1,0 +1,29 @@
+{
+  "order": 248,
+  "title": "Inside, outside, boundary (robust-point-in-polygon)",
+  "title_ko": "안쪽 바깥쪽 경계선 (robust-point-in-polygon)",
+  "description": "robust-point-in-polygon classifies a movable probe and a grid of points as inside, outside or on the polygon boundary.",
+  "description_ko": "robust-point-in-polygon이 움직이는 점과 격자 점들을 다각형의 안쪽·바깥쪽·경계로 분류해요.",
+  "prompt": "Inside, outside, boundary. Make the algorithm visible and let the controls change its input.",
+  "made_with": "robust-point-in-polygon 1.0.3; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "robust-point-in-polygon"
+  ],
+  "summary": "Inside, outside, boundary. Change the controls to explore the actual algorithm.",
+  "summary_ko": "안쪽 바깥쪽 경계선. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Move Probe X and Probe Y",
+    "Set the probe to a star corner to test the boundary"
+  ],
+  "try_ko": [
+    "Probe X와 Probe Y로 점을 움직여 보세요",
+    "별 꼭짓점으로 옮겨 경계 판정을 확인해 보세요"
+  ],
+  "tool_about": "robust-point-in-polygon classifies a movable probe and a grid of points as inside, outside or on the polygon boundary.",
+  "tool_about_ko": "robust-point-in-polygon이 움직이는 점과 격자 점들을 다각형의 안쪽·바깥쪽·경계로 분류해요."
+}

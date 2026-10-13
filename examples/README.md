@@ -124,6 +124,35 @@ pipeline.json  how the assets were made (copied into the project, so project.md 
 | [Rebuilt detail (Real-ESRGAN)](oss-real-esrgan/) | [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) (BSD-3-Clause) | upscale, super resolution, image |
 | [Out of the noise (Diffusers)](oss-diffusers/) | [Diffusers (Stable Diffusion and others)](https://github.com/huggingface/diffusers) (Apache-2.0) | image generation, diffusion, text to image |
 
+| [A shoreline around points (concaveman)](oss-concaveman/) | [concaveman](https://github.com/mapbox/concaveman) (ISC, in the scene) | Concaveman wraps an original point cloud in a concave hull. Concavity controls how closely its boundary follows the points. |
+| [A lighter coastline (Simplify.js)](oss-simplify-js/) | [Simplify.js](https://github.com/mourner/simplify-js) (BSD-2-Clause, in the scene) | Simplify.js reduces a noisy polyline with Douglas–Peucker simplification. The original line remains visible for comparison. |
+| [Points where a curve bends (adaptive-bezier-curve)](oss-adaptive-bezier-curve/) | [adaptive-bezier-curve](https://github.com/mattdesl/adaptive-bezier-curve) (BSD-3-Clause, in the scene) | adaptive-bezier-curve subdivides a cubic curve more finely near bends. Quality changes its adaptive sampling scale. |
+| [Cut and combine (Martinez polygon clipping)](oss-martinez-polygon-clipping/) | [Martinez polygon clipping](https://github.com/w8r/martinez) (MIT, in the scene) | Martinez computes boolean operations between a star and a movable disk, including holes in the resulting polygon. |
+| [Polygon logic (PolyBool)](oss-polybool/) | [PolyBool](https://github.com/velipso/polybool) (0BSD, in the scene) | PolyBool combines the regions of two polygons with union, intersection, difference and XOR. |
+| [Corners into silk (chaikin-smooth)](oss-chaikin-smooth/) | [chaikin-smooth](https://github.com/experience-monks/chaikin-smooth) (MIT, in the scene) | Chaikin smoothing repeatedly cuts corners from an open zigzag. Endpoints remain fixed while the path rounds out. |
+| [Triangles around a courtyard (cdt2d)](oss-cdt2d/) | [cdt2d](https://github.com/mikolalysenko/cdt2d) (MIT, in the scene) | cdt2d creates a constrained Delaunay mesh around a courtyard. Boundary edges and the hole remain intact. |
+| [Pebbles that do not overlap (pack-spheres)](oss-pack-spheres/) | [pack-spheres](https://github.com/mattdesl/pack-spheres) (MIT, in the scene) | pack-spheres grows circles while keeping them separate. A fixed random seed makes comparisons reproducible. |
+| [One rhythm, six curves (d3-shape)](oss-d3-shape/) | [d3-shape](https://github.com/d3/d3-shape) (ISC, in the scene) | D3 Shape draws the same sample points with six curve interpolators, from straight segments to smooth natural splines. |
+| [A leaf made of facets (svg-mesh-3d)](oss-svg-mesh-3d/) | [svg-mesh-3d](https://github.com/mattdesl/svg-mesh-3d) (MIT, in the scene) | svg-mesh-3d converts an original cubic SVG leaf into an indexed triangle mesh. Sampling quality changes the boundary detail. |
+| [An island from scattered points (alpha-shape)](oss-alpha-shape/) | [alpha-shape](https://github.com/mikolalysenko/alpha-shape) (MIT, in the scene) | alpha-shape extracts the boundary of an alpha complex. Increasing Alpha rejects larger circumcircles and can split the boundary. |
+| [A ribbon and its normals (polyline-normals)](oss-polyline-normals/) | [polyline-normals](https://github.com/mattdesl/polyline-normals) (MIT, in the scene) | polyline-normals computes vertex normals and miter lengths for a zigzag ribbon. Width moves its two sides along those normals. |
+| [A glass mosaic (Delaunator)](oss-delaunator/) | [Delaunator](https://github.com/mapbox/delaunator) (ISC, in the scene) | Delaunator triangulates an original point cloud. Each triangle gets a color while the points remain visible on request. |
+| [A noisy line becomes ink (fit-curve)](oss-fit-curve/) | [fit-curve](https://github.com/soswow/fit-curve) (MIT, in the scene) | fit-curve approximates a noisy sampled stroke with cubic Bézier segments. Error controls the fitting tolerance. |
+| [A stretched rubber band (monotone-convex-hull-2d)](oss-monotone-convex-hull-2d/) | [monotone-convex-hull-2d](https://github.com/mikolalysenko/monotone-convex-hull-2d) (MIT, in the scene) | monotone-convex-hull-2d finds the convex hull indices of a point cloud using a monotone chain. |
+| [Inside, outside, boundary (robust-point-in-polygon)](oss-robust-point-in-polygon/) | [robust-point-in-polygon](https://github.com/mikolalysenko/robust-point-in-polygon) (MIT, in the scene) | robust-point-in-polygon classifies a movable probe and a grid of points as inside, outside or on the polygon boundary. |
+| [A star split into convex pieces (poly-decomp.js)](oss-poly-decomp-js/) | [poly-decomp.js](https://github.com/schteppe/poly-decomp.js) (MIT, in the scene) | poly-decomp decomposes a concave star into convex polygons with quickDecomp. Explode separates the resulting pieces for inspection. |
+| [Rooms inside a stepped plan (rectangle-decomposition)](oss-rectangle-decomposition/) | [rectangle-decomposition](https://github.com/mikolalysenko/rectangle-decomposition) (MIT, in the scene) | rectangle-decomposition partitions a rectilinear region into non-overlapping rectangles. A movable courtyard remains empty. |
+| [A stroke made of triangles (extrude-polyline)](oss-extrude-polyline/) | [extrude-polyline](https://github.com/mattdesl/extrude-polyline) (MIT, in the scene) | extrude-polyline builds a triangle mesh for a thick polyline with miter or bevel joins and butt or square caps. |
+| [Contours growing outward (polygon-offset)](oss-polygon-offset/) | [polygon-offset](https://github.com/w8r/polygon-offset) (MIT, in the scene) | polygon-offset computes rounded parallel outlines of an original concave polygon. Distance changes the offset margin. |
+| [Weighted spline (b-spline)](oss-b-spline/) | [b-spline](https://github.com/thibauts/b-spline) (MIT, in the scene) | b-spline evaluates a rational B-spline with de Boor’s algorithm. Degree changes continuity and Weight pulls the curve toward one control point. |
+| [A place for the label (polylabel)](oss-polylabel/) | [polylabel](https://github.com/mapbox/polylabel) (ISC, in the scene) | Polylabel searches for the point farthest from a polygon’s edges and hole. The circle shows its clearance from the boundary. |
+| [A compact atlas (potpack)](oss-potpack/) | [potpack](https://github.com/mapbox/potpack) (ISC, in the scene) | Potpack packs rectangles into a compact texture atlas. Colors track each rectangle and Fill reports occupied area. |
+| [Which side of the line? (robust-predicates)](oss-robust-predicates/) | [robust-predicates](https://github.com/mourner/robust-predicates) (Unlicense, in the scene) | robust-predicates evaluates orient2d for points around a directed line. The moving probe displays the signed orientation result. |
+| [Finding overlaps (box-intersect)](oss-box-intersect/) | [box-intersect](https://github.com/mikolalysenko/box-intersect) (MIT, in the scene) | box-intersect reports overlapping pairs in a moving set of axis-aligned boxes. Matching pairs are connected at their centers. |
+| [A polygon’s balance point (d3-polygon)](oss-d3-polygon/) | [d3-polygon](https://github.com/d3/d3-polygon) (ISC, in the scene) | D3 Polygon measures area, perimeter and centroid of a changing polygon. The bright point marks its geometric centroid. |
+| [Three colors, one triangle (barycentric)](oss-barycentric/) | [barycentric](https://github.com/mikolalysenko/barycentric) (MIT, in the scene) | barycentric computes coordinates relative to a triangle. The three weights become red, green and blue for the probe and the interior grid. |
+| [Evenly spaced currents (streamlines)](oss-streamlines/) | [streamlines](https://github.com/anvaka/streamlines) (MIT, in the scene) | Streamlines integrates an original vector field with RK4 while keeping paths apart. Four spacing settings are computed when the scene opens. |
+
 ## Remixes
 
 Two examples blended into one by an agent with **Mix in** (example details), to show what mixing looks like.
@@ -168,3 +197,15 @@ Python·외부 프로그램·학습 모델 예제에는 실제 생성 결과, �
 Diffusers는 Apache-2.0 라이선스의 DDPM CIFAR-10 모델로 작은 이미지를 만듭니다.
 Whisper와 Demucs는 무음으로 시작하며 **Listen**을 켜면 포함된 합성 음원을 들을 수 있습니다.
 Whisper의 음성은 직접 작성한 문장을 macOS 음성 합성으로 만든 것입니다.
+
+## Geometry and vector examples / 기하·벡터 예제
+
+The 28 geometry examples added from index.opensource run their pinned JavaScript libraries in the scene.
+They calculate their results from original input geometry; no model download or Python installation is needed.
+Opening an example downloads and caches its scene. Its library is fetched separately from a CDN on first use.
+Controls recompute the geometry; Streamlines computes four spacing variants when it opens.
+
+index.opensource에서 추가한 기하·벡터 예제 28개는 고정 버전의 JavaScript 라이브러리를 장면 안에서 실행해요.
+직접 만든 입력 도형으로 결과를 계산하며, 모델 다운로드나 Python 설치가 필요하지 않아요.
+예제를 열면 장면을 내려받아 캐시하고, 라이브러리는 처음 사용할 때 CDN에서 별도로 받아요.
+컨트롤을 바꾸면 기하 데이터를 다시 계산해요. Streamlines는 열 때 네 가지 선 간격을 계산해 둬요.

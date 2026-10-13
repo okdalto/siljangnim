@@ -1,0 +1,29 @@
+{
+  "order": 246,
+  "title": "A noisy line becomes ink (fit-curve)",
+  "title_ko": "흔들린 선이 매끈한 잉크로 (fit-curve)",
+  "description": "fit-curve approximates a noisy sampled stroke with cubic Bézier segments. Error controls the fitting tolerance.",
+  "description_ko": "fit-curve가 흔들리는 선을 여러 3차 베지어 곡선으로 근사해요. Error로 허용 오차를 조절해요.",
+  "prompt": "A noisy line becomes ink. Make the algorithm visible and let the controls change its input.",
+  "made_with": "fit-curve 0.2.0; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "fit-curve"
+  ],
+  "summary": "A noisy line becomes ink. Change the controls to explore the actual algorithm.",
+  "summary_ko": "흔들린 선이 매끈한 잉크로. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Increase Error to use fewer curves",
+    "Toggle Handles to reveal fitted control points"
+  ],
+  "try_ko": [
+    "Error를 올려 곡선 수를 줄여 보세요",
+    "Handles로 맞춰진 제어점을 보세요"
+  ],
+  "tool_about": "fit-curve approximates a noisy sampled stroke with cubic Bézier segments. Error controls the fitting tolerance.",
+  "tool_about_ko": "fit-curve가 흔들리는 선을 여러 3차 베지어 곡선으로 근사해요. Error로 허용 오차를 조절해요."
+}

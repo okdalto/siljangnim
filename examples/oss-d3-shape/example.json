@@ -1,0 +1,29 @@
+{
+  "order": 241,
+  "title": "One rhythm, six curves (d3-shape)",
+  "title_ko": "같은 리듬 여섯 곡선 (d3-shape)",
+  "description": "D3 Shape draws the same sample points with six curve interpolators, from straight segments to smooth natural splines.",
+  "description_ko": "D3 Shape가 같은 점들을 여섯 가지 방식으로 연결해요. 직선부터 부드러운 자연 스플라인까지 비교할 수 있어요.",
+  "prompt": "One rhythm, six curves. Make the algorithm visible and let the controls change its input.",
+  "made_with": "d3-shape 3.2.0; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "d3-shape"
+  ],
+  "summary": "One rhythm, six curves. Change the controls to explore the actual algorithm.",
+  "summary_ko": "같은 리듬 여섯 곡선. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Switch Curve to compare interpolation",
+    "Change Height to stretch the wave"
+  ],
+  "try_ko": [
+    "Curve로 연결 방식을 골라 보세요",
+    "Height로 파형의 높이를 바꿔 보세요"
+  ],
+  "tool_about": "D3 Shape draws the same sample points with six curve interpolators, from straight segments to smooth natural splines.",
+  "tool_about_ko": "D3 Shape가 같은 점들을 여섯 가지 방식으로 연결해요. 직선부터 부드러운 자연 스플라인까지 비교할 수 있어요."
+}

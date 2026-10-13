@@ -2762,6 +2762,650 @@
     "cdn": "https://cdn.jsdelivr.net/gh/inconvergent/sand-spline@a54ef302d0327d121405cbf8987e61fdc5470a4a/modules/sandSpline.py"
    },
    "notes": "Python (numpy/scipy) original; the scene reimplements SandSpline and the circle/circles/hlines layouts, replacing scipy's splprep/splev with a chord-length Catmull-Rom spline."
+  },
+  {
+   "id": "concaveman",
+   "name": "concaveman",
+   "repo": "https://github.com/mapbox/concaveman",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "Concaveman wraps an original point cloud in a concave hull. Concavity controls how closely its boundary follows the points.",
+   "tags": [
+    "concaveman"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/concaveman@2.0.0"
+   }
+  },
+  {
+   "id": "simplify-js",
+   "name": "Simplify.js",
+   "repo": "https://github.com/mourner/simplify-js",
+   "license": "BSD-2-Clause",
+   "tier": "B",
+   "purpose": "Simplify.js reduces a noisy polyline with Douglas–Peucker simplification. The original line remains visible for comparison.",
+   "tags": [
+    "simplify-js"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/simplify-js@1.2.4"
+   }
+  },
+  {
+   "id": "adaptive-bezier-curve",
+   "name": "adaptive-bezier-curve",
+   "repo": "https://github.com/mattdesl/adaptive-bezier-curve",
+   "license": "BSD-3-Clause",
+   "tier": "B",
+   "purpose": "adaptive-bezier-curve subdivides a cubic curve more finely near bends. Quality changes its adaptive sampling scale.",
+   "tags": [
+    "adaptive-bezier-curve"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/adaptive-bezier-curve@1.0.3"
+   }
+  },
+  {
+   "id": "martinez-polygon-clipping",
+   "name": "Martinez polygon clipping",
+   "repo": "https://github.com/w8r/martinez",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Martinez computes boolean operations between a star and a movable disk, including holes in the resulting polygon.",
+   "tags": [
+    "martinez-polygon-clipping"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/martinez-polygon-clipping@0.8.1"
+   }
+  },
+  {
+   "id": "polybool",
+   "name": "PolyBool",
+   "repo": "https://github.com/velipso/polybool",
+   "license": "0BSD",
+   "tier": "B",
+   "purpose": "PolyBool combines the regions of two polygons with union, intersection, difference and XOR.",
+   "tags": [
+    "polybool"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/@velipso/polybool@2.0.11"
+   }
+  },
+  {
+   "id": "chaikin-smooth",
+   "name": "chaikin-smooth",
+   "repo": "https://github.com/experience-monks/chaikin-smooth",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Chaikin smoothing repeatedly cuts corners from an open zigzag. Endpoints remain fixed while the path rounds out.",
+   "tags": [
+    "chaikin-smooth"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/chaikin-smooth@1.0.4"
+   }
+  },
+  {
+   "id": "cdt2d",
+   "name": "cdt2d",
+   "repo": "https://github.com/mikolalysenko/cdt2d",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "cdt2d creates a constrained Delaunay mesh around a courtyard. Boundary edges and the hole remain intact.",
+   "tags": [
+    "cdt2d"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/cdt2d@1.0.0"
+   }
+  },
+  {
+   "id": "pack-spheres",
+   "name": "pack-spheres",
+   "repo": "https://github.com/mattdesl/pack-spheres",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "pack-spheres grows circles while keeping them separate. A fixed random seed makes comparisons reproducible.",
+   "tags": [
+    "pack-spheres"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/pack-spheres@1.0.4"
+   }
+  },
+  {
+   "id": "d3-shape",
+   "name": "d3-shape",
+   "repo": "https://github.com/d3/d3-shape",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "D3 Shape draws the same sample points with six curve interpolators, from straight segments to smooth natural splines.",
+   "tags": [
+    "d3-shape"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-shape@3.2.0"
+   }
+  },
+  {
+   "id": "svg-mesh-3d",
+   "name": "svg-mesh-3d",
+   "repo": "https://github.com/mattdesl/svg-mesh-3d",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "svg-mesh-3d converts an original cubic SVG leaf into an indexed triangle mesh. Sampling quality changes the boundary detail.",
+   "tags": [
+    "svg-mesh-3d"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/svg-mesh-3d@1.1.0"
+   }
+  },
+  {
+   "id": "alpha-shape",
+   "name": "alpha-shape",
+   "repo": "https://github.com/mikolalysenko/alpha-shape",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "alpha-shape extracts the boundary of an alpha complex. Increasing Alpha rejects larger circumcircles and can split the boundary.",
+   "tags": [
+    "alpha-shape"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/alpha-shape@1.0.0"
+   }
+  },
+  {
+   "id": "polyline-normals",
+   "name": "polyline-normals",
+   "repo": "https://github.com/mattdesl/polyline-normals",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "polyline-normals computes vertex normals and miter lengths for a zigzag ribbon. Width moves its two sides along those normals.",
+   "tags": [
+    "polyline-normals"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/polyline-normals@2.0.2"
+   }
+  },
+  {
+   "id": "delaunator",
+   "name": "Delaunator",
+   "repo": "https://github.com/mapbox/delaunator",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "Delaunator triangulates an original point cloud. Each triangle gets a color while the points remain visible on request.",
+   "tags": [
+    "delaunator"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/delaunator@5.1.0"
+   }
+  },
+  {
+   "id": "fit-curve",
+   "name": "fit-curve",
+   "repo": "https://github.com/soswow/fit-curve",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "fit-curve approximates a noisy sampled stroke with cubic Bézier segments. Error controls the fitting tolerance.",
+   "tags": [
+    "fit-curve"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/fit-curve@0.2.0"
+   }
+  },
+  {
+   "id": "monotone-convex-hull-2d",
+   "name": "monotone-convex-hull-2d",
+   "repo": "https://github.com/mikolalysenko/monotone-convex-hull-2d",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "monotone-convex-hull-2d finds the convex hull indices of a point cloud using a monotone chain.",
+   "tags": [
+    "monotone-convex-hull-2d"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/monotone-convex-hull-2d@1.0.1"
+   }
+  },
+  {
+   "id": "robust-point-in-polygon",
+   "name": "robust-point-in-polygon",
+   "repo": "https://github.com/mikolalysenko/robust-point-in-polygon",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "robust-point-in-polygon classifies a movable probe and a grid of points as inside, outside or on the polygon boundary.",
+   "tags": [
+    "robust-point-in-polygon"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/robust-point-in-polygon@1.0.3"
+   }
+  },
+  {
+   "id": "poly-decomp-js",
+   "name": "poly-decomp.js",
+   "repo": "https://github.com/schteppe/poly-decomp.js",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "poly-decomp decomposes a concave star into convex polygons with quickDecomp. Explode separates the resulting pieces for inspection.",
+   "tags": [
+    "poly-decomp-js"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/poly-decomp@0.3.0"
+   }
+  },
+  {
+   "id": "rectangle-decomposition",
+   "name": "rectangle-decomposition",
+   "repo": "https://github.com/mikolalysenko/rectangle-decomposition",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "rectangle-decomposition partitions a rectilinear region into non-overlapping rectangles. A movable courtyard remains empty.",
+   "tags": [
+    "rectangle-decomposition"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/rectangle-decomposition@1.0.0"
+   }
+  },
+  {
+   "id": "extrude-polyline",
+   "name": "extrude-polyline",
+   "repo": "https://github.com/mattdesl/extrude-polyline",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "extrude-polyline builds a triangle mesh for a thick polyline with miter or bevel joins and butt or square caps.",
+   "tags": [
+    "extrude-polyline"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/extrude-polyline@1.0.6"
+   }
+  },
+  {
+   "id": "polygon-offset",
+   "name": "polygon-offset",
+   "repo": "https://github.com/w8r/polygon-offset",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "polygon-offset computes rounded parallel outlines of an original concave polygon. Distance changes the offset margin.",
+   "tags": [
+    "polygon-offset"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/polygon-offset@0.3.2"
+   }
+  },
+  {
+   "id": "b-spline",
+   "name": "b-spline",
+   "repo": "https://github.com/thibauts/b-spline",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "b-spline evaluates a rational B-spline with de Boor’s algorithm. Degree changes continuity and Weight pulls the curve toward one control point.",
+   "tags": [
+    "b-spline"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/b-spline@2.0.2"
+   }
+  },
+  {
+   "id": "polylabel",
+   "name": "polylabel",
+   "repo": "https://github.com/mapbox/polylabel",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "Polylabel searches for the point farthest from a polygon’s edges and hole. The circle shows its clearance from the boundary.",
+   "tags": [
+    "polylabel"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/polylabel@2.1.0"
+   }
+  },
+  {
+   "id": "potpack",
+   "name": "potpack",
+   "repo": "https://github.com/mapbox/potpack",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "Potpack packs rectangles into a compact texture atlas. Colors track each rectangle and Fill reports occupied area.",
+   "tags": [
+    "potpack"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/potpack@2.1.0"
+   }
+  },
+  {
+   "id": "robust-predicates",
+   "name": "robust-predicates",
+   "repo": "https://github.com/mourner/robust-predicates",
+   "license": "Unlicense",
+   "tier": "B",
+   "purpose": "robust-predicates evaluates orient2d for points around a directed line. The moving probe displays the signed orientation result.",
+   "tags": [
+    "robust-predicates"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/robust-predicates@3.0.3"
+   }
+  },
+  {
+   "id": "box-intersect",
+   "name": "box-intersect",
+   "repo": "https://github.com/mikolalysenko/box-intersect",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "box-intersect reports overlapping pairs in a moving set of axis-aligned boxes. Matching pairs are connected at their centers.",
+   "tags": [
+    "box-intersect"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/box-intersect@1.0.2"
+   }
+  },
+  {
+   "id": "d3-polygon",
+   "name": "d3-polygon",
+   "repo": "https://github.com/d3/d3-polygon",
+   "license": "ISC",
+   "tier": "B",
+   "purpose": "D3 Polygon measures area, perimeter and centroid of a changing polygon. The bright point marks its geometric centroid.",
+   "tags": [
+    "d3-polygon"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/d3-polygon@3.0.1"
+   }
+  },
+  {
+   "id": "barycentric",
+   "name": "barycentric",
+   "repo": "https://github.com/mikolalysenko/barycentric",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "barycentric computes coordinates relative to a triangle. The three weights become red, green and blue for the probe and the interior grid.",
+   "tags": [
+    "barycentric"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/barycentric@1.0.1"
+   }
+  },
+  {
+   "id": "streamlines",
+   "name": "streamlines",
+   "repo": "https://github.com/anvaka/streamlines",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "Streamlines integrates an original vector field with RK4 while keeping paths apart. Four spacing settings are computed when the scene opens.",
+   "tags": [
+    "streamlines"
+   ],
+   "media": {
+    "in": [
+     "geometry",
+     "points"
+    ],
+    "out": [
+     "geometry"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/@anvaka/streamlines@1.6.0"
+   }
   }
  ]
 }

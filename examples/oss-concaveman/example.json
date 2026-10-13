@@ -1,0 +1,29 @@
+{
+  "order": 233,
+  "title": "A shoreline around points (concaveman)",
+  "title_ko": "점들을 감싸는 해안선 (concaveman)",
+  "description": "Concaveman wraps an original point cloud in a concave hull. Concavity controls how closely its boundary follows the points.",
+  "description_ko": "Concaveman이 직접 만든 점 구름의 오목 껍질을 계산해요. Concavity를 바꾸면 경계가 점들 사이를 얼마나 파고드는지 달라져요.",
+  "prompt": "A shoreline around points. Make the algorithm visible and let the controls change its input.",
+  "made_with": "concaveman 2.0.0; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "concaveman"
+  ],
+  "summary": "A shoreline around points. Change the controls to explore the actual algorithm.",
+  "summary_ko": "점들을 감싸는 해안선. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Lower Concavity to reveal bays",
+    "Change Points to rebuild the boundary"
+  ],
+  "try_ko": [
+    "Concavity를 낮춰 움푹한 경계를 만들어 보세요",
+    "Points를 바꿔 경계를 다시 계산해 보세요"
+  ],
+  "tool_about": "Concaveman wraps an original point cloud in a concave hull. Concavity controls how closely its boundary follows the points.",
+  "tool_about_ko": "Concaveman이 직접 만든 점 구름의 오목 껍질을 계산해요. Concavity를 바꾸면 경계가 점들 사이를 얼마나 파고드는지 달라져요."
+}

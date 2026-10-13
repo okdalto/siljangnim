@@ -1,0 +1,29 @@
+{
+  "order": 234,
+  "title": "A lighter coastline (Simplify.js)",
+  "title_ko": "가벼워지는 해안선 (Simplify.js)",
+  "description": "Simplify.js reduces a noisy polyline with Douglas–Peucker simplification. The original line remains visible for comparison.",
+  "description_ko": "Simplify.js가 더글러스–포이커 알고리즘으로 울퉁불퉁한 선의 점을 줄여요. 원래 선을 겹쳐 보여 차이를 비교할 수 있어요.",
+  "prompt": "A lighter coastline. Make the algorithm visible and let the controls change its input.",
+  "made_with": "simplify-js 1.2.4; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "simplify-js"
+  ],
+  "summary": "A lighter coastline. Change the controls to explore the actual algorithm.",
+  "summary_ko": "가벼워지는 해안선. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Raise Tolerance to reduce detail",
+    "Toggle Vertices to inspect retained points"
+  ],
+  "try_ko": [
+    "Tolerance를 높여 점을 줄여 보세요",
+    "Vertices를 켜서 남은 점을 확인해 보세요"
+  ],
+  "tool_about": "Simplify.js reduces a noisy polyline with Douglas–Peucker simplification. The original line remains visible for comparison.",
+  "tool_about_ko": "Simplify.js가 더글러스–포이커 알고리즘으로 울퉁불퉁한 선의 점을 줄여요. 원래 선을 겹쳐 보여 차이를 비교할 수 있어요."
+}

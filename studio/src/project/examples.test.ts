@@ -16,6 +16,11 @@ describe("examples", () => {
       expect(e.title, e.slug).toBeTruthy();
       expect(e.description, e.slug).toBeTruthy();
       expect(e.thumbnail, e.slug).toBeTruthy();
+      const png = readFileSync(join(ROOT, "examples", e.slug, "thumbnail.png"));
+      expect(png.subarray(1, 4).toString(), e.slug).toBe("PNG");
+      // Real viewer captures, never the tiny seed image used while authoring.
+      expect(png.readUInt32BE(16), e.slug).toBeGreaterThanOrEqual(128);
+      expect(png.readUInt32BE(20), e.slug).toBeGreaterThanOrEqual(128);
     }
   });
 

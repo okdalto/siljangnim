@@ -1,0 +1,29 @@
+{
+  "order": 257,
+  "title": "Finding overlaps (box-intersect)",
+  "title_ko": "겹친 상자 찾기 (box-intersect)",
+  "description": "box-intersect reports overlapping pairs in a moving set of axis-aligned boxes. Matching pairs are connected at their centers.",
+  "description_ko": "box-intersect가 축에 나란한 상자들 중 겹치는 쌍을 찾아요. 겹친 상자들의 중심을 선으로 연결해요.",
+  "prompt": "Finding overlaps. Make the algorithm visible and let the controls change its input.",
+  "made_with": "box-intersect 1.0.2; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "box-intersect"
+  ],
+  "summary": "Finding overlaps. Change the controls to explore the actual algorithm.",
+  "summary_ko": "겹친 상자 찾기. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Increase Box size to create collisions",
+    "Change Phase to move the boxes"
+  ],
+  "try_ko": [
+    "Box size를 키워 겹침을 늘려 보세요",
+    "Phase로 상자를 움직여 보세요"
+  ],
+  "tool_about": "box-intersect reports overlapping pairs in a moving set of axis-aligned boxes. Matching pairs are connected at their centers.",
+  "tool_about_ko": "box-intersect가 축에 나란한 상자들 중 겹치는 쌍을 찾아요. 겹친 상자들의 중심을 선으로 연결해요."
+}

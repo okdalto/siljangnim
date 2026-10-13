@@ -1,0 +1,29 @@
+{
+  "order": 237,
+  "title": "Polygon logic (PolyBool)",
+  "title_ko": "다각형의 논리 (PolyBool)",
+  "description": "PolyBool combines the regions of two polygons with union, intersection, difference and XOR.",
+  "description_ko": "PolyBool이 두 다각형의 영역을 합치거나 겹친 부분만 남기거나 빼요.",
+  "prompt": "Polygon logic. Make the algorithm visible and let the controls change its input.",
+  "made_with": "@velipso/polybool 2.0.11; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "polybool"
+  ],
+  "summary": "Polygon logic. Change the controls to explore the actual algorithm.",
+  "summary_ko": "다각형의 논리. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Compare all four boolean operations",
+    "Slide the disk through the star"
+  ],
+  "try_ko": [
+    "네 가지 불리언 연산을 비교해 보세요",
+    "원을 별 안팎으로 움직여 보세요"
+  ],
+  "tool_about": "PolyBool combines the regions of two polygons with union, intersection, difference and XOR.",
+  "tool_about_ko": "PolyBool이 두 다각형의 영역을 합치거나 겹친 부분만 남기거나 빼요."
+}

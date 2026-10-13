@@ -1,0 +1,29 @@
+{
+  "order": 255,
+  "title": "A compact atlas (potpack)",
+  "title_ko": "빈틈을 줄인 아틀라스 (potpack)",
+  "description": "Potpack packs rectangles into a compact texture atlas. Colors track each rectangle and Fill reports occupied area.",
+  "description_ko": "Potpack이 직사각형들을 작은 텍스처 아틀라스에 모아요. 색으로 조각을 구분하고 채운 면적 비율을 보여 줘요.",
+  "prompt": "A compact atlas. Make the algorithm visible and let the controls change its input.",
+  "made_with": "potpack 2.1.0; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "potpack"
+  ],
+  "summary": "A compact atlas. Change the controls to explore the actual algorithm.",
+  "summary_ko": "빈틈을 줄인 아틀라스. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Boxes to repack the atlas",
+    "Change Aspect to stretch the inputs"
+  ],
+  "try_ko": [
+    "Boxes로 다시 배치해 보세요",
+    "Aspect로 입력 조각의 비율을 바꿔 보세요"
+  ],
+  "tool_about": "Potpack packs rectangles into a compact texture atlas. Colors track each rectangle and Fill reports occupied area.",
+  "tool_about_ko": "Potpack이 직사각형들을 작은 텍스처 아틀라스에 모아요. 색으로 조각을 구분하고 채운 면적 비율을 보여 줘요."
+}

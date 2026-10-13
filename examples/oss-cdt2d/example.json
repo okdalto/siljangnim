@@ -1,0 +1,29 @@
+{
+  "order": 239,
+  "title": "Triangles around a courtyard (cdt2d)",
+  "title_ko": "안뜰을 비워 두는 삼각형 (cdt2d)",
+  "description": "cdt2d creates a constrained Delaunay mesh around a courtyard. Boundary edges and the hole remain intact.",
+  "description_ko": "cdt2d가 안뜰이 있는 영역을 삼각분할해요. 바깥 경계와 구멍의 경계를 지키면서 삼각형을 만들어요.",
+  "prompt": "Triangles around a courtyard. Make the algorithm visible and let the controls change its input.",
+  "made_with": "cdt2d 1.0.0; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "cdt2d"
+  ],
+  "summary": "Triangles around a courtyard. Change the controls to explore the actual algorithm.",
+  "summary_ko": "안뜰을 비워 두는 삼각형. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Expand Courtyard to enlarge the hole",
+    "Increase Detail to add interior points"
+  ],
+  "try_ko": [
+    "Courtyard로 안뜰을 넓혀 보세요",
+    "Detail로 내부 점을 늘려 보세요"
+  ],
+  "tool_about": "cdt2d creates a constrained Delaunay mesh around a courtyard. Boundary edges and the hole remain intact.",
+  "tool_about_ko": "cdt2d가 안뜰이 있는 영역을 삼각분할해요. 바깥 경계와 구멍의 경계를 지키면서 삼각형을 만들어요."
+}

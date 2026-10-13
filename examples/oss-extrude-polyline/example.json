@@ -1,0 +1,29 @@
+{
+  "order": 251,
+  "title": "A stroke made of triangles (extrude-polyline)",
+  "title_ko": "삼각형으로 만든 굵은 선 (extrude-polyline)",
+  "description": "extrude-polyline builds a triangle mesh for a thick polyline with miter or bevel joins and butt or square caps.",
+  "description_ko": "extrude-polyline이 굵은 선을 삼각형 메시로 만들어요. 모서리 이음과 선 끝 모양을 선택할 수 있어요.",
+  "prompt": "A stroke made of triangles. Make the algorithm visible and let the controls change its input.",
+  "made_with": "extrude-polyline 1.0.6; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "extrude-polyline"
+  ],
+  "summary": "A stroke made of triangles. Change the controls to explore the actual algorithm.",
+  "summary_ko": "삼각형으로 만든 굵은 선. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Compare Miter and Bevel joins",
+    "Change Width and Cap"
+  ],
+  "try_ko": [
+    "Miter와 Bevel의 모서리를 비교해 보세요",
+    "Width와 Cap을 바꿔 보세요"
+  ],
+  "tool_about": "extrude-polyline builds a triangle mesh for a thick polyline with miter or bevel joins and butt or square caps.",
+  "tool_about_ko": "extrude-polyline이 굵은 선을 삼각형 메시로 만들어요. 모서리 이음과 선 끝 모양을 선택할 수 있어요."
+}

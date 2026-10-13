@@ -1,0 +1,29 @@
+{
+  "order": 249,
+  "title": "A star split into convex pieces (poly-decomp.js)",
+  "title_ko": "볼록 조각으로 나눈 별 (poly-decomp.js)",
+  "description": "poly-decomp decomposes a concave star into convex polygons with quickDecomp. Explode separates the resulting pieces for inspection.",
+  "description_ko": "poly-decomp가 오목한 별을 볼록 다각형으로 나눠요. Explode로 조각을 벌려 살펴볼 수 있어요.",
+  "prompt": "A star split into convex pieces. Make the algorithm visible and let the controls change its input.",
+  "made_with": "poly-decomp 0.3.0; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "poly-decomp-js"
+  ],
+  "summary": "A star split into convex pieces. Change the controls to explore the actual algorithm.",
+  "summary_ko": "볼록 조각으로 나눈 별. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Tips to alter the concavity",
+    "Increase Explode to separate the pieces"
+  ],
+  "try_ko": [
+    "Tips로 별 모양을 바꿔 보세요",
+    "Explode로 조각을 벌려 보세요"
+  ],
+  "tool_about": "poly-decomp decomposes a concave star into convex polygons with quickDecomp. Explode separates the resulting pieces for inspection.",
+  "tool_about_ko": "poly-decomp가 오목한 별을 볼록 다각형으로 나눠요. Explode로 조각을 벌려 살펴볼 수 있어요."
+}

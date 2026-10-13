@@ -1,0 +1,29 @@
+{
+  "order": 259,
+  "title": "Three colors, one triangle (barycentric)",
+  "title_ko": "세 색 하나의 삼각형 (barycentric)",
+  "description": "barycentric computes coordinates relative to a triangle. The three weights become red, green and blue for the probe and the interior grid.",
+  "description_ko": "barycentric이 삼각형에 대한 무게중심 좌표를 계산해요. 세 가중치를 빨강·초록·파랑으로 바꿔 보여 줘요.",
+  "prompt": "Three colors, one triangle. Make the algorithm visible and let the controls change its input.",
+  "made_with": "barycentric 1.0.1; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "barycentric"
+  ],
+  "summary": "Three colors, one triangle. Change the controls to explore the actual algorithm.",
+  "summary_ko": "세 색 하나의 삼각형. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Move the probe inside and outside",
+    "Watch weights turn negative outside the triangle"
+  ],
+  "try_ko": [
+    "점을 삼각형 안팎으로 옮겨 보세요",
+    "바깥에서 가중치가 음수가 되는지 보세요"
+  ],
+  "tool_about": "barycentric computes coordinates relative to a triangle. The three weights become red, green and blue for the probe and the interior grid.",
+  "tool_about_ko": "barycentric이 삼각형에 대한 무게중심 좌표를 계산해요. 세 가중치를 빨강·초록·파랑으로 바꿔 보여 줘요."
+}

@@ -1,0 +1,29 @@
+{
+  "order": 245,
+  "title": "A glass mosaic (Delaunator)",
+  "title_ko": "유리 조각 모자이크 (Delaunator)",
+  "description": "Delaunator triangulates an original point cloud. Each triangle gets a color while the points remain visible on request.",
+  "description_ko": "Delaunator가 직접 만든 점들을 빠르게 삼각분할해요. 조각마다 색을 입히고 꼭짓점도 확인할 수 있어요.",
+  "prompt": "A glass mosaic. Make the algorithm visible and let the controls change its input.",
+  "made_with": "delaunator 5.1.0; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "delaunator"
+  ],
+  "summary": "A glass mosaic. Change the controls to explore the actual algorithm.",
+  "summary_ko": "유리 조각 모자이크. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Change Points to rebuild the mosaic",
+    "Turn on Vertices to see the input"
+  ],
+  "try_ko": [
+    "Points로 조각 수를 바꿔 보세요",
+    "Vertices를 켜서 입력 점을 보세요"
+  ],
+  "tool_about": "Delaunator triangulates an original point cloud. Each triangle gets a color while the points remain visible on request.",
+  "tool_about_ko": "Delaunator가 직접 만든 점들을 빠르게 삼각분할해요. 조각마다 색을 입히고 꼭짓점도 확인할 수 있어요."
+}

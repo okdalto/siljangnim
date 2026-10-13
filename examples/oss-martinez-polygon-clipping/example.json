@@ -1,0 +1,29 @@
+{
+  "order": 236,
+  "title": "Cut and combine (Martinez polygon clipping)",
+  "title_ko": "자르고 합치는 도형 (Martinez polygon clipping)",
+  "description": "Martinez computes boolean operations between a star and a movable disk, including holes in the resulting polygon.",
+  "description_ko": "Martinez가 별과 움직이는 원의 합집합·교집합·차집합·대칭차를 계산해요. 결과에 생기는 구멍도 함께 보여요.",
+  "prompt": "Cut and combine. Make the algorithm visible and let the controls change its input.",
+  "made_with": "martinez-polygon-clipping 0.8.1; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "martinez-polygon-clipping"
+  ],
+  "summary": "Cut and combine. Change the controls to explore the actual algorithm.",
+  "summary_ko": "자르고 합치는 도형. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Switch Operation",
+    "Move Shift to change the overlap"
+  ],
+  "try_ko": [
+    "Operation으로 연산을 골라 보세요",
+    "Shift로 겹치는 부분을 바꿔 보세요"
+  ],
+  "tool_about": "Martinez computes boolean operations between a star and a movable disk, including holes in the resulting polygon.",
+  "tool_about_ko": "Martinez가 별과 움직이는 원의 합집합·교집합·차집합·대칭차를 계산해요. 결과에 생기는 구멍도 함께 보여요."
+}

@@ -1,0 +1,29 @@
+{
+  "order": 240,
+  "title": "Pebbles that do not overlap (pack-spheres)",
+  "title_ko": "겹치지 않는 조약돌 (pack-spheres)",
+  "description": "pack-spheres grows circles while keeping them separate. A fixed random seed makes comparisons reproducible.",
+  "description_ko": "pack-spheres가 서로 겹치지 않게 원들을 키워 배치해요. 같은 난수 시작점을 써서 설정을 바꿔 비교할 수 있어요.",
+  "prompt": "Pebbles that do not overlap. Make the algorithm visible and let the controls change its input.",
+  "made_with": "pack-spheres 1.0.4; original input geometry",
+  "features": [
+    "interactive",
+    "geometry"
+  ],
+  "mode": "live",
+  "uses": [
+    "pack-spheres"
+  ],
+  "summary": "Pebbles that do not overlap. Change the controls to explore the actual algorithm.",
+  "summary_ko": "겹치지 않는 조약돌. 컨트롤을 바꾸며 실제 알고리즘의 결과를 살펴보세요.",
+  "try": [
+    "Increase Gap to leave space",
+    "Change Max radius for a different size mix"
+  ],
+  "try_ko": [
+    "Gap을 올려 원 사이를 벌려 보세요",
+    "Max radius로 원 크기를 바꿔 보세요"
+  ],
+  "tool_about": "pack-spheres grows circles while keeping them separate. A fixed random seed makes comparisons reproducible.",
+  "tool_about_ko": "pack-spheres가 서로 겹치지 않게 원들을 키워 배치해요. 같은 난수 시작점을 써서 설정을 바꿔 비교할 수 있어요."
+}
