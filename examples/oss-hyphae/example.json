@@ -1,0 +1,38 @@
+{
+  "order": 471,
+  "title": "Root networks from original growth rules (Hyphae)",
+  "title_ko": "원본 성장 규칙으로 뻗는 뿌리망 (Hyphae)",
+  "description": "Original Hyphae growth produces 500, 1,500 and 3,000 branches, rendered with its own Cairo drawing code.",
+  "description_ko": "Hyphae 원본 성장 코드로 500·1,500·3,000개 가지를 계산하고 원본 Cairo 그리기 코드로 렌더했어요.",
+  "prompt": "Root networks from original growth rules. Use the original engine.",
+  "made_with": "Hyphae original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "hyphae"
+  ],
+  "summary": "Original Hyphae growth produces 500, 1,500 and 3,000 branches, rendered with its own Cairo drawing code.",
+  "summary_ko": "Hyphae 원본 성장 코드로 500·1,500·3,000개 가지를 계산하고 원본 Cairo 그리기 코드로 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original Hyphae growth produces 500, 1,500 and 3,000 branches, rendered with its own Cairo drawing code.",
+  "tool_about_ko": "Hyphae 원본 성장 코드로 500·1,500·3,000개 가지를 계산하고 원본 Cairo 그리기 코드로 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Hyphae contributors",
+      "url": "https://github.com/inconvergent/hyphae",
+      "license": "MIT"
+    }
+  ]
+}

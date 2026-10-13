@@ -1,0 +1,38 @@
+{
+  "order": 467,
+  "title": "Spiral arms from native orbital elements (Galaxy Renderer)",
+  "title_ko": "원본 궤도 계산으로 만든 나선팔 (Galaxy Renderer)",
+  "description": "Galaxy Renderer computes 12,000 stellar orbits and rotation curves; compare three angular offsets in a face-on view.",
+  "description_ko": "Galaxy Renderer 원본 C++ 코어로 별 12,000개의 궤도와 회전 곡선을 계산하고 세 가지 나선팔 감김을 비교해요.",
+  "prompt": "Spiral arms from native orbital elements. Use the original engine.",
+  "made_with": "Galaxy Renderer original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "galaxy-renderer"
+  ],
+  "summary": "Galaxy Renderer computes 12,000 stellar orbits and rotation curves; compare three angular offsets in a face-on view.",
+  "summary_ko": "Galaxy Renderer 원본 C++ 코어로 별 12,000개의 궤도와 회전 곡선을 계산하고 세 가지 나선팔 감김을 비교해요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Galaxy Renderer computes 12,000 stellar orbits and rotation curves; compare three angular offsets in a face-on view.",
+  "tool_about_ko": "Galaxy Renderer 원본 C++ 코어로 별 12,000개의 궤도와 회전 곡선을 계산하고 세 가지 나선팔 감김을 비교해요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Galaxy Renderer contributors",
+      "url": "https://github.com/beltoforion/Galaxy-Renderer",
+      "license": "BSD-2-Clause"
+    }
+  ]
+}

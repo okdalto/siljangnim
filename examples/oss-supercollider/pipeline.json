@@ -1,0 +1,26 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "supercollider.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "audio-0.wav",
+        "audio-1.wav",
+        "audio-2.wav",
+        "patch-0.scsyndef",
+        "patch-1.scsyndef",
+        "patch-2.scsyndef",
+        "result.json",
+        "score-0.osc",
+        "score-1.osc",
+        "score-2.osc"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "order": 466,
+  "title": "Maximum circles inside a concave shape (Processing Geometry Suite)",
+  "title_ko": "오목한 도형 안의 최대 원 (Processing Geometry Suite)",
+  "description": "PGS 2.2 directly computes 20, 60 and 120 maximum inscribed circles, checked for overlap and containment.",
+  "description_ko": "PGS 2.2 원본으로 최대 내접원 20·60·120개를 계산하고 겹침과 경계 이탈을 검증했어요.",
+  "prompt": "Maximum circles inside a concave shape. Use the original engine.",
+  "made_with": "Processing Geometry Suite original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "processing-geometry-suite"
+  ],
+  "summary": "PGS 2.2 directly computes 20, 60 and 120 maximum inscribed circles, checked for overlap and containment.",
+  "summary_ko": "PGS 2.2 원본으로 최대 내접원 20·60·120개를 계산하고 겹침과 경계 이탈을 검증했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "PGS 2.2 directly computes 20, 60 and 120 maximum inscribed circles, checked for overlap and containment.",
+  "tool_about_ko": "PGS 2.2 원본으로 최대 내접원 20·60·120개를 계산하고 겹침과 경계 이탈을 검증했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Processing Geometry Suite contributors",
+      "url": "https://github.com/micycle1/pgs",
+      "license": "GPL-3.0"
+    },
+    {
+      "what": "Processing core",
+      "source": "Processing contributors",
+      "url": "https://github.com/processing/processing4",
+      "license": "LGPL-2.1-or-later"
+    }
+  ]
+}

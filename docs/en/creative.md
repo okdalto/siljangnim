@@ -62,6 +62,8 @@ Directly executed examples also cover NanoVG native rendering, hole_fixer surfac
 
 Threading includes string art and native SVG exports computed from an original input, while mapgen4 shows rainfall-dependent drainage. Field Play particles and a v86 x86 boot program run live in their original engines; required engine assets are downloaded and cached when opening each example.
 
+Hyphae growth, RubikTwoPhase cube solving, PGS circle packing, Galaxy Renderer stellar orbits, diamond-webgl refraction, py5 vector rendering and SuperCollider synthesis use results computed with the original engines. Compare prepared results or inspect the inputs and runtime requirements to rerun each recipe.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

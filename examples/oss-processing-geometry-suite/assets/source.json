@@ -1,0 +1,12 @@
+[
+  {
+    "name": "PGS.jar",
+    "url": "https://github.com/micycle1/PGS/releases/download/2.2/PGS.jar",
+    "sha256": "2495ce9067a334e6082eb15cb2f3ce9546331538da57a432e722cc04ef2c6cf7"
+  },
+  {
+    "name": "processing-core.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/processing/core/4.3.1/core-4.3.1.jar",
+    "sha256": "245f454ceb89c2cd03bc9b1ea85159769495279af8293ffab688f330c6a80ce1"
+  }
+]

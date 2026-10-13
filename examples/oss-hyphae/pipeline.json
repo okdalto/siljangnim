@@ -1,0 +1,26 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "hyphae.gallery@1",
+      "packages": [
+        "numpy==1.26.4",
+        "cairocffi==1.7.1",
+        "cffi==2.0.0",
+        "pycparser==3.0"
+      ],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "branches.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

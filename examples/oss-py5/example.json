@@ -1,0 +1,44 @@
+{
+  "order": 469,
+  "title": "Woven waves in Processing (py5)",
+  "title_ko": "Processing으로 그린 물결 직조 (py5)",
+  "description": "py5 runs its original Processing JAVA2D renderer to draw 32 layered curves at three amplitudes.",
+  "description_ko": "py5 원본 Processing JAVA2D 렌더러로 32개 곡선을 그리고 세 가지 진폭의 결과를 비교해요.",
+  "prompt": "Woven waves in Processing. Use the original engine.",
+  "made_with": "py5 original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "py5"
+  ],
+  "summary": "py5 runs its original Processing JAVA2D renderer to draw 32 layered curves at three amplitudes.",
+  "summary_ko": "py5 원본 Processing JAVA2D 렌더러로 32개 곡선을 그리고 세 가지 진폭의 결과를 비교해요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "py5 runs its original Processing JAVA2D renderer to draw 32 layered curves at three amplitudes.",
+  "tool_about_ko": "py5 원본 Processing JAVA2D 렌더러로 32개 곡선을 그리고 세 가지 진폭의 결과를 비교해요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "py5 contributors",
+      "url": "https://github.com/py5coding/py5",
+      "license": "LGPL-2.1"
+    },
+    {
+      "what": "Processing core",
+      "source": "Processing contributors",
+      "url": "https://github.com/processing/processing4",
+      "license": "LGPL-2.1-or-later"
+    }
+  ]
+}

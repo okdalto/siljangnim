@@ -1,0 +1,38 @@
+{
+  "order": 468,
+  "title": "Refraction through a brilliant cut (diamond-webgl)",
+  "title_ko": "브릴리언트 컷의 굴절 (diamond-webgl)",
+  "description": "The original diamond-webgl app renders a brilliant cut at refractive indices 1.33, 1.76 and 2.42 under ASET lighting.",
+  "description_ko": "diamond-webgl 원본 앱에서 ASET 조명과 굴절률 1.33·1.76·2.42로 브릴리언트 컷을 직접 렌더했어요.",
+  "prompt": "Refraction through a brilliant cut. Use the original engine.",
+  "made_with": "diamond-webgl original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "diamond-webgl"
+  ],
+  "summary": "The original diamond-webgl app renders a brilliant cut at refractive indices 1.33, 1.76 and 2.42 under ASET lighting.",
+  "summary_ko": "diamond-webgl 원본 앱에서 ASET 조명과 굴절률 1.33·1.76·2.42로 브릴리언트 컷을 직접 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "The original diamond-webgl app renders a brilliant cut at refractive indices 1.33, 1.76 and 2.42 under ASET lighting.",
+  "tool_about_ko": "diamond-webgl 원본 앱에서 ASET 조명과 굴절률 1.33·1.76·2.42로 브릴리언트 컷을 직접 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "diamond-webgl contributors",
+      "url": "https://github.com/piellardj/diamond-webgl",
+      "license": "GPL-3.0"
+    }
+  ]
+}

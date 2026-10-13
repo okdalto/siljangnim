@@ -1,0 +1,38 @@
+{
+  "order": 470,
+  "title": "Three native audio oscillators (SuperCollider)",
+  "title_ko": "세 가지 원본 오디오 발진기 (SuperCollider)",
+  "description": "SuperCollider scsynth renders SinOsc, Saw and Pulse to PCM WAV; listen to the original synthesis and inspect its waveform.",
+  "description_ko": "SuperCollider scsynth 원본으로 사인파·톱니파·펄스파를 WAV로 합성해 듣고 파형을 비교해요.",
+  "prompt": "Three native audio oscillators. Use the original engine.",
+  "made_with": "SuperCollider original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "supercollider"
+  ],
+  "summary": "SuperCollider scsynth renders SinOsc, Saw and Pulse to PCM WAV; listen to the original synthesis and inspect its waveform.",
+  "summary_ko": "SuperCollider scsynth 원본으로 사인파·톱니파·펄스파를 WAV로 합성해 듣고 파형을 비교해요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "SuperCollider scsynth renders SinOsc, Saw and Pulse to PCM WAV; listen to the original synthesis and inspect its waveform.",
+  "tool_about_ko": "SuperCollider scsynth 원본으로 사인파·톱니파·펄스파를 WAV로 합성해 듣고 파형을 비교해요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "SuperCollider contributors",
+      "url": "https://github.com/supercollider/supercollider",
+      "license": "GPL-3.0"
+    }
+  ]
+}

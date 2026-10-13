@@ -8537,6 +8537,169 @@
     "cdn": "https://cdn.jsdelivr.net/npm/v86@0.5.462/build/libv86.mjs"
    },
    "notes": "v86 boots an original 16-bit x86 program that writes animated VGA pixels; pause the virtual CPU and inspect its instruction count."
+  },
+  {
+   "id": "processing-geometry-suite",
+   "name": "Processing Geometry Suite",
+   "repo": "https://github.com/micycle1/pgs",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "PGS 2.2 directly computes 20, 60 and 120 maximum inscribed circles, checked for overlap and containment.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "java"
+   },
+   "notes": "Requires Python 3.12+ and Java 21 (tested with Temurin 21.0.8+9). Set JAVA_HOME to your Java installation. PGS 2.2 and Processing core 4.3.1 JARs are downloaded on recipe execution only, verified by SHA-256, and cached. JPype calls the original Java APIs directly."
+  },
+  {
+   "id": "galaxy-renderer",
+   "name": "Galaxy Renderer",
+   "repo": "https://github.com/beltoforion/Galaxy-Renderer",
+   "license": "BSD-2-Clause",
+   "tier": "D",
+   "purpose": "Galaxy Renderer computes 12,000 stellar orbits and rotation curves; compare three angular offsets in a face-on view.",
+   "tags": [
+    "Density waves · galactic orbits",
+    "Space · visualization"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "Requires Python 3.12+ and a C++17 compiler. The pinned original source archive is SHA-256 verified. The recipe compiles the original Galaxy.cpp, Helper.cpp and CumulativeDistributionFunction.cpp with an input/export driver; source and binary are cached by source hash, compiler version and platform. No SDL window or GPU is needed for this CPU core."
+  },
+  {
+   "id": "diamond-webgl",
+   "name": "diamond-webgl",
+   "repo": "https://github.com/piellardj/diamond-webgl",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "The original diamond-webgl app renders a brilliant cut at refractive indices 1.33, 1.76 and 2.42 under ASET lighting.",
+   "tags": [
+    "Gemstone rays · refraction · dispersion",
+    "Light · gemstones"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "electron"
+   },
+   "notes": "Requires Python 3.12+ and Electron (tested with 44.4.4). Set ELECTRON to its executable if it is not on PATH. The original application archive is SHA-256 verified and cached. A loopback-only server and isolated temporary browser profile run the actual WebGL application."
+  },
+  {
+   "id": "py5",
+   "name": "py5",
+   "repo": "https://github.com/py5coding/py5",
+   "license": "LGPL-2.1",
+   "tier": "D",
+   "purpose": "py5 runs its original Processing JAVA2D renderer to draw 32 layered curves at three amplitudes.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "java"
+   },
+   "notes": "Requires Java 21 (tested with Temurin 21.0.8+9), Python 3.12+, and a desktop display. Set JAVA_HOME to your Java installation. The Python packages include the original py5/Processing renderer; the hub caches its isolated environment. A temporary Processing window opens for rendering and closes on completion."
+  },
+  {
+   "id": "supercollider",
+   "name": "SuperCollider",
+   "repo": "https://github.com/supercollider/supercollider",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "SuperCollider scsynth renders SinOsc, Saw and Pulse to PCM WAV; listen to the original synthesis and inspect its waveform.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "scsynth"
+   },
+   "notes": "This package recipe requires macOS and Python 3.12+. It downloads the official SuperCollider 3.14.1 universal DMG (about 251 MB) once, verifies its SHA-256, and caches it. Each execution mounts the image read-only, invokes scsynth in non-realtime mode, and detaches the image in a finally block. No system-wide installation, audio input or audio device is needed."
+  },
+  {
+   "id": "hyphae",
+   "name": "Hyphae",
+   "repo": "https://github.com/inconvergent/hyphae",
+   "license": "MIT",
+   "tier": "C",
+   "purpose": "Original Hyphae growth produces 500, 1,500 and 3,000 branches, rendered with its own Cairo drawing code.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "numpy==1.26.4",
+     "cairocffi==1.7.1",
+     "cffi==2.0.0",
+     "pycparser==3.0"
+    ]
+   },
+   "notes": "Requires Python 3.12 and a system Cairo library (on macOS, install cairo with Homebrew). The recipe downloads the pinned original archive, checks SHA-256 and caches it. Python 3.12 lib2to3 converts Python 2 syntax; numpy.int is restored as a compatibility alias. cairocffi exposes the Cairo API to the original renderer. No growth logic is changed."
+  },
+  {
+   "id": "rubikscube-twophasesolver",
+   "name": "RubiksCube-TwophaseSolver",
+   "repo": "https://github.com/hkociemba/RubiksCube-TwophaseSolver",
+   "license": "GPL-3.0",
+   "tier": "C",
+   "purpose": "RubikTwoPhase solves an original 12-move scramble; replay its moves through the native cube model and verify the solved state.",
+   "tags": [
+    "Two-phase · state-space search",
+    "Puzzles · search"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "RubikTwoPhase==1.1.1"
+    ]
+   },
+   "notes": "Requires Python 3.12+ and RubikTwoPhase 1.1.1. The original solver generates about 80 MB of search tables on first execution, which can take several minutes or longer. The recipe places them in a locked cache keyed by package version, byte order and native array width. Later runs reuse the tables; opening the gallery only loads the small prepared solution."
   }
  ]
 }

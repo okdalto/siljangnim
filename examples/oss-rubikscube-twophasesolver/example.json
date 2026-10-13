@@ -1,0 +1,38 @@
+{
+  "order": 472,
+  "title": "Replay a verified two-phase cube solution (RubiksCube-TwophaseSolver)",
+  "title_ko": "검증한 두 단계 큐브 해법 따라가기 (RubiksCube-TwophaseSolver)",
+  "description": "RubikTwoPhase solves an original 12-move scramble; replay its moves through the native cube model and verify the solved state.",
+  "description_ko": "RubikTwoPhase 원본으로 12수 섞기의 해법을 찾고 원본 큐브 모델에 한 수씩 적용해 완성 상태를 검증했어요.",
+  "prompt": "Replay a verified two-phase cube solution. Use the original engine.",
+  "made_with": "RubiksCube-TwophaseSolver original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "rubikscube-twophasesolver"
+  ],
+  "summary": "RubikTwoPhase solves an original 12-move scramble; replay its moves through the native cube model and verify the solved state.",
+  "summary_ko": "RubikTwoPhase 원본으로 12수 섞기의 해법을 찾고 원본 큐브 모델에 한 수씩 적용해 완성 상태를 검증했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "RubikTwoPhase solves an original 12-move scramble; replay its moves through the native cube model and verify the solved state.",
+  "tool_about_ko": "RubikTwoPhase 원본으로 12수 섞기의 해법을 찾고 원본 큐브 모델에 한 수씩 적용해 완성 상태를 검증했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "RubiksCube-TwophaseSolver contributors",
+      "url": "https://github.com/hkociemba/RubiksCube-TwophaseSolver",
+      "license": "GPL-3.0"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "py5.gallery@1",
+      "packages": [
+        "py5==0.10.11a0",
+        "JPype1==1.6.0",
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

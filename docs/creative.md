@@ -60,6 +60,8 @@ NanoVG 네이티브 벡터 렌더링, hole_fixer 메시 복구, ORIPA 종이접�
 
 Threading은 직접 만든 입력으로 계산한 실 그림과 원본 SVG를, mapgen4는 강수량에 따른 하천망을 제공합니다. Field Play의 입자장과 v86의 x86 부트 프로그램은 원본 엔진에서 실시간 실행하며, 필요한 엔진 파일은 예제를 열 때 받아 캐시합니다.
 
+Hyphae 성장과 RubikTwoPhase 큐브 해법, PGS의 원 채우기, Galaxy Renderer의 별 궤도, diamond-webgl의 굴절, py5의 벡터 렌더링과 SuperCollider 음향 합성은 원본 엔진을 직접 실행한 결과입니다. 준비된 결과를 비교하거나 입력과 실행 조건을 확인하고 레시피로 다시 계산할 수 있습니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

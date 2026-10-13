@@ -288,6 +288,19 @@
       "sha256": "8e2219fc36d6861cc980c1fc5e791ef0fd380adcbc8ce875805b5fdbb7ebd584"
     },
     {
+      "id": "diamond-webgl.gallery",
+      "version": 1,
+      "title": "Refraction through a brilliant cut",
+      "capability": "diamond-webgl graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/diamond-webgl.gallery/recipe.md",
+      "sha256": "645130790922ae533dbe9e21a9090b346d2cb372c1b7ff7500205770c6472e7f"
+    },
+    {
       "id": "differential-mesh.gallery",
       "version": 1,
       "title": "Growing a native triangle network",
@@ -561,6 +574,19 @@
       "sha256": "8261755b17e521f125779b0f13e6b827f84d9f88e88a79cc62af067b35119a8f"
     },
     {
+      "id": "galaxy-renderer.gallery",
+      "version": 1,
+      "title": "Spiral arms from native orbital elements",
+      "capability": "galaxy-renderer graphics",
+      "kind": "python",
+      "license": "BSD-2-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/galaxy-renderer.gallery/recipe.md",
+      "sha256": "22c3e7568d639fea7d8b9f1d9713cac238ad5932b355eb5fc4575a809215ca50"
+    },
+    {
       "id": "geometry-central-heat-method.gallery",
       "version": 1,
       "title": "Heat-method distance on a cylinder",
@@ -715,6 +741,19 @@
       ],
       "path": "recipes/hole-fixer.gallery/recipe.md",
       "sha256": "cb81cf58703e23016d10bb3162b6703e1bbb63903ce463fb713c122bea24a680"
+    },
+    {
+      "id": "hyphae.gallery",
+      "version": 1,
+      "title": "Root networks from original growth rules",
+      "capability": "hyphae graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/hyphae.gallery/recipe.md",
+      "sha256": "312d1cf1d9c96ca1f40958c8c910cbdf72201d33ea15352766dba698bccbc703"
     },
     {
       "id": "imagemagick.gallery",
@@ -1380,6 +1419,19 @@
       "sha256": "c73a952483a30d19b11586fdc5b3d3c99033865b6bfde6428edc77ed44ffeef5"
     },
     {
+      "id": "processing-geometry-suite.gallery",
+      "version": 1,
+      "title": "Maximum circles inside a concave shape",
+      "capability": "processing-geometry-suite graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/processing-geometry-suite.gallery/recipe.md",
+      "sha256": "66298140015e212a0ab85f33be98b2d82e2f456262d861ca9ebf4bd4eb2ac748"
+    },
+    {
       "id": "proj.gallery",
       "version": 1,
       "title": "Projection graticules",
@@ -1417,6 +1469,19 @@
       ],
       "path": "recipes/pt.gallery/recipe.md",
       "sha256": "2d2058a920bce93641bb013804679a706c482a7f51be7d95b56c5deabc2b202a"
+    },
+    {
+      "id": "py5.gallery",
+      "version": 1,
+      "title": "Woven waves in Processing",
+      "capability": "py5 graphics",
+      "kind": "python",
+      "license": "LGPL-2.1",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/py5.gallery/recipe.md",
+      "sha256": "2feb7acea08553aca5a1a3db2676ddcb46ee3fe79fe0a4b61a6f2fbbde956290"
     },
     {
       "id": "pymcubes.gyroid-mesh",
@@ -1601,6 +1666,19 @@
       "sha256": "8fac610378b7f810fbd7f0e3c97786e01e86baabca34f3c19e2dd660e4782a97"
     },
     {
+      "id": "rubikscube-twophasesolver.gallery",
+      "version": 1,
+      "title": "Replay a verified two-phase cube solution",
+      "capability": "rubikscube-twophasesolver graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/rubikscube-twophasesolver.gallery/recipe.md",
+      "sha256": "2aa409a88f08ae51936a78aa5e59297c07f1efe7b14b0f63f143b809cc9667b7"
+    },
+    {
       "id": "rvo2-orca.gallery",
       "version": 1,
       "title": "Agents avoiding each other",
@@ -1781,6 +1859,19 @@
       ],
       "path": "recipes/sunpy.gallery/recipe.md",
       "sha256": "429d4766726a39515eae3e7ee8f480dafb24cd4d324fdd5d803ffaa95ac453d8"
+    },
+    {
+      "id": "supercollider.gallery",
+      "version": 1,
+      "title": "Three native audio oscillators",
+      "capability": "supercollider graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/supercollider.gallery/recipe.md",
+      "sha256": "1b420a15b750e009e26f1643e54f99c80fd90ef95d3109535bd60554dccdc7c9"
     },
     {
       "id": "svgnest.gallery",

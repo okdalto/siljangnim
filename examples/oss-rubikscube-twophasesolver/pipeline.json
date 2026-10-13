@@ -1,0 +1,18 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "rubikscube-twophasesolver.gallery@1",
+      "packages": [
+        "RubikTwoPhase==1.1.1"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}
