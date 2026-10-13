@@ -1,0 +1,30 @@
+{
+  "model": "SAM 2.1 Hiera Tiny",
+  "device": "cpu",
+  "results": [
+    {
+      "point": [
+        200,
+        120
+      ],
+      "predicted_iou_score": 0.9686541557312012,
+      "area_pixels": 837
+    },
+    {
+      "point": [
+        200,
+        300
+      ],
+      "predicted_iou_score": 0.9740610718727112,
+      "area_pixels": 11883
+    },
+    {
+      "point": [
+        227,
+        204
+      ],
+      "predicted_iou_score": 0.8500843048095703,
+      "area_pixels": 1023
+    }
+  ]
+}

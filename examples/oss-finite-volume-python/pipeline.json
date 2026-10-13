@@ -1,0 +1,23 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "finite-volume-python.gallery@1",
+      "packages": [
+        "numpy==2.2.6",
+        "matplotlib==3.11.2",
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "solver.py"
+      ],
+      "params": {},
+      "outputs": [
+        "result.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png"
+      ]
+    }
+  ]
+}

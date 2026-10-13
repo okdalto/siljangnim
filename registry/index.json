@@ -119,6 +119,19 @@
       "sha256": "e29bad9ad1696f0a4dc9129fb3a5e7085334ca975e6a64a496af641c06164557"
     },
     {
+      "id": "eclipse-sumo.gallery",
+      "version": 1,
+      "title": "A stopping car and its followers",
+      "capability": "eclipse-sumo simulation science",
+      "kind": "python",
+      "license": "EPL-2.0 / GPL-2.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/eclipse-sumo.gallery/recipe.md",
+      "sha256": "511c9c438ff8be10a9ab4dda64585f8ee686f1b3770766b32c0c195a555d9b27"
+    },
+    {
       "id": "ffmpeg.mandelbrot-zoom",
       "version": 2,
       "title": "Mandelbrot zoom video from ffmpeg's lavfi source",
@@ -130,6 +143,19 @@
       ],
       "path": "recipes/ffmpeg.mandelbrot-zoom/recipe.md",
       "sha256": "b23b25a3ede0a9298ab98c73ffb4c896d6f8b2788e75332ded29438d6f77c5be"
+    },
+    {
+      "id": "finite-volume-python.gallery",
+      "version": 1,
+      "title": "Two shearing fluid layers",
+      "capability": "finite-volume-python simulation science",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/finite-volume-python.gallery/recipe.md",
+      "sha256": "3f56b418c9b8c8d80c8de5c83362eb9b09d1938a1f6a0cb05541b72703356a01"
     },
     {
       "id": "fipy.gallery",
@@ -197,6 +223,19 @@
       "sha256": "e12956df8d814d723e5d1da17582736d66185a4558943c7d25b66aa247abf661"
     },
     {
+      "id": "gwpy.gallery",
+      "version": 1,
+      "title": "Filtering a synthetic signal",
+      "capability": "gwpy simulation science",
+      "kind": "python",
+      "license": "GPL-3.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/gwpy.gallery/recipe.md",
+      "sha256": "99bcb9381b2733a8af9581179fd5f9671e3d6c49859dec8b9cb683b85dfae742"
+    },
+    {
       "id": "harfbuzz.gallery",
       "version": 1,
       "title": "Shaping a ligature",
@@ -260,6 +299,32 @@
       ],
       "path": "recipes/inkscape.gallery/recipe.md",
       "sha256": "cf077dcd6edb2b2116d7c6bb2616681bb1e639b54e4b72135220ec2bc85ec857"
+    },
+    {
+      "id": "lammps.gallery",
+      "version": 1,
+      "title": "Particles in a periodic Lennard-Jones box",
+      "capability": "lammps simulation science",
+      "kind": "python",
+      "license": "GPL-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/lammps.gallery/recipe.md",
+      "sha256": "01bac9e42eb20d2e79d5d7eaea3c76c2240ef2a0f3c36937645085dc08aa2ae7"
+    },
+    {
+      "id": "latticeboltzmann-python.gallery",
+      "version": 1,
+      "title": "Vortices behind a cylinder",
+      "capability": "latticeboltzmann-python simulation science",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/latticeboltzmann-python.gallery/recipe.md",
+      "sha256": "a7e6170ce5b72ca851133d20e0d97baaf28a35bfbac184aae616383ad340514f"
     },
     {
       "id": "libigl-arap.gallery",
@@ -639,6 +704,19 @@
       "sha256": "664312a1fcc01f950ad5aeeb3d3e81b88ff6a74ba8152f6067b047f5dbd90246"
     },
     {
+      "id": "qmsolve.gallery",
+      "version": 1,
+      "title": "Bound states in a quantum well",
+      "capability": "qmsolve simulation science",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/qmsolve.gallery/recipe.md",
+      "sha256": "c1fd840b165743ae8b8624474d93a2b8d3ab31b443b73a5b6438d38e4c5f167c"
+    },
+    {
       "id": "quickhull.gallery",
       "version": 1,
       "title": "Convex shells of point clouds",
@@ -689,6 +767,19 @@
       ],
       "path": "recipes/rembg.gallery/recipe.md",
       "sha256": "99efcccf929bf1cc53740ff1ba154ce2ac1e3611db0a2ed564261d113203821a"
+    },
+    {
+      "id": "sam-2.gallery",
+      "version": 1,
+      "title": "Point-guided image regions",
+      "capability": "segmentation point prompt image",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/sam-2.gallery/recipe.md",
+      "sha256": "90b9880c0ba18f4d7c49c2144d13405fdb3f0c443918b7a906bbef9f6460b0d4"
     },
     {
       "id": "scikit-image.gallery",
@@ -767,6 +858,19 @@
       ],
       "path": "recipes/skan.gallery/recipe.md",
       "sha256": "dc9ae5218bb5738e45aae6a432d46c1849a103342fb71e0e012bf7c89e653004"
+    },
+    {
+      "id": "sunpy.gallery",
+      "version": 1,
+      "title": "Solar latitude and longitude from space",
+      "capability": "sunpy simulation science",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/sunpy.gallery/recipe.md",
+      "sha256": "429d4766726a39515eae3e7ee8f480dafb24cd4d324fdd5d803ffaa95ac453d8"
     },
     {
       "id": "svgpathtools.path-lanterns",

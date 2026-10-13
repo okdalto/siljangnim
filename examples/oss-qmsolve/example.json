@@ -1,0 +1,30 @@
+{
+  "order": 351,
+  "title": "Bound states in a quantum well (QMsolve)",
+  "title_ko": "양자 우물의 속박 상태 (QMsolve)",
+  "description": "QMsolve diagonalizes a one-dimensional harmonic Hamiltonian. Compare the first three normalized probability densities and computed energies.",
+  "description_ko": "QMsolve로 1차원 조화 진동자의 해밀토니안을 대각화했어요. 처음 세 상태의 정규화된 확률 밀도와 계산 에너지를 비교하세요.",
+  "prompt": "Bound states in a quantum well. Rerun the included recipe to change simulation inputs.",
+  "made_with": "qmsolve==2.0.0, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "qmsolve"
+  ],
+  "summary": "QMsolve diagonalizes a one-dimensional harmonic Hamiltonian.",
+  "summary_ko": "QMsolve로 1차원 조화 진동자의 해밀토니안을 대각화했어요. 처음 세 상태의 정규화된 확률 밀도와 계산 에너지를 비교하세요.",
+  "try": [
+    "Select a computed result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "계산한 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "QMsolve diagonalizes a one-dimensional harmonic Hamiltonian. Compare the first three normalized probability densities and computed energies.",
+  "tool_about_ko": "QMsolve로 1차원 조화 진동자의 해밀토니안을 대각화했어요. 처음 세 상태의 정규화된 확률 밀도와 계산 에너지를 비교하세요."
+}

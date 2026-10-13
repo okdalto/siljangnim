@@ -1,0 +1,18 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "eclipse-sumo.gallery@1",
+      "packages": [
+        "eclipse-sumo==1.27.1",
+        "sumo-data==1.27.1",
+        "numpy==2.2.6"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

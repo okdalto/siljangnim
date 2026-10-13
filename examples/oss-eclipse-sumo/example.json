@@ -1,0 +1,30 @@
+{
+  "order": 354,
+  "title": "A stopping car and its followers (Eclipse SUMO)",
+  "title_ko": "정차 차량과 뒤따르는 차량 (Eclipse SUMO)",
+  "description": "Eclipse SUMO simulates eight cars on an original straight road with a scheduled stop. Space–time traces show the computed car-following response.",
+  "description_ko": "Eclipse SUMO로 직접 만든 직선 도로의 차량 8대와 선두 차량의 정차를 시뮬레이션했어요. 시공간 궤적으로 추종 반응을 살펴보세요.",
+  "prompt": "A stopping car and its followers. Rerun the included recipe to change simulation inputs.",
+  "made_with": "eclipse-sumo==1.27.1, sumo-data==1.27.1, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "eclipse-sumo"
+  ],
+  "summary": "Eclipse SUMO simulates eight cars on an original straight road with a scheduled stop.",
+  "summary_ko": "Eclipse SUMO로 직접 만든 직선 도로의 차량 8대와 선두 차량의 정차를 시뮬레이션했어요. 시공간 궤적으로 추종 반응을 살펴보세요.",
+  "try": [
+    "Select a computed result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "계산한 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "Eclipse SUMO simulates eight cars on an original straight road with a scheduled stop. Space–time traces show the computed car-following response.",
+  "tool_about_ko": "Eclipse SUMO로 직접 만든 직선 도로의 차량 8대와 선두 차량의 정차를 시뮬레이션했어요. 시공간 궤적으로 추종 반응을 살펴보세요."
+}

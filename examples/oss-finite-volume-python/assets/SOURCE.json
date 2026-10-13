@@ -1,0 +1,10 @@
+{
+  "id": "finite-volume-python",
+  "repo": "https://github.com/pmocz/finitevolume-python",
+  "sha": "e55d71025371a80a13ccf10f36db133af9e3d77d",
+  "url": "https://codeload.github.com/pmocz/finitevolume-python/tar.gz/e55d71025371a80a13ccf10f36db133af9e3d77d",
+  "sha256": "5ba34354827eecc54810f93ca8048c86e84ce5c27a700860a47ade842f9eedf5",
+  "license": "GPL-3.0",
+  "file": "finitevolume.py",
+  "modifications": "Reduced grid and duration; offscreen PNG snapshots and finite/mass checks; original numerical solver retained."
+}

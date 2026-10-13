@@ -1,0 +1,15 @@
+{
+  "source": {
+    "id": "sam-2",
+    "repo": "https://github.com/facebookresearch/sam2",
+    "sha": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+    "url": "https://codeload.github.com/facebookresearch/sam2/tar.gz/2b90b9f5ceec907a1c18123530e92e794ad901a4",
+    "sha256": "1f2fbfad3ffa38110368abac76c6ef9df9c282a66d5c2807bc94abf4d2fb30f8",
+    "license": "Apache-2.0"
+  },
+  "weights": {
+    "url": "https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_tiny.pt",
+    "sha256": "7402e0d864fa82708a20fbd15bc84245c2f26dff0eb43a4b5b93452deb34be69",
+    "bytes": 156008466
+  }
+}

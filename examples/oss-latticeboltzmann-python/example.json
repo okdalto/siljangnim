@@ -1,0 +1,38 @@
+{
+  "order": 357,
+  "title": "Vortices behind a cylinder (latticeboltzmann-python)",
+  "title_ko": "원기둥 뒤의 소용돌이 (latticeboltzmann-python)",
+  "description": "Philip Mocz’s lattice-Boltzmann solver computes flow past a cylinder. Compare locally simulated vorticity at three steps on a 160×64 grid.",
+  "description_ko": "Philip Mocz의 격자 볼츠만 솔버로 원기둥을 지나는 흐름을 계산했어요. 160×64 격자에서 직접 계산한 세 시간 단계의 와도를 비교하세요.",
+  "prompt": "Vortices behind a cylinder. Rerun the included recipe to change simulation inputs.",
+  "made_with": "numpy==2.2.6, matplotlib==3.11.2, Pillow==11.3.0; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "image"
+  ],
+  "mode": "live",
+  "uses": [
+    "latticeboltzmann-python"
+  ],
+  "summary": "Philip Mocz’s lattice-Boltzmann solver computes flow past a cylinder.",
+  "summary_ko": "Philip Mocz의 격자 볼츠만 솔버로 원기둥을 지나는 흐름을 계산했어요. 160×64 격자에서 직접 계산한 세 시간 단계의 와도를 비교하세요.",
+  "try": [
+    "Select a computed result",
+    "Move Compare with source"
+  ],
+  "try_ko": [
+    "계산한 결과를 선택하세요",
+    "Compare with source로 비교하세요"
+  ],
+  "tool_about": "Philip Mocz’s lattice-Boltzmann solver computes flow past a cylinder. Compare locally simulated vorticity at three steps on a 160×64 grid.",
+  "tool_about_ko": "Philip Mocz의 격자 볼츠만 솔버로 원기둥을 지나는 흐름을 계산했어요. 160×64 격자에서 직접 계산한 세 시간 단계의 와도를 비교하세요.",
+  "credits": [
+    {
+      "what": "Adapted solver source (solver.py)",
+      "source": "Philip Mocz",
+      "url": "https://github.com/pmocz/latticeboltzmann-python/blob/4dbe2ed9e7aeb6d9b303acae80a5fff7f88795d5/latticeboltzmann.py",
+      "license": "GPL-3.0"
+    }
+  ]
+}

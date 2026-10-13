@@ -5647,6 +5647,248 @@
     "program": "c++"
    },
    "notes": "The included Python standard-library recipe requires cc/c++, downloads a pinned upstream source archive with SHA-256 verification and caches it, then compiles and executes the original tool. Viewing only downloads prepared results."
+  },
+  {
+   "id": "qmsolve",
+   "name": "QMsolve",
+   "repo": "https://github.com/quantum-visualizations/qmsolve",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "QMsolve diagonalizes a one-dimensional harmonic Hamiltonian. Compare the first three normalized probability densities and computed energies.",
+   "tags": [
+    "Schrödinger equation",
+    "Quantum physics · education",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "qmsolve==2.0.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening downloads prepared files; packages install only when rerunning. "
+  },
+  {
+   "id": "gwpy",
+   "name": "GWpy",
+   "repo": "https://github.com/gwpy/gwpy",
+   "license": "GPL-3.0-or-later",
+   "tier": "C",
+   "purpose": "GWpy measures amplitude spectra of an original noisy two-tone signal before and after filtering. This is synthetic data, not a gravitational-wave detection.",
+   "tags": [
+    "Gravitational waves · time series",
+    "Astronomy · signals",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "gwpy==4.0.2",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening downloads prepared files; packages install only when rerunning. "
+  },
+  {
+   "id": "sunpy",
+   "name": "SunPy",
+   "repo": "https://github.com/sunpy/sunpy",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "SunPy transforms a synthetic solar coordinate grid to three observer latitudes. Curves show actual heliographic-to-helioprojective transforms, not telescope images.",
+   "tags": [
+    "Solar observations · coordinates · time",
+    "Sun · astronomy",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "sunpy==8.0.0",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening downloads prepared files; packages install only when rerunning. "
+  },
+  {
+   "id": "eclipse-sumo",
+   "name": "Eclipse SUMO",
+   "repo": "https://github.com/eclipse-sumo/sumo",
+   "license": "EPL-2.0 / GPL-2.0-or-later",
+   "tier": "C",
+   "purpose": "Eclipse SUMO simulates eight cars on an original straight road with a scheduled stop. Space–time traces show the computed car-following response.",
+   "tags": [
+    "Microscopic traffic · vehicle rules",
+    "Cities · transport",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "eclipse-sumo==1.27.1",
+     "sumo-data==1.27.1",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening downloads prepared files; packages install only when rerunning. "
+  },
+  {
+   "id": "lammps",
+   "name": "LAMMPS",
+   "repo": "https://github.com/lammps/lammps",
+   "license": "GPL-2.0",
+   "tier": "C",
+   "purpose": "LAMMPS integrates 256 particles with Lennard-Jones interactions in a periodic box. Compare three computed time steps; colors indicate particle speeds.",
+   "tags": [
+    "Molecular dynamics",
+    "Materials · molecules",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "lammps==2025.7.22.4.0",
+     "mpich==5.0.1.post1",
+     "numpy==2.2.6"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening downloads prepared files; packages install only when rerunning. "
+  },
+  {
+   "id": "finite-volume-python",
+   "name": "Finite Volume Python",
+   "repo": "https://github.com/pmocz/finitevolume-python",
+   "license": "GPL-3.0",
+   "tier": "C",
+   "purpose": "Philip Mocz’s finite-volume solver evolves two shearing fluid layers on a 64×64 grid. The three density maps come from an actual local run.",
+   "tags": [
+    "Finite volumes · fluid conservation",
+    "Fluids · numerical experiments",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "numpy==2.2.6",
+     "matplotlib==3.11.2",
+     "Pillow==11.3.0"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening downloads prepared files; packages install only when rerunning. The adapted solver source and its GPL-3.0 license are included."
+  },
+  {
+   "id": "latticeboltzmann-python",
+   "name": "latticeboltzmann-python",
+   "repo": "https://github.com/pmocz/latticeboltzmann-python",
+   "license": "GPL-3.0",
+   "tier": "C",
+   "purpose": "Philip Mocz’s lattice-Boltzmann solver computes flow past a cylinder. Compare locally simulated vorticity at three steps on a 160×64 grid.",
+   "tags": [
+    "Lattice Boltzmann · collision · streaming",
+    "Fluids · education",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "numpy==2.2.6",
+     "matplotlib==3.11.2",
+     "Pillow==11.3.0"
+    ]
+   },
+   "notes": "Locally executed CPU recipe. Opening downloads prepared files; packages install only when rerunning. The adapted solver source and its GPL-3.0 license are included."
+  },
+  {
+   "id": "sam-2",
+   "name": "SAM 2",
+   "repo": "https://github.com/facebookresearch/sam2",
+   "license": "Apache-2.0",
+   "tier": "E",
+   "purpose": "SAM 2.1 Tiny predicts masks from three point prompts on an original image. Compare actual CPU predictions; displayed scores are model estimates, not measured accuracy.",
+   "tags": [
+    "segmentation",
+    "point prompt",
+    "CPU",
+    "prepared result"
+   ],
+   "media": {
+    "in": [
+     "image"
+    ],
+    "out": [
+     "image",
+     "mask"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.9.1",
+     "torchvision==0.24.1",
+     "hydra-core==1.3.2",
+     "omegaconf==2.3.0",
+     "iopath==0.1.10",
+     "numpy==2.2.6",
+     "Pillow==11.3.0"
+    ]
+   },
+   "notes": "Actual CPU inference with SAM 2.1 Hiera Tiny. Included recipe downloads and SHA-256 verifies pinned model/source only when rerun, then reuses the cache. Gallery viewing downloads prepared results only."
   }
  ]
 }

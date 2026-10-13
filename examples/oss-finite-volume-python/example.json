@@ -1,0 +1,38 @@
+{
+  "order": 356,
+  "title": "Two shearing fluid layers (Finite Volume Python)",
+  "title_ko": "엇갈리는 두 유체층 (Finite Volume Python)",
+  "description": "Philip Mocz’s finite-volume solver evolves two shearing fluid layers on a 64×64 grid. The three density maps come from an actual local run.",
+  "description_ko": "Philip Mocz의 유한체적 솔버로 64×64 격자의 엇갈리는 두 유체층을 계산했어요. 직접 실행한 세 시간의 밀도 지도를 비교하세요.",
+  "prompt": "Two shearing fluid layers. Rerun the included recipe to change simulation inputs.",
+  "made_with": "numpy==2.2.6, matplotlib==3.11.2, Pillow==11.3.0; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "image"
+  ],
+  "mode": "live",
+  "uses": [
+    "finite-volume-python"
+  ],
+  "summary": "Philip Mocz’s finite-volume solver evolves two shearing fluid layers on a 64×64 grid.",
+  "summary_ko": "Philip Mocz의 유한체적 솔버로 64×64 격자의 엇갈리는 두 유체층을 계산했어요. 직접 실행한 세 시간의 밀도 지도를 비교하세요.",
+  "try": [
+    "Select a computed result",
+    "Move Compare with source"
+  ],
+  "try_ko": [
+    "계산한 결과를 선택하세요",
+    "Compare with source로 비교하세요"
+  ],
+  "tool_about": "Philip Mocz’s finite-volume solver evolves two shearing fluid layers on a 64×64 grid. The three density maps come from an actual local run.",
+  "tool_about_ko": "Philip Mocz의 유한체적 솔버로 64×64 격자의 엇갈리는 두 유체층을 계산했어요. 직접 실행한 세 시간의 밀도 지도를 비교하세요.",
+  "credits": [
+    {
+      "what": "Adapted solver source (solver.py)",
+      "source": "Philip Mocz",
+      "url": "https://github.com/pmocz/finitevolume-python/blob/e55d71025371a80a13ccf10f36db133af9e3d77d/finitevolume.py",
+      "license": "GPL-3.0"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "order": 355,
+  "title": "Particles in a periodic Lennard-Jones box (LAMMPS)",
+  "title_ko": "주기 경계 상자의 레너드존스 입자 (LAMMPS)",
+  "description": "LAMMPS integrates 256 particles with Lennard-Jones interactions in a periodic box. Compare three computed time steps; colors indicate particle speeds.",
+  "description_ko": "LAMMPS로 주기 경계 상자 안의 입자 256개를 레너드존스 상호작용으로 적분했어요. 계산한 세 시간 단계를 비교하고 속도별 색을 살펴보세요.",
+  "prompt": "Particles in a periodic Lennard-Jones box. Rerun the included recipe to change simulation inputs.",
+  "made_with": "lammps==2025.7.22.4.0, mpich==5.0.1.post1, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "lammps"
+  ],
+  "summary": "LAMMPS integrates 256 particles with Lennard-Jones interactions in a periodic box.",
+  "summary_ko": "LAMMPS로 주기 경계 상자 안의 입자 256개를 레너드존스 상호작용으로 적분했어요. 계산한 세 시간 단계를 비교하고 속도별 색을 살펴보세요.",
+  "try": [
+    "Select a computed result",
+    "Change the view scale and rotation"
+  ],
+  "try_ko": [
+    "계산한 결과를 선택하세요",
+    "보기 배율과 회전을 바꿔 보세요"
+  ],
+  "tool_about": "LAMMPS integrates 256 particles with Lennard-Jones interactions in a periodic box. Compare three computed time steps; colors indicate particle speeds.",
+  "tool_about_ko": "LAMMPS로 주기 경계 상자 안의 입자 256개를 레너드존스 상호작용으로 적분했어요. 계산한 세 시간 단계를 비교하고 속도별 색을 살펴보세요."
+}

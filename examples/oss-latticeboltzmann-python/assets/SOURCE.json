@@ -1,0 +1,10 @@
+{
+  "id": "latticeboltzmann-python",
+  "repo": "https://github.com/pmocz/latticeboltzmann-python",
+  "sha": "4dbe2ed9e7aeb6d9b303acae80a5fff7f88795d5",
+  "url": "https://codeload.github.com/pmocz/latticeboltzmann-python/tar.gz/4dbe2ed9e7aeb6d9b303acae80a5fff7f88795d5",
+  "sha256": "65282ab4b2689d14c7c158cf75530fc924d5f48391a3b38e0017543bb22a5a95",
+  "license": "GPL-3.0",
+  "file": "latticeboltzmann.py",
+  "modifications": "Reduced grid and duration; offscreen PNG snapshots and finite/mass checks; original numerical solver retained."
+}

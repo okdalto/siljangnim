@@ -1,0 +1,18 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "lammps.gallery@1",
+      "packages": [
+        "lammps==2025.7.22.4.0",
+        "mpich==5.0.1.post1",
+        "numpy==2.2.6"
+      ],
+      "inputs": [],
+      "params": {},
+      "outputs": [
+        "result.json"
+      ]
+    }
+  ]
+}

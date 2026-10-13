@@ -1,0 +1,30 @@
+{
+  "order": 352,
+  "title": "Filtering a synthetic signal (GWpy)",
+  "title_ko": "합성 신호의 주파수 필터링 (GWpy)",
+  "description": "GWpy measures amplitude spectra of an original noisy two-tone signal before and after filtering. This is synthetic data, not a gravitational-wave detection.",
+  "description_ko": "GWpy로 직접 만든 잡음 섞인 두 주파수 신호의 필터 전후 진폭 스펙트럼을 계산했어요. 중력파 관측이 아닌 합성 데이터예요.",
+  "prompt": "Filtering a synthetic signal. Rerun the included recipe to change simulation inputs.",
+  "made_with": "gwpy==4.0.2, numpy==2.2.6; executed locally on macOS arm64",
+  "features": [
+    "prepared result",
+    "recipe",
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "gwpy"
+  ],
+  "summary": "GWpy measures amplitude spectra of an original noisy two-tone signal before and after filtering.",
+  "summary_ko": "GWpy로 직접 만든 잡음 섞인 두 주파수 신호의 필터 전후 진폭 스펙트럼을 계산했어요. 중력파 관측이 아닌 합성 데이터예요.",
+  "try": [
+    "Select a computed result",
+    "Change the view scale"
+  ],
+  "try_ko": [
+    "계산한 결과를 선택하세요",
+    "보기 배율을 바꿔 보세요"
+  ],
+  "tool_about": "GWpy measures amplitude spectra of an original noisy two-tone signal before and after filtering. This is synthetic data, not a gravitational-wave detection.",
+  "tool_about_ko": "GWpy로 직접 만든 잡음 섞인 두 주파수 신호의 필터 전후 진폭 스펙트럼을 계산했어요. 중력파 관측이 아닌 합성 데이터예요."
+}
