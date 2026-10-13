@@ -611,6 +611,17 @@ async function runExampleCacheScenario(win) {
       }
       throw new Error("not found: " + selector);
     };
+    // Opening an example closes the gallery once more when it finishes, which can land after it was reopened:
+    // reopen it until the card is there.
+    const galleryCard = async (slug) => {
+      for (let i = 0; i < 150; i++) {
+        const found = document.querySelector('[data-example="' + slug + '"]');
+        if (found) return found;
+        if (!document.querySelector('[data-testid="examples"]')) document.querySelector('[data-testid="view-examples"]')?.click();
+        await sleep(100);
+      }
+      throw new Error("no gallery card for " + slug);
+    };
     const fetchOriginal = window.fetch;
     let requests = 0;
     window.fetch = (...args) => {
@@ -636,7 +647,7 @@ async function runExampleCacheScenario(win) {
         if (!document.querySelector('[data-testid="examples"]')) break;
       }
       const opened = !document.querySelector('[data-testid="examples"]');
-      await sleep(500);
+      await sleep(1500);
       const offlineRequests = requests;
       const countProjects = () => new Promise((resolve, reject) => {
         const request = indexedDB.open("siljangnim-studio");
@@ -649,11 +660,11 @@ async function runExampleCacheScenario(win) {
         };
       });
       const before = await countProjects();
-      (await el('[data-testid="view-examples"]')).click();
+      await galleryCard("oss-blender");
       await sleep(300);
       (await el('[data-testid="clear-example-downloads"]')).click();
       await sleep(300);
-      (await el('[data-example="oss-blender"]')).click();
+      (await galleryCard("oss-blender")).click();
       await sleep(500);
       for (let i = 0; i < 30 && !document.querySelector('[role="alert"]'); i++) await sleep(100);
       const failedCleanly = Boolean(document.querySelector('[role="alert"]')) && await countProjects() === before;
@@ -664,14 +675,14 @@ async function runExampleCacheScenario(win) {
         });
         return fetchOriginal(...args);
       };
-      (await el('[data-example="oss-blender"]')).click();
+      (await galleryCard("oss-blender")).click();
       await sleep(300);
       (await el('[data-testid="cancel-example-download"]')).click();
       await sleep(300);
       for (let i = 0; i < 30 && document.querySelector('[data-testid="example-download"]'); i++) await sleep(100);
       const cancelledCleanly = !document.querySelector('[data-testid="example-download"]') && await countProjects() === before;
       window.fetch = fetchOriginal;
-      (await el('[data-example="oss-blender"]')).click();
+      (await galleryCard("oss-blender")).click();
       for (let i = 0; i < 100; i++) {
         await sleep(100);
         if (!document.querySelector('[data-testid="examples"]')) break;
