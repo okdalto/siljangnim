@@ -36,4 +36,18 @@ contextBridge.exposeInMainWorld("siljangnim", {
     /** A request that arrived before the UI was listening. */
     pending: () => ipcRenderer.invoke("agent:pending"),
   },
+  localAgent: {
+    /** Whether Claude Code / Codex are installed and signed in. */
+    detect: () => ipcRenderer.invoke("localAgent:detect"),
+    /** Run the official installer ("install") or the CLI's sign-in ("login"). */
+    setup: (engine, action) => ipcRenderer.invoke("localAgent:setup", engine, action),
+    /** Start a chat run; resolves with its id. Events arrive through onEvent. */
+    run: (engine, prompt, sessionId) => ipcRenderer.invoke("localAgent:run", engine, prompt, sessionId),
+    stop: (id) => ipcRenderer.invoke("localAgent:stop", id),
+    onEvent(callback) {
+      const listener = (_event, id, payload) => callback(id, payload);
+      ipcRenderer.on("localAgent:event", listener);
+      return () => ipcRenderer.removeListener("localAgent:event", listener);
+    },
+  },
 });

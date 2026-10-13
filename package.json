@@ -7,7 +7,7 @@
     "dev": "npm --prefix desktop run dev",
     "web": "npm --prefix studio run dev",
     "check": "npm --prefix studio run typecheck && npm --prefix studio run lint",
-    "test": "npm --prefix studio test && npm --prefix mcp test && node desktop/scripts/test-hub.mjs",
+    "test": "npm --prefix studio test && npm --prefix mcp test && node --test \"desktop/test/*.test.js\" && node desktop/scripts/test-hub.mjs",
     "smoke": "npm --prefix desktop run stage && npm --prefix desktop run smoke && npm --prefix mcp run smoke",
     "dist": "npm --prefix desktop run dist",
     "mcp": "node mcp/bin/siljangnim-mcp.js",

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import type { MessageParam } from "../agent/llm/types";
 import type { ToolOutput } from "../agent/tools";
 import type { ApprovalRequest } from "../project/permissions";
-import type { ProviderKeyId } from "../desktop";
+import type { LocalEngineId, LocalEngineStatus, ProviderKeyId } from "../desktop";
 import type { AssetInfo } from "../project/assets";
 import type { ProjectMeta, Version } from "../project/store";
 import type { MonitorValue, RecordOptions, RuntimeState, SceneError } from "../scene/protocol";
@@ -85,6 +85,8 @@ export interface AppState {
   notice: Notice | null;
   settings: Settings;
   keyStatus: Record<ProviderKeyId, boolean>;
+  /** Desktop: whether Claude Code / Codex are installed and signed in (null until checked). */
+  localEngines: Record<LocalEngineId, LocalEngineStatus> | null;
   settingsOpen: boolean;
   examplesOpen: boolean;
 }
@@ -123,6 +125,7 @@ export const useApp = create<AppState>(() => ({
   notice: null,
   settings: loadSettings(),
   keyStatus: { anthropic: false, openai: false },
+  localEngines: null,
   settingsOpen: false,
   examplesOpen: false,
 }));

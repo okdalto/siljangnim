@@ -26,15 +26,42 @@
 
 ## Get started
 
-> **We strongly recommend running it locally with an agent attached (A).** The web version is fine for
-> looking at the examples, but Siljangnim is built for an agent that can install and run open-source tools
-> on your machine — Python packages, ffmpeg, ML models, OSC — and the web can't do any of that. Locally,
-> your agent also keeps its own memory and files, and with Claude Code it runs on your Claude plan instead
-> of a separate API key.
+> **We recommend the desktop app (A).** The web version is fine for looking at the examples, but Siljangnim is
+> built for an agent that installs and runs open-source tools on your machine — Python packages, ffmpeg, ML
+> models, OSC — and the web can't do any of that. In the app, the chat runs on your own Claude Code or Codex, so it
+> uses your Claude or ChatGPT plan instead of a separate API key.
 
 Pick one. Each takes about a minute.
 
-### A. With Claude Code or Codex — recommended
+### A. Desktop app — recommended
+
+1. Download the installer from **[Releases](https://github.com/okdalto/siljangnim/releases/latest)**: `.dmg` for macOS (Apple Silicon), `.exe` for Windows.
+2. Open Siljangnim, then **Settings** (gear icon) → **Agent**:
+   - **Claude Code** or **Codex** — runs on your Claude (Pro, Max, Team) or ChatGPT plan, no API key. If it isn't
+     installed or signed in yet, the **Install** and **Sign in** buttons there do it.
+   - **API key** — an Anthropic or OpenAI key, encrypted with the OS keychain; it never reaches the app window.
+3. Type what you want in the chat:
+
+```text
+Glowing jellyfish drifting in a dark sea, with a slider for how many there are.
+```
+
+The installers aren't code-signed yet, so the first launch needs one extra step: on macOS, *System Settings →
+Privacy & Security → Open Anyway*; on Windows, *More info → Run anyway*.
+
+<details>
+<summary>Run from the source instead</summary>
+
+```bash
+git clone https://github.com/okdalto/siljangnim.git && cd siljangnim && npm install && npm run dev
+```
+
+Next time, `npm run dev` in that folder (or `./run.sh`, `run.bat`) is enough. To build an installer for your own
+machine: `npm run dist` (output in `desktop/release/`).
+
+</details>
+
+### B. From Claude Code or Codex in a terminal
 
 Paste this into **Claude Code**:
 
@@ -61,7 +88,8 @@ Restart it, then ask for something:
 Use siljangnim to make glowing jellyfish drifting in a dark sea, with a slider for how many there are.
 ```
 
-A viewer window opens (an app window in Chrome or Edge, or a browser tab) and the scene appears there. Keep chatting with your agent to change it.
+A viewer window opens (an app window in Chrome or Edge, or a browser tab) and the scene appears there. If the
+desktop app is open, its window is used instead. Keep chatting with your agent to change it.
 
 You need [Node.js 22 or newer](https://nodejs.org). Nothing else: the first time a tool needs Python, it is
 downloaded into `~/.siljangnim/runtime/`.
@@ -93,7 +121,7 @@ Options (port, which browser opens) are in [docs/en/mcp.md](docs/en/mcp.md). To 
 
 </details>
 
-### B. In your browser — nothing to install
+### C. In your browser — nothing to install
 
 Open **[siljangnim.vercel.app](https://siljangnim.vercel.app/)**, then:
 
@@ -103,22 +131,7 @@ Open **[siljangnim.vercel.app](https://siljangnim.vercel.app/)**, then:
 3. Type what you want in the chat.
 
 The web version can't run tools on your computer (Python packages, ffmpeg, ML models, OSC), so most of what
-the agent can do needs A or C. Use the web to look around; use A to make things.
-
-### C. Desktop app
-
-Installers aren't published yet. Until they are, run it from the source — paste this into a terminal:
-
-```bash
-git clone https://github.com/okdalto/siljangnim.git && cd siljangnim && npm install && npm run dev
-```
-
-Next time, `npm run dev` in that folder (or `./run.sh`, `run.bat`) is enough. Add your API key under
-**Settings**; it is encrypted with the OS keychain and never reaches the app window. While the app is
-open, Claude Code (option A) uses its window as the viewer.
-
-To build an installer for your own machine: `npm run dist` (output in `desktop/release/`). The builds are
-not code-signed, so macOS asks once: *System Settings → Privacy & Security → Open Anyway*.
+the agent can do needs A or B. Use the web to look around; use the app to make things.
 
 ## What you can do
 

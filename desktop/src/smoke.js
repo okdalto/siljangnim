@@ -119,9 +119,22 @@ const UPLOAD_ASSETS = `(async () => {
   return [...document.querySelectorAll("aside span.truncate")].map((e) => e.innerText);
 })()`;
 
+/** Settings → Agent, the way a person picks one. */
+function chooseAgent(win, label) {
+  return win.webContents.executeJavaScript(`(async () => {
+    document.querySelector('button[title="Settings"]')?.click();
+    await new Promise((r) => setTimeout(r, 300));
+    [...document.querySelectorAll("button")].find((b) => b.innerText === ${JSON.stringify(label)})?.click();
+    await new Promise((r) => setTimeout(r, 300));
+    document.querySelector('[data-testid="close-settings"]')?.click();
+  })()`);
+}
+
 /** One agent run through the real UI, SDK, forwarder and tools (against the smoke test's mock API). */
 async function runAgentScenario(win, sceneFrame, keys) {
   keys.set("anthropic", process.env.SILJANGNIM_SMOKE_KEY);
+  // A first launch picks a signed-in Claude Code / Codex when one is found; this run is about the API key.
+  await chooseAgent(win, "API key");
   const finalText = process.env.SILJANGNIM_SMOKE_FINAL_TEXT ?? "";
   log("uploading assets");
   const attached = await win.webContents.executeJavaScript(UPLOAD_ASSETS);
@@ -336,6 +349,46 @@ async function runAttachScenario(win) {
   await wait(4500);
   const after = await ui();
   return { opened, written, during, after };
+}
+
+/**
+ * The chat on the person's own Claude Code (a stand-in CLI here): the app starts it with the bundled
+ * siljangnim-mcp, whose bridge attaches to this window as part of the chat. Two messages, the second resuming.
+ */
+async function runLocalAgentScenario(win, outDir) {
+  if (!process.env.SILJANGNIM_CLAUDE_PATH) return null;
+  const state = () =>
+    win.webContents.executeJavaScript(`({
+      text: document.querySelector("aside")?.innerText ?? "",
+      status: document.querySelector('[data-testid="external-status"]')?.dataset.status ?? null,
+      tabs: [...document.querySelectorAll('[role="tab"]')].map((t) => t.innerText),
+      monitors: [...document.querySelectorAll('[data-monitor]')].map((m) => m.dataset.monitor),
+      busy: Boolean(document.querySelector('button[title="Stop"]')),
+    })`);
+  const engines = await win.webContents.executeJavaScript("window.siljangnim.localAgent.detect()");
+  await chooseAgent(win, "Claude Code");
+  // What Settings shows for it (release/smoke/settings-agent.png).
+  await win.webContents.executeJavaScript(`document.querySelector('button[title="Settings"]')?.click()`);
+  await wait(600);
+  writeFileSync(join(outDir, "settings-agent.png"), (await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript(`document.querySelector('[data-testid="close-settings"]')?.click()`);
+  const send = (text) =>
+    win.webContents.executeJavaScript(TYPE_PROMPT.replace('"Make a calm blue field"', JSON.stringify(text)));
+  const waitFor = async (needle) => {
+    let s = await state();
+    for (let i = 0; i < 120 && (!s.text.includes(needle) || s.busy); i++) {
+      await wait(250);
+      s = await state();
+    }
+    await wait(500);
+    return state();
+  };
+  await send("Make it orange");
+  const first = await waitFor("asked: Make it orange");
+  await wait(800);
+  await send("Again");
+  const second = await waitFor("resumed mock-session-1");
+  return { engines, first, second };
 }
 
 async function runV1ImportScenario(win) {
@@ -591,6 +644,8 @@ async function runSmoke(win, hub, keys, outDir) {
   const folder = await runProjectFolderScenario(win).catch((err) => ({ error: String(err), code: [], files: [] }));
   log("agent attaches over MCP");
   const attach = await runAttachScenario(win).catch((err) => ({ error: String(err) }));
+  log("chat on a local CLI");
+  const localAgent = await runLocalAgentScenario(win, outDir).catch((err) => ({ error: String(err) }));
   log("waiting for hub");
 
   await waitForHub(hub);
@@ -655,12 +710,25 @@ async function runSmoke(win, hub, keys, outDir) {
           agentDetached: attach.after?.tabs[0] === "Chat" && attach.after.status === null,
         }
       : {}),
+    ...(localAgent
+      ? {
+          // The stand-in Claude Code is found and signed in, its tool call reaches this window through the bundled
+          // bridge without an outside-agent takeover, and the second message resumes its session.
+          localAgentChat:
+            localAgent.engines?.["claude-code"]?.loggedIn === true &&
+            localAgent.first?.text.includes("asked: Make it orange") &&
+            localAgent.first.monitors.includes("local") &&
+            localAgent.first.status === null &&
+            localAgent.first.tabs[0] === "Chat",
+          localAgentResumes: Boolean(localAgent.second?.text.includes("resumed mock-session-1")),
+        }
+      : {}),
     examplesRun:
       Object.keys(examples).length >= 10 && // 1% lit: sparse pieces (a graph of dots and thin lines on black) are real output too.
       Object.values(examples).every((e) => e.skipped || (e.state === "running" && e.errors === 0 && e.litFraction > 0.01)),
   };
   const ok = Object.values(checks).every(Boolean);
-  report({ ok, checks, scene, iframe, llm, agent, history, examples, frameCheck, v1, folder, attach, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
+  report({ ok, checks, scene, iframe, llm, agent, history, examples, frameCheck, v1, folder, attach, localAgent, bridge, hub: { ...info, token: undefined }, system, consoleErrors });
   clearTimeout(timer);
   quit(hub, ok ? 0 : 1);
 }

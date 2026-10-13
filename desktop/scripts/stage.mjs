@@ -2,7 +2,7 @@
 // desktop/stage/: renderer/ (app + scene runtime), server/llmForward.js, hub/.
 import { execFileSync } from "node:child_process";
 import { cpSync, mkdirSync, rmSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const desktopDir = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -28,5 +28,13 @@ for (const entry of ["pyproject.toml", "uv.lock", ".python-version", "siljangnim
     recursive: true,
     filter: (src) => !src.includes("__pycache__"),
   });
+}
+// siljangnim-mcp, which the app hands to Claude Code / Codex for its chat (src/localAgents.js). It runs on the
+// app's own Electron as Node, attached to the app window, so it needs no studio build of its own.
+const mcpSrc = join(repoRoot, "mcp");
+const mcpDst = join(stageDir, "mcp");
+for (const entry of ["package.json", "bin", "src", "node_modules"]) {
+  // No .bin: its symlinks point outside the bundle, which macOS code signing rejects.
+  cpSync(join(mcpSrc, entry), join(mcpDst, entry), { recursive: true, dereference: true, filter: (src) => basename(src) !== ".bin" });
 }
 console.log(`[stage] staged into ${stageDir}`);

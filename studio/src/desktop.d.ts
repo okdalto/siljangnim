@@ -34,12 +34,42 @@ export interface SiljangnimBridge {
     onAttach(callback: (request: AgentAttach) => void): () => void;
     pending(): Promise<AgentAttach | null>;
   };
+  /** The person's own Claude Code or Codex CLI as the chat agent (desktop/src/localAgents.js). */
+  localAgent?: {
+    detect(): Promise<Record<LocalEngineId, LocalEngineStatus>>;
+    setup(engine: LocalEngineId, action: "install" | "login"): Promise<{ ok: boolean; stdout: string; stderr: string }>;
+    run(engine: LocalEngineId, prompt: string, sessionId: string | null): Promise<string>;
+    stop(id: string): Promise<void>;
+    onEvent(callback: (id: string, event: LocalAgentEvent) => void): () => void;
+  };
 }
+
+export type LocalEngineId = "claude-code" | "codex";
+
+export interface LocalEngineStatus {
+  installed: boolean;
+  loggedIn: boolean;
+  path?: string;
+  version?: string | null;
+  /** The official install command for this platform. */
+  install: string | null;
+  docs: string;
+}
+
+export type LocalAgentEvent =
+  | { type: "session"; id: string }
+  | { type: "text"; delta: string }
+  | { type: "assistant"; content: ({ type: "text"; text: string } | { type: "tool_use"; id: string; name: string; input: unknown })[] }
+  | { type: "tool_result"; id: string; isError: boolean; text: string }
+  | { type: "error"; message: string; auth?: boolean }
+  | { type: "done"; stopped: boolean };
 
 export interface AgentAttach {
   /** The bridge's WebSocket, ws://localhost:<port>/bridge. */
   ws: string;
   token: string;
+  /** The bridge of the app's own chat run (Claude Code / Codex), not an outside agent. */
+  embedded?: boolean;
 }
 
 declare global {

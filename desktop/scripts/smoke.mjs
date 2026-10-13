@@ -44,6 +44,9 @@ const status = await new Promise((resolveExit) => {
       // The app's attach file, and the MCP bridge the smoke runs against it.
       SILJANGNIM_DESKTOP_FILE: join(profile, "desktop.json"),
       SILJANGNIM_SMOKE_MCP: join(desktopDir, "..", "mcp"),
+      // The chat on "Claude Code": a stand-in CLI that speaks its stream and calls tools through the real bridge.
+      SILJANGNIM_CLAUDE_PATH: join(desktopDir, "scripts", "mockLocalAgent.mjs"),
+      SILJANGNIM_AGENT_DIR: join(profile, "agent"),
     },
     stdio: "inherit",
   });

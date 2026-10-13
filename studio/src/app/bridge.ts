@@ -22,6 +22,8 @@ export interface BridgeOptions {
    * when the agent's session ends it goes back to its own chat.
    */
   desktop?: boolean;
+  /** The bridge of the app's own chat run (Claude Code / Codex): the chat shows the work, not the Activity takeover. */
+  embedded?: boolean;
 }
 
 /** The connection in use; a newer bridge replaces it. */
@@ -32,7 +34,11 @@ export function connectBridge(token: string, options: BridgeOptions = {}): void 
   let attempt = 0;
   let finished = false;
   let client: string | null = null;
-  setExternal({ status: "connecting", client });
+  // An embedded bridge stays out of the "external agent" state; the chat panel already shows its run.
+  const show = (external: Parameters<typeof setExternal>[0]) => {
+    if (!options.embedded) setExternal(external);
+  };
+  show({ status: "connecting", client });
   let socket: WebSocket | null = null;
   let hubRequests = 0;
   const hubWaiters = new Map<number, (access: { url: string; token: string } | string) => void>();
@@ -46,9 +52,10 @@ export function connectBridge(token: string, options: BridgeOptions = {}): void 
   // The desktop app shows the ended session briefly, then its own chat again.
   const end = (status: "ended" | "replaced") => {
     finished = true;
-    setExternal({ status, client });
+    show({ status, client });
     if (!options.desktop) return;
     if (current === self) current = null;
+    if (options.embedded) return;
     setTimeout(() => {
       if (current) return;
       setExternal(null);
@@ -83,7 +90,7 @@ export function connectBridge(token: string, options: BridgeOptions = {}): void 
       if (message.type === "client") {
         attempt = 0;
         client = prettyClient(message.name);
-        setExternal({ status: "connected", client });
+        show({ status: "connected", client });
       } else if (message.type === "call") {
         void runExternalTool(message.name, message.input).then((output) => {
           if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "result", id: message.id, output }));
@@ -105,7 +112,7 @@ export function connectBridge(token: string, options: BridgeOptions = {}): void 
       if (e.code === 4003 || e.code === 4004) return end("ended");
       // The bridge exits with the agent session; a new session opens a new tab.
       if (attempt >= MAX_ATTEMPTS) return end("ended");
-      setExternal({ status: "reconnecting", client });
+      show({ status: "reconnecting", client });
       setTimeout(connect, Math.min(RETRY_MAX_MS, 500 * 2 ** attempt++));
     };
   };

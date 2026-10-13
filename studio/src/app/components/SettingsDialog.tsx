@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { ANTHROPIC_MODELS } from "../../agent/llm/anthropic";
 import type { Effort } from "../../agent/llm/types";
-import type { ProviderKeyId } from "../../desktop";
-import { isDesktop } from "../platform";
-import { setApiKey, setSettingsOpen, updateSettings } from "../session";
-import { fetchModels, looksLikeApiKey, type ProviderChoice } from "../settings";
+import type { LocalEngineId, ProviderKeyId } from "../../desktop";
+import { bridge, isDesktop } from "../platform";
+import { refreshLocalEngines, setApiKey, setSettingsOpen, updateSettings } from "../session";
+import { fetchModels, isLocalEngine, looksLikeApiKey, type ProviderChoice } from "../settings";
 import { useApp } from "../state";
 import { XIcon } from "./icons";
 
@@ -27,7 +27,7 @@ export function SettingsDialog() {
       <div className="w-full max-w-md rounded-xl border border-line bg-panel p-5 text-sm shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold">Settings</h2>
-          <button type="button" onClick={close} className="text-muted hover:text-fg">
+          <button type="button" onClick={close} className="text-muted hover:text-fg" data-testid="close-settings">
             <XIcon />
           </button>
         </div>
@@ -44,6 +44,119 @@ export function SettingsDialog() {
           />
         </Field>
 
+        {bridge?.localAgent && (
+          <Field label="Agent" hint="Claude Code and Codex run on your own Claude or ChatGPT plan, no API key needed.">
+            <Segmented
+              options={[
+                { id: "claude-code", label: "Claude Code" },
+                { id: "codex", label: "Codex" },
+                { id: "api", label: "API key" },
+              ]}
+              value={isLocalEngine(provider) ? provider : "api"}
+              onChange={(choice) => updateSettings({ provider: choice === "api" ? lastApiProvider(settings.provider) : choice })}
+            />
+          </Field>
+        )}
+
+        {isLocalEngine(provider) ? (
+          <LocalEnginePanel engine={provider} />
+        ) : (
+          <ApiSettings advanced={advanced} setAdvanced={setAdvanced} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+let apiProviderMemo: ProviderChoice = "anthropic";
+/** Switching back to "API key" returns to the API provider used before. */
+function lastApiProvider(current: ProviderChoice): ProviderChoice {
+  if (!isLocalEngine(current)) apiProviderMemo = current;
+  return apiProviderMemo;
+}
+
+const ENGINE_LABEL: Record<LocalEngineId, string> = { "claude-code": "Claude Code", codex: "Codex" };
+const ENGINE_PLAN: Record<LocalEngineId, string> = { "claude-code": "Claude (Pro, Max, Team) plan", codex: "ChatGPT plan" };
+
+/** Install and sign-in steps for the chosen CLI, checked live. */
+function LocalEnginePanel({ engine }: { engine: LocalEngineId }) {
+  const status = useApp((s) => s.localEngines?.[engine]);
+  const [busy, setBusy] = useState<"install" | "login" | null>(null);
+  const [output, setOutput] = useState("");
+  const label = ENGINE_LABEL[engine];
+  useEffect(() => {
+    void refreshLocalEngines();
+  }, [engine]);
+  const act = async (action: "install" | "login") => {
+    setBusy(action);
+    setOutput("");
+    try {
+      const result = await bridge!.localAgent!.setup(engine, action);
+      if (!result.ok) setOutput((result.stderr || result.stdout).trim().split("\n").slice(-6).join("\n") || `${action} did not finish.`);
+    } catch (err) {
+      setOutput(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(null);
+      await refreshLocalEngines();
+    }
+  };
+  const step = (done: boolean, text: string) => (
+    <li className="flex gap-2">
+      <span className={done ? "text-green-400" : "text-faint"}>{done ? "✓" : "○"}</span>
+      <span className={done ? "text-muted" : ""}>{text}</span>
+    </li>
+  );
+  return (
+    <div className="mb-4 space-y-3 rounded-lg bg-bg p-3 text-xs">
+      {!status ? (
+        <p className="text-muted">Checking for {label}…</p>
+      ) : (
+        <>
+          <ol className="space-y-1.5">
+            {step(status.installed, status.installed ? `${label} is installed${status.version ? ` (${status.version})` : ""}` : `Install ${label}`)}
+            {step(status.loggedIn, status.loggedIn ? `Signed in` : `Sign in with your ${ENGINE_PLAN[engine]}`)}
+          </ol>
+          {!status.installed && status.install && (
+            <div className="space-y-2">
+              <code className="block break-all rounded bg-panel p-2 text-[11px] text-muted">{status.install}</code>
+              <div className="flex gap-2">
+                <button type="button" disabled={busy !== null} onClick={() => void act("install")} className={buttonClass}>
+                  {busy === "install" ? "Installing…" : `Install ${label}`}
+                </button>
+                <a href={status.docs} target="_blank" rel="noreferrer" className="self-center text-faint hover:text-muted">
+                  Install guide
+                </a>
+              </div>
+            </div>
+          )}
+          {status.installed && !status.loggedIn && (
+            <button type="button" disabled={busy !== null} onClick={() => void act("login")} className={buttonClass}>
+              {busy === "login" ? "Finish signing in in your browser…" : `Sign in to ${label}`}
+            </button>
+          )}
+          {status.installed && status.loggedIn && (
+            <p className="text-muted">
+              Ready. The chat runs on {label} with Siljangnim's tools; it can read files and search the web, and anything that runs code on
+              this computer still asks you first.
+            </p>
+          )}
+          {output && <pre className="whitespace-pre-wrap break-all text-red-300">{output}</pre>}
+          <button type="button" onClick={() => void refreshLocalEngines()} className="text-faint hover:text-muted">
+            Check again
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+const buttonClass = "rounded-md bg-raised px-3 py-1.5 text-xs text-fg hover:bg-line disabled:opacity-50";
+
+function ApiSettings({ advanced, setAdvanced }: { advanced: boolean; setAdvanced(v: boolean): void }) {
+  const settings = useApp((s) => s.settings);
+  const { provider } = settings;
+  return (
+    <>
         <Field label="Provider">
           <Segmented options={PROVIDERS} value={provider} onChange={(p) => updateSettings({ provider: p })} />
         </Field>
@@ -99,8 +212,7 @@ export function SettingsDialog() {
             )}
           </>
         )}
-      </div>
-    </div>
+    </>
   );
 }
 

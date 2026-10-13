@@ -5,6 +5,7 @@ import { BrowserWindow, app, ipcMain, session, shell } from "electron";
 import { startAttachServer } from "./attach.js";
 import { Hub } from "./hub.js";
 import { KeyStore } from "./keys.js";
+import { detect as detectLocalAgents, setup as setupLocalAgent, startRun } from "./localAgents.js";
 import { originOf, resolveOrigins } from "./origins.js";
 import { projectsRoot, writeProjectFolder } from "./projectFolder.js";
 import { handleAppProtocol, registerScheme } from "./protocol.js";
@@ -42,6 +43,15 @@ let mainWindow = null;
 let attachServer = null;
 /** A bridge that asked to attach before the UI was listening; the UI takes it on startup. */
 let pendingAttach = null;
+/** Chat runs on the person's Claude Code / Codex, by run id; their bridges attach with the run's token. */
+const localRuns = new Map();
+let runSerial = 0;
+
+/** siljangnim-mcp for a local run, started by the CLI with this app's Electron as Node. */
+function mcpLauncher() {
+  const dir = app.isPackaged ? join(process.resourcesPath, "mcp") : join(srcDir, "..", "..", "mcp");
+  return { command: process.execPath, args: [join(dir, "bin", "siljangnim-mcp.js")], env: { ELECTRON_RUN_AS_NODE: "1" } };
+}
 
 const isAppOrigin = (url) => originOf(url) === ORIGINS.app;
 const isOurOrigin = (url) => isAppOrigin(url) || originOf(url) === ORIGINS.scene;
@@ -111,6 +121,32 @@ function registerIpc() {
     keys.set(provider, key);
   });
   hub.on("status", (info) => mainWindow?.webContents.send("hub:status", info));
+  ipcMain.handle("localAgent:detect", (event) => (fromApp(event) ? detectLocalAgents() : null));
+  ipcMain.handle("localAgent:setup", (event, engine, action) => {
+    if (!fromApp(event)) throw new Error("forbidden");
+    return setupLocalAgent(engine, action);
+  });
+  ipcMain.handle("localAgent:run", async (event, engine, prompt, sessionId) => {
+    if (!fromApp(event)) throw new Error("forbidden");
+    if (typeof prompt !== "string" || (sessionId != null && typeof sessionId !== "string")) throw new Error("bad request");
+    const id = `run-${++runSerial}`;
+    const sender = event.sender;
+    const run = await startRun({
+      engineId: engine,
+      prompt,
+      sessionId: sessionId || null,
+      mcp: mcpLauncher(),
+      onEvent(e) {
+        if (e.type === "done") localRuns.delete(id);
+        if (!sender.isDestroyed()) sender.send("localAgent:event", id, e);
+      },
+    });
+    localRuns.set(id, run);
+    return id;
+  });
+  ipcMain.handle("localAgent:stop", (event, id) => {
+    if (fromApp(event)) localRuns.get(id)?.stop();
+  });
   ipcMain.handle("agent:pending", (event) => {
     if (!fromApp(event)) return null;
     const request = pendingAttach;
@@ -136,6 +172,8 @@ app.on("second-instance", () => {
 });
 
 app.whenReady().then(async () => {
+  // Run from source, macOS shows Electron's own Dock icon; the packaged app gets ours from the bundle.
+  if (process.platform === "darwin" && !app.isPackaged) app.dock?.setIcon(join(srcDir, "..", "assets", "icon.png"));
   keys = new KeyStore();
   configureSession();
   // In dev the UI comes from Vite, but the LLM forwarder (with keys) is still served here.
@@ -152,8 +190,11 @@ app.whenReady().then(async () => {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.show();
       mainWindow.focus();
-      pendingAttach = request;
-      mainWindow.webContents.send("agent:attach", request);
+      // A local run's own bridge belongs to the chat; any other is an outside agent.
+      const embedded = Boolean(request.embedded) && [...localRuns.values()].some((r) => r.token === request.embedded);
+      const forUi = { ws: request.ws, token: request.token, ...(embedded ? { embedded: true } : {}) };
+      if (!embedded) pendingAttach = forUi;
+      mainWindow.webContents.send("agent:attach", forUi);
       return true;
     },
   }).catch((err) => {
@@ -177,4 +218,5 @@ app.on("window-all-closed", () => {
 app.on("before-quit", () => {
   hub.stop();
   attachServer?.close();
+  for (const run of localRuns.values()) run.stop();
 });

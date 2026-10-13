@@ -19,7 +19,9 @@ const log = (message) => process.stderr.write(`[siljangnim-mcp] ${message}\n`);
 const studioDir = resolve(
   process.env.SILJANGNIM_STUDIO_DIR || (existsSync(join(pkgDir, "studio", "index.html")) ? join(pkgDir, "studio") : join(pkgDir, "..", "studio", "dist")),
 );
-if (!existsSync(join(studioDir, "index.html"))) {
+// Started by the desktop app for its chat: the app is the viewer, so no studio build or browser is needed.
+const embedded = Boolean(process.env.SILJANGNIM_EMBEDDED);
+if (!embedded && !existsSync(join(studioDir, "index.html"))) {
   log(`no studio build at ${studioDir}; run: npm --prefix studio run build`);
   process.exit(1);
 }
@@ -30,7 +32,7 @@ const { version } = JSON.parse(readFileSync(join(pkgDir, "package.json"), "utf8"
 // SILJANGNIM_OPEN_COMMAND names a program to open it with instead (called with the URL).
 const openCommand = process.env.SILJANGNIM_OPEN_COMMAND;
 const open =
-  process.env.SILJANGNIM_OPEN === "0"
+  embedded || process.env.SILJANGNIM_OPEN === "0"
     ? () => undefined
     : openCommand
       ? (url) => spawn(openCommand, [url], { detached: true, stdio: "ignore" }).on("error", (err) => log(`${openCommand}: ${err.message}`)).unref()

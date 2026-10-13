@@ -26,14 +26,41 @@
 
 ## 시작하기
 
-> **로컬에서 에이전트를 붙여 쓰는 방법(A)을 강력히 추천합니다.** 웹에서도 돌아가고 예제를 구경하기엔 충분하지만,
-> 실장님은 에이전트가 내 컴퓨터에서 오픈소스 도구(Python 패키지, ffmpeg, ML 모델, OSC 등)를 설치하고 실행하도록
-> 만든 도구입니다. 웹에서는 이런 일을 할 수 없습니다. 로컬에서는 에이전트가 내 파일과 기억을 그대로 쓰고,
-> Claude Code로 쓰면 API 키를 따로 넣지 않고 Claude 요금제 안에서 돌아갑니다.
+> **데스크톱 앱(A)을 추천합니다.** 웹에서도 돌아가고 예제를 구경하기엔 충분하지만, 실장님은 에이전트가 내 컴퓨터에서
+> 오픈소스 도구(Python 패키지, ffmpeg, ML 모델, OSC 등)를 설치하고 실행하도록 만든 도구입니다. 웹에서는 이런 일을
+> 할 수 없습니다. 앱에서는 채팅을 내 Claude Code나 Codex가 맡아서, API 키 없이 Claude나 ChatGPT 구독 안에서 돌아갑니다.
 
 셋 중 하나를 고르세요. 1분이면 됩니다.
 
-### A. Claude Code나 Codex로 쓰기 — 추천
+### A. 데스크톱 앱 — 추천
+
+1. **[Releases](https://github.com/okdalto/siljangnim/releases/latest)** 에서 설치 파일을 받으세요. macOS(Apple Silicon)는 `.dmg`, Windows는 `.exe`입니다.
+2. 실장님을 열고 **Settings**(설정, 톱니바퀴 아이콘) → **Agent**에서 고르세요.
+   - **Claude Code**나 **Codex** — Claude(Pro, Max, Team)나 ChatGPT 구독으로 돌아가고 API 키가 필요 없습니다.
+     설치나 로그인이 안 돼 있으면 거기 있는 **Install**, **Sign in** 버튼으로 바로 할 수 있습니다.
+   - **API key** — Anthropic이나 OpenAI 키. OS 키체인으로 암호화되고 앱 화면에는 전달되지 않습니다.
+3. 채팅에 만들고 싶은 것을 적으세요.
+
+```text
+어두운 바다를 떠다니는 빛나는 해파리, 개수를 조절하는 슬라이더도 붙여 줘
+```
+
+설치 파일에 아직 코드 서명이 없어서, 처음 열 때 한 번 더 눌러야 합니다. macOS는 *시스템 설정 → 개인정보 보호 및
+보안 → 그래도 열기*, Windows는 *추가 정보 → 실행*을 누르세요.
+
+<details>
+<summary>소스에서 실행하기</summary>
+
+```bash
+git clone https://github.com/okdalto/siljangnim.git && cd siljangnim && npm install && npm run dev
+```
+
+다음부터는 그 폴더에서 `npm run dev`(또는 `./run.sh`, `run.bat`)만 하면 됩니다. 내 컴퓨터용 설치 파일을 만들려면
+`npm run dist`(결과는 `desktop/release/`).
+
+</details>
+
+### B. 터미널의 Claude Code나 Codex에서 쓰기
 
 **Claude Code**에 이렇게 붙여 넣으세요:
 
@@ -60,7 +87,8 @@ Codex를 완전히 종료했다가 다시 실행하세요. Codex가 MCP 서버�
 siljangnim으로 어두운 바다를 떠다니는 빛나는 해파리를 만들어 줘. 해파리 개수는 슬라이더로 바꿀 수 있게.
 ```
 
-뷰어 창(Chrome이나 Edge가 있으면 앱 창, 없으면 브라우저 탭)이 열리고 거기에 결과가 나옵니다. 고치고 싶으면 에이전트에게 계속 말하면 됩니다.
+뷰어 창(Chrome이나 Edge가 있으면 앱 창, 없으면 브라우저 탭)이 열리고 거기에 결과가 나옵니다. 데스크톱 앱이
+켜져 있으면 그 앱 창을 씁니다. 고치고 싶으면 에이전트에게 계속 말하면 됩니다.
 
 필요한 것은 [Node.js 22 이상](https://nodejs.org)뿐입니다. Python이 필요한 도구를 처음 쓸 때 알아서
 `~/.siljangnim/runtime/`에 받아 둡니다.
@@ -92,7 +120,7 @@ args = ["-y", "siljangnim-mcp@latest"]
 
 </details>
 
-### B. 브라우저에서 바로 — 설치 없음
+### C. 브라우저에서 바로 — 설치 없음
 
 **[siljangnim.vercel.app](https://siljangnim.vercel.app/)** 에 들어가서:
 
@@ -102,22 +130,7 @@ args = ["-y", "siljangnim-mcp@latest"]
 3. 채팅에 만들고 싶은 것을 적으세요.
 
 웹에서는 내 컴퓨터에서 도는 도구(Python 패키지, ffmpeg, ML 모델, OSC)를 쓸 수 없어서, 에이전트가 할 수 있는 일
-대부분은 A나 C가 필요합니다. 구경은 웹에서, 만들기는 A로 하세요.
-
-### C. 데스크톱 앱
-
-설치 파일은 아직 배포 전입니다. 그때까지는 소스에서 실행합니다. 터미널에 붙여 넣으세요:
-
-```bash
-git clone https://github.com/okdalto/siljangnim.git && cd siljangnim && npm install && npm run dev
-```
-
-다음부터는 그 폴더에서 `npm run dev`(또는 `./run.sh`, `run.bat`)만 하면 됩니다. API 키는 **Settings**(설정)에
-넣으세요. OS 키체인으로 암호화되고 앱 화면에는 전달되지 않습니다. 앱이 켜져 있으면 Claude Code(A)가
-브라우저 대신 이 앱 창을 뷰어로 씁니다.
-
-내 컴퓨터용 설치 파일을 만들려면 `npm run dist`(결과는 `desktop/release/`). 코드 서명이 없어서 macOS에서
-처음 열 때 한 번 *시스템 설정 → 개인정보 보호 및 보안 → 그래도 열기*를 눌러야 합니다.
+대부분은 A나 B가 필요합니다. 구경은 웹에서, 만들기는 앱에서 하세요.
 
 ## 할 수 있는 것
 

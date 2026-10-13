@@ -68,7 +68,8 @@ import type { OscMessage } from "../scene/runtime/inputData";
 import { evaluateTrack, keyAt, removeKeyAt, upsertKey } from "../scene/gl/keyframes";
 import { DEFAULT_SCENE, KEYFRAMABLE, parseScene, type Scene, type Timeline, type UniformValue } from "../scene/schema";
 import { bridge, bridgeToken, keys } from "./platform";
-import { createProvider, looksLikeApiKey, saveSettings, type Settings } from "./settings";
+import { createProvider, hasSavedSettings, isLocalEngine, looksLikeApiKey, saveSettings, type Settings } from "./settings";
+import type { LocalAgentEvent, LocalEngineId } from "../desktop";
 import { frameResolution, readFrame, type Frame } from "./frame";
 import { resolveLanguage } from "./language";
 import { useApp, type AppState } from "./state";
@@ -131,15 +132,16 @@ export async function boot(): Promise<void> {
   if (bridge?.agent) {
     let attached = "";
     // The live event and the startup check can both bring the same request.
-    const attach = (request: { ws: string; token: string }) => {
+    const attach = (request: { ws: string; token: string; embedded?: boolean }) => {
       if (request.token === attached) return;
       attached = request.token;
-      void import("./bridge").then(({ connectBridge }) => connectBridge(request.token, { url: request.ws, desktop: true }));
+      void import("./bridge").then(({ connectBridge }) => connectBridge(request.token, { url: request.ws, desktop: true, embedded: request.embedded }));
     };
     bridge.agent.onAttach(attach);
     void bridge.agent.pending().then((request) => request && attach(request));
   }
   set({ keyStatus: await keys.status() });
+  void pickLocalEngine();
   let projects = await store.listProjects();
   if (!projects.length) {
     await createProject("Untitled");
@@ -300,7 +302,10 @@ export async function mixExample(slug: string): Promise<void> {
 async function handToAgent(request: string, what: string, newProject?: string): Promise<void> {
   const { external, settings } = get();
   const status = await keys.status();
-  const ready = settings.provider === "custom" || (settings.provider === "anthropic" ? status.anthropic : status.openai);
+  const local = isLocalEngine(settings.provider) ? get().localEngines?.[settings.provider] : null;
+  const ready = local
+    ? local.installed && local.loggedIn
+    : settings.provider === "custom" || (settings.provider === "anthropic" ? status.anthropic : status.openai);
   if (external || !ready) {
     try {
       await navigator.clipboard.writeText(request);
@@ -312,7 +317,7 @@ async function handToAgent(request: string, what: string, newProject?: string): 
         kind: "info",
         text: external
           ? `Copied the request for ${what}; paste it into ${external.client ?? "your agent"}'s chat.`
-          : `Copied the request for ${what}. Add an API key in Settings (or connect Claude Code / Codex), then paste it into the chat.`,
+          : `Copied the request for ${what}. Set up an agent in Settings (Claude Code, Codex or an API key), then paste it into the chat.`,
       },
     });
     return;
@@ -1395,6 +1400,129 @@ export function setExternal(external: AppState["external"]): void {
   set((st) => ({ external, sidebarTab: external && (!st.external || st.sidebarTab === "chat") ? "activity" : st.sidebarTab }));
 }
 
+// --- chat on the person's own Claude Code / Codex (desktop) ---
+
+const localSessionKey = (projectId: string, engine: LocalEngineId) => `siljangnim.localSession.${engine}.${projectId}`;
+
+/** Checks the CLIs (Settings shows the result) and, on a first launch without an API key, picks one that is ready. */
+export async function refreshLocalEngines(): Promise<void> {
+  const status = await bridge?.localAgent?.detect().catch(() => null);
+  if (status) set({ localEngines: status });
+}
+
+async function pickLocalEngine(): Promise<void> {
+  if (!bridge?.localAgent) return;
+  const firstRun = !hasSavedSettings();
+  await refreshLocalEngines();
+  const engines = get().localEngines;
+  const { keyStatus } = get();
+  if (!firstRun || !engines || keyStatus.anthropic || keyStatus.openai) return;
+  const ready = (["claude-code", "codex"] as const).find((id) => engines[id]?.installed && engines[id]?.loggedIn);
+  if (ready) updateSettings({ provider: ready });
+}
+
+/** Add an event's blocks to the chat, merging into the last message of the same role so turns keep alternating. */
+function appendBlocks(messages: MessageParam[], role: "user" | "assistant", blocks: ContentBlockParam[]): MessageParam[] {
+  const last = messages[messages.length - 1];
+  if (last?.role === role && Array.isArray(last.content)) return [...messages.slice(0, -1), { role, content: [...last.content, ...blocks] }];
+  return [...messages, { role, content: blocks }];
+}
+
+async function sendLocalPrompt(engine: LocalEngineId, prompt: string): Promise<void> {
+  const local = bridge?.localAgent;
+  const project = get().project;
+  if (!local || !project) return;
+  const status = get().localEngines?.[engine] ?? (await local.detect().catch(() => null))?.[engine];
+  const label = engine === "claude-code" ? "Claude Code" : "Codex";
+  if (!status?.installed || !status.loggedIn) {
+    await refreshLocalEngines();
+    set({ settingsOpen: true, notice: { kind: "error", text: `${label} ${status?.installed ? "needs you to sign in" : "is not installed"}. Settings shows how.` } });
+    return;
+  }
+  await flushControlVersion();
+  const projectId = project.id;
+  const note = pendingNotes.get(projectId);
+  pendingNotes.delete(projectId);
+  const attached = get().attachments;
+  set({ attachments: [] });
+  // The CLI gets text only; attached images stay project assets it can read with asset_read.
+  const extra = [...(note ? [studioNote(note)] : []), ...(await attachmentBlocks(attached)).filter((b) => b.type === "text")];
+  const content: ContentBlockParam[] = [...extra, { type: "text", text: prompt }];
+  let messages: MessageParam[] = [...get().messages, { role: "user", content }];
+  const abort = new AbortController();
+  agentAbort = abort;
+  running = abort;
+  set({ messages, live: { text: "", thinking: "", tools: [] }, notice: null });
+  await store.writeChat(projectId, messages);
+
+  const stillCurrent = () => get().project?.id === projectId;
+  const sessionKey = localSessionKey(projectId, engine);
+  const input = extra.map((b) => (b.type === "text" ? b.text : "")).concat(prompt).join("\n\n");
+  let runId: string | null = null;
+  const queued: [string, LocalAgentEvent][] = [];
+  let finish: () => void = () => undefined;
+  const finished = new Promise<void>((resolve) => (finish = resolve));
+  let error: string | null = null;
+  const handle = (event: LocalAgentEvent) => {
+    const liveTurn = get().live;
+    switch (event.type) {
+      case "session":
+        safeLocal(() => localStorage.setItem(sessionKey, event.id));
+        break;
+      case "text":
+        if (stillCurrent() && liveTurn) set({ live: { ...liveTurn, text: liveTurn.text + event.delta } });
+        break;
+      case "assistant":
+        messages = appendBlocks(messages, "assistant", event.content);
+        if (stillCurrent()) {
+          const started = event.content.flatMap((b) => (b.type === "tool_use" ? [{ id: b.id, name: b.name }] : []));
+          set({ messages, live: liveTurn ? { ...liveTurn, text: "", tools: [...liveTurn.tools, ...started] } : null });
+        }
+        void store.writeChat(projectId, messages);
+        break;
+      case "tool_result":
+        messages = appendBlocks(messages, "user", [{ type: "tool_result", tool_use_id: event.id, content: event.text || "(no output)", ...(event.isError ? { is_error: true } : {}) }]);
+        if (stillCurrent()) set({ messages, live: liveTurn ? { ...liveTurn, tools: liveTurn.tools.filter((t) => t.id !== event.id) } : null });
+        void store.writeChat(projectId, messages);
+        break;
+      case "error":
+        error = event.auth ? `${label} is signed out. Sign in again from Settings.` : event.message;
+        if (event.auth) void refreshLocalEngines();
+        break;
+      case "done":
+        finish();
+        break;
+    }
+  };
+  const off = local.onEvent((id, event) => {
+    if (runId === null) queued.push([id, event]);
+    else if (id === runId) handle(event);
+  });
+  const onAbort = () => runId && void local.stop(runId);
+  abort.signal.addEventListener("abort", onAbort);
+  try {
+    runId = await local.run(engine, input, safeLocal(() => localStorage.getItem(sessionKey)));
+    for (const [id, event] of queued.splice(0)) if (id === runId) handle(event);
+    if (abort.signal.aborted) onAbort();
+    await finished;
+  } catch (err) {
+    error = err instanceof Error ? err.message : String(err);
+  } finally {
+    off();
+    abort.signal.removeEventListener("abort", onAbort);
+    await store.writeChat(projectId, messages);
+    if (stillCurrent()) {
+      set({ messages, ...(error ? { notice: { kind: "error" as const, text: error } } : {}) });
+      await commitVersion(projectId, versionMessage(prompt));
+    }
+    if (agentAbort === abort) agentAbort = null;
+    if (running === abort) {
+      running = null;
+      set({ live: null });
+    }
+  }
+}
+
 export async function sendPrompt(text: string): Promise<void> {
   const prompt = text.trim();
   const { project, settings, live } = get();
@@ -1403,6 +1531,7 @@ export async function sendPrompt(text: string): Promise<void> {
     set({ notice: { kind: "error", text: "The viewport is not ready yet." } });
     return;
   }
+  if (isLocalEngine(settings.provider)) return sendLocalPrompt(settings.provider, prompt);
 
   const status = await keys.status();
   set({ keyStatus: status });
@@ -1538,6 +1667,8 @@ export async function clearChat(): Promise<void> {
   const project = get().project;
   if (!project || get().live) return;
   await store.writeChat(project.id, []);
+  // A new chat starts a new CLI session too.
+  for (const engine of ["claude-code", "codex"] as const) safeLocal(() => localStorage.removeItem(localSessionKey(project.id, engine)));
   set({ messages: [], notice: null });
 }
 

@@ -31,7 +31,8 @@ export async function attachToDesktop(request, log = () => undefined) {
     const res = await fetch(`http://127.0.0.1:${info.port}/connect`, {
       method: "POST",
       headers: { authorization: `Bearer ${info.token}`, "content-type": "application/json" },
-      body: JSON.stringify(request),
+      // Started by the app for its own chat (desktop/src/localAgents.js): the app checks this run token.
+      body: JSON.stringify(process.env.SILJANGNIM_EMBEDDED ? { ...request, embedded: process.env.SILJANGNIM_EMBEDDED } : request),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (res.ok) return true;

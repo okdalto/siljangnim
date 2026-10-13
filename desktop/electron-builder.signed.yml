@@ -1,0 +1,11 @@
+# Signed and notarized macOS build: electron-builder.yml plus a Developer ID. scripts/dist.mjs uses it when the
+# signing secrets are set (CSC_LINK, CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID).
+# Windows needs no config change: electron-builder signs when WIN_CSC_LINK / WIN_CSC_KEY_PASSWORD are set.
+extends: ./electron-builder.yml
+# The identity comes from the CSC_LINK certificate.
+mac:
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: assets/entitlements.mac.plist
+  entitlementsInherit: assets/entitlements.mac.plist
+  notarize: true

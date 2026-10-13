@@ -22,7 +22,7 @@ export function discoveryFile() {
 }
 
 /**
- * @param {{ version: string, onConnect: (request: { ws: string, token: string }) => boolean, log?: (m: string) => void }} options
+ * @param {{ version: string, onConnect: (request: { ws: string, token: string, embedded?: string }) => boolean, log?: (m: string) => void }} options
  *   onConnect hands the bridge to the UI; false when there is no window to take it
  */
 export async function startAttachServer({ version, onConnect, log = () => undefined }) {
@@ -54,7 +54,8 @@ export async function startAttachServer({ version, onConnect, log = () => undefi
       if (typeof request?.ws !== "string" || !/^ws:\/\/(localhost|127\.0\.0\.1):\d+\/bridge$/.test(request.ws) || typeof request.token !== "string" || !request.token) {
         return reply(400, { error: "ws must be ws://localhost:<port>/bridge, with the bridge token" });
       }
-      const taken = onConnect({ ws: request.ws, token: request.token });
+      const embedded = typeof request.embedded === "string" && request.embedded.length <= 128 ? request.embedded : undefined;
+      const taken = onConnect({ ws: request.ws, token: request.token, ...(embedded ? { embedded } : {}) });
       log(`bridge ${request.ws} ${taken ? "attached" : "refused (no window)"}`);
       reply(taken ? 200 : 503, taken ? { ok: true } : { error: "the app has no window open" });
     });

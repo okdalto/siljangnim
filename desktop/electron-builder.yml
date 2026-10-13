@@ -13,21 +13,25 @@ files:
 extraResources:
   - from: stage/hub
     to: hub
+  # Its node_modules is added by scripts/afterPack.cjs.
+  - from: stage/mcp
+    to: mcp
   - from: vendor/bin
     to: bin
     filter:
       - uv
       - uv.exe
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+afterPack: scripts/afterPack.cjs
 
 mac:
   target:
     - target: dmg
       arch: arm64
   category: public.app-category.graphics-design
-  # Ad-hoc signature until a Developer ID is set up (see README). Hardened
-  # runtime would reject Electron's pre-signed frameworks under ad-hoc signing.
-  identity: "-"
+  # Without a Developer ID, scripts/dist.mjs signs ad-hoc (identity "-"). Hardened
+  # runtime would reject Electron's pre-signed frameworks under ad-hoc signing;
+  # electron-builder.signed.yml turns it on with a real certificate.
   hardenedRuntime: false
   extendInfo:
     NSCameraUsageDescription: Siljangnim uses the camera for hand, pose and face tracking in your scenes.

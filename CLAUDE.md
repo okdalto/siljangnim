@@ -13,6 +13,10 @@ checks it runs and looks right, and refines it. Being rebuilt as a desktop app (
   - `src/project/` — IndexedDB store. `src/app/` — UI, state (`state.ts`), controller (`session.ts`).
   - `server/llmForward.js` — LLM forwarder shared by the Vite dev server and the desktop main process.
 - `desktop/` — Electron shell: `app://` protocol, key storage, hub process, packaging, smoke test.
+  `src/localAgents.js` runs the person's own Claude Code / Codex CLI as the chat agent (Settings → Agent): the CLI gets
+  the bundled `siljangnim-mcp` (staged into the app's resources, run on Electron as Node) as its only MCP server, whose
+  bridge attaches to the window marked `embedded`, so tools still run in the viewer. Signing: `scripts/dist.mjs`
+  signs and notarizes only when the certificate secrets are set (`electron-builder.signed.yml`).
 - `mcp/` — `siljangnim-mcp`: MCP server for external agents (Claude Code, Codex). Serves the built studio on
   localhost and relays tool calls to it over a token-checked WebSocket.
   `src/spec.json` is generated from `studio/src/agent/external.ts` — run `npm --prefix studio run export-mcp`

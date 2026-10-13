@@ -2,8 +2,16 @@
 
 [한국어](../models.md)
 
-The built-in agent runs on the model you choose in **Settings** (gear icon). When you use an external agent such as
-Claude Code, it uses that agent's model, so there's nothing to set here.
+Pick the app chat's agent under **Agent** in **Settings** (gear icon).
+
+- **Claude Code / Codex (desktop app)** — the Claude Code or Codex installed on your computer runs the chat. No API key:
+  it runs on your Claude (Pro, Max, Team) or ChatGPT plan. If it isn't installed or signed in yet, the **Install** and
+  **Sign in** buttons in Settings do it (you finish signing in in your browser). It uses Siljangnim's tools and can read
+  files and search the web, but doesn't run commands or edit files; running code on your computer still asks you first.
+- **API key** — the models in the table below, with an API key. This is the only option on the web.
+
+When you connect Claude Code from a terminal over MCP instead ([connecting an agent](mcp.md)), it uses that agent's model,
+so there's nothing to set here.
 
 | Provider | What you need |
 |---|---|

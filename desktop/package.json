@@ -1,7 +1,7 @@
 {
   "name": "siljangnim-desktop",
   "productName": "Siljangnim",
-  "version": "0.2.0",
+  "version": "0.2.5",
   "description": "Siljangnim desktop app",
   "license": "GPL-3.0-or-later",
   "author": "okdalto",
@@ -17,7 +17,7 @@
     "dev": "node scripts/dev.mjs",
     "stage": "node scripts/stage.mjs",
     "start": "npm run stage && electron .",
-    "dist": "npm run stage && electron-builder --publish never",
+    "dist": "npm run stage && node scripts/dist.mjs",
     "smoke": "node scripts/smoke.mjs"
   },
   "devDependencies": {

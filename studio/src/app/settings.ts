@@ -5,9 +5,17 @@ import { OpenAIResponsesProvider } from "../agent/llm/responses";
 import type { Effort, LLMProvider } from "../agent/llm/types";
 import type { LanguageChoice } from "./language";
 import { apiBase, forwarderHeaders, keys } from "./platform";
+import type { LocalEngineId } from "../desktop";
 
-/** anthropic: Claude. openai: GPT on api.openai.com. custom: any OpenAI-compatible server (vLLM, Ollama…). */
-export type ProviderChoice = "anthropic" | "openai" | "custom";
+/**
+ * anthropic: Claude. openai: GPT on api.openai.com. custom: any OpenAI-compatible server (vLLM, Ollama…).
+ * claude-code / codex (desktop): the person's own CLI runs the chat on their plan, no API key.
+ */
+export type ProviderChoice = "anthropic" | "openai" | "custom" | LocalEngineId;
+
+export function isLocalEngine(provider: ProviderChoice): provider is LocalEngineId {
+  return provider === "claude-code" || provider === "codex";
+}
 
 export interface Settings {
   provider: ProviderChoice;
@@ -63,6 +71,8 @@ export function migrateSettings(stored: Partial<Settings> & LegacySettings): Set
 /** The model the current provider will use. */
 export function activeModel(settings: Settings): string {
   if (settings.provider === "anthropic") return settings.anthropicModel;
+  if (settings.provider === "claude-code") return "Claude Code";
+  if (settings.provider === "codex") return "Codex";
   return (settings.provider === "openai" ? settings.openaiModel : settings.customModel).trim();
 }
 
@@ -78,6 +88,15 @@ export function loadSettings(): Settings {
     return settings;
   } catch {
     return DEFAULT_SETTINGS;
+  }
+}
+
+/** False on a first launch, before anything was chosen. */
+export function hasSavedSettings(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_KEY) !== null;
+  } catch {
+    return true;
   }
 }
 
