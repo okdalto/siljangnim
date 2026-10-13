@@ -89,6 +89,8 @@ export interface AppState {
   localEngines: Record<LocalEngineId, LocalEngineStatus> | null;
   /** Bumped when a move is picked, so the "Try next" cards refresh. */
   movesRevision: number;
+  /** The remix list (techniques and examples to pick from) is open. */
+  remixOpen: boolean;
   settingsOpen: boolean;
   examplesOpen: boolean;
   exampleDownload: { slug: string; loaded: number; total: number; preparing: boolean } | null;
@@ -131,6 +133,7 @@ export const useApp = create<AppState>(() => ({
   keyStatus: { anthropic: false, openai: false },
   localEngines: null,
   movesRevision: 0,
+  remixOpen: false,
   settingsOpen: false,
   examplesOpen: false,
   exampleDownload: null,

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { DropOverlay } from "./components/DropOverlay";
 import { ExamplesDialog } from "./components/Examples";
 import { SettingsDialog } from "./components/SettingsDialog";
+import { RemixPicker } from "./components/RemixPicker";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { Viewport } from "./components/Viewport";
@@ -34,6 +35,7 @@ function useUndoShortcuts() {
 
 export function App() {
   const settingsOpen = useApp((s) => s.settingsOpen);
+  const remixOpen = useApp((s) => s.remixOpen);
   const examplesOpen = useApp((s) => s.examplesOpen);
   useUndoShortcuts();
   return (
@@ -48,6 +50,7 @@ export function App() {
       </div>
       <DropOverlay />
       {settingsOpen && <SettingsDialog />}
+      {remixOpen && <RemixPicker />}
       {examplesOpen && <ExamplesDialog />}
     </div>
   );

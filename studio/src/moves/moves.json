@@ -4,10 +4,10 @@
   {
    "id": "extrude-3d",
    "category": "dimension",
-   "name": "Lift it into 3D",
-   "name_ko": "3D로 세우기",
+   "name": "Height-map 3D",
+   "name_ko": "하이트맵 3D",
    "summary": "Read the 2D image as a height map and raise it into a lit terrain you can orbit.",
-   "summary_ko": "2D 화면을 높이 지도로 읽어, 돌려 볼 수 있는 입체 지형으로 세워요.",
+   "summary_ko": "화면 밝기를 하이트맵으로 써서 카메라로 돌려 볼 수 있는 3D 지형으로 만들어요.",
    "fits": [
     "2d",
     "field",
@@ -24,10 +24,10 @@
   {
    "id": "raymarch-sdf",
    "category": "dimension",
-   "name": "Raymarched forms",
-   "name_ko": "레이마칭 입체",
+   "name": "Raymarched SDF",
+   "name_ko": "레이마칭 SDF",
    "summary": "Rebuild the shapes as signed distance fields: soft shadows, ambient occlusion, infinite detail.",
-   "summary_ko": "모양을 거리장(SDF)으로 다시 만들어 부드러운 그림자와 무한한 디테일을 줘요.",
+   "summary_ko": "형태를 SDF로 다시 만들어 소프트 섀도와 AO가 있는 3D로 렌더링해요.",
    "fits": [
     "2d",
     "field"
@@ -47,7 +47,7 @@
    "name": "Point cloud",
    "name_ko": "포인트 클라우드",
    "summary": "Turn the image or mesh into thousands of glowing points floating in space.",
-   "summary_ko": "이미지나 메쉬를 수천 개의 빛나는 점으로 바꿔 공간에 띄워요.",
+   "summary_ko": "이미지나 메쉬를 수많은 점으로 바꿔 3D 공간에 띄워요.",
    "fits": [
     "image",
     "mesh",
@@ -64,10 +64,10 @@
   {
    "id": "depth-parallax",
    "category": "dimension",
-   "name": "Depth from a photo",
-   "name_ko": "사진에 깊이 주기",
+   "name": "Depth parallax",
+   "name_ko": "깊이 추정 패럴랙스",
    "summary": "Estimate depth with Depth Anything V2 and turn a still photo into a 3D parallax scene.",
-   "summary_ko": "Depth Anything V2로 깊이를 추정해 사진 한 장을 입체 패럴랙스 장면으로 만들어요.",
+   "summary_ko": "Depth Anything V2로 사진의 깊이를 추정해 입체 패럴랙스로 만들어요.",
    "fits": [
     "image"
    ],
@@ -86,7 +86,7 @@
    "name": "Gaussian splatting",
    "name_ko": "가우시안 스플래팅",
    "summary": "Render with 3D Gaussian splats: soft, photographic volumes from scans or from your own points.",
-   "summary_ko": "3D 가우시안 스플랫으로 렌더링해요. 스캔 데이터나 직접 만든 점으로 사진 같은 부드러운 입체를 만들어요.",
+   "summary_ko": "스캔 데이터나 장면의 점을 3D 가우시안 스플랫으로 렌더링해요.",
    "fits": [
     "3d",
     "mesh",
@@ -107,10 +107,10 @@
   {
    "id": "volume-render",
    "category": "render",
-   "name": "Volume rendering",
-   "name_ko": "볼륨 렌더링",
+   "name": "Volumetric rendering",
+   "name_ko": "볼류메트릭 렌더링",
    "summary": "Treat the pattern as a density field and raymarch light through it: smoke, nebula, fog.",
-   "summary_ko": "패턴을 밀도장으로 보고 빛을 통과시켜요. 연기, 성운, 안개 같은 느낌이 나요.",
+   "summary_ko": "패턴을 밀도 볼륨으로 보고 레이마칭해 연기·성운·안개처럼 렌더링해요.",
    "fits": [
     "field",
     "3d",
@@ -128,10 +128,10 @@
   {
    "id": "pbr-ibl",
    "category": "render",
-   "name": "PBR materials",
-   "name_ko": "PBR 재질",
+   "name": "PBR + IBL",
+   "name_ko": "PBR + IBL",
    "summary": "Physically based materials lit by an environment: metal, glass-like coat, real reflections.",
-   "summary_ko": "환경광으로 비추는 물리 기반 재질을 써요. 금속, 코팅, 실제 같은 반사가 생겨요.",
+   "summary_ko": "물리 기반 재질과 환경광(IBL)으로 금속·코팅·반사를 사실적으로 표현해요.",
    "fits": [
     "mesh",
     "3d",
@@ -154,7 +154,7 @@
    "name": "Path tracing",
    "name_ko": "패스 트레이싱",
    "summary": "Trace light bounces progressively for soft shadows, color bleeding and glossy reflections.",
-   "summary_ko": "빛의 반사를 차곡차곡 쌓아 부드러운 그림자, 색 번짐, 광택 반사를 만들어요.",
+   "summary_ko": "빛의 바운스를 누적해 소프트 섀도, 컬러 블리딩, 광택 반사를 만들어요.",
    "fits": [
     "raymarch",
     "mesh",
@@ -173,8 +173,8 @@
   {
    "id": "cinematic-post",
    "category": "render",
-   "name": "Cinematic post",
-   "name_ko": "시네마틱 후처리",
+   "name": "Post-processing (bloom, DOF, grain)",
+   "name_ko": "포스트 프로세싱 (블룸·DOF·그레인)",
    "summary": "Bloom, depth of field, film grain, vignette and tonemapping for a filmed look.",
    "summary_ko": "블룸, 피사계 심도, 필름 그레인, 비네팅, 톤매핑으로 영화 같은 질감을 더해요.",
    "fits": [],
@@ -189,10 +189,10 @@
   {
    "id": "toon-outline",
    "category": "render",
-   "name": "Toon & outlines",
-   "name_ko": "툰 셰이딩·윤곽선",
+   "name": "Toon shading + outlines",
+   "name_ko": "툰 셰이딩 + 아웃라인",
    "summary": "Flat, stepped light with ink outlines, like an illustration or anime frame.",
-   "summary_ko": "계단식 명암과 잉크 윤곽선으로 일러스트나 애니메이션 같은 그림을 만들어요.",
+   "summary_ko": "계단식 셰이딩과 잉크 아웃라인으로 일러스트·애니메이션 느낌을 내요.",
    "fits": [
     "mesh",
     "3d",
@@ -210,9 +210,9 @@
    "id": "flow-field",
    "category": "motion",
    "name": "Flow-field particles",
-   "name_ko": "흐름장 파티클",
+   "name_ko": "플로우 필드 파티클",
    "summary": "Let thousands of particles stream along the image's own currents, leaving trails.",
-   "summary_ko": "수천 개의 입자가 화면의 흐름을 따라 흘러가며 자국을 남겨요.",
+   "summary_ko": "수많은 파티클이 화면의 흐름(그래디언트·컬 노이즈)을 따라 흐르며 궤적을 남겨요.",
    "fits": [
     "field",
     "image",
@@ -230,10 +230,10 @@
   {
    "id": "feedback-trails",
    "category": "motion",
-   "name": "Feedback & trails",
-   "name_ko": "피드백·잔상",
+   "name": "Feedback loop",
+   "name_ko": "피드백 루프",
    "summary": "Feed each frame back into the next, slightly zoomed and rotated: echoes and tunnels.",
-   "summary_ko": "이전 화면을 조금씩 확대·회전해 다시 그려 메아리와 터널 같은 잔상을 만들어요.",
+   "summary_ko": "이전 프레임을 줌·회전해 다시 그려 잔상과 터널을 만들어요.",
    "fits": [
     "2d",
     "particles",
@@ -253,9 +253,9 @@
    "id": "reaction-diffusion",
    "category": "motion",
    "name": "Reaction–diffusion",
-   "name_ko": "반응-확산",
+   "name_ko": "리액션-디퓨전",
    "summary": "Grow living Turing patterns (spots, stripes, coral) seeded from the current image.",
-   "summary_ko": "지금 화면을 씨앗으로 점·줄무늬·산호 같은 튜링 패턴이 자라나게 해요.",
+   "summary_ko": "지금 화면을 씨앗으로 그레이-스콧 패턴(점·줄무늬·산호)을 키워요.",
    "fits": [
     "2d",
     "image",
@@ -272,10 +272,10 @@
   {
    "id": "physics",
    "category": "motion",
-   "name": "Physics",
+   "name": "Physics simulation",
    "name_ko": "물리 시뮬레이션",
    "summary": "Give the shapes mass and let them fall, collide and pile up; drag them with the mouse.",
-   "summary_ko": "모양에 무게를 줘서 떨어지고 부딪히고 쌓이게 해요. 마우스로 집어 던질 수도 있어요.",
+   "summary_ko": "형태에 질량을 줘 떨어지고 부딪히고 쌓이게 해요. 마우스로 집어 던질 수도 있어요.",
    "fits": [
     "mesh",
     "particles",
@@ -298,7 +298,7 @@
    "name": "Pixel sorting",
    "name_ko": "픽셀 소팅",
    "summary": "Sort runs of pixels by brightness along a direction: melting, streaked glitch art.",
-   "summary_ko": "밝기 순서로 픽셀을 한 방향으로 정렬해 녹아내리는 듯한 글리치를 만들어요.",
+   "summary_ko": "밝기 구간의 픽셀을 한 방향으로 정렬해 녹아내리는 글리치를 만들어요.",
    "fits": [
     "image",
     "video",
@@ -319,7 +319,7 @@
    "name": "Datamosh",
    "name_ko": "데이터모싱",
    "summary": "Smear the image along its own motion like a corrupted video codec: pixels melt and bloom.",
-   "summary_ko": "깨진 영상 코덱처럼 움직임을 따라 픽셀을 번지게 해서 화면이 녹아내리게 해요.",
+   "summary_ko": "I-프레임 없이 모션 벡터만 남은 코덱처럼 화면을 움직임 방향으로 번지게 해요.",
    "fits": [
     "video",
     "image",
@@ -340,9 +340,9 @@
    "id": "dither-halftone",
    "category": "image",
    "name": "Dither & halftone",
-   "name_ko": "디더링·하프톤",
+   "name_ko": "디더링 · 하프톤",
    "summary": "Print-like rendering: ordered dither, halftone dots or a 1-bit palette.",
-   "summary_ko": "인쇄물처럼 디더링, 하프톤 점, 1비트 색으로 바꿔요.",
+   "summary_ko": "Bayer·블루 노이즈 디더링이나 CMYK 하프톤으로 인쇄물 같은 질감을 내요.",
    "fits": [
     "image",
     "field",
@@ -360,10 +360,10 @@
   {
    "id": "ascii",
    "category": "image",
-   "name": "ASCII / text mosaic",
-   "name_ko": "아스키·글자 모자이크",
+   "name": "ASCII art",
+   "name_ko": "아스키 아트",
    "summary": "Rebuild the image from characters picked by brightness, terminal or newspaper style.",
-   "summary_ko": "밝기에 맞는 글자로 화면을 다시 그려요. 터미널이나 신문 같은 느낌이에요.",
+   "summary_ko": "밝기에 맞는 글자로 화면을 다시 그려요.",
    "fits": [
     "image",
     "video",
@@ -380,10 +380,10 @@
   {
    "id": "mic-reactive",
    "category": "sound",
-   "name": "React to sound",
-   "name_ko": "소리에 반응하기",
+   "name": "Audio reactive",
+   "name_ko": "오디오 리액티브",
    "summary": "Make it listen: bass, mids and treble drive motion, color and scale live.",
-   "summary_ko": "마이크 소리를 듣고 베이스·중음·고음이 움직임과 색, 크기를 바꿔요.",
+   "summary_ko": "마이크 소리의 베이스·미드·트레블이 움직임과 색, 크기를 바꿔요.",
    "fits": [],
    "done": [
     "audio"
@@ -395,10 +395,10 @@
   {
    "id": "beat-sync",
    "category": "sound",
-   "name": "Sync to a song's beats",
-   "name_ko": "노래 비트에 맞추기",
+   "name": "Beat sync (librosa)",
+   "name_ko": "비트 싱크 (librosa)",
    "summary": "Analyse a song with librosa (beats, downbeats, sections) and cut the visuals on the beat.",
-   "summary_ko": "librosa로 곡의 비트와 구간을 분석해 박자에 딱 맞춰 화면을 바꿔요.",
+   "summary_ko": "librosa로 곡의 비트·다운비트·구간을 분석해 박자에 맞춰 화면을 바꿔요.",
    "fits": [
     "audio",
     "timeline"
@@ -415,10 +415,10 @@
   {
    "id": "stems-reactive",
    "category": "sound",
-   "name": "Instrument by instrument",
-   "name_ko": "악기별로 반응하기",
+   "name": "Stem-reactive (Demucs)",
+   "name_ko": "스템 리액티브 (Demucs)",
    "summary": "Split the song into drums, bass, vocals and other with Demucs; each stem drives its own layer.",
-   "summary_ko": "Demucs로 곡을 드럼·베이스·보컬·나머지로 나눠, 악기마다 다른 층을 움직이게 해요.",
+   "summary_ko": "Demucs로 드럼·베이스·보컬을 분리해 악기마다 다른 레이어를 움직여요.",
    "fits": [
     "audio",
     "timeline"
@@ -436,10 +436,10 @@
   {
    "id": "music-video",
    "category": "sound",
-   "name": "Song to music video",
-   "name_ko": "노래로 뮤직비디오",
+   "name": "Music video",
+   "name_ko": "뮤직비디오",
    "summary": "Give it a song: beats, sections and stems become a timed, cut-to-the-beat video you can export.",
-   "summary_ko": "노래를 주면 비트·구간·악기 분석으로 박자에 맞춰 편집된 영상을 만들어 내보낼 수 있어요.",
+   "summary_ko": "곡의 비트·구간·스템 분석으로 박자에 맞춰 편집된 영상을 만들어 내보내요.",
    "fits": [],
    "done": [
     "musicvideo"
@@ -454,8 +454,8 @@
   {
    "id": "hand-tracking",
    "category": "input",
-   "name": "Play it with your hands",
-   "name_ko": "손으로 연주하기",
+   "name": "Hand tracking",
+   "name_ko": "핸드 트래킹",
    "summary": "Track hands with the webcam (MediaPipe) and let fingers push, pinch and paint the scene.",
    "summary_ko": "웹캠으로 손을 추적해 손가락으로 밀고, 집고, 그리게 해요.",
    "fits": [],
@@ -471,10 +471,10 @@
   {
    "id": "midi-map",
    "category": "input",
-   "name": "Map to a MIDI controller",
-   "name_ko": "MIDI 컨트롤러에 연결",
+   "name": "MIDI mapping",
+   "name_ko": "MIDI 매핑",
    "summary": "Wire knobs and pads to the controls so it can be played live on stage.",
-   "summary_ko": "노브와 패드를 컨트롤에 연결해 무대에서 연주할 수 있게 해요.",
+   "summary_ko": "노브와 패드를 컨트롤에 매핑해 무대에서 연주할 수 있게 해요.",
    "fits": [],
    "done": [
     "midi"
@@ -486,10 +486,10 @@
   {
    "id": "plotter-svg",
    "category": "output",
-   "name": "Pen-plotter drawing",
-   "name_ko": "펜 플로터 그림",
+   "name": "Pen-plotter SVG",
+   "name_ko": "펜 플로터 SVG",
    "summary": "Turn the piece into clean vector strokes and an optimised SVG ready for an AxiDraw.",
-   "summary_ko": "작업을 깔끔한 선으로 바꾸고, AxiDraw로 바로 그릴 수 있는 SVG로 정리해요.",
+   "summary_ko": "라인으로 바꾸고 vpype로 최적화해 AxiDraw로 바로 그릴 수 있는 SVG를 만들어요.",
    "fits": [
     "lines",
     "2d",
@@ -507,10 +507,10 @@
   {
    "id": "seamless-loop",
    "category": "output",
-   "name": "Perfect loop",
-   "name_ko": "완벽한 루프",
+   "name": "Seamless loop",
+   "name_ko": "심리스 루프",
    "summary": "Make the motion loop seamlessly over N seconds, ready for a GIF, reel or LED wall.",
-   "summary_ko": "움직임이 N초마다 이음새 없이 반복되게 해서 GIF, 릴스, LED 월에 바로 쓸 수 있게 해요.",
+   "summary_ko": "움직임이 N초마다 이음새 없이 반복되게 해서 GIF·릴스·LED 월에 바로 써요.",
    "fits": [],
    "done": [
     "seamless"
@@ -518,6 +518,393 @@
    "weight": "light",
    "tools": [],
    "guide": "Add a timeline with loop: true and duration T (default 6 s). Replace free-running time with phase = ctx.time / T and drive every motion with periodic functions of phase: angles 2π·phase, noise sampled on a circle (noise(cos 2πφ·r, sin 2πφ·r, z)), or crossfade the last 15% into the start. Simulations: keep preserveStateOnLoop false and seed deterministically. Offer to record one loop (viewport_record)."
+  },
+  {
+   "id": "ssao",
+   "category": "render",
+   "name": "SSAO",
+   "name_ko": "SSAO (앰비언트 오클루전)",
+   "summary": "Screen-space ambient occlusion: soft contact shadows in creases and corners.",
+   "summary_ko": "틈과 모서리에 부드러운 접촉 그림자를 넣는 스크린 스페이스 앰비언트 오클루전이에요.",
+   "fits": [
+    "mesh",
+    "3d",
+    "raymarch"
+   ],
+   "done": [
+    "ssao"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Raster scenes: render normals (view space) and linear view depth into an RGBA16F target in the same pass as color (createPingPong(w, h, {count: 2, internalFormat: RGBA16F, type: HALF_FLOAT, depth: true}); clearBufferfv per attachment). SSAO pass at half resolution: reconstruct view position from depth and the inverse projection (cam.getProjectionMatrix(aspect)), 16–32 hemisphere kernel samples scaled toward the center, oriented by the normal with a per-pixel random rotation (4×4 hash), project each, compare depths with bias ≈ 0.02·radius and a range check smoothstep(0, 1, radius / |Δz|). Blur 4×4 depth-aware, then multiply only the ambient/indirect term in the composite (not direct light), and keep it subtle. Radius in world units relative to the subject's size. Raymarched SDFs: skip the buffers and use 5 samples along the normal (ao += (h − map(p + n·h))·w). Uniforms: AO radius, Intensity, Samples. Don't name the kernel array like a scene uniform."
+  },
+  {
+   "id": "perspective-warp",
+   "category": "output",
+   "name": "Perspective warp / corner pin",
+   "name_ko": "원근 워핑 · 코너 핀",
+   "summary": "Warp the whole picture onto any four corners: projection mapping onto a wall, a box or a screen at an angle.",
+   "summary_ko": "화면 전체를 네 모서리에 맞춰 원근 변형해요. 벽·박스·기울어진 스크린에 프로젝션 매핑할 때 써요.",
+   "fits": [],
+   "done": [
+    "cornerpin"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Render the scene into a canvas-sized target (bind it where its last pass binds null). Final pass: a perspective-correct homography, not two affine triangles (those kink along the diagonal). Compute the 3×3 matrix mapping the unit square to the four corner points (square-to-quad: dx1 = x1−x2, … standard Heckbert formula) in JS each frame, invert it, and in a fullscreen fragment shader map each output pixel p (0..1, y up) through H⁻¹ (homogeneous divide) to the source uv; black outside [0,1]². Corners as four vec2 pad uniforms (TL, TR, BR, BL; defaults at the frame corners) or a custom panel with draggable handles; add Edge feather and Brightness for blending projectors, and a Grid toggle that draws a test grid to line it up on the wall. Several surfaces: one quad per surface, each with its own corners and a source sub-rect. Tell the person to use Perform for full screen on the projector."
+  },
+  {
+   "id": "instancing",
+   "category": "render",
+   "name": "GPU instancing",
+   "name_ko": "GPU 인스턴싱",
+   "summary": "Draw thousands to a million copies of a shape in one call, each with its own position, rotation, scale and color.",
+   "summary_ko": "도형 수천~수백만 개를 한 번의 드로우 콜로, 각자 위치·회전·크기·색을 다르게 그려요.",
+   "fits": [
+    "particles",
+    "mesh",
+    "3d",
+    "2d"
+   ],
+   "done": [
+    "instancing"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Replace per-object draw loops with one instanced draw. Per-instance data either as attributes (bind the createMesh vao, add a buffer with offset/scale/rotation/color at locations 3+ — 0–2 are a_position, a_normal, a_uv — and gl.vertexAttribDivisor(loc, 1)) or, when a GPU simulation drives them, computed in the vertex shader from gl_InstanceID with texelFetch from a float data texture (ivec2(id % side, id / side)). Draw with mesh.draw(gl.TRIANGLES, count). Rotate by a quaternion or orient along velocity; vary color and phase per instance from a hash of the id; animate in the shader so the CPU uploads nothing per frame. With three.js: InstancedMesh, setMatrixAt/setColorAt, instanceMatrix.needsUpdate. Keep 2D scenes 2D (orthographic, instanced quads). Uniforms: Count (select up to 100k–1M), Spread, Scale, Jitter. Publish the count with ctx.publish."
+  },
+  {
+   "id": "shadow-mapping",
+   "category": "render",
+   "name": "Shadow mapping",
+   "name_ko": "섀도 매핑",
+   "summary": "Real cast shadows from a light: shapes shade each other and the ground.",
+   "summary_ko": "광원에서 실제 그림자를 드리워 형태끼리, 바닥에 그림자가 생겨요.",
+   "fits": [
+    "mesh",
+    "3d"
+   ],
+   "done": [
+    "shadow"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Depth pass from the light: a directional light uses an orthographic projection fitted to the scene bounds (mat4 ortho or perspective with a tight frustum), rendered into a DEPTH_COMPONENT24 depth texture you create yourself (texImage2D + framebufferTexture2D; createPingPong's depth is a renderbuffer you can't sample), 2048², with gl.cullFace(FRONT) or slope-scaled bias against acne. Main pass: transform the world position by lightViewProj, sample with a sampler2DShadow (TEXTURE_COMPARE_MODE = COMPARE_REF_TO_TEXTURE, LINEAR filter gives 2×2 PCF for free) and a 16-tap Poisson disk for soft edges; widen the radius with distance to the occluder for a PCSS feel. Add a ground plane so shadows read, and a little ambient so shadowed sides aren't black. Uniforms: Light direction (pad), Softness, Bias."
+  },
+  {
+   "id": "ssr",
+   "category": "render",
+   "name": "Screen-space reflections",
+   "name_ko": "SSR (스크린 스페이스 반사)",
+   "summary": "Reflections of what's on screen in glossy floors and surfaces.",
+   "summary_ko": "화면에 보이는 것을 광택 있는 바닥과 표면에 반사해요.",
+   "fits": [
+    "mesh",
+    "3d"
+   ],
+   "done": [
+    "ssr"
+   ],
+   "weight": "heavy",
+   "tools": [],
+   "guide": "Needs a G-buffer: color (HDR) plus view-space normal and depth (createPingPong count 2, RGBA16F). Add a glossy floor if there is none, so the effect shows. SSR pass: from each reflective pixel march along reflect(viewDir, normal) in view space, projecting to screen each step (32–64 steps with growing stride, then 6–8 binary-search refinements on a hit where ray depth passes the buffer depth within a thickness); sample color at the hit. Fade by screen-edge distance, by how much the ray faces the camera, by distance travelled and by roughness (mip-blur the color buffer for rough surfaces); fall back to a sky/env color where it misses. Composite with Fresnel weighting. Uniforms: Reflectivity, Roughness, Steps."
+  },
+  {
+   "id": "god-rays",
+   "category": "render",
+   "name": "God rays",
+   "name_ko": "갓 레이 (빛 내림)",
+   "summary": "Shafts of light streaming past the shapes toward the camera.",
+   "summary_ko": "형태 사이로 빛줄기가 카메라 쪽으로 쏟아져 나와요.",
+   "fits": [
+    "3d",
+    "mesh",
+    "raymarch",
+    "field",
+    "particles"
+   ],
+   "done": [
+    "godrays"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Render an occlusion buffer at half resolution: the light source as a bright disc (its screen position from projecting the 3D light with the view-projection, or a pad uniform for 2D) and every scene object in black. Radial-blur it toward the light (GPU Gems 3 ch. 13: 64–100 samples along the vector to the light, density ~0.9, weight ~0.6, decay ~0.96, exposure), then add it over the scene with additive blending, tinted by the light color. Fade out when the light leaves the screen or goes behind the camera. Uniforms: Intensity, Decay, Light position (pad), Color."
+  },
+  {
+   "id": "motion-blur",
+   "category": "render",
+   "name": "Motion blur",
+   "name_ko": "모션 블러",
+   "summary": "Streak fast motion like a camera shutter, for smoother, more filmic movement.",
+   "summary_ko": "빠른 움직임을 카메라 셔터처럼 번지게 해 더 영화적으로 만들어요.",
+   "fits": [
+    "particles",
+    "3d",
+    "sim",
+    "mesh"
+   ],
+   "done": [
+    "motionblur"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Pick by scene: (a) 3D: write per-pixel screen velocity (current minus previous clip position, keep last frame's view-projection and model matrices) into a target, then 8–16 taps along it in a post pass, clamped to a max length from the frame height; (b) particles/2D: temporal accumulation in an RGBA16F ping-pong, out = mix(current, prev, Shutter) — cheap and smooth; (c) offline recordings: render several sub-frames per frame by stepping time in small increments and averaging (only when the scene can be evaluated at arbitrary time). Uniforms: Shutter, Samples."
+  },
+  {
+   "id": "color-grading",
+   "category": "render",
+   "name": "Color grading (LUT)",
+   "name_ko": "컬러 그레이딩 (LUT)",
+   "summary": "Film looks: lift/gamma/gain, temperature, a 3D LUT from a .cube file.",
+   "summary_ko": "리프트·감마·게인, 색온도, .cube LUT로 영화 같은 톤을 입혀요.",
+   "fits": [],
+   "done": [
+    "grading"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Render the scene into a target, then a grading pass in linear light: white balance (temperature/tint), lift/gamma/gain (three color wheels as color uniforms), saturation and contrast around 0.18 grey, then ACES and sRGB. Looks as a select (Neutral, Teal & orange, Bleach bypass, Warm film, Cold night). If the person uploads a .cube LUT, parse it in setup (asset_read or fetch text; skip comments, read LUT_3D_SIZE and the triplets) into a 3D texture (texImage3D RGB16F, LINEAR) and sample it after tonemapping; blend by Amount. Uniforms: Look (select), Amount, Temperature, Saturation, Contrast."
+  },
+  {
+   "id": "crt-vhs",
+   "category": "image",
+   "name": "CRT / VHS",
+   "name_ko": "CRT · VHS",
+   "summary": "Old screens and tapes: curvature, scanlines, chroma bleed, tracking noise.",
+   "summary_ko": "옛날 모니터와 비디오테이프 느낌: 곡률, 스캔라인, 색 번짐, 트래킹 노이즈.",
+   "fits": [
+    "image",
+    "video",
+    "field",
+    "2d"
+   ],
+   "done": [
+    "crt"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Post pass over the rendered scene. CRT: barrel distortion of the uv (k ≈ 0.1), scanlines from the frame height (sin(uv.y·h·π/2) at ~h/2 lines), an RGB aperture-grille or shadow mask at the pixel scale, phosphor glow (blurred copy added), vignette and slight flicker. VHS: chroma bleed (convert to YIQ, low-pass I/Q horizontally with ~6 taps, back to RGB), per-line horizontal jitter from hash(line, time), tracking bands of noise drifting vertically, head-switching wobble in the bottom 3%, a little tape noise. Style select switches CRT / VHS / both. Uniforms: Style, Curvature, Scanlines, Noise."
+  },
+  {
+   "id": "slit-scan",
+   "category": "image",
+   "name": "Slit-scan",
+   "name_ko": "슬릿 스캔",
+   "summary": "Show different moments in different parts of the frame, so motion smears through time.",
+   "summary_ko": "화면의 부분마다 서로 다른 시점을 보여 줘서 움직임이 시간 속으로 늘어져요.",
+   "fits": [
+    "video",
+    "field",
+    "2d",
+    "particles"
+   ],
+   "done": [
+    "slitscan"
+   ],
+   "weight": "heavy",
+   "tools": [],
+   "guide": "Keep a ring buffer of the last N frames in a TEXTURE_2D_ARRAY (RGBA8, N 64–128, layers at a reduced size such as 512 on the long side; render the current frame into layer frame % N with framebufferTextureLayer). Display pass: per pixel pick a delay d = Depth × map(x, y) — horizontal, vertical, radial from the center or a slow noise field (select) — and sample layer (frame − d) mod N, interpolating between two layers for smoothness. Reallocate on ctx.resized. Memory is N × w × h × 4 bytes; publish it. Uniforms: Delay depth (frames), Direction (select), Smooth."
+  },
+  {
+   "id": "kaleidoscope",
+   "category": "image",
+   "name": "Kaleidoscope",
+   "name_ko": "만화경 · 대칭",
+   "summary": "Fold the picture into mirrored wedges around a center, turning slowly.",
+   "summary_ko": "중심을 기준으로 화면을 거울 조각으로 접어 천천히 돌아가게 해요.",
+   "fits": [
+    "field",
+    "image",
+    "video",
+    "2d",
+    "particles"
+   ],
+   "done": [
+    "kaleido"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Post pass over the rendered scene: convert to polar coordinates around Center (aspect-corrected), fold the angle into a wedge of 2π/N with alternate wedges mirrored (a = abs(mod(a, 2w) − w)), rotate over time, optionally zoom recursively (sample at r·Zoom with fract for an infinite tunnel). Variants by select: radial N-fold, 4-way mirror, hexagonal tiling. Uniforms: Segments, Rotation speed, Zoom, Center (pad), Mode."
+  },
+  {
+   "id": "domain-warp",
+   "category": "motion",
+   "name": "Domain warping",
+   "name_ko": "도메인 워핑",
+   "summary": "Warp space with layered noise for marbled, liquid, organic distortion.",
+   "summary_ko": "겹친 노이즈로 공간을 비틀어 마블링 같은 유기적인 왜곡을 만들어요.",
+   "fits": [
+    "field",
+    "2d",
+    "image"
+   ],
+   "done": [
+    "domainwarp"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Warp the lookup coordinates of the existing field or image with layered fbm (Inigo Quilez: q = fbm(p), r = fbm(p + 4q + t·0.1), sample the original at p + Amount·r; use ctx.utils.glsl.FBM / SIMPLEX_3D). For a rendered scene, render it into a target first and displace its uv. Color can also take |q| and |r| for marbling. Animate slowly; keep Amount modest so the piece stays recognisable. Uniforms: Amount, Scale, Speed, Octaves."
+  },
+  {
+   "id": "boids",
+   "category": "motion",
+   "name": "Boids / flocking",
+   "name_ko": "보이드 (군집 비행)",
+   "summary": "A flock of agents with separation, alignment and cohesion, drawn to the scene's shapes.",
+   "summary_ko": "분리·정렬·응집 규칙으로 움직이는 무리가 장면의 형태 쪽으로 몰려들어요.",
+   "fits": [
+    "particles",
+    "2d",
+    "3d"
+   ],
+   "done": [
+    "boids"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Positions and velocities in RGBA32F ping-pong textures (up to ~16k agents in WebGL2; WebGPU compute for more). Neighbors: brute force over a texel neighborhood is too slow past ~4k, so bin agents into a coarse grid texture (scatter with gl.POINTS into a count/average target) and read the averages per cell for alignment and cohesion; separation from the 3×3 cells around. Add attraction toward the scene's bright regions (sample a low-res render of it) and toward/away from the mouse, limit speed and turn rate. Draw instanced triangles oriented along velocity (gl_InstanceID → texelFetch), colored by speed or by the scene underneath. Uniforms: Count, Separation, Alignment, Cohesion, Speed, Attraction."
+  },
+  {
+   "id": "fluid-sim",
+   "category": "motion",
+   "name": "Fluid simulation",
+   "name_ko": "유체 시뮬레이션",
+   "summary": "Stable-fluids smoke and ink that the scene stirs and the mouse can push.",
+   "summary_ko": "장면과 마우스가 휘젓는 스테이블 플루이드 연기·잉크를 만들어요.",
+   "fits": [
+    "field",
+    "image",
+    "particles",
+    "2d"
+   ],
+   "done": [
+    "fluid"
+   ],
+   "weight": "light",
+   "tools": [
+    "webgl-fluid-simulation"
+   ],
+   "guide": "Use the structure of the oss-webgl-fluid example (catalog_get webgl-fluid-simulation for its scene): velocity RG16F at ~128 on the short side and dye RGBA16F at ~1024, curl → vorticity confinement → divergence → 20 Jacobi pressure iterations → gradient subtract → advect velocity and dye. Inject from the current scene: render it into a target, add it into the dye scaled by Inject each frame (or splat where it's bright or moving), and push velocity along its luminance gradient; mouse drags add splats. Display dye with the scene's palette; add bloom lightly. Uniforms: Viscosity (velocity dissipation), Dye fade, Curl, Inject, Splat force."
+  },
+  {
+   "id": "cloth",
+   "category": "motion",
+   "name": "Cloth simulation",
+   "name_ko": "천 시뮬레이션",
+   "summary": "Hang the picture on a cloth that waves in the wind and can be grabbed.",
+   "summary_ko": "화면을 천에 걸어 바람에 흔들리고 마우스로 잡아당길 수 있게 해요.",
+   "fits": [
+    "image",
+    "mesh",
+    "3d",
+    "field"
+   ],
+   "done": [
+    "cloth"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "A 48–96² particle grid simulated with Verlet (ctx.utils.createVerletSystem, or your own: structural, shear and bend constraints, 4–8 relaxation iterations, fixed dt 1/60), top edge pinned, gravity, wind from noise over time, the mouse grabs the nearest particle (project its ray with the orbit camera). Recompute normals per frame, upload positions/normals into the mesh buffers (bufferSubData), and texture the cloth with the scene rendered into a target, two-sided lighting (flip the normal on back faces). Optional tearing when a constraint stretches past a limit. Uniforms: Wind, Stiffness, Gravity."
+  },
+  {
+   "id": "metaballs",
+   "category": "dimension",
+   "name": "Metaballs / marching cubes",
+   "name_ko": "메타볼 · 마칭 큐브",
+   "summary": "Blobby isosurfaces that merge and split, extracted from the scene's points or fields.",
+   "summary_ko": "장면의 점이나 필드에서 서로 붙었다 떨어지는 말랑한 등위면을 뽑아내요.",
+   "fits": [
+    "particles",
+    "field",
+    "sim",
+    "volume"
+   ],
+   "done": [
+    "metaballs"
+   ],
+   "weight": "light",
+   "tools": [
+    "isosurface"
+   ],
+   "guide": "Build a scalar field from the scene: each particle or bright point contributes r²/d² (metaballs), or use the existing density. Two routes: raymarch the field directly in a fullscreen pass (sphere-trace with a conservative step, cheap for < 64 balls passed as a uniform array or a data texture), or extract a mesh each frame on the CPU with marching cubes on a 48–96³ grid (the isosurface catalog entry, as in the oss-isosurface example) and draw it with smooth normals from the field gradient. Shade with the PBR or toon moves for a finished look. Uniforms: Threshold, Resolution, Blob size."
+  },
+  {
+   "id": "voronoi-mosaic",
+   "category": "image",
+   "name": "Voronoi mosaic",
+   "name_ko": "보로노이 모자이크",
+   "summary": "Rebuild the picture from Voronoi cells, denser where there's detail.",
+   "summary_ko": "디테일이 많은 곳일수록 촘촘한 보로노이 셀로 화면을 다시 짜요.",
+   "fits": [
+    "image",
+    "video",
+    "field"
+   ],
+   "done": [
+    "voronoi"
+   ],
+   "weight": "light",
+   "tools": [
+    "d3-delaunay"
+   ],
+   "guide": "Render the scene into a target. Seeds: read a low-res copy back (readPixels at ~160 px, a few times a second) to place seeds with density proportional to edge magnitude (rejection sampling), or use an in-shader jittered grid for a uniform mosaic. Fill each cell with the color at its seed (or the cell average via a second pass), darken borders by (d2 − d1) to the second-nearest seed, and drift seeds slowly with noise. For an exact CPU version with polygons, d3-delaunay (catalog). Use jump flooding (log2 passes) for thousands of seeds on the GPU. Uniforms: Cells, Border, Jitter, Detail bias."
+  },
+  {
+   "id": "glass-refraction",
+   "category": "render",
+   "name": "Glass & refraction",
+   "name_ko": "유리 · 굴절",
+   "summary": "Turn the shapes into glass: refraction, dispersion, Fresnel reflections.",
+   "summary_ko": "형태를 유리로 바꿔 굴절, 분산, 프레넬 반사를 줘요.",
+   "fits": [
+    "mesh",
+    "raymarch",
+    "3d"
+   ],
+   "done": [
+    "glass"
+   ],
+   "weight": "heavy",
+   "tools": [],
+   "guide": "Raster: render the background (everything but the glass) into a target; draw the glass objects sampling it at screen uv + refract(viewDir, normal, 1/IOR).xy × Thickness (estimate thickness from a back-face depth pass), Fresnel (Schlick, F0 0.04) mix with a sharp environment reflection, three samples at slightly different IORs for chromatic dispersion, a light tint and blur for frosted glass (mip of the background). SDF scenes: on hit, refract into the volume and march the negated SDF to the exit point, refract out, then shade the background along the exit ray; repeat for 2 bounces max. Uniforms: IOR, Dispersion, Tint, Frost."
+  },
+  {
+   "id": "gpu-particles",
+   "category": "motion",
+   "name": "GPU particles (WebGPU compute)",
+   "name_ko": "GPU 파티클 (WebGPU 컴퓨트)",
+   "summary": "Move the simulation to compute shaders: a million particles at full frame rate.",
+   "summary_ko": "시뮬레이션을 컴퓨트 셰이더로 옮겨 파티클 백만 개를 실시간으로 돌려요.",
+   "fits": [
+    "particles",
+    "sim"
+   ],
+   "done": [
+    "compute"
+   ],
+   "weight": "heavy",
+   "tools": [],
+   "guide": "This rewrites the scene for backend \"webgpu\" (see the WebGPU section of the scene reference): particle state in a storage buffer (vec4 position + vec4 velocity, 1M entries), a compute pass with @workgroup_size(64) integrating forces (curl noise, attraction to the scene's shapes from a texture of the old render, mouse), and a render pass drawing instanced quads that read the storage buffer by instance_index, additive blending into an rgba16float target, then a fullscreen tonemap to the canvas. Keep the old look's colors and controls. If WebGPU isn't available, WebGL2 transform feedback is the fallback. Uniforms: Count (select), Speed, Size."
+  },
+  {
+   "id": "tilt-shift",
+   "category": "render",
+   "name": "Tilt-shift",
+   "name_ko": "틸트 시프트 (미니어처)",
+   "summary": "Blur above and below a sharp band so the scene looks like a tiny model.",
+   "summary_ko": "선명한 띠 위아래를 흐려 장면이 작은 모형처럼 보이게 해요.",
+   "fits": [
+    "3d",
+    "mesh",
+    "image",
+    "field"
+   ],
+   "done": [
+    "tiltshift"
+   ],
+   "weight": "light",
+   "tools": [],
+   "guide": "Post pass over the rendered scene: blur radius grows with vertical distance from a focus band (Focus y, Band width), applied as a two-pass separable Gaussian whose sigma varies per pixel, or a golden-angle bokeh blur with ~32 taps for nicer highlights; boost saturation and contrast a little for the miniature look. Works best looking down at a 3D scene from above, so suggest raising the camera. Uniforms: Focus, Band width, Blur, Saturation."
   }
  ]
 }

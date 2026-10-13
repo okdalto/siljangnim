@@ -3,7 +3,7 @@ import { suggestMoves, type Move } from "../../moves/moves";
 import { sameScene } from "../../project/history";
 import { DEFAULT_SCENE } from "../../scene/schema";
 import { resolveLanguage } from "../language";
-import { appliedMoves, applyMove } from "../session";
+import { appliedMoves, applyMove, setRemixOpen } from "../session";
 import { useApp } from "../state";
 
 const WEIGHT_LABEL: Record<Move["weight"], { en: string; ko: string } | null> = {
@@ -25,7 +25,12 @@ export function MoveCards() {
   if (!suggestions.length) return null;
   return (
     <section className="space-y-1.5 pt-1" data-testid="moves">
-      <h4 className="text-[11px] font-medium uppercase tracking-wide text-faint">{korean ? "다음에 해 볼 것" : "Try next"}</h4>
+      <div className="flex items-center justify-between">
+        <h4 className="text-[11px] font-medium uppercase tracking-wide text-faint">{korean ? "다음에 해 볼 것" : "Try next"}</h4>
+        <button type="button" onClick={() => setRemixOpen(true)} data-testid="open-remix" className="text-[11px] text-muted hover:text-fg">
+          {korean ? "전체 목록에서 고르기 →" : "Pick from the full list →"}
+        </button>
+      </div>
       <div className="grid grid-cols-2 gap-1.5">
         {suggestions.map(({ move }) => {
           const weight = WEIGHT_LABEL[move.weight];

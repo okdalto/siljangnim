@@ -15,7 +15,12 @@ import { AlertIcon, CheckIcon, PaperclipIcon, SendIcon, Spinner, StopIcon, XIcon
 type ToolResult = Anthropic.Beta.BetaToolResultBlockParam;
 
 /** A move picked from the "Try next" cards (moveRequest): shown by name, not as the full instruction. */
-const MOVE_MESSAGE = /^\[Move\] Apply "([^"]+)"/;
+const MOVE_MESSAGE = /^\[(?:Move\] Apply "([^"]+)"|Remix\] ([^\n]+))/;
+/** The picks a move or remix request is about, for the compact chip in place of the full instruction. */
+const movePicks = (text: string) => {
+  const m = text.match(MOVE_MESSAGE);
+  return m ? (m[1] ?? m[2]) : null;
+};
 
 const TOOL_LABELS: Record<string, string> = {
   scene_read: "Read scene",
@@ -146,8 +151,8 @@ function Message({ message, results }: { message: MessageParam; results: Map<str
           </div>
         )}
         <div className="flex justify-end">
-          {MOVE_MESSAGE.test(text) ? (
-            <div className="rounded-full border border-line px-3 py-1 text-xs text-muted">→ {text.match(MOVE_MESSAGE)![1]}</div>
+          {movePicks(text) ? (
+            <div className="rounded-full border border-line px-3 py-1 text-xs text-muted">→ {movePicks(text)}</div>
           ) : (
             <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-raised px-3.5 py-2">{text}</div>
           )}

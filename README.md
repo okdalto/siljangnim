@@ -146,9 +146,9 @@ writes the code, and the work keeps changing for as long as you keep talking to 
 - **Shape it in conversation** — "slower, sunset colors", "twice the particles", "give me a slider for that".
   Anything you want to play with becomes a control: sliders, knobs, 2D pads, menus, buttons, colors. Every
   change is a version you can go back to and branch from, and you can read the code it wrote.
-- **Get pointed somewhere new** — **Try next** cards suggest techniques that fit what's on screen: lift it into 3D,
-  volume rendering, PBR, path tracing, Gaussian splatting, pixel sorting, datamosh, sync to a song's beats or stems.
-  One click and the agent applies it.
+- **Technique suggestions and a remix list** — **Try next** cards suggest techniques that fit what's on screen, and
+  the full list lets you pick several of 46 techniques (SSAO, instancing, perspective warp, volumetric rendering, PBR,
+  path tracing, Gaussian splatting, pixel sorting, datamosh, beat sync…) and examples to mix in at once.
 - **Mix pieces together** — drag an example card onto the mix bar (or press **Mix in**): its scene and assets come
   into your project and the agent blends the two into one image. Or paste a piece someone shared and ask for a mashup.
 - **Play it live** — mouse, keyboard, microphone and audio files, camera, MIDI controllers and OSC (TouchOSC,

@@ -47,12 +47,16 @@ Look at the result and keep talking.
 ### Try next
 
 When you're not sure where to take it, look at the **Try next** cards under the chat. They pick techniques that fit
-the scene on screen: lift a 2D pattern into 3D or render it as a volume, give a 3D scene PBR materials or path
-tracing, and more — Gaussian splatting, pixel sorting, datamosh, dithering, reaction–diffusion, syncing to a song's
-beats (librosa), reacting instrument by instrument (Demucs), hand tracking, MIDI mapping, pen-plotter output, perfect
-loops. Press a card and the agent applies that technique to the scene. Ones marked "GPU heavy" or "Runs Python" are
-slow or run a tool on your computer (it asks first). Asking "what should we try next?" in the chat picks from the same
-list.
+the scene on screen: a height-map 3D or volumetric rendering for a 2D pattern, PBR, SSAO or path tracing for a 3D
+scene. Press a card and the agent applies that technique to the scene.
+
+**Pick from the full list** opens the remix list: all 46 techniques and every example as cards. Pick several and they
+are mixed in at once — say pixel sorting + the Hydra example + beat sync, "in purple tones" — and the agent blends them
+into one piece. Techniques include SSAO, shadow mapping, SSR, GPU instancing, perspective warp (corner pin), Gaussian
+splatting, volumetric rendering, path tracing, fluid, cloth and boids simulations, pixel sorting, datamosh, slit-scan,
+CRT/VHS, color grading, beat sync (librosa), stem-reactive (Demucs), hand tracking, MIDI mapping, pen-plotter SVG and
+seamless loops. Ones marked "GPU heavy", "Python" or "ML model" are slow or run a tool on your computer (it asks
+first). Asking "what should we try next?" in the chat picks from the same list.
 
 Every change is kept in **History** with a thumbnail, so you can go back to any moment you liked and branch off from
 there. In the **Assets** tab you can read the code and shaders the agent wrote.

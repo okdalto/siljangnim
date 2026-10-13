@@ -47,7 +47,7 @@ import {
 } from "../project/assets";
 import { exampleCache } from "../project/exampleCache";
 import { EXAMPLES, exampleText, type Example } from "../project/examples";
-import { mixRequest } from "../project/mix";
+import { mixRequest, remixRequest, type RemixPiece } from "../project/mix";
 import { projectFolderName, sceneCodeFiles } from "../project/sceneFiles";
 import {
   PIPELINE_FILE,
@@ -362,6 +362,50 @@ export async function applyMove(id: string): Promise<void> {
   safeLocal(() => localStorage.setItem(movesKey(project.id), JSON.stringify(list)));
   set({ movesRevision: get().movesRevision + 1 });
   await handToAgent(moveRequest(move), `"${move.name}"`);
+}
+
+export function setRemixOpen(open: boolean): void {
+  set({ remixOpen: open });
+}
+
+/**
+ * Picks from the remix list: techniques and example pieces together. Examples are downloaded and their assets added
+ * to the open project first; then one request goes to the agent (or is copied for an external one).
+ */
+export async function remix(picks: { moves: string[]; examples: string[]; note?: string }): Promise<void> {
+  const project = get().project;
+  if (!project || get().live || exampleDownload) return;
+  const moves = picks.moves.flatMap((id) => MOVES.filter((m) => m.id === id));
+  const examples = picks.examples.flatMap((slug) => EXAMPLES.filter((e) => e.slug === slug));
+  if (!moves.length && !examples.length) return;
+  const korean = resolveLanguage(get().settings.language) === "ko";
+  const controller = (exampleDownload = new AbortController());
+  try {
+    const pieces: RemixPiece[] = [];
+    for (const example of examples) {
+      const prepared = await prepareExample(example, controller.signal);
+      if (get().project?.id !== project.id) throw new Error("The active project changed. Please try again.");
+      const files = prepared.assets.map((a) => new File([a.blob], a.name));
+      const { names } = await addAssetFiles(project.id, files, { attach: false });
+      pieces.push({ title: exampleText(example, korean).title, scene: prepared.scene, renamed: new Map(prepared.assets.map((a, i) => [a.name, names[i] ?? a.name] as const)) });
+    }
+    if (moves.length) {
+      const list = [...new Set([...appliedMoves(project.id), ...moves.map((m) => m.id)])];
+      safeLocal(() => localStorage.setItem(movesKey(project.id), JSON.stringify(list)));
+      set({ movesRevision: get().movesRevision + 1 });
+    }
+    set({ remixOpen: false, examplesOpen: false });
+    const request =
+      moves.length === 1 && !pieces.length && !picks.note?.trim()
+        ? moveRequest(moves[0]!)
+        : remixRequest(moves.map((m) => ({ id: m.id, name: m.name, summary: m.summary })), pieces, picks.note);
+    await handToAgent(request, [...moves.map((m) => (korean ? m.name_ko : m.name)), ...pieces.map((p) => p.title)].join(" + "));
+  } catch (err) {
+    if (!controller.signal.aborted) set({ notice: { kind: "error", text: `Couldn't prepare the remix: ${err instanceof Error ? err.message : String(err)}` } });
+  } finally {
+    exampleDownload = null;
+    set({ exampleDownload: null, exampleCacheRevision: get().exampleCacheRevision + 1 });
+  }
 }
 
 /** Send a request to the built-in agent, or copy it for an external agent (or when no key is set yet). */
