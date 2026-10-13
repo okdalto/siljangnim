@@ -250,6 +250,8 @@ function StatusBar() {
           title={runtime.state}
           data-runtime-state={runtime.state}
           data-runtime-errors={errors.length}
+          // The first error's text, for the smoke report (the panel itself may be closed).
+          data-runtime-error={errors[0] ? formatSceneError(errors[0]).slice(0, 400) : undefined}
         >
           <span className={`h-2 w-2 rounded-full ${dot}`} />
           <span className="tabular-nums text-faint">{runtime.fps} fps</span>

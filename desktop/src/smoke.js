@@ -583,7 +583,8 @@ async function runExamplesScenario(win, examplesOut) {
       if (!sample || sample.litFraction > 0.01) break;
     }
     const after = await win.webContents.executeJavaScript(`Number(document.querySelector("[data-runtime-state]")?.dataset.runtimeErrors)`);
-    results[slug] = { ...state, errors: after, litFraction: sample?.litFraction ?? 0 };
+    const errorText = after ? await win.webContents.executeJavaScript(`document.querySelector("[data-runtime-state]")?.dataset.runtimeError ?? null`) : null;
+    results[slug] = { ...state, errors: after, ...(errorText ? { error: errorText } : {}), litFraction: sample?.litFraction ?? 0 };
     // A capture per example (thumbnails, and a look at what ran).
     const png = frame ? await inFrame(frame, CAPTURE_PNG, `capture ${slug}`).catch(() => null) : null;
     if (png) {
