@@ -1,0 +1,33 @@
+{
+  "order": 214,
+  "title": "Poster sunset (Pillow)",
+  "title_ko": "포스터 노을 (Pillow)",
+  "description": "Pillow draws an original sunset, blurs its sky and quantizes it with median-cut palettes. The recipe ships four color reductions and the original; no Python is needed to view them.",
+  "description_ko": "Pillow가 직접 그린 노을의 하늘을 흐리게 하고 median-cut 방식으로 색 수를 줄여요. 레시피로 만든 원본과 네 가지 결과가 들어 있어 감상할 때는 파이썬이 필요 없어요.",
+  "prompt": "A sunset becomes a limited-color print; slide the divider to compare it with the original.",
+  "made_with": "pillow via bundled Python recipe",
+  "features": [
+    "image",
+    "quantization",
+    "palette",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "pillow"
+  ],
+  "summary": "A sunset becomes a limited-color print; slide the divider to compare it with the original.",
+  "summary_ko": "노을 풍경을 적은 색의 인쇄물로 바꿔요. 경계선을 움직여 원본과 비교해 보세요.",
+  "try": [
+    "Slide Compare to reveal the original",
+    "Switch Colors between 4, 8, 16 and 32",
+    "Turn up Pixel size to see the palette cells"
+  ],
+  "try_ko": [
+    "Compare를 움직여 원본과 비교해 보세요",
+    "Colors를 4, 8, 16, 32색으로 바꿔 보세요",
+    "Pixel size를 올려 색상 셀을 살펴보세요"
+  ],
+  "tool_about": "Pillow draws an original sunset, blurs its sky and quantizes it with median-cut palettes. The recipe ships four color reductions and the original; no Python is needed to view them.",
+  "tool_about_ko": "Pillow가 직접 그린 노을의 하늘을 흐리게 하고 median-cut 방식으로 색 수를 줄여요. 레시피로 만든 원본과 네 가지 결과가 들어 있어 감상할 때는 파이썬이 필요 없어요."
+}

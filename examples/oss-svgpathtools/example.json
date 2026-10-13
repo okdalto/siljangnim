@@ -1,0 +1,33 @@
+{
+  "order": 215,
+  "title": "Path lanterns (svgpathtools)",
+  "title_ko": "곡선 위의 등불 (svgpathtools)",
+  "description": "svgpathtools parses cubic SVG curves and samples them at equal arc-length intervals using ilength. The recipe exports positions and tangent directions for smooth constant-speed motion.",
+  "description_ko": "svgpathtools는 SVG 베지어 곡선을 읽고 ilength로 실제 길이를 기준 삼아 균등하게 나눠요. 레시피가 위치와 접선 방향을 저장해 일정한 속도로 부드럽게 움직여요.",
+  "prompt": "Glowing lanterns travel around a looping SVG path at equal distances, leaving colorful trails.",
+  "made_with": "svgpathtools via bundled Python recipe",
+  "features": [
+    "svg",
+    "arc length",
+    "motion",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "svgpathtools"
+  ],
+  "summary": "Glowing lanterns travel around a looping SVG path at equal distances, leaving colorful trails.",
+  "summary_ko": "빛나는 등불들이 SVG 곡선을 일정한 간격으로 달리며 색색의 꼬리를 남겨요.",
+  "try": [
+    "Change Speed or pause it at zero",
+    "Increase Lanterns to fill the path",
+    "Toggle Guide to reveal the sampled SVG outline"
+  ],
+  "try_ko": [
+    "Speed를 바꾸거나 0으로 멈춰 보세요",
+    "Lanterns를 올려 곡선을 채워 보세요",
+    "Guide를 켜서 SVG 경로를 살펴보세요"
+  ],
+  "tool_about": "svgpathtools parses cubic SVG curves and samples them at equal arc-length intervals using ilength. The recipe exports positions and tangent directions for smooth constant-speed motion.",
+  "tool_about_ko": "svgpathtools는 SVG 베지어 곡선을 읽고 ilength로 실제 길이를 기준 삼아 균등하게 나눠요. 레시피가 위치와 접선 방향을 저장해 일정한 속도로 부드럽게 움직여요."
+}

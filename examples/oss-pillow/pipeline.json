@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "pillow.poster-sunset@1",
+      "packages": [
+        "Pillow==11.3.0"
+      ],
+      "resolved": [
+        "pillow==11.3.0"
+      ],
+      "inputs": [],
+      "params": {
+        "size": 512
+      },
+      "outputs": [
+        "sunset.png",
+        "poster-4.png",
+        "poster-8.png",
+        "poster-16.png",
+        "poster-32.png"
+      ]
+    }
+  ]
+}

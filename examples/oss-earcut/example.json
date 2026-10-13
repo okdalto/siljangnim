@@ -1,0 +1,32 @@
+{
+  "order": 213,
+  "title": "Cut-paper rosette (earcut)",
+  "title_ko": "조각 종이 로제트 (earcut)",
+  "description": "Earcut triangulates polygons with holes. This scene recomputes a concave rosette and its hole, then draws the returned triangles.",
+  "description_ko": "Earcut은 구멍이 있는 다각형을 삼각형으로 나누는 라이브러리예요. 이 씬은 오목한 꽃 모양과 구멍을 다시 계산하고 실제 반환된 삼각형을 그려요.",
+  "prompt": "A breathing paper rosette splits into colored triangles around a moving hole.",
+  "made_with": "earcut 3.0.1 (CDN)",
+  "features": [
+    "triangulation",
+    "polygon holes",
+    "mouse"
+  ],
+  "mode": "live",
+  "uses": [
+    "earcut"
+  ],
+  "summary": "A breathing paper rosette splits into colored triangles around a moving hole.",
+  "summary_ko": "구멍이 움직이는 종이 꽃이 색색의 삼각형으로 나뉘어 천천히 숨 쉬어요.",
+  "try": [
+    "Move the pointer to shift the hole",
+    "Increase Explode to separate the triangles",
+    "Change Hole size and turn Edges off"
+  ],
+  "try_ko": [
+    "마우스를 움직여 구멍 위치를 바꿔 보세요",
+    "Explode를 올려 삼각형을 흩어 보세요",
+    "Hole size를 바꾸거나 Edges를 꺼 보세요"
+  ],
+  "tool_about": "Earcut triangulates polygons with holes. This scene recomputes a concave rosette and its hole, then draws the returned triangles.",
+  "tool_about_ko": "Earcut은 구멍이 있는 다각형을 삼각형으로 나누는 라이브러리예요. 이 씬은 오목한 꽃 모양과 구멍을 다시 계산하고 실제 반환된 삼각형을 그려요."
+}

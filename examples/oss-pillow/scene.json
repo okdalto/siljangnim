@@ -1,0 +1,53 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "const s = ctx.state, gl = ctx.gl;\ns.canvas = new OffscreenCanvas(1, 1); s.c = s.canvas.getContext('2d');\ns.texture = gl.createTexture();\ns.show = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform sampler2D u_image;\nvoid main(){outColor=texture(u_image,vec2(v_uv.x,1.0-v_uv.y));}`);\n s.images=[];for(const name of ['sunset.png','poster-4.png','poster-8.png','poster-16.png','poster-32.png'])s.images.push(await createImageBitmap(await (await fetch(ctx.assets[name])).blob()));\ns.small=new OffscreenCanvas(1,1);",
+    "render": "const s=ctx.state, gl=ctx.gl, u=ctx.uniforms, [w,h]=ctx.resolution, c=s.c, m=Math.min(w,h);\nif(s.canvas.width!==w || s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}\nc.fillStyle='#09131f';c.fillRect(0,0,w,h);\nconst size=m*.82,x=(w-size)/2,y=(h-size)/2,colors=[4,8,16,32],index=colors.indexOf(u.u_colors)+1;\nc.drawImage(s.images[0],x,y,size,size);\nconst pixels=Math.max(16,Math.round(512/u.u_pixel));if(s.small.width!==pixels){s.small.width=pixels;s.small.height=pixels;}\nconst sc=s.small.getContext('2d');sc.drawImage(s.images[index],0,0,pixels,pixels);\nc.save();c.beginPath();c.rect(x+size*u.u_compare,y,size*(1-u.u_compare),size);c.clip();c.imageSmoothingEnabled=false;c.drawImage(s.small,x,y,size,size);c.restore();c.imageSmoothingEnabled=true;\nc.strokeStyle='#fff9';c.lineWidth=2;c.beginPath();c.moveTo(x+size*u.u_compare,y);c.lineTo(x+size*u.u_compare,y+size);c.stroke();\nc.fillStyle='#c8d4de';c.font=Math.max(12,m*.022)+'px sans-serif';c.textAlign='center';c.fillText('PILLOW / '+u.u_colors+' COLORS',w/2,y+size+m*.045);\nctx.publish('palette colors',u.u_colors);\ngl.bindTexture(gl.TEXTURE_2D,s.texture);\ngl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);\ngl.useProgram(s.show);ctx.utils.bindTexture(s.show,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.show);",
+    "cleanup": "ctx.gl.deleteTexture(ctx.state.texture); ctx.gl.deleteProgram(ctx.state.show); ctx.state.images?.forEach(image => image.close());"
+  },
+  "uniforms": {
+    "u_colors": {
+      "type": "int",
+      "label": "Colors",
+      "value": 8,
+      "widget": "select",
+      "options": [
+        {
+          "label": "4",
+          "value": 4
+        },
+        {
+          "label": "8",
+          "value": 8
+        },
+        {
+          "label": "16",
+          "value": 16
+        },
+        {
+          "label": "32",
+          "value": 32
+        }
+      ]
+    },
+    "u_compare": {
+      "type": "float",
+      "label": "Compare",
+      "value": 0.35,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    "u_pixel": {
+      "type": "float",
+      "label": "Pixel size",
+      "value": 1,
+      "min": 1,
+      "max": 16,
+      "step": 1
+    }
+  },
+  "inputs": [],
+  "keyframes": {}
+}

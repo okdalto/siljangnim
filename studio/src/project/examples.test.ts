@@ -71,3 +71,22 @@ describe("examples", () => {
   });
 });
 
+
+describe("SVG path lantern data", () => {
+  it("samples a closed path evenly, with unit tangent directions", () => {
+    const data = JSON.parse(readFileSync(join(ROOT, "examples/oss-svgpathtools/assets/path.json"), "utf8")) as {
+      length: number; points: number[][];
+    };
+    expect(data.points.length).toBe(600);
+    const spacing = data.length / data.points.length;
+    data.points.forEach((point, i) => {
+      expect(point.every(Number.isFinite)).toBe(true);
+      expect(Math.hypot(point[2]!, point[3]!)).toBeCloseTo(1, 5);
+      const next = data.points[(i + 1) % data.points.length]!;
+      // Chords approximate arc lengths at this resolution, including the closing seam.
+      const distance = Math.hypot(next[0]! - point[0]!, next[1]! - point[1]!);
+      expect(distance / spacing).toBeGreaterThan(0.98);
+      expect(distance / spacing).toBeLessThan(1.001);
+    });
+  });
+});

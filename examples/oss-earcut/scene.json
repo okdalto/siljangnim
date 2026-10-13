@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "const s = ctx.state, gl = ctx.gl;\ns.canvas = new OffscreenCanvas(1, 1); s.c = s.canvas.getContext('2d');\ns.texture = gl.createTexture();\ns.show = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform sampler2D u_image;\nvoid main(){outColor=texture(u_image,vec2(v_uv.x,1.0-v_uv.y));}`);\nconst mod=await ctx.utils.import('https://esm.sh/earcut@3.0.1');s.earcut=mod.default;",
+    "render": "const s=ctx.state, gl=ctx.gl, u=ctx.uniforms, [w,h]=ctx.resolution, c=s.c, m=Math.min(w,h);\nif(s.canvas.width!==w || s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}\nc.fillStyle='#09131f';c.fillRect(0,0,w,h);\nconst t=ctx.time*u.u_speed, points=[], n=48;\nfor(let i=0;i<n;i++){const a=i/n*Math.PI*2,r=.33+.065*Math.cos(a*8+t);points.push(r*Math.cos(a),r*Math.sin(a));}\n// Bounded offset and radius keep the hole strictly inside the concave boundary.\nconst hx=(ctx.mouse[0]-.5)*.12,hy=(ctx.mouse[1]-.5)*.12;\nfor(let i=0;i<32;i++){const a=-i/32*Math.PI*2;points.push(hx+u.u_hole*Math.cos(a),hy+u.u_hole*Math.sin(a));}\nconst indices=s.earcut(points,[n],2);\nc.save();c.translate(w/2,h/2);\nfor(let i=0;i<indices.length;i+=3){\n const p=indices.slice(i,i+3).map(k=>[points[k*2],points[k*2+1]]),cx=p.reduce((a,v)=>a+v[0],0)/3,cy=p.reduce((a,v)=>a+v[1],0)/3;\n c.beginPath();p.forEach((v,j)=>{const x=(v[0]+cx*u.u_explode)*m,y=(v[1]+cy*u.u_explode)*m;j?c.lineTo(x,y):c.moveTo(x,y);});c.closePath();\n c.fillStyle='hsl('+((Math.atan2(cy,cx)*180/Math.PI+210+t*12)%360)+' 65% '+(52+12*Math.sin(i*2.4))+'%)';c.fill();\n if(u.u_edges){c.strokeStyle='#09131f';c.lineWidth=1.2;c.stroke();}\n}c.restore();ctx.publish('triangles',indices.length/3);\ngl.bindTexture(gl.TEXTURE_2D,s.texture);\ngl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);\ngl.useProgram(s.show);ctx.utils.bindTexture(s.show,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.show);",
+    "cleanup": "ctx.gl.deleteTexture(ctx.state.texture); ctx.gl.deleteProgram(ctx.state.show);"
+  },
+  "uniforms": {
+    "u_hole": {
+      "type": "float",
+      "label": "Hole size",
+      "value": 0.115,
+      "min": 0.04,
+      "max": 0.16,
+      "step": 0.01
+    },
+    "u_explode": {
+      "type": "float",
+      "label": "Explode",
+      "value": 0.08,
+      "min": 0,
+      "max": 0.45,
+      "step": 0.01
+    },
+    "u_speed": {
+      "type": "float",
+      "label": "Speed",
+      "value": 0.4,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.01
+    },
+    "u_edges": {
+      "type": "bool",
+      "label": "Edges",
+      "value": true,
+      "widget": "toggle"
+    }
+  },
+  "inputs": [
+    "mouse"
+  ],
+  "keyframes": {}
+}

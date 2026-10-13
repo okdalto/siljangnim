@@ -102,6 +102,9 @@ pipeline.json  how the assets were made (copied into the project, so project.md 
 | [Growing branches (space-colonization)](oss-space-colonization/) | [space-colonization](https://github.com/nicknikolov/space-colonization) (MIT) | space colonization, procedural trees, leaf venation, growth animation |
 | [Diffusion-limited growth (dlaf)](oss-dlaf/) | [dlaf](https://github.com/fogleman/dlaf) (MIT) | diffusion-limited aggregation, random walk, spatial grid, point sprites |
 | [Sand-painted splines (sand-spline)](oss-sand-spline/) | [sand-spline](https://github.com/inconvergent/sand-spline) (MIT) | generative art, sand painting, splines, gpu points |
+| [Cut-paper rosette (earcut)](oss-earcut/) | [earcut](https://github.com/mapbox/earcut) (ISC, in the scene) | triangulation, polygon holes, mouse |
+| [Poster sunset (Pillow)](oss-pillow/) | [Pillow](https://github.com/python-pillow/Pillow) (HPND, Python, recipe) | image, quantization, palette, recipe |
+| [Path lanterns (svgpathtools)](oss-svgpathtools/) | [svgpathtools](https://github.com/mathandy/svgpathtools) (MIT, Python, recipe) | SVG, arc length, motion, recipe |
 
 ## Remixes
 
@@ -126,3 +129,5 @@ in the desktop app and checks it renders without errors. Thumbnails: `node mcp/s
 앱에서 **프로젝트 메뉴 → Examples…**를 열면 예제가 새 프로젝트로 열린다. 대부분은 **오픈소스 하나를 실장님에 붙인 것**이다.
 씬이 가져오는 라이브러리이거나, 에이전트가 레시피로 실행한 Python 패키지·프로그램의 결과를 씬이 쓴다.
 에이전트에게는 참고 구현이 된다(`catalog_get`이 그 도구로 만든 예제의 코드를 보여 준다).
+
+새 예제: **조각 종이 로제트(earcut)**는 구멍이 있는 도형의 삼각분할을, **포스터 노을(Pillow)**은 4·8·16·32색 변환을, **곡선 위의 등불(svgpathtools)**은 SVG 곡선의 등간격 이동을 보여 줍니다. Python 예제는 결과물과 재생성 레시피를 함께 포함합니다.

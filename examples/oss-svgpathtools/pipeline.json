@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "svgpathtools.path-lanterns@1",
+      "packages": [
+        "svgpathtools==1.7.1"
+      ],
+      "resolved": [
+        "numpy==2.5.4",
+        "scipy==1.18.1",
+        "svgpathtools==1.7.1",
+        "svgwrite==1.4.3"
+      ],
+      "inputs": [],
+      "params": {
+        "samples": 600
+      },
+      "outputs": [
+        "path.json",
+        "source.svg"
+      ]
+    }
+  ]
+}

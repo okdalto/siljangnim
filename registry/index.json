@@ -93,6 +93,19 @@
       "sha256": "ab16e3e78ec41d198874c0706cb5a87ba5c968a4935b8d785abb8878dd58e257"
     },
     {
+      "id": "pillow.poster-sunset",
+      "version": 1,
+      "title": "Original sunset and median-cut palettes (Pillow)",
+      "capability": "image-generate image-quantize posterize palette median-cut png",
+      "kind": "python",
+      "license": "HPND",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/pillow.poster-sunset/recipe.md",
+      "sha256": "e76351c9721849b387dbb75f514912e75619cc9b175adf10435330d0d577a3da"
+    },
+    {
       "id": "pymcubes.gyroid-mesh",
       "version": 1,
       "title": "Mesh an implicit field with marching cubes (PyMCubes)",
@@ -143,6 +156,19 @@
       ],
       "path": "recipes/shapely.offset-rings/recipe.md",
       "sha256": "2f226b5c1adb3ffac381dd1ea4ae6fb91a5a6e41e0fb20056a5a40ed1dbe7b77"
+    },
+    {
+      "id": "svgpathtools.path-lanterns",
+      "version": 1,
+      "title": "Equal arc-length SVG path samples (svgpathtools)",
+      "capability": "geometry-sample svg bezier arc-length tangent path animation json",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/svgpathtools.path-lanterns/recipe.md",
+      "sha256": "8922e6c237e8da8defb037c90a341dd2e42b78b8cd73e88e9165304002922086"
     },
     {
       "id": "trimesh.displaced-sphere-glb",

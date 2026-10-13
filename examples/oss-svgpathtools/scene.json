@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "script": {
+    "setup": "const s = ctx.state, gl = ctx.gl;\ns.canvas = new OffscreenCanvas(1, 1); s.c = s.canvas.getContext('2d');\ns.texture = gl.createTexture();\ns.show = ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER, `#version 300 es\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform sampler2D u_image;\nvoid main(){outColor=texture(u_image,vec2(v_uv.x,1.0-v_uv.y));}`);\nconst data=await (await fetch(ctx.assets['path.json'])).json();s.points=data.points;s.phase=0;",
+    "render": "const s=ctx.state, gl=ctx.gl, u=ctx.uniforms, [w,h]=ctx.resolution, c=s.c, m=Math.min(w,h);\nif(s.canvas.width!==w || s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}\nc.fillStyle='#09131f';c.fillRect(0,0,w,h);\ns.phase=(s.phase+ctx.dt*u.u_speed*.08)%1;const pts=s.points,n=pts.length;\nconst at=(v)=>{const f=((v%1+1)%1)*n,i=Math.floor(f),a=pts[i],b=pts[(i+1)%n],k=f-i;return [(a[0]*(1-k)+b[0]*k)*m*.8+w/2,(a[1]*(1-k)+b[1]*k)*m*.8+h/2];};\nif(u.u_guide){c.beginPath();pts.forEach((_,i)=>{const p=at(i/n);i?c.lineTo(...p):c.moveTo(...p);});c.closePath();c.strokeStyle='#244052';c.lineWidth=1.5;c.stroke();}\nfor(let i=0;i<u.u_count;i++){const phase=s.phase+i/u.u_count,hue=180+i/u.u_count*170;\n for(let j=35;j>=0;j--){const p=at(phase-j*.0015),alpha=(1-j/36);c.beginPath();c.arc(p[0],p[1],m*.006*alpha+.6,0,Math.PI*2);c.fillStyle='hsla('+hue+' 90% 65% / '+alpha*.6+')';c.fill();}\n const p=at(phase);c.shadowColor='hsl('+hue+' 90% 60%)';c.shadowBlur=m*.027;c.fillStyle='#edffff';c.beginPath();c.arc(p[0],p[1],m*.004,0,Math.PI*2);c.fill();c.shadowBlur=0;\n}ctx.publish('equal-length samples',n);\ngl.bindTexture(gl.TEXTURE_2D,s.texture);\ngl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);\ngl.useProgram(s.show);ctx.utils.bindTexture(s.show,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.show);",
+    "cleanup": "ctx.gl.deleteTexture(ctx.state.texture); ctx.gl.deleteProgram(ctx.state.show);"
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "label": "Speed",
+      "value": 0.7,
+      "min": 0,
+      "max": 3,
+      "step": 0.01
+    },
+    "u_count": {
+      "type": "int",
+      "label": "Lanterns",
+      "value": 14,
+      "min": 2,
+      "max": 40,
+      "step": 1
+    },
+    "u_guide": {
+      "type": "bool",
+      "label": "Guide",
+      "value": true,
+      "widget": "toggle"
+    }
+  },
+  "inputs": [],
+  "keyframes": {}
+}
