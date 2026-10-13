@@ -1,0 +1,28 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "context-free.gallery@1",
+      "packages": [
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "grammar-0.cfdg",
+        "grammar-1.cfdg",
+        "grammar-2.cfdg",
+        "render-0.png",
+        "render-0.svg",
+        "render-1.png",
+        "render-1.svg",
+        "render-2.png",
+        "render-2.svg",
+        "result.json"
+      ]
+    }
+  ]
+}

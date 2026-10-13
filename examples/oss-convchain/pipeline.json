@@ -1,0 +1,27 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "convchain.gallery@1",
+      "packages": [
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "Main.cs",
+        "main.py",
+        "source.json",
+        "packages.lock.json"
+      ],
+      "params": {},
+      "outputs": [
+        "grid-0.json",
+        "grid-1.json",
+        "grid-2.json",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

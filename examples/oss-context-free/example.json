@@ -1,0 +1,38 @@
+{
+  "order": 452,
+  "title": "Recursive branches from a shape grammar (Context Free)",
+  "title_ko": "도형 문법으로 만든 재귀 나뭇가지 (Context Free)",
+  "description": "The original Context Free engine expands a branching grammar into 16,383 shapes, producing PNG and SVG at three branch angles.",
+  "description_ko": "Context Free 원본 엔진으로 재귀 문법을 16,383개 도형으로 펼쳐 세 각도의 PNG와 SVG를 생성했어요.",
+  "prompt": "Recursive branches from a shape grammar. Use the original engine.",
+  "made_with": "Context Free 3.5 (v39), pinned original source and C++20 compiler",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "context-free"
+  ],
+  "summary": "The original Context Free engine expands a branching grammar into 16,383 shapes, producing PNG and SVG at three branch angles.",
+  "summary_ko": "Context Free 원본 엔진으로 재귀 문법을 16,383개 도형으로 펼쳐 세 각도의 PNG와 SVG를 생성했어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "The original Context Free engine expands a branching grammar into 16,383 shapes, producing PNG and SVG at three branch angles.",
+  "tool_about_ko": "Context Free 원본 엔진으로 재귀 문법을 16,383개 도형으로 펼쳐 세 각도의 PNG와 SVG를 생성했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Context Free contributors",
+      "url": "https://github.com/mtnviewjohn/context-free",
+      "license": "GPL-2.0-or-later"
+    }
+  ]
+}

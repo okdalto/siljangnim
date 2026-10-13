@@ -1,0 +1,7 @@
+startshape Branch
+CF::Background = [b -0.94]
+shape Branch {
+ SQUARE [y .5 s .11 1 h 175 sat .65 b .8]
+ Branch [y 1 r 48 s .68 h 13]
+ Branch [y 1 r -48 s .68 h -8]
+}

@@ -56,6 +56,8 @@ The original myPhysicsLab pendulum solver is checked for energy conservation. gl
 
 Directly executed examples cover MyPaint native brushes, Astrometry.net synthetic plate solving, Simbody multibody dynamics, PyTorch3D native mesh rendering and diffvg differentiable rasterization. Prepared outputs and rerun recipes are included; large sources and runtime environments are verified and cached only when rerun.
 
+Original-engine examples now cover Penrose constraint diagrams, Context Free recursive shape grammars, geometry3Sharp hole repair and ConvChain pattern synthesis, with prepared outputs and rerun recipes. gl-react runs a two-pass shader graph live in the viewer.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

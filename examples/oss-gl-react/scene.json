@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.texture=gl.createTexture();s.show=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\nprecision highp float;in vec2 v_uv;out vec4 color;uniform sampler2D u_image;void main(){color=texture(u_image,v_uv);}`);s.div=document.createElement('div');s.div.style.cssText='position:absolute;left:-10000px;top:0;width:512px;height:512px';document.body.appendChild(s.div);\nconst [R,D,G,S]=await Promise.all([ctx.utils.import('https://esm.sh/react@19.3.0'),ctx.utils.import('https://esm.sh/react-dom@19.3.0/client'),ctx.utils.import('https://esm.sh/gl-react@6.0.0?deps=react@19.3.0'),ctx.utils.import('https://esm.sh/gl-react-dom@6.0.0?deps=react@19.3.0,gl-react@6.0.0')]);s.R=R;s.S=S;s.G=G;s.shaders=G.Shaders.create({source:{frag:G.GLSL`precision highp float;varying vec2 uv;uniform float time;void main(){vec2 p=uv-.5;float a=atan(p.y,p.x),r=length(p);float v=.5+.5*cos(38.*r-6.*a-time);gl_FragColor=vec4(mix(vec3(.02,.06,.12),vec3(.2,.85,.75),v)*smoothstep(.55,.2,r),1.);}`},effect:{frag:G.GLSL`precision highp float;varying vec2 uv;uniform sampler2D inputImage;uniform float amount;void main(){vec2 p=uv-.5;vec2 shift=normalize(p+vec2(.00001))*.018*amount;vec3 c=vec3(texture2D(inputImage,uv+shift).r,texture2D(inputImage,uv).g,texture2D(inputImage,uv-shift).b);gl_FragColor=vec4(c,1.);}`}});s.root=D.createRoot(s.div);s.draw=(time,amount)=>s.root.render(R.createElement(S.Surface,{width:512,height:512,pixelRatio:1,webglContextAttributes:{preserveDrawingBuffer:true},onLoadError:e=>{s.error=String(e);}},R.createElement(G.Node,{shader:s.shaders.effect,onDraw:()=>{s.draws=(s.draws||0)+1;},uniforms:{amount,inputImage:R.createElement(G.Node,{shader:s.shaders.source,uniforms:{time}})}})));s.draw(0,1);for(let n=0;n<100;n++){await new Promise(r=>setTimeout(r,50));if(s.error)throw Error(s.error);if(s.draws)break;}s.canvas=s.div.querySelector('canvas');if(!s.canvas||!s.draws)throw Error('gl-react did not render a frame');",
+    "render": "const s=ctx.state,gl=ctx.gl;if(s.error)throw Error(s.error);s.draw(ctx.time*ctx.uniforms.u_speed,ctx.uniforms.u_aberration);gl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.show);ctx.utils.bindTexture(s.show,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.show);ctx.publish('gl-react draws',s.draws);",
+    "cleanup": "const s=ctx.state;s.root?.unmount();s.div?.remove();ctx.gl.deleteTexture(s.texture);ctx.gl.deleteProgram(s.show);"
+  },
+  "uniforms": {
+    "u_speed": {
+      "type": "float",
+      "label": "Flow speed",
+      "value": 1,
+      "min": 0,
+      "max": 3
+    },
+    "u_aberration": {
+      "type": "float",
+      "label": "Channel separation",
+      "value": 1,
+      "min": 0,
+      "max": 4
+    }
+  }
+}

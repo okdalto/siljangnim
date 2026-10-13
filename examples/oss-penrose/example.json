@@ -1,0 +1,38 @@
+{
+  "order": 451,
+  "title": "Diagrams from distance constraints (Penrose)",
+  "title_ko": "거리 제약으로 배치한 다이어그램 (Penrose)",
+  "description": "Penrose compiles declarative relationships, optimizes three distance constraints and exports the original SVG diagrams.",
+  "description_ko": "Penrose 원본 컴파일러와 최적화기로 거리 제약을 풀고 SVG 다이어그램을 생성했어요.",
+  "prompt": "Diagrams from distance constraints. Use the original engine.",
+  "made_with": "Node.js and npm with locked @penrose/core 3.3.1",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "penrose"
+  ],
+  "summary": "Penrose compiles declarative relationships, optimizes three distance constraints and exports the original SVG diagrams.",
+  "summary_ko": "Penrose 원본 컴파일러와 최적화기로 거리 제약을 풀고 SVG 다이어그램을 생성했어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "Penrose compiles declarative relationships, optimizes three distance constraints and exports the original SVG diagrams.",
+  "tool_about_ko": "Penrose 원본 컴파일러와 최적화기로 거리 제약을 풀고 SVG 다이어그램을 생성했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Penrose contributors",
+      "url": "https://github.com/penrose/penrose",
+      "license": "MIT"
+    }
+  ]
+}

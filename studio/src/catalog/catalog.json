@@ -8208,6 +8208,111 @@
     "program": "c++"
    },
    "notes": "Original diffvg renders circles and differentiates coverage with respect to radius; native gradients match the analytic circumference."
+  },
+  {
+   "id": "penrose",
+   "name": "Penrose",
+   "repo": "https://github.com/penrose/penrose",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Penrose compiles declarative relationships, optimizes three distance constraints and exports the original SVG diagrams.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "node"
+   },
+   "notes": "Penrose compiles declarative relationships, optimizes three distance constraints and exports the original SVG diagrams."
+  },
+  {
+   "id": "context-free",
+   "name": "Context Free",
+   "repo": "https://github.com/mtnviewjohn/context-free",
+   "license": "GPL-2.0-or-later",
+   "tier": "D",
+   "purpose": "The original Context Free engine expands a branching grammar into 16,383 shapes, producing PNG and SVG at three branch angles.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "c++"
+   },
+   "notes": "The original Context Free engine expands a branching grammar into 16,383 shapes, producing PNG and SVG at three branch angles."
+  },
+  {
+   "id": "geometry3sharp",
+   "name": "geometry3Sharp",
+   "repo": "https://github.com/gradientspace/geometry3sharp",
+   "license": "BSL-1.0",
+   "tier": "D",
+   "purpose": "geometry3Sharp generates a sphere, removes a cap and fills the boundary loop; native topology checks validate each result.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "dotnet"
+   },
+   "notes": "geometry3Sharp generates a sphere, removes a cap and fills the boundary loop; native topology checks validate each result."
+  },
+  {
+   "id": "convchain",
+   "name": "ConvChain",
+   "repo": "https://github.com/mxgmn/convchain",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Original ConvChainFast synthesizes three seeded patterns from a small grid, changing the MCMC temperature while retaining the same sample.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "dotnet"
+   },
+   "notes": "Original ConvChainFast synthesizes three seeded patterns from a small grid, changing the MCMC temperature while retaining the same sample."
+  },
+  {
+   "id": "gl-react",
+   "name": "gl-react",
+   "repo": "https://github.com/gre/gl-react",
+   "license": "MIT",
+   "tier": "B",
+   "purpose": "gl-react runs a live React/WebGL graph: a spiral shader feeds a second node that separates color channels.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "cdn": "https://esm.sh/gl-react@6.0.0?deps=react@19.3.0"
+   },
+   "notes": "gl-react runs a live React/WebGL graph: a spiral shader feeds a second node that separates color channels."
   }
  ]
 }

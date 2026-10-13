@@ -49,7 +49,9 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | COLMAP (index.opensource #358) | BSD-3-Clause | [github.com/colmap/colmap](https://github.com/colmap/colmap) | [oss-colmap](examples/oss-colmap/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Color.js (index.opensource #186) | MIT | [github.com/color-js/color.js](https://github.com/color-js/color.js) | [oss-color-js](examples/oss-color-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | concaveman (index.opensource #16) | ISC | [github.com/mapbox/concaveman](https://github.com/mapbox/concaveman) | [oss-concaveman](examples/oss-concaveman/) | fetched from a CDN by the scene at run time (not bundled) |
+| Context Free (index.opensource #117) | GPL-2.0-or-later | [github.com/mtnviewjohn/context-free](https://github.com/mtnviewjohn/context-free) | [oss-context-free](examples/oss-context-free/) | an installed program, run by a recipe (not bundled) |
 | contourmap (index.opensource #34) | MIT | [github.com/fogleman/contourmap](https://github.com/fogleman/contourmap) | [oss-contourmap](examples/oss-contourmap/) | an installed program, run by a recipe (not bundled) |
+| ConvChain (index.opensource #130) | MIT | [github.com/mxgmn/convchain](https://github.com/mxgmn/convchain) | [oss-convchain](examples/oss-convchain/) | an installed program, run by a recipe (not bundled) |
 | csg.js (index.opensource #69) | MIT | [github.com/evanw/csg.js](https://github.com/evanw/csg.js) | [oss-csg-js](examples/oss-csg-js/) | an installed program, run by a recipe (not bundled) |
 | culori | MIT | [github.com/Evercoder/culori](https://github.com/Evercoder/culori) | [oss-culori](examples/oss-culori/) | fetched from a CDN by the scene at run time (not bundled) |
 | Cytoscape.js (index.opensource #323) | MIT | [github.com/cytoscape/cytoscape.js](https://github.com/cytoscape/cytoscape.js) | [oss-cytoscape-js](examples/oss-cytoscape-js/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -113,8 +115,10 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | FreeType (index.opensource #402) | FTL / GPL-2.0-or-later | [github.com/freetype/freetype](https://github.com/freetype/freetype) | [oss-freetype](examples/oss-freetype/) | installed with pip on the person's computer by a recipe (not bundled) |
 | fullik · FABRIK (index.opensource #241) | MIT | [github.com/lo-th/fullik](https://github.com/lo-th/fullik) | [oss-fullik-fabrik](examples/oss-fullik-fabrik/) | an installed program, run by a recipe (not bundled) |
 | Geometry Central · Heat Method (index.opensource #104) | MIT | [github.com/nmwsharp/geometry-central](https://github.com/nmwsharp/geometry-central) | [oss-geometry-central-heat-method](examples/oss-geometry-central-heat-method/) | an installed program, run by a recipe (not bundled) |
+| geometry3Sharp (index.opensource #93) | BSL-1.0 | [github.com/gradientspace/geometry3sharp](https://github.com/gradientspace/geometry3sharp) | [oss-geometry3sharp](examples/oss-geometry3sharp/) | an installed program, run by a recipe (not bundled) |
 | GEOS (index.opensource #57) | LGPL-2.1 | [github.com/libgeos/geos](https://github.com/libgeos/geos) | [oss-geos](examples/oss-geos/) | installed with pip on the person's computer by a recipe (not bundled) |
 | GFPGAN (index.opensource #262) | Apache-2.0 | [github.com/TencentARC/GFPGAN](https://github.com/TencentARC/GFPGAN) | [oss-gfpgan](examples/oss-gfpgan/) | a model installed on the person's computer (not bundled) |
+| gl-react (index.opensource #230) | MIT | [github.com/gre/gl-react](https://github.com/gre/gl-react) | [oss-gl-react](examples/oss-gl-react/) | fetched from a CDN by the scene at run time (not bundled) |
 | glMatrix (index.opensource #82) | MIT | [github.com/toji/gl-matrix](https://github.com/toji/gl-matrix) | [oss-gl-matrix](examples/oss-gl-matrix/) | fetched from a CDN by the scene at run time (not bundled) |
 | glsl-aastep (index.opensource #201) | MIT | [github.com/glslify/glsl-aastep](https://github.com/glslify/glsl-aastep) | [oss-glsl-aastep](examples/oss-glsl-aastep/) | source included in the on-demand example; licenses and runtime requirements are included |
 | glsl-blend (index.opensource #200) | MIT | [github.com/jamieowen/glsl-blend](https://github.com/jamieowen/glsl-blend) | [oss-glsl-blend](examples/oss-glsl-blend/) | source included in the on-demand example; licenses and runtime requirements are included |
@@ -224,6 +228,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | PaddleOCR (index.opensource #288) | Apache-2.0 | [github.com/paddlepaddle/paddleocr](https://github.com/paddlepaddle/paddleocr) | [oss-paddleocr](examples/oss-paddleocr/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Paper.js (index.opensource #10) | MIT | [github.com/paperjs/paper.js](https://github.com/paperjs/paper.js) | [oss-paperjs](examples/oss-paperjs/) | fetched from a CDN by the scene at run time (not bundled) |
 | PathFinding.js (index.opensource #318) | MIT | [github.com/qiao/PathFinding.js](https://github.com/qiao/PathFinding.js) | [oss-pathfinding](examples/oss-pathfinding/) | fetched from a CDN by the scene at run time (not bundled) |
+| Penrose (index.opensource #19) | MIT | [github.com/penrose/penrose](https://github.com/penrose/penrose) | [oss-penrose](examples/oss-penrose/) | an installed program, run by a recipe (not bundled) |
 | Perfect Freehand (index.opensource #26) | MIT | [github.com/steveruizok/perfect-freehand](https://github.com/steveruizok/perfect-freehand) | [oss-perfect-freehand](examples/oss-perfect-freehand/) | fetched from a CDN by the scene at run time (not bundled) |
 | Pillow | MIT-CMU | [github.com/python-pillow/Pillow](https://github.com/python-pillow/Pillow) | [oss-pillow](examples/oss-pillow/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Pink Trombone C++ (index.opensource #393) | MIT (C++ port) | [github.com/kaiidams/pinktrombone_cpp](https://github.com/kaiidams/pinktrombone_cpp) | [oss-pink-trombone-c](examples/oss-pink-trombone-c/) | an installed program, run by a recipe (not bundled) |
@@ -486,6 +491,12 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Original engine | [diffvg contributors](https://github.com/bachili/diffvg) | Apache-2.0 | [oss-diffvg](examples/oss-diffvg/) |
 | Python binding compatibility dependency pybind11 2.13.6 | [pybind11 contributors](https://github.com/pybind/pybind11/tree/v2.13.6) | BSD-3-Clause | [oss-diffvg](examples/oss-diffvg/) |
 | Pinned Thrust dependency, source revision in source.json | [NVIDIA and Thrust contributors](https://github.com/thrust/thrust) | Apache-2.0 | [oss-diffvg](examples/oss-diffvg/) |
+| Original engine | [Penrose contributors](https://github.com/penrose/penrose) | MIT | [oss-penrose](examples/oss-penrose/) |
+| Original engine | [Context Free contributors](https://github.com/mtnviewjohn/context-free) | GPL-2.0-or-later | [oss-context-free](examples/oss-context-free/) |
+| Original engine | [geometry3Sharp contributors](https://github.com/gradientspace/geometry3sharp) | BSL-1.0 | [oss-geometry3sharp](examples/oss-geometry3sharp/) |
+| Original engine | [ConvChain contributors](https://github.com/mxgmn/convchain) | MIT | [oss-convchain](examples/oss-convchain/) |
+| Original engine | [gl-react contributors](https://github.com/gre/gl-react) | MIT | [oss-gl-react](examples/oss-gl-react/) |
+| React 19.3.0 and React DOM 19.3.0 | [Meta and React contributors](https://github.com/facebook/react) | MIT | [oss-gl-react](examples/oss-gl-react/) |
 
 ## Studio (the app's web code): bundled npm packages
 

@@ -171,6 +171,19 @@
       "sha256": "144ce44745c914afcaf451e747053ce8b82917a6e0cb0b6456f7ae4d19b0b642"
     },
     {
+      "id": "context-free.gallery",
+      "version": 1,
+      "title": "Recursive branches from a shape grammar",
+      "capability": "context-free graphics",
+      "kind": "python",
+      "license": "GPL-2.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/context-free.gallery/recipe.md",
+      "sha256": "45c452efc80bed01e24242a4cbb4022a11e87af878f7205f0155b1e4421412d8"
+    },
+    {
       "id": "contourmap.gallery",
       "version": 1,
       "title": "Isolines at different grid resolutions",
@@ -182,6 +195,19 @@
       ],
       "path": "recipes/contourmap.gallery/recipe.md",
       "sha256": "508aa6f89691b826fae64e28366ed0ae201ab78d5137a61490b016280aa866e2"
+    },
+    {
+      "id": "convchain.gallery",
+      "version": 1,
+      "title": "Pattern synthesis at three temperatures",
+      "capability": "convchain graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/convchain.gallery/recipe.md",
+      "sha256": "5be1354a6318f353127025b424a2fae986a82574f19be44afca6170f604d87b1"
     },
     {
       "id": "csg-js.gallery",
@@ -507,6 +533,19 @@
       ],
       "path": "recipes/geometry-central-heat-method.gallery/recipe.md",
       "sha256": "f8cab5494f41a0de1d9d1e5cf3340ea9f60c3ad5c57b79c3a0cfe8721709039e"
+    },
+    {
+      "id": "geometry3sharp.gallery",
+      "version": 1,
+      "title": "Cutting and repairing a mesh cap",
+      "capability": "geometry3sharp graphics",
+      "kind": "python",
+      "license": "BSL-1.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/geometry3sharp.gallery/recipe.md",
+      "sha256": "c8303f1915479c2c637e5dc6399bebca653fa4c283780a20d2e76fac91d8618e"
     },
     {
       "id": "geos.gallery",
@@ -1170,6 +1209,19 @@
       ],
       "path": "recipes/paddleocr.gallery/recipe.md",
       "sha256": "437a5cdf9b816d58eb2d8ebde09efefdac1a16e7fd87a56749816cf783ad208c"
+    },
+    {
+      "id": "penrose.gallery",
+      "version": 1,
+      "title": "Diagrams from distance constraints",
+      "capability": "penrose graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/penrose.gallery/recipe.md",
+      "sha256": "88aac76b13955a53cd3b9977fd73e1c5c0e4116bc0413832e384fa88cc8ae3cc"
     },
     {
       "id": "pillow.poster-sunset",

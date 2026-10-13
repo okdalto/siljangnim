@@ -1,0 +1,42 @@
+{
+  "order": 455,
+  "title": "Two-pass reactive shader graph (gl-react)",
+  "title_ko": "두 단계 반응형 셰이더 그래프 (gl-react)",
+  "description": "gl-react runs a live React/WebGL graph: a spiral shader feeds a second node that separates color channels.",
+  "description_ko": "gl-react 원본 React/WebGL 그래프에서 나선 셰이더를 두 번째 노드의 색 채널 분리 효과로 연결했어요.",
+  "prompt": "Two-pass reactive shader graph. Use the original engine.",
+  "made_with": "gl-react 6.0.0, gl-react-dom 6.0.0 and React 19.3.0",
+  "features": [
+    "interactive"
+  ],
+  "mode": "live",
+  "uses": [
+    "gl-react"
+  ],
+  "summary": "gl-react runs a live React/WebGL graph: a spiral shader feeds a second node that separates color channels.",
+  "summary_ko": "gl-react 원본 React/WebGL 그래프에서 나선 셰이더를 두 번째 노드의 색 채널 분리 효과로 연결했어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "gl-react runs a live React/WebGL graph: a spiral shader feeds a second node that separates color channels.",
+  "tool_about_ko": "gl-react 원본 React/WebGL 그래프에서 나선 셰이더를 두 번째 노드의 색 채널 분리 효과로 연결했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "gl-react contributors",
+      "url": "https://github.com/gre/gl-react",
+      "license": "MIT"
+    },
+    {
+      "what": "React 19.3.0 and React DOM 19.3.0",
+      "source": "Meta and React contributors",
+      "url": "https://github.com/facebook/react",
+      "license": "MIT"
+    }
+  ]
+}

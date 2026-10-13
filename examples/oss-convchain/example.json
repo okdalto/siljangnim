@@ -1,0 +1,38 @@
+{
+  "order": 454,
+  "title": "Pattern synthesis at three temperatures (ConvChain)",
+  "title_ko": "온도에 따른 패턴 합성 (ConvChain)",
+  "description": "Original ConvChainFast synthesizes three seeded patterns from a small grid, changing the MCMC temperature while retaining the same sample.",
+  "description_ko": "ConvChainFast 원본 MCMC 알고리즘으로 작은 격자에서 온도가 다른 세 패턴을 직접 합성했어요.",
+  "prompt": "Pattern synthesis at three temperatures. Use the original engine.",
+  "made_with": ".NET SDK 8.0.413 and pinned ConvChainFast source",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "convchain"
+  ],
+  "summary": "Original ConvChainFast synthesizes three seeded patterns from a small grid, changing the MCMC temperature while retaining the same sample.",
+  "summary_ko": "ConvChainFast 원본 MCMC 알고리즘으로 작은 격자에서 온도가 다른 세 패턴을 직접 합성했어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "Original ConvChainFast synthesizes three seeded patterns from a small grid, changing the MCMC temperature while retaining the same sample.",
+  "tool_about_ko": "ConvChainFast 원본 MCMC 알고리즘으로 작은 격자에서 온도가 다른 세 패턴을 직접 합성했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "ConvChain contributors",
+      "url": "https://github.com/mxgmn/convchain",
+      "license": "MIT"
+    }
+  ]
+}

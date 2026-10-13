@@ -1,0 +1,38 @@
+{
+  "order": 453,
+  "title": "Cutting and repairing a mesh cap (geometry3Sharp)",
+  "title_ko": "메시에 구멍을 뚫고 복구하기 (geometry3Sharp)",
+  "description": "geometry3Sharp generates a sphere, removes a cap and fills the boundary loop; native topology checks validate each result.",
+  "description_ko": "geometry3Sharp 원본 엔진으로 구를 만들고 윗부분을 제거한 뒤 경계 루프를 채워 메시 위상을 검사했어요.",
+  "prompt": "Cutting and repairing a mesh cap. Use the original engine.",
+  "made_with": ".NET SDK 8.0.413 and pinned geometry3Sharp source",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "geometry3sharp"
+  ],
+  "summary": "geometry3Sharp generates a sphere, removes a cap and fills the boundary loop; native topology checks validate each result.",
+  "summary_ko": "geometry3Sharp 원본 엔진으로 구를 만들고 윗부분을 제거한 뒤 경계 루프를 채워 메시 위상을 검사했어요.",
+  "try": [
+    "Change the controls",
+    "Rerun with different inputs"
+  ],
+  "try_ko": [
+    "조절 값을 바꿔 보세요",
+    "입력을 바꿔 다시 실행하세요"
+  ],
+  "tool_about": "geometry3Sharp generates a sphere, removes a cap and fills the boundary loop; native topology checks validate each result.",
+  "tool_about_ko": "geometry3Sharp 원본 엔진으로 구를 만들고 윗부분을 제거한 뒤 경계 루프를 채워 메시 위상을 검사했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "geometry3Sharp contributors",
+      "url": "https://github.com/gradientspace/geometry3sharp",
+      "license": "BSL-1.0"
+    }
+  ]
+}

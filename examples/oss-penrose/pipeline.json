@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "penrose.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.mjs",
+        "package.json",
+        "package-lock.json"
+      ],
+      "params": {},
+      "outputs": [
+        "diagram-0.svg",
+        "diagram-1.svg",
+        "diagram-2.svg",
+        "result.json"
+      ]
+    }
+  ]
+}
