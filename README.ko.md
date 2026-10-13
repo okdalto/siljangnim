@@ -43,14 +43,16 @@ claude mcp add siljangnim -- npx -y siljangnim-mcp@latest
 끝나면 Claude Code를 다시 시작하라고 알려 줘.
 ```
 
-**Codex**라면:
+**Codex**는 일반 터미널에서 아래 한 줄을 실행하세요(에이전트 안이 아닌 Mac 터미널 등):
 
-```text
-실장님 MCP 서버를 설치해 줘. 이 명령을 실행하면 돼:
-codex mcp add siljangnim -- npx -y siljangnim-mcp@latest
-그다음 ~/.codex/config.toml의 [mcp_servers.siljangnim] 아래에 tool_timeout_sec = 120 줄을 추가해 줘
-(긴 호출은 45초 안에 추적 ID를 반환하고 viewer_call_status로 이어서 조회해). 끝나면 Codex를 다시 시작하라고 알려 줘.
+```bash
+npx -y siljangnim-mcp@latest setup codex
 ```
+
+Node.js와 Codex CLI를 확인하고, 서버 등록·MCP 연결 검사·테스트 뷰어 열기까지 처리합니다.
+설정 파일을 직접 수정할 필요가 없습니다. 검사가 끝나면 임시 연결은 종료됩니다. 테스트 탭을 닫고
+Codex를 완전히 종료했다가 다시 실행하세요. Codex가 MCP 서버를 시작하면 새 뷰어가 자동으로 열립니다.
+이미 설치했다면 같은 명령을 다시 실행해 등록을 갱신할 수 있습니다. 설치 검사 성공은 현재 Codex 대화의 연결 확인과는 다릅니다.
 
 다시 시작하고, 만들고 싶은 것을 말하세요:
 
@@ -72,7 +74,6 @@ siljangnim으로 어두운 바다를 떠다니는 빛나는 해파리를 만들�
 [mcp_servers.siljangnim]
 command = "npx"
 args = ["-y", "siljangnim-mcp@latest"]
-tool_timeout_sec = 120
 ```
 
 **Cursor, Claude 데스크톱 앱, Windsurf 등** — 클라이언트의 MCP 설정

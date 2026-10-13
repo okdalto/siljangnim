@@ -298,6 +298,7 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
 
   return {
     mcp,
+    openViewer: () => ensureViewer(),
     listen,
     close,
     get url() {

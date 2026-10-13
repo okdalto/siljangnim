@@ -44,14 +44,16 @@ claude mcp add siljangnim -- npx -y siljangnim-mcp@latest
 Then tell me to restart Claude Code.
 ```
 
-Or into **Codex**:
+For **Codex**, run this one command in your normal terminal (outside the agent):
 
-```text
-Install the Siljangnim MCP server by running:
-codex mcp add siljangnim -- npx -y siljangnim-mcp@latest
-Then, in ~/.codex/config.toml under [mcp_servers.siljangnim], add the line tool_timeout_sec = 120
-(long calls return a tracking ID within 45 seconds; the agent polls viewer_call_status). Then tell me to restart Codex.
+```bash
+npx -y siljangnim-mcp@latest setup codex
 ```
+
+It checks Node.js and the Codex CLI, registers the server, verifies the MCP connection and opens a test viewer.
+No manual configuration edit is needed. The temporary test session closes after verification; close that tab,
+then fully quit and restart Codex. A new viewer opens automatically when Codex starts its MCP server.
+You can rerun setup to update the registration. A successful setup checks the package, not the current Codex conversation.
 
 Restart it, then ask for something:
 
@@ -73,7 +75,6 @@ downloaded into `~/.siljangnim/runtime/`.
 [mcp_servers.siljangnim]
 command = "npx"
 args = ["-y", "siljangnim-mcp@latest"]
-tool_timeout_sec = 120
 ```
 
 **Cursor, Claude Desktop, Windsurf and others** — add to the client's MCP settings

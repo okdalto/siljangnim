@@ -18,16 +18,20 @@ claude mcp add siljangnim -- npx -y siljangnim-mcp@latest
 또는 Claude Code에 "실장님 MCP 서버를 설치해 줘: `claude mcp add siljangnim -- npx -y siljangnim-mcp@latest`"라고
 붙여 넣으세요. 설치한 뒤에는 Claude Code를 다시 시작해야 합니다.
 
-**Codex** — 터미널에서 `codex mcp add siljangnim -- npx -y siljangnim-mcp@latest`를 실행한 뒤,
-`~/.codex/config.toml`의 `[mcp_servers.siljangnim]` 아래에 `tool_timeout_sec = 120`을 추가하세요(Codex의 기본 제한은
-60초이며, 여유 있게 120초로 설정합니다. 긴 호출은 45초 안에 추적 ID를 반환합니다). 또는 설정 파일에 직접:
+**Codex** — 일반 터미널에서 한 줄을 실행하세요:
 
-```toml
-[mcp_servers.siljangnim]
-command = "npx"
-args = ["-y", "siljangnim-mcp@latest"]
-tool_timeout_sec = 120
+```bash
+npx -y siljangnim-mcp@latest setup codex
 ```
+
+Node.js 22 이상과 Codex CLI를 확인하고, 서버 등록·등록 결과 확인·MCP 연결 검사·테스트 뷰어 열기를 자동으로 처리합니다.
+설정 파일을 직접 편집할 필요는 없습니다. 긴 호출은 45초 안에 추적 ID를 반환하므로 `tool_timeout_sec = 120`은 필수가 아닙니다.
+검사 후 임시 연결은 종료됩니다. 테스트 탭을 닫고 Codex를 완전히 종료한 뒤 다시 실행하세요.
+Codex가 서버를 시작하면 뷰어가 자동으로 열립니다. 현재 실행 중인 Codex 대화가 연결됐다는 뜻은 아닙니다.
+
+등록은 같은 명령으로 갱신할 수 있습니다. Codex CLI가 없다면 먼저 설치하고 `codex --version`이 실행되는지 확인하세요.
+등록 후 뷰어 검사만 실패했다면 등록은 유지됩니다. 출력된 주소를 열거나 문제를 해결한 뒤 같은 명령을 다시 실행하세요.
+에이전트의 쓰기 권한 제한으로 등록이 실패하면 일반 터미널에서 실행하세요.
 
 **Cursor, Claude 데스크톱 앱, Windsurf 등** — 클라이언트의 MCP 설정 파일에:
 
@@ -57,6 +61,7 @@ tool_timeout_sec = 120
 | 변수 | 뜻 |
 |---|---|
 | `SILJANGNIM_PORT` | 뷰어 포트. 기본 47823. 이미 쓰는 중이면 다른 포트로 열리고, 그때는 이전 프로젝트가 보이지 않습니다. |
+| `SILJANGNIM_OPEN_ON_CONNECT=1` | Codex 서버 시작 시 뷰어를 자동으로 엽니다. `setup codex`가 설정합니다. |
 | `SILJANGNIM_OPEN=0` | 브라우저를 자동으로 열지 않습니다(주소는 로그에 남습니다). |
 | `SILJANGNIM_OPEN_COMMAND` | 뷰어를 열 프로그램(주소를 인자로 받음). 특정 브라우저로 열 때. |
 | `SILJANGNIM_VIEWER=browser` | 데스크톱 앱이 켜져 있어도 브라우저를 씁니다. |

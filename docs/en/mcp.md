@@ -18,17 +18,22 @@ claude mcp add siljangnim -- npx -y siljangnim-mcp@latest
 Or paste this into Claude Code: "Install the Siljangnim MCP server: `claude mcp add siljangnim -- npx -y siljangnim-mcp@latest`".
 After installing, restart Claude Code.
 
-**Codex** — run `codex mcp add siljangnim -- npx -y siljangnim-mcp@latest` in a terminal, then add
-`tool_timeout_sec = 120` under `[mcp_servers.siljangnim]` in `~/.codex/config.toml` (Codex's default limit is
-60 seconds; 120 seconds leaves room to spare. Long calls return a tracking ID within 45 seconds). Or edit the config
-file directly:
+**Codex** — run one command in your normal terminal, outside the agent:
 
-```toml
-[mcp_servers.siljangnim]
-command = "npx"
-args = ["-y", "siljangnim-mcp@latest"]
-tool_timeout_sec = 120
+```bash
+npx -y siljangnim-mcp@latest setup codex
 ```
+
+Setup checks Node.js 22+ and the Codex CLI, registers and reads back the server configuration, then verifies
+an MCP handshake and opens a test viewer. No manual config edit is needed: long calls return a tracking ID
+within 45 seconds, so `tool_timeout_sec = 120` is optional.
+The temporary test session closes after verification. Close its tab, fully quit and restart Codex;
+a new viewer opens automatically when Codex starts the server. Setup does not verify the current Codex conversation.
+
+Rerun the same command to update the registration. If Codex is missing, install the CLI and confirm
+`codex --version` works first. If the viewer check fails after registration, registration remains saved;
+open the logged URL or fix the reported problem and rerun setup. If the agent sandbox blocks config writes,
+run setup in your normal terminal.
 
 **Cursor, Claude Desktop, Windsurf and others** — in the client's MCP settings file:
 
@@ -66,6 +71,7 @@ You can change these with environment variables (put them in `env` in the MCP se
 | Variable | Meaning |
 |---|---|
 | `SILJANGNIM_PORT` | Viewer port. Default 47823. If it's already in use, the viewer opens on another port, and your earlier projects won't show. |
+| `SILJANGNIM_OPEN_ON_CONNECT=1` | Open the viewer when the server starts. Set by `setup codex`. |
 | `SILJANGNIM_OPEN=0` | Don't open the browser automatically (the address is written to the log). |
 | `SILJANGNIM_OPEN_COMMAND` | Program that opens the viewer (gets the address as an argument). For opening it in a specific browser. |
 | `SILJANGNIM_VIEWER=browser` | Use the browser even when the desktop app is open. |
