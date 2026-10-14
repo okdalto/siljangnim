@@ -194,11 +194,13 @@ npm run dev      # 데스크톱 앱, 핫 리로드
 
 예제는 열 때 파일을 받아 IndexedDB에 캐시합니다. 개발·로컬 빌드는 파일을 `example-library/`에 따로 두며,
 설치판 CI는 해당 커밋의 GitHub 원본에서 내려받도록 설정하여 예제 파일과 썸네일을 설치 파일에 넣지 않습니다.
-직접 경량 빌드하거나 MCP 패키지를 만들 때는 `SILJANGNIM_EXAMPLES_BASE_URL`을 **이미 공개된 커밋**의
-`https://raw.githubusercontent.com/okdalto/siljangnim/<커밋 SHA>/examples`로 지정한 뒤
-`npm run dist` 또는 `npm --prefix mcp pack`을 실행하세요. 다른 HTTPS 호스트도 가능하지만 CORS를 허용하고
-같은 디렉터리 구조의 파일을 제공해야 합니다. 작업 중인 파일과 원격 파일이 다르면 무결성 검사에서 거부됩니다.
-환경 변수를 생략하면 로컬 파일을 포함하는 자체 완결형 빌드가 됩니다.
+MCP 패키지(`npm --prefix mcp pack`/`publish`)도 같은 방식으로, 현재 커밋의
+`https://raw.githubusercontent.com/okdalto/siljangnim/<커밋 SHA>/examples`를 가리킵니다. 그래서 `examples/`에
+커밋하지 않은 변경이 있거나 커밋을 아직 GitHub에 올리지 않았으면 패키징이 멈춥니다.
+경량 설치판을 직접 만들 때는 `SILJANGNIM_EXAMPLES_BASE_URL`을 **이미 공개된 커밋**의 위 주소로 지정한 뒤
+`npm run dist`를 실행하세요. 다른 HTTPS 호스트도 가능하지만 CORS를 허용하고 같은 디렉터리 구조의 파일을
+제공해야 합니다. 작업 중인 파일과 원격 파일이 다르면 무결성 검사에서 거부됩니다. 설치판은 환경 변수를 생략하면,
+MCP 패키지는 `SILJANGNIM_EXAMPLES_BASE_URL=local`이면 로컬 파일을 포함하는 자체 완결형 빌드가 됩니다.
 
 ```
 studio/     앱: React + TypeScript UI, 내장 에이전트, 격리된 씬 런타임

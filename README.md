@@ -197,11 +197,13 @@ npm run dev      # the desktop app with hot reload
 
 Examples fetch files on first use and cache them in IndexedDB. Development/local builds serve separate files under
 `example-library/`; installer CI uses the matching commit on GitHub, excluding example payloads and thumbnails
-from installers. For a lightweight custom installer or MCP package, set `SILJANGNIM_EXAMPLES_BASE_URL` to
-`https://raw.githubusercontent.com/okdalto/siljangnim/<commit SHA>/examples` for an **already published commit**,
-then run `npm run dist` or `npm --prefix mcp pack`. Other HTTPS hosts must allow CORS and serve the same directory
-layout. Remote files must match the checkout; mismatches fail integrity checks. Omitting the variable produces
-a self-contained build with local example files.
+from installers. The MCP package (`npm --prefix mcp pack`/`publish`) does the same: it points at
+`https://raw.githubusercontent.com/okdalto/siljangnim/<commit SHA>/examples` for the current commit, so packing
+stops if `examples/` has uncommitted changes or the commit is not on GitHub yet. For a lightweight custom
+installer, set `SILJANGNIM_EXAMPLES_BASE_URL` to that URL for an **already published commit**, then run
+`npm run dist`. Other HTTPS hosts must allow CORS and serve the same directory layout. Remote files must match the
+checkout; mismatches fail integrity checks. Omitting the variable for an installer, or setting
+`SILJANGNIM_EXAMPLES_BASE_URL=local` for the MCP package, produces a self-contained build with local example files.
 
 ```
 studio/     The app: React + TypeScript UI, built-in agent, isolated scene runtime

@@ -22,7 +22,8 @@ checks it runs and looks right, and refines it. Being rebuilt as a desktop app (
 - `mcp/` — `siljangnim-mcp`: MCP server for external agents (Claude Code, Codex). Serves the built studio on
   localhost and relays tool calls to it over a token-checked WebSocket.
   `src/spec.json` is generated from `studio/src/agent/external.ts` — run `npm --prefix studio run export-mcp`
-  after changing tools or the prompt (a studio test fails otherwise).
+  after changing tools or the prompt (a studio test fails otherwise). The npm package leaves examples out and
+  loads them from the packed commit on GitHub (`scripts/examplesBase.mjs`), so pack/publish from a pushed commit.
 - `hub/` — Python sidecar (FastAPI, uv-managed): system info and the runtime — isolated uv venvs and a job queue
   for C/D-grade open source (`python_run`, `command_run`), and recipes — saved
   integrations in `~/Siljangnim/recipes/<id>/recipe.md`, read/written only by `recipes.py`.
