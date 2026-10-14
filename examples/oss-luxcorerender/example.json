@@ -1,0 +1,38 @@
+{
+  "order": 497,
+  "title": "Rough surfaces through native path tracing (LuxCoreRender)",
+  "title_ko": "원본 경로 추적으로 비교하는 표면 거칠기 (LuxCoreRender)",
+  "description": "LuxCoreRender 2.11.2 traces a supplied scene on the CPU at three surface roughnesses, using 64 native samples per pixel.",
+  "description_ko": "LuxCoreRender 2.11.2 원본 CPU 경로 추적으로 직접 만든 장면을 세 표면 거칠기에서 픽셀당 64샘플로 렌더했어요.",
+  "prompt": "Rough surfaces through native path tracing. Use the original engine.",
+  "made_with": "LuxCoreRender original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "luxcorerender"
+  ],
+  "summary": "LuxCoreRender 2.11.2 traces a supplied scene on the CPU at three surface roughnesses, using 64 native samples per pixel.",
+  "summary_ko": "LuxCoreRender 2.11.2 원본 CPU 경로 추적으로 직접 만든 장면을 세 표면 거칠기에서 픽셀당 64샘플로 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "LuxCoreRender 2.11.2 traces a supplied scene on the CPU at three surface roughnesses, using 64 native samples per pixel.",
+  "tool_about_ko": "LuxCoreRender 2.11.2 원본 CPU 경로 추적으로 직접 만든 장면을 세 표면 거칠기에서 픽셀당 64샘플로 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "LuxCoreRender contributors",
+      "url": "https://github.com/luxcorerender/luxcore",
+      "license": "Apache-2.0"
+    }
+  ]
+}

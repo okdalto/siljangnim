@@ -1,0 +1,44 @@
+{
+  "order": 492,
+  "title": "Native wind particles around a globe (earth)",
+  "title_ko": "원본 입자 시뮬레이션으로 그린 지구 바람 (earth)",
+  "description": "earth interpolates a supplied synthetic wind field and renders 80 native particle steps at three globe longitudes.",
+  "description_ko": "earth 원본 엔진으로 직접 만든 가상 바람장을 보간하고 세 경도에서 입자 80단계를 계산해 렌더했어요.",
+  "prompt": "Native wind particles around a globe. Use the original engine.",
+  "made_with": "earth original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "earth"
+  ],
+  "summary": "earth interpolates a supplied synthetic wind field and renders 80 native particle steps at three globe longitudes.",
+  "summary_ko": "earth 원본 엔진으로 직접 만든 가상 바람장을 보간하고 세 경도에서 입자 80단계를 계산해 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "earth interpolates a supplied synthetic wind field and renders 80 native particle steps at three globe longitudes.",
+  "tool_about_ko": "earth 원본 엔진으로 직접 만든 가상 바람장을 보간하고 세 경도에서 입자 80단계를 계산해 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "earth contributors",
+      "url": "https://github.com/cambecc/earth",
+      "license": "MIT"
+    },
+    {
+      "what": "Coastline input data",
+      "source": "Natural Earth",
+      "url": "https://www.naturalearthdata.com/",
+      "license": "Public domain"
+    }
+  ]
+}

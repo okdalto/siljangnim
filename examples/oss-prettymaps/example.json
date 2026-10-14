@@ -1,0 +1,38 @@
+{
+  "order": 493,
+  "title": "A fictional city through the original map renderer (prettymaps)",
+  "title_ko": "원본 지도 렌더러로 그린 가상 도시 (prettymaps)",
+  "description": "prettymaps 1.3.0 renders five supplied geometry layers and 174 buildings in warm-paper, night-ink and graphite styles.",
+  "description_ko": "prettymaps 1.3.0 원본 렌더러로 직접 만든 다섯 지형 레이어와 건물 174개를 세 가지 스타일로 그렸어요.",
+  "prompt": "A fictional city through the original map renderer. Use the original engine.",
+  "made_with": "prettymaps original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "prettymaps"
+  ],
+  "summary": "prettymaps 1.3.0 renders five supplied geometry layers and 174 buildings in warm-paper, night-ink and graphite styles.",
+  "summary_ko": "prettymaps 1.3.0 원본 렌더러로 직접 만든 다섯 지형 레이어와 건물 174개를 세 가지 스타일로 그렸어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "prettymaps 1.3.0 renders five supplied geometry layers and 174 buildings in warm-paper, night-ink and graphite styles.",
+  "tool_about_ko": "prettymaps 1.3.0 원본 렌더러로 직접 만든 다섯 지형 레이어와 건물 174개를 세 가지 스타일로 그렸어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "prettymaps contributors",
+      "url": "https://github.com/marceloprates/prettymaps",
+      "license": "AGPL-3.0"
+    }
+  ]
+}

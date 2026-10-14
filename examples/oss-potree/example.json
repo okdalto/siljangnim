@@ -1,0 +1,38 @@
+{
+  "order": 491,
+  "title": "Native point cloud decoding and rendering (Potree)",
+  "title_ko": "원본 로더와 렌더러로 그린 포인트 클라우드 (Potree)",
+  "description": "Potree 1.8.2 decodes a supplied 6,400-point binary cloud and renders RGB, elevation and enlarged-point views with its original renderer.",
+  "description_ko": "Potree 1.8.2 원본 로더로 직접 만든 점 6,400개의 바이너리 파일을 읽어 색상·고도·큰 점 보기로 렌더했어요.",
+  "prompt": "Native point cloud decoding and rendering. Use the original engine.",
+  "made_with": "Potree original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "potree"
+  ],
+  "summary": "Potree 1.8.2 decodes a supplied 6,400-point binary cloud and renders RGB, elevation and enlarged-point views with its original renderer.",
+  "summary_ko": "Potree 1.8.2 원본 로더로 직접 만든 점 6,400개의 바이너리 파일을 읽어 색상·고도·큰 점 보기로 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Potree 1.8.2 decodes a supplied 6,400-point binary cloud and renders RGB, elevation and enlarged-point views with its original renderer.",
+  "tool_about_ko": "Potree 1.8.2 원본 로더로 직접 만든 점 6,400개의 바이너리 파일을 읽어 색상·고도·큰 점 보기로 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Potree contributors",
+      "url": "https://github.com/potree/potree",
+      "license": "BSD-2-Clause"
+    }
+  ]
+}

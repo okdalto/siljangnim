@@ -1,0 +1,29 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "prettymaps.gallery@1",
+      "packages": [
+        "numpy==1.26.4",
+        "matplotlib==3.9.4",
+        "shapely==2.0.7",
+        "osmnx==1.9.3",
+        "ipykernel==6.29.5",
+        "geopandas==1.1.4",
+        "pandas==2.3.3",
+        "Pillow==12.3.0"
+      ],
+      "inputs": [
+        "main.py",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

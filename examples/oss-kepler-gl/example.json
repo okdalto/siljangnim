@@ -1,0 +1,38 @@
+{
+  "order": 499,
+  "title": "Native geographic point and bin layers (kepler.gl)",
+  "title_ko": "원본 지도 엔진으로 집계한 점과 공간 격자 (kepler.gl)",
+  "description": "kepler.gl 2.5.5 loads 2,400 supplied coordinates and renders original point, square-grid and hexagonal aggregation layers without remote map tiles.",
+  "description_ko": "kepler.gl 2.5.5에 직접 만든 좌표 2,400개를 넣어 점·사각 격자·육각 집계를 원본 엔진으로 렌더했어요. 외부 지도 타일은 사용하지 않아요.",
+  "prompt": "Native geographic point and bin layers. Use the original engine.",
+  "made_with": "kepler.gl original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "kepler-gl"
+  ],
+  "summary": "kepler.gl 2.5.5 loads 2,400 supplied coordinates and renders original point, square-grid and hexagonal aggregation layers without remote map tiles.",
+  "summary_ko": "kepler.gl 2.5.5에 직접 만든 좌표 2,400개를 넣어 점·사각 격자·육각 집계를 원본 엔진으로 렌더했어요. 외부 지도 타일은 사용하지 않아요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "kepler.gl 2.5.5 loads 2,400 supplied coordinates and renders original point, square-grid and hexagonal aggregation layers without remote map tiles.",
+  "tool_about_ko": "kepler.gl 2.5.5에 직접 만든 좌표 2,400개를 넣어 점·사각 격자·육각 집계를 원본 엔진으로 렌더했어요. 외부 지도 타일은 사용하지 않아요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "kepler.gl contributors",
+      "url": "https://github.com/keplergl/kepler.gl",
+      "license": "MIT"
+    }
+  ]
+}

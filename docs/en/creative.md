@@ -70,6 +70,12 @@ Original-engine examples also include Goxel voxel exports, Ready reaction-diffus
 
 Compare locally executed Swingline and StippleGen stippling, the original GPU atmosphere model, ManimGL mathematical surfaces, and Motion Canvas timeline frames. Native packcircles circle layouts and GodotOceanWaves GPU waves are included too. Each recipe lists its desktop, Java or Node runtime requirements.
 
+Native Potree point clouds, earth synthetic wind fields and prettymaps fictional maps are included. Listen to original DDSP synthesis and audio previews of Magenta Melody RNN MIDI output. ComfyUI with Stable Diffusion 1.5 was executed locally on MPS. Large models download only when running the recipe, with checksum verification and caching. Each recipe documents inputs, outputs, platform requirements, compatibility adjustments and model licenses.
+
+Compare LuxCoreRender roughness and PBRT lens apertures computed by their original CPU renderers. Original Cinder derivative-noise flow lines and kepler.gl point, grid and hexagonal aggregation are also included. The map example uses synthetic coordinates and a blank background, without a map-service token.
+
+Also included are a Unitree G1 pretrained walking policy executed in MuJoCo and TAPIR point tracking. The robot example computes six seconds of simulated walking without hardware; tracking predictions are checked against the known motion of supplied images.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

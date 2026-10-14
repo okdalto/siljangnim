@@ -1,0 +1,37 @@
+[
+  {
+    "name": "react.js",
+    "url": "https://unpkg.com/react@16.8.4/umd/react.production.min.js",
+    "sha256": "72d51a9ae220482420d70b21f08c3441b0d749c9b25e18c9ea5c5852c702dc50"
+  },
+  {
+    "name": "react-dom.js",
+    "url": "https://unpkg.com/react-dom@16.8.4/umd/react-dom.production.min.js",
+    "sha256": "f2e5961bfec2077392f3d0b0ebbf81fbeb7ac3410c19f404f42e8e1a9b3e59df"
+  },
+  {
+    "name": "redux.js",
+    "url": "https://unpkg.com/redux@3.7.2/dist/redux.js",
+    "sha256": "1336f936b8be5403bcc490c72dc3c2c52ef429f87e314170f4e5cb659add7c2b"
+  },
+  {
+    "name": "react-redux.js",
+    "url": "https://unpkg.com/react-redux@7.1.3/dist/react-redux.min.js",
+    "sha256": "2208dfb339de49f351d76362795f5b5067ffc84de49c1ac0fbbaca4c086fee24"
+  },
+  {
+    "name": "styled.js",
+    "url": "https://unpkg.com/styled-components@4.1.3/dist/styled-components.min.js",
+    "sha256": "19b890d7925c15ca221798468eef472cae530053acff2ba408f12b0bee811357"
+  },
+  {
+    "name": "kepler.js",
+    "url": "https://unpkg.com/kepler.gl@2.5.5/umd/keplergl.min.js",
+    "sha256": "8d4f7004679d61a52bfaf8b617aa84b1ebb53ee5be596173faa8f4fff854614a"
+  },
+  {
+    "name": "mapbox.css",
+    "url": "https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css",
+    "sha256": "02a13b666f2af6399b527878146f0c218e778f4819bf9807aef06491ecc04a16"
+  }
+]

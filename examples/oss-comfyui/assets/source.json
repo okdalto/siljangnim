@@ -1,0 +1,31 @@
+{
+  "source": {
+    "version": "0.3.30",
+    "commit": "a97f2f850abd7dd330e6363c8d8074bb243eb413",
+    "url": "https://codeload.github.com/comfyanonymous/ComfyUI/tar.gz/a97f2f850abd7dd330e6363c8d8074bb243eb413",
+    "sha256": "77c921ee3d6d4aa67a54cfac3307930a7e466399d681ada760bfff69edc14830"
+  },
+  "models": [
+    {
+      "path": "unet/diffusion_pytorch_model.fp16.safetensors",
+      "target": "diffusion_models/sd15-unet-fp16.safetensors",
+      "size": 1719125304,
+      "sha256": "c83908253f9a64d08c25fc90874c9c8aef9a329ce1ca5fb909d73b0c83d1ea21",
+      "url": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/451f4fe16113bff5a5d2269ed5ad43b0592e9a14/unet/diffusion_pytorch_model.fp16.safetensors"
+    },
+    {
+      "path": "text_encoder/model.fp16.safetensors",
+      "target": "text_encoders/sd15-clip-fp16.safetensors",
+      "size": 246144864,
+      "sha256": "77795e2023adcf39bc29a884661950380bd093cf0750a966d473d1718dc9ef4e",
+      "url": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/451f4fe16113bff5a5d2269ed5ad43b0592e9a14/text_encoder/model.fp16.safetensors"
+    },
+    {
+      "path": "vae/diffusion_pytorch_model.fp16.safetensors",
+      "target": "vae/sd15-vae-fp16.safetensors",
+      "size": 167335342,
+      "sha256": "4fbcf0ebe55a0984f5a5e00d8c4521d52359af7229bb4d81890039d2aa16dd7c",
+      "url": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/451f4fe16113bff5a5d2269ed5ad43b0592e9a14/vae/diffusion_pytorch_model.fp16.safetensors"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "python": {
+    "version": "3.10.20+20260510",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.10.20%2B20260510-aarch64-apple-darwin-install_only_stripped.tar.gz",
+    "sha256": "36b7364a5cd75e5b8591c4dc6cc30d84d9112b62a2b8199c406d63f2ca2f981f"
+  },
+  "uv": {
+    "version": "0.11.13",
+    "url": "https://github.com/astral-sh/uv/releases/download/0.11.13/uv-aarch64-apple-darwin.tar.gz",
+    "sha256": "196a58aa24da89144187670df7c407358028984537fbc2f8f2d8f7a2604980df"
+  },
+  "source": {
+    "version": "2.1.4",
+    "url": "https://files.pythonhosted.org/packages/69/5f/19404b46dfd62c44225e14ebd917042d6c61cb1532bc8ef5a3b1cb2a3eea/magenta-2.1.4-py3-none-any.whl",
+    "sha256": "c6f4fe742d13c6d664fb257f6f123940c6abc6f501ea8a3870f7d4e8f0821d3f"
+  },
+  "model": {
+    "name": "basic_rnn",
+    "url": "https://storage.googleapis.com/download.magenta.tensorflow.org/models/basic_rnn.mag",
+    "sha256": "8726e7427cec1b1a507a8217242e0ffa117c53a4c8d7734fa904e33ee58436ff"
+  }
+}

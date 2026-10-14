@@ -9141,6 +9141,329 @@
     "program": "godot"
    },
    "notes": "Requires Apple Silicon macOS with a Metal GPU, graphical desktop and Python 3.12+. The recipe verifies and caches Godot 4.5.1 and GodotOceanWaves revision a171446f8174348895aaafc426576c26261058b9. The first download is about 190 MB. The original compute and spatial shaders are imported once and cached. The only source compatibility change creates a read-only descriptor set for the modulation shader, as required by Godot 4.5 binding validation."
+  },
+  {
+   "id": "potree",
+   "name": "Potree",
+   "repo": "https://github.com/potree/potree",
+   "license": "BSD-2-Clause",
+   "tier": "D",
+   "purpose": "Potree 1.8.2 decodes a supplied 6,400-point binary cloud and renders RGB, elevation and enlarged-point views with its original renderer.",
+   "tags": [
+    "Point clouds · levels of detail",
+    "Scanning · space"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "electron"
+   },
+   "notes": "Requires Python 3.12+ and Electron on PATH or through ELECTRON; tested on macOS with Electron 44.4.4. The official Potree 1.8.2 release (about 57 MB) is downloaded, SHA-256 checked and cached. Only its original build and libraries are extracted."
+  },
+  {
+   "id": "earth",
+   "name": "earth",
+   "repo": "https://github.com/cambecc/earth",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "earth interpolates a supplied synthetic wind field and renders 80 native particle steps at three globe longitudes.",
+   "tags": [
+    "Weather grids · flow interpolation",
+    "Maps · weather"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "electron"
+   },
+   "notes": "Requires Python 3.12+ and Electron on PATH or through ELECTRON; tested on macOS with Electron 44.4.4. Original source revision 5f091f0c3b60aa38a996a886985bacb3673d16c3 and its bundled libraries are SHA-256 verified and cached. Capture hooks fix the random seed and stop after 80 native particle frames; interpolation, projection and particle evolution are unchanged."
+  },
+  {
+   "id": "prettymaps",
+   "name": "prettymaps",
+   "repo": "https://github.com/marceloprates/prettymaps",
+   "license": "AGPL-3.0",
+   "tier": "C",
+   "purpose": "prettymaps 1.3.0 renders five supplied geometry layers and 174 buildings in warm-paper, night-ink and graphite styles.",
+   "tags": [
+    "Map data · layers",
+    "Maps · posters"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "numpy==1.26.4",
+     "matplotlib==3.9.4",
+     "shapely==2.0.7",
+     "osmnx==1.9.3",
+     "ipykernel==6.29.5",
+     "geopandas==1.1.4",
+     "pandas==2.3.3",
+     "Pillow==12.3.0"
+    ]
+   },
+   "notes": "Requires Python 3.12. The original prettymaps 1.3.0 wheel is SHA-256 verified, cached and loaded without source changes. Its old packaging metadata requires NumPy below 1.25; this recipe explicitly tests the unchanged source with NumPy 1.26.4 on Python 3.12 instead. The listed dependencies provide that tested environment; do not separately pip-install prettymaps into it."
+  },
+  {
+   "id": "ddsp",
+   "name": "DDSP",
+   "repo": "https://github.com/magenta/ddsp",
+   "license": "Apache-2.0",
+   "tier": "D",
+   "purpose": "DDSP 3.7.0 synthesizes three harmonic profiles and verifies native TensorFlow energy gradients against their analytical values.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "audio",
+     "data"
+    ]
+   },
+   "install": {
+    "program": "python"
+   },
+   "notes": "Requires Apple Silicon macOS and Python 3.12+ for the wrapper. The recipe downloads and SHA-256 verifies DDSP 3.7.0, Python 3.10.20+20260510 and uv 0.11.13, then caches a private runtime with the supplied exact dependency closure, including TensorFlow-macos 2.11.0. No system Python replacement or pretrained model is needed. The bootstrap removes only eager imports of unused losses and spectral_ops modules from ddsp/__init__.py; original synthesis, processor and core implementations are unchanged."
+  },
+  {
+   "id": "magenta",
+   "name": "Magenta",
+   "repo": "https://github.com/magenta/magenta",
+   "license": "Apache-2.0",
+   "tier": "D",
+   "purpose": "Magenta 2.1.4 continues a supplied four-note primer with its original Melody RNN at three temperatures, exporting MIDI and audio previews.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "audio",
+     "data"
+    ]
+   },
+   "install": {
+    "program": "python"
+   },
+   "notes": "Requires Apple Silicon macOS and Python 3.12+ for the wrapper. Original Magenta 2.1.4, the official basic_rnn.mag model (about 12 MB), Python 3.10.20+20260510 and uv 0.11.13 are downloaded, SHA-256 verified and cached. The private runtime installs the exact dependency closure, including TensorFlow-macos 2.11.0 and TensorFlow Probability 0.19.0. Original Magenta source is unchanged."
+  },
+  {
+   "id": "comfyui",
+   "name": "ComfyUI",
+   "repo": "https://github.com/comfy-org/comfyui",
+   "license": "GPL-3.0",
+   "tier": "C",
+   "purpose": "ComfyUI 0.3.30 runs a nine-node Stable Diffusion 1.5 workflow on Apple MPS and generates three original images from fixed seeds.",
+   "tags": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "comfyui-frontend-package==1.17.11",
+     "comfyui-workflow-templates==0.1.3",
+     "torch==2.7.1",
+     "torchsde==0.2.6",
+     "torchvision==0.22.1",
+     "torchaudio==2.7.1",
+     "numpy==2.2.6",
+     "einops==0.8.2",
+     "transformers==4.51.3",
+     "tokenizers==0.21.1",
+     "sentencepiece==0.2.2",
+     "safetensors==0.8.0",
+     "aiohttp==3.14.3",
+     "yarl==1.25.1",
+     "pyyaml==6.0.3",
+     "Pillow==12.3.0",
+     "scipy==1.18.1",
+     "tqdm==4.70.1",
+     "psutil==7.2.2",
+     "kornia==0.8.3",
+     "spandrel==0.4.2",
+     "soundfile==0.14.0",
+     "av==18.1.0",
+     "pydantic==2.13.5"
+    ]
+   },
+   "notes": "Requires Apple Silicon macOS, Python 3.12 and at least 16 GB unified memory. Tested with Torch 2.7.1 and MPS. Original ComfyUI revision a97f2f850abd7dd330e6363c8d8074bb243eb413 (0.3.30) and Stable Diffusion 1.5 revision 451f4fe16113bff5a5d2269ed5ad43b0592e9a14 are SHA-256 verified and cached. The first recipe run downloads about 2.13 GB of model weights plus Python dependencies. The gallery downloads only the prepared images. Model weights use CreativeML Open RAIL-M, separately from the ComfyUI GPL-3.0 engine."
+  },
+  {
+   "id": "luxcorerender",
+   "name": "LuxCoreRender",
+   "repo": "https://github.com/luxcorerender/luxcore",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "LuxCoreRender 2.11.2 traces a supplied scene on the CPU at three surface roughnesses, using 64 native samples per pixel.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "pyluxcore==2.11.2",
+     "Pillow==12.3.0"
+    ]
+   },
+   "notes": "Requires Apple Silicon macOS 14+ and Python 3.12. The official pyluxcore 2.11.2 ARM64 wheel and Pillow 12.3.0 are installed on demand in the recipe environment. Native TILEPATHCPU tracing runs with one CPU thread; the original film pipeline produces the image. No model, external mesh or texture is downloaded."
+  },
+  {
+   "id": "cinder",
+   "name": "Cinder",
+   "repo": "https://github.com/cinder/cinder",
+   "license": "BSD-2-Clause",
+   "tier": "D",
+   "purpose": "Cinder 0.9.3 computes derivative noise and renders 784 flow paths at three phases with its original OpenGL drawing and image export APIs.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "clang++"
+   },
+   "notes": "Requires Apple Silicon macOS, Xcode command-line tools, Python 3.12+ and a graphical desktop. The official Cinder 0.9.3 ARM64 release is SHA-256 verified and cached. Its original precompiled library links the supplied C++ scene; the native executable is cached by source and input hashes. No Cinder source modification is needed."
+  },
+  {
+   "id": "kepler-gl",
+   "name": "kepler.gl",
+   "repo": "https://github.com/keplergl/kepler.gl",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "kepler.gl 2.5.5 loads 2,400 supplied coordinates and renders original point, square-grid and hexagonal aggregation layers without remote map tiles.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "electron"
+   },
+   "notes": "Requires Python 3.12+ and Electron on PATH or through ELECTRON; tested with Electron 44.4.4 on macOS. Original kepler.gl 2.5.5, exact React/Redux/styled-components dependencies and Mapbox CSS are downloaded, SHA-256 verified and cached. The application uses an inline blank map style and blocks remote browser requests, so no map-service token is required. deckGlProps.useDevicePixels=false avoids an old-renderer Retina viewport mismatch without modifying engine source."
+  },
+  {
+   "id": "pbrt-v4",
+   "name": "pbrt-v4",
+   "repo": "https://github.com/mmp/pbrt-v4",
+   "license": "Apache-2.0",
+   "tier": "D",
+   "purpose": "PBRT v4 renders a supplied scene at three lens apertures with its original spectral CPU path tracer and 128 samples per pixel.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "clang++"
+   },
+   "notes": "Requires Apple Silicon macOS, Xcode command-line tools and Python 3.12+. The recipe verifies and caches PBRT revision b4ce9687e6c695f5582997c61b0c66cf064bdb4a, its exact submodule archives and Imath 3.1.12. CMake 4.4.3 builds the original CPU renderer with three compilation jobs and caches the binary. Archive SHA-256 checks replace Git submodule inspection; the original renderer is unchanged. CUDA and an NVIDIA GPU are not needed. The first compilation takes several minutes and needs build disk space."
+  },
+  {
+   "id": "unitree-rl-gym",
+   "name": "Unitree RL Gym",
+   "repo": "https://github.com/unitreerobotics/unitree_rl_gym",
+   "license": "BSD-3-Clause",
+   "tier": "C",
+   "purpose": "Unitree RL Gym runs its original pretrained G1 policy for six seconds in MuJoCo, producing joint controls, walking positions and native frames.",
+   "tags": [
+    "Reinforcement learning · robot policies",
+    "Robotics · motion"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.7.1",
+     "numpy==2.2.6",
+     "mujoco==3.3.6",
+     "PyYAML==6.0.3",
+     "Pillow==12.3.0"
+    ]
+   },
+   "notes": "Requires Python 3.12+ on Apple Silicon macOS. Original Unitree RL Gym revision 276801e46c5d433564f24658bac64f254b7d2d4b, its G1 TorchScript policy, robot model and mesh inputs are downloaded on first use, SHA-256 verified and cached (about 25 MB). PyTorch 2.7.1 and MuJoCo 3.3.6 execute locally without CUDA."
+  },
+  {
+   "id": "tapnet-tapnext",
+   "name": "TAPNet / TAPNext++",
+   "repo": "https://github.com/google-deepmind/tapnet",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "Original TAPIR weights track three points through eight supplied frames; predictions are compared with known motion and overlaid on the images.",
+   "tags": [
+    "tracking",
+    "motion",
+    "video"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.7.1",
+     "numpy==2.2.6",
+     "dm-tree==0.1.9",
+     "einshape==1.0",
+     "Pillow==12.3.0"
+    ]
+   },
+   "notes": "Requires Python 3.12+; verified on Apple Silicon macOS with CPU inference. The recipe downloads and SHA-256 verifies original TAPNet revision 730cda1c730877cfedbe01bf87fb1cadb78a565d and the official tapir_checkpoint_panning.pt checkpoint (124 MB). Source and weights are cached. The original TAPIR implementation uses pyramid_level=0 and extra_convs=False as required by this checkpoint."
   }
  ]
 }

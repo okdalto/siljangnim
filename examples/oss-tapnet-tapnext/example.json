@@ -1,0 +1,44 @@
+{
+  "order": 502,
+  "title": "TAPIR tracks points in a supplied moving image (TAPNet / TAPNext++)",
+  "title_ko": "직접 만든 움직임을 추적하는 TAPIR (TAPNet / TAPNext++)",
+  "description": "Original TAPIR weights track three points through eight supplied frames; predictions are compared with known motion and overlaid on the images.",
+  "description_ko": "원본 TAPIR 학습 모델로 직접 만든 8프레임의 점 세 개를 추적하고, 알려진 이동량과 비교한 예측 좌표를 화면에 표시했어요.",
+  "prompt": "TAPIR tracks points in a supplied moving image. Use the original engine.",
+  "made_with": "TAPNet / TAPNext++ original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "tapnet-tapnext"
+  ],
+  "summary": "Original TAPIR weights track three points through eight supplied frames; predictions are compared with known motion and overlaid on the images.",
+  "summary_ko": "원본 TAPIR 학습 모델로 직접 만든 8프레임의 점 세 개를 추적하고, 알려진 이동량과 비교한 예측 좌표를 화면에 표시했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original TAPIR weights track three points through eight supplied frames; predictions are compared with known motion and overlaid on the images.",
+  "tool_about_ko": "원본 TAPIR 학습 모델로 직접 만든 8프레임의 점 세 개를 추적하고, 알려진 이동량과 비교한 예측 좌표를 화면에 표시했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "TAPNet / TAPNext++ contributors",
+      "url": "https://github.com/google-deepmind/tapnet",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Original pretrained TAPIR panning checkpoint",
+      "source": "Google DeepMind",
+      "url": "https://github.com/google-deepmind/tapnet",
+      "license": "Apache-2.0"
+    }
+  ]
+}

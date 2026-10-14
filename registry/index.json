@@ -145,6 +145,19 @@
       "sha256": "c3386c0fd997e7eb8053037e087cfeeef299974f1f535daceec9f65223568f1f"
     },
     {
+      "id": "cinder.gallery",
+      "version": 1,
+      "title": "Flow lines from native derivative noise",
+      "capability": "cinder graphics",
+      "kind": "python",
+      "license": "BSD-2-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/cinder.gallery/recipe.md",
+      "sha256": "94a83b00562a751ae9ae28f46c913f313a77143f3714db9dfb3d5c7cb38e12ba"
+    },
+    {
       "id": "circlify.stdlib-packing",
       "version": 1,
       "title": "Circle packing of the Python standard library by lines of code (circlify)",
@@ -182,6 +195,19 @@
       ],
       "path": "recipes/colmap.gallery/recipe.md",
       "sha256": "144ce44745c914afcaf451e747053ce8b82917a6e0cb0b6456f7ae4d19b0b642"
+    },
+    {
+      "id": "comfyui.gallery",
+      "version": 1,
+      "title": "Images from an original local diffusion workflow",
+      "capability": "comfyui graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/comfyui.gallery/recipe.md",
+      "sha256": "5fe06b70f9443bdcdd1021e6fecb55731e0b1932f3bce9463b579cc613cd8246"
     },
     {
       "id": "context-free.gallery",
@@ -273,6 +299,19 @@
       ],
       "path": "recipes/datashader.gallery/recipe.md",
       "sha256": "41189fa99db61833b570bae6c99b3ba57981dae4190297b48fcd0c0b4b25ccb3"
+    },
+    {
+      "id": "ddsp.gallery",
+      "version": 1,
+      "title": "Differentiable harmonic synthesis",
+      "capability": "ddsp graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ddsp.gallery/recipe.md",
+      "sha256": "722ae2ad8243a53dd09fb0b35d4b3f82ca02695a13292afe5d460e114d86d379"
     },
     {
       "id": "demucs.gallery",
@@ -390,6 +429,19 @@
       ],
       "path": "recipes/draco.gallery/recipe.md",
       "sha256": "e29bad9ad1696f0a4dc9129fb3a5e7085334ca975e6a64a496af641c06164557"
+    },
+    {
+      "id": "earth.gallery",
+      "version": 1,
+      "title": "Native wind particles around a globe",
+      "capability": "earth graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/earth.gallery/recipe.md",
+      "sha256": "9cbc29c943a6e5d53d501ca4babfa28bfbc3599358409e4d95cd3d21d33ded65"
     },
     {
       "id": "eclipse-sumo.gallery",
@@ -873,6 +925,19 @@
       "sha256": "58e5ea0d5ac5989fe18d4f6ae294249d5e22ff2ba03f59eb2079311a317ed49e"
     },
     {
+      "id": "kepler-gl.gallery",
+      "version": 1,
+      "title": "Native geographic point and bin layers",
+      "capability": "kepler-gl graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/kepler-gl.gallery/recipe.md",
+      "sha256": "d383a5fd9aa4739652fa80b6648e3a682f2f965bd3d579f991275e189892822a"
+    },
+    {
       "id": "kurbo.gallery",
       "version": 1,
       "title": "Approximating a cubic path",
@@ -1081,6 +1146,19 @@
       "sha256": "aef7a5d662c914ac0e0d88e92e7d19cc385cbda7c82403a2fb261d3985056f80"
     },
     {
+      "id": "luxcorerender.gallery",
+      "version": 1,
+      "title": "Rough surfaces through native path tracing",
+      "capability": "luxcorerender graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/luxcorerender.gallery/recipe.md",
+      "sha256": "4526fd73eff8ad951c3278cf2ff8671e474ce2738f87ec7de7a01f369b8e2432"
+    },
+    {
       "id": "lyon.gallery",
       "version": 1,
       "title": "Triangles inside a curved contour",
@@ -1092,6 +1170,19 @@
       ],
       "path": "recipes/lyon.gallery/recipe.md",
       "sha256": "837823e625ea2530311982ddfe34b95049935b57bd947349eb0a75a118de9e52"
+    },
+    {
+      "id": "magenta.gallery",
+      "version": 1,
+      "title": "Melodies from the original pretrained RNN",
+      "capability": "magenta graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/magenta.gallery/recipe.md",
+      "sha256": "e3073759ddd5da336379d3ec16046c52e0a0148bec6be8123776b8953691155a"
     },
     {
       "id": "mandelbulber.gallery",
@@ -1484,6 +1575,19 @@
       "sha256": "437a5cdf9b816d58eb2d8ebde09efefdac1a16e7fd87a56749816cf783ad208c"
     },
     {
+      "id": "pbrt-v4.gallery",
+      "version": 1,
+      "title": "Lens apertures in a native spectral renderer",
+      "capability": "pbrt-v4 graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/pbrt-v4.gallery/recipe.md",
+      "sha256": "d8458a9216d16b0c434b333a83f045cae29af73748594cdbc9b899e267aeb405"
+    },
+    {
       "id": "penrose.gallery",
       "version": 1,
       "title": "Diagrams from distance constraints",
@@ -1562,6 +1666,19 @@
       "sha256": "c73a952483a30d19b11586fdc5b3d3c99033865b6bfde6428edc77ed44ffeef5"
     },
     {
+      "id": "potree.gallery",
+      "version": 1,
+      "title": "Native point cloud decoding and rendering",
+      "capability": "potree graphics",
+      "kind": "python",
+      "license": "BSD-2-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/potree.gallery/recipe.md",
+      "sha256": "735de9cf2cfc290d213adbfb32941885ad3902edc17e68a178c0f7f8164d6184"
+    },
+    {
       "id": "precomputed-atmospheric-scattering.gallery",
       "version": 1,
       "title": "Earth skies from native GPU scattering",
@@ -1573,6 +1690,19 @@
       ],
       "path": "recipes/precomputed-atmospheric-scattering.gallery/recipe.md",
       "sha256": "bd0ca777a7a4e235c6ab76539ead30564abfa838874122a8243700a28a889075"
+    },
+    {
+      "id": "prettymaps.gallery",
+      "version": 1,
+      "title": "A fictional city through the original map renderer",
+      "capability": "prettymaps graphics",
+      "kind": "python",
+      "license": "AGPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/prettymaps.gallery/recipe.md",
+      "sha256": "162253f577b46447a35c095726b5eef3931c00e88c5feb6fe9d34d56d5503371"
     },
     {
       "id": "processing-geometry-suite.gallery",
@@ -2121,6 +2251,19 @@
       "sha256": "7a8d9f3e97ca38af00f1729f30fdf1cc671e2887e86299fdc04b0a9b13e2f559"
     },
     {
+      "id": "tapnet-tapnext.gallery",
+      "version": 1,
+      "title": "TAPIR tracks points in a supplied moving image",
+      "capability": "tapnet-tapnext graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/tapnet-tapnext.gallery/recipe.md",
+      "sha256": "488a056b786a5b3324fd1f56909ae1a3b5df225b5db5366749ed5252704cc348"
+    },
+    {
       "id": "ten-minute-physics-pbd.gallery",
       "version": 1,
       "title": "A constrained triple pendulum",
@@ -2366,6 +2509,19 @@
       ],
       "path": "recipes/umap.digits-embedding/recipe.md",
       "sha256": "67b5fcf3ef9bf8157e2aad125babf50213451d6d812e9f3cc60ff3b0c29701c2"
+    },
+    {
+      "id": "unitree-rl-gym.gallery",
+      "version": 1,
+      "title": "A pretrained G1 walking policy in simulation",
+      "capability": "unitree-rl-gym graphics",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/unitree-rl-gym.gallery/recipe.md",
+      "sha256": "af3606f67778a9248afd0bbbb7172ee2bf7693e932b7b3e41026065bb523243f"
     },
     {
       "id": "velato.gallery",

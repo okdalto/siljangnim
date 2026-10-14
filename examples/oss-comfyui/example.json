@@ -1,0 +1,44 @@
+{
+  "order": 496,
+  "title": "Images from an original local diffusion workflow (ComfyUI)",
+  "title_ko": "원본 로컬 확산 워크플로로 생성한 이미지 (ComfyUI)",
+  "description": "ComfyUI 0.3.30 runs a nine-node Stable Diffusion 1.5 workflow on Apple MPS and generates three original images from fixed seeds.",
+  "description_ko": "ComfyUI 0.3.30 원본의 9개 노드 워크플로를 Apple MPS에서 실행해 세 시드의 이미지를 직접 생성했어요.",
+  "prompt": "Images from an original local diffusion workflow. Use the original engine.",
+  "made_with": "ComfyUI original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "comfyui"
+  ],
+  "summary": "ComfyUI 0.3.30 runs a nine-node Stable Diffusion 1.5 workflow on Apple MPS and generates three original images from fixed seeds.",
+  "summary_ko": "ComfyUI 0.3.30 원본의 9개 노드 워크플로를 Apple MPS에서 실행해 세 시드의 이미지를 직접 생성했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "ComfyUI 0.3.30 runs a nine-node Stable Diffusion 1.5 workflow on Apple MPS and generates three original images from fixed seeds.",
+  "tool_about_ko": "ComfyUI 0.3.30 원본의 9개 노드 워크플로를 Apple MPS에서 실행해 세 시드의 이미지를 직접 생성했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "ComfyUI contributors",
+      "url": "https://github.com/comfy-org/comfyui",
+      "license": "GPL-3.0"
+    },
+    {
+      "what": "Stable Diffusion 1.5 model weights",
+      "source": "Stable Diffusion contributors",
+      "url": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/tree/451f4fe16113bff5a5d2269ed5ad43b0592e9a14",
+      "license": "CreativeML Open RAIL-M"
+    }
+  ]
+}

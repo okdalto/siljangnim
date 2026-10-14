@@ -1,0 +1,28 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "tapnet-tapnext.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "numpy==2.2.6",
+        "dm-tree==0.1.9",
+        "einshape==1.0",
+        "Pillow==12.3.0"
+      ],
+      "inputs": [
+        "main.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "input-0.png",
+        "input-7.png",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

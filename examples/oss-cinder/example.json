@@ -1,0 +1,38 @@
+{
+  "order": 498,
+  "title": "Flow lines from native derivative noise (Cinder)",
+  "title_ko": "원본 잡음 미분과 OpenGL로 그린 흐름선 (Cinder)",
+  "description": "Cinder 0.9.3 computes derivative noise and renders 784 flow paths at three phases with its original OpenGL drawing and image export APIs.",
+  "description_ko": "Cinder 0.9.3 원본 잡음 미분 함수로 흐름선 784개를 계산하고 세 위상을 원본 OpenGL과 이미지 저장 API로 렌더했어요.",
+  "prompt": "Flow lines from native derivative noise. Use the original engine.",
+  "made_with": "Cinder original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "cinder"
+  ],
+  "summary": "Cinder 0.9.3 computes derivative noise and renders 784 flow paths at three phases with its original OpenGL drawing and image export APIs.",
+  "summary_ko": "Cinder 0.9.3 원본 잡음 미분 함수로 흐름선 784개를 계산하고 세 위상을 원본 OpenGL과 이미지 저장 API로 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Cinder 0.9.3 computes derivative noise and renders 784 flow paths at three phases with its original OpenGL drawing and image export APIs.",
+  "tool_about_ko": "Cinder 0.9.3 원본 잡음 미분 함수로 흐름선 784개를 계산하고 세 위상을 원본 OpenGL과 이미지 저장 API로 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Cinder contributors",
+      "url": "https://github.com/cinder/cinder",
+      "license": "BSD-2-Clause"
+    }
+  ]
+}

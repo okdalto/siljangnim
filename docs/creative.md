@@ -68,6 +68,12 @@ Goxel 복셀 내보내기, Ready 반응·확산, Instant Meshes 사각형 재메
 
 Swingline과 StippleGen 점묘, 원본 GPU 대기 산란 모델, ManimGL 수학 곡면, Motion Canvas 타임라인도 직접 실행한 결과를 비교할 수 있습니다. packcircles 원 배치와 GodotOceanWaves GPU 파도도 원본 엔진으로 계산했습니다. 각 레시피에 필요한 데스크톱·Java·Node 실행 환경을 안내합니다.
 
+Potree 포인트 클라우드, earth 가상 바람장, prettymaps 가상 도시를 원본 엔진으로 렌더했습니다. DDSP 배음 합성과 Magenta Melody RNN의 MIDI 생성 결과는 직접 들을 수 있습니다. ComfyUI와 Stable Diffusion 1.5도 로컬 MPS에서 직접 실행했습니다. 큰 모델은 레시피 실행 때만 내려받아 체크섬을 확인하고 캐시합니다. 각 레시피에서 입력·출력, 플랫폼, 호환성 조정과 모델 라이선스를 확인할 수 있습니다.
+
+LuxCoreRender의 거칠기와 PBRT의 렌즈 조리개를 원본 CPU 렌더러에서 직접 비교합니다. Cinder의 잡음 미분 흐름선과 kepler.gl의 점·격자·육각 집계도 원본 엔진으로 실행했습니다. 지도 예제는 가상 좌표와 빈 배경을 사용하므로 지도 서비스 토큰이 필요하지 않습니다.
+
+Unitree G1 학습 모델을 MuJoCo에서 직접 실행한 보행 시뮬레이션과 TAPIR의 영상 점 추적 예제도 포함합니다. 로봇 하드웨어 없이 6초 보행을 계산하며, 점 추적은 직접 만든 영상의 알려진 이동량과 예측을 비교합니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

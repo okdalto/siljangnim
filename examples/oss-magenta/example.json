@@ -1,0 +1,50 @@
+{
+  "order": 495,
+  "title": "Melodies from the original pretrained RNN (Magenta)",
+  "title_ko": "원본 사전 학습 RNN으로 생성한 멜로디 (Magenta)",
+  "description": "Magenta 2.1.4 continues a supplied four-note primer with its original Melody RNN at three temperatures, exporting MIDI and audio previews.",
+  "description_ko": "Magenta 2.1.4 원본 Melody RNN으로 직접 만든 네 음의 도입부를 세 온도에서 이어 만들고 MIDI와 소리 미리보기를 저장했어요.",
+  "prompt": "Melodies from the original pretrained RNN. Use the original engine.",
+  "made_with": "Magenta original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "magenta"
+  ],
+  "summary": "Magenta 2.1.4 continues a supplied four-note primer with its original Melody RNN at three temperatures, exporting MIDI and audio previews.",
+  "summary_ko": "Magenta 2.1.4 원본 Melody RNN으로 직접 만든 네 음의 도입부를 세 온도에서 이어 만들고 MIDI와 소리 미리보기를 저장했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Magenta 2.1.4 continues a supplied four-note primer with its original Melody RNN at three temperatures, exporting MIDI and audio previews.",
+  "tool_about_ko": "Magenta 2.1.4 원본 Melody RNN으로 직접 만든 네 음의 도입부를 세 온도에서 이어 만들고 MIDI와 소리 미리보기를 저장했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Magenta contributors",
+      "url": "https://github.com/magenta/magenta",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Original pretrained Melody RNN bundle",
+      "source": "Magenta contributors",
+      "url": "https://github.com/magenta/magenta/tree/main/magenta/models/melody_rnn",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "MIDI audio preview synthesis",
+      "source": "PrettyMIDI contributors",
+      "url": "https://github.com/craffel/pretty-midi",
+      "license": "MIT"
+    }
+  ]
+}

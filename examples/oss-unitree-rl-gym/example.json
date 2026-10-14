@@ -1,0 +1,50 @@
+{
+  "order": 501,
+  "title": "A pretrained G1 walking policy in simulation (Unitree RL Gym)",
+  "title_ko": "시뮬레이션에서 실행한 G1 보행 정책 (Unitree RL Gym)",
+  "description": "Unitree RL Gym runs its original pretrained G1 policy for six seconds in MuJoCo, producing joint controls, walking positions and native frames.",
+  "description_ko": "Unitree RL Gym 원본 G1 학습 모델을 MuJoCo에서 6초간 직접 실행해 관절 제어값·이동 경로·화면을 얻었어요.",
+  "prompt": "A pretrained G1 walking policy in simulation. Use the original engine.",
+  "made_with": "Unitree RL Gym original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "unitree-rl-gym"
+  ],
+  "summary": "Unitree RL Gym runs its original pretrained G1 policy for six seconds in MuJoCo, producing joint controls, walking positions and native frames.",
+  "summary_ko": "Unitree RL Gym 원본 G1 학습 모델을 MuJoCo에서 6초간 직접 실행해 관절 제어값·이동 경로·화면을 얻었어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Unitree RL Gym runs its original pretrained G1 policy for six seconds in MuJoCo, producing joint controls, walking positions and native frames.",
+  "tool_about_ko": "Unitree RL Gym 원본 G1 학습 모델을 MuJoCo에서 6초간 직접 실행해 관절 제어값·이동 경로·화면을 얻었어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Unitree RL Gym contributors",
+      "url": "https://github.com/unitreerobotics/unitree_rl_gym",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "what": "Original G1 pretrained policy, robot XML and mesh inputs",
+      "source": "Unitree Robotics",
+      "url": "https://github.com/unitreerobotics/unitree_rl_gym",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "what": "Original physics simulation and renderer",
+      "source": "MuJoCo contributors",
+      "url": "https://github.com/google-deepmind/mujoco",
+      "license": "Apache-2.0"
+    }
+  ]
+}

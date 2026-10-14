@@ -1,0 +1,23 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "pbrt-v4.gallery@1",
+      "packages": [
+        "cmake==4.4.3",
+        "Pillow==12.3.0"
+      ],
+      "inputs": [
+        "scene.pbrt",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

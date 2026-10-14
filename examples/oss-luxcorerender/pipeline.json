@@ -1,0 +1,22 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "luxcorerender.gallery@1",
+      "packages": [
+        "pyluxcore==2.11.2",
+        "Pillow==12.3.0"
+      ],
+      "inputs": [
+        "main.py"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

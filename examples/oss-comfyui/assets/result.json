@@ -1,0 +1,1 @@
+{"frames": [{"seed": 17, "steps": 16, "width": 384, "height": 384, "model": "Stable Diffusion 1.5", "device": "mps"}, {"seed": 23, "steps": 16, "width": 384, "height": 384, "model": "Stable Diffusion 1.5", "device": "mps"}, {"seed": 41, "steps": 16, "width": 384, "height": 384, "model": "Stable Diffusion 1.5", "device": "mps"}]}

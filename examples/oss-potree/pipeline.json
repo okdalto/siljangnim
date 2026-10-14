@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "potree.gallery@1",
+      "packages": [
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "capture.html",
+        "cloud.js",
+        "r.bin",
+        "runner.cjs",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

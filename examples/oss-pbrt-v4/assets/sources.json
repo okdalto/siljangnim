@@ -1,0 +1,100 @@
+[
+  {
+    "repo": "mmp/pbrt-v4",
+    "revision": "b4ce9687e6c695f5582997c61b0c66cf064bdb4a",
+    "path": ".",
+    "url": "https://codeload.github.com/mmp/pbrt-v4/tar.gz/b4ce9687e6c695f5582997c61b0c66cf064bdb4a",
+    "sha256": "82d1f6f9f0468f7aebb2d08b344f75fb4224e3edf2943d77a7daf7a333d3ea8a"
+  },
+  {
+    "repo": "wdas/ptex",
+    "revision": "054047d02b9e06e690420b407114d2872435b953",
+    "path": "src/ext/ptex",
+    "url": "https://codeload.github.com/wdas/ptex/tar.gz/054047d02b9e06e690420b407114d2872435b953",
+    "sha256": "667e6296316f620858f3c9656022e8fe0fb39259e7e5f006e442d41fb6205138"
+  },
+  {
+    "repo": "mmp/double-conversion",
+    "revision": "101e1ba89dc41ceb75090831da97c43a76cd2906",
+    "path": "src/ext/double-conversion",
+    "url": "https://codeload.github.com/mmp/double-conversion/tar.gz/101e1ba89dc41ceb75090831da97c43a76cd2906",
+    "sha256": "8fef082a783add67c3ed8c057ba25fa4f8fb436df3aaadc95f7e8a2380a372ef"
+  },
+  {
+    "repo": "nothings/stb",
+    "revision": "af1a5bc352164740c1cc1354942b1c6b72eacb8a",
+    "path": "src/ext/stb",
+    "url": "https://codeload.github.com/nothings/stb/tar.gz/af1a5bc352164740c1cc1354942b1c6b72eacb8a",
+    "sha256": "936b4e506b5f55db178207e528ecdf5a411f67431447767d06c9b7061765cd7e"
+  },
+  {
+    "repo": "AcademySoftwareFoundation/openexr",
+    "revision": "f723c3940fff287c0a26b425b90a8e764823bfd4",
+    "path": "src/ext/openexr",
+    "url": "https://codeload.github.com/AcademySoftwareFoundation/openexr/tar.gz/f723c3940fff287c0a26b425b90a8e764823bfd4",
+    "sha256": "c9c6cf5fa29850d0ca84af668d028b9c888cc39c9b982105e06ba153eb83b0e4"
+  },
+  {
+    "repo": "wjakob/filesystem",
+    "revision": "c5f9de30142453eb3c6fe991e82dfc2583373116",
+    "path": "src/ext/filesystem",
+    "url": "https://codeload.github.com/wjakob/filesystem/tar.gz/c5f9de30142453eb3c6fe991e82dfc2583373116",
+    "sha256": "fa3800b91c49951d0be7396716f6a191b0540c7cdda09b423fe7a421707289a9"
+  },
+  {
+    "repo": "AcademySoftwareFoundation/openvdb",
+    "revision": "414bed84c2fc22e188eac7b611aa85c7edd7a5a9",
+    "path": "src/ext/openvdb",
+    "url": "https://codeload.github.com/AcademySoftwareFoundation/openvdb/tar.gz/414bed84c2fc22e188eac7b611aa85c7edd7a5a9",
+    "sha256": "b05791601b62fe2656d9091198cb15e4b2d41986cbdddf38e0b0c9e8972fada5"
+  },
+  {
+    "repo": "mmp/libdeflate",
+    "revision": "1fd0bea6ca2073c68493632dafc4b1ddda1bcbc3",
+    "path": "src/ext/libdeflate",
+    "url": "https://codeload.github.com/mmp/libdeflate/tar.gz/1fd0bea6ca2073c68493632dafc4b1ddda1bcbc3",
+    "sha256": "d2b36057f4d0022d900fd36d50606a3df64ec244a4521795331ca32fd2f338a8"
+  },
+  {
+    "repo": "lvandeve/lodepng",
+    "revision": "8c6a9e30576f07bf470ad6f09458a2dcd7a6a84a",
+    "path": "src/ext/lodepng",
+    "url": "https://codeload.github.com/lvandeve/lodepng/tar.gz/8c6a9e30576f07bf470ad6f09458a2dcd7a6a84a",
+    "sha256": "f45359be529f5f478ebeb3159859a8f49462df35866e227c12d1440f17451a82"
+  },
+  {
+    "repo": "JuliaStrings/utf8proc",
+    "revision": "d7bf128df773c2a1a7242eb80e51e91a769fc985",
+    "path": "src/ext/utf8proc",
+    "url": "https://codeload.github.com/JuliaStrings/utf8proc/tar.gz/d7bf128df773c2a1a7242eb80e51e91a769fc985",
+    "sha256": "9131e0a9c6fc25b0fe5d164a4e3eef1218bf22db33bd6b10bc43dc252d769afe"
+  },
+  {
+    "repo": "phoboslab/qoi",
+    "revision": "028c75fd26e5e0758c7c711216c00404994c1ad3",
+    "path": "src/ext/qoi",
+    "url": "https://codeload.github.com/phoboslab/qoi/tar.gz/028c75fd26e5e0758c7c711216c00404994c1ad3",
+    "sha256": "b763b9b8e400f4941e96d983fcb8f85c1619a854ae2b0645fe83fd3e93bed590"
+  },
+  {
+    "repo": "glfw/glfw",
+    "revision": "7b6aead9fb88b3623e3b3725ebb42670cbe4c579",
+    "path": "src/ext/glfw",
+    "url": "https://codeload.github.com/glfw/glfw/tar.gz/7b6aead9fb88b3623e3b3725ebb42670cbe4c579",
+    "sha256": "169d49096e339caabbc12e1762273c5cb9130a535a282ba46cf5c14ab6e55694"
+  },
+  {
+    "repo": "madler/zlib",
+    "revision": "5a82f71ed1dfc0bec044d9702463dbdf84ea3b71",
+    "path": "src/ext/zlib",
+    "url": "https://codeload.github.com/madler/zlib/tar.gz/5a82f71ed1dfc0bec044d9702463dbdf84ea3b71",
+    "sha256": "54577b3e64db3d85268e909609faac1410d816376b037a1a415418f87f35814d"
+  },
+  {
+    "repo": "AcademySoftwareFoundation/Imath",
+    "revision": "v3.1.12",
+    "path": "src/ext/imath",
+    "url": "https://codeload.github.com/AcademySoftwareFoundation/Imath/tar.gz/refs/tags/v3.1.12",
+    "sha256": "8a1bc258f3149b5729c2f4f8ffd337c0e57f09096e4ba9784329f40c4a9035da"
+  }
+]

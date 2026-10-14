@@ -1,0 +1,1 @@
+{"version": "1.4", "octreeDir": ".", "boundingBox": {"lx": 0, "ly": 0, "lz": 0, "ux": 10, "uy": 10, "uz": 10}, "tightBoundingBox": {"lx": 0, "ly": 0, "lz": 0, "ux": 10, "uy": 10, "uz": 10}, "pointAttributes": ["POSITION_CARTESIAN", "COLOR_PACKED"], "spacing": 0.15, "scale": 0.001, "hierarchy": [["r", 6400]]}

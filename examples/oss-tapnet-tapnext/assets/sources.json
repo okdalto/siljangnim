@@ -1,0 +1,37 @@
+[
+  {
+    "path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/google-deepmind/tapnet/730cda1c730877cfedbe01bf87fb1cadb78a565d/LICENSE",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "path": "tapnet/__init__.py",
+    "url": "https://raw.githubusercontent.com/google-deepmind/tapnet/730cda1c730877cfedbe01bf87fb1cadb78a565d/tapnet/__init__.py",
+    "sha256": "35b29d7968272465e0f9cbb0d2c1035003ef96b140f4de7516eb85a047ec9ab3"
+  },
+  {
+    "path": "tapnet/torch/__init__.py",
+    "url": "https://raw.githubusercontent.com/google-deepmind/tapnet/730cda1c730877cfedbe01bf87fb1cadb78a565d/tapnet/torch/__init__.py",
+    "sha256": "f7c8d8c66e2f93ac350ce82c03f02152ffc82524cd120ebc944c931b6ea879e1"
+  },
+  {
+    "path": "tapnet/torch/nets.py",
+    "url": "https://raw.githubusercontent.com/google-deepmind/tapnet/730cda1c730877cfedbe01bf87fb1cadb78a565d/tapnet/torch/nets.py",
+    "sha256": "4961a8e4882e8c9ac219c4714f6f2c811cc1ab665a439d4d2e79942002a9517c"
+  },
+  {
+    "path": "tapnet/torch/tapir_model.py",
+    "url": "https://raw.githubusercontent.com/google-deepmind/tapnet/730cda1c730877cfedbe01bf87fb1cadb78a565d/tapnet/torch/tapir_model.py",
+    "sha256": "87c05fb17d48d0f4353a00b67c9d40d3a264e13e43d88e3f7b5829119845e3ba"
+  },
+  {
+    "path": "tapnet/torch/utils.py",
+    "url": "https://raw.githubusercontent.com/google-deepmind/tapnet/730cda1c730877cfedbe01bf87fb1cadb78a565d/tapnet/torch/utils.py",
+    "sha256": "a4267b3a6bd8ecf2dfe5effacab9f7a43664dc5d08966c98f6a0cc68f5ccedd3"
+  },
+  {
+    "path": "tapir_checkpoint_panning.pt",
+    "url": "https://storage.googleapis.com/dm-tapnet/tapir_checkpoint_panning.pt",
+    "sha256": "628611c656b3bd65d4a70fbf5526b62afe82d1b085ce6044685287fb78509daa"
+  }
+]

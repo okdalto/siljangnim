@@ -1,0 +1,24 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "earth.gallery@1",
+      "packages": [
+        "Pillow==11.3.0"
+      ],
+      "inputs": [
+        "capture.html",
+        "runner.cjs",
+        "source.json",
+        "wind.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

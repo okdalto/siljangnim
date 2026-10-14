@@ -1,0 +1,24 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "magenta.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.py",
+        "requirements.txt",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "audio-0.wav",
+        "audio-1.wav",
+        "audio-2.wav",
+        "melody-0.mid",
+        "melody-1.mid",
+        "melody-2.mid",
+        "result.json"
+      ]
+    }
+  ]
+}

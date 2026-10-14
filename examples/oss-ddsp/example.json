@@ -1,0 +1,38 @@
+{
+  "order": 494,
+  "title": "Differentiable harmonic synthesis (DDSP)",
+  "title_ko": "원본 미분 가능한 배음 합성 (DDSP)",
+  "description": "DDSP 3.7.0 synthesizes three harmonic profiles and verifies native TensorFlow energy gradients against their analytical values.",
+  "description_ko": "DDSP 3.7.0 원본으로 세 가지 배음의 소리를 합성하고 TensorFlow가 계산한 에너지 미분값을 해석적 값과 비교했어요.",
+  "prompt": "Differentiable harmonic synthesis. Use the original engine.",
+  "made_with": "DDSP original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "ddsp"
+  ],
+  "summary": "DDSP 3.7.0 synthesizes three harmonic profiles and verifies native TensorFlow energy gradients against their analytical values.",
+  "summary_ko": "DDSP 3.7.0 원본으로 세 가지 배음의 소리를 합성하고 TensorFlow가 계산한 에너지 미분값을 해석적 값과 비교했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "DDSP 3.7.0 synthesizes three harmonic profiles and verifies native TensorFlow energy gradients against their analytical values.",
+  "tool_about_ko": "DDSP 3.7.0 원본으로 세 가지 배음의 소리를 합성하고 TensorFlow가 계산한 에너지 미분값을 해석적 값과 비교했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "DDSP contributors",
+      "url": "https://github.com/magenta/ddsp",
+      "license": "Apache-2.0"
+    }
+  ]
+}

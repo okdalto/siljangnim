@@ -1,0 +1,26 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "unitree-rl-gym.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "numpy==2.2.6",
+        "mujoco==3.3.6",
+        "PyYAML==6.0.3",
+        "Pillow==12.3.0"
+      ],
+      "inputs": [
+        "main.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

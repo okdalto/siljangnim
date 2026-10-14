@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "ddsp.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.py",
+        "requirements.txt",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "audio-0.wav",
+        "audio-1.wav",
+        "audio-2.wav",
+        "result.json"
+      ]
+    }
+  ]
+}

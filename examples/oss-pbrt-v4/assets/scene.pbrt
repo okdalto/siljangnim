@@ -1,0 +1,28 @@
+Film "rgb" "integer xresolution" [384] "integer yresolution" [384] "string filename" ["OUTPUT_IMAGE"]
+Sampler "sobol" "integer pixelsamples" [128]
+Integrator "path" "integer maxdepth" [6]
+PixelFilter "gaussian"
+LookAt 5 -8 4 0 0 1 0 0 1
+Camera "perspective" "float fov" [48] "float lensradius" [LENS_RADIUS] "float focaldistance" [9.5]
+WorldBegin
+LightSource "infinite" "rgb L" [0.12 0.16 0.23]
+LightSource "distant" "rgb L" [3 2.6 2.1] "point3 from" [-3 -4 8] "point3 to" [0 0 0]
+AttributeBegin
+Material "diffuse" "rgb reflectance" [0.28 0.33 0.4]
+Shape "trianglemesh" "point3 P" [-100 -100 0 100 -100 0 100 100 0 -100 100 0] "integer indices" [0 1 2 0 2 3]
+AttributeEnd
+AttributeBegin
+Translate -1.5 -1 0.85
+Material "coateddiffuse" "rgb reflectance" [0.035 0.45 0.38] "float roughness" [0.15]
+Shape "sphere" "float radius" [0.85]
+AttributeEnd
+AttributeBegin
+Translate 0.4 0.4 1
+Material "coateddiffuse" "rgb reflectance" [0.55 0.15 0.05] "float roughness" [0.08]
+Shape "sphere" "float radius" [1]
+AttributeEnd
+AttributeBegin
+Translate 2 2.8 1.2
+Material "coateddiffuse" "rgb reflectance" [0.25 0.08 0.5] "float roughness" [0.1]
+Shape "sphere" "float radius" [1.2]
+AttributeEnd

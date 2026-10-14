@@ -1,0 +1,38 @@
+{
+  "order": 500,
+  "title": "Lens apertures in a native spectral renderer (pbrt-v4)",
+  "title_ko": "원본 분광 렌더러로 비교하는 렌즈 조리개 (pbrt-v4)",
+  "description": "PBRT v4 renders a supplied scene at three lens apertures with its original spectral CPU path tracer and 128 samples per pixel.",
+  "description_ko": "PBRT v4 원본 분광 CPU 경로 추적기로 직접 만든 장면을 세 렌즈 조리개에서 픽셀당 128샘플로 렌더했어요.",
+  "prompt": "Lens apertures in a native spectral renderer. Use the original engine.",
+  "made_with": "pbrt-v4 original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "pbrt-v4"
+  ],
+  "summary": "PBRT v4 renders a supplied scene at three lens apertures with its original spectral CPU path tracer and 128 samples per pixel.",
+  "summary_ko": "PBRT v4 원본 분광 CPU 경로 추적기로 직접 만든 장면을 세 렌즈 조리개에서 픽셀당 128샘플로 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "PBRT v4 renders a supplied scene at three lens apertures with its original spectral CPU path tracer and 128 samples per pixel.",
+  "tool_about_ko": "PBRT v4 원본 분광 CPU 경로 추적기로 직접 만든 장면을 세 렌즈 조리개에서 픽셀당 128샘플로 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "pbrt-v4 contributors",
+      "url": "https://github.com/mmp/pbrt-v4",
+      "license": "Apache-2.0"
+    }
+  ]
+}
