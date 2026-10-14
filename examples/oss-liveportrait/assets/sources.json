@@ -1,0 +1,45 @@
+{
+  "engine": {
+    "repo": "KlingAIResearch/LivePortrait",
+    "revision": "9b294b3d0536135442ea73cb01e6cb3ca7029dd3",
+    "url": "https://codeload.github.com/KlingAIResearch/LivePortrait/tar.gz/9b294b3d0536135442ea73cb01e6cb3ca7029dd3",
+    "sha256": "14db8304a3eb98461ec5c19f95a1b46b996ea7daa9cbbcf113b9139d60e0f3be",
+    "size": 38382251
+  },
+  "model": {
+    "repo": "KlingTeam/LivePortrait",
+    "revision": "82a4fa6735ca58432b6ce39301b4b9ee066dea47",
+    "files": [
+      {
+        "path": "liveportrait/base_models/appearance_feature_extractor.pth",
+        "size": 3387959,
+        "url": "https://huggingface.co/KlingTeam/LivePortrait/resolve/82a4fa6735ca58432b6ce39301b4b9ee066dea47/liveportrait/base_models/appearance_feature_extractor.pth",
+        "sha256": "5279bb8654293dbdf327030b397f107237dd9212fb11dd75b83dfb635211ceb5"
+      },
+      {
+        "path": "liveportrait/base_models/motion_extractor.pth",
+        "size": 112545506,
+        "url": "https://huggingface.co/KlingTeam/LivePortrait/resolve/82a4fa6735ca58432b6ce39301b4b9ee066dea47/liveportrait/base_models/motion_extractor.pth",
+        "sha256": "251e6a94ad667a1d0c69526d292677165110ef7f0cf0f6d199f0e414e8aa0ca5"
+      },
+      {
+        "path": "liveportrait/base_models/spade_generator.pth",
+        "size": 221813590,
+        "url": "https://huggingface.co/KlingTeam/LivePortrait/resolve/82a4fa6735ca58432b6ce39301b4b9ee066dea47/liveportrait/base_models/spade_generator.pth",
+        "sha256": "4780afc7909a9f84e24c01d73b31a555ef651521a1fe3b2429bd04534d992aee"
+      },
+      {
+        "path": "liveportrait/base_models/warping_module.pth",
+        "size": 182180086,
+        "url": "https://huggingface.co/KlingTeam/LivePortrait/resolve/82a4fa6735ca58432b6ce39301b4b9ee066dea47/liveportrait/base_models/warping_module.pth",
+        "sha256": "2f61a6f265fe344f14132364859a78bdbbc2068577170693da57fb96d636e282"
+      },
+      {
+        "path": "liveportrait/retargeting_models/stitching_retargeting_module.pth",
+        "size": 2393098,
+        "url": "https://huggingface.co/KlingTeam/LivePortrait/resolve/82a4fa6735ca58432b6ce39301b4b9ee066dea47/liveportrait/retargeting_models/stitching_retargeting_module.pth",
+        "sha256": "3652d5a3f95099141a56986aaddec92fadf0a73c87a20fac9a2c07c32b28b611"
+      }
+    ]
+  }
+}

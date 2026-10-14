@@ -92,6 +92,14 @@ openFrameworks renders three terrains using its original C++ noise, mesh and Ope
 
 Tidal Cycles uses its original Haskell pattern engine to compute base, double-speed and reversed event times, including a double-reversal check. This example compares timing diagrams rather than synthesizing sound. Rerunning requires GHC.
 
+TripoSR reconstructs geometry and color from an original chair drawing, with three native rendered views and mesh.ply output. Its roughly 1.68 GB model is downloaded on demand and cached. CPU reruns require C++ build tools. Unseen surfaces are model predictions.
+
+LivePortrait synthesizes three head directions from a pre-aligned crop of a public-domain NASA photograph. Outputs are labeled as AI-generated pose variations. Its official models (about 522 MB) download on demand and are cached for CPU reruns. Automatic face detection and driving-video extraction are outside this example.
+
+Stable Audio Tools combines its original DDIM sampler with a public pretrained Harmonai network to produce three short stereo textures. Its roughly 886 MB checkpoint downloads on demand and is cached for CPU reruns. This compares unconditional seeded audio textures, rather than prompt-conditioned music.
+
+ACE-Step 1.5 creates ten-second piano, percussion and synthesizer sketches from text. These recordings come from the original model running on Apple Silicon. Reruns download and cache about 6.34 GB of model files; reserve at least 20 GB of free disk for dependencies and temporary memory swap.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

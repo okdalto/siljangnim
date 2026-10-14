@@ -1,0 +1,33 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "stable-audio-tools.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "torchaudio==2.7.1",
+        "numpy==2.2.6",
+        "diffusers==0.35.1",
+        "huggingface-hub==0.36.0",
+        "safetensors==0.7.0",
+        "accelerate==1.12.0",
+        "torchsde==0.2.6",
+        "scipy==1.16.3",
+        "soundfile==0.13.1",
+        "tqdm==4.67.1",
+        "Pillow==12.3.0"
+      ],
+      "inputs": [
+        "driver.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "audio-0.wav",
+        "audio-1.wav",
+        "audio-2.wav",
+        "result.json"
+      ]
+    }
+  ]
+}

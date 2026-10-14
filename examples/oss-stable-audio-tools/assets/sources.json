@@ -1,0 +1,27 @@
+{
+  "engine": {
+    "repo": "Stability-AI/stable-audio-tools",
+    "revision": "3241adba4fc2a85cf5b29d9eb68d42f40a28e820",
+    "url": "https://codeload.github.com/Stability-AI/stable-audio-tools/tar.gz/3241adba4fc2a85cf5b29d9eb68d42f40a28e820",
+    "sha256": "43f84b9f63f051776c3cf808dd84561abf7785e0d66d603b85d8e44c1a863fdb",
+    "size": 415778
+  },
+  "model": {
+    "repo": "harmonai/jmann-small-190k",
+    "revision": "83caed041e5ac5da22bbf8c66ecbcae8fc594682",
+    "files": [
+      {
+        "path": "unet/config.json",
+        "size": 1065,
+        "url": "https://huggingface.co/harmonai/jmann-small-190k/resolve/83caed041e5ac5da22bbf8c66ecbcae8fc594682/unet/config.json",
+        "sha256": "ffb572db37fc323fe08a009d179ccabe90794d6a2dc897c26e9e00fa2623d90f"
+      },
+      {
+        "path": "unet/diffusion_pytorch_model.bin",
+        "size": 885945253,
+        "url": "https://huggingface.co/harmonai/jmann-small-190k/resolve/83caed041e5ac5da22bbf8c66ecbcae8fc594682/unet/diffusion_pytorch_model.bin",
+        "sha256": "6636c8e3cdb10313eb6bdf868394b3c8ea1ff8fd627439ca1f0e4d75938dac61"
+      }
+    ]
+  }
+}

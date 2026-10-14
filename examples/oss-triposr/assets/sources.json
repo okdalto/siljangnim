@@ -1,0 +1,42 @@
+{
+  "engine": {
+    "repo": "VAST-AI-Research/TripoSR",
+    "revision": "107cefdc244c39106fa830359024f6a2f1c78871",
+    "url": "https://codeload.github.com/VAST-AI-Research/TripoSR/tar.gz/107cefdc244c39106fa830359024f6a2f1c78871",
+    "sha256": "bcb414550dcfcb9f5ea6a7b9c12f2bbff889f5b4a564a493178393360d9034ec",
+    "size": 31241354
+  },
+  "mcubes": {
+    "repo": "tatsy/torchmcubes",
+    "revision": "879926d0ef58e6ce0ac2630fdecb5e53af7ed3ff",
+    "url": "https://codeload.github.com/tatsy/torchmcubes/tar.gz/879926d0ef58e6ce0ac2630fdecb5e53af7ed3ff",
+    "sha256": "ad821f4258b1cc327f75f28fcb289644d1e699007d295eb8ece297cae1dfc59c",
+    "size": 208614
+  },
+  "model": {
+    "repo": "stabilityai/TripoSR",
+    "revision": "5b521936b01fbe1890f6f9baed0254ab6351c04a",
+    "files": [
+      {
+        "path": "config.yaml",
+        "size": 987,
+        "url": "https://huggingface.co/stabilityai/TripoSR/resolve/5b521936b01fbe1890f6f9baed0254ab6351c04a/config.yaml",
+        "sha256": "74ca708ce086bf68e97709ea6b3d91f14717921c04691e84043f0eb8fcc68e62"
+      },
+      {
+        "path": "model.ckpt",
+        "size": 1677246742,
+        "url": "https://huggingface.co/stabilityai/TripoSR/resolve/5b521936b01fbe1890f6f9baed0254ab6351c04a/model.ckpt",
+        "sha256": "429e2c6b22a0923967459de24d67f05962b235f79cde6b032aa7ed2ffcd970ee"
+      }
+    ]
+  },
+  "dino": {
+    "repo": "facebook/dino-vitb16",
+    "revision": "f205d5d8e640a89a2b8ef0369670dfc37cc07fc2",
+    "path": "config.json",
+    "url": "https://huggingface.co/facebook/dino-vitb16/resolve/f205d5d8e640a89a2b8ef0369670dfc37cc07fc2/config.json",
+    "size": 454,
+    "sha256": "b87c0270b97db085fd82cf114a761fd0f62ae7914fbd407c752a2260646b689c"
+  }
+}

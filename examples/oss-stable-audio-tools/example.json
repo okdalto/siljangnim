@@ -1,0 +1,50 @@
+{
+  "order": 517,
+  "title": "Short audio textures from three seeds (Stable Audio Tools)",
+  "title_ko": "세 시드에서 생성한 짧은 소리 (Stable Audio Tools)",
+  "description": "Original Stable Audio Tools DDIM sampling and a pretrained Harmonai network generate three short stereo audio textures on the CPU.",
+  "description_ko": "원본 Stable Audio Tools 샘플러와 Harmonai 학습 모델로 CPU에서 세 가지 짧은 스테레오 소리를 생성합니다.",
+  "prompt": "Short audio textures from three seeds. Use the original engine.",
+  "made_with": "Stable Audio Tools original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "stable-audio-tools"
+  ],
+  "summary": "Original Stable Audio Tools DDIM sampling and a pretrained Harmonai network generate three short stereo audio textures on the CPU.",
+  "summary_ko": "원본 Stable Audio Tools 샘플러와 Harmonai 학습 모델로 CPU에서 세 가지 짧은 스테레오 소리를 생성합니다.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original Stable Audio Tools DDIM sampling and a pretrained Harmonai network generate three short stereo audio textures on the CPU.",
+  "tool_about_ko": "원본 Stable Audio Tools 샘플러와 Harmonai 학습 모델로 CPU에서 세 가지 짧은 스테레오 소리를 생성합니다.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Stable Audio Tools contributors",
+      "url": "https://github.com/stability-ai/stable-audio-tools",
+      "license": "MIT code / weight terms separate"
+    },
+    {
+      "what": "Original pretrained Dance Diffusion model",
+      "source": "Harmonai contributors",
+      "url": "https://huggingface.co/harmonai/jmann-small-190k/tree/83caed041e5ac5da22bbf8c66ecbcae8fc594682",
+      "license": "MIT"
+    },
+    {
+      "what": "Original UNet1DModel inference implementation",
+      "source": "Hugging Face Diffusers contributors",
+      "url": "https://github.com/huggingface/diffusers/tree/v0.35.1",
+      "license": "Apache-2.0"
+    }
+  ]
+}

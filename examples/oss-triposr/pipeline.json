@@ -1,0 +1,47 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "triposr.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "torchvision==0.22.1",
+        "numpy==1.26.4",
+        "omegaconf==2.3.0",
+        "Pillow==10.1.0",
+        "einops==0.7.0",
+        "transformers==4.35.0",
+        "trimesh==4.0.5",
+        "rembg==2.0.57",
+        "huggingface-hub==0.17.3",
+        "imageio==2.37.0",
+        "imageio-ffmpeg==0.6.0",
+        "onnxruntime==1.23.2",
+        "opencv-python-headless==4.10.0.84",
+        "scipy==1.16.3",
+        "scikit-image==0.24.0",
+        "pybind11==2.13.6",
+        "cmake==4.0.3",
+        "ninja==1.11.1.4",
+        "setuptools==80.9.0"
+      ],
+      "inputs": [
+        "chair.png",
+        "driver.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "mesh.ply",
+        "native-0.png",
+        "native-1.png",
+        "native-2.png",
+        "preprocessed.png",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

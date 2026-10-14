@@ -1,0 +1,56 @@
+{
+  "order": 515,
+  "title": "A chair reconstructed from one drawing (TripoSR)",
+  "title_ko": "의자 그림 한 장에서 복원한 입체 (TripoSR)",
+  "description": "Original TripoSR reconstructs a colored 3D chair from a supplied drawing, with CPU radiance rendering and native mesh extraction.",
+  "description_ko": "직접 만든 의자 그림 한 장을 원본 TripoSR에 넣어 CPU에서 입체를 복원하고 여러 방향의 영상과 메시를 얻었어요.",
+  "prompt": "A chair reconstructed from one drawing. Use the original engine.",
+  "made_with": "TripoSR original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "triposr"
+  ],
+  "summary": "Original TripoSR reconstructs a colored 3D chair from a supplied drawing, with CPU radiance rendering and native mesh extraction.",
+  "summary_ko": "직접 만든 의자 그림 한 장을 원본 TripoSR에 넣어 CPU에서 입체를 복원하고 여러 방향의 영상과 메시를 얻었어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original TripoSR reconstructs a colored 3D chair from a supplied drawing, with CPU radiance rendering and native mesh extraction.",
+  "tool_about_ko": "직접 만든 의자 그림 한 장을 원본 TripoSR에 넣어 CPU에서 입체를 복원하고 여러 방향의 영상과 메시를 얻었어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "TripoSR contributors",
+      "url": "https://github.com/vast-ai-research/triposr",
+      "license": "MIT"
+    },
+    {
+      "what": "Official TripoSR pretrained checkpoint",
+      "source": "TripoSR contributors",
+      "url": "https://huggingface.co/stabilityai/TripoSR/tree/5b521936b01fbe1890f6f9baed0254ab6351c04a",
+      "license": "MIT"
+    },
+    {
+      "what": "Original CPU marching cubes extension",
+      "source": "Tatsuya Yatagawa and contributors",
+      "url": "https://github.com/tatsy/torchmcubes/tree/879926d0ef58e6ce0ac2630fdecb5e53af7ed3ff",
+      "license": "MPL-2.0"
+    },
+    {
+      "what": "DINO architecture configuration",
+      "source": "Meta AI",
+      "url": "https://huggingface.co/facebook/dino-vitb16/tree/f205d5d8e640a89a2b8ef0369670dfc37cc07fc2",
+      "license": "Apache-2.0"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "engine": "LivePortrait",
+  "device": "CPU",
+  "featureShape": [
+    1,
+    32,
+    16,
+    64,
+    64
+  ],
+  "meanPixelChanges": [
+    16.768957138061523,
+    16.152318954467773
+  ],
+  "inputSha256": "0fdacbcb78ec9c6d67a349a335fe4e130fb61b9ad582d00ae2a67a65e8fa2872",
+  "frames": [
+    {
+      "yawOffset": -12,
+      "yaw": -12.177993774414062,
+      "keypoints": 21,
+      "outputSize": [
+        512,
+        512
+      ]
+    },
+    {
+      "yawOffset": 0,
+      "yaw": -0.1779937744140625,
+      "keypoints": 21,
+      "outputSize": [
+        512,
+        512
+      ]
+    },
+    {
+      "yawOffset": 12,
+      "yaw": 11.822006225585938,
+      "keypoints": 21,
+      "outputSize": [
+        512,
+        512
+      ]
+    }
+  ]
+}

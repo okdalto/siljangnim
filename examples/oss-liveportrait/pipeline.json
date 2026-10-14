@@ -1,0 +1,32 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "liveportrait.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "numpy==1.26.4",
+        "opencv-python-headless==4.10.0.84",
+        "scipy==1.16.3",
+        "PyYAML==6.0.2",
+        "rich==13.7.1",
+        "Pillow==12.3.0"
+      ],
+      "inputs": [
+        "driver.py",
+        "portrait.png",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "native-0.png",
+        "native-1.png",
+        "native-2.png",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

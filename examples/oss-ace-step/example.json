@@ -1,0 +1,50 @@
+{
+  "order": 518,
+  "title": "Ten-second instrumental sketches from text (ACE-Step 1.5)",
+  "title_ko": "문장에서 생성한 10초 연주 (ACE-Step 1.5)",
+  "description": "Original ACE-Step 1.5 Turbo generates piano, percussion and synthesizer sketches from text on Apple Silicon.",
+  "description_ko": "원본 ACE-Step 1.5 Turbo 모델이 이 Mac에서 문장을 읽고 피아노·타악기·신시사이저 연주를 각각 10초씩 생성합니다.",
+  "prompt": "Ten-second instrumental sketches from text. Use the original engine.",
+  "made_with": "ACE-Step 1.5 original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "ace-step"
+  ],
+  "summary": "Original ACE-Step 1.5 Turbo generates piano, percussion and synthesizer sketches from text on Apple Silicon.",
+  "summary_ko": "원본 ACE-Step 1.5 Turbo 모델이 이 Mac에서 문장을 읽고 피아노·타악기·신시사이저 연주를 각각 10초씩 생성합니다.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original ACE-Step 1.5 Turbo generates piano, percussion and synthesizer sketches from text on Apple Silicon.",
+  "tool_about_ko": "원본 ACE-Step 1.5 Turbo 모델이 이 Mac에서 문장을 읽고 피아노·타악기·신시사이저 연주를 각각 10초씩 생성합니다.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "ACE-Step 1.5 contributors",
+      "url": "https://github.com/ace-step/ACE-Step-1.5",
+      "license": "MIT"
+    },
+    {
+      "what": "Official ACE-Step 1.5 Turbo and VAE checkpoints",
+      "source": "ACE-Step contributors",
+      "url": "https://huggingface.co/ACE-Step/Ace-Step1.5/tree/19671f406d603126926c1b7e2adc169acbcade22",
+      "license": "MIT"
+    },
+    {
+      "what": "Original Qwen3-Embedding-0.6B text encoder (identical checkpoint bytes)",
+      "source": "Alibaba Qwen team",
+      "url": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B",
+      "license": "Apache-2.0"
+    }
+  ]
+}

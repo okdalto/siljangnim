@@ -1,0 +1,50 @@
+{
+  "order": 516,
+  "title": "Changing a portrait’s head direction (LivePortrait)",
+  "title_ko": "사진 속 얼굴의 방향 바꾸기 (LivePortrait)",
+  "description": "Original LivePortrait predicts face features and keypoints, then synthesizes three head directions on the local CPU.",
+  "description_ko": "원본 LivePortrait가 얼굴 특징과 키포인트를 추론하고 CPU에서 세 방향의 얼굴 이미지를 직접 생성합니다.",
+  "prompt": "Changing a portrait’s head direction. Use the original engine.",
+  "made_with": "LivePortrait original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "liveportrait"
+  ],
+  "summary": "Original LivePortrait predicts face features and keypoints, then synthesizes three head directions on the local CPU.",
+  "summary_ko": "원본 LivePortrait가 얼굴 특징과 키포인트를 추론하고 CPU에서 세 방향의 얼굴 이미지를 직접 생성합니다.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original LivePortrait predicts face features and keypoints, then synthesizes three head directions on the local CPU.",
+  "tool_about_ko": "원본 LivePortrait가 얼굴 특징과 키포인트를 추론하고 CPU에서 세 방향의 얼굴 이미지를 직접 생성합니다.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "LivePortrait contributors",
+      "url": "https://github.com/klingairesearch/liveportrait",
+      "license": "MIT code / dependent models separate"
+    },
+    {
+      "what": "Official human model checkpoints",
+      "source": "KlingTeam",
+      "url": "https://huggingface.co/KlingTeam/LivePortrait/tree/82a4fa6735ca58432b6ce39301b4b9ee066dea47",
+      "license": "MIT"
+    },
+    {
+      "what": "Cropped input photograph from the NASA Great Images collection, distributed by scikit-image",
+      "source": "NASA",
+      "url": "https://flic.kr/p/r9qvLn",
+      "license": "Public domain"
+    }
+  ]
+}

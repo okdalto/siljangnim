@@ -15,6 +15,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Tool | License | Source | Examples | How it is used |
 |---|---|---|---|---|
 | 3D Force Graph (index.opensource #307) | MIT | [github.com/vasturiano/3d-force-graph](https://github.com/vasturiano/3d-force-graph) | [oss-3d-force-graph](examples/oss-3d-force-graph/) | fetched from a CDN by the scene at run time (not bundled) |
+| ACE-Step 1.5 | MIT | [github.com/ace-step/ACE-Step-1.5](https://github.com/ace-step/ACE-Step-1.5) | [oss-ace-step](examples/oss-ace-step/) | installed with pip on the person's computer by a recipe (not bundled) |
 | adaptive-bezier-curve (index.opensource #21) | BSD-3-Clause | [github.com/mattdesl/adaptive-bezier-curve](https://github.com/mattdesl/adaptive-bezier-curve) | [oss-adaptive-bezier-curve](examples/oss-adaptive-bezier-curve/) | fetched from a CDN by the scene at run time (not bundled) |
 | alpha-shape (index.opensource #36) | MIT | [github.com/mikolalysenko/alpha-shape](https://github.com/mikolalysenko/alpha-shape) | [oss-alpha-shape](examples/oss-alpha-shape/) | fetched from a CDN by the scene at run time (not bundled) |
 | animal-proc-anim (index.opensource #240) | MIT | [github.com/argonautcode/animal-proc-anim](https://github.com/argonautcode/animal-proc-anim) | [oss-animal-proc-anim](examples/oss-animal-proc-anim/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -200,6 +201,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | libvips (index.opensource #224) | LGPL-2.1-or-later | [github.com/libvips/libvips](https://github.com/libvips/libvips) | [oss-libvips](examples/oss-libvips/) | installed with pip on the person's computer by a recipe (not bundled) |
 | lindenmayer (index.opensource #118) | MIT | [github.com/nylki/lindenmayer](https://github.com/nylki/lindenmayer) | [oss-lindenmayer](examples/oss-lindenmayer/) | fetched from a CDN by the scene at run time (not bundled) |
 | LineIntegralConvolutions (index.opensource #194) | MIT | [github.com/astrokriel/lineintegralconvolutions](https://github.com/astrokriel/lineintegralconvolutions) | [oss-lineintegralconvolutions](examples/oss-lineintegralconvolutions/) | installed with pip on the person's computer by a recipe (not bundled) |
+| LivePortrait (index.opensource #276) | MIT code / dependent models separate | [github.com/klingairesearch/liveportrait](https://github.com/klingairesearch/liveportrait) | [oss-liveportrait](examples/oss-liveportrait/) | installed with pip on the person's computer by a recipe (not bundled) |
 | ln (index.opensource #5) | MIT | [github.com/fogleman/ln](https://github.com/fogleman/ln) | [oss-ln](examples/oss-ln/) | an installed program, run by a recipe (not bundled) |
 | Lottie Web (index.opensource #255) | MIT | [github.com/airbnb/lottie-web](https://github.com/airbnb/lottie-web) | [oss-lottie-web](examples/oss-lottie-web/) | fetched from a CDN by the scene at run time (not bundled) |
 | LuxCoreRender (index.opensource #145) | Apache-2.0 | [github.com/luxcorerender/luxcore](https://github.com/luxcorerender/luxcore) | [oss-luxcorerender](examples/oss-luxcorerender/) | installed with pip on the person's computer by a recipe (not bundled) |
@@ -345,6 +347,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | spectral.js (index.opensource #142) | MIT | [github.com/rvanwijnen/spectral.js](https://github.com/rvanwijnen/spectral.js) | [oss-spectral](examples/oss-spectral/) | fetched from a CDN by the scene at run time (not bundled) |
 | SPlisHSPlasH (index.opensource #159) | MIT | [github.com/interactivecomputergraphics/splishsplash](https://github.com/interactivecomputergraphics/splishsplash) | [oss-splishsplash](examples/oss-splishsplash/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Spring-It-On (index.opensource #166) | MIT | [github.com/orangeduck/spring-it-on](https://github.com/orangeduck/spring-it-on) | [oss-spring-it-on](examples/oss-spring-it-on/) | an installed program, run by a recipe (not bundled) |
+| Stable Audio Tools (index.opensource #283) | MIT code / weight terms separate | [github.com/stability-ai/stable-audio-tools](https://github.com/stability-ai/stable-audio-tools) | [oss-stable-audio-tools](examples/oss-stable-audio-tools/) | installed with pip on the person's computer by a recipe (not bundled) |
 | StippleGen (index.opensource #175) | LGPL-2.1-or-later | [github.com/evil-mad/stipplegen](https://github.com/evil-mad/stipplegen) | [oss-stipplegen](examples/oss-stipplegen/) | an installed program, run by a recipe (not bundled) |
 | streamlines (index.opensource #8) | MIT | [github.com/anvaka/streamlines](https://github.com/anvaka/streamlines) | [oss-streamlines](examples/oss-streamlines/) | fetched from a CDN by the scene at run time (not bundled) |
 | SunCalc (index.opensource #315) | BSD-2-Clause | [github.com/mourner/suncalc](https://github.com/mourner/suncalc) | [oss-suncalc](examples/oss-suncalc/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -379,6 +382,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Triangula (index.opensource #179) | MIT | [github.com/rh12503/triangula](https://github.com/rh12503/triangula) | [oss-triangula](examples/oss-triangula/) | an installed program, run by a recipe (not bundled) |
 | triangulate-image (index.opensource #209) | MIT | [github.com/snorpey/triangulate-image](https://github.com/snorpey/triangulate-image) | [oss-triangulate-image](examples/oss-triangulate-image/) | an installed program, run by a recipe (not bundled) |
 | trimesh (index.opensource #92) | MIT | [github.com/mikedh/trimesh](https://github.com/mikedh/trimesh) | [torus-knot](examples/torus-knot/), [oss-gltf-transform](examples/oss-gltf-transform/) | installed with pip on the person's computer by a recipe (not bundled) |
+| TripoSR (index.opensource #267) | MIT | [github.com/vast-ai-research/triposr](https://github.com/vast-ai-research/triposr) | [oss-triposr](examples/oss-triposr/) | installed with pip on the person's computer by a recipe (not bundled) |
 | truck (index.opensource #94) | Apache-2.0 | [github.com/ricosjp/truck](https://github.com/ricosjp/truck) | [oss-truck](examples/oss-truck/) | an installed program, run by a recipe (not bundled) |
 | Turing Patterns (index.opensource #170) | MIT | [github.com/ijmbarr/turing-patterns](https://github.com/ijmbarr/turing-patterns) | [oss-turing-patterns](examples/oss-turing-patterns/) | installed with pip on the person's computer by a recipe (not bundled) |
 | tween.js (index.opensource #253) | MIT | [github.com/tweenjs/tween.js](https://github.com/tweenjs/tween.js) | [oss-tween-js](examples/oss-tween-js/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -656,6 +660,19 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Original engine | [Tidal Cycles contributors](https://github.com/tidalcycles/tidal) | GPL-3.0 | [oss-tidal-cycles](examples/oss-tidal-cycles/) |
 | Original Haskell pattern engine | [TidalCycles contributors](https://hackage.haskell.org/package/tidal-core-1.10.0) | GPL-3.0 | [oss-tidal-cycles](examples/oss-tidal-cycles/) |
 | Original colour dependency | [Russell O’Connor](https://hackage.haskell.org/package/colour-2.3.6) | MIT | [oss-tidal-cycles](examples/oss-tidal-cycles/) |
+| Original engine | [TripoSR contributors](https://github.com/vast-ai-research/triposr) | MIT | [oss-triposr](examples/oss-triposr/) |
+| Official TripoSR pretrained checkpoint | [TripoSR contributors](https://huggingface.co/stabilityai/TripoSR/tree/5b521936b01fbe1890f6f9baed0254ab6351c04a) | MIT | [oss-triposr](examples/oss-triposr/) |
+| Original CPU marching cubes extension | [Tatsuya Yatagawa and contributors](https://github.com/tatsy/torchmcubes/tree/879926d0ef58e6ce0ac2630fdecb5e53af7ed3ff) | MPL-2.0 | [oss-triposr](examples/oss-triposr/) |
+| DINO architecture configuration | [Meta AI](https://huggingface.co/facebook/dino-vitb16/tree/f205d5d8e640a89a2b8ef0369670dfc37cc07fc2) | Apache-2.0 | [oss-triposr](examples/oss-triposr/) |
+| Original engine | [LivePortrait contributors](https://github.com/klingairesearch/liveportrait) | MIT code / dependent models separate | [oss-liveportrait](examples/oss-liveportrait/) |
+| Official human model checkpoints | [KlingTeam](https://huggingface.co/KlingTeam/LivePortrait/tree/82a4fa6735ca58432b6ce39301b4b9ee066dea47) | MIT | [oss-liveportrait](examples/oss-liveportrait/) |
+| Cropped input photograph from the NASA Great Images collection, distributed by scikit-image | [NASA](https://flic.kr/p/r9qvLn) | Public domain | [oss-liveportrait](examples/oss-liveportrait/) |
+| Original engine | [Stable Audio Tools contributors](https://github.com/stability-ai/stable-audio-tools) | MIT code / weight terms separate | [oss-stable-audio-tools](examples/oss-stable-audio-tools/) |
+| Original pretrained Dance Diffusion model | [Harmonai contributors](https://huggingface.co/harmonai/jmann-small-190k/tree/83caed041e5ac5da22bbf8c66ecbcae8fc594682) | MIT | [oss-stable-audio-tools](examples/oss-stable-audio-tools/) |
+| Original UNet1DModel inference implementation | [Hugging Face Diffusers contributors](https://github.com/huggingface/diffusers/tree/v0.35.1) | Apache-2.0 | [oss-stable-audio-tools](examples/oss-stable-audio-tools/) |
+| Original engine | [ACE-Step 1.5 contributors](https://github.com/ace-step/ACE-Step-1.5) | MIT | [oss-ace-step](examples/oss-ace-step/) |
+| Official ACE-Step 1.5 Turbo and VAE checkpoints | [ACE-Step contributors](https://huggingface.co/ACE-Step/Ace-Step1.5/tree/19671f406d603126926c1b7e2adc169acbcade22) | MIT | [oss-ace-step](examples/oss-ace-step/) |
+| Original Qwen3-Embedding-0.6B text encoder (identical checkpoint bytes) | [Alibaba Qwen team](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B) | Apache-2.0 | [oss-ace-step](examples/oss-ace-step/) |
 
 ## Studio (the app's web code): bundled npm packages
 

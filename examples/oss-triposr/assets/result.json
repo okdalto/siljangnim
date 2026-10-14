@@ -1,0 +1,41 @@
+{
+  "engine": "TripoSR",
+  "device": "CPU",
+  "sceneCodeShape": [
+    1,
+    3,
+    40,
+    64,
+    64
+  ],
+  "sceneCodeMean": 0.4906959533691406,
+  "frames": [
+    {
+      "azimuth": 0,
+      "vertices": 5812,
+      "triangles": 11528,
+      "nativeSize": [
+        160,
+        160
+      ]
+    },
+    {
+      "azimuth": 90,
+      "vertices": 5812,
+      "triangles": 11528,
+      "nativeSize": [
+        160,
+        160
+      ]
+    },
+    {
+      "azimuth": 180,
+      "vertices": 5812,
+      "triangles": 11528,
+      "nativeSize": [
+        160,
+        160
+      ]
+    }
+  ]
+}

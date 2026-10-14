@@ -2,6 +2,19 @@
   "version": 1,
   "recipes": [
     {
+      "id": "ace-step.gallery",
+      "version": 1,
+      "title": "Ten-second instrumental sketches from text",
+      "capability": "ace-step graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ace-step.gallery/recipe.md",
+      "sha256": "fbea1803ef0ccd73892238556cdcc2ded83b8fca235ba0db743a044226dbad87"
+    },
+    {
       "id": "appleseed.gallery",
       "version": 1,
       "title": "Three light rigs in a native CPU renderer",
@@ -1185,6 +1198,19 @@
       "sha256": "4aa3f421d218f26ddb27ed4cbb7ef4a901457330320bb58ee1952caea562dbea"
     },
     {
+      "id": "liveportrait.gallery",
+      "version": 1,
+      "title": "Changing a portrait’s head direction",
+      "capability": "liveportrait graphics",
+      "kind": "python",
+      "license": "MIT code / dependent models separate",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/liveportrait.gallery/recipe.md",
+      "sha256": "512eec6020644ac49734036b883223cbcb38ad86bd43a84a301103f07af2cf65"
+    },
+    {
       "id": "ln.gallery",
       "version": 1,
       "title": "Hidden lines around solids",
@@ -2303,6 +2329,19 @@
       "sha256": "978a54acf728c82523d375d65d7de4e430f003ed6793815d56450ef2e755a5c5"
     },
     {
+      "id": "stable-audio-tools.gallery",
+      "version": 1,
+      "title": "Short audio textures from three seeds",
+      "capability": "stable-audio-tools graphics",
+      "kind": "python",
+      "license": "MIT code / weight terms separate",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/stable-audio-tools.gallery/recipe.md",
+      "sha256": "158573a342e9ccdba54f607eb55675929874818dd309be43c6424d0592e2b85f"
+    },
+    {
       "id": "stipplegen.gallery",
       "version": 1,
       "title": "Weighted Lloyd relaxation in Processing",
@@ -2600,6 +2639,19 @@
       ],
       "path": "recipes/trimesh.torus-knot/recipe.md",
       "sha256": "efc3e9d676e1f16e23dba75cb7c6b119cdd528d344088e5911379e15466e1cc7"
+    },
+    {
+      "id": "triposr.gallery",
+      "version": 1,
+      "title": "A chair reconstructed from one drawing",
+      "capability": "triposr graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/triposr.gallery/recipe.md",
+      "sha256": "df48b8ab81f93d7b1ccd1d78c3daaad49a8b323e141a76e59b9f72ca91e3c069"
     },
     {
       "id": "truck.gallery",
