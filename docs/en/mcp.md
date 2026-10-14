@@ -86,6 +86,10 @@ You can change these with environment variables (put them in `env` in the MCP se
   47823 and restart.
 - **The first Python tool takes a long time** — the first time, uv and Python are downloaded into `~/.siljangnim/runtime/`.
 - **A new version isn't picked up** — check that your settings say `siljangnim-mcp@latest`.
+- **Recordings stop arriving after the first one** — browsers block repeated automatic downloads from the same page.
+  Click the viewer window once or allow multiple downloads for it. Recordings are saved as project assets either way.
+- **Several viewer windows open** — each start of the server opens a new window, and earlier windows don't reconnect.
+  Don't let the agent restart the server; you can close the stale windows.
 
 ## Security
 

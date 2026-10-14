@@ -164,7 +164,7 @@ const viewportCapture = defineTool({
 const viewportRecord = defineTool({
   name: "viewport_record",
   description:
-    "Record the scene to a file saved as a project asset (and downloaded for the person): MP4 or WebM video, or PNG frames " +
+    "Record the scene to a file saved as a project asset (the viewer also starts a browser download, which a browser may block when it is not the first from this page): MP4 or WebM video, or PNG frames " +
     "in a zip. Offline mode renders frame by frame from the start at exact timestamps (smooth at any size); realtime mode " +
     "captures what plays, including the person's interaction (WebM only). Duration defaults to the timeline length, or 5 s. " +
     "Audio the scene plays out loud (ctx.utils.audio.play) goes in as the soundtrack, from the scene's start, and offline " +
@@ -186,7 +186,7 @@ const viewportRecord = defineTool({
     const saved = await env.scene.record({ ...input, format, duration });
     const mb = (saved.bytes / 1024 / 1024).toFixed(1);
     const sound = saved.audio ? " with the scene's soundtrack" : "";
-    return { content: `Recorded ${saved.frames} frames at ${saved.width}x${saved.height} (${duration}s, ${input.fps} fps)${sound} to ${saved.asset} (${mb} MB). It is a project asset and was downloaded for the person.` };
+    return { content: `Recorded ${saved.frames} frames at ${saved.width}x${saved.height} (${duration}s, ${input.fps} fps)${sound} to ${saved.asset} (${mb} MB). It is saved as a project asset, and a browser download was started for the person; browsers can block repeated automatic downloads from the same page, so if they don't see the file, ask them to allow downloads for the viewer.` };
   },
 });
 

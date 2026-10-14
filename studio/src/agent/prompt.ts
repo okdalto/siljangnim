@@ -144,5 +144,9 @@ export const MCP_INSTRUCTIONS =
 
 Changes you make are saved as versions in the viewer's History. When the person wants an earlier result back, use history_list and history_restore instead of rewriting the scene from memory.
 
+Keep working in the one viewer that is open: scene_write and scene_edit update it in place, and the person watches that window. Don't restart this MCP server or start a second one (for example on another SILJANGNIM_PORT) to refresh the view or to work around a problem. Every start opens another viewer window with a new session token; the old window can't reconnect, and a different port also hides the earlier projects, which live in that address's browser storage. If the person closed the window, call viewer_open.
+
+Check your work with viewport_capture, not recordings. Record (viewport_record) only when the person wants a file. A recording is always saved as a project asset, and the viewer also starts a browser download; browsers block repeated automatic downloads from the same page until the person interacts with it or allows them, and the tool can't tell. So don't promise that the file is in their Downloads folder: name the asset, and if they don't see the file, ask them to allow downloads for the viewer instead of restarting anything.
+
 ` +
   SANDBOX_NOTE;
