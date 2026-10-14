@@ -64,6 +64,10 @@ Requires Python 3.12. Original MT3, compatible T5X, JEstimator and T5 code and t
 
 공식 모델 약 172MB를 필요할 때 받아 캐시합니다. 직접 만든 3.2초 소리 세 개와 원본 모델이 추정한 MIDI를 비교합니다. 음높이 집합의 재현율은 100%·100%·75%였으며, 끝나는 시각과 악기 추정에는 오차가 있습니다. 추정 음표를 수동으로 고치지 않았으며 합주 음원의 성능을 검증한 예제는 아닙니다.
 
+For the first download or native build, call `recipe_run` with `timeout_s: 1800`. If a slow connection exceeds that limit, rerun to reuse completed cache files.
+
+첫 다운로드·컴파일에는 최대 30분의 실행 시간을 지정하세요. 연결이 느려 제한 시간을 넘겼다면 다시 실행해 완료된 캐시 파일을 재사용할 수 있습니다.
+
 ## Run
 
 ```python

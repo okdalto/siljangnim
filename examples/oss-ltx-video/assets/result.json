@@ -1,0 +1,103 @@
+{
+  "engine": "Original LTX-Video causal VAE",
+  "device": "CPU",
+  "dtype": "float32",
+  "seed": 17,
+  "resolution": 128,
+  "inputFrames": 17,
+  "reconstructionMSE": 0.000785552272003933,
+  "latentShape": [
+    1,
+    128,
+    3,
+    4,
+    4
+  ],
+  "frames": [
+    {
+      "image": "render-0.png",
+      "frame": 0,
+      "loss": 0.0005011847531598423
+    },
+    {
+      "image": "render-1.png",
+      "frame": 1,
+      "loss": 0.0006341060729847494
+    },
+    {
+      "image": "render-2.png",
+      "frame": 2,
+      "loss": 0.0005348894881175509
+    },
+    {
+      "image": "render-3.png",
+      "frame": 3,
+      "loss": 0.0005907943434216007
+    },
+    {
+      "image": "render-4.png",
+      "frame": 4,
+      "loss": 0.0005786173486960144
+    },
+    {
+      "image": "render-5.png",
+      "frame": 5,
+      "loss": 0.000727127624691625
+    },
+    {
+      "image": "render-6.png",
+      "frame": 6,
+      "loss": 0.0008479536115916954
+    },
+    {
+      "image": "render-7.png",
+      "frame": 7,
+      "loss": 0.00082437243688325
+    },
+    {
+      "image": "render-8.png",
+      "frame": 8,
+      "loss": 0.0007852307781262014
+    },
+    {
+      "image": "render-9.png",
+      "frame": 9,
+      "loss": 0.0007460243531133858
+    },
+    {
+      "image": "render-10.png",
+      "frame": 10,
+      "loss": 0.0007058993110622517
+    },
+    {
+      "image": "render-11.png",
+      "frame": 11,
+      "loss": 0.0006849263078903947
+    },
+    {
+      "image": "render-12.png",
+      "frame": 12,
+      "loss": 0.0005092589463787966
+    },
+    {
+      "image": "render-13.png",
+      "frame": 13,
+      "loss": 0.0005819335687195631
+    },
+    {
+      "image": "render-14.png",
+      "frame": 14,
+      "loss": 0.0006592416378316032
+    },
+    {
+      "image": "render-15.png",
+      "frame": 15,
+      "loss": 0.0010918182760236447
+    },
+    {
+      "image": "render-16.png",
+      "frame": 16,
+      "loss": 0.0023510097653746957
+    }
+  ]
+}

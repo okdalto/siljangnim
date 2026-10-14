@@ -50,6 +50,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | circlify (index.opensource #56) | MIT | [github.com/elmotec/circlify](https://github.com/elmotec/circlify) | [oss-circlify](examples/oss-circlify/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Clipper2 (index.opensource #11) | BSL-1.0 | [github.com/angusjohnson/clipper2](https://github.com/angusjohnson/clipper2) | [oss-clipper2-native](examples/oss-clipper2-native/) | an installed program, run by a recipe (not bundled) |
 | Clipper2 (clipper2-ts) | BSL-1.0 | [github.com/countertype/clipper2-ts](https://github.com/countertype/clipper2-ts) | [oss-clipper2](examples/oss-clipper2/) | fetched from a CDN by the scene at run time (not bundled) |
+| CogVideoX (index.opensource #280) | Code · 2B Apache-2.0 / 5B separate | [github.com/zai-org/cogvideo](https://github.com/zai-org/cogvideo) | [oss-cogvideox](examples/oss-cogvideox/) | installed with pip on the person's computer by a recipe (not bundled) |
 | COLMAP (index.opensource #358) | BSD-3-Clause | [github.com/colmap/colmap](https://github.com/colmap/colmap) | [oss-colmap](examples/oss-colmap/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Color.js (index.opensource #186) | MIT | [github.com/color-js/color.js](https://github.com/color-js/color.js) | [oss-color-js](examples/oss-color-js/) | fetched from a CDN by the scene at run time (not bundled) |
 | ComfyUI (index.opensource #344) | GPL-3.0 | [github.com/comfy-org/comfyui](https://github.com/comfy-org/comfyui) | [oss-comfyui](examples/oss-comfyui/) | installed with pip on the person's computer by a recipe (not bundled) |
@@ -204,6 +205,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | LivePortrait (index.opensource #276) | MIT code / dependent models separate | [github.com/klingairesearch/liveportrait](https://github.com/klingairesearch/liveportrait) | [oss-liveportrait](examples/oss-liveportrait/) | installed with pip on the person's computer by a recipe (not bundled) |
 | ln (index.opensource #5) | MIT | [github.com/fogleman/ln](https://github.com/fogleman/ln) | [oss-ln](examples/oss-ln/) | an installed program, run by a recipe (not bundled) |
 | Lottie Web (index.opensource #255) | MIT | [github.com/airbnb/lottie-web](https://github.com/airbnb/lottie-web) | [oss-lottie-web](examples/oss-lottie-web/) | fetched from a CDN by the scene at run time (not bundled) |
+| LTX-Video (index.opensource #279) | Apache-2.0 code / weights separate | [github.com/lightricks/ltx-video](https://github.com/lightricks/ltx-video) | [oss-ltx-video](examples/oss-ltx-video/) | installed with pip on the person's computer by a recipe (not bundled) |
 | LuxCoreRender (index.opensource #145) | Apache-2.0 | [github.com/luxcorerender/luxcore](https://github.com/luxcorerender/luxcore) | [oss-luxcorerender](examples/oss-luxcorerender/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Lyon (index.opensource #38) | MIT OR Apache-2.0 OR MPL-2.0 | [github.com/nical/lyon](https://github.com/nical/lyon) | [oss-lyon](examples/oss-lyon/) | an installed program, run by a recipe (not bundled) |
 | Magenta (index.opensource #284) | Apache-2.0 | [github.com/magenta/magenta](https://github.com/magenta/magenta) | [oss-magenta](examples/oss-magenta/) | an installed program, run by a recipe (not bundled) |
@@ -690,6 +692,11 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Official public MT3 pretrained checkpoint (downloaded only on recipe execution) | [Magenta contributors](https://github.com/magenta/mt3) | Not separately specified for checkpoint | [oss-mt3](examples/oss-mt3/) |
 | Original engine | [Nerfstudio contributors](https://github.com/nerfstudio-project/nerfstudio) | Apache-2.0 | [oss-nerfstudio](examples/oss-nerfstudio/) |
 | AlexNet metric weights loaded by original model constructor | [Torchvision contributors](https://github.com/pytorch/vision/tree/v0.22.1) | BSD-3-Clause | [oss-nerfstudio](examples/oss-nerfstudio/) |
+| Original engine | [CogVideoX contributors](https://github.com/zai-org/cogvideo) | Code · 2B Apache-2.0 / 5B separate | [oss-cogvideox](examples/oss-cogvideox/) |
+| Official CogVideoX-2B causal video VAE checkpoint | [CogVideoX contributors](https://huggingface.co/THUDM/CogVideoX-2b/tree/1137dacfc2c9c012bed6a0793f4ecf2ca8e7ba01) | Apache-2.0 | [oss-cogvideox](examples/oss-cogvideox/) |
+| Original pretrained autoencoder implementation | [Hugging Face Diffusers contributors](https://github.com/huggingface/diffusers/tree/v0.33.1) | Apache-2.0 | [oss-cogvideox](examples/oss-cogvideox/) |
+| Original engine | [LTX-Video contributors](https://github.com/lightricks/ltx-video) | Apache-2.0 code / weights separate | [oss-ltx-video](examples/oss-ltx-video/) |
+| Unmodified original causal video VAE tensors, extracted on demand from official 0.9.6 distilled checkpoint | [Lightricks](https://huggingface.co/Lightricks/LTX-Video/tree/8984fa25007f376c1a299016d0957a37a2f797bb) | LTXV Open Weights License 0.X | [oss-ltx-video](examples/oss-ltx-video/) |
 
 ## Studio (the app's web code): bundled npm packages
 

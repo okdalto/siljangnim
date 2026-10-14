@@ -1,0 +1,55 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "ltx-video.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "torchvision==0.22.1",
+        "diffusers==0.33.1",
+        "transformers==4.51.3",
+        "huggingface-hub==0.30.2",
+        "safetensors==0.5.3",
+        "sentencepiece==0.2.1",
+        "einops==0.8.1",
+        "timm==1.0.19",
+        "accelerate==1.10.1",
+        "imageio==2.37.0",
+        "imageio-ffmpeg==0.6.0",
+        "av==15.1.0",
+        "PyYAML==6.0.2",
+        "Pillow==12.3.0",
+        "numpy==1.26.4"
+      ],
+      "inputs": [
+        "driver.py",
+        "sources.json",
+        "vae-header.json"
+      ],
+      "params": {},
+      "outputs": [
+        "encoded.npy",
+        "frames.png",
+        "input.mkv",
+        "render-0.png",
+        "render-1.png",
+        "render-10.png",
+        "render-11.png",
+        "render-12.png",
+        "render-13.png",
+        "render-14.png",
+        "render-15.png",
+        "render-16.png",
+        "render-2.png",
+        "render-3.png",
+        "render-4.png",
+        "render-5.png",
+        "render-6.png",
+        "render-7.png",
+        "render-8.png",
+        "render-9.png",
+        "result.json"
+      ]
+    }
+  ]
+}

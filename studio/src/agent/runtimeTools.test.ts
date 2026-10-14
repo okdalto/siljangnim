@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { RUNTIME_TOOLS, jobReport } from "./runtimeTools";
 import { noRuntime, stubEnv } from "./testing";
 import type { RuntimeJob, RuntimeRequest } from "./tools";
@@ -7,6 +8,15 @@ const tool = (name: string) => RUNTIME_TOOLS.find((t) => t.name === name)!;
 const job = (over: Partial<RuntimeJob>): RuntimeJob => ({ id: "j1", state: "done", exitCode: 0, error: null, log: "", outputs: [], assets: [], resolved: [], seconds: 1.5, ...over });
 
 describe("runtime tools", () => {
+  it("accepts the pinned package lists used by the large-model examples", () => {
+    for (const id of ["mt3", "diffvg", "paddleocr"]) {
+      const pipeline = JSON.parse(readFileSync(new URL(`../../../examples/oss-${id}/pipeline.json`, import.meta.url), "utf8")) as { steps: { packages: string[] }[] };
+      expect(pipeline.steps.length).toBeGreaterThan(0);
+      for (const step of pipeline.steps) expect(tool("python_run").input.safeParse({ code: "pass", packages: step.packages }).success).toBe(true);
+    }
+    expect(tool("python_run").input.safeParse({ code: "pass", packages: Array.from({ length: 101 }, (_, i) => `package-${i}==1.0.0`) }).success).toBe(false);
+  });
+
   it("explain when there is no runtime", async () => {
     const out = await tool("python_run").run(tool("python_run").input.parse({ code: "print(1)" }), stubEnv());
     expect(out).toEqual({ isError: true, content: "no runtime in tests" });

@@ -35,7 +35,8 @@ _SPEC = re.compile(
 )
 _FILE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}$")
 
-MAX_PACKAGES = 30
+# ML recipes pin transitive dependencies too, so their reproducible lists can be long.
+MAX_PACKAGES = 100
 MAX_LOG_CHARS = 20_000
 MAX_OUTPUT_FILES = 50
 MAX_OUTPUT_BYTES = 200 * 1024 * 1024

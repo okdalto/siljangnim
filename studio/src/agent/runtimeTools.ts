@@ -73,7 +73,7 @@ const pythonRun = defineTool({
     "Use it for what the browser can't do well: geometry, image or audio processing, data wrangling, file conversion.",
   input: z.object({
     code: z.string().min(1).describe("A complete Python 3.12 script."),
-    packages: z.array(z.string()).max(30).default([]).describe('Pip requirement specs, e.g. ["trimesh==4.5.3", "numpy"].'),
+    packages: z.array(z.string()).max(100).default([]).describe('Pip requirement specs, e.g. ["trimesh==4.5.3", "numpy"].'),
     params: z.record(z.string(), z.unknown()).optional().describe("Written to in/params.json for the script to read."),
     ...common,
   }),

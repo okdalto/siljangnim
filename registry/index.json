@@ -210,6 +210,19 @@
       "sha256": "e303fbf9bd54f95c6ca048373e4b7eda73a01f28a86205fcebe8b75f0ef2db5a"
     },
     {
+      "id": "cogvideox.gallery",
+      "version": 1,
+      "title": "Encoding and reconstructing a short animation",
+      "capability": "cogvideox graphics",
+      "kind": "python",
+      "license": "Code · 2B Apache-2.0 / 5B separate",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/cogvideox.gallery/recipe.md",
+      "sha256": "6ec1d1d52a186f55298828ceb441171cbda56f609d43f02bbbdac3cf31897725"
+    },
+    {
       "id": "colmap.gallery",
       "version": 1,
       "title": "Two-view reconstruction under noise",
@@ -1224,6 +1237,19 @@
       "sha256": "aef7a5d662c914ac0e0d88e92e7d19cc385cbda7c82403a2fb261d3985056f80"
     },
     {
+      "id": "ltx-video.gallery",
+      "version": 1,
+      "title": "Reconstructing motion through a causal video VAE",
+      "capability": "ltx-video graphics",
+      "kind": "python",
+      "license": "Apache-2.0 code / weights separate",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ltx-video.gallery/recipe.md",
+      "sha256": "f9ea2d8579896b7dd7333553b437fca1ce56f2180bb21179602f6f315a1ea77f"
+    },
+    {
       "id": "luxcorerender.gallery",
       "version": 1,
       "title": "Rough surfaces through native path tracing",
@@ -1416,7 +1442,7 @@
         "mac-arm64"
       ],
       "path": "recipes/mt3.gallery/recipe.md",
-      "sha256": "0e86c636aea14f3fd573457fe8f336664031db40311ec3b694139dedb1f797b7"
+      "sha256": "41f00fdcab0d7aa30e5a6efd4d67ae005d8b84181b0f48fa7addf0ec50993dbd"
     },
     {
       "id": "mujoco.gallery",
@@ -1494,7 +1520,7 @@
         "mac-arm64"
       ],
       "path": "recipes/nerfstudio.gallery/recipe.md",
-      "sha256": "01251fe8a2f90ba5859e86abab37cf46bb6c6e14799b1cc55307959820729f51"
+      "sha256": "5576827c5982af33d2621a06e3bf0e1c983da7f7193f35f7bf0ca28c4f39b624"
     },
     {
       "id": "networkx.les-miserables-layout",
@@ -1624,7 +1650,7 @@
         "mac-arm64"
       ],
       "path": "recipes/opensplat.gallery/recipe.md",
-      "sha256": "05b877b7d4e46316c30ce75c387ea07e5bb9c05101db05515c96550497396452"
+      "sha256": "9104d2d7988bef99f0b12f9688bc92597f9f22e9929d53b9ca6f507cb33ab821"
     },
     {
       "id": "opensubdiv.gallery",
@@ -2807,7 +2833,7 @@
         "mac-arm64"
       ],
       "path": "recipes/voicestudio.gallery/recipe.md",
-      "sha256": "51d1c6c4abd5301e9d958be0998a1e0f96909ab3976a764df28db0f2419cba0b"
+      "sha256": "847c4f10bce18b17ce4c57f28c848c6f1488f3b9ca090e2efb6b5b02062d9ee4"
     },
     {
       "id": "voro.gallery",

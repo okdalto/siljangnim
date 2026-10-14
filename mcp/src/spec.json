@@ -524,7 +524,7 @@
           "packages": {
             "default": [],
             "description": "Pip requirement specs, e.g. [\"trimesh==4.5.3\", \"numpy\"].",
-            "maxItems": 30,
+            "maxItems": 100,
             "type": "array",
             "items": {
               "type": "string"

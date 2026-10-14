@@ -1,0 +1,27 @@
+{
+  "engine": {
+    "repo": "zai-org/CogVideo",
+    "revision": "7a1af7154511e0ce4e4be8d62faa8c5e5a3532d2",
+    "url": "https://codeload.github.com/zai-org/CogVideo/tar.gz/7a1af7154511e0ce4e4be8d62faa8c5e5a3532d2",
+    "size": 12158744,
+    "sha256": "cae290c7a2db4faa3235844d6151d80473a9154cd0be61156abe293f3ac3316b"
+  },
+  "model": {
+    "repo": "THUDM/CogVideoX-2b",
+    "revision": "1137dacfc2c9c012bed6a0793f4ecf2ca8e7ba01",
+    "files": [
+      {
+        "path": "vae/config.json",
+        "size": 879,
+        "url": "https://huggingface.co/THUDM/CogVideoX-2b/resolve/1137dacfc2c9c012bed6a0793f4ecf2ca8e7ba01/vae/config.json",
+        "sha256": "fb212585242726f5d963271357731c78481da25cc29bdd5c2b9cb058c43f8688"
+      },
+      {
+        "path": "vae/diffusion_pytorch_model.safetensors",
+        "size": 862388596,
+        "url": "https://huggingface.co/THUDM/CogVideoX-2b/resolve/1137dacfc2c9c012bed6a0793f4ecf2ca8e7ba01/vae/diffusion_pytorch_model.safetensors",
+        "sha256": "a410e48d988c8224cef392b68db0654485cfd41f345f4a3a81d3e6b765bb995e"
+      }
+    ]
+  }
+}

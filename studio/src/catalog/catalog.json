@@ -10135,6 +10135,87 @@
     ]
    },
    "notes": "Requires Python 3.12. Original Nerfstudio source and the AlexNet weights required by its unmodified LPIPS metric constructor (about 244 MB) are downloaded on demand, SHA-256 verified and cached. The original Vanilla NeRF coarse/fine fields, samplers, volumetric renderer and loss run on the CPU. No CUDA kernels, pretrained NeRF, account or API key are needed."
+  },
+  {
+   "id": "cogvideox",
+   "name": "CogVideoX",
+   "repo": "https://github.com/zai-org/cogvideo",
+   "license": "Code · 2B Apache-2.0 / 5B separate",
+   "tier": "C",
+   "purpose": "The official CogVideoX VAE demo encodes and decodes a locally made animation on the CPU. Compare all nine input and reconstructed frames.",
+   "tags": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.7.1",
+     "torchvision==0.22.1",
+     "diffusers==0.33.1",
+     "transformers==4.51.3",
+     "huggingface-hub==0.30.2",
+     "safetensors==0.5.3",
+     "accelerate==1.10.1",
+     "imageio==2.37.0",
+     "imageio-ffmpeg==0.6.0",
+     "Pillow==12.3.0",
+     "numpy==1.26.4"
+    ]
+   },
+   "notes": "Requires Python 3.12. Original CogVideo source and the official public CogVideoX-2B VAE checkpoint (about 862 MB) are downloaded on demand, SHA-256 verified and cached. The unmodified official cli_vae_demo.py encode_video and decode_video functions run with float32 on the CPU, using the pretrained Diffusers AutoencoderKLCogVideoX implementation. No GPU, account or API key is required."
+  },
+  {
+   "id": "ltx-video",
+   "name": "LTX-Video",
+   "repo": "https://github.com/lightricks/ltx-video",
+   "license": "Apache-2.0 code / weights separate",
+   "tier": "C",
+   "purpose": "Original LTX-Video VAE functions encode and reconstruct a locally made 17-frame animation on the CPU, with playback and frame comparison.",
+   "tags": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.7.1",
+     "torchvision==0.22.1",
+     "diffusers==0.33.1",
+     "transformers==4.51.3",
+     "huggingface-hub==0.30.2",
+     "safetensors==0.5.3",
+     "sentencepiece==0.2.1",
+     "einops==0.8.1",
+     "timm==1.0.19",
+     "accelerate==1.10.1",
+     "imageio==2.37.0",
+     "imageio-ffmpeg==0.6.0",
+     "av==15.1.0",
+     "PyYAML==6.0.2",
+     "Pillow==12.3.0",
+     "numpy==1.26.4"
+    ]
+   },
+   "notes": "Requires Python 3.12 and about 6 GB of free disk for first-time cache preparation. Original LTX-Video source is pinned and SHA-256 verified. Only the original VAE tensor ranges (about 2.49 GB) are fetched from the official public 0.9.6 distilled checkpoint, checked against recorded SHA-256 hashes and assembled into a standalone safetensors file with the original VAE configuration and unchanged tensor values. The final file is also SHA-256 verified and cached. The original CausalVideoAutoencoder, vae_encode, channel normalization and vae_decode execute in float32 on the CPU. No GPU, account or API key is required."
   }
  ]
 }

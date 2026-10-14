@@ -108,6 +108,10 @@ MT3: Three own 3.2-second harmonic-tone inputs are transcribed with the official
 
 Nerfstudio: The driver supplies three analytical colored-sphere views at -25, 0 and 25 degrees, each 24 by 24 pixels, and fits the original model for 2,000 Adam updates. The training sampler mixes foreground and uniformly sampled rays. The gallery compares those training views before training and after 500 and 2,000 updates. These are low-resolution, imperfect training reconstructions; no held-out view accuracy, real photographs, camera estimation, GUI or Gaussian-splatting workflow is claimed. The AlexNet metric weights are loaded by the original constructor but do not supply or generate the displayed images.
 
+CogVideoX: One own nine-frame, 96 by 96 pixel animation passes through the official pretrained causal video VAE. The original demo loads a lossless video, samples its latent distribution with seed 17, and decodes it. The gallery plays the actual input/reconstruction pairs and supports pausing and frame selection. This exercises the original video encoding/decoding demo; it does not run the text-conditioned diffusion transformer or claim text-to-video generation. No upstream demo video, pretrained latent or example output is used.
+
+LTX-Video: One own 17-frame animation at 128 by 128 pixels is encoded and decoded with seed 17 and a clean-latent decoding timestep of zero. The gallery plays the actual input/reconstruction pairs and supports pausing and frame selection. This executes the original video VAE component. Text-to-video diffusion and prompt enhancement are outside this example. The extracted tensor values and reconstructed images matched those produced from the complete original checkpoint. No upstream demo video, supplied latent or example output is used.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

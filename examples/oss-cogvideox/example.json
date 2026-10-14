@@ -1,0 +1,50 @@
+{
+  "order": 523,
+  "title": "Encoding and reconstructing a short animation (CogVideoX)",
+  "title_ko": "짧은 애니메이션을 압축하고 복원하기 (CogVideoX)",
+  "description": "The official CogVideoX VAE demo encodes and decodes a locally made animation on the CPU. Compare all nine input and reconstructed frames.",
+  "description_ko": "공식 CogVideoX VAE 예제가 직접 만든 애니메이션을 CPU에서 압축하고 복원합니다. 입력과 복원 결과의 아홉 프레임을 비교해 보세요.",
+  "prompt": "Encoding and reconstructing a short animation. Use the original engine.",
+  "made_with": "CogVideoX original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "cogvideox"
+  ],
+  "summary": "The official CogVideoX VAE demo encodes and decodes a locally made animation on the CPU. Compare all nine input and reconstructed frames.",
+  "summary_ko": "공식 CogVideoX VAE 예제가 직접 만든 애니메이션을 CPU에서 압축하고 복원합니다. 입력과 복원 결과의 아홉 프레임을 비교해 보세요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "The official CogVideoX VAE demo encodes and decodes a locally made animation on the CPU. Compare all nine input and reconstructed frames.",
+  "tool_about_ko": "공식 CogVideoX VAE 예제가 직접 만든 애니메이션을 CPU에서 압축하고 복원합니다. 입력과 복원 결과의 아홉 프레임을 비교해 보세요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "CogVideoX contributors",
+      "url": "https://github.com/zai-org/cogvideo",
+      "license": "Code · 2B Apache-2.0 / 5B separate"
+    },
+    {
+      "what": "Official CogVideoX-2B causal video VAE checkpoint",
+      "source": "CogVideoX contributors",
+      "url": "https://huggingface.co/THUDM/CogVideoX-2b/tree/1137dacfc2c9c012bed6a0793f4ecf2ca8e7ba01",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Original pretrained autoencoder implementation",
+      "source": "Hugging Face Diffusers contributors",
+      "url": "https://github.com/huggingface/diffusers/tree/v0.33.1",
+      "license": "Apache-2.0"
+    }
+  ]
+}

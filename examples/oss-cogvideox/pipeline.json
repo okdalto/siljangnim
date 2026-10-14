@@ -1,0 +1,59 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "cogvideox.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "torchvision==0.22.1",
+        "diffusers==0.33.1",
+        "transformers==4.51.3",
+        "huggingface-hub==0.30.2",
+        "safetensors==0.5.3",
+        "accelerate==1.10.1",
+        "imageio==2.37.0",
+        "imageio-ffmpeg==0.6.0",
+        "Pillow==12.3.0",
+        "numpy==1.26.4"
+      ],
+      "inputs": [
+        "driver.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "decoded-0.png",
+        "decoded-1.png",
+        "decoded-2.png",
+        "decoded-3.png",
+        "decoded-4.png",
+        "decoded-5.png",
+        "decoded-6.png",
+        "decoded-7.png",
+        "decoded-8.png",
+        "encoded.pt",
+        "frames.png",
+        "input-0.png",
+        "input-1.png",
+        "input-2.png",
+        "input-3.png",
+        "input-4.png",
+        "input-5.png",
+        "input-6.png",
+        "input-7.png",
+        "input-8.png",
+        "input.mkv",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "render-3.png",
+        "render-4.png",
+        "render-5.png",
+        "render-6.png",
+        "render-7.png",
+        "render-8.png",
+        "result.json"
+      ]
+    }
+  ]
+}

@@ -58,6 +58,10 @@ Requires Python 3.12 and Xcode C++ build tools on macOS. Original OpenSplat and 
 
 원본 simple_trainer가 제공하는 빨강·흰색·파랑 목표 그림을 가우시안 96개로 학습합니다. 64×64 해상도에서 원본 CPU 투영·래스터화·기울기를 사용하며, 400회 뒤 오차가 초기보다 90% 이상 감소하는지 검사합니다. 처음 실행할 때 OpenCV와 원본 엔진을 컴파일하므로 Xcode C++ 도구가 필요합니다. 단일 이미지 학습 예제이며 여러 사진에서 3D 장면을 복원하는 전체 파이프라인은 아닙니다.
 
+For the first download or native build, call `recipe_run` with `timeout_s: 1800`. If a slow connection exceeds that limit, rerun to reuse completed cache files.
+
+첫 다운로드·컴파일에는 최대 30분의 실행 시간을 지정하세요. 연결이 느려 제한 시간을 넘겼다면 다시 실행해 완료된 캐시 파일을 재사용할 수 있습니다.
+
 ## Run
 
 ```python

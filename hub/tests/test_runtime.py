@@ -1,6 +1,7 @@
 """Runtime tests. They create real venvs with uv (no packages, so no network)."""
 
 import os
+import json
 import shutil
 import sys
 import time
@@ -11,7 +12,7 @@ from fastapi.testclient import TestClient
 
 from siljangnim_hub.app import create_app
 from siljangnim_hub.recipes import Recipes
-from siljangnim_hub.runtime import Runtime, RuntimeErrorWithHint, env_key, validate_file_name, validate_packages
+from siljangnim_hub.runtime import MAX_OUTPUT_FILES, Runtime, RuntimeErrorWithHint, env_key, validate_file_name, validate_packages
 
 TOKEN = "t"
 PORT = 47002
@@ -34,6 +35,26 @@ def test_file_names_cannot_escape():
     for bad in ["../x", "a/b", "..", ".hidden", "a\\b", ""]:
         with pytest.raises(RuntimeErrorWithHint):
             validate_file_name(bad)
+
+
+def test_pinned_ml_environments_fit_with_a_bounded_package_list():
+    packages = [f"package-{i:03d}==1.0.0" for i in range(100)]
+    assert validate_packages(packages) == packages
+    with pytest.raises(RuntimeErrorWithHint, match="at most 100 packages"):
+        validate_packages(packages + ["one-more==1.0.0"])
+
+
+def test_gallery_pipelines_fit_runtime_limits():
+    examples = Path(__file__).resolve().parents[2] / "examples"
+    pipelines = list(examples.glob("*/pipeline.json"))
+    assert pipelines
+    for path in pipelines:
+        for step in json.loads(path.read_text())["steps"]:
+            validate_packages(step.get("packages", []))
+            outputs = step.get("outputs", [])
+            assert len(outputs) <= MAX_OUTPUT_FILES, path.parent.name
+            for name in outputs:
+                validate_file_name(name)
 
 
 @pytest.fixture

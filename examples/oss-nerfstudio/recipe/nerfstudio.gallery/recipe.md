@@ -88,6 +88,10 @@ Requires Python 3.12. Original Nerfstudio source and the AlexNet weights require
 
 합성한 색 구체를 -25·0·25도에서 본 24×24 입력 세 장으로 원본 NeRF를 2,000회 학습합니다. 학습 오차는 처음보다 90% 이상 줄어들지만 저해상도 결과에는 흐림과 잔상이 남습니다. 학습에 쓰지 않은 시점의 정확도나 실제 사진 재구성을 검증한 예제는 아닙니다. 원본 모델 생성자가 요구하는 AlexNet 가중치 약 244MB를 캐시하며, 화면의 결과는 NeRF가 직접 계산합니다.
 
+For the first download or native build, call `recipe_run` with `timeout_s: 1800`. If a slow connection exceeds that limit, rerun to reuse completed cache files.
+
+첫 다운로드·컴파일에는 최대 30분의 실행 시간을 지정하세요. 연결이 느려 제한 시간을 넘겼다면 다시 실행해 완료된 캐시 파일을 재사용할 수 있습니다.
+
 ## Run
 
 ```python

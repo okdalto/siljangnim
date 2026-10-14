@@ -1,0 +1,63 @@
+{
+  "engine": "Original CogVideoX-2B VAE demo",
+  "device": "CPU",
+  "dtype": "float32",
+  "seed": 17,
+  "resolution": 96,
+  "inputFrames": 9,
+  "reconstructionMSE": 0.0010279151299832448,
+  "latentShape": [
+    1,
+    16,
+    3,
+    12,
+    12
+  ],
+  "frames": [
+    {
+      "image": "render-0.png",
+      "frame": 0,
+      "loss": 0.000702958130419924
+    },
+    {
+      "image": "render-1.png",
+      "frame": 1,
+      "loss": 0.001051001907208054
+    },
+    {
+      "image": "render-2.png",
+      "frame": 2,
+      "loss": 0.0009091616516795534
+    },
+    {
+      "image": "render-3.png",
+      "frame": 3,
+      "loss": 0.0010965695396713514
+    },
+    {
+      "image": "render-4.png",
+      "frame": 4,
+      "loss": 0.001267336636906033
+    },
+    {
+      "image": "render-5.png",
+      "frame": 5,
+      "loss": 0.0014410623317954634
+    },
+    {
+      "image": "render-6.png",
+      "frame": 6,
+      "loss": 0.0010399840650675667
+    },
+    {
+      "image": "render-7.png",
+      "frame": 7,
+      "loss": 0.0009208019173537243
+    },
+    {
+      "image": "render-8.png",
+      "frame": 8,
+      "loss": 0.000822359989747533
+    }
+  ]
+}

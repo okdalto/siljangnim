@@ -1,0 +1,44 @@
+{
+  "order": 524,
+  "title": "Reconstructing motion through a causal video VAE (LTX-Video)",
+  "title_ko": "시간 순서를 담는 영상 VAE로 움직임 복원하기 (LTX-Video)",
+  "description": "Original LTX-Video VAE functions encode and reconstruct a locally made 17-frame animation on the CPU, with playback and frame comparison.",
+  "description_ko": "원본 LTX-Video VAE 함수가 직접 만든 17프레임 애니메이션을 CPU에서 압축하고 복원합니다. 재생하거나 프레임별로 입력과 비교해 보세요.",
+  "prompt": "Reconstructing motion through a causal video VAE. Use the original engine.",
+  "made_with": "LTX-Video original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "ltx-video"
+  ],
+  "summary": "Original LTX-Video VAE functions encode and reconstruct a locally made 17-frame animation on the CPU, with playback and frame comparison.",
+  "summary_ko": "원본 LTX-Video VAE 함수가 직접 만든 17프레임 애니메이션을 CPU에서 압축하고 복원합니다. 재생하거나 프레임별로 입력과 비교해 보세요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original LTX-Video VAE functions encode and reconstruct a locally made 17-frame animation on the CPU, with playback and frame comparison.",
+  "tool_about_ko": "원본 LTX-Video VAE 함수가 직접 만든 17프레임 애니메이션을 CPU에서 압축하고 복원합니다. 재생하거나 프레임별로 입력과 비교해 보세요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "LTX-Video contributors",
+      "url": "https://github.com/lightricks/ltx-video",
+      "license": "Apache-2.0 code / weights separate"
+    },
+    {
+      "what": "Unmodified original causal video VAE tensors, extracted on demand from official 0.9.6 distilled checkpoint",
+      "source": "Lightricks",
+      "url": "https://huggingface.co/Lightricks/LTX-Video/tree/8984fa25007f376c1a299016d0957a37a2f797bb",
+      "license": "LTXV Open Weights License 0.X"
+    }
+  ]
+}

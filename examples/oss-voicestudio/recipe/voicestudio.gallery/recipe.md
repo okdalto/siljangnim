@@ -52,6 +52,10 @@ Requires Python 3.12. Pinned original VoiceStudio and KittenTTS source code and 
 
 공식 공개 KittenTTS 모델과 목소리 데이터 약 82MB를 필요할 때 받아 캐시합니다. 원본 VoiceStudio의 문장 정리·토큰 길이 검사·음소 변환·ONNX 추론을 실행했습니다. 같은 영어 문장을 세 기본 목소리로 읽고 24kHz 모노 음성으로 저장합니다. 원본 음성 생성 백엔드 예제이며, Electron 화면·프로젝트 편집·더빙·목소리 복제까지 실행하지는 않습니다.
 
+For the first download or native build, call `recipe_run` with `timeout_s: 1800`. If a slow connection exceeds that limit, rerun to reuse completed cache files.
+
+첫 다운로드·컴파일에는 최대 30분의 실행 시간을 지정하세요. 연결이 느려 제한 시간을 넘겼다면 다시 실행해 완료된 캐시 파일을 재사용할 수 있습니다.
+
 ## Run
 
 ```python
