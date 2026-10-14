@@ -1,0 +1,22 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "redner.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.py",
+        "requirements.txt",
+        "source.json",
+        "wheels.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

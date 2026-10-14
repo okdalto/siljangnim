@@ -1,0 +1,12 @@
+{
+  "python": {
+    "version": "3.8.20+20241002",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20241002/cpython-3.8.20%2B20241002-x86_64-apple-darwin-install_only_stripped.tar.gz",
+    "sha256": "375b6eead6c852cabbf3ccfd43dc4f6dd4c36381bf74c9a7910acb839fd5c57f"
+  },
+  "uv": {
+    "version": "0.11.13",
+    "url": "https://github.com/astral-sh/uv/releases/download/0.11.13/uv-aarch64-apple-darwin.tar.gz",
+    "sha256": "196a58aa24da89144187670df7c407358028984537fbc2f8f2d8f7a2604980df"
+  }
+}

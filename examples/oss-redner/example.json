@@ -1,0 +1,44 @@
+{
+  "order": 509,
+  "title": "Recovering a triangle with native rendering gradients (redner)",
+  "title_ko": "이미지에 맞춰 돌아오는 삼각형 (redner)",
+  "description": "Original redner 0.4.28 differentiates CPU renderings to fit a triangle to a native target image, reducing image error by 99.2%.",
+  "description_ko": "원본 redner 0.4.28이 CPU 렌더링을 미분해 삼각형을 목표 이미지에 맞췄어요. 이미지 오차가 약 99.2% 줄었어요.",
+  "prompt": "Recovering a triangle with native rendering gradients. Use the original engine.",
+  "made_with": "redner original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "redner"
+  ],
+  "summary": "Original redner 0.4.28 differentiates CPU renderings to fit a triangle to a native target image, reducing image error by 99.2%.",
+  "summary_ko": "원본 redner 0.4.28이 CPU 렌더링을 미분해 삼각형을 목표 이미지에 맞췄어요. 이미지 오차가 약 99.2% 줄었어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original redner 0.4.28 differentiates CPU renderings to fit a triangle to a native target image, reducing image error by 99.2%.",
+  "tool_about_ko": "원본 redner 0.4.28이 CPU 렌더링을 미분해 삼각형을 목표 이미지에 맞췄어요. 이미지 오차가 약 99.2% 줄었어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "redner contributors",
+      "url": "https://github.com/bachili/redner",
+      "license": "MIT"
+    },
+    {
+      "what": "Triangle scene setup adapted from the original example",
+      "source": "Tzu-Mao Li and redner contributors",
+      "url": "https://github.com/BachiLi/redner/blob/master/tests/test_single_triangle.py",
+      "license": "MIT"
+    }
+  ]
+}

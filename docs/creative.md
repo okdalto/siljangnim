@@ -74,6 +74,14 @@ LuxCoreRender의 거칠기와 PBRT의 렌즈 조리개를 원본 CPU 렌더러�
 
 Unitree G1 학습 모델을 MuJoCo에서 직접 실행한 보행 시뮬레이션과 TAPIR의 영상 점 추적 예제도 포함합니다. 로봇 하드웨어 없이 6초 보행을 계산하며, 점 추적은 직접 만든 영상의 알려진 이동량과 예측을 비교합니다.
 
+LeRobot의 원본 학습 정책으로 블록을 목표에 맞추는 PushT 시뮬레이션, appleseed의 세 조명 비교, Mesh2Motion의 자동 스킨 가중치 계산도 직접 실행했습니다. 로봇은 시뮬레이션에서 동작하고, Mesh2Motion에는 직접 만든 메시와 뼈대를 입력으로 제공합니다.
+
+Laya는 원본 영어 모델이 세 문의를 분류한 실제 확률을 보여 줍니다. Sonic Pi 예제는 원본 악기 정의 세 종류로 직접 만든 여섯 음 구절을 오프라인 렌더해 들려줍니다. Sonic Pi의 언어 편집기가 아닌 악기 합성 부분을 실행합니다.
+
+Geant4는 원본 엔진으로 세 두께의 물에서 전자의 이동과 에너지 전달을 계산합니다. Python 연결부의 종료 충돌을 피하기 위해 각 조건을 별도 프로세스에서 실행합니다. This product includes software developed by Members of the Geant4 Collaboration ( http://cern.ch/geant4 ).
+
+redner는 원본 CPU 렌더링의 미분값으로 삼각형을 목표 이미지에 맞추는 과정을 보여 줍니다. 전용 Intel Python과 엔진은 검증 후 캐시하며, Apple Silicon에서는 Rosetta 2가 필요합니다.
+
 ### Shadertoy 코드 가져오기
 
 Shadertoy 셰이더 코드를 채팅에 붙여 넣고 "이걸 돌려 줘", "이걸 지금 장면에 섞어 줘"라고 해도 됩니다. Image 탭뿐 아니라

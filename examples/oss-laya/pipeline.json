@@ -1,0 +1,28 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "laya.gallery@1",
+      "packages": [
+        "laya==0.3.21",
+        "torch==2.7.1",
+        "transformers==4.50.3",
+        "numpy==2.2.6",
+        "safetensors==0.5.3",
+        "huggingface-hub==0.34.4",
+        "Pillow==12.3.0"
+      ],
+      "inputs": [
+        "main.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

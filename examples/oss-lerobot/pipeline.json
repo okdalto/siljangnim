@@ -1,0 +1,45 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "lerobot.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "torchvision==0.22.1",
+        "numpy==2.2.6",
+        "Pillow==12.3.0",
+        "diffusers==0.33.1",
+        "draccus==0.10.0",
+        "gym-pusht==0.1.5",
+        "gymnasium==0.29.1",
+        "pygame==2.6.1",
+        "pymunk==6.11.1",
+        "shapely==2.1.2",
+        "opencv-python==4.11.0.86",
+        "datasets==3.6.0",
+        "av==15.1.0",
+        "jsonlines==4.0.0",
+        "deepdiff==8.6.1",
+        "pyserial==3.5",
+        "huggingface-hub==0.34.4",
+        "safetensors==0.5.3",
+        "einops==0.8.1",
+        "pandas==2.3.3",
+        "pyarrow==21.0.0",
+        "scipy==1.16.3",
+        "scikit-image==0.25.2"
+      ],
+      "inputs": [
+        "main.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

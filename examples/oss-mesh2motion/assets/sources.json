@@ -1,0 +1,77 @@
+[
+  {
+    "path": "src/lib/RigConfig.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/RigConfig.ts",
+    "sha256": "a823124d3a1c01ca7091f04dbab47f2cd77a108a6325093aa803e53cf4431135"
+  },
+  {
+    "path": "src/lib/RigModelVariations.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/RigModelVariations.ts",
+    "sha256": "62ded1649c70523b6595898034565568794a728e1131a77be9252ee4bb66c8dc"
+  },
+  {
+    "path": "src/lib/Utilities.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/Utilities.ts",
+    "sha256": "2a99869ecd71cdeb6397eee7a0dbe6643788a7ed1e9a15a843058702f7004285"
+  },
+  {
+    "path": "src/lib/enums/SkeletonType.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/enums/SkeletonType.ts",
+    "sha256": "55e8ef2c1a55b51f4739194f9f60e4a16cfed1336a0df59ae9d47b99ffc8faae"
+  },
+  {
+    "path": "src/lib/interfaces/BoneTransformState.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/interfaces/BoneTransformState.ts",
+    "sha256": "ba55e50eb74714cca0c1f7938dfa4d2b3cd64b817171e454f42e830278923093"
+  },
+  {
+    "path": "src/lib/interfaces/IntersectionPointData.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/interfaces/IntersectionPointData.ts",
+    "sha256": "f2ee15b0ce8f40fbea4301bc032bf372934c3da96dfd2b980885b67961b353c6"
+  },
+  {
+    "path": "src/lib/solvers/ArmWeightCorrector.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/solvers/ArmWeightCorrector.ts",
+    "sha256": "a1dedb38d7864399ddb9eb04e46569fe3dce4c748ea4d2fc6131c167d1715608"
+  },
+  {
+    "path": "src/lib/solvers/BoneClassifier.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/solvers/BoneClassifier.ts",
+    "sha256": "0e8d0c6862fb51b8e9ee5fa4726fd9fa12038cf60ddffea6976ab2ed4114a84c"
+  },
+  {
+    "path": "src/lib/solvers/ExtremityWeightCorrector.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/solvers/ExtremityWeightCorrector.ts",
+    "sha256": "9ba43b51c9b8b670203c73233295e0141c98d1e2a13b9d806c2c2dd5a7fc465d"
+  },
+  {
+    "path": "src/lib/solvers/HeadWeightCorrector.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/solvers/HeadWeightCorrector.ts",
+    "sha256": "5ff88affe935f02a3ac141ace837be5230701de19ef727cddce71f8ccc4f0987"
+  },
+  {
+    "path": "src/lib/solvers/SkinningAlgorithm.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/solvers/SkinningAlgorithm.ts",
+    "sha256": "d6efe0603d5ad48bb3e8991c803e7909e6b72a16981160aeee6cd2dfcdc005a2"
+  },
+  {
+    "path": "src/lib/solvers/WeightCalculator.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/solvers/WeightCalculator.ts",
+    "sha256": "3cc4b666b06829c1b2f86e0f38f896d4767128496a67fe9b4ff0d317a52868d3"
+  },
+  {
+    "path": "src/lib/solvers/WeightNormalizer.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/solvers/WeightNormalizer.ts",
+    "sha256": "e39dff846a86593727005426b9eb3637e81cf3af2004707d32fbb8484961d6f8"
+  },
+  {
+    "path": "src/lib/solvers/WeightSmoother.ts",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/src/lib/solvers/WeightSmoother.ts",
+    "sha256": "0a15e68ae8396f39373a1edd5f6f34ef7e5aac6b31e81050caf765a11c8cf5b8"
+  },
+  {
+    "path": "LICENSE-MIT.MD",
+    "url": "https://raw.githubusercontent.com/mesh2motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/LICENSE-MIT.MD",
+    "sha256": "a40dbdb297466562778a58864f075415c1414778a19176bd85091d0434094b1d"
+  }
+]

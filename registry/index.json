@@ -2,6 +2,19 @@
   "version": 1,
   "recipes": [
     {
+      "id": "appleseed.gallery",
+      "version": 1,
+      "title": "Three light rigs in a native CPU renderer",
+      "capability": "appleseed graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/appleseed.gallery/recipe.md",
+      "sha256": "dd1b329da2cb86ad95982f66b4d2efd5c631381861b4b51b65304f2d5c3c8e80"
+    },
+    {
       "id": "astra-toolbox.gallery",
       "version": 1,
       "title": "Iterative reconstruction from projections",
@@ -652,6 +665,19 @@
       "sha256": "22c3e7568d639fea7d8b9f1d9713cac238ad5932b355eb5fc4575a809215ca50"
     },
     {
+      "id": "geant4.gallery",
+      "version": 1,
+      "title": "Electron paths through three water thicknesses",
+      "capability": "geant4 graphics",
+      "kind": "python",
+      "license": "Geant4 Software License 1.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/geant4.gallery/recipe.md",
+      "sha256": "4f6ed7be1d1a3454c7f7d5094c634c69ce7146716ac6d27b46a0927421969f2a"
+    },
+    {
       "id": "geometry-central-heat-method.gallery",
       "version": 1,
       "title": "Heat-method distance on a cylinder",
@@ -977,6 +1003,32 @@
       "sha256": "a7e6170ce5b72ca851133d20e0d97baaf28a35bfbac184aae616383ad340514f"
     },
     {
+      "id": "laya.gallery",
+      "version": 1,
+      "title": "Original model scores three support decisions",
+      "capability": "laya graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/laya.gallery/recipe.md",
+      "sha256": "958f1951354b4a982465acfcc8b56705de392840e8e3620ef25aaa1c1a1a2dfb"
+    },
+    {
+      "id": "lerobot.gallery",
+      "version": 1,
+      "title": "A pretrained policy pushes a block into place",
+      "capability": "lerobot graphics",
+      "kind": "python",
+      "license": "Apache-2.0 / data MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/lerobot.gallery/recipe.md",
+      "sha256": "07c2c8a26eaebd40ae626666ae50149192314b652ca3e664d976bbbc54f89f54"
+    },
+    {
       "id": "libfive.gallery",
       "version": 1,
       "title": "Implicit solids with cylindrical bores",
@@ -1274,6 +1326,19 @@
       ],
       "path": "recipes/meep.gallery/recipe.md",
       "sha256": "60d389379dbec5a84594b085b52b0337a9e5c958f304c55016185f29e874cbd3"
+    },
+    {
+      "id": "mesh2motion.gallery",
+      "version": 1,
+      "title": "Automatic skin weights bend a supplied mesh",
+      "capability": "mesh2motion graphics",
+      "kind": "python",
+      "license": "MIT (code) / CC0 (default artwork)",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/mesh2motion.gallery/recipe.md",
+      "sha256": "600fcfa234824fd3f42aaf652ab9e5193a5756883031d2f1438faa0dde64393b"
     },
     {
       "id": "mitsuba-3.gallery",
@@ -1939,6 +2004,19 @@
       "sha256": "d5f1dd477157ba709a522865a54bf95b00b69667f04f3fafd522747026e9e463"
     },
     {
+      "id": "redner.gallery",
+      "version": 1,
+      "title": "Recovering a triangle with native rendering gradients",
+      "capability": "redner graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/redner.gallery/recipe.md",
+      "sha256": "36489bfea7d7aef5e86cc5e116c69d47d32e50e2b4c1a59425ec3582d88f0b57"
+    },
+    {
       "id": "rembg.gallery",
       "version": 1,
       "title": "Still-life cutout (rembg)",
@@ -2119,6 +2197,19 @@
       ],
       "path": "recipes/skeleton-tracing.gallery/recipe.md",
       "sha256": "595675243256ca5ba216caeca1c82b556f07883ddcf5a944f918a2479dddcedb"
+    },
+    {
+      "id": "sonic-pi.gallery",
+      "version": 1,
+      "title": "Three original Sonic Pi instruments rendered offline",
+      "capability": "sonic-pi graphics",
+      "kind": "python",
+      "license": "MIT core / AGPL web / CC-BY-SA docs",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/sonic-pi.gallery/recipe.md",
+      "sha256": "752b6ff8c4a51f949d462d2087302011df17fe7b902f93ce6243e150fb82424b"
     },
     {
       "id": "specfem2d.gallery",

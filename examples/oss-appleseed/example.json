@@ -1,0 +1,44 @@
+{
+  "order": 504,
+  "title": "Three light rigs in a native CPU renderer (appleseed)",
+  "title_ko": "원본 CPU 렌더러에서 비교하는 세 조명 (appleseed)",
+  "description": "appleseed 2.1.0-beta renders its supplied hello-world geometry with warm, cool and overhead lights at 64 samples per pixel.",
+  "description_ko": "appleseed 2.1.0-beta의 원본 예제 기하를 따뜻한 빛·차가운 빛·머리 위 조명으로 바꾸어 픽셀당 64샘플로 직접 렌더했어요.",
+  "prompt": "Three light rigs in a native CPU renderer. Use the original engine.",
+  "made_with": "appleseed original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "appleseed"
+  ],
+  "summary": "appleseed 2.1.0-beta renders its supplied hello-world geometry with warm, cool and overhead lights at 64 samples per pixel.",
+  "summary_ko": "appleseed 2.1.0-beta의 원본 예제 기하를 따뜻한 빛·차가운 빛·머리 위 조명으로 바꾸어 픽셀당 64샘플로 직접 렌더했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "appleseed 2.1.0-beta renders its supplied hello-world geometry with warm, cool and overhead lights at 64 samples per pixel.",
+  "tool_about_ko": "appleseed 2.1.0-beta의 원본 예제 기하를 따뜻한 빛·차가운 빛·머리 위 조명으로 바꾸어 픽셀당 64샘플로 직접 렌더했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "appleseed contributors",
+      "url": "https://github.com/appleseedhq/appleseed",
+      "license": "MIT"
+    },
+    {
+      "what": "Adapted hello-world input scene and mesh",
+      "source": "appleseed contributors",
+      "url": "https://github.com/appleseedhq/appleseed/tree/2.1.0-beta/sandbox/examples/cpp/helloworld",
+      "license": "MIT"
+    }
+  ]
+}

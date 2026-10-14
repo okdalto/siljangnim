@@ -9464,6 +9464,205 @@
     ]
    },
    "notes": "Requires Python 3.12+; verified on Apple Silicon macOS with CPU inference. The recipe downloads and SHA-256 verifies original TAPNet revision 730cda1c730877cfedbe01bf87fb1cadb78a565d and the official tapir_checkpoint_panning.pt checkpoint (124 MB). Source and weights are cached. The original TAPIR implementation uses pyramid_level=0 and extra_convs=False as required by this checkpoint."
+  },
+  {
+   "id": "lerobot",
+   "name": "LeRobot",
+   "repo": "https://github.com/huggingface/lerobot",
+   "license": "Apache-2.0 / data MIT",
+   "tier": "C",
+   "purpose": "LeRobot runs its original pretrained Diffusion Policy in PushT on Mac, reaching full target overlap after 104 simulated actions.",
+   "tags": [
+    "robots",
+    "diffusion policies",
+    "PushT"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.7.1",
+     "torchvision==0.22.1",
+     "numpy==2.2.6",
+     "Pillow==12.3.0",
+     "diffusers==0.33.1",
+     "draccus==0.10.0",
+     "gym-pusht==0.1.5",
+     "gymnasium==0.29.1",
+     "pygame==2.6.1",
+     "pymunk==6.11.1",
+     "shapely==2.1.2",
+     "opencv-python==4.11.0.86",
+     "datasets==3.6.0",
+     "av==15.1.0",
+     "jsonlines==4.0.0",
+     "deepdiff==8.6.1",
+     "pyserial==3.5",
+     "huggingface-hub==0.34.4",
+     "safetensors==0.5.3",
+     "einops==0.8.1",
+     "pandas==2.3.3",
+     "pyarrow==21.0.0",
+     "scipy==1.16.3",
+     "scikit-image==0.25.2"
+    ]
+   },
+   "notes": "Requires Apple Silicon macOS, Python 3.12+ and several GB of free memory and storage. The recipe downloads and SHA-256 verifies the official LeRobot 0.3.3 wheel and the official diffusion_pusht checkpoint at revision 84a7c23178445c6bbf7e1a884ff497017910f653 (1.05 GB). It extracts the unchanged source with the pinned inference dependencies rather than installing unused hardware and training integrations. Source and weights are cached. MPS inference uses the original 100-step DDPM sampler; no NVIDIA GPU, paid API or physical robot is needed."
+  },
+  {
+   "id": "appleseed",
+   "name": "appleseed",
+   "repo": "https://github.com/appleseedhq/appleseed",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "appleseed 2.1.0-beta renders its supplied hello-world geometry with warm, cool and overhead lights at 64 samples per pixel.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "appleseed.cli"
+   },
+   "notes": "Requires macOS and Python 3.12+. The official Intel macOS 2.1.0-beta release is SHA-256 verified and cached (142 MB download). Apple Silicon needs Rosetta 2 already installed; the recipe does not install Rosetta. The original CLI and bundled libraries run unchanged, using two CPU threads. Gallery results were directly rendered on an Apple Silicon Mac through Rosetta."
+  },
+  {
+   "id": "mesh2motion",
+   "name": "Mesh2Motion",
+   "repo": "https://github.com/mesh2motion/mesh2motion-app",
+   "license": "MIT (code) / CC0 (default artwork)",
+   "tier": "D",
+   "purpose": "Mesh2Motion computes original skin weights for 763 supplied vertices; Three.js renders three poses, including 204 smoothly blended vertices.",
+   "tags": [
+    "rigging",
+    "skeletons",
+    "animation"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "electron"
+   },
+   "notes": "Requires Python 3.12+, Node.js, npm and Electron on PATH or through ELECTRON; verified with Electron 44.4.4. Fourteen original TypeScript implementation files from Mesh2Motion revision 79f3f61a9852ef70234a5a4a7c13ed87f7a71833 are SHA-256 verified and cached. npm ci uses the supplied lockfile for Three.js 0.185.0 and esbuild 0.25.12, with install scripts disabled. The original solver is bundled without source changes. No pretrained model or upstream mesh is downloaded."
+  },
+  {
+   "id": "laya",
+   "name": "Laya",
+   "repo": "https://github.com/nandhakishorm/laya",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "Laya 0.3.21 runs its original English checkpoint on the CPU and reports decision probabilities for three supplied support messages.",
+   "tags": [
+    "text",
+    "classification",
+    "local"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "laya==0.3.21",
+     "torch==2.7.1",
+     "transformers==4.50.3",
+     "numpy==2.2.6",
+     "safetensors==0.5.3",
+     "huggingface-hub==0.34.4",
+     "Pillow==12.3.0"
+    ]
+   },
+   "notes": "Requires Python 3.12+; verified with CPU inference on Apple Silicon macOS. The official English Laya checkpoint at revision 55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851 is downloaded, SHA-256 verified and cached (843 MB weights plus tokenizer/configuration). The original Laya 0.3.21 package and pinned PyTorch/Transformers dependencies load it locally with networking disabled during inference. No API key or CUDA is needed."
+  },
+  {
+   "id": "sonic-pi",
+   "name": "Sonic Pi",
+   "repo": "https://github.com/sonic-pi-net/sonic-pi",
+   "license": "MIT core / AGPL web / CC-BY-SA docs",
+   "tier": "D",
+   "purpose": "Original Sonic Pi 5.0 beep, blade and prophet definitions render a supplied six-note phrase through native SuperCollider, with playable PCM audio.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "audio",
+     "data"
+    ]
+   },
+   "install": {
+    "program": "scsynth"
+   },
+   "notes": "Requires macOS and Python 3.12+. Three original compiled Sonic Pi 5.0.0 instrument definitions at revision 25baaed3c28003bf141f591081217136194b0d69 are downloaded with SHA-256 verification and cached. The pinned SuperCollider 3.14.1 universal package is also verified and cached, mounted read-only for its native offline scsynth renderer and detached afterward. No global application installation or audio device is required."
+  },
+  {
+   "id": "geant4",
+   "name": "Geant4",
+   "repo": "https://github.com/Geant4/geant4",
+   "license": "Geant4 Software License 1.0",
+   "tier": "C",
+   "purpose": "Original Geant4 11.4.1 transports 144 electrons through three water slabs and records their native paths and deposited energy.",
+   "tags": [
+    "Particle · matter interactions",
+    "Physics · detectors"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "geant4-pybind==0.1.3",
+     "Pillow==12.3.0"
+    ]
+   },
+   "notes": "Requires Python 3.12+ on Apple Silicon macOS. The pinned geant4-pybind 0.1.3 wheel contains the original Geant4 11.4.1 engine. Official G4EMLOW 8.8, PhotonEvaporation 6.1.2 and G4ENSDFSTATE 3.0 datasets (about 362 MB compressed) are SHA-256 verified, downloaded on demand and cached. No GPU or API key is needed."
+  },
+  {
+   "id": "redner",
+   "name": "redner",
+   "repo": "https://github.com/bachili/redner",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Original redner 0.4.28 differentiates CPU renderings to fit a triangle to a native target image, reducing image error by 99.2%.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "python3.8"
+   },
+   "notes": "Requires Apple Silicon macOS with Rosetta 2 already available, and Python 3.12+ to run this installer. The recipe downloads SHA-256 verified Python 3.8.20, uv 0.11.13 and 29 exact original wheels into a private cache. The pinned uv installer relocates the Intel Python runtime from a verified local archive; macOS codesign adds a local ad-hoc signature to that private runtime so Rosetta can launch it reliably. It does not install a global Python or change security settings. All rendering uses redner 0.4.28 and PyTorch 2.2.2 on the CPU. The original wheel expects an alternate Embree filename, so the driver adds a local alias to its bundled library without changing native engine code."
   }
  ]
 }

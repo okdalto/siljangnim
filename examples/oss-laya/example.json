@@ -1,0 +1,44 @@
+{
+  "order": 506,
+  "title": "Original model scores three support decisions (Laya)",
+  "title_ko": "원본 모델이 고르는 세 문의 유형 (Laya)",
+  "description": "Laya 0.3.21 runs its original English checkpoint on the CPU and reports decision probabilities for three supplied support messages.",
+  "description_ko": "Laya 0.3.21의 원본 영어 학습 모델을 CPU에서 직접 실행해 세 문의 문장의 분류 확률을 계산했어요.",
+  "prompt": "Original model scores three support decisions. Use the original engine.",
+  "made_with": "Laya original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "laya"
+  ],
+  "summary": "Laya 0.3.21 runs its original English checkpoint on the CPU and reports decision probabilities for three supplied support messages.",
+  "summary_ko": "Laya 0.3.21의 원본 영어 학습 모델을 CPU에서 직접 실행해 세 문의 문장의 분류 확률을 계산했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Laya 0.3.21 runs its original English checkpoint on the CPU and reports decision probabilities for three supplied support messages.",
+  "tool_about_ko": "Laya 0.3.21의 원본 영어 학습 모델을 CPU에서 직접 실행해 세 문의 문장의 분류 확률을 계산했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Laya contributors",
+      "url": "https://github.com/nandhakishorm/laya",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Original English Laya checkpoint",
+      "source": "ConvAI Innovations",
+      "url": "https://huggingface.co/convaiinnovations/laya/tree/55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851",
+      "license": "Apache-2.0"
+    }
+  ]
+}

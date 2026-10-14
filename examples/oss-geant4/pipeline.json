@@ -1,0 +1,23 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "geant4.gallery@1",
+      "packages": [
+        "geant4-pybind==0.1.3",
+        "Pillow==12.3.0"
+      ],
+      "inputs": [
+        "main.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

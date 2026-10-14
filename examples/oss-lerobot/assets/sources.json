@@ -1,0 +1,17 @@
+[
+  {
+    "url": "https://files.pythonhosted.org/packages/8e/be/3361a6417799062bbf7b7f6863900e3c1843eb7b21a5ffc5831fdfc7a3b3/lerobot-0.3.3-py3-none-any.whl",
+    "sha256": "ae8354b516f5c8cfaa059d5ac926b4d03e96ca73350b971f8c7d75b905ba953d",
+    "path": "lerobot.whl"
+  },
+  {
+    "path": "model/config.json",
+    "url": "https://huggingface.co/lerobot/diffusion_pusht/resolve/84a7c23178445c6bbf7e1a884ff497017910f653/config.json",
+    "sha256": "d391a7bf488accd1c26b2043482f0060b0855b1ec236f3d7358486918472c0a5"
+  },
+  {
+    "path": "model/model.safetensors",
+    "url": "https://huggingface.co/lerobot/diffusion_pusht/resolve/84a7c23178445c6bbf7e1a884ff497017910f653/model.safetensors",
+    "sha256": "995d14d35db57d95c35ad9704c3d79c8612b7bc45f3877e5c46c2cdc516856a8"
+  }
+]

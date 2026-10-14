@@ -1,0 +1,44 @@
+{
+  "order": 505,
+  "title": "Automatic skin weights bend a supplied mesh (Mesh2Motion)",
+  "title_ko": "자동 스킨 가중치로 구부리는 메시 (Mesh2Motion)",
+  "description": "Mesh2Motion computes original skin weights for 763 supplied vertices; Three.js renders three poses, including 204 smoothly blended vertices.",
+  "description_ko": "Mesh2Motion 원본 알고리즘으로 직접 만든 정점 763개의 스킨 가중치를 계산하고 Three.js로 세 자세를 렌더했어요. 204개 정점은 경계에서 부드럽게 섞여요.",
+  "prompt": "Automatic skin weights bend a supplied mesh. Use the original engine.",
+  "made_with": "Mesh2Motion original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "mesh2motion"
+  ],
+  "summary": "Mesh2Motion computes original skin weights for 763 supplied vertices; Three.js renders three poses, including 204 smoothly blended vertices.",
+  "summary_ko": "Mesh2Motion 원본 알고리즘으로 직접 만든 정점 763개의 스킨 가중치를 계산하고 Three.js로 세 자세를 렌더했어요. 204개 정점은 경계에서 부드럽게 섞여요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Mesh2Motion computes original skin weights for 763 supplied vertices; Three.js renders three poses, including 204 smoothly blended vertices.",
+  "tool_about_ko": "Mesh2Motion 원본 알고리즘으로 직접 만든 정점 763개의 스킨 가중치를 계산하고 Three.js로 세 자세를 렌더했어요. 204개 정점은 경계에서 부드럽게 섞여요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Mesh2Motion contributors",
+      "url": "https://github.com/mesh2motion/mesh2motion-app",
+      "license": "MIT"
+    },
+    {
+      "what": "Original skeletal deformation and WebGL rendering",
+      "source": "Three.js contributors",
+      "url": "https://github.com/mrdoob/three.js/tree/r185",
+      "license": "MIT"
+    }
+  ]
+}

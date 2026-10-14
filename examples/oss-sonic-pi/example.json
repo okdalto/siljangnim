@@ -1,0 +1,50 @@
+{
+  "order": 507,
+  "title": "Three original Sonic Pi instruments rendered offline (Sonic Pi)",
+  "title_ko": "원본 Sonic Pi 악기 세 종류의 오프라인 렌더 (Sonic Pi)",
+  "description": "Original Sonic Pi 5.0 beep, blade and prophet definitions render a supplied six-note phrase through native SuperCollider, with playable PCM audio.",
+  "description_ko": "Sonic Pi 5.0의 원본 beep·blade·prophet 악기 정의로 직접 만든 여섯 음 구절을 SuperCollider에서 렌더했어요. 실제 PCM 오디오를 들을 수 있어요.",
+  "prompt": "Three original Sonic Pi instruments rendered offline. Use the original engine.",
+  "made_with": "Sonic Pi original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "sonic-pi"
+  ],
+  "summary": "Original Sonic Pi 5.0 beep, blade and prophet definitions render a supplied six-note phrase through native SuperCollider, with playable PCM audio.",
+  "summary_ko": "Sonic Pi 5.0의 원본 beep·blade·prophet 악기 정의로 직접 만든 여섯 음 구절을 SuperCollider에서 렌더했어요. 실제 PCM 오디오를 들을 수 있어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original Sonic Pi 5.0 beep, blade and prophet definitions render a supplied six-note phrase through native SuperCollider, with playable PCM audio.",
+  "tool_about_ko": "Sonic Pi 5.0의 원본 beep·blade·prophet 악기 정의로 직접 만든 여섯 음 구절을 SuperCollider에서 렌더했어요. 실제 PCM 오디오를 들을 수 있어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Sonic Pi contributors",
+      "url": "https://github.com/sonic-pi-net/sonic-pi",
+      "license": "MIT core / AGPL web / CC-BY-SA docs"
+    },
+    {
+      "what": "Original compiled beep, blade and prophet instrument definitions",
+      "source": "Sonic Pi contributors",
+      "url": "https://github.com/sonic-pi-net/sonic-pi/tree/v5.0.0/etc/synthdefs/compiled",
+      "license": "MIT"
+    },
+    {
+      "what": "Native offline audio renderer",
+      "source": "SuperCollider contributors",
+      "url": "https://github.com/supercollider/supercollider/tree/Version-3.14.1",
+      "license": "GPL-3.0"
+    }
+  ]
+}

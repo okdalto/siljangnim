@@ -1,0 +1,102 @@
+{
+  "frames": [
+    {
+      "input": "My card was charged twice for the same order. Please refund the duplicate charge.",
+      "label": "billing",
+      "probabilities": {
+        "billing": 0.93,
+        "technical": 0.0365,
+        "shipping": 0.0335
+      },
+      "result": {
+        "model": "laya-rl-agent",
+        "answers": {
+          "department": {
+            "type": "choice",
+            "choice": "billing",
+            "probabilities": {
+              "billing": 0.93,
+              "technical": 0.0365,
+              "shipping": 0.0335
+            },
+            "confidence": 0.7251,
+            "answer_confidence": 0.93,
+            "action": {
+              "act_probability": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 62,
+          "output_tokens": 0
+        }
+      }
+    },
+    {
+      "input": "The app crashes every time I open settings. I cannot use it.",
+      "label": "technical",
+      "probabilities": {
+        "billing": 0.0643,
+        "technical": 0.8688,
+        "shipping": 0.0669
+      },
+      "result": {
+        "model": "laya-rl-agent",
+        "answers": {
+          "department": {
+            "type": "choice",
+            "choice": "technical",
+            "probabilities": {
+              "billing": 0.0643,
+              "technical": 0.8688,
+              "shipping": 0.0669
+            },
+            "confidence": 0.5635,
+            "answer_confidence": 0.8688,
+            "action": {
+              "act_probability": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 60,
+          "output_tokens": 0
+        }
+      }
+    },
+    {
+      "input": "My package has not arrived and the tracking number has stopped updating.",
+      "label": "shipping",
+      "probabilities": {
+        "billing": 0.0191,
+        "technical": 0.0571,
+        "shipping": 0.9238
+      },
+      "result": {
+        "model": "laya-rl-agent",
+        "answers": {
+          "department": {
+            "type": "choice",
+            "choice": "shipping",
+            "probabilities": {
+              "billing": 0.0191,
+              "technical": 0.0571,
+              "shipping": 0.9238
+            },
+            "confidence": 0.7157,
+            "answer_confidence": 0.9238,
+            "action": {
+              "act_probability": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 59,
+          "output_tokens": 0
+        }
+      }
+    }
+  ],
+  "model": "Laya 0.3.21 / English checkpoint",
+  "device": "cpu"
+}

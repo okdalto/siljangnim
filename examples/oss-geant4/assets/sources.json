@@ -1,0 +1,20 @@
+[
+  {
+    "name": "G4ENSDFSTATE",
+    "version": "3.0",
+    "url": "https://cern.ch/geant4-data/datasets/G4ENSDFSTATE.3.0.tar.gz",
+    "sha256": "4bdc3bd40b31d43485bf4f87f055705e540a6557d64ed85c689c59c9a4eba7d6"
+  },
+  {
+    "name": "G4EMLOW",
+    "version": "8.8",
+    "url": "https://cern.ch/geant4-data/datasets/G4EMLOW.8.8.tar.gz",
+    "sha256": "b60cfd63176f5d16107e2a25b35b235155032d1735d749670ca50fede12624cf"
+  },
+  {
+    "name": "PhotonEvaporation",
+    "version": "6.1.2",
+    "url": "https://geant4-data.web.cern.ch/datasets/G4PhotonEvaporation.6.1.2.tar.gz",
+    "sha256": "02149c0ab91d88ee24e78532558777e39a068b9fcdd199136101ff58e635e742"
+  }
+]

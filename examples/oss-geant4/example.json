@@ -1,0 +1,56 @@
+{
+  "order": 508,
+  "title": "Electron paths through three water thicknesses (Geant4)",
+  "title_ko": "물의 두께에 따라 달라지는 전자 경로 (Geant4)",
+  "description": "Original Geant4 11.4.1 transports 144 electrons through three water slabs and records their native paths and deposited energy.",
+  "description_ko": "원본 Geant4 11.4.1에서 세 두께의 물에 전자 144개를 통과시켜 실제 이동 경로와 전달 에너지를 계산했어요.",
+  "prompt": "Electron paths through three water thicknesses. Use the original engine.",
+  "made_with": "Geant4 original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "geant4"
+  ],
+  "summary": "Original Geant4 11.4.1 transports 144 electrons through three water slabs and records their native paths and deposited energy.",
+  "summary_ko": "원본 Geant4 11.4.1에서 세 두께의 물에 전자 144개를 통과시켜 실제 이동 경로와 전달 에너지를 계산했어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original Geant4 11.4.1 transports 144 electrons through three water slabs and records their native paths and deposited energy.",
+  "tool_about_ko": "원본 Geant4 11.4.1에서 세 두께의 물에 전자 144개를 통과시켜 실제 이동 경로와 전달 에너지를 계산했어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Geant4 contributors",
+      "url": "https://github.com/Geant4/geant4",
+      "license": "Geant4 Software License 1.0"
+    },
+    {
+      "what": "This product includes software developed by Members of the Geant4 Collaboration ( http://cern.ch/geant4 ).",
+      "source": "Geant4 Collaboration",
+      "url": "https://geant4.web.cern.ch/",
+      "license": "Geant4 Software License"
+    },
+    {
+      "what": "Python bindings",
+      "source": "HaarigerHarald and contributors",
+      "url": "https://github.com/HaarigerHarald/geant4_pybind/tree/cbd311f3a41994b6148aa0dc4e365a8ab04a5645",
+      "license": "Unlicense"
+    },
+    {
+      "what": "Official electromagnetic and nuclear level data",
+      "source": "Geant4 Collaboration",
+      "url": "https://geant4.web.cern.ch/download/",
+      "license": "Geant4 Software License"
+    }
+  ]
+}

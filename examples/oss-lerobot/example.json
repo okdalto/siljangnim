@@ -1,0 +1,50 @@
+{
+  "order": 503,
+  "title": "A pretrained policy pushes a block into place (LeRobot)",
+  "title_ko": "학습된 정책이 블록을 목표에 맞추는 과정 (LeRobot)",
+  "description": "LeRobot runs its original pretrained Diffusion Policy in PushT on Mac, reaching full target overlap after 104 simulated actions.",
+  "description_ko": "LeRobot 원본 Diffusion Policy를 Mac의 PushT 시뮬레이션에서 직접 실행해 104번의 동작으로 목표와 완전히 겹치는 결과를 얻었어요.",
+  "prompt": "A pretrained policy pushes a block into place. Use the original engine.",
+  "made_with": "LeRobot original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "lerobot"
+  ],
+  "summary": "LeRobot runs its original pretrained Diffusion Policy in PushT on Mac, reaching full target overlap after 104 simulated actions.",
+  "summary_ko": "LeRobot 원본 Diffusion Policy를 Mac의 PushT 시뮬레이션에서 직접 실행해 104번의 동작으로 목표와 완전히 겹치는 결과를 얻었어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "LeRobot runs its original pretrained Diffusion Policy in PushT on Mac, reaching full target overlap after 104 simulated actions.",
+  "tool_about_ko": "LeRobot 원본 Diffusion Policy를 Mac의 PushT 시뮬레이션에서 직접 실행해 104번의 동작으로 목표와 완전히 겹치는 결과를 얻었어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "LeRobot contributors",
+      "url": "https://github.com/huggingface/lerobot",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Original Diffusion Policy / PushT checkpoint",
+      "source": "Hugging Face LeRobot",
+      "url": "https://huggingface.co/lerobot/diffusion_pusht/tree/84a7c23178445c6bbf7e1a884ff497017910f653",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Original PushT simulation and renderer",
+      "source": "gym-pusht contributors",
+      "url": "https://github.com/huggingface/gym-pusht",
+      "license": "Apache-2.0"
+    }
+  ]
+}

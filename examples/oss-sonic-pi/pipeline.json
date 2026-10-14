@@ -1,0 +1,24 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "sonic-pi.gallery@1",
+      "packages": [],
+      "inputs": [
+        "main.py",
+        "source.json",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "audio-0.wav",
+        "audio-1.wav",
+        "audio-2.wav",
+        "result.json",
+        "score-0.osc",
+        "score-1.osc",
+        "score-2.osc"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "script": {
+    "setup": "const s=ctx.state,gl=ctx.gl;s.canvas=new OffscreenCanvas(1,1);s.c=s.canvas.getContext('2d');s.texture=gl.createTexture();s.bitmaps=[];\ns.image=async name=>{const b=await createImageBitmap(await(await fetch(ctx.assets[name])).blob());s.bitmaps.push(b);return b;};\ns.json=async name=>await(await fetch(ctx.assets[name])).json();\ns.show=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,`#version 300 es\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;void main(){outColor=texture(u_image,vec2(v_uv.x,1.-v_uv.y));}`);\ns.meta=await s.json('result.json');s.a=await s.image('render-0.png');s.images=await Promise.all([\"render-0.png\",\"render-1.png\",\"render-2.png\"].map(s.image));s.labels=[\"Water: 1 cm\", \"Water: 3 cm\", \"Water: 5 cm\"];",
+    "render": "const s=ctx.state,gl=ctx.gl,u=ctx.uniforms,[w,h]=ctx.resolution,c=s.c,m=Math.min(w,h);\nif(s.canvas.width!==w||s.canvas.height!==h){s.canvas.width=w;s.canvas.height=h;}c.fillStyle='#09131f';c.fillRect(0,0,w,h);\nconst size=m*.8,left=(w-size)/2,top=(h-size)/2;\nconst caption=(text)=>{c.fillStyle='#bccbd8';c.font=Math.max(12,m*.021)+'px sans-serif';c.textAlign='center';c.fillText(text,w/2,h/2+m*.46);};\n{const im=s.images[u.u_result],ratio=Math.min(size/im.width,size/im.height),iw=im.width*ratio,ih=im.height*ratio;c.drawImage(im,left+(size-iw)/2,top+(size-ih)/2,iw,ih);}caption(s.labels[u.u_result]+' \u00b7 locally computed');gl.bindTexture(gl.TEXTURE_2D,s.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,s.canvas);\ngl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.useProgram(s.show);ctx.utils.bindTexture(s.show,'u_image',s.texture,0);ctx.utils.drawFullscreen(s.show);",
+    "cleanup": "const s=ctx.state;s.dead=true;s.bitmaps?.forEach(b=>b.close());ctx.gl.deleteTexture(s.texture);ctx.gl.deleteProgram(s.show);ctx.state.audio?.pause();"
+  },
+  "uniforms": {
+    "u_result": {
+      "type": "int",
+      "label": "Prepared result",
+      "value": 1,
+      "widget": "select",
+      "options": [
+        {
+          "label": "Water: 1 cm",
+          "value": 0
+        },
+        {
+          "label": "Water: 3 cm",
+          "value": 1
+        },
+        {
+          "label": "Water: 5 cm",
+          "value": 2
+        }
+      ]
+    }
+  }
+}

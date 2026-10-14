@@ -76,6 +76,14 @@ Compare LuxCoreRender roughness and PBRT lens apertures computed by their origin
 
 Also included are a Unitree G1 pretrained walking policy executed in MuJoCo and TAPIR point tracking. The robot example computes six seconds of simulated walking without hardware; tracking predictions are checked against the known motion of supplied images.
 
+Additional original-engine runs include LeRobot pushing a block onto its PushT target, three appleseed lighting setups and Mesh2Motion automatic skin weights. The robot runs in simulation; Mesh2Motion receives supplied geometry and skeleton joints.
+
+Laya shows actual probabilities from its original English decision model for three support messages. Sonic Pi plays an offline rendering of a supplied six-note phrase through three original instrument definitions; it exercises instrument synthesis rather than the language editor.
+
+Geant4 uses its original engine to calculate electron tracks and energy deposition in three water thicknesses. Each case uses an isolated process to avoid a Python-binding shutdown crash. This product includes software developed by Members of the Geant4 Collaboration ( http://cern.ch/geant4 ).
+
+redner fits a triangle to a target image using gradients from its original CPU renderer. Its private Intel Python and original engine are verified and cached; Apple Silicon requires Rosetta 2.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

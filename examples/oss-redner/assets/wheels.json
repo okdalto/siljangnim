@@ -1,0 +1,234 @@
+[
+  {
+    "name": "contourpy",
+    "version": "1.1.1",
+    "filename": "contourpy-1.1.1-cp38-cp38-macosx_10_9_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/02/7e/ffaba1bf3719088be3ad6983a5e85e1fc9edccd7b406b98e433436ecef74/contourpy-1.1.1-cp38-cp38-macosx_10_9_x86_64.whl",
+    "sha256": "70e5a10f8093d228bb2b552beeb318b8928b8a94763ef03b858ef3612b29395d",
+    "released": "2023-09-16"
+  },
+  {
+    "name": "cycler",
+    "version": "0.12.1",
+    "filename": "cycler-0.12.1-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/e7/05/c19819d5e3d95294a6f5947fb9b9629efb316b96de511b418c53d245aae6/cycler-0.12.1-py3-none-any.whl",
+    "sha256": "85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30",
+    "released": "2023-10-07"
+  },
+  {
+    "name": "filelock",
+    "version": "3.16.1",
+    "filename": "filelock-3.16.1-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/b9/f8/feced7779d755758a52d1f6635d990b8d98dc0a29fa568bbe0625f18fdf3/filelock-3.16.1-py3-none-any.whl",
+    "sha256": "2082e5703d51fbf98ea75855d9d5527e33d8ff23099bec374a134febee6946b0",
+    "released": "2024-09-17"
+  },
+  {
+    "name": "fonttools",
+    "version": "4.57.0",
+    "filename": "fonttools-4.57.0-cp38-cp38-macosx_10_9_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/48/9f/5b4a3d6aed5430b159dd3494bb992d4e45102affa3725f208e4f0aedc6a3/fonttools-4.57.0-cp38-cp38-macosx_10_9_x86_64.whl",
+    "sha256": "579ba873d7f2a96f78b2e11028f7472146ae181cae0e4d814a37a09e93d5c5cc",
+    "released": "2025-04-03"
+  },
+  {
+    "name": "fsspec",
+    "version": "2025.3.0",
+    "filename": "fsspec-2025.3.0-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/56/53/eb690efa8513166adef3e0669afd31e95ffde69fb3c52ec2ac7223ed6018/fsspec-2025.3.0-py3-none-any.whl",
+    "sha256": "efb87af3efa9103f94ca91a7f8cb7a4df91af9f74fc106c9c7ea0efd7277c1b3",
+    "released": "2025-03-07"
+  },
+  {
+    "name": "imageio",
+    "version": "2.35.1",
+    "filename": "imageio-2.35.1-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/1e/b7/02adac4e42a691008b5cfb31db98c190e1fc348d1521b9be4429f9454ed1/imageio-2.35.1-py3-none-any.whl",
+    "sha256": "6eb2e5244e7a16b85c10b5c2fe0f7bf961b40fcb9f1a9fd1bd1d2c2f8fb3cd65",
+    "released": "2024-08-19"
+  },
+  {
+    "name": "importlib_resources",
+    "version": "6.4.5",
+    "filename": "importlib_resources-6.4.5-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/e1/6a/4604f9ae2fa62ef47b9de2fa5ad599589d28c9fd1d335f32759813dfa91e/importlib_resources-6.4.5-py3-none-any.whl",
+    "sha256": "ac29d5f956f01d5e4bb63102a5a19957f1b9175e45649977264a1416783bb717",
+    "released": "2024-09-09"
+  },
+  {
+    "name": "Jinja2",
+    "version": "3.1.6",
+    "filename": "jinja2-3.1.6-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl",
+    "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+    "released": "2025-03-05"
+  },
+  {
+    "name": "kiwisolver",
+    "version": "1.4.7",
+    "filename": "kiwisolver-1.4.7-cp38-cp38-macosx_10_9_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/bd/c6/572ad7d73dbd898cffa9050ffd7ff7e78a055a1d9b7accd6b4d1f50ec858/kiwisolver-1.4.7-cp38-cp38-macosx_10_9_x86_64.whl",
+    "sha256": "aeb3531b196ef6f11776c21674dba836aeea9d5bd1cf630f869e3d90b16cfade",
+    "released": "2024-09-04"
+  },
+  {
+    "name": "lazy_loader",
+    "version": "0.4",
+    "filename": "lazy_loader-0.4-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/83/60/d497a310bde3f01cb805196ac61b7ad6dc5dcf8dce66634dc34364b20b4f/lazy_loader-0.4-py3-none-any.whl",
+    "sha256": "342aa8e14d543a154047afb4ba8ef17f5563baad3fc610d7b15b213b0f119efc",
+    "released": "2024-04-05"
+  },
+  {
+    "name": "MarkupSafe",
+    "version": "2.1.5",
+    "filename": "MarkupSafe-2.1.5-cp38-cp38-macosx_10_9_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/4f/14/6f294b9c4f969d0c801a4615e221c1e084722ea6114ab2114189c5b8cbe0/MarkupSafe-2.1.5-cp38-cp38-macosx_10_9_x86_64.whl",
+    "sha256": "97cafb1f3cbcd3fd2b6fbfb99ae11cdb14deea0736fc2b0952ee177f2b813a46",
+    "released": "2024-02-02"
+  },
+  {
+    "name": "matplotlib",
+    "version": "3.7.5",
+    "filename": "matplotlib-3.7.5-cp38-cp38-macosx_10_12_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/b1/ea/129163dcd21db6da5d559a8160c4a74c1dc5f96ac246a3d4248b43c7648d/matplotlib-3.7.5-cp38-cp38-macosx_10_12_x86_64.whl",
+    "sha256": "1dbcca4508bca7847fe2d64a05b237a3dcaec1f959aedb756d5b1c67b770c5ee",
+    "released": "2024-02-16"
+  },
+  {
+    "name": "mpmath",
+    "version": "1.3.0",
+    "filename": "mpmath-1.3.0-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl",
+    "sha256": "a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c",
+    "released": "2023-03-07"
+  },
+  {
+    "name": "networkx",
+    "version": "3.1",
+    "filename": "networkx-3.1-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/a8/05/9d4f9b78ead6b2661d6e8ea772e111fc4a9fbd866ad0c81906c11206b55e/networkx-3.1-py3-none-any.whl",
+    "sha256": "4f33f68cb2afcf86f28a45f43efc27a9386b535d567d2127f8f61d51dec58d36",
+    "released": "2023-04-04"
+  },
+  {
+    "name": "numpy",
+    "version": "1.24.4",
+    "filename": "numpy-1.24.4-cp38-cp38-macosx_10_9_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/11/10/943cfb579f1a02909ff96464c69893b1d25be3731b5d3652c2e0cf1281ea/numpy-1.24.4-cp38-cp38-macosx_10_9_x86_64.whl",
+    "sha256": "1452241c290f3e2a312c137a9999cdbf63f78864d63c79039bda65ee86943f61",
+    "released": "2023-06-26"
+  },
+  {
+    "name": "packaging",
+    "version": "26.2",
+    "filename": "packaging-26.2-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/df/b2/87e62e8c3e2f4b32e5fe99e0b86d576da1312593b39f47d8ceef365e95ed/packaging-26.2-py3-none-any.whl",
+    "sha256": "5fc45236b9446107ff2415ce77c807cee2862cb6fac22b8a73826d0693b0980e",
+    "released": "2026-04-24"
+  },
+  {
+    "name": "pillow",
+    "version": "10.4.0",
+    "filename": "pillow-10.4.0-cp38-cp38-macosx_10_10_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/56/70/f40009702a477ce87d8d9faaa4de51d6562b3445d7a314accd06e4ffb01d/pillow-10.4.0-cp38-cp38-macosx_10_10_x86_64.whl",
+    "sha256": "8d4d5063501b6dd4024b8ac2f04962d661222d120381272deea52e3fc52d3736",
+    "released": "2024-07-01"
+  },
+  {
+    "name": "pyparsing",
+    "version": "3.1.4",
+    "filename": "pyparsing-3.1.4-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/e5/0c/0e3c05b1c87bb6a1c76d281b0f35e78d2d80ac91b5f8f524cebf77f51049/pyparsing-3.1.4-py3-none-any.whl",
+    "sha256": "a6a7ee4235a3f944aa1fa2249307708f893fe5717dc603503c6c7969c070fb7c",
+    "released": "2024-08-25"
+  },
+  {
+    "name": "python-dateutil",
+    "version": "2.9.0.post0",
+    "filename": "python_dateutil-2.9.0.post0-py2.py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl",
+    "sha256": "a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427",
+    "released": "2024-03-01"
+  },
+  {
+    "name": "PyWavelets",
+    "version": "1.4.1",
+    "filename": "PyWavelets-1.4.1-cp38-cp38-macosx_10_13_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/2f/52/080267790e23a5186185f2c26d7b774cee754387d1bcb116c7a45f3546f6/PyWavelets-1.4.1-cp38-cp38-macosx_10_13_x86_64.whl",
+    "sha256": "ab7da0a17822cd2f6545626946d3b82d1a8e106afc4b50e3387719ba01c7b966",
+    "released": "2022-09-16"
+  },
+  {
+    "name": "redner",
+    "version": "0.4.28",
+    "filename": "redner-0.4.28-cp38-cp38-macosx_10_14_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/14/48/e3c05dfd45b5aacce26341aaf6cd707125fa3407e0e7ffdc458ae3768760/redner-0.4.28-cp38-cp38-macosx_10_14_x86_64.whl",
+    "sha256": "f810d9cb938a51b43239548c3a5f6c40da6d4acd7cb2aea89fb6743fd42458f0",
+    "released": "2020-09-11"
+  },
+  {
+    "name": "scikit-image",
+    "version": "0.21.0",
+    "filename": "scikit_image-0.21.0-cp38-cp38-macosx_10_9_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/35/e4/d5d1574d09f30a4df757edf4213ce8e764aebe0f1642475cf384f9fa33bb/scikit_image-0.21.0-cp38-cp38-macosx_10_9_x86_64.whl",
+    "sha256": "4e1b09f81a99c9c390215929194847b3cd358550b4b65bb6e42c5393d69cb74a",
+    "released": "2023-06-02"
+  },
+  {
+    "name": "scipy",
+    "version": "1.10.1",
+    "filename": "scipy-1.10.1-cp38-cp38-macosx_10_9_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/a0/e3/37508a11dae501349d7c16e4dd18c706a023629eedc650ee094593887a89/scipy-1.10.1-cp38-cp38-macosx_10_9_x86_64.whl",
+    "sha256": "5678f88c68ea866ed9ebe3a989091088553ba12c6090244fdae3e467b1139c35",
+    "released": "2023-02-19"
+  },
+  {
+    "name": "six",
+    "version": "1.17.0",
+    "filename": "six-1.17.0-py2.py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl",
+    "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+    "released": "2024-12-04"
+  },
+  {
+    "name": "sympy",
+    "version": "1.13.3",
+    "filename": "sympy-1.13.3-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/99/ff/c87e0622b1dadea79d2fb0b25ade9ed98954c9033722eb707053d310d4f3/sympy-1.13.3-py3-none-any.whl",
+    "sha256": "54612cf55a62755ee71824ce692986f23c88ffa77207b30c1368eda4a7060f73",
+    "released": "2024-09-18"
+  },
+  {
+    "name": "tifffile",
+    "version": "2023.7.10",
+    "filename": "tifffile-2023.7.10-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/06/a3/68d17088a4f09565bc7341fd20490da8191ec4cddde479daaabbe07bb603/tifffile-2023.7.10-py3-none-any.whl",
+    "sha256": "94dfdec321ace96abbfe872a66cfd824800c099a2db558443453eebc2c11b304",
+    "released": "2023-07-11"
+  },
+  {
+    "name": "torch",
+    "version": "2.2.2",
+    "filename": "torch-2.2.2-cp38-none-macosx_10_9_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/35/70/a14c72d280483b86939adf22c780bc81728dde26e89bc7aeb3d2ba63b063/torch-2.2.2-cp38-none-macosx_10_9_x86_64.whl",
+    "sha256": "31f4310210e7dda49f1fb52b0ec9e59382cfcb938693f6d5378f25b43d7c1d29",
+    "released": "2024-03-27"
+  },
+  {
+    "name": "typing_extensions",
+    "version": "4.13.2",
+    "filename": "typing_extensions-4.13.2-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/8b/54/b1ae86c0973cc6f0210b53d508ca3641fb6d0c56823f288d108bc7ab3cc8/typing_extensions-4.13.2-py3-none-any.whl",
+    "sha256": "a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c",
+    "released": "2025-04-10"
+  },
+  {
+    "name": "zipp",
+    "version": "3.20.2",
+    "filename": "zipp-3.20.2-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/62/8b/5ba542fa83c90e09eac972fc9baca7a88e7e7ca4b221a89251954019308b/zipp-3.20.2-py3-none-any.whl",
+    "sha256": "a817ac80d6cf4b23bf7f2828b7cabf326f15a001bea8b1f9b49631780ba28350",
+    "released": "2024-09-13"
+  }
+]

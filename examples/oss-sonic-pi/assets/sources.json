@@ -1,0 +1,17 @@
+[
+  {
+    "path": "beep.scsyndef",
+    "url": "https://raw.githubusercontent.com/sonic-pi-net/sonic-pi/25baaed3c28003bf141f591081217136194b0d69/etc/synthdefs/compiled/sonic-pi-beep.scsyndef",
+    "sha256": "b7c30588959384586f9fe2e8f4bb35b2225573f70c4c2836cbb3df149a26c0d7"
+  },
+  {
+    "path": "blade.scsyndef",
+    "url": "https://raw.githubusercontent.com/sonic-pi-net/sonic-pi/25baaed3c28003bf141f591081217136194b0d69/etc/synthdefs/compiled/sonic-pi-blade.scsyndef",
+    "sha256": "7a66f78b699d0f1ca4ab981c4bed87751111797492428bb67c37ed38dfac1a76"
+  },
+  {
+    "path": "prophet.scsyndef",
+    "url": "https://raw.githubusercontent.com/sonic-pi-net/sonic-pi/25baaed3c28003bf141f591081217136194b0d69/etc/synthdefs/compiled/sonic-pi-prophet.scsyndef",
+    "sha256": "d16e70b8456144249577fcff32db0de8c410d60b30d9c47f186ad9d12f1d109b"
+  }
+]

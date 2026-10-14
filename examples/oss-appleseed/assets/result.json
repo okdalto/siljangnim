@@ -1,0 +1,1 @@
+{"frames": [{"label": "Warm left", "lightPosition": [-3, 4, 3], "samples": 64}, {"label": "Cool right", "lightPosition": [3, 4, 3], "samples": 64}, {"label": "White overhead", "lightPosition": [0, 6, 0], "samples": 64}], "engine": "appleseed 2.1.0-beta"}
