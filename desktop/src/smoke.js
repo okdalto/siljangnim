@@ -576,15 +576,16 @@ async function runExamplesScenario(win, examplesOut) {
       if (!card) throw new Error("no card for ${slug}");
       card.click();
     })()`);
-    let state = null;
-    for (let i = 0; i < 60; i++) {
-      await wait(250);
-      state = await win.webContents.executeJavaScript(`(() => {
+    const readState = () => win.webContents.executeJavaScript(`(() => {
         const s = document.querySelector("[data-runtime-state]");
         // An example that can't open shows why in the gallery (download or integrity errors); keep it for the report.
         const alert = document.querySelector('[data-testid="examples"] [role="alert"]')?.innerText;
         return s && { state: s.dataset.runtimeState, errors: Number(s.dataset.runtimeErrors), project: document.querySelector('header button[title="Rename project"]')?.innerText, ...(alert ? { alert } : {}) };
       })()`);
+    let state = null;
+    for (let i = 0; i < 60; i++) {
+      await wait(250);
+      state = await readState();
       const opened = await win.webContents.executeJavaScript(`!document.querySelector('[data-testid="examples"]')`);
       if ((opened && state?.state === "running" && state.project !== "Untitled") || state?.alert) break;
     }
@@ -599,7 +600,9 @@ async function runExamplesScenario(win, examplesOut) {
       sample = await inFrame(frame, SAMPLE_CANVAS, `sample ${slug}`, 10_000).catch(() => null);
       if (!sample || sample.litFraction > 0.01) break;
     }
-    const after = await win.webContents.executeJavaScript(`Number(document.querySelector("[data-runtime-state]")?.dataset.runtimeErrors)`);
+    // Setup can finish while the first visible frame is being sampled. Report its current state.
+    state = await readState();
+    const after = state?.errors ?? 0;
     const errorText = after ? await win.webContents.executeJavaScript(`document.querySelector("[data-runtime-state]")?.dataset.runtimeError ?? null`) : null;
     results[slug] = { ...state, errors: after, ...(errorText ? { error: errorText } : {}), litFraction: sample?.litFraction ?? 0 };
     // A capture per example (thumbnails, and a look at what ran).
