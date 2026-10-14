@@ -1,0 +1,56 @@
+{
+  "order": 511,
+  "title": "Relaxing a repulsive trefoil curve (Repulsive Curves)",
+  "title_ko": "반발 에너지로 매듭 곡선 다듬기 (Repulsive Curves)",
+  "description": "Original Repulsive Curves energy and analytic gradients relax a 64-vertex trefoil while preserving its length.",
+  "description_ko": "원본 Repulsive Curves의 에너지와 해석적 기울기로 64개 꼭짓점의 매듭을 길이 변화 없이 다듬어요.",
+  "prompt": "Relaxing a repulsive trefoil curve. Use the original engine.",
+  "made_with": "Repulsive Curves original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "repulsive-curves"
+  ],
+  "summary": "Original Repulsive Curves energy and analytic gradients relax a 64-vertex trefoil while preserving its length.",
+  "summary_ko": "원본 Repulsive Curves의 에너지와 해석적 기울기로 64개 꼭짓점의 매듭을 길이 변화 없이 다듬어요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original Repulsive Curves energy and analytic gradients relax a 64-vertex trefoil while preserving its length.",
+  "tool_about_ko": "원본 Repulsive Curves의 에너지와 해석적 기울기로 64개 꼭짓점의 매듭을 길이 변화 없이 다듬어요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Repulsive Curves contributors",
+      "url": "https://github.com/ythea/repulsive-curves",
+      "license": "MIT"
+    },
+    {
+      "what": "Geometry dependency",
+      "source": "Geometry Central contributors",
+      "url": "https://github.com/nmwsharp/geometry-central/tree/a1d448b3a3e05ebec55658422f76aeb8078aaa04",
+      "license": "MIT"
+    },
+    {
+      "what": "Multigrid headers",
+      "source": "Christopher Yu",
+      "url": "https://github.com/icethrush/libgmultigrid/tree/6fd2564ee57cbc97951ae7f91267f6527b5565a5",
+      "license": "MIT"
+    },
+    {
+      "what": "Linear algebra dependency",
+      "source": "Eigen contributors",
+      "url": "https://gitlab.com/libeigen/eigen/-/tree/3.3.7",
+      "license": "MPL-2.0"
+    }
+  ]
+}

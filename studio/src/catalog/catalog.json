@@ -9663,6 +9663,51 @@
     "program": "python3.8"
    },
    "notes": "Requires Apple Silicon macOS with Rosetta 2 already available, and Python 3.12+ to run this installer. The recipe downloads SHA-256 verified Python 3.8.20, uv 0.11.13 and 29 exact original wheels into a private cache. The pinned uv installer relocates the Intel Python runtime from a verified local archive; macOS codesign adds a local ad-hoc signature to that private runtime so Rosetta can launch it reliably. It does not install a global Python or change security settings. All rendering uses redner 0.4.28 and PyTorch 2.2.2 on the CPU. The original wheel expects an alternate Embree filename, so the driver adds a local alias to its bundled library without changing native engine code."
+  },
+  {
+   "id": "physx",
+   "name": "PhysX",
+   "repo": "https://github.com/nvidia-omniverse/physx",
+   "license": "BSD-3-Clause",
+   "tier": "D",
+   "purpose": "Original PhysX 5.11.0 CPU physics simulates 36 falling boxes, with native poses captured at 0, 1 and 4 seconds.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "electron"
+   },
+   "notes": "Requires Python with Pillow and an Electron executable (verified with 44.4.4). Set ELECTRON to its executable path. Original physx-js-webidl 2.8.0 is downloaded on demand (2 MB), SHA-256 verified and cached. Its unchanged PhysX 5.11.0 CPU WASM runs in an isolated browser window. No NVIDIA GPU is needed."
+  },
+  {
+   "id": "repulsive-curves",
+   "name": "Repulsive Curves",
+   "repo": "https://github.com/ythea/repulsive-curves",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Original Repulsive Curves energy and analytic gradients relax a 64-vertex trefoil while preserving its length.",
+   "tags": [
+    "Curve energy · repulsion",
+    "Curves · geometry"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "clang++"
+   },
+   "notes": "Requires Apple Command Line Tools (clang++) and Python with Pillow. Pinned original C++ source and geometry-central, libgmultigrid and Eigen dependencies (about 7 MB compressed) are SHA-256 verified on demand. The compiled engine is cached by source manifest and driver content."
   }
  ]
 }

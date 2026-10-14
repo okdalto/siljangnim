@@ -84,6 +84,8 @@ Geant4 uses its original engine to calculate electron tracks and energy depositi
 
 redner fits a triangle to a target image using gradients from its original CPU renderer. Its private Intel Python and original engine are verified and cached; Apple Silicon requires Rosetta 2.
 
+PhysX uses its original CPU physics engine to simulate 36 falling boxes without an NVIDIA GPU. Repulsive Curves uses its original energy and gradients with a supplied optimization driver to relax a knot. Both examples compare three locally computed states and include rerunnable recipes.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

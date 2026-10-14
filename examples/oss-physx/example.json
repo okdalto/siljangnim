@@ -1,0 +1,50 @@
+{
+  "order": 510,
+  "title": "A falling stack of 36 rigid boxes (PhysX)",
+  "title_ko": "상자 36개의 낙하와 쌓임 (PhysX)",
+  "description": "Original PhysX 5.11.0 CPU physics simulates 36 falling boxes, with native poses captured at 0, 1 and 4 seconds.",
+  "description_ko": "원본 PhysX 5.11.0으로 상자 36개의 낙하와 충돌을 계산하고 0·1·4초의 실제 위치를 비교해요.",
+  "prompt": "A falling stack of 36 rigid boxes. Use the original engine.",
+  "made_with": "PhysX original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "physx"
+  ],
+  "summary": "Original PhysX 5.11.0 CPU physics simulates 36 falling boxes, with native poses captured at 0, 1 and 4 seconds.",
+  "summary_ko": "원본 PhysX 5.11.0으로 상자 36개의 낙하와 충돌을 계산하고 0·1·4초의 실제 위치를 비교해요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original PhysX 5.11.0 CPU physics simulates 36 falling boxes, with native poses captured at 0, 1 and 4 seconds.",
+  "tool_about_ko": "원본 PhysX 5.11.0으로 상자 36개의 낙하와 충돌을 계산하고 0·1·4초의 실제 위치를 비교해요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "PhysX contributors",
+      "url": "https://github.com/nvidia-omniverse/physx",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "what": "WASM bindings and scene initialization reference",
+      "source": "Fabian Oberhammer and contributors",
+      "url": "https://github.com/fabmax/physx-js-webidl/tree/0f65a4791b27babd7c8dc86b10db02df4b51768d",
+      "license": "MIT"
+    },
+    {
+      "what": "Pinned PhysX engine used by the WASM build",
+      "source": "NVIDIA and contributors",
+      "url": "https://github.com/fabmax/PhysX/tree/a097a5d4c0cf3de0d8c6ced3202ae05a553ec55b",
+      "license": "BSD-3-Clause"
+    }
+  ]
+}

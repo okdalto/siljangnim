@@ -1,0 +1,29 @@
+[
+  {
+    "name": "curves",
+    "repo": "ythea/repulsive-curves",
+    "revision": "78a0c15da6edfc19a3f6607aebc59d769b1e59da",
+    "url": "https://codeload.github.com/ythea/repulsive-curves/tar.gz/78a0c15da6edfc19a3f6607aebc59d769b1e59da",
+    "sha256": "304be65a93f6d11cceda0cd7d3eb38f2a156d3adc788e95c76c4f37a58ac1f6d"
+  },
+  {
+    "name": "geometry",
+    "repo": "nmwsharp/geometry-central",
+    "revision": "a1d448b3a3e05ebec55658422f76aeb8078aaa04",
+    "url": "https://codeload.github.com/nmwsharp/geometry-central/tar.gz/a1d448b3a3e05ebec55658422f76aeb8078aaa04",
+    "sha256": "87a964d78e35cdf4e911bb834e6c7d2c76d812eb0f4ec7c3cf62858f1be080a7"
+  },
+  {
+    "name": "multigrid",
+    "repo": "icethrush/libgmultigrid",
+    "revision": "6fd2564ee57cbc97951ae7f91267f6527b5565a5",
+    "url": "https://codeload.github.com/icethrush/libgmultigrid/tar.gz/6fd2564ee57cbc97951ae7f91267f6527b5565a5",
+    "sha256": "92c89d3289e76981728cabdd67d18deed75894ed0d0be1e9b0190f1878166372"
+  },
+  {
+    "name": "eigen",
+    "url": "https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz",
+    "revision": "3.3.7",
+    "sha256": "d56fbad95abf993f8af608484729e3d87ef611dd85b3380a8bad1d5cbc373a57"
+  }
+]

@@ -265,6 +265,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | pbrt-v4 (index.opensource #144) | Apache-2.0 | [github.com/mmp/pbrt-v4](https://github.com/mmp/pbrt-v4) | [oss-pbrt-v4](examples/oss-pbrt-v4/) | an installed program, run by a recipe (not bundled) |
 | Penrose (index.opensource #19) | MIT | [github.com/penrose/penrose](https://github.com/penrose/penrose) | [oss-penrose](examples/oss-penrose/) | an installed program, run by a recipe (not bundled) |
 | Perfect Freehand (index.opensource #26) | MIT | [github.com/steveruizok/perfect-freehand](https://github.com/steveruizok/perfect-freehand) | [oss-perfect-freehand](examples/oss-perfect-freehand/) | fetched from a CDN by the scene at run time (not bundled) |
+| PhysX (index.opensource #155) | BSD-3-Clause | [github.com/nvidia-omniverse/physx](https://github.com/nvidia-omniverse/physx) | [oss-physx](examples/oss-physx/) | an installed program, run by a recipe (not bundled) |
 | Pillow | MIT-CMU | [github.com/python-pillow/Pillow](https://github.com/python-pillow/Pillow) | [oss-pillow](examples/oss-pillow/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Pink Trombone C++ (index.opensource #393) | MIT (C++ port) | [github.com/kaiidams/pinktrombone_cpp](https://github.com/kaiidams/pinktrombone_cpp) | [oss-pink-trombone-c](examples/oss-pink-trombone-c/) | an installed program, run by a recipe (not bundled) |
 | Pixelmatch (index.opensource #197) | ISC | [github.com/mapbox/pixelmatch](https://github.com/mapbox/pixelmatch) | [oss-pixelmatch](examples/oss-pixelmatch/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -313,6 +314,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | redner (index.opensource #147) | MIT | [github.com/bachili/redner](https://github.com/bachili/redner) | [oss-redner](examples/oss-redner/) | an installed program, run by a recipe (not bundled) |
 | regl (index.opensource #338) | MIT | [github.com/regl-project/regl](https://github.com/regl-project/regl) | [oss-regl](examples/oss-regl/) | fetched from a CDN by the scene at run time (not bundled) |
 | rembg | MIT; weights: depends on the model (u2net: Apache-2.0) | [github.com/danielgatis/rembg](https://github.com/danielgatis/rembg) | [oss-rembg](examples/oss-rembg/) | a model installed on the person's computer (not bundled) |
+| Repulsive Curves (index.opensource #397) | MIT | [github.com/ythea/repulsive-curves](https://github.com/ythea/repulsive-curves) | [oss-repulsive-curves](examples/oss-repulsive-curves/) | an installed program, run by a recipe (not bundled) |
 | robust-point-in-polygon (index.opensource #47) | MIT | [github.com/mikolalysenko/robust-point-in-polygon](https://github.com/mikolalysenko/robust-point-in-polygon) | [oss-robust-point-in-polygon](examples/oss-robust-point-in-polygon/) | fetched from a CDN by the scene at run time (not bundled) |
 | robust-predicates (index.opensource #106) | Unlicense | [github.com/mourner/robust-predicates](https://github.com/mourner/robust-predicates) | [oss-robust-predicates](examples/oss-robust-predicates/) | fetched from a CDN by the scene at run time (not bundled) |
 | Rough.js (index.opensource #116) | MIT | [github.com/rough-stuff/rough](https://github.com/rough-stuff/rough) | [oss-roughjs](examples/oss-roughjs/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -638,6 +640,13 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Official electromagnetic and nuclear level data | [Geant4 Collaboration](https://geant4.web.cern.ch/download/) | Geant4 Software License | [oss-geant4](examples/oss-geant4/) |
 | Original engine | [redner contributors](https://github.com/bachili/redner) | MIT | [oss-redner](examples/oss-redner/) |
 | Triangle scene setup adapted from the original example | [Tzu-Mao Li and redner contributors](https://github.com/BachiLi/redner/blob/master/tests/test_single_triangle.py) | MIT | [oss-redner](examples/oss-redner/) |
+| Original engine | [PhysX contributors](https://github.com/nvidia-omniverse/physx) | BSD-3-Clause | [oss-physx](examples/oss-physx/) |
+| WASM bindings and scene initialization reference | [Fabian Oberhammer and contributors](https://github.com/fabmax/physx-js-webidl/tree/0f65a4791b27babd7c8dc86b10db02df4b51768d) | MIT | [oss-physx](examples/oss-physx/) |
+| Pinned PhysX engine used by the WASM build | [NVIDIA and contributors](https://github.com/fabmax/PhysX/tree/a097a5d4c0cf3de0d8c6ced3202ae05a553ec55b) | BSD-3-Clause | [oss-physx](examples/oss-physx/) |
+| Original engine | [Repulsive Curves contributors](https://github.com/ythea/repulsive-curves) | MIT | [oss-repulsive-curves](examples/oss-repulsive-curves/) |
+| Geometry dependency | [Geometry Central contributors](https://github.com/nmwsharp/geometry-central/tree/a1d448b3a3e05ebec55658422f76aeb8078aaa04) | MIT | [oss-repulsive-curves](examples/oss-repulsive-curves/) |
+| Multigrid headers | [Christopher Yu](https://github.com/icethrush/libgmultigrid/tree/6fd2564ee57cbc97951ae7f91267f6527b5565a5) | MIT | [oss-repulsive-curves](examples/oss-repulsive-curves/) |
+| Linear algebra dependency | [Eigen contributors](https://gitlab.com/libeigen/eigen/-/tree/3.3.7) | MPL-2.0 | [oss-repulsive-curves](examples/oss-repulsive-curves/) |
 
 ## Studio (the app's web code): bundled npm packages
 

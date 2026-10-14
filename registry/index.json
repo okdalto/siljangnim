@@ -1666,6 +1666,19 @@
       "sha256": "88aac76b13955a53cd3b9977fd73e1c5c0e4116bc0413832e384fa88cc8ae3cc"
     },
     {
+      "id": "physx.gallery",
+      "version": 1,
+      "title": "A falling stack of 36 rigid boxes",
+      "capability": "physx graphics",
+      "kind": "python",
+      "license": "BSD-3-Clause",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/physx.gallery/recipe.md",
+      "sha256": "385356a3ce87ea9c29f5c374e7a56eebe779eba680f5addd7e974029f6e658df"
+    },
+    {
       "id": "pillow.poster-sunset",
       "version": 1,
       "title": "Original sunset and median-cut palettes (Pillow)",
@@ -2028,6 +2041,19 @@
       ],
       "path": "recipes/rembg.gallery/recipe.md",
       "sha256": "99efcccf929bf1cc53740ff1ba154ce2ac1e3611db0a2ed564261d113203821a"
+    },
+    {
+      "id": "repulsive-curves.gallery",
+      "version": 1,
+      "title": "Relaxing a repulsive trefoil curve",
+      "capability": "repulsive-curves graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/repulsive-curves.gallery/recipe.md",
+      "sha256": "3e92cba8006df98277ebe79f77d37d617ee7dbca8fa64f590cf47e7746ba70f0"
     },
     {
       "id": "routingkit.gallery",

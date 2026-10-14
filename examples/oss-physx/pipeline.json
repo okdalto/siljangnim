@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "physx.gallery@1",
+      "packages": [
+        "Pillow==12.3.0"
+      ],
+      "inputs": [
+        "capture.html",
+        "driver.mjs",
+        "render.py",
+        "runner.cjs",
+        "source.json"
+      ],
+      "params": {},
+      "outputs": [
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}
