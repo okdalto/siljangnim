@@ -1,0 +1,14 @@
+[
+  {
+    "name": "tidal-core",
+    "version": "1.10.0",
+    "url": "https://hackage.haskell.org/package/tidal-core-1.10.0/tidal-core-1.10.0.tar.gz",
+    "sha256": "ae7dc0256901f7eced6257f31ea963b369f8c8cdf83949a2c2b97f513ef8e6b5"
+  },
+  {
+    "name": "colour",
+    "version": "2.3.6",
+    "url": "https://hackage.haskell.org/package/colour-2.3.6/colour-2.3.6.tar.gz",
+    "sha256": "2cd35dcd6944a5abc9f108a5eb5ee564b6b1fa98a9ec79cefcc20b588991f871"
+  }
+]

@@ -247,6 +247,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | ONNX Runtime Web | MIT | [github.com/microsoft/onnxruntime](https://github.com/microsoft/onnxruntime) | [oss-onnxruntime-web](examples/oss-onnxruntime-web/) | fetched from a CDN by the scene at run time (not bundled) |
 | Open3D (index.opensource #304) | MIT | [github.com/isl-org/Open3D](https://github.com/isl-org/Open3D) | [oss-open3d](examples/oss-open3d/) | installed with pip on the person's computer by a recipe (not bundled) |
 | OpenCV (opencv-python-headless) (index.opensource #227) | Apache-2.0 | [github.com/opencv/opencv](https://github.com/opencv/opencv) | [oss-opencv](examples/oss-opencv/) | installed with pip on the person's computer by a recipe (not bundled) |
+| openFrameworks (index.opensource #345) | MIT | [github.com/openframeworks/openframeworks](https://github.com/openframeworks/openframeworks) | [oss-openframeworks](examples/oss-openframeworks/) | an installed program, run by a recipe (not bundled) |
 | OpenSCAD (index.opensource #90) | GPL-2.0 | [github.com/openscad/openscad](https://github.com/openscad/openscad) | [oss-openscad](examples/oss-openscad/) | an installed program, run by a recipe (not bundled) |
 | OpenSimplex2 (index.opensource #124) | CC0-1.0 / some files Unlicense | [github.com/kdotjpg/opensimplex2](https://github.com/kdotjpg/opensimplex2) | [oss-opensimplex2](examples/oss-opensimplex2/) | an installed program, run by a recipe (not bundled) |
 | OpenSubdiv (index.opensource #77) | LicenseRef-Tomorrow-Open-Source-Technology-1.0 | [github.com/pixaranimationstudios/opensubdiv](https://github.com/pixaranimationstudios/opensubdiv) | [oss-opensubdiv](examples/oss-opensubdiv/) | an installed program, run by a recipe (not bundled) |
@@ -302,6 +303,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | PyVista (index.opensource #305) | MIT | [github.com/pyvista/pyvista](https://github.com/pyvista/pyvista) | [oss-pyvista](examples/oss-pyvista/) | installed with pip on the person's computer by a recipe (not bundled) |
 | QMsolve (index.opensource #389) | BSD-3-Clause | [github.com/quantum-visualizations/qmsolve](https://github.com/quantum-visualizations/qmsolve) | [oss-qmsolve](examples/oss-qmsolve/) | installed with pip on the person's computer by a recipe (not bundled) |
 | QuickHull (index.opensource #78) | Public Domain (stated by author) | [github.com/akuukka/quickhull](https://github.com/akuukka/quickhull) | [oss-quickhull](examples/oss-quickhull/) | an installed program, run by a recipe (not bundled) |
+| Qwen3-TTS (index.opensource #281) | Apache-2.0 | [github.com/qwenlm/qwen3-tts](https://github.com/qwenlm/qwen3-tts) | [oss-qwen3-tts](examples/oss-qwen3-tts/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Rapier (index.opensource #154) | Apache-2.0 | [github.com/dimforge/rapier](https://github.com/dimforge/rapier) | [oss-rapier](examples/oss-rapier/) | fetched from a CDN by the scene at run time (not bundled) |
 | Ray Optics Simulation (index.opensource #388) | Apache-2.0 | [github.com/ricktu288/ray-optics](https://github.com/ricktu288/ray-optics) | [oss-ray-optics-simulation](examples/oss-ray-optics-simulation/) | an installed program, run by a recipe (not bundled) |
 | RBush (index.opensource #309) | MIT | [github.com/mourner/rbush](https://github.com/mourner/rbush) | [oss-rbush](examples/oss-rbush/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -365,6 +367,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | three-mesh-bvh (index.opensource #98) | MIT | [github.com/gkjohnson/three-mesh-bvh](https://github.com/gkjohnson/three-mesh-bvh) | [oss-three-mesh-bvh](examples/oss-three-mesh-bvh/) | fetched from a CDN by the scene at run time (not bundled) |
 | Three.js (index.opensource #334) | MIT | [github.com/mrdoob/three.js](https://github.com/mrdoob/three.js) | [oss-three](examples/oss-three/), [oss-three-mesh-bvh](examples/oss-three-mesh-bvh/) | fetched from a CDN by the scene at run time (not bundled) |
 | THREE.js-PathTracing-Renderer (index.opensource #152) | CC0-1.0 (project LICENSE) | [github.com/erichlof/three.js-pathtracing-renderer](https://github.com/erichlof/three.js-pathtracing-renderer) | [oss-three-js-pathtracing-renderer](examples/oss-three-js-pathtracing-renderer/) | an installed program, run by a recipe (not bundled) |
+| Tidal Cycles (index.opensource #258) | GPL-3.0 | [github.com/tidalcycles/tidal](https://github.com/tidalcycles/tidal) | [oss-tidal-cycles](examples/oss-tidal-cycles/) | an installed program, run by a recipe (not bundled) |
 | tinyrenderer (index.opensource #373) | Tiny Renderer License | [github.com/ssloy/tinyrenderer](https://github.com/ssloy/tinyrenderer) | [oss-tinyrenderer](examples/oss-tinyrenderer/) | an installed program, run by a recipe (not bundled) |
 | TinySDF (index.opensource #187) | BSD-2-Clause | [github.com/mapbox/tiny-sdf](https://github.com/mapbox/tiny-sdf) | [oss-tiny-sdf](examples/oss-tiny-sdf/) | fetched from a CDN by the scene at run time (not bundled) |
 | TinySpline (index.opensource #55) | MIT | [github.com/msteinbeck/tinyspline](https://github.com/msteinbeck/tinyspline) | [oss-tinyspline](examples/oss-tinyspline/) | installed with pip on the person's computer by a recipe (not bundled) |
@@ -647,6 +650,12 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Geometry dependency | [Geometry Central contributors](https://github.com/nmwsharp/geometry-central/tree/a1d448b3a3e05ebec55658422f76aeb8078aaa04) | MIT | [oss-repulsive-curves](examples/oss-repulsive-curves/) |
 | Multigrid headers | [Christopher Yu](https://github.com/icethrush/libgmultigrid/tree/6fd2564ee57cbc97951ae7f91267f6527b5565a5) | MIT | [oss-repulsive-curves](examples/oss-repulsive-curves/) |
 | Linear algebra dependency | [Eigen contributors](https://gitlab.com/libeigen/eigen/-/tree/3.3.7) | MPL-2.0 | [oss-repulsive-curves](examples/oss-repulsive-curves/) |
+| Original engine | [Qwen3-TTS contributors](https://github.com/qwenlm/qwen3-tts) | Apache-2.0 | [oss-qwen3-tts](examples/oss-qwen3-tts/) |
+| Original 0.6B CustomVoice checkpoint and built-in speaker presets | [Alibaba Qwen team](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice/tree/85e237c12c027371202489a0ec509ded67b5e4b5) | Apache-2.0 | [oss-qwen3-tts](examples/oss-qwen3-tts/) |
+| Original engine | [openFrameworks contributors](https://github.com/openframeworks/openframeworks) | MIT | [oss-openframeworks](examples/oss-openframeworks/) |
+| Original engine | [Tidal Cycles contributors](https://github.com/tidalcycles/tidal) | GPL-3.0 | [oss-tidal-cycles](examples/oss-tidal-cycles/) |
+| Original Haskell pattern engine | [TidalCycles contributors](https://hackage.haskell.org/package/tidal-core-1.10.0) | GPL-3.0 | [oss-tidal-cycles](examples/oss-tidal-cycles/) |
+| Original colour dependency | [Russell O’Connor](https://hackage.haskell.org/package/colour-2.3.6) | MIT | [oss-tidal-cycles](examples/oss-tidal-cycles/) |
 
 ## Studio (the app's web code): bundled npm packages
 

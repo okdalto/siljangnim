@@ -1,0 +1,50 @@
+{
+  "order": 514,
+  "title": "Rhythm patterns at different speeds and directions (Tidal Cycles)",
+  "title_ko": "리듬 패턴의 속도와 방향 바꾸기 (Tidal Cycles)",
+  "description": "Original TidalCycles parses a rhythm and computes native event times for its base, double-speed and reversed patterns.",
+  "description_ko": "원본 TidalCycles가 리듬 문법을 해석하고 기본·두 배 속도·역순 패턴의 실제 사건 시간을 계산합니다.",
+  "prompt": "Rhythm patterns at different speeds and directions. Use the original engine.",
+  "made_with": "Tidal Cycles original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "tidal-cycles"
+  ],
+  "summary": "Original TidalCycles parses a rhythm and computes native event times for its base, double-speed and reversed patterns.",
+  "summary_ko": "원본 TidalCycles가 리듬 문법을 해석하고 기본·두 배 속도·역순 패턴의 실제 사건 시간을 계산합니다.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original TidalCycles parses a rhythm and computes native event times for its base, double-speed and reversed patterns.",
+  "tool_about_ko": "원본 TidalCycles가 리듬 문법을 해석하고 기본·두 배 속도·역순 패턴의 실제 사건 시간을 계산합니다.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Tidal Cycles contributors",
+      "url": "https://github.com/tidalcycles/tidal",
+      "license": "GPL-3.0"
+    },
+    {
+      "what": "Original Haskell pattern engine",
+      "source": "TidalCycles contributors",
+      "url": "https://hackage.haskell.org/package/tidal-core-1.10.0",
+      "license": "GPL-3.0"
+    },
+    {
+      "what": "Original colour dependency",
+      "source": "Russell O’Connor",
+      "url": "https://hackage.haskell.org/package/colour-2.3.6",
+      "license": "MIT"
+    }
+  ]
+}

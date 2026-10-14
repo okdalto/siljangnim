@@ -9708,6 +9708,91 @@
     "program": "clang++"
    },
    "notes": "Requires Apple Command Line Tools (clang++) and Python with Pillow. Pinned original C++ source and geometry-central, libgmultigrid and Eigen dependencies (about 7 MB compressed) are SHA-256 verified on demand. The compiled engine is cached by source manifest and driver content."
+  },
+  {
+   "id": "qwen3-tts",
+   "name": "Qwen3-TTS",
+   "repo": "https://github.com/qwenlm/qwen3-tts",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "Original Qwen3-TTS 0.6B CustomVoice synthesizes the same short sentence in three built-in voices, entirely on the local CPU.",
+   "tags": [
+    "TTS",
+    "Korean",
+    "speech"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "audio",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.7.1",
+     "torchaudio==2.7.1",
+     "numpy==2.2.6",
+     "transformers==4.57.3",
+     "accelerate==1.12.0",
+     "librosa==0.11.0",
+     "soundfile==0.13.1",
+     "sox==1.5.0",
+     "onnxruntime==1.23.2",
+     "einops==0.8.1",
+     "huggingface-hub==0.36.0",
+     "safetensors==0.7.0",
+     "tokenizers==0.22.2",
+     "Pillow==12.3.0",
+     "scipy==1.16.3",
+     "numba==0.61.2"
+    ]
+   },
+   "notes": "Requires Python 3.12 and sufficient memory for float32 CPU inference (verified on a 16 GB Apple Silicon Mac). Original qwen-tts 0.1.1 inference code and the official ungated 0.6B CustomVoice checkpoint are SHA-256 verified, downloaded on demand and cached (about 2.5 GB of weights). The optional Gradio interface is not installed. No API key, paid service, GPU or reference voice is needed. SoX and FlashAttention are not used by this built-in-voice path; their optional import warnings do not prevent synthesis."
+  },
+  {
+   "id": "openframeworks",
+   "name": "openFrameworks",
+   "repo": "https://github.com/openframeworks/openframeworks",
+   "license": "MIT",
+   "tier": "D",
+   "purpose": "Original openFrameworks 0.12.1 generates a 2,401-vertex terrain and renders 4,608 triangles with its native OpenGL renderer.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "make"
+   },
+   "notes": "Requires macOS with a graphical login session and Xcode command-line build tools. The official openFrameworks 0.12.1 macOS release (about 512 MB compressed) is downloaded on demand, SHA-256 verified and compiled with its original Makefiles. Compilation uses a temporary path without spaces; only the finished app and release archive remain cached. Allow about 2 GB of temporary disk space for the first build."
+  },
+  {
+   "id": "tidal-cycles",
+   "name": "Tidal Cycles",
+   "repo": "https://github.com/tidalcycles/tidal",
+   "license": "GPL-3.0",
+   "tier": "D",
+   "purpose": "Original TidalCycles parses a rhythm and computes native event times for its base, double-speed and reversed patterns.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "program": "ghc"
+   },
+   "notes": "Requires GHC (verified with 9.6.7) and Python with Pillow. Original tidal-core 1.10.0 and colour 2.3.6 sources are SHA-256 verified, downloaded on demand and compiled unchanged. Source archives and the compiled driver are cached. The compiler runs without a user package environment, using its standard libraries; no global Haskell packages are changed."
   }
  ]
 }

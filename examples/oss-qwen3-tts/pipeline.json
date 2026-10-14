@@ -1,0 +1,37 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "qwen3-tts.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "torchaudio==2.7.1",
+        "numpy==2.2.6",
+        "transformers==4.57.3",
+        "accelerate==1.12.0",
+        "librosa==0.11.0",
+        "soundfile==0.13.1",
+        "sox==1.5.0",
+        "onnxruntime==1.23.2",
+        "einops==0.8.1",
+        "huggingface-hub==0.36.0",
+        "safetensors==0.7.0",
+        "tokenizers==0.22.2",
+        "Pillow==12.3.0",
+        "scipy==1.16.3",
+        "numba==0.61.2"
+      ],
+      "inputs": [
+        "driver.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "audio-0.wav",
+        "audio-1.wav",
+        "audio-2.wav",
+        "result.json"
+      ]
+    }
+  ]
+}

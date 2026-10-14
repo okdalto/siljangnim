@@ -1,0 +1,44 @@
+{
+  "order": 512,
+  "title": "One sentence in three built-in voices (Qwen3-TTS)",
+  "title_ko": "세 목소리로 읽는 한 문장 (Qwen3-TTS)",
+  "description": "Original Qwen3-TTS 0.6B CustomVoice synthesizes the same short sentence in three built-in voices, entirely on the local CPU.",
+  "description_ko": "원본 Qwen3-TTS 0.6B 모델이 같은 짧은 문장을 세 기본 목소리로 읽습니다. 이 Mac의 CPU에서 직접 합성한 음성이에요.",
+  "prompt": "One sentence in three built-in voices. Use the original engine.",
+  "made_with": "Qwen3-TTS original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "qwen3-tts"
+  ],
+  "summary": "Original Qwen3-TTS 0.6B CustomVoice synthesizes the same short sentence in three built-in voices, entirely on the local CPU.",
+  "summary_ko": "원본 Qwen3-TTS 0.6B 모델이 같은 짧은 문장을 세 기본 목소리로 읽습니다. 이 Mac의 CPU에서 직접 합성한 음성이에요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original Qwen3-TTS 0.6B CustomVoice synthesizes the same short sentence in three built-in voices, entirely on the local CPU.",
+  "tool_about_ko": "원본 Qwen3-TTS 0.6B 모델이 같은 짧은 문장을 세 기본 목소리로 읽습니다. 이 Mac의 CPU에서 직접 합성한 음성이에요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Qwen3-TTS contributors",
+      "url": "https://github.com/qwenlm/qwen3-tts",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Original 0.6B CustomVoice checkpoint and built-in speaker presets",
+      "source": "Alibaba Qwen team",
+      "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice/tree/85e237c12c027371202489a0ec509ded67b5e4b5",
+      "license": "Apache-2.0"
+    }
+  ]
+}

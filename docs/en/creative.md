@@ -86,6 +86,12 @@ redner fits a triangle to a target image using gradients from its original CPU r
 
 PhysX uses its original CPU physics engine to simulate 36 falling boxes without an NVIDIA GPU. Repulsive Curves uses its original energy and gradients with a supplied optimization driver to relax a knot. Both examples compare three locally computed states and include rerunnable recipes.
 
+Qwen3-TTS compares three built-in voices synthesized on this Mac’s CPU, with audio playback and waveforms. Its official model (about 2.5 GB) downloads only when running the recipe and is cached. Edit the sentence and rerun to synthesize new speech.
+
+openFrameworks renders three terrains using its original C++ noise, mesh and OpenGL APIs. The first recipe run downloads the official release and caches the built app. Rerunning requires a macOS graphical session and Xcode build tools.
+
+Tidal Cycles uses its original Haskell pattern engine to compute base, double-speed and reversed event times, including a double-reversal check. This example compares timing diagrams rather than synthesizing sound. Rerunning requires GHC.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

@@ -1523,6 +1523,19 @@
       "sha256": "ab16e3e78ec41d198874c0706cb5a87ba5c968a4935b8d785abb8878dd58e257"
     },
     {
+      "id": "openframeworks.gallery",
+      "version": 1,
+      "title": "A native noise terrain in three phases",
+      "capability": "openframeworks graphics",
+      "kind": "python",
+      "license": "MIT",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/openframeworks.gallery/recipe.md",
+      "sha256": "b2df8fbaca2de731fa0551bbfd3372c4c28ec9b032a72b99d5a50d680ced188c"
+    },
+    {
       "id": "openscad.gallery",
       "version": 1,
       "title": "Perforated lantern (OpenSCAD)",
@@ -1963,6 +1976,19 @@
       ],
       "path": "recipes/quickhull.gallery/recipe.md",
       "sha256": "8fda560b81b4519ef85613ddce2c87e5f5edf089faedbcc654a143df4b61191c"
+    },
+    {
+      "id": "qwen3-tts.gallery",
+      "version": 1,
+      "title": "One sentence in three built-in voices",
+      "capability": "qwen3-tts graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/qwen3-tts.gallery/recipe.md",
+      "sha256": "f540038529eb0fd85b55c4a70ca8d48616f31428088a258f484bf1f6c3c15070"
     },
     {
       "id": "ray-optics-simulation.gallery",
@@ -2457,6 +2483,19 @@
       ],
       "path": "recipes/three-js-pathtracing-renderer.gallery/recipe.md",
       "sha256": "227954af289d4d909d833d3fccf5a25fdb2bc4a5c76621910e9278ed05d62896"
+    },
+    {
+      "id": "tidal-cycles.gallery",
+      "version": 1,
+      "title": "Rhythm patterns at different speeds and directions",
+      "capability": "tidal-cycles graphics",
+      "kind": "python",
+      "license": "GPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/tidal-cycles.gallery/recipe.md",
+      "sha256": "77cbf2fbe7bf36b73a9a131935794e2afa7b65d811619f49c52e3c667f81f9a4"
     },
     {
       "id": "tinyrenderer.gallery",

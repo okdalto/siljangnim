@@ -1,0 +1,38 @@
+{
+  "order": 513,
+  "title": "A native noise terrain in three phases (openFrameworks)",
+  "title_ko": "원본 노이즈로 만든 세 지형 (openFrameworks)",
+  "description": "Original openFrameworks 0.12.1 generates a 2,401-vertex terrain and renders 4,608 triangles with its native OpenGL renderer.",
+  "description_ko": "원본 openFrameworks 0.12.1이 노이즈 지형을 만들고 2,401개 꼭짓점·4,608개 삼각형을 실제 OpenGL로 그립니다.",
+  "prompt": "A native noise terrain in three phases. Use the original engine.",
+  "made_with": "openFrameworks original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "openframeworks"
+  ],
+  "summary": "Original openFrameworks 0.12.1 generates a 2,401-vertex terrain and renders 4,608 triangles with its native OpenGL renderer.",
+  "summary_ko": "원본 openFrameworks 0.12.1이 노이즈 지형을 만들고 2,401개 꼭짓점·4,608개 삼각형을 실제 OpenGL로 그립니다.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original openFrameworks 0.12.1 generates a 2,401-vertex terrain and renders 4,608 triangles with its native OpenGL renderer.",
+  "tool_about_ko": "원본 openFrameworks 0.12.1이 노이즈 지형을 만들고 2,401개 꼭짓점·4,608개 삼각형을 실제 OpenGL로 그립니다.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "openFrameworks contributors",
+      "url": "https://github.com/openframeworks/openframeworks",
+      "license": "MIT"
+    }
+  ]
+}
