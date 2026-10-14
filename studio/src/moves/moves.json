@@ -78,7 +78,8 @@
    "tools": [
     "depth-anything-v2"
    ],
-   "guide": "Needs an image asset. recipe_search \"depth\" first; otherwise python_run Depth Anything V2 (catalog_get depth-anything-v2 for packages and weights license) on the image and write a 16-bit grayscale depth PNG to out/. In the scene, displace a dense plane (ctx.utils.geometry.plane with ~512 segments) by the depth texture, color it with the photo, and drive the camera with a small orbit (or mouse parallax) so the layers separate. Fill stretched edges by fading alpha where the depth gradient is steep. Save the depth step as a recipe. Tell the person the model downloads once and is slow without a GPU."
+   "guide": "Needs an image asset. recipe_search \"depth\" first; else python_run Depth Anything V2 (catalog_get depth-anything-v2; Small-hf on CPU takes seconds after a one-time weights download) and write an 8-bit grayscale depth PNG to out/ (loadTexture uploads RGBA8, so 16-bit buys nothing). Build the mesh yourself: geometry.plane stores Uint16 indices, so above 255x255 segments they wrap and only a strip renders; make a 512x512 grid of uvs with Uint32Array indices (createMesh accepts them, dimension:2). Vertex shader: position ((uv.x-0.5)*imageAspect, uv.y-0.5, depth*u_depth), photo from loadTexture (flipY default matches uv). Camera: mat4.perspective + lookAt toward the focus depth; cover-fit so the photo fills any aspect (portrait crops the sides) with overscan of about 1+parallax*(2+4*depth), or the plane's edge shows. Move the eye in a slow figure-eight plus eased mouse offset. On steep depth (gradient of the depth texture over a few texels) pull color from the far side (photo at uv - normalize(grad)*~24 texels) so stretched edges read as background, not smears. Uniforms: Depth, Parallax, Orbit speed, Focus depth, Edge fill. Save the depth step as a recipe; tell the person the model downloads once.",
+   "verified": true
   },
   {
    "id": "gaussian-splatting",
@@ -391,7 +392,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Add \"microphone\" to inputs (or play an audio asset with ctx.utils.audio.play). Map ctx.audio.bass to scale/impulse, mid to motion speed, treble to sparkle/detail and level to brightness; smooth with an attack/release follower (fast up, slow down) so it pulses instead of flickering. For spectrum-driven visuals use ctx.utils.audioTexture(). Uniforms: Sensitivity, Smoothing, and which band drives what if useful."
+   "guide": "Add \"microphone\" to inputs (live), or ctx.utils.audio.play(asset, { loop: true }) for a file. ctx.audio bands are dB-mapped (-100..-20 dB -> 0..1), so a quiet room already reads 0.2-0.6: per band keep a floor (drops at once, creeps up over ~4 s) and a peak (max(x, floor + 0.08), decaying ~0.05/s), normalise n = (x - floor) / (peak - floor) * Sensitivity, then follow v += (n - v) * (1 - exp(-dt / tau)) with tau ~0.02 s rising and Smoothing (0.1-1 s) falling, so it pulses instead of flickering (dt = min(ctx.dt, 0.1)). Map bass -> zoom punch/scale and bloom, mid -> motion speed (integrate: phase += dt * (1 + k * mid); never sin(time * mid), which jumps), treble -> sparkle/fine detail, level -> brightness around 1 (don't darken the resting look). Pass them as drawFullscreen extra uniforms with names no scene uniform uses. Spectrum visuals: ctx.utils.audioTexture() (texelFetch, row 0). Publish the followed bands. Uniforms: Sensitivity, Smoothing, a select for what bass drives. ctx.audio is real time only: an offline viewport_record won't line up with a song; for export use beat-sync/stems analysis read at ctx.time.",
+   "verified": true
   },
   {
    "id": "beat-sync",
@@ -411,7 +413,8 @@
    "tools": [
     "librosa"
    ],
-   "guide": "Needs an audio asset (ask for one if there is none). recipe_search \"beat\" first; otherwise python_run librosa (catalog_get librosa) to write out/beats.json: tempo, beat times, downbeats (every 4th, phase from onset strength), onset envelope (~50 fps) and section boundaries (librosa.segment.agglomerative on chroma/MFCC). In the scene, play the song with ctx.utils.audio.play(name, { output: true }) (or add a timeline of the song's duration so offline renders stay in sync), and drive events from the beat list using ctx.time: a decaying pulse after each beat, bigger changes on downbeats, a palette or form switch per section. Publish the current beat/section. Save the analysis as a recipe."
+   "guide": "Needs an audio asset (ask for one). recipe_search \"beat\" first; else python_run librosa==0.11.0 (inputs: the song) to write out/beats.json: onset_strength at 22050 Hz, hop 441 (50 fps envelope, normalised 0..1); beat_track(onset_envelope=..., trim=False) (the default trim drops a quieter intro's beats), dropping beats in the last 0.1 s; downbeats = every 4th beat, phase = the offset 0-3 with the most beat-synced chroma change (kicks on every beat make low-band strength useless); sections = librosa.segment.agglomerative on bar-synced z-scored MFCC + 0.5 * z-scored chroma (max-normalised features miss arrangement changes), k ~ duration / 8, boundaries on downbeats. Print tempo, beat count and sections and sanity-check them. Scene: timeline { duration: song length }; setup fetches ctx.assets[\"beats.json\"] and ctx.utils.audio.play(song, { loop: false }); render reseeks it when |el.currentTime - ctx.time| > 0.15 and ctx.dt > 0. Events come from the list at ctx.time + offset (binary search the last beat): pulse = exp(-since / decay), bigger and longer on downbeats, a palette/form per section. Keep simulations intact (drive zoom/flash/colour or a brief speed surge). Uniforms: Beat pulse, Decay, Sync offset, Per-section look. Publish beat, bar, section. recipe_save the analysis.",
+   "verified": true
   },
   {
    "id": "stems-reactive",
@@ -432,7 +435,8 @@
     "demucs",
     "librosa"
    ],
-   "guide": "Needs an audio asset. python_run Demucs (catalog_get demucs; htdemucs, slow on CPU) to split it, then librosa per stem to write out/stems.json with an RMS envelope per stem at ~60 fps plus drum onsets. In the scene play the original mix and read each stem's envelope at ctx.time: e.g. drums → impacts/shape, bass → scale/camera push, vocals → color/glow, other → texture. Use a timeline of the song's duration so offline export lines up. Save it as a recipe so the next song is one call."
+   "guide": "Needs an audio asset. recipe_search \"stems\" first; else one python_run with demucs==4.0.1 torch==2.5.1 torchaudio==2.5.1 numpy==1.26.4 scipy==1.14.1 librosa==0.11.0 (timeout_s 900+; the first install is large, then a 25 s song separates in about a minute on CPU): get_model(\"htdemucs\"), mix as stereo float at model.samplerate, apply_model(split=True, overlap=0.25) on the std-normalised mix, write out/<stem>.wav and out/stems.json: per stem librosa RMS at 60 fps divided by its own 98th percentile but zeroed below 1% of the loudest stem's peak (otherwise an absent stem's bleed becomes full-scale), plus drum onset times (onset_detect on drums). Print per-stem loudness; on instrumentals \"vocals\" catches pads/leads. Scene: timeline = song length; fetch stems.json in setup, play the mix (loop: false) and reseek on drift; env(name, ctx.time) by linear interpolation. Drums -> impacts: exp(-(t - lastOnset) / 0.08) * env at that onset (kicks hit, hats stay small); bass -> followed scale/camera push; vocals -> colour/glow; other -> texture/turbulence (noise time += dt * (1 + k * other)). One gain knob per stem; publish the four values. recipe_save it so the next song is one call.",
+   "verified": true
   },
   {
    "id": "music-video",
@@ -450,7 +454,8 @@
     "librosa",
     "demucs"
    ],
-   "guide": "Needs an audio asset. Run the beat-sync analysis (and stems if the person wants instrument-level motion). Build a timeline scene with duration = song length: one look per section (reuse the current scene as one of them and vary palette, camera and form for the others), hard cuts or fast transitions on downbeats at section boundaries, continuous reaction to the envelopes inside sections, keyframes for the big moments so the person can retime them. Then offer to record it offline (viewport_record, mp4, 1080×1920 for reels or 1920×1080) with the song as the soundtrack."
+   "guide": "Needs an audio asset. Run beat-sync (beats.json) and, for instrument-level motion, stems-reactive (stems.json). Make a timeline scene, duration = song duration. One look per section: key the look selector (an int select uniform) with ease \"step\" at each section start from the analysis (they sit on downbeats), so cuts land on the bar and the person can drag them; the current scene is look 1, vary palette, form and camera for the others. Key an Energy float for the arc (build into the first change, step up at the drop) and scale reactions by it. Inside sections react continuously at ctx.time: beat/downbeat pulses (binary search the beat list), stem envelopes, a short flash or zoom punch at each cut. Time everything from ctx.time and the analysis, never ctx.audio or the clock: an offline record restarts setup and renders off real time. Play the song (loop: false) and reseek on drift for live preview. Then offer viewport_record (offline, mp4, 1920x1080 or 1080x1920, duration = song length). The video has no sound track: mux it with command_run [\"ffmpeg\", \"-i\", \"in/<recording>.mp4\", \"-i\", \"in/<song>\", \"-map\", \"0:v\", \"-map\", \"1:a\", \"-c:v\", \"copy\", \"-c:a\", \"aac\", \"-shortest\", \"out/<name>.mp4\"] with both assets as inputs.",
+   "verified": true
   },
   {
    "id": "hand-tracking",
@@ -467,7 +472,8 @@
    "tools": [
     "mediapipe-tasks-vision"
    ],
-   "guide": "Use MediaPipe HandLandmarker as described in the ctx reference (inputs: [\"camera\"]). Map index-finger tips to forces or brushes, pinch distance (thumb–index) to a grab/size control, and hand openness to intensity. Show the camera faintly (mirrored) or not at all. Smooth landmark positions over a few frames. Fall back to the mouse when no hand is visible so the scene still works."
+   "guide": "Add \"camera\" to inputs (keep \"mouse\"). In setup, inside try/catch: createCameraTexture({width:640,height:480}) and HandLandmarker as in the ctx reference (runningMode VIDEO, numHands 2); on failure publish the reason and keep running on the mouse. In render: cam.update(), detectForVideo only when video.currentTime changed. Map landmarks to screen uv as ((0.5-x)/sx+0.5, (0.5-y)/sy+0.5): mirrored, y up, through the same cover-fit scale [sx,sy] you use to draw the camera (aspect>camAspect ? [1,camAspect/aspect] : [aspect/camAspect,1]); a plain 1-x stretches in 9:16. Smooth each hand's index tip (8) and controls with an exponential (uniform Hand smoothing). Pinch = |4-8| / |0-9| (palm size, so distance from the camera doesn't matter) drives brush size/grab; openness = mean |tip-0| / palm for 8,12,16,20 drives intensity. A hand is always \"pressed\" and never still: scale injected force/dye by tip speed, or it floods the scene. When no hand seen for ~0.5 s, use the scene's existing mouse path unchanged. Show the camera faintly (Camera uniform, default ~0.15). Publish hands count, pinch and which input is active; close() the landmarker in cleanup.",
+   "verified": true
   },
   {
    "id": "midi-map",
@@ -482,7 +488,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Add \"midi\" to inputs. Map the scene's main uniforms to CC 1–8 (first eight knobs), pads/notes 36–51 to triggers (bursts, palette switches, cuts), pitch bend to a sweep; blend the MIDI value with the on-screen control (use the control until that CC first moves). Tell the person the mapping in the reply and publish the last CC/note."
+   "guide": "Add \"midi\" to inputs (it runs fine with no device). ctx has no uniform ranges, so copy min/max of the mapped uniforms into the code. Map CC 1-8 (ctx.midi.cc[1..8], 0..1) to the main float uniforms as min+v*(max-min) and write them into ctx.uniforms (drawFullscreen/setStandardUniforms read it), but only on frames where that CC changed (keep a prev copy, seeded from ctx.midi.cc in setup): last touched wins, so the on-screen control still works until and after the knob moves. Keyframed uniforms are overwritten each frame, so don't map those. Detect pads/notes 36-51 by ctx.midi.lastNote changing identity (a new object per note-on), not by notes[n] > 0: a pad hit shorter than a frame is gone from notes[] by render. Use them for triggers: flip bool uniforms, bursts/flash (decay in code), cuts (jump a uniform or camera). Pitch bend (-1..1, sticks where released) to a visible sweep; check it's visible (an azimuth turn of something symmetric is not). Map ranges that look good, not the full slider range if its ends break. Publish the last CC/note and value; tell the person the mapping in the reply.",
+   "verified": true
   },
   {
    "id": "plotter-svg",
@@ -503,7 +510,8 @@
    "tools": [
     "vpype"
    ],
-   "guide": "Generate line work from the scene (contours/hatching of its luminance, flow-field streamlines, or the existing lines), render it as lines so the person sees the plot, and export the polylines (asset or python_run). Then vpype (catalog_get vpype) to merge, simplify, sort and fit to A4/A3 with margins: write out/plot.svg. Keep stroke count reasonable (< 20k segments). Uniforms: Line density, Pen width (preview)."
+   "guide": "Get a frame into Python: viewport_record {format:\"png\", duration:1, fps:1, width/height at the page's aspect, e.g. 1600x1130 for A4 landscape} saves a zip (frame_00001.png) as an asset; python_run with inputs:[that zip name]. Trace line work from it with numpy (hatching: 3-4 angled layers of parallel lines, each kept where darkness exceeds its threshold; or contours/streamlines), or mirror the scene's own line code in Python. Then vpype (catalog_get vpype; vpype==1.15.0): vpype_cli.execute(\"layout -l -m 15mm a4 linemerge -t 0.2mm linesimplify -t 0.05mm linesort reloop\", doc), vpype.write_svg(f, doc, color_mode=\"none\") to out/plot.svg; check its width/height (29.7cm x 21.0cm), assert < 20k segments, print pen-down/up length (pen_up_length() is a tuple). Also write out/paths.json (page-normalised polylines in plot order, page_mm) and out/source.png. Replace or overlay the scene with a preview: draw paths.json on a paper rectangle fitted to the canvas (Canvas2D to a texture is fine). Uniforms: Pen width (mm, preview), Ink, Show source, Replay plot order. Line density is a python_run param; rerun to change it. Save as a recipe.",
+   "verified": true
   },
   {
    "id": "seamless-loop",

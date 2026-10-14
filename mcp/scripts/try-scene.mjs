@@ -1,8 +1,10 @@
 // Runs a scene file in a throwaway viewer the way an agent would (scene_write), reports what scene_write
 // said (errors with line numbers), then records it offline and saves frames, for building examples
-// without rebuilding the studio. Needs a studio build (npm --prefix studio run build). Scenes with assets
-// aren't supported here.
+// without rebuilding the studio. Needs a studio build (npm --prefix studio run build).
 //   node mcp/scripts/try-scene.mjs <scene.json> <out dir> <seconds> <width>x<height> [frame times, e.g. 1,3,6]
+// SILJANGNIM_TRY_STEPS=<steps.json>: tool calls to make first, [{ "tool": "python_run", "args": {…} }, …], e.g. to
+// make assets with Python (files written to out/ become assets; the viewer approves runs, and has a fake microphone
+// and camera). Python environments and recipes go to a throwaway runtime, not ~/.siljangnim or ~/Siljangnim.
 import { spawn, execFileSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -33,7 +35,15 @@ const port = process.env.SILJANGNIM_PORT || String(48000 + Math.floor(Math.rando
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: [join(mcpDir, "bin", "siljangnim-mcp.js")],
-  env: { ...process.env, SILJANGNIM_OPEN: "0", SILJANGNIM_VIEWER: "browser", SILJANGNIM_PORT: port },
+  env: {
+    ...process.env,
+    SILJANGNIM_OPEN: "0",
+    SILJANGNIM_VIEWER: "browser",
+    SILJANGNIM_PORT: port,
+    // Shared between runs (Python environments take a while to set up), but never the person's own.
+    SILJANGNIM_RUNTIME_ROOT: process.env.SILJANGNIM_RUNTIME_ROOT || join(mcpDir, "..", "desktop", "release", "try-runtime"),
+    SILJANGNIM_RECIPES_DIR: join(scratch, "recipes"),
+  },
   stderr: "pipe",
 });
 transport.stderr.on("data", (chunk) => {
@@ -58,6 +68,16 @@ async function call(name, args, timeout = 120_000) {
 }
 try {
   await call("viewer_open", {});
+  const steps = process.env.SILJANGNIM_TRY_STEPS ? JSON.parse(readFileSync(resolve(process.env.SILJANGNIM_TRY_STEPS), "utf8")) : [];
+  for (const step of steps) {
+    // Long jobs come back as still running; wait them out.
+    let result = await call(step.tool, step.args ?? {}, 1_800_000);
+    for (let job; (job = text(result).match(/Call job_status with id "([^"]+)"/)?.[1]); ) {
+      result = await call("job_status", { id: job }, 1_800_000);
+    }
+    console.log(`${step.tool}: ${result.isError ? "ERROR " : ""}${text(result).slice(0, 3000)}`);
+    if (result.isError) process.exitCode = 1;
+  }
   const written = await call("scene_write", { scene });
   console.log(`scene_write: ${written.isError ? "ERROR " : ""}${text(written)}`);
   if (written.isError || !/without errors/.test(text(written))) process.exitCode = 1;

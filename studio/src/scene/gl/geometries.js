@@ -1,13 +1,18 @@
 // Ported from frontend/src/engine/geometries.js (v1); kept as JS until it needs changes.
 /**
  * Geometry generators for WebGL2.
- * Each returns { positions, normals, uvs, indices? } as Float32Arrays / Uint16Array.
+ * Each returns { positions, normals, uvs, indices? } as Float32Arrays / Uint16Array (Uint32Array past 65535 vertices).
  */
 
 /**
  * Fullscreen quad: 2 triangles covering [-1, 1] NDC range.
  * Only positions needed (no normals/uvs for shader art — v_uv computed in vertex shader).
  */
+/** 16-bit indices wrap past 65535 vertices (a plane finer than 255×255 segments); use 32-bit ones then. */
+function indexArray(indices, vertexCount) {
+  return vertexCount > 65535 ? new Uint32Array(indices) : new Uint16Array(indices);
+}
+
 export function createQuadGeometry() {
   return {
     positions: new Float32Array([
@@ -112,7 +117,7 @@ export function createSphereGeometry(segments = 32) {
     positions: new Float32Array(positions),
     normals: new Float32Array(normals),
     uvs: new Float32Array(uvs),
-    indices: new Uint16Array(indices),
+    indices: indexArray(indices, positions.length / 3),
     vertexCount: indices.length,
     dimension: 3,
   };
@@ -152,7 +157,7 @@ export function createPlaneGeometry(width = 1, height = 1, wSegs = 1, hSegs = 1)
     positions: new Float32Array(positions),
     normals: new Float32Array(normals),
     uvs: new Float32Array(uvs),
-    indices: new Uint16Array(indices),
+    indices: indexArray(indices, positions.length / 3),
     vertexCount: indices.length,
     dimension: 3,
   };
