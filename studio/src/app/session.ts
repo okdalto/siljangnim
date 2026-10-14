@@ -1523,10 +1523,12 @@ export async function refreshLocalEngines(): Promise<void> {
 async function pickLocalEngine(): Promise<void> {
   if (!bridge?.localAgent) return;
   const firstRun = !hasSavedSettings();
+  const initialSettings = get().settings;
   await refreshLocalEngines();
   const engines = get().localEngines;
   const { keyStatus } = get();
-  if (!firstRun || !engines || keyStatus.anthropic || keyStatus.openai) return;
+  // Detection can finish after the person has already chosen an engine in Settings.
+  if (!firstRun || hasSavedSettings() || get().settings !== initialSettings || !engines || keyStatus.anthropic || keyStatus.openai) return;
   const ready = (["claude-code", "codex"] as const).find((id) => engines[id]?.installed && engines[id]?.loggedIn);
   if (ready) updateSettings({ provider: ready });
 }

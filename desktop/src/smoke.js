@@ -123,11 +123,24 @@ const UPLOAD_ASSETS = `(async () => {
 /** Settings → Agent, the way a person picks one. */
 function chooseAgent(win, label) {
   return win.webContents.executeJavaScript(`(async () => {
-    document.querySelector('button[title="Settings"]')?.click();
-    await new Promise((r) => setTimeout(r, 300));
-    [...document.querySelectorAll("button")].find((b) => b.innerText === ${JSON.stringify(label)})?.click();
-    await new Promise((r) => setTimeout(r, 300));
-    document.querySelector('[data-testid="close-settings"]')?.click();
+    if (!document.querySelector('[data-testid="close-settings"]')) {
+      document.querySelector('button[title="Settings"]')?.click();
+    }
+    let clicked = false;
+    for (let i = 0; i < 50; i++) {
+      const close = document.querySelector('[data-testid="close-settings"]');
+      const dialog = close?.parentElement?.parentElement;
+      const choice = [...(dialog?.querySelectorAll("button") ?? [])]
+        .find((b) => b.innerText === ${JSON.stringify(label)});
+      if (clicked && choice?.classList.contains("bg-raised")) {
+        close.click();
+        await new Promise((r) => setTimeout(r, 100));
+        return;
+      }
+      if (choice) { choice.click(); clicked = true; }
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    throw new Error("Settings did not select agent: " + ${JSON.stringify(label)});
   })()`);
 }
 
