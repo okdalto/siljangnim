@@ -2,7 +2,7 @@
 // at exact timestamps and encoded with WebCodecs (through mediabunny), so the
 // result doesn't depend on how fast this machine is. Realtime: MediaRecorder
 // on the live canvas, for capturing interaction.
-import { BufferTarget, CanvasSource, Mp4OutputFormat, Output, QUALITY_HIGH, QUALITY_LOW, QUALITY_MEDIUM, QUALITY_VERY_HIGH, WebMOutputFormat, canEncodeVideo } from "mediabunny";
+import { AudioBufferSource, BufferTarget, CanvasSource, Mp4OutputFormat, Output, QUALITY_HIGH, QUALITY_LOW, QUALITY_MEDIUM, QUALITY_VERY_HIGH, WebMOutputFormat, canEncodeAudio, canEncodeVideo } from "mediabunny";
 import type { RecordOptions, RecordResult } from "../protocol";
 import { storedZip } from "./zip";
 
@@ -10,6 +10,8 @@ const QUALITY = { low: QUALITY_LOW, medium: QUALITY_MEDIUM, high: QUALITY_HIGH, 
 
 export interface OfflineHooks {
   canvas: HTMLCanvasElement;
+  /** The soundtrack from time 0, cut to the recording's length (null: a silent video). */
+  audio?: AudioBuffer | null;
   /** Render the scene at this time; must draw synchronously. */
   renderAt(time: number, dt: number, frame: number): void;
   onProgress(frame: number, total: number): void;
@@ -47,6 +49,9 @@ export async function recordOffline(options: RecordOptions, hooks: OfflineHooks)
   });
   const source = new CanvasSource(canvas, { codec, quality: QUALITY[options.quality], keyFrameInterval: 2 });
   output.addVideoTrack(source, { frameRate: options.fps });
+  const audioCodec = hooks.audio ? await pickAudioCodec(options.format, hooks.audio) : null;
+  const audioSource = audioCodec ? new AudioBufferSource({ codec: audioCodec, quality: QUALITY_HIGH }) : null;
+  if (audioSource) output.addAudioTrack(audioSource);
   await output.start();
   try {
     for (let f = 0; f < total; f++) {
@@ -56,6 +61,7 @@ export async function recordOffline(options: RecordOptions, hooks: OfflineHooks)
       await source.add(f * dt, dt);
       hooks.onProgress(f + 1, total);
     }
+    if (audioSource && hooks.audio) await audioSource.add(hooks.audio);
     await output.finalize();
   } catch (err) {
     await output.cancel().catch(() => undefined);
@@ -69,7 +75,16 @@ export async function recordOffline(options: RecordOptions, hooks: OfflineHooks)
     width: canvas.width,
     height: canvas.height,
     frames: total,
+    audio: Boolean(audioSource),
   };
+}
+
+/** AAC in MP4 where the system can encode it, else Opus (which both containers carry). Null: record without sound. */
+async function pickAudioCodec(format: "mp4" | "webm", audio: AudioBuffer) {
+  const options = { numberOfChannels: audio.numberOfChannels, sampleRate: audio.sampleRate };
+  const candidates = format === "mp4" ? (["aac", "opus"] as const) : (["opus"] as const);
+  for (const codec of candidates) if (await canEncodeAudio(codec, options)) return codec;
+  return null;
 }
 
 async function pickCodec(format: "mp4" | "webm", width: number, height: number) {
@@ -83,10 +98,19 @@ async function pickCodec(format: "mp4" | "webm", width: number, height: number) 
 }
 
 /** Realtime WebM of the live canvas, for `duration` seconds (or until cancelled, keeping what was recorded). */
-export function recordRealtime(options: RecordOptions, canvas: HTMLCanvasElement, signal: AbortSignal, onProgress: (frame: number, total: number) => void): Promise<RecordResult> {
-  const mimeType = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"].find((t) => MediaRecorder.isTypeSupported(t));
+export function recordRealtime(
+  options: RecordOptions,
+  canvas: HTMLCanvasElement,
+  soundtrack: MediaStream | null,
+  signal: AbortSignal,
+  onProgress: (frame: number, total: number) => void,
+): Promise<RecordResult> {
+  const audioTracks = soundtrack?.getAudioTracks() ?? [];
+  const types = audioTracks.length ? ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus"] : ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
+  const mimeType = types.find((t) => MediaRecorder.isTypeSupported(t));
   if (!mimeType) return Promise.reject(new Error("This system can't record WebM in real time."));
-  const stream = canvas.captureStream(options.fps);
+  // The canvas, plus what the scene plays out loud.
+  const stream = new MediaStream([...canvas.captureStream(options.fps).getVideoTracks(), ...audioTracks.map((t) => t.clone())]);
   const bits = { low: 2e6, medium: 5e6, high: 10e6, "very-high": 20e6 }[options.quality];
   const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: bits });
   const chunks: Blob[] = [];
@@ -104,7 +128,7 @@ export function recordRealtime(options: RecordOptions, canvas: HTMLCanvasElement
       clearTimeout(timer);
       stream.getTracks().forEach((t) => t.stop());
       const seconds = (performance.now() - started) / 1000;
-      resolve({ file: new Blob(chunks, { type: "video/webm" }), extension: "webm", width: canvas.width, height: canvas.height, frames: Math.round(seconds * options.fps) });
+      resolve({ file: new Blob(chunks, { type: "video/webm" }), extension: "webm", width: canvas.width, height: canvas.height, frames: Math.round(seconds * options.fps), audio: audioTracks.length > 0 });
     };
     recorder.start(1000);
   });

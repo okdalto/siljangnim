@@ -341,6 +341,8 @@ export class SceneRunner {
     const loaded = this.current;
     // While recording offline, frames are rendered by the recorder at exact times instead.
     const active = loaded && !this.recording && (this.state === "running" || this.state === "paused");
+    // The soundtrack follows the scene clock (pause, seek, timeline loops).
+    if (loaded && !this.recording) loaded.inputs.sync(this.time, active === true && this.playing);
     if (active && (this.playing || this.dirty)) {
       const frameDt = this.playing ? dt : 0;
       if (this.playing) {
@@ -385,7 +387,7 @@ export class SceneRunner {
   /** Draw one frame at this.time. Throws what the scene's render throws. */
   private renderFrame(loaded: Loaded, dt: number): void {
     const ctx = loaded.ctx;
-    loaded.inputs.update();
+    loaded.inputs.update(this.time, dt);
     loaded.beforeFrame();
     Object.assign(ctx.uniforms, this.keyedValues());
     ctx.time = this.time;
@@ -426,7 +428,7 @@ export class SceneRunner {
       if (options.mode === "realtime") {
         if (!this.current) throw new Error("no scene loaded");
         this.playing = true;
-        return await recordRealtime(options, this.current.canvas, abort.signal, progress);
+        return await recordRealtime(options, this.current.canvas, options.audio === false ? null : this.current.inputs.soundtrackStream(), abort.signal, progress);
       }
       // Offline: start the scene over at the output size, then render frame by frame.
       if (options.width > 0 && options.height > 0) {
@@ -443,8 +445,11 @@ export class SceneRunner {
         this.sizeCanvas(current.canvas);
       }
       this.recording = true;
+      // ctx.audio comes from the decoded soundtrack at each frame's time, and the soundtrack goes into the file.
+      await current.inputs.startOffline().catch((err: unknown) => this.record("runtime", new Error(`soundtrack: ${err instanceof Error ? err.message : err}`)));
       return await recordOffline(options, {
         canvas: current.canvas,
+        audio: options.audio === false || options.format === "png" ? null : current.inputs.soundtrackFor(options.duration),
         signal: abort.signal,
         onProgress: progress,
         renderAt: (time, dt, frame) => {
@@ -456,6 +461,7 @@ export class SceneRunner {
         },
       });
     } finally {
+      this.current?.inputs.endOffline();
       this.recording = false;
       this.recordAbort = null;
       this.fixedSize = null;

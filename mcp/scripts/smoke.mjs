@@ -168,6 +168,26 @@ ctx.publish("camWidth", ctx.state.cam.width);`,
 await wait(2500);
 const inputs = await callTool({ name: "viewport_status", arguments: {} });
 
+// A scene that plays a sound out loud: an offline recording carries it as the soundtrack.
+const soundScene = await callTool({ name: "scene_write", arguments: {
+  scene: {
+    version: 2,
+    timeline: { duration: 2, loop: true },
+    script: {
+      setup: `const rate = 22050, samples = rate * 2;
+const wav = new DataView(new ArrayBuffer(44 + samples * 2));
+const text = (o, s) => [...s].forEach((c, i) => wav.setUint8(o + i, c.charCodeAt(0)));
+text(0, "RIFF"); wav.setUint32(4, 36 + samples * 2, true); text(8, "WAVEfmt "); wav.setUint32(16, 16, true);
+wav.setUint16(20, 1, true); wav.setUint16(22, 1, true); wav.setUint32(24, rate, true); wav.setUint32(28, rate * 2, true);
+wav.setUint16(32, 2, true); wav.setUint16(34, 16, true); text(36, "data"); wav.setUint32(40, samples * 2, true);
+for (let i = 0; i < samples; i++) wav.setInt16(44 + i * 2, Math.sin(2 * Math.PI * 220 * i / rate) * 8000, true);
+await ctx.utils.audio.play(URL.createObjectURL(new Blob([wav.buffer], { type: "audio/wav" })), { volume: 0.2 });`,
+      render: `ctx.gl.clearColor(ctx.audio.level, 0.2, 0.3, 1); ctx.gl.clear(ctx.gl.COLOR_BUFFER_BIT);`,
+    },
+  },
+} });
+const soundRecord = await call("viewport_record", { format: "mp4", duration: 1, fps: 30, width: 320, height: 240 });
+
 // Shadertoy-style code through ctx.utils.shadertoy: an Image pass reading a feedback Buffer A.
 const toyScene = await callTool({ name: "scene_write", arguments: {
   scene: {
@@ -287,6 +307,8 @@ await wait(1500);
 const afterImport = await callTool({ name: "viewport_status", arguments: {} });
 
 
+// Downloads land a moment after the tool returns.
+for (let i = 0; i < 50 && (existsSync(join(out, "downloads")) ? readdirSync(join(out, "downloads")).filter((f) => f.startsWith("recording-")).length : 0) < 4; i++) await wait(200);
 const checks = {
   toolsListed: ["scene_write", "viewport_capture", "history_list", "asset_list", "viewer_open"].every((n) => tools.some((t) => t.name === n)) && !tools.some((t) => t.name === "ask_user"),
   instructions: instructions.includes("Talk with the person in your own chat"),
@@ -309,7 +331,7 @@ const checks = {
   recordingsDecode: /recording-[\w-]+\.mp4 .* video 320x240 1\.00s/.test(text(calls.asset_list)),
   recordingsDownloaded: (() => {
     try {
-      return readdirSync(join(out, "downloads")).filter((f) => f.startsWith("recording-")).length === 3;
+      return readdirSync(join(out, "downloads")).filter((f) => f.startsWith("recording-")).length === 4; // mp4, png, realtime, soundtrack
     } catch {
       return false;
     }
@@ -337,6 +359,7 @@ const checks = {
   mdImported: !mdImport.isError && /Missing generated assets: .*points\.json \(step \d\)/.test(text(mdImport)) && /No errors/.test(text(afterImport)),
   movesSuggested: !moves.isError && /^[a-z0-9-]+ \[(dimension|render|motion|image|sound|input|output), /m.test(text(moves)),
   moveGuide: !moveGuide.isError && /^Pixel sorting \(pixel-sorting\)/.test(text(moveGuide)) && /odd.even/i.test(text(moveGuide)),
+  soundtrackRecorded: !soundScene.isError && !soundRecord.isError && /with the scene's soundtrack/.test(text(soundRecord)),
   catalogFound: !catalog.isError && /^Catalog matches[^\n]*\nvpype \[C: Python via python_run\]/.test(text(catalog)),
   jobQueue:
     Boolean(longId) &&

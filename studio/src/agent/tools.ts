@@ -20,7 +20,7 @@ export interface SceneController {
   capture(maxSize: number): Promise<CaptureResult>;
   status(): Promise<RuntimeStatus>;
   /** Record the scene to a video (or PNG frames) and save it as a project asset. */
-  record(options: RecordOptions): Promise<{ asset: string; bytes: number; width: number; height: number; frames: number }>;
+  record(options: RecordOptions): Promise<{ asset: string; bytes: number; width: number; height: number; frames: number; audio?: boolean }>;
 }
 
 export interface VersionInfo {

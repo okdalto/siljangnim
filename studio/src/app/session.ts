@@ -1206,7 +1206,7 @@ function projectEnv(
  * Record the scene in the runtime, save the file as a project asset and hand
  * it to the person as a download.
  */
-export async function recordScene(options: RecordOptions, projectId = get().project?.id): Promise<{ asset: string; bytes: number; width: number; height: number; frames: number }> {
+export async function recordScene(options: RecordOptions, projectId = get().project?.id): Promise<{ asset: string; bytes: number; width: number; height: number; frames: number; audio?: boolean }> {
   if (!host || !projectId || get().project?.id !== projectId) throw new Error("The viewport is not ready.");
   if (get().recording) throw new Error("A recording is already running.");
   set({ recording: { frame: 0, total: Math.round(options.duration * options.fps), options } });
@@ -1217,7 +1217,7 @@ export async function recordScene(options: RecordOptions, projectId = get().proj
     const name = `recording-${stamp}.${result.extension}`;
     const { names } = await addAssetFiles(projectId, [new File([result.file], name, { type: result.file.type })], { attach: false });
     download(result.file, names[0] ?? name);
-    return { asset: names[0] ?? name, bytes: result.file.size, width: result.width, height: result.height, frames: result.frames };
+    return { asset: names[0] ?? name, bytes: result.file.size, width: result.width, height: result.height, frames: result.frames, audio: result.audio };
   } finally {
     set({ recording: null });
   }

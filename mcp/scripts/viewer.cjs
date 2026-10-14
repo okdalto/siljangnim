@@ -28,6 +28,8 @@ app.whenReady().then(async () => {
   // Recordings download without a save dialog, into the smoke output.
   session.defaultSession.on("will-download", (_e, item) => item.setSavePath(join(out, "downloads", item.getFilename())));
   const win = new BrowserWindow({ width: 1280, height: 800, show: true, webPreferences: { backgroundThrottling: false } });
+  // Scenes may play sound; keep the machine running the test quiet (recordings still get it).
+  win.webContents.setAudioMuted(true);
   // The page's console, for when something goes wrong.
   const logLines = [];
   win.webContents.on("console-message", ({ level, message }) => {

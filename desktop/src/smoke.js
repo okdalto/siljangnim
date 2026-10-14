@@ -8,8 +8,9 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { app } from "electron";
 
-// Every example opens once (about 200, a few seconds each on CI), so the whole run gets 25 minutes.
-const TIMEOUT_MS = 1_500_000;
+// Everything but the examples; each example opened adds its own allowance (there are hundreds, a few seconds each).
+const TIMEOUT_MS = 600_000;
+const PER_EXAMPLE_MS = 8_000;
 const LLM_PROBE = "app://siljangnim/api/llm/anthropic/v1/messages";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -522,7 +523,7 @@ async function runProjectFolderScenario(win) {
 /** Examples a virtual GPU can't draw (see runExamplesScenario). */
 const VIRTUAL_GPU_DARK = new Set(["oss-babylonjs"]);
 
-async function runExamplesScenario(win, examplesOut) {
+async function runExamplesScenario(win, examplesOut, onCount = () => undefined) {
   const slugs = await win.webContents.executeJavaScript(`(async () => {
     document.querySelector('[title="Projects"]').click();
     await new Promise((r) => setTimeout(r, 200));
@@ -547,6 +548,7 @@ async function runExamplesScenario(win, examplesOut) {
   const sample = Number(process.env.SILJANGNIM_SMOKE_EXAMPLE_SAMPLE) || 0;
   // oss-blender always: the example-cache scenario reopens it from the cache afterwards.
   const picked = sample && slugs.length > sample ? slugs.filter((e, i) => i % Math.ceil(slugs.length / sample) === 0 || e.slug === "oss-blender") : slugs;
+  onCount(picked.length);
   for (const { slug, requires } of picked) {
     if (requires?.includes("webgpu") && !gpu) {
       results[slug] = { skipped: "no WebGPU here" };
@@ -738,10 +740,15 @@ async function runSmoke(win, hub, keys, outDir) {
   });
   const report = (data) => writeFileSync(join(outDir, "report.json"), JSON.stringify(data, null, 2));
 
-  const timer = setTimeout(() => {
-    report({ ok: false, reason: `timeout after step: ${lastStep}`, hub: { ...hub.info(), token: undefined } });
-    quit(hub, 1);
-  }, TIMEOUT_MS);
+  let timer;
+  const arm = (ms) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      report({ ok: false, reason: `timeout after step: ${lastStep}`, hub: { ...hub.info(), token: undefined } });
+      quit(hub, 1);
+    }, ms);
+  };
+  arm(TIMEOUT_MS);
 
   // Examples play audio; keep the machine running the smoke quiet.
   win.webContents.setAudioMuted(true);
@@ -787,7 +794,7 @@ async function runSmoke(win, hub, keys, outDir) {
   log("history scenario");
   const history = agent ? await runHistoryScenario(win, sceneFrame) : null;
   log("examples");
-  const examples = await runExamplesScenario(win, outDir);
+  const examples = await runExamplesScenario(win, outDir, (count) => arm(TIMEOUT_MS + count * PER_EXAMPLE_MS));
   log("example cache offline reopen");
   const exampleCache = await runExampleCacheScenario(win);
   log("frame menu");

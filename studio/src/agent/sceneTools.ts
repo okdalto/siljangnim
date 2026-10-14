@@ -166,7 +166,9 @@ const viewportRecord = defineTool({
   description:
     "Record the scene to a file saved as a project asset (and downloaded for the person): MP4 or WebM video, or PNG frames " +
     "in a zip. Offline mode renders frame by frame from the start at exact timestamps (smooth at any size); realtime mode " +
-    "captures what plays, including the person's interaction (WebM only). Duration defaults to the timeline length, or 5 s.",
+    "captures what plays, including the person's interaction (WebM only). Duration defaults to the timeline length, or 5 s. " +
+    "Audio the scene plays out loud (ctx.utils.audio.play) goes in as the soundtrack, from the scene's start, and offline " +
+    "renders compute ctx.audio from it at each frame's time, so audio-reactive scenes and music videos come out in sync.",
   input: z.object({
     format: z.enum(["mp4", "webm", "png"]).default("mp4"),
     mode: z.enum(["offline", "realtime"]).default("offline"),
@@ -175,6 +177,7 @@ const viewportRecord = defineTool({
     width: z.number().int().min(0).max(7680).default(0).describe("0 keeps the viewport size."),
     height: z.number().int().min(0).max(4320).default(0),
     quality: z.enum(["low", "medium", "high", "very-high"]).default("high"),
+    audio: z.boolean().default(true).describe("Include the scene's soundtrack (video formats)."),
   }),
   readOnly: false,
   async run(input, env) {
@@ -182,7 +185,8 @@ const viewportRecord = defineTool({
     const format = input.mode === "realtime" ? "webm" : input.format;
     const saved = await env.scene.record({ ...input, format, duration });
     const mb = (saved.bytes / 1024 / 1024).toFixed(1);
-    return { content: `Recorded ${saved.frames} frames at ${saved.width}x${saved.height} (${duration}s, ${input.fps} fps) to ${saved.asset} (${mb} MB). It is a project asset and was downloaded for the person.` };
+    const sound = saved.audio ? " with the scene's soundtrack" : "";
+    return { content: `Recorded ${saved.frames} frames at ${saved.width}x${saved.height} (${duration}s, ${input.fps} fps)${sound} to ${saved.asset} (${mb} MB). It is a project asset and was downloaded for the person.` };
   },
 });
 

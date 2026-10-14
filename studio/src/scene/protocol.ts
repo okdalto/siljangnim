@@ -63,6 +63,8 @@ export interface RecordOptions {
   width: number;
   height: number;
   quality: "low" | "medium" | "high" | "very-high";
+  /** Include the audio the scene plays (ctx.utils.audio.play, audible) as the soundtrack. Default true. */
+  audio?: boolean;
 }
 
 export interface RecordResult {
@@ -72,6 +74,8 @@ export interface RecordResult {
   width: number;
   height: number;
   frames: number;
+  /** Whether the scene's soundtrack is in the file. */
+  audio?: boolean;
 }
 
 /** Request methods: params and result types. */

@@ -171,6 +171,10 @@ Record with the **Rec** button (or ask the agent: "export a 10-second vertical v
   with no stutter even for slow scenes. MP4, WebM or a PNG sequence.
 - **Realtime:** records the screen as it is, so what you played with the mouse and MIDI is kept exactly (WebM).
 
+When the scene plays a song or a sound file, the sound goes into the video too. Pausing or moving the timeline pauses
+and moves the song with it. Offline recordings analyse the sound at each frame's time, so scenes that react to sound
+stay on the beat in the video — a music video from a song needs no separate step to add the audio.
+
 Recordings are also saved as project assets, so you can reuse them as material for other scenes. The intro video for
 this repository was made by recording the examples this way.
 
