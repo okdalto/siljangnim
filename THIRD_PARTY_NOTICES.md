@@ -231,12 +231,14 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Motion (index.opensource #251) | MIT | [github.com/motiondivision/motion](https://github.com/motiondivision/motion) | [oss-motion](examples/oss-motion/) | fetched from a CDN by the scene at run time (not bundled) |
 | Motion Canvas (index.opensource #243) | MIT | [github.com/motion-canvas/motion-canvas](https://github.com/motion-canvas/motion-canvas) | [oss-motion-canvas](examples/oss-motion-canvas/) | an installed program, run by a recipe (not bundled) |
 | msdfgen (index.opensource #188) | MIT | [github.com/chlumsky/msdfgen](https://github.com/chlumsky/msdfgen) | [oss-msdfgen](examples/oss-msdfgen/) | an installed program, run by a recipe (not bundled) |
+| MT3 (index.opensource #291) | Apache-2.0 | [github.com/magenta/mt3](https://github.com/magenta/mt3) | [oss-mt3](examples/oss-mt3/) | installed with pip on the person's computer by a recipe (not bundled) |
 | MuJoCo (index.opensource #161) | Apache-2.0 | [github.com/google-deepmind/mujoco](https://github.com/google-deepmind/mujoco) | [oss-mujoco](examples/oss-mujoco/) | installed with pip on the person's computer by a recipe (not bundled) |
 | myPhysicsLab (index.opensource #380) | Apache-2.0 | [github.com/myphysicslab/myphysicslab](https://github.com/myphysicslab/myphysicslab) | [oss-myphysicslab](examples/oss-myphysicslab/) | an installed program, run by a recipe (not bundled) |
 | nanoGPT (index.opensource #390) | MIT | [github.com/karpathy/nanoGPT](https://github.com/karpathy/nanoGPT) | [oss-nanogpt](examples/oss-nanogpt/) | source included in the on-demand example; licenses and runtime requirements are included |
 | NanoVG (index.opensource #191) | Zlib | [github.com/memononen/nanovg](https://github.com/memononen/nanovg) | [oss-nanovg](examples/oss-nanovg/) | an installed program, run by a recipe (not bundled) |
 | ndarray-warp (index.opensource #205) | MIT | [github.com/scijs/ndarray-warp](https://github.com/scijs/ndarray-warp) | [oss-ndarray-warp](examples/oss-ndarray-warp/) | fetched from a CDN by the scene at run time (not bundled) |
 | NDWFC (index.opensource #121) | MIT | [github.com/lingdong-/ndwfc](https://github.com/lingdong-/ndwfc) | [oss-ndwfc](examples/oss-ndwfc/) | an installed program, run by a recipe (not bundled) |
+| Nerfstudio (index.opensource #269) | Apache-2.0 | [github.com/nerfstudio-project/nerfstudio](https://github.com/nerfstudio-project/nerfstudio) | [oss-nerfstudio](examples/oss-nerfstudio/) | installed with pip on the person's computer by a recipe (not bundled) |
 | NetworkX | BSD-3-Clause | [github.com/networkx/networkx](https://github.com/networkx/networkx) | [oss-networkx](examples/oss-networkx/) | installed with pip on the person's computer by a recipe (not bundled) |
 | NEURON (index.opensource #412) | BSD-3-Clause compatible | [github.com/neuronsimulator/nrn](https://github.com/neuronsimulator/nrn) | [oss-neuron](examples/oss-neuron/) | installed with pip on the person's computer by a recipe (not bundled) |
 | ngraph (index.opensource #320) | MIT | [github.com/anvaka/ngraph](https://github.com/anvaka/ngraph) | [oss-ngraph](examples/oss-ngraph/) | fetched from a CDN by the scene at run time (not bundled) |
@@ -252,6 +254,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | openFrameworks (index.opensource #345) | MIT | [github.com/openframeworks/openframeworks](https://github.com/openframeworks/openframeworks) | [oss-openframeworks](examples/oss-openframeworks/) | an installed program, run by a recipe (not bundled) |
 | OpenSCAD (index.opensource #90) | GPL-2.0 | [github.com/openscad/openscad](https://github.com/openscad/openscad) | [oss-openscad](examples/oss-openscad/) | an installed program, run by a recipe (not bundled) |
 | OpenSimplex2 (index.opensource #124) | CC0-1.0 / some files Unlicense | [github.com/kdotjpg/opensimplex2](https://github.com/kdotjpg/opensimplex2) | [oss-opensimplex2](examples/oss-opensimplex2/) | an installed program, run by a recipe (not bundled) |
+| OpenSplat (index.opensource #270) | AGPL-3.0 | [github.com/webodm/opensplat](https://github.com/webodm/opensplat) | [oss-opensplat](examples/oss-opensplat/) | installed with pip on the person's computer by a recipe (not bundled) |
 | OpenSubdiv (index.opensource #77) | LicenseRef-Tomorrow-Open-Source-Technology-1.0 | [github.com/pixaranimationstudios/opensubdiv](https://github.com/pixaranimationstudios/opensubdiv) | [oss-opensubdiv](examples/oss-opensubdiv/) | an installed program, run by a recipe (not bundled) |
 | opentype.js | MIT | [github.com/opentypejs/opentype.js](https://github.com/opentypejs/opentype.js) | [mix-opentype-flow](examples/mix-opentype-flow/), [oss-opentype](examples/oss-opentype/) | fetched from a CDN by the scene at run time (not bundled) |
 | Orca (index.opensource #140) | MIT | [github.com/hundredrabbits/orca](https://github.com/hundredrabbits/orca) | [oss-orca](examples/oss-orca/) | an installed program, run by a recipe (not bundled) |
@@ -393,6 +396,7 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | v86 (index.opensource #395) | BSD-2-Clause | [github.com/copy/v86](https://github.com/copy/v86) | [oss-v86](examples/oss-v86/) | fetched from a CDN by the scene at run time (not bundled) |
 | Velato (index.opensource #256) | MIT OR Apache-2.0 | [github.com/linebender/velato](https://github.com/linebender/velato) | [oss-velato](examples/oss-velato/) | an installed program, run by a recipe (not bundled) |
 | Vello (index.opensource #329) | MIT OR Apache-2.0 | [github.com/linebender/vello](https://github.com/linebender/vello) | [oss-vello](examples/oss-vello/) | an installed program, run by a recipe (not bundled) |
+| VoiceStudio (index.opensource #341) | AGPL-3.0 | [github.com/debpalash/voicestudio](https://github.com/debpalash/voicestudio) | [oss-voicestudio](examples/oss-voicestudio/) | installed with pip on the person's computer by a recipe (not bundled) |
 | Voro++ (index.opensource #76) | BSD-style 3 clauses + grant for contributed improvements | [github.com/chr1shr/voro](https://github.com/chr1shr/voro) | [oss-voro](examples/oss-voro/) | an installed program, run by a recipe (not bundled) |
 | voxelize (index.opensource #86) | MIT | [github.com/mikolalysenko/voxelize](https://github.com/mikolalysenko/voxelize) | [oss-voxelize](examples/oss-voxelize/) | fetched from a CDN by the scene at run time (not bundled) |
 | VoxelSpace (index.opensource #383) | MIT | [github.com/s-macke/voxelspace](https://github.com/s-macke/voxelspace) | [oss-voxelspace](examples/oss-voxelspace/) | an installed program, run by a recipe (not bundled) |
@@ -673,6 +677,19 @@ Each example is built around these tools. Browser libraries are normally loaded 
 | Original engine | [ACE-Step 1.5 contributors](https://github.com/ace-step/ACE-Step-1.5) | MIT | [oss-ace-step](examples/oss-ace-step/) |
 | Official ACE-Step 1.5 Turbo and VAE checkpoints | [ACE-Step contributors](https://huggingface.co/ACE-Step/Ace-Step1.5/tree/19671f406d603126926c1b7e2adc169acbcade22) | MIT | [oss-ace-step](examples/oss-ace-step/) |
 | Original Qwen3-Embedding-0.6B text encoder (identical checkpoint bytes) | [Alibaba Qwen team](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B) | Apache-2.0 | [oss-ace-step](examples/oss-ace-step/) |
+| Original engine | [OpenSplat contributors](https://github.com/webodm/opensplat) | AGPL-3.0 | [oss-opensplat](examples/oss-opensplat/) |
+| Original image I/O and color conversion | [OpenCV contributors](https://github.com/opencv/opencv/tree/4.10.0) | Apache-2.0 | [oss-opensplat](examples/oss-opensplat/) |
+| Original engine | [VoiceStudio contributors](https://github.com/debpalash/voicestudio) | AGPL-3.0 | [oss-voicestudio](examples/oss-voicestudio/) |
+| Original KittenTTS synthesis code | [KittenML](https://github.com/KittenML/KittenTTS/tree/be5758500b731b8fc674acc62ea480d3022b7ebe) | Apache-2.0 | [oss-voicestudio](examples/oss-voicestudio/) |
+| Official pretrained model and preset voices | [KittenML](https://huggingface.co/KittenML/kitten-tts-mini-0.8/tree/c02725660cea441db4c383af69f1f26f5cd00947) | Apache-2.0 | [oss-voicestudio](examples/oss-voicestudio/) |
+| Speech phonemizer | [eSpeak NG contributors](https://github.com/espeak-ng/espeak-ng) | GPL-3.0 | [oss-voicestudio](examples/oss-voicestudio/) |
+| Original engine | [MT3 contributors](https://github.com/magenta/mt3) | Apache-2.0 | [oss-mt3](examples/oss-mt3/) |
+| Original t5x inference dependency | [google-research/t5x](https://github.com/google-research/t5x) | Apache-2.0 | [oss-mt3](examples/oss-mt3/) |
+| Original jestimator inference dependency | [google-research/jestimator](https://github.com/google-research/jestimator) | Apache-2.0 | [oss-mt3](examples/oss-mt3/) |
+| Original t5 inference dependency | [google-research/text-to-text-transfer-transformer](https://github.com/google-research/text-to-text-transfer-transformer) | Apache-2.0 | [oss-mt3](examples/oss-mt3/) |
+| Official public MT3 pretrained checkpoint (downloaded only on recipe execution) | [Magenta contributors](https://github.com/magenta/mt3) | Not separately specified for checkpoint | [oss-mt3](examples/oss-mt3/) |
+| Original engine | [Nerfstudio contributors](https://github.com/nerfstudio-project/nerfstudio) | Apache-2.0 | [oss-nerfstudio](examples/oss-nerfstudio/) |
+| AlexNet metric weights loaded by original model constructor | [Torchvision contributors](https://github.com/pytorch/vision/tree/v0.22.1) | BSD-3-Clause | [oss-nerfstudio](examples/oss-nerfstudio/) |
 
 ## Studio (the app's web code): bundled npm packages
 

@@ -1,0 +1,44 @@
+{
+  "order": 519,
+  "title": "Learning an image with Gaussian primitives (OpenSplat)",
+  "title_ko": "가우시안으로 이미지를 학습하기 (OpenSplat)",
+  "description": "Original OpenSplat trains 96 Gaussian primitives on the CPU and compares their renders after 1, 100 and 400 optimization steps.",
+  "description_ko": "원본 OpenSplat이 CPU에서 가우시안 96개를 학습하며, 1·100·400회 학습한 렌더링 결과를 비교합니다.",
+  "prompt": "Learning an image with Gaussian primitives. Use the original engine.",
+  "made_with": "OpenSplat original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "opensplat"
+  ],
+  "summary": "Original OpenSplat trains 96 Gaussian primitives on the CPU and compares their renders after 1, 100 and 400 optimization steps.",
+  "summary_ko": "원본 OpenSplat이 CPU에서 가우시안 96개를 학습하며, 1·100·400회 학습한 렌더링 결과를 비교합니다.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original OpenSplat trains 96 Gaussian primitives on the CPU and compares their renders after 1, 100 and 400 optimization steps.",
+  "tool_about_ko": "원본 OpenSplat이 CPU에서 가우시안 96개를 학습하며, 1·100·400회 학습한 렌더링 결과를 비교합니다.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "OpenSplat contributors",
+      "url": "https://github.com/webodm/opensplat",
+      "license": "AGPL-3.0"
+    },
+    {
+      "what": "Original image I/O and color conversion",
+      "source": "OpenCV contributors",
+      "url": "https://github.com/opencv/opencv/tree/4.10.0",
+      "license": "Apache-2.0"
+    }
+  ]
+}

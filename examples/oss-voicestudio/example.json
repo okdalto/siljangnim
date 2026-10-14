@@ -1,0 +1,56 @@
+{
+  "order": 520,
+  "title": "Reading a sentence through the studio backend (VoiceStudio)",
+  "title_ko": "스튜디오 음성 엔진으로 문장 읽기 (VoiceStudio)",
+  "description": "Original VoiceStudio calls its KittenTTS backend to synthesize one sentence in three preset voices on the local CPU.",
+  "description_ko": "원본 VoiceStudio의 KittenTTS 백엔드가 같은 문장을 세 기본 목소리로 읽습니다. 이 Mac의 CPU에서 직접 생성한 음성이에요.",
+  "prompt": "Reading a sentence through the studio backend. Use the original engine.",
+  "made_with": "VoiceStudio original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "voicestudio"
+  ],
+  "summary": "Original VoiceStudio calls its KittenTTS backend to synthesize one sentence in three preset voices on the local CPU.",
+  "summary_ko": "원본 VoiceStudio의 KittenTTS 백엔드가 같은 문장을 세 기본 목소리로 읽습니다. 이 Mac의 CPU에서 직접 생성한 음성이에요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original VoiceStudio calls its KittenTTS backend to synthesize one sentence in three preset voices on the local CPU.",
+  "tool_about_ko": "원본 VoiceStudio의 KittenTTS 백엔드가 같은 문장을 세 기본 목소리로 읽습니다. 이 Mac의 CPU에서 직접 생성한 음성이에요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "VoiceStudio contributors",
+      "url": "https://github.com/debpalash/voicestudio",
+      "license": "AGPL-3.0"
+    },
+    {
+      "what": "Original KittenTTS synthesis code",
+      "source": "KittenML",
+      "url": "https://github.com/KittenML/KittenTTS/tree/be5758500b731b8fc674acc62ea480d3022b7ebe",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Official pretrained model and preset voices",
+      "source": "KittenML",
+      "url": "https://huggingface.co/KittenML/kitten-tts-mini-0.8/tree/c02725660cea441db4c383af69f1f26f5cd00947",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Speech phonemizer",
+      "source": "eSpeak NG contributors",
+      "url": "https://github.com/espeak-ng/espeak-ng",
+      "license": "GPL-3.0"
+    }
+  ]
+}

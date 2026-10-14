@@ -1,0 +1,14 @@
+{
+  "engine": {
+    "repo": "nerfstudio-project/nerfstudio",
+    "revision": "50e0e3c70c775e89333256213363badbf074f29d",
+    "url": "https://codeload.github.com/nerfstudio-project/nerfstudio/tar.gz/50e0e3c70c775e89333256213363badbf074f29d",
+    "size": 25389918,
+    "sha256": "d0b8a4b13fc3a31d971bd690dda03cb3cb7e42dd1ffef85aa0bfb21204789d57"
+  },
+  "metric": {
+    "url": "https://download.pytorch.org/models/alexnet-owt-7be5be79.pth",
+    "size": 244408911,
+    "sha256": "7be5be791159472b1fbf3c69796f7cb30dca7ad8466c2df70058c37116cdee02"
+  }
+}

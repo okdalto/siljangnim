@@ -9961,6 +9961,180 @@
     ]
    },
    "notes": "Requires Python 3.12, Apple Silicon with MPS and sufficient unified memory (verified on a 16 GB Mac). Reserve at least 20 GB of free disk for the 6.34 GB checkpoint, Python dependencies and temporary memory swap. Pinned original ACE-Step 1.5 code, Turbo model, VAE and Qwen3 embedding model are downloaded on demand, SHA-256 verified and cached. Original component loaders select float16 for MPS; the model algorithms are unchanged. The original code synchronization helper copies pinned source model definitions into the private checkpoint cache. No API key or separate NVIDIA GPU is needed."
+  },
+  {
+   "id": "opensplat",
+   "name": "OpenSplat",
+   "repo": "https://github.com/webodm/opensplat",
+   "license": "AGPL-3.0",
+   "tier": "C",
+   "purpose": "Original OpenSplat trains 96 Gaussian primitives on the CPU and compares their renders after 1, 100 and 400 optimization steps.",
+   "tags": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.7.1",
+     "numpy==2.2.6",
+     "Pillow==12.3.0",
+     "cmake==4.4.3"
+    ]
+   },
+   "notes": "Requires Python 3.12 and Xcode C++ build tools on macOS. Original OpenSplat and OpenCV 4.10.0 sources are SHA-256 verified and compiled on demand. Source archives, OpenCV libraries and the native executable are cached; first setup can take several minutes. The CPU-only build uses the original CMake targets with no GPU toolkit. A compiler diagnostic switch permits the libtorch header specialization under current Apple Clang; the engine code is unchanged."
+  },
+  {
+   "id": "voicestudio",
+   "name": "VoiceStudio",
+   "repo": "https://github.com/debpalash/voicestudio",
+   "license": "AGPL-3.0",
+   "tier": "C",
+   "purpose": "Original VoiceStudio calls its KittenTTS backend to synthesize one sentence in three preset voices on the local CPU.",
+   "tags": [
+    "speech",
+    "dubbing",
+    "local"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "audio",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.7.1",
+     "numpy==2.2.6",
+     "espeakng-loader==0.2.4",
+     "phonemizer==3.3.0",
+     "onnxruntime==1.23.2",
+     "huggingface-hub==0.36.0",
+     "soundfile==0.13.1",
+     "Pillow==12.3.0"
+    ]
+   },
+   "notes": "Requires Python 3.12. Pinned original VoiceStudio and KittenTTS source code and the official public kitten-tts-mini-0.8 checkpoint (about 82 MB including voices) are downloaded on demand, SHA-256 verified and cached. The original backend, text cleanup, token-budget preflight, phonemizer and ONNX model execute unchanged on the CPU. All model access uses a private offline Hugging Face cache pinned to the recorded revision. No API key, GPU or reference speaker recording is needed."
+  },
+  {
+   "id": "mt3",
+   "name": "MT3",
+   "repo": "https://github.com/magenta/mt3",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "Original MT3 transcribes three locally synthesized melodies on the CPU, comparing its estimated notes with the supplied input.",
+   "tags": [],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "audio",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "tensorflow==2.18.1",
+     "tensorflow-text==2.18.1",
+     "jax==0.4.23",
+     "jaxlib==0.4.23",
+     "flax==0.8.4",
+     "optax==0.2.2",
+     "chex==0.1.86",
+     "orbax-checkpoint==0.5.0",
+     "numpy==1.26.4",
+     "ml-dtypes==0.4.1",
+     "seqio==0.0.20",
+     "note-seq==0.0.5",
+     "clu==0.0.12",
+     "tensorstore==0.1.66",
+     "tensorflow-datasets==4.9.7",
+     "pretty_midi==0.2.11",
+     "mir_eval==0.8.2",
+     "librosa==0.10.2.post1",
+     "soundfile==0.13.1",
+     "scipy==1.12.0",
+     "Pillow==12.3.0",
+     "gin-config==0.5.0",
+     "fiddle==0.3.0",
+     "cached-property==2.0.1",
+     "tensorflow-metadata==1.16.1",
+     "protobuf==4.25.8",
+     "array-record==0.6.0",
+     "nest-asyncio==1.6.0",
+     "babel==2.18.0",
+     "editdistance==0.8.1",
+     "immutabledict==4.3.1",
+     "mesh-tensorflow==0.1.21",
+     "nltk==3.10.3",
+     "pandas==3.0.6",
+     "rouge-score==0.1.2",
+     "sacrebleu==2.6.0",
+     "scikit-learn==1.9.1",
+     "sentencepiece==0.2.2",
+     "six==1.17.0",
+     "transformers==5.17.0"
+    ]
+   },
+   "notes": "Requires Python 3.12. Original MT3, compatible T5X, JEstimator and T5 code and the official public MT3 checkpoint (about 172 MB) are downloaded on demand, SHA-256 verified and cached. TensorFlow and JAX run on the CPU. The original inference notebook is adapted only for local configuration paths and a batch size of one. No GPU or API key is required. The isolated original T5 wheel source avoids overlapping stable and nightly SeqIO/TFDS installations."
+  },
+  {
+   "id": "nerfstudio",
+   "name": "Nerfstudio",
+   "repo": "https://github.com/nerfstudio-project/nerfstudio",
+   "license": "Apache-2.0",
+   "tier": "C",
+   "purpose": "Original Nerfstudio trains a coarse/fine NeRF on three synthetic views, showing the model before training and after 500 and 2,000 updates.",
+   "tags": [
+    "earlier research",
+    "models",
+    "reassessment"
+   ],
+   "media": {
+    "in": [
+     "data"
+    ],
+    "out": [
+     "image",
+     "data"
+    ]
+   },
+   "install": {
+    "pip": [
+     "torch==2.7.1",
+     "torchvision==0.22.1",
+     "torchmetrics==1.8.2",
+     "numpy==1.26.4",
+     "jaxtyping==0.3.3",
+     "rich==14.1.0",
+     "tyro==0.9.35",
+     "nerfacc==0.5.2",
+     "viser==1.0.0",
+     "trimesh==4.9.0",
+     "scikit-image==0.25.2",
+     "scipy==1.16.3",
+     "opencv-python-headless==4.10.0.84",
+     "pytorch-msssim==1.0.0",
+     "tensorboard==2.20.0",
+     "tensorly==0.9.0",
+     "Pillow==12.3.0",
+     "matplotlib==3.10.6"
+    ]
+   },
+   "notes": "Requires Python 3.12. Original Nerfstudio source and the AlexNet weights required by its unmodified LPIPS metric constructor (about 244 MB) are downloaded on demand, SHA-256 verified and cached. The original Vanilla NeRF coarse/fine fields, samplers, volumetric renderer and loss run on the CPU. No CUDA kernels, pretrained NeRF, account or API key are needed."
   }
  ]
 }

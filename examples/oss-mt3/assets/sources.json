@@ -1,0 +1,1806 @@
+{
+  "engine": {
+    "repo": "magenta/mt3",
+    "revision": "88f4b3d63d7d1ce35a6e380ec190debbbd9b4b4d",
+    "url": "https://codeload.github.com/magenta/mt3/tar.gz/88f4b3d63d7d1ce35a6e380ec190debbbd9b4b4d",
+    "size": 94326,
+    "sha256": "cf838267b1cae6b7e5f2d4cde6a20d72db7f6bb41a1a0f50b6e17c42459d6a0c"
+  },
+  "t5x": {
+    "repo": "google-research/t5x",
+    "revision": "b051e46075fdcb02fcdd4dc648dd9560243bfdb2",
+    "url": "https://codeload.github.com/google-research/t5x/tar.gz/b051e46075fdcb02fcdd4dc648dd9560243bfdb2",
+    "size": 7202015,
+    "sha256": "e8a18363dd1a938bb163212f910dc8fd1b75606cc15e6132ed523e44ac17d3f2"
+  },
+  "jestimator": {
+    "repo": "google-research/jestimator",
+    "revision": "326824a477feef6d92e6f44175000907a72899ca",
+    "url": "https://codeload.github.com/google-research/jestimator/tar.gz/326824a477feef6d92e6f44175000907a72899ca",
+    "size": 3168078,
+    "sha256": "476e6139d206969a3997c9094d3f966d3df06227be80fb0a17ee3744bbe03321"
+  },
+  "model": {
+    "source": "Official MT3 public checkpoint",
+    "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/",
+    "files": [
+      {
+        "path": "checkpoint",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/checkpoint?generation=1638304509125226",
+        "size": 894205,
+        "sha256": "1a5ef8eddadfb4065840ed8e9c167b3856bd0a31218214b51fc69ea7593678b5"
+      },
+      {
+        "path": "target.decoder.layers_0.encoder_decoder_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.encoder_decoder_attention.key.kernel/.zarray?generation=1638304512517462",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_0.encoder_decoder_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.encoder_decoder_attention.key.kernel/0.0?generation=1638304512618123",
+        "size": 730913,
+        "sha256": "cf8df94a20d0ee1b8f2eb4f2153c4aed56fe668b18a66ad18f8469e4b0348002"
+      },
+      {
+        "path": "target.decoder.layers_0.encoder_decoder_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.encoder_decoder_attention.out.kernel/.zarray?generation=1638304510679503",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_0.encoder_decoder_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.encoder_decoder_attention.out.kernel/0.0?generation=1638304511134551",
+        "size": 732601,
+        "sha256": "cca9c002f64db405aafc1158edbe1bf939a66e2fe02f22ed3e4d6e2beb36ff84"
+      },
+      {
+        "path": "target.decoder.layers_0.encoder_decoder_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.encoder_decoder_attention.query.kernel/.zarray?generation=1638304511822789",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_0.encoder_decoder_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.encoder_decoder_attention.query.kernel/0.0?generation=1638304512560252",
+        "size": 732717,
+        "sha256": "fb86021afd7b956da0e06a1b3fc807d76eadb334c4bc954647c69ae0fd846d64"
+      },
+      {
+        "path": "target.decoder.layers_0.encoder_decoder_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.encoder_decoder_attention.value.kernel/.zarray?generation=1638304515399957",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_0.encoder_decoder_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.encoder_decoder_attention.value.kernel/0.0?generation=1638304516131684",
+        "size": 731580,
+        "sha256": "d7224fe167abdd98aef28fafec64c53116c25cd8714b658965660250b1a0e837"
+      },
+      {
+        "path": "target.decoder.layers_0.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.mlp.wi_0.kernel/.zarray?generation=1638304514877307",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_0.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.mlp.wi_0.kernel/0.0?generation=1638304517678823",
+        "size": 1948944,
+        "sha256": "290a513112d3eed909ee6bb18ae12457c50795553a24801b8a35251edad44962"
+      },
+      {
+        "path": "target.decoder.layers_0.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.mlp.wi_1.kernel/.zarray?generation=1638304516273831",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_0.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.mlp.wi_1.kernel/0.0?generation=1638304518499789",
+        "size": 1950591,
+        "sha256": "021314aec68ee0c977051df9688dc727038d48f2ef8abb8712433feb5894b50b"
+      },
+      {
+        "path": "target.decoder.layers_0.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.mlp.wo.kernel/.zarray?generation=1638304510857932",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.decoder.layers_0.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.mlp.wo.kernel/0.0?generation=1638304513574030",
+        "size": 1951861,
+        "sha256": "463783282b7ac07139db9347c498b06fe70785ce6799e1cc82220f8f420de088"
+      },
+      {
+        "path": "target.decoder.layers_0.self_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.self_attention.key.kernel/.zarray?generation=1638304514293996",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_0.self_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.self_attention.key.kernel/0.0?generation=1638304514353843",
+        "size": 731914,
+        "sha256": "2d41a39a8584a4e4c5b6a58e10a258306dcd678688f833e036d39b9202fa2e24"
+      },
+      {
+        "path": "target.decoder.layers_0.self_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.self_attention.out.kernel/.zarray?generation=1638304513082945",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_0.self_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.self_attention.out.kernel/0.0?generation=1638304514005562",
+        "size": 732768,
+        "sha256": "c036c6a316f58b437a62b98c460edc963aee7805bd95fec99f3f57f0a22783ca"
+      },
+      {
+        "path": "target.decoder.layers_0.self_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.self_attention.query.kernel/.zarray?generation=1638304513129118",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_0.self_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.self_attention.query.kernel/0.0?generation=1638304510988831",
+        "size": 733066,
+        "sha256": "ae0d59830aef037daba53fe595954e96599362448bde54a233b783357c98f4f4"
+      },
+      {
+        "path": "target.decoder.layers_0.self_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.self_attention.value.kernel/.zarray?generation=1638304514533623",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_0.self_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_0.self_attention.value.kernel/0.0?generation=1638304515447006",
+        "size": 731855,
+        "sha256": "ccc34090aee48be57bfdf89e8120baedb251b3c6228238984a087431d52cb0e4"
+      },
+      {
+        "path": "target.decoder.layers_1.encoder_decoder_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.encoder_decoder_attention.key.kernel/.zarray?generation=1638304510741399",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_1.encoder_decoder_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.encoder_decoder_attention.key.kernel/0.0?generation=1638304511368170",
+        "size": 731078,
+        "sha256": "3ae7c6451098bef732819c3aed96123d492ee5da5b879da0f1fce8b614a72d05"
+      },
+      {
+        "path": "target.decoder.layers_1.encoder_decoder_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.encoder_decoder_attention.out.kernel/.zarray?generation=1638304512158403",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_1.encoder_decoder_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.encoder_decoder_attention.out.kernel/0.0?generation=1638304511671030",
+        "size": 731940,
+        "sha256": "51def076021b04343642b1fe1b99f0fa4bfbfc0df51dbb645c754a57a724ea27"
+      },
+      {
+        "path": "target.decoder.layers_1.encoder_decoder_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.encoder_decoder_attention.query.kernel/.zarray?generation=1638304509907193",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_1.encoder_decoder_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.encoder_decoder_attention.query.kernel/0.0?generation=1638304512264984",
+        "size": 732697,
+        "sha256": "1cf9e86002967c4691ebbe248f2155f1bcab96a66d052f3d33ffd674034b3d81"
+      },
+      {
+        "path": "target.decoder.layers_1.encoder_decoder_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.encoder_decoder_attention.value.kernel/.zarray?generation=1638304514149335",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_1.encoder_decoder_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.encoder_decoder_attention.value.kernel/0.0?generation=1638304515556140",
+        "size": 731696,
+        "sha256": "9d3dc90f254b2c2e60d0b74f294296d3172f84c0c6df4c70a0321909ffa5bc71"
+      },
+      {
+        "path": "target.decoder.layers_1.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.mlp.wi_0.kernel/.zarray?generation=1638304511133628",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_1.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.mlp.wi_0.kernel/0.0?generation=1638304512217253",
+        "size": 1948686,
+        "sha256": "257e2e19dcb8f071e047f49907af817407256065c4e33227514af2cfb59988dc"
+      },
+      {
+        "path": "target.decoder.layers_1.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.mlp.wi_1.kernel/.zarray?generation=1638304510492188",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_1.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.mlp.wi_1.kernel/0.0?generation=1638304512395887",
+        "size": 1950656,
+        "sha256": "5a136917ce396787fa59a1b0918ca49d0596ffbc123aa21cae9942b949e94086"
+      },
+      {
+        "path": "target.decoder.layers_1.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.mlp.wo.kernel/.zarray?generation=1638304512404810",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.decoder.layers_1.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.mlp.wo.kernel/0.0?generation=1638304514880396",
+        "size": 1950271,
+        "sha256": "72c22c9e4e9a01c1072331989720a65110f4390e78f80a8e9a072b629ccc01cb"
+      },
+      {
+        "path": "target.decoder.layers_1.self_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.self_attention.key.kernel/.zarray?generation=1638304511952194",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_1.self_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.self_attention.key.kernel/0.0?generation=1638304511718595",
+        "size": 732573,
+        "sha256": "49efc184c231042f637cd088e233038befd96d6b7d76ba86ea1dc501100f7426"
+      },
+      {
+        "path": "target.decoder.layers_1.self_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.self_attention.out.kernel/.zarray?generation=1638304515696122",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_1.self_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.self_attention.out.kernel/0.0?generation=1638304517128229",
+        "size": 731906,
+        "sha256": "7bb0d1745a75d172c1ce7182b5878f2caaa4eed52e90cf246e55b3853f70af73"
+      },
+      {
+        "path": "target.decoder.layers_1.self_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.self_attention.query.kernel/.zarray?generation=1638304514087705",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_1.self_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.self_attention.query.kernel/0.0?generation=1638304513939928",
+        "size": 732259,
+        "sha256": "719ab43d93362f3c26da923cec49a863908ec631f029aa00da84d980b3b36d1f"
+      },
+      {
+        "path": "target.decoder.layers_1.self_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.self_attention.value.kernel/.zarray?generation=1638304511192741",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_1.self_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_1.self_attention.value.kernel/0.0?generation=1638304511539033",
+        "size": 731513,
+        "sha256": "75e4b14876be405e53814aa6b0b10c7f1fe575730725bcabffb3b2578913ad4c"
+      },
+      {
+        "path": "target.decoder.layers_2.encoder_decoder_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.encoder_decoder_attention.key.kernel/.zarray?generation=1638304515057642",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_2.encoder_decoder_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.encoder_decoder_attention.key.kernel/0.0?generation=1638304515763981",
+        "size": 731220,
+        "sha256": "a5ca9e167b0163320d00674492f7e64ecb80d29139cd11e56addc949fac89f19"
+      },
+      {
+        "path": "target.decoder.layers_2.encoder_decoder_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.encoder_decoder_attention.out.kernel/.zarray?generation=1638304516445116",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_2.encoder_decoder_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.encoder_decoder_attention.out.kernel/0.0?generation=1638304516461237",
+        "size": 731056,
+        "sha256": "3998f63991c11d257a47ed1f6795192ce2f3399ed51f269dfeb6fe1f76870843"
+      },
+      {
+        "path": "target.decoder.layers_2.encoder_decoder_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.encoder_decoder_attention.query.kernel/.zarray?generation=1638304514494433",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_2.encoder_decoder_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.encoder_decoder_attention.query.kernel/0.0?generation=1638304515552868",
+        "size": 732650,
+        "sha256": "380c4621959d4af42ccc32c89191bc4d229fe9823cc3692c7f5ddffe41f2e9a1"
+      },
+      {
+        "path": "target.decoder.layers_2.encoder_decoder_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.encoder_decoder_attention.value.kernel/.zarray?generation=1638304510364929",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_2.encoder_decoder_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.encoder_decoder_attention.value.kernel/0.0?generation=1638304512903104",
+        "size": 730716,
+        "sha256": "a42aa94d0775aaecdec9369c1fcbb50455579d1a576a6945e5706c5f5b9b2de0"
+      },
+      {
+        "path": "target.decoder.layers_2.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.mlp.wi_0.kernel/.zarray?generation=1638304512811803",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_2.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.mlp.wi_0.kernel/0.0?generation=1638304516200070",
+        "size": 1948692,
+        "sha256": "29142726fe530a48ac6a407094dab471c95f10652d48073a776d5437ff975241"
+      },
+      {
+        "path": "target.decoder.layers_2.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.mlp.wi_1.kernel/.zarray?generation=1638304515113888",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_2.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.mlp.wi_1.kernel/0.0?generation=1638304518185593",
+        "size": 1950997,
+        "sha256": "005b0855a919e5fca46f1b7c25b1433eb06aaa0358a03af93a41db28711e3e8a"
+      },
+      {
+        "path": "target.decoder.layers_2.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.mlp.wo.kernel/.zarray?generation=1638304510034540",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.decoder.layers_2.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.mlp.wo.kernel/0.0?generation=1638304512301723",
+        "size": 1948815,
+        "sha256": "87fdb3f2b957440caecb19878bf807054406a264eae38eeecadde97f07bbda27"
+      },
+      {
+        "path": "target.decoder.layers_2.self_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.self_attention.key.kernel/.zarray?generation=1638304514418125",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_2.self_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.self_attention.key.kernel/0.0?generation=1638304514966632",
+        "size": 730832,
+        "sha256": "9363b634368868a146331e15d97b7938ee07881f598858bf0947c9c16f856c6e"
+      },
+      {
+        "path": "target.decoder.layers_2.self_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.self_attention.out.kernel/.zarray?generation=1638304510348808",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_2.self_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.self_attention.out.kernel/0.0?generation=1638304512076184",
+        "size": 732005,
+        "sha256": "0e197a413cc44d6c1e10d60cb74d3517875abc368a5557c37d80129d7668b764"
+      },
+      {
+        "path": "target.decoder.layers_2.self_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.self_attention.query.kernel/.zarray?generation=1638304515492873",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_2.self_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.self_attention.query.kernel/0.0?generation=1638304516328895",
+        "size": 732652,
+        "sha256": "198603be8fd4256cb2458aa1c146cc68d32d33a9febbe1033c54c2707c4c7b95"
+      },
+      {
+        "path": "target.decoder.layers_2.self_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.self_attention.value.kernel/.zarray?generation=1638304511448400",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_2.self_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_2.self_attention.value.kernel/0.0?generation=1638304512901302",
+        "size": 731286,
+        "sha256": "b4f326451f164b075922d1d8f344d0e8efaedaa03ab875a2dd87de923f39be29"
+      },
+      {
+        "path": "target.decoder.layers_3.encoder_decoder_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.encoder_decoder_attention.key.kernel/.zarray?generation=1638304511447134",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_3.encoder_decoder_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.encoder_decoder_attention.key.kernel/0.0?generation=1638304512665622",
+        "size": 731065,
+        "sha256": "35e64d671042eede6ff82bd216795b79b06d7500df9d414814daa58c89c1894c"
+      },
+      {
+        "path": "target.decoder.layers_3.encoder_decoder_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.encoder_decoder_attention.out.kernel/.zarray?generation=1638304512287747",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_3.encoder_decoder_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.encoder_decoder_attention.out.kernel/0.0?generation=1638304513060508",
+        "size": 730984,
+        "sha256": "b3883833f5d96ff5681cb53ad4f551b48a8b58775b8e5a3d6426a8c2805f74c9"
+      },
+      {
+        "path": "target.decoder.layers_3.encoder_decoder_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.encoder_decoder_attention.query.kernel/.zarray?generation=1638304513560996",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_3.encoder_decoder_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.encoder_decoder_attention.query.kernel/0.0?generation=1638304514469819",
+        "size": 732623,
+        "sha256": "5286eab0ecf966533794dd581d60c4f42f6cc70ff330c7bbafd6754a68aa8a33"
+      },
+      {
+        "path": "target.decoder.layers_3.encoder_decoder_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.encoder_decoder_attention.value.kernel/.zarray?generation=1638304511885823",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_3.encoder_decoder_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.encoder_decoder_attention.value.kernel/0.0?generation=1638304513074536",
+        "size": 731088,
+        "sha256": "d09e48f1781964ab029ee42fb225c5276c43f4f2db63d02cf623c690778bd662"
+      },
+      {
+        "path": "target.decoder.layers_3.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.mlp.wi_0.kernel/.zarray?generation=1638304511512673",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_3.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.mlp.wi_0.kernel/0.0?generation=1638304514842481",
+        "size": 1948314,
+        "sha256": "b383273189c6f90995b86fea921629baf03bd5df47c744606fda2e7b646847d0"
+      },
+      {
+        "path": "target.decoder.layers_3.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.mlp.wi_1.kernel/.zarray?generation=1638304514847473",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_3.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.mlp.wi_1.kernel/0.0?generation=1638304517964014",
+        "size": 1951080,
+        "sha256": "c333105125c055fc2ff646b9eac287fd8b474432c18899ff9c13020e19d42913"
+      },
+      {
+        "path": "target.decoder.layers_3.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.mlp.wo.kernel/.zarray?generation=1638304513301694",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.decoder.layers_3.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.mlp.wo.kernel/0.0?generation=1638304516565873",
+        "size": 1948701,
+        "sha256": "6a95aa71bc5fd286d8cea89dbb3d672bb2d9f6168159ba38ea601035d3d1a45c"
+      },
+      {
+        "path": "target.decoder.layers_3.self_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.self_attention.key.kernel/.zarray?generation=1638304511954120",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_3.self_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.self_attention.key.kernel/0.0?generation=1638304511883572",
+        "size": 731321,
+        "sha256": "4aed82b67cc3add1e4c58c8cfcad47a88707f72a21e7faef556f5b72a9275350"
+      },
+      {
+        "path": "target.decoder.layers_3.self_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.self_attention.out.kernel/.zarray?generation=1638304515008016",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_3.self_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.self_attention.out.kernel/0.0?generation=1638304515865654",
+        "size": 731876,
+        "sha256": "6fb048795562e116b5a3517b2b658a6ae40cea7cacba53ee3106860f906c75dc"
+      },
+      {
+        "path": "target.decoder.layers_3.self_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.self_attention.query.kernel/.zarray?generation=1638304515373661",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_3.self_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.self_attention.query.kernel/0.0?generation=1638304516409240",
+        "size": 732607,
+        "sha256": "3876700eabdb1e9dc4f75108fe0cb399a93ab57879c0b219ec875ce4a5905bd4"
+      },
+      {
+        "path": "target.decoder.layers_3.self_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.self_attention.value.kernel/.zarray?generation=1638304515032144",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_3.self_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_3.self_attention.value.kernel/0.0?generation=1638304515345904",
+        "size": 731234,
+        "sha256": "c272a5a8a5574a4107ae969b0dd28705a785a4c814c1cb783529a88f579b6e42"
+      },
+      {
+        "path": "target.decoder.layers_4.encoder_decoder_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.encoder_decoder_attention.key.kernel/.zarray?generation=1638304511478962",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_4.encoder_decoder_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.encoder_decoder_attention.key.kernel/0.0?generation=1638304510742145",
+        "size": 731136,
+        "sha256": "5613e4bca40a0f67ceaa496e4a84024c5dda24ba7d61d0f283aab3fc4951c5a2"
+      },
+      {
+        "path": "target.decoder.layers_4.encoder_decoder_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.encoder_decoder_attention.out.kernel/.zarray?generation=1638304511137117",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_4.encoder_decoder_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.encoder_decoder_attention.out.kernel/0.0?generation=1638304512060481",
+        "size": 731582,
+        "sha256": "3a519d82fe4c81af915c40882f3590d86af0958ed6055862b4b2ac8dc6ed988c"
+      },
+      {
+        "path": "target.decoder.layers_4.encoder_decoder_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.encoder_decoder_attention.query.kernel/.zarray?generation=1638304515701510",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_4.encoder_decoder_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.encoder_decoder_attention.query.kernel/0.0?generation=1638304516298468",
+        "size": 732441,
+        "sha256": "4aa0a29a48a5da6f0c583f00732f3afb36e19f9293a51b0b380a495248086a31"
+      },
+      {
+        "path": "target.decoder.layers_4.encoder_decoder_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.encoder_decoder_attention.value.kernel/.zarray?generation=1638304514064063",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_4.encoder_decoder_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.encoder_decoder_attention.value.kernel/0.0?generation=1638304515858621",
+        "size": 731431,
+        "sha256": "72fcc66ee646beff044c42451a003cc25d3771097c855fd1232ba7ffd35ab975"
+      },
+      {
+        "path": "target.decoder.layers_4.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.mlp.wi_0.kernel/.zarray?generation=1638304512519767",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_4.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.mlp.wi_0.kernel/0.0?generation=1638304513758845",
+        "size": 1948197,
+        "sha256": "6b69b4fb9f0a2c304930f9d4214450a56d5cc0e17094f3c6fe6e59c43dac3bf9"
+      },
+      {
+        "path": "target.decoder.layers_4.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.mlp.wi_1.kernel/.zarray?generation=1638304516504836",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_4.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.mlp.wi_1.kernel/0.0?generation=1638304519868864",
+        "size": 1951519,
+        "sha256": "339d896279cd8c61d2b81934507c4479382345c573b5765e769879166adff728"
+      },
+      {
+        "path": "target.decoder.layers_4.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.mlp.wo.kernel/.zarray?generation=1638304517753977",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.decoder.layers_4.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.mlp.wo.kernel/0.0?generation=1638304519882831",
+        "size": 1948653,
+        "sha256": "10091a49444db1eed0d8fcbd2bdfb699c3c7c527f3b76bb8632dcda88bde0af6"
+      },
+      {
+        "path": "target.decoder.layers_4.self_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.self_attention.key.kernel/.zarray?generation=1638304518392221",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_4.self_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.self_attention.key.kernel/0.0?generation=1638304519681285",
+        "size": 730910,
+        "sha256": "5e43885ac123345d2c01ae8508736828743b6ab7dec82da1d160789ef9524f13"
+      },
+      {
+        "path": "target.decoder.layers_4.self_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.self_attention.out.kernel/.zarray?generation=1638304516997046",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_4.self_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.self_attention.out.kernel/0.0?generation=1638304517407262",
+        "size": 732552,
+        "sha256": "a1a073c5ad9bf19c22765c2ec0e6c9b7f617215b01cbb539f6980e2b3668c001"
+      },
+      {
+        "path": "target.decoder.layers_4.self_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.self_attention.query.kernel/.zarray?generation=1638304517219182",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_4.self_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.self_attention.query.kernel/0.0?generation=1638304518918120",
+        "size": 732929,
+        "sha256": "88138b6a48861060c99ac9f6d80dcbc4df6ad71c5ac259fb943609be00830529"
+      },
+      {
+        "path": "target.decoder.layers_4.self_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.self_attention.value.kernel/.zarray?generation=1638304516042854",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_4.self_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_4.self_attention.value.kernel/0.0?generation=1638304517103108",
+        "size": 731999,
+        "sha256": "8e822a4e3c602d0cd486d29b4665e5ef78cbe6460fb35dc0b38f85200a5e46d0"
+      },
+      {
+        "path": "target.decoder.layers_5.encoder_decoder_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.encoder_decoder_attention.key.kernel/.zarray?generation=1638304518578777",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_5.encoder_decoder_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.encoder_decoder_attention.key.kernel/0.0?generation=1638304519120175",
+        "size": 731073,
+        "sha256": "4609c8ac81e2846ae4399138b5da44f88a3398022171872d9f3c7c20b835b325"
+      },
+      {
+        "path": "target.decoder.layers_5.encoder_decoder_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.encoder_decoder_attention.out.kernel/.zarray?generation=1638304515986545",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_5.encoder_decoder_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.encoder_decoder_attention.out.kernel/0.0?generation=1638304517519395",
+        "size": 732479,
+        "sha256": "26a749bcce575ee4339b41bda6e5eebfc4927db5a7e6fd29be106514f3728cc9"
+      },
+      {
+        "path": "target.decoder.layers_5.encoder_decoder_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.encoder_decoder_attention.query.kernel/.zarray?generation=1638304517988547",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_5.encoder_decoder_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.encoder_decoder_attention.query.kernel/0.0?generation=1638304518220845",
+        "size": 732612,
+        "sha256": "f71a71d1f34b2bb6a357bb75f6a52e83607b07e514a1cf5489ab26ea95797971"
+      },
+      {
+        "path": "target.decoder.layers_5.encoder_decoder_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.encoder_decoder_attention.value.kernel/.zarray?generation=1638304518306964",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_5.encoder_decoder_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.encoder_decoder_attention.value.kernel/0.0?generation=1638304518511676",
+        "size": 732084,
+        "sha256": "1d9f9ee07e739b3d8102f4ccf99e140749d6c83a7f49ff70fcc47133f840d251"
+      },
+      {
+        "path": "target.decoder.layers_5.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.mlp.wi_0.kernel/.zarray?generation=1638304517659213",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_5.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.mlp.wi_0.kernel/0.0?generation=1638304520077797",
+        "size": 1948349,
+        "sha256": "115039305a09e64ca96bb75fe2f48b9f8fa7edf258188fd7a49f5bceec7ea8de"
+      },
+      {
+        "path": "target.decoder.layers_5.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.mlp.wi_1.kernel/.zarray?generation=1638304517473873",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_5.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.mlp.wi_1.kernel/0.0?generation=1638304519788648",
+        "size": 1952373,
+        "sha256": "a6096218e86773cf1c35757a89a83d3c7cf6f8d9c19e53a536377d5820dae557"
+      },
+      {
+        "path": "target.decoder.layers_5.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.mlp.wo.kernel/.zarray?generation=1638304517882798",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.decoder.layers_5.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.mlp.wo.kernel/0.0?generation=1638304519627698",
+        "size": 1949366,
+        "sha256": "5d80a4fe32b87108b1e09c029f5bafbc928a2e6f367c4c1d7d2fdb70fe33f749"
+      },
+      {
+        "path": "target.decoder.layers_5.self_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.self_attention.key.kernel/.zarray?generation=1638304516736081",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_5.self_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.self_attention.key.kernel/0.0?generation=1638304517507060",
+        "size": 730979,
+        "sha256": "7b77373a96b36bc7239b766c3057abc0fe4e8e63370ba6de669f01f0bffe5b4c"
+      },
+      {
+        "path": "target.decoder.layers_5.self_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.self_attention.out.kernel/.zarray?generation=1638304520494454",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_5.self_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.self_attention.out.kernel/0.0?generation=1638304521817191",
+        "size": 732515,
+        "sha256": "8bc5271421118cac8982583a3b68217e85c385a6e73c3308b970edddff60ff22"
+      },
+      {
+        "path": "target.decoder.layers_5.self_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.self_attention.query.kernel/.zarray?generation=1638304518076832",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_5.self_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.self_attention.query.kernel/0.0?generation=1638304519021618",
+        "size": 732804,
+        "sha256": "63b066ea654340897cb200da23f7bc3ee831b6fccd9ae7ec4749e7f58d04739a"
+      },
+      {
+        "path": "target.decoder.layers_5.self_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.self_attention.value.kernel/.zarray?generation=1638304521318146",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_5.self_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_5.self_attention.value.kernel/0.0?generation=1638304522444687",
+        "size": 731754,
+        "sha256": "bad0b4e5e57855ec2299bd8019f6c9711cb7db3b05b0c1e50461e00b93e24e27"
+      },
+      {
+        "path": "target.decoder.layers_6.encoder_decoder_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.encoder_decoder_attention.key.kernel/.zarray?generation=1638304521066978",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_6.encoder_decoder_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.encoder_decoder_attention.key.kernel/0.0?generation=1638304521591106",
+        "size": 731112,
+        "sha256": "d9ff4f07fa3c461e8d5db462f61038582a72faab910cfecdb4a9d80e673dfd2b"
+      },
+      {
+        "path": "target.decoder.layers_6.encoder_decoder_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.encoder_decoder_attention.out.kernel/.zarray?generation=1638304521392590",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_6.encoder_decoder_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.encoder_decoder_attention.out.kernel/0.0?generation=1638304521347732",
+        "size": 732699,
+        "sha256": "31be9498668e19e74de13aff0dde9d3a512e0d3371c15a62b04ee6fb3dbcfeb2"
+      },
+      {
+        "path": "target.decoder.layers_6.encoder_decoder_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.encoder_decoder_attention.query.kernel/.zarray?generation=1638304522165319",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_6.encoder_decoder_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.encoder_decoder_attention.query.kernel/0.0?generation=1638304523304197",
+        "size": 732551,
+        "sha256": "c4023bf29dba610f17a8480bc91dccd14757b9ddfee9b0ba82c4d164837bf411"
+      },
+      {
+        "path": "target.decoder.layers_6.encoder_decoder_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.encoder_decoder_attention.value.kernel/.zarray?generation=1638304521012884",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_6.encoder_decoder_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.encoder_decoder_attention.value.kernel/0.0?generation=1638304521451913",
+        "size": 732605,
+        "sha256": "84c892792b3f72b1de082e370d0c13ecadcfb5b35d73ce45e6b4e11a192884c6"
+      },
+      {
+        "path": "target.decoder.layers_6.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.mlp.wi_0.kernel/.zarray?generation=1638304519152790",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_6.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.mlp.wi_0.kernel/0.0?generation=1638304521574829",
+        "size": 1948546,
+        "sha256": "bdacbca90f0be58179f4ded30c2bdb87655f6643ac22525925ea4f8b3ed6def1"
+      },
+      {
+        "path": "target.decoder.layers_6.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.mlp.wi_1.kernel/.zarray?generation=1638304518578646",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_6.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.mlp.wi_1.kernel/0.0?generation=1638304520570914",
+        "size": 1953238,
+        "sha256": "d4b28aa31c515c991869243718d800d94718026dfee637c4df9531e44b2a8819"
+      },
+      {
+        "path": "target.decoder.layers_6.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.mlp.wo.kernel/.zarray?generation=1638304522299307",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.decoder.layers_6.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.mlp.wo.kernel/0.0?generation=1638304524533040",
+        "size": 1950559,
+        "sha256": "5a23749e1f3f66d5d7913b5f287e56aa64d94076ec6b7caaf8165833f3671cdb"
+      },
+      {
+        "path": "target.decoder.layers_6.self_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.self_attention.key.kernel/.zarray?generation=1638304519436467",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_6.self_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.self_attention.key.kernel/0.0?generation=1638304520292089",
+        "size": 730810,
+        "sha256": "daf5eb3a766cba9c06e2884ff290f71674257bc91101010bb076551acd8a62b3"
+      },
+      {
+        "path": "target.decoder.layers_6.self_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.self_attention.out.kernel/.zarray?generation=1638304521460354",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_6.self_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.self_attention.out.kernel/0.0?generation=1638304523214003",
+        "size": 732742,
+        "sha256": "66751680f3875101bfe56148155d06b857813cdbc4ff2f7fd3b083b28859a7cf"
+      },
+      {
+        "path": "target.decoder.layers_6.self_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.self_attention.query.kernel/.zarray?generation=1638304519259656",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_6.self_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.self_attention.query.kernel/0.0?generation=1638304520954019",
+        "size": 732669,
+        "sha256": "f50fb6b861c472fba65723aba658d3ec11bfb326c617af5e093e091382f813c3"
+      },
+      {
+        "path": "target.decoder.layers_6.self_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.self_attention.value.kernel/.zarray?generation=1638304518552216",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_6.self_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_6.self_attention.value.kernel/0.0?generation=1638304520144363",
+        "size": 732712,
+        "sha256": "d152d486cab28e37c59206cb250e2e4e9021a60886a210dcebe79e5b2e0bd1d9"
+      },
+      {
+        "path": "target.decoder.layers_7.encoder_decoder_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.encoder_decoder_attention.key.kernel/.zarray?generation=1638304523271699",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_7.encoder_decoder_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.encoder_decoder_attention.key.kernel/0.0?generation=1638304524420581",
+        "size": 731282,
+        "sha256": "9fa58cbaaf1f86687cafc76bda827d3c9a43f57a07ab5c1525e3773040252a3f"
+      },
+      {
+        "path": "target.decoder.layers_7.encoder_decoder_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.encoder_decoder_attention.out.kernel/.zarray?generation=1638304520552898",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_7.encoder_decoder_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.encoder_decoder_attention.out.kernel/0.0?generation=1638304521113911",
+        "size": 732624,
+        "sha256": "bff3c327605e26d03b825b3afbfe8da66031d5e99b18d1f1198df09d94c3f69d"
+      },
+      {
+        "path": "target.decoder.layers_7.encoder_decoder_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.encoder_decoder_attention.query.kernel/.zarray?generation=1638304521122313",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_7.encoder_decoder_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.encoder_decoder_attention.query.kernel/0.0?generation=1638304522167277",
+        "size": 732760,
+        "sha256": "f728cba21484481eeb61c776f5592e00f64d099dc604bba32db251cddfe80229"
+      },
+      {
+        "path": "target.decoder.layers_7.encoder_decoder_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.encoder_decoder_attention.value.kernel/.zarray?generation=1638304520109823",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_7.encoder_decoder_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.encoder_decoder_attention.value.kernel/0.0?generation=1638304521240441",
+        "size": 732972,
+        "sha256": "da3646430e844f59b417a953e70e1e0c60291f90cb42bc5f4a397d2f7472849d"
+      },
+      {
+        "path": "target.decoder.layers_7.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.mlp.wi_0.kernel/.zarray?generation=1638304519464509",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_7.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.mlp.wi_0.kernel/0.0?generation=1638304522022986",
+        "size": 1950289,
+        "sha256": "0ffd7dbb1b1060061fc4f6f71a74926ef33de80698cd0e7ff3003768b018d0d1"
+      },
+      {
+        "path": "target.decoder.layers_7.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.mlp.wi_1.kernel/.zarray?generation=1638304522812233",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.decoder.layers_7.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.mlp.wi_1.kernel/0.0?generation=1638304526043093",
+        "size": 1953552,
+        "sha256": "98fb4fd5e603c7db660a45b1167377dd2146d7112c8a41b118c67ec6ca8a6d18"
+      },
+      {
+        "path": "target.decoder.layers_7.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.mlp.wo.kernel/.zarray?generation=1638304518936886",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.decoder.layers_7.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.mlp.wo.kernel/0.0?generation=1638304521557615",
+        "size": 1953259,
+        "sha256": "0d3bcdfa506e0cd1dc53dc979c7c1bd49bc8349487f3682fa7708789a2238f70"
+      },
+      {
+        "path": "target.decoder.layers_7.self_attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.self_attention.key.kernel/.zarray?generation=1638304522164807",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_7.self_attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.self_attention.key.kernel/0.0?generation=1638304522903765",
+        "size": 730779,
+        "sha256": "8d2754604e29968d9956d71c776c3ac76ac4aef4c184969188959312a5866e27"
+      },
+      {
+        "path": "target.decoder.layers_7.self_attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.self_attention.out.kernel/.zarray?generation=1638304520157803",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.decoder.layers_7.self_attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.self_attention.out.kernel/0.0?generation=1638304520985587",
+        "size": 732872,
+        "sha256": "3f1be58d4886e9e68187d3b5e4a52af048499319e40b0fd46c46beb71035386b"
+      },
+      {
+        "path": "target.decoder.layers_7.self_attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.self_attention.query.kernel/.zarray?generation=1638304521074373",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_7.self_attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.self_attention.query.kernel/0.0?generation=1638304521788383",
+        "size": 732789,
+        "sha256": "e81e369e299615a105c3179cb047af93c19880df710d1790fa8a8130ee6db0e0"
+      },
+      {
+        "path": "target.decoder.layers_7.self_attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.self_attention.value.kernel/.zarray?generation=1638304518842665",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.decoder.layers_7.self_attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.layers_7.self_attention.value.kernel/0.0?generation=1638304519074184",
+        "size": 732439,
+        "sha256": "8f9d9ac450fa212b37b548de54270caddf6109052de040b7b15a9734961daaa1"
+      },
+      {
+        "path": "target.decoder.logits_dense.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.logits_dense.kernel/.zarray?generation=1638304518814473",
+        "size": 178,
+        "sha256": "ec2a9b5244d49ac56e2518ebca561f8b02856cef7849b2a39c3c6f12225a354a"
+      },
+      {
+        "path": "target.decoder.logits_dense.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.logits_dense.kernel/0.0?generation=1638304523594003",
+        "size": 2875223,
+        "sha256": "3017adf6f65c5fae71be1732532c0062e90196ec0edda0fe5936b71bc67c7211"
+      },
+      {
+        "path": "target.decoder.token_embedder.embedding/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.token_embedder.embedding/.zarray?generation=1638304519996168",
+        "size": 178,
+        "sha256": "2f4511325d17a5e501fdae42a2bcda5495ae0805bcbc57ca7be6a0cd5baf1e7b"
+      },
+      {
+        "path": "target.decoder.token_embedder.embedding/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.decoder.token_embedder.embedding/0.0?generation=1638304524699491",
+        "size": 2924917,
+        "sha256": "9f8e2ba552af0d1a91ba7e9525977a4683fe830eb40824acaa7dadfa18b237db"
+      },
+      {
+        "path": "target.encoder.continuous_inputs_projection.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.continuous_inputs_projection.kernel/.zarray?generation=1638304521831064",
+        "size": 176,
+        "sha256": "3a3665ed5f3441798ee191fc632c8a7304f7827a056134184404c6224c7c4cb2"
+      },
+      {
+        "path": "target.encoder.continuous_inputs_projection.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.continuous_inputs_projection.kernel/0.0?generation=1638304523446491",
+        "size": 976191,
+        "sha256": "753cefa65b6d1aab59c4867cc1f2a10285a5137670eb34776f1e196f45152d11"
+      },
+      {
+        "path": "target.encoder.layers_0.attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.attention.key.kernel/.zarray?generation=1638304520923066",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_0.attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.attention.key.kernel/0.0?generation=1638304522678496",
+        "size": 733049,
+        "sha256": "f2b49e55d32dfed49b78f966a0ee0eaff34b7fe349ae3fa37d0391117463aa0c"
+      },
+      {
+        "path": "target.encoder.layers_0.attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.attention.out.kernel/.zarray?generation=1638304519223125",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.encoder.layers_0.attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.attention.out.kernel/0.0?generation=1638304519461987",
+        "size": 732255,
+        "sha256": "47db512e7cb2b8a9aaa45c55cf47e17345b983a39ce1322f78809c7b86612795"
+      },
+      {
+        "path": "target.encoder.layers_0.attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.attention.query.kernel/.zarray?generation=1638304522538536",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_0.attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.attention.query.kernel/0.0?generation=1638304523717828",
+        "size": 733690,
+        "sha256": "4651b711aa247813fcc600efc06f467d3aeb2bf3abf49d0399567bdd3ad519f8"
+      },
+      {
+        "path": "target.encoder.layers_0.attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.attention.value.kernel/.zarray?generation=1638304522057116",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_0.attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.attention.value.kernel/0.0?generation=1638304522684820",
+        "size": 731068,
+        "sha256": "0ccd53bdfd319397d6b456994e4905a434a8b8ca1763417bc60853d69b231361"
+      },
+      {
+        "path": "target.encoder.layers_0.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.mlp.wi_0.kernel/.zarray?generation=1638304521093645",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_0.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.mlp.wi_0.kernel/0.0?generation=1638304524082930",
+        "size": 1950979,
+        "sha256": "a2b55e4f0fe55e3d1f372cb20500ec3da8fd9df0b2274585b1fa72ea5ca18a47"
+      },
+      {
+        "path": "target.encoder.layers_0.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.mlp.wi_1.kernel/.zarray?generation=1638304521755609",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_0.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.mlp.wi_1.kernel/0.0?generation=1638304523680533",
+        "size": 1951882,
+        "sha256": "2a17b5e7979e7b5f96ff1a03811a8748c53f62a5abcae3ad504e4feda804dbbb"
+      },
+      {
+        "path": "target.encoder.layers_0.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.mlp.wo.kernel/.zarray?generation=1638304522113812",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.encoder.layers_0.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_0.mlp.wo.kernel/0.0?generation=1638304525119093",
+        "size": 1952582,
+        "sha256": "a24bd8e6e698902266818181f4a865e48d133d20b24434c2bdaf2b29118a4173"
+      },
+      {
+        "path": "target.encoder.layers_1.attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.attention.key.kernel/.zarray?generation=1638304523725327",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_1.attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.attention.key.kernel/0.0?generation=1638304524070010",
+        "size": 731804,
+        "sha256": "84bfcd6d29eda273872d920ad6b39e16db0b538e067348311c9ee6b2b2e33c29"
+      },
+      {
+        "path": "target.encoder.layers_1.attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.attention.out.kernel/.zarray?generation=1638304524002212",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.encoder.layers_1.attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.attention.out.kernel/0.0?generation=1638304525411801",
+        "size": 731958,
+        "sha256": "2e2a69e93bd3131304d35d1ea168334ac203bf0053adce89ba38747ad1fe8b30"
+      },
+      {
+        "path": "target.encoder.layers_1.attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.attention.query.kernel/.zarray?generation=1638304523936259",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_1.attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.attention.query.kernel/0.0?generation=1638304524703534",
+        "size": 732916,
+        "sha256": "2945550f74096fdbb72cca9ea629b83db3778b79574584a8a36ed353e642cf01"
+      },
+      {
+        "path": "target.encoder.layers_1.attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.attention.value.kernel/.zarray?generation=1638304524113889",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_1.attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.attention.value.kernel/0.0?generation=1638304524131664",
+        "size": 730974,
+        "sha256": "ea27231fa6a9af1ef92e5e88b7eadf919294ae43a97a6f1aa65c705f62c07450"
+      },
+      {
+        "path": "target.encoder.layers_1.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.mlp.wi_0.kernel/.zarray?generation=1638304523425812",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_1.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.mlp.wi_0.kernel/0.0?generation=1638304526101925",
+        "size": 1950707,
+        "sha256": "5319ce5fa03c8041529fd42e55742d8b9d2e2745efa950d6d811126b944d36fb"
+      },
+      {
+        "path": "target.encoder.layers_1.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.mlp.wi_1.kernel/.zarray?generation=1638304523797062",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_1.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.mlp.wi_1.kernel/0.0?generation=1638304526083009",
+        "size": 1951677,
+        "sha256": "fe81d9306d4e131a927cb131752c97e06b7b94edaca0ab5c3fad1dce57720fcd"
+      },
+      {
+        "path": "target.encoder.layers_1.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.mlp.wo.kernel/.zarray?generation=1638304523876077",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.encoder.layers_1.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_1.mlp.wo.kernel/0.0?generation=1638304526851406",
+        "size": 1951821,
+        "sha256": "bf4174294451bc23dd7595d0f01c2827e174b7ef779a38e7389e1cc44a189843"
+      },
+      {
+        "path": "target.encoder.layers_2.attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.attention.key.kernel/.zarray?generation=1638304524589050",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_2.attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.attention.key.kernel/0.0?generation=1638304525271224",
+        "size": 731544,
+        "sha256": "7537a7a26541af11723857d3292c375376a9c260871e1c5739a02cd9a815fb70"
+      },
+      {
+        "path": "target.encoder.layers_2.attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.attention.out.kernel/.zarray?generation=1638304523584572",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.encoder.layers_2.attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.attention.out.kernel/0.0?generation=1638304524994801",
+        "size": 731616,
+        "sha256": "e916c06a8e2e6c9349c579968dc11a3aa40a3309314203cb77e401b67f176a25"
+      },
+      {
+        "path": "target.encoder.layers_2.attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.attention.query.kernel/.zarray?generation=1638304523390369",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_2.attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.attention.query.kernel/0.0?generation=1638304524358735",
+        "size": 732158,
+        "sha256": "50374e550032989b2b29fe77ad09ed3c69a58210c5867255eb07500c5ce28b9f"
+      },
+      {
+        "path": "target.encoder.layers_2.attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.attention.value.kernel/.zarray?generation=1638304525056782",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_2.attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.attention.value.kernel/0.0?generation=1638304524999430",
+        "size": 730696,
+        "sha256": "e55ea13191154f5f8b65fdf87877ee1cfa770f486473ef817c14e5aca1885772"
+      },
+      {
+        "path": "target.encoder.layers_2.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.mlp.wi_0.kernel/.zarray?generation=1638304524458996",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_2.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.mlp.wi_0.kernel/0.0?generation=1638304527529520",
+        "size": 1950417,
+        "sha256": "7829c3f3b3c73cf806801f6d85ac6ad3e8723f65c6c6c2469745309303da86d7"
+      },
+      {
+        "path": "target.encoder.layers_2.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.mlp.wi_1.kernel/.zarray?generation=1638304524243306",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_2.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.mlp.wi_1.kernel/0.0?generation=1638304526687619",
+        "size": 1951524,
+        "sha256": "286531b7b53dba0c82f517a361cb1a1bc0e6b2cc777aec53805353a4c7c20dab"
+      },
+      {
+        "path": "target.encoder.layers_2.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.mlp.wo.kernel/.zarray?generation=1638304525918059",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.encoder.layers_2.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_2.mlp.wo.kernel/0.0?generation=1638304529412164",
+        "size": 1951259,
+        "sha256": "21f85dd10d291ff079e6711d7a4784e7c9572aa0a40997aa98b06e209fbe8f07"
+      },
+      {
+        "path": "target.encoder.layers_3.attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.attention.key.kernel/.zarray?generation=1638304525950120",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_3.attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.attention.key.kernel/0.0?generation=1638304526734933",
+        "size": 731797,
+        "sha256": "18e5b4aca279ce5dcf0bee7c8f7056bd086fb49b0a7da132377b0eb945d36fcd"
+      },
+      {
+        "path": "target.encoder.layers_3.attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.attention.out.kernel/.zarray?generation=1638304524569859",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.encoder.layers_3.attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.attention.out.kernel/0.0?generation=1638304525979134",
+        "size": 731503,
+        "sha256": "738b8750d5b82775b2cafc75e21b9045ecd9591e512e0513b70bcddb4c5b1e76"
+      },
+      {
+        "path": "target.encoder.layers_3.attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.attention.query.kernel/.zarray?generation=1638304529170198",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_3.attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.attention.query.kernel/0.0?generation=1638304529319665",
+        "size": 732136,
+        "sha256": "44e4e6aa9499efa888096dd422747a6240ec9bb3c822434ef84f9ea6f7f66609"
+      },
+      {
+        "path": "target.encoder.layers_3.attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.attention.value.kernel/.zarray?generation=1638304531188176",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_3.attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.attention.value.kernel/0.0?generation=1638304532563586",
+        "size": 730742,
+        "sha256": "fdff2a5004bf9effa5dde48f62494adbb3f61576e0365e46219204357fd14d10"
+      },
+      {
+        "path": "target.encoder.layers_3.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.mlp.wi_0.kernel/.zarray?generation=1638304525712245",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_3.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.mlp.wi_0.kernel/0.0?generation=1638304529466197",
+        "size": 1949936,
+        "sha256": "212432585b8a054ebd3cbf4d30dec0f5c83ddf3cad05ce51e794930997752583"
+      },
+      {
+        "path": "target.encoder.layers_3.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.mlp.wi_1.kernel/.zarray?generation=1638304526104782",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_3.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.mlp.wi_1.kernel/0.0?generation=1638304529466829",
+        "size": 1951616,
+        "sha256": "73fd878a680924bb95c5e8f962a64531bbf00a9dd0fb319fe210ddfe67a4e05c"
+      },
+      {
+        "path": "target.encoder.layers_3.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.mlp.wo.kernel/.zarray?generation=1638304526227592",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.encoder.layers_3.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_3.mlp.wo.kernel/0.0?generation=1638304529741839",
+        "size": 1950493,
+        "sha256": "43c2323036d87fc16f6bebd3c4cab2d148e9cbdcbb5b5e5c8d1050be27dbbe8b"
+      },
+      {
+        "path": "target.encoder.layers_4.attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.attention.key.kernel/.zarray?generation=1638304527289924",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_4.attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.attention.key.kernel/0.0?generation=1638304529370616",
+        "size": 731674,
+        "sha256": "db38791193ff037afcffee8ebfd758d8e635dfa4237352742c869e22aa425f91"
+      },
+      {
+        "path": "target.encoder.layers_4.attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.attention.out.kernel/.zarray?generation=1638304531099170",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.encoder.layers_4.attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.attention.out.kernel/0.0?generation=1638304532586719",
+        "size": 731676,
+        "sha256": "00d2172bd4a7e340314c9c7e1841f2e95d3ba5eeaf74dcfef9b4ebef5369126f"
+      },
+      {
+        "path": "target.encoder.layers_4.attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.attention.query.kernel/.zarray?generation=1638304525278749",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_4.attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.attention.query.kernel/0.0?generation=1638304526030697",
+        "size": 732348,
+        "sha256": "8da332f50ca6123955e59ba7a398f759d1257221dc628945ec8e84fef495f05f"
+      },
+      {
+        "path": "target.encoder.layers_4.attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.attention.value.kernel/.zarray?generation=1638304531800562",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_4.attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.attention.value.kernel/0.0?generation=1638304531276537",
+        "size": 730953,
+        "sha256": "228c822d72a5d38303559df1628f6e4c3cce1f3064c94413e8969cedd5f77d6b"
+      },
+      {
+        "path": "target.encoder.layers_4.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.mlp.wi_0.kernel/.zarray?generation=1638304525330600",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_4.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.mlp.wi_0.kernel/0.0?generation=1638304526756690",
+        "size": 1949481,
+        "sha256": "676a31ff2e4f221394d4befab808ee9846bb2a47fb0d526081caef1862f7a6f8"
+      },
+      {
+        "path": "target.encoder.layers_4.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.mlp.wi_1.kernel/.zarray?generation=1638304524643274",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_4.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.mlp.wi_1.kernel/0.0?generation=1638304526910056",
+        "size": 1951429,
+        "sha256": "1e8a7946b5f1d37dbba3f20d6e601544d52779f063a285f012b0c6d621a214f5"
+      },
+      {
+        "path": "target.encoder.layers_4.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.mlp.wo.kernel/.zarray?generation=1638304526253291",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.encoder.layers_4.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_4.mlp.wo.kernel/0.0?generation=1638304531509867",
+        "size": 1950165,
+        "sha256": "e17153efd0315d2f20048f211ade364b8ac65d0ae4f4f5fd653758c4ea27d7c7"
+      },
+      {
+        "path": "target.encoder.layers_5.attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.attention.key.kernel/.zarray?generation=1638304524765874",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_5.attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.attention.key.kernel/0.0?generation=1638304525756278",
+        "size": 731754,
+        "sha256": "a4a6f74b5cea093232235d595f4916e0f0e621a63438ee2685782f86396b9687"
+      },
+      {
+        "path": "target.encoder.layers_5.attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.attention.out.kernel/.zarray?generation=1638304527049860",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.encoder.layers_5.attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.attention.out.kernel/0.0?generation=1638304529348512",
+        "size": 731750,
+        "sha256": "776e7fbda96dc207492184410821dbc32263f70b6598ecbac005f3ed860386b1"
+      },
+      {
+        "path": "target.encoder.layers_5.attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.attention.query.kernel/.zarray?generation=1638304531173570",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_5.attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.attention.query.kernel/0.0?generation=1638304531262534",
+        "size": 732552,
+        "sha256": "f2826142d9a27c02052bf5eb7e497a463d1a8fd053b1a5ceb1cc13b059c7f620"
+      },
+      {
+        "path": "target.encoder.layers_5.attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.attention.value.kernel/.zarray?generation=1638304526820054",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_5.attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.attention.value.kernel/0.0?generation=1638304529345277",
+        "size": 730926,
+        "sha256": "9b315253276e824138d88f96c6173f2b7bb5d6d9e96c55c3a1560e324884d54b"
+      },
+      {
+        "path": "target.encoder.layers_5.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.mlp.wi_0.kernel/.zarray?generation=1638304526022087",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_5.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.mlp.wi_0.kernel/0.0?generation=1638304529420454",
+        "size": 1949612,
+        "sha256": "1eb3dafb077ab0fe1ab54082ca35a2c87d4ddbb817c4ed7e1c158c924a952b46"
+      },
+      {
+        "path": "target.encoder.layers_5.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.mlp.wi_1.kernel/.zarray?generation=1638304526344812",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_5.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.mlp.wi_1.kernel/0.0?generation=1638304529415167",
+        "size": 1951377,
+        "sha256": "ea5d31da330d395eb70dc200c325756977dc0358d2b482727d5e179a9af8e5b9"
+      },
+      {
+        "path": "target.encoder.layers_5.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.mlp.wo.kernel/.zarray?generation=1638304531096827",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.encoder.layers_5.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_5.mlp.wo.kernel/0.0?generation=1638304532932682",
+        "size": 1949689,
+        "sha256": "bae69ab8e8a7816dee7a5d0f8e7ae4ad23b65bb24a942b25d516717790a1ac9c"
+      },
+      {
+        "path": "target.encoder.layers_6.attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.attention.key.kernel/.zarray?generation=1638304526921417",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_6.attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.attention.key.kernel/0.0?generation=1638304529336777",
+        "size": 731271,
+        "sha256": "e61bd623331b3349b7b62270b6e65b867722524db906aafb3ea8dca3ff34ac20"
+      },
+      {
+        "path": "target.encoder.layers_6.attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.attention.out.kernel/.zarray?generation=1638304527300489",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.encoder.layers_6.attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.attention.out.kernel/0.0?generation=1638304527465407",
+        "size": 731956,
+        "sha256": "63c0021097d1b8a24bd83d01c6e0c94afd3f1c232f4d0c67f8cf1aef464518ed"
+      },
+      {
+        "path": "target.encoder.layers_6.attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.attention.query.kernel/.zarray?generation=1638304529382167",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_6.attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.attention.query.kernel/0.0?generation=1638304531017597",
+        "size": 732757,
+        "sha256": "d75b42846e8c76df360ac090d68bb4a842417f408d4b2bcf001a4e636d346b22"
+      },
+      {
+        "path": "target.encoder.layers_6.attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.attention.value.kernel/.zarray?generation=1638304529302968",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_6.attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.attention.value.kernel/0.0?generation=1638304529375949",
+        "size": 731108,
+        "sha256": "8db45aa6ad4a62d816927ec915c677ef9135c2a1f23fc4d38d7102111e4de695"
+      },
+      {
+        "path": "target.encoder.layers_6.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.mlp.wi_0.kernel/.zarray?generation=1638304529178160",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_6.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.mlp.wi_0.kernel/0.0?generation=1638304531356279",
+        "size": 1949665,
+        "sha256": "620f70994d965cae02caf065523dd602802d12e2ff4b6536bd37a1832d7b9fd0"
+      },
+      {
+        "path": "target.encoder.layers_6.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.mlp.wi_1.kernel/.zarray?generation=1638304530922326",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_6.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.mlp.wi_1.kernel/0.0?generation=1638304533243061",
+        "size": 1952557,
+        "sha256": "a520a4ad1738e7026e40a8b7d6f5f1e5292a817fa8d5cd247988af58e1bfe30b"
+      },
+      {
+        "path": "target.encoder.layers_6.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.mlp.wo.kernel/.zarray?generation=1638304529410788",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.encoder.layers_6.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_6.mlp.wo.kernel/0.0?generation=1638304533020402",
+        "size": 1950454,
+        "sha256": "ecef08a897bab126f6bfcee963030dfbebbe7023039f223cbb65fdecd4eac279"
+      },
+      {
+        "path": "target.encoder.layers_7.attention.key.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.attention.key.kernel/.zarray?generation=1638304527336205",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_7.attention.key.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.attention.key.kernel/0.0?generation=1638304529321547",
+        "size": 731958,
+        "sha256": "0b7ee027f581caed5f37150cd73f6b2574730b29aff241db4083568853325055"
+      },
+      {
+        "path": "target.encoder.layers_7.attention.out.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.attention.out.kernel/.zarray?generation=1638304529176955",
+        "size": 176,
+        "sha256": "c5a17eb29e8da2180b358a53e9e6533808c471f23d9524cb7c3d761cb6634bfb"
+      },
+      {
+        "path": "target.encoder.layers_7.attention.out.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.attention.out.kernel/0.0?generation=1638304529374824",
+        "size": 731906,
+        "sha256": "e13214f92056a1c1ea05a267ef7f5b44169daf571565528e5b84aae960da90f4"
+      },
+      {
+        "path": "target.encoder.layers_7.attention.query.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.attention.query.kernel/.zarray?generation=1638304527090634",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_7.attention.query.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.attention.query.kernel/0.0?generation=1638304529356815",
+        "size": 732286,
+        "sha256": "c91ef5939d5547fb25f57d9d5dbc27f6e3ab31b648db95e5c92305307a104d47"
+      },
+      {
+        "path": "target.encoder.layers_7.attention.value.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.attention.value.kernel/.zarray?generation=1638304530921811",
+        "size": 176,
+        "sha256": "6c90bd4dccebb7cdb2fe4275d57c205e19e948cddbcaa29f0d8d28ced824d451"
+      },
+      {
+        "path": "target.encoder.layers_7.attention.value.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.attention.value.kernel/0.0?generation=1638304531288782",
+        "size": 731082,
+        "sha256": "5e7b0b1d0321a57db8db52a517db25e9a31504b14caf93cdf11a0a4d1554b62e"
+      },
+      {
+        "path": "target.encoder.layers_7.mlp.wi_0.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.mlp.wi_0.kernel/.zarray?generation=1638304530943067",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_7.mlp.wi_0.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.mlp.wi_0.kernel/0.0?generation=1638304533010732",
+        "size": 1950042,
+        "sha256": "d2472e55554619dff4d335264824a543102a4b9f017d3f7d627d7dfa71c7a2cb"
+      },
+      {
+        "path": "target.encoder.layers_7.mlp.wi_1.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.mlp.wi_1.kernel/.zarray?generation=1638304531168508",
+        "size": 178,
+        "sha256": "0719f65b8db955b4d937a600ad90b777c6adbd797107384650537e08c28c7c4c"
+      },
+      {
+        "path": "target.encoder.layers_7.mlp.wi_1.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.mlp.wi_1.kernel/0.0?generation=1638304532288010",
+        "size": 1952877,
+        "sha256": "0b2490995ab6b1877ac1fbb6f44f4af004410821952a592de73ce4153a9fc8fe"
+      },
+      {
+        "path": "target.encoder.layers_7.mlp.wo.kernel/.zarray",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.mlp.wo.kernel/.zarray?generation=1638304530927308",
+        "size": 178,
+        "sha256": "8b6046c8b0357c6d9c7d59471d9e7f006a8c48519266af60de1fbb776ab07179"
+      },
+      {
+        "path": "target.encoder.layers_7.mlp.wo.kernel/0.0",
+        "url": "https://storage.googleapis.com/mt3/checkpoints/mt3/target.encoder.layers_7.mlp.wo.kernel/0.0?generation=1638304533005100",
+        "size": 1951344,
+        "sha256": "9438abcb78ac2d757f208bfd9acd7b2c154bc9c4db0ff78ffcce2a922975c5ea"
+      }
+    ]
+  },
+  "t5": {
+    "repo": "google-research/text-to-text-transfer-transformer",
+    "version": "0.9.4",
+    "url": "https://files.pythonhosted.org/packages/8f/ea/4efa24fb3706c565c60b2fa2f59a0344df9229db2d014d51e23f1ce03f98/t5-0.9.4-py2.py3-none-any.whl",
+    "size": 164489,
+    "sha256": "53e40efdfc4d8f614cd8d38301e39d5c146f9d5fd66b6823d9c181b60370b2b5"
+  }
+}

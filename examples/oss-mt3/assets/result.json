@@ -1,0 +1,181 @@
+{
+  "engine": "Original pretrained MT3",
+  "device": "CPU",
+  "input": "Own synthesized harmonic tones",
+  "frames": [
+    {
+      "image": "render-0.png",
+      "label": "Ascending C",
+      "expected": [
+        {
+          "pitch": 60,
+          "start": 0.15,
+          "end": 0.8
+        },
+        {
+          "pitch": 64,
+          "start": 0.85,
+          "end": 1.5
+        },
+        {
+          "pitch": 67,
+          "start": 1.5499999999999998,
+          "end": 2.1999999999999997
+        },
+        {
+          "pitch": 72,
+          "start": 2.2499999999999996,
+          "end": 2.8999999999999995
+        }
+      ],
+      "notes": [
+        {
+          "pitch": 60,
+          "start": 0.15,
+          "end": 2.04,
+          "program": 4,
+          "velocity": 127
+        },
+        {
+          "pitch": 64,
+          "start": 0.85,
+          "end": 2.04,
+          "program": 4,
+          "velocity": 127
+        },
+        {
+          "pitch": 67,
+          "start": 1.55,
+          "end": 2.19,
+          "program": 4,
+          "velocity": 127
+        },
+        {
+          "pitch": 72,
+          "start": 2.22,
+          "end": 2.23,
+          "program": 4,
+          "velocity": 127
+        }
+      ],
+      "predictedNotes": 4,
+      "pitchRecall": 1.0
+    },
+    {
+      "image": "render-1.png",
+      "label": "Ascending D",
+      "expected": [
+        {
+          "pitch": 62,
+          "start": 0.15,
+          "end": 0.8
+        },
+        {
+          "pitch": 65,
+          "start": 0.85,
+          "end": 1.5
+        },
+        {
+          "pitch": 69,
+          "start": 1.5499999999999998,
+          "end": 2.1999999999999997
+        },
+        {
+          "pitch": 74,
+          "start": 2.2499999999999996,
+          "end": 2.8999999999999995
+        }
+      ],
+      "notes": [
+        {
+          "pitch": 62,
+          "start": 0.15,
+          "end": 2.04,
+          "program": 4,
+          "velocity": 127
+        },
+        {
+          "pitch": 65,
+          "start": 0.85,
+          "end": 2.04,
+          "program": 4,
+          "velocity": 127
+        },
+        {
+          "pitch": 69,
+          "start": 1.55,
+          "end": 2.04,
+          "program": 4,
+          "velocity": 127
+        },
+        {
+          "pitch": 74,
+          "start": 2.21,
+          "end": 2.2199999999999998,
+          "program": 26,
+          "velocity": 127
+        }
+      ],
+      "predictedNotes": 4,
+      "pitchRecall": 1.0
+    },
+    {
+      "image": "render-2.png",
+      "label": "Descending",
+      "expected": [
+        {
+          "pitch": 67,
+          "start": 0.15,
+          "end": 0.8
+        },
+        {
+          "pitch": 64,
+          "start": 0.85,
+          "end": 1.5
+        },
+        {
+          "pitch": 60,
+          "start": 1.5499999999999998,
+          "end": 2.1999999999999997
+        },
+        {
+          "pitch": 55,
+          "start": 2.2499999999999996,
+          "end": 2.8999999999999995
+        }
+      ],
+      "notes": [
+        {
+          "pitch": 67,
+          "start": 0.15,
+          "end": 0.86,
+          "program": 4,
+          "velocity": 127
+        },
+        {
+          "pitch": 64,
+          "start": 0.85,
+          "end": 1.56,
+          "program": 4,
+          "velocity": 127
+        },
+        {
+          "pitch": 60,
+          "start": 1.55,
+          "end": 2.04,
+          "program": 4,
+          "velocity": 127
+        },
+        {
+          "pitch": 67,
+          "start": 2.24,
+          "end": 2.25,
+          "program": 33,
+          "velocity": 127
+        }
+      ],
+      "predictedNotes": 4,
+      "pitchRecall": 0.75
+    }
+  ]
+}

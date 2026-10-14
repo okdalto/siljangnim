@@ -1,0 +1,29 @@
+{
+  "engine": "Original Nerfstudio Vanilla NeRF",
+  "device": "CPU",
+  "trainingViews": 3,
+  "viewAngles": [
+    -25,
+    0,
+    25
+  ],
+  "resolution": 24,
+  "steps": 2000,
+  "frames": [
+    {
+      "image": "render-0.png",
+      "iteration": 0,
+      "loss": 0.17547595500946045
+    },
+    {
+      "image": "render-1.png",
+      "iteration": 500,
+      "loss": 0.013308723457157612
+    },
+    {
+      "image": "render-2.png",
+      "iteration": 2000,
+      "loss": 0.005163166671991348
+    }
+  ]
+}

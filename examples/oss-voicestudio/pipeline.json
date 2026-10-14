@@ -1,0 +1,29 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "voicestudio.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "numpy==2.2.6",
+        "espeakng-loader==0.2.4",
+        "phonemizer==3.3.0",
+        "onnxruntime==1.23.2",
+        "huggingface-hub==0.36.0",
+        "soundfile==0.13.1",
+        "Pillow==12.3.0"
+      ],
+      "inputs": [
+        "driver.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "audio-0.wav",
+        "audio-1.wav",
+        "audio-2.wav",
+        "result.json"
+      ]
+    }
+  ]
+}

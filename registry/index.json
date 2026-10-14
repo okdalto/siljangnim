@@ -1406,6 +1406,19 @@
       "sha256": "520a0647add94ceca1a14b85d431bc3052293670817424ad182c18c3a29067c6"
     },
     {
+      "id": "mt3.gallery",
+      "version": 1,
+      "title": "Transcribing three short melodies",
+      "capability": "mt3 graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/mt3.gallery/recipe.md",
+      "sha256": "0e86c636aea14f3fd573457fe8f336664031db40311ec3b694139dedb1f797b7"
+    },
+    {
       "id": "mujoco.gallery",
       "version": 1,
       "title": "Double pendulum dynamics",
@@ -1469,6 +1482,19 @@
       ],
       "path": "recipes/ndwfc.gallery/recipe.md",
       "sha256": "bebd4dfddc58d99c78051d5a550fadf2c6ab8b05dd1b0baa976ac6885f1e4ef8"
+    },
+    {
+      "id": "nerfstudio.gallery",
+      "version": 1,
+      "title": "Learning three views with a small NeRF",
+      "capability": "nerfstudio graphics",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/nerfstudio.gallery/recipe.md",
+      "sha256": "01251fe8a2f90ba5859e86abab37cf46bb6c6e14799b1cc55307959820729f51"
     },
     {
       "id": "networkx.les-miserables-layout",
@@ -1586,6 +1612,19 @@
       ],
       "path": "recipes/opensimplex2.gallery/recipe.md",
       "sha256": "0fa4b7311f59dd81c79ad1ba9c70a3ae0d1ccacca2128faff14318d94519bb21"
+    },
+    {
+      "id": "opensplat.gallery",
+      "version": 1,
+      "title": "Learning an image with Gaussian primitives",
+      "capability": "opensplat graphics",
+      "kind": "python",
+      "license": "AGPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/opensplat.gallery/recipe.md",
+      "sha256": "05b877b7d4e46316c30ce75c387ea07e5bb9c05101db05515c96550497396452"
     },
     {
       "id": "opensubdiv.gallery",
@@ -2756,6 +2795,19 @@
       ],
       "path": "recipes/vello.gallery/recipe.md",
       "sha256": "e09f5d13c0472f3be33de88a8733a102b4762191603fa85488632d7ce3872cb5"
+    },
+    {
+      "id": "voicestudio.gallery",
+      "version": 1,
+      "title": "Reading a sentence through the studio backend",
+      "capability": "voicestudio graphics",
+      "kind": "python",
+      "license": "AGPL-3.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/voicestudio.gallery/recipe.md",
+      "sha256": "51d1c6c4abd5301e9d958be0998a1e0f96909ab3976a764df28db0f2419cba0b"
     },
     {
       "id": "voro.gallery",

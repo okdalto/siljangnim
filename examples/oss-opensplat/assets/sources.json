@@ -1,0 +1,15 @@
+{
+  "engine": {
+    "repo": "pierotofy/OpenSplat",
+    "revision": "62fd86fe3b62644b65890557ad9bf397abdc7cfb",
+    "url": "https://codeload.github.com/pierotofy/OpenSplat/tar.gz/62fd86fe3b62644b65890557ad9bf397abdc7cfb",
+    "size": 855487,
+    "sha256": "53a59e48c9ba6ca4e4f8c5717ed35de017e6a52de22279f6cdaec7f2a5e0042c"
+  },
+  "opencv": {
+    "url": "https://codeload.github.com/opencv/opencv/tar.gz/refs/tags/4.10.0",
+    "version": "4.10.0",
+    "sha256": "b2171af5be6b26f7a06b1229948bbb2bdaa74fcf5cd097e0af6378fce50a6eb9",
+    "size": 94993429
+  }
+}

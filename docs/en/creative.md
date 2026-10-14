@@ -100,6 +100,14 @@ Stable Audio Tools combines its original DDIM sampler with a public pretrained H
 
 ACE-Step 1.5 creates ten-second piano, percussion and synthesizer sketches from text. These recordings come from the original model running on Apple Silicon. Reruns download and cache about 6.34 GB of model files; reserve at least 20 GB of free disk for dependencies and temporary memory swap.
 
+OpenSplat uses its original CPU trainer to fit 96 Gaussian primitives to a target image, comparing initial, intermediate and final renders. The original engine and OpenCV compile on first use and are cached; Xcode C++ tools are required. This is single-view fitting rather than multi-view 3D reconstruction.
+
+VoiceStudio runs its original KittenTTS speech backend to read the same English sentence in three preset voices. Its public model (about 82 MB) downloads on demand and is cached for CPU reruns. No reference recording or API key is needed. The full app’s editing and dubbing workflows are outside this example.
+
+MT3: Three own 3.2-second harmonic-tone inputs are transcribed with the official pretrained model. Input WAV, predicted MIDI and a comparison piano roll are included. Predictions are not corrected by hand: pitch-set recall is 100%, 100% and 75%; estimated note endings and instrument labels can differ from the inputs. These short synthetic inputs do not establish accuracy on ensemble recordings. No upstream demonstration audio or outputs are used.
+
+Nerfstudio: The driver supplies three analytical colored-sphere views at -25, 0 and 25 degrees, each 24 by 24 pixels, and fits the original model for 2,000 Adam updates. The training sampler mixes foreground and uniformly sampled rays. The gallery compares those training views before training and after 500 and 2,000 updates. These are low-resolution, imperfect training reconstructions; no held-out view accuracy, real photographs, camera estimation, GUI or Gaussian-splatting workflow is claimed. The AlexNet metric weights are loaded by the original constructor but do not supply or generate the displayed images.
+
 ### Bringing in Shadertoy code
 
 You can paste Shadertoy shader code into the chat and say "run this" or "mix this into the current scene." Not just

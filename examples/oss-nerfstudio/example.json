@@ -1,0 +1,44 @@
+{
+  "order": 522,
+  "title": "Learning three views with a small NeRF (Nerfstudio)",
+  "title_ko": "세 시점을 학습하는 작은 NeRF (Nerfstudio)",
+  "description": "Original Nerfstudio trains a coarse/fine NeRF on three synthetic views, showing the model before training and after 500 and 2,000 updates.",
+  "description_ko": "원본 Nerfstudio가 직접 만든 세 시점을 학습합니다. 학습 전·500회·2,000회 후의 NeRF 렌더링을 입력과 비교해 보세요.",
+  "prompt": "Learning three views with a small NeRF. Use the original engine.",
+  "made_with": "Nerfstudio original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "nerfstudio"
+  ],
+  "summary": "Original Nerfstudio trains a coarse/fine NeRF on three synthetic views, showing the model before training and after 500 and 2,000 updates.",
+  "summary_ko": "원본 Nerfstudio가 직접 만든 세 시점을 학습합니다. 학습 전·500회·2,000회 후의 NeRF 렌더링을 입력과 비교해 보세요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original Nerfstudio trains a coarse/fine NeRF on three synthetic views, showing the model before training and after 500 and 2,000 updates.",
+  "tool_about_ko": "원본 Nerfstudio가 직접 만든 세 시점을 학습합니다. 학습 전·500회·2,000회 후의 NeRF 렌더링을 입력과 비교해 보세요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "Nerfstudio contributors",
+      "url": "https://github.com/nerfstudio-project/nerfstudio",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "AlexNet metric weights loaded by original model constructor",
+      "source": "Torchvision contributors",
+      "url": "https://github.com/pytorch/vision/tree/v0.22.1",
+      "license": "BSD-3-Clause"
+    }
+  ]
+}

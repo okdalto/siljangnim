@@ -1,0 +1,57 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "nerfstudio.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "torchvision==0.22.1",
+        "torchmetrics==1.8.2",
+        "numpy==1.26.4",
+        "jaxtyping==0.3.3",
+        "rich==14.1.0",
+        "tyro==0.9.35",
+        "nerfacc==0.5.2",
+        "viser==1.0.0",
+        "trimesh==4.9.0",
+        "scikit-image==0.25.2",
+        "scipy==1.16.3",
+        "opencv-python-headless==4.10.0.84",
+        "pytorch-msssim==1.0.0",
+        "tensorboard==2.20.0",
+        "tensorly==0.9.0",
+        "Pillow==12.3.0",
+        "matplotlib==3.10.6"
+      ],
+      "inputs": [
+        "driver.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "native-0-0.png",
+        "native-0-1.png",
+        "native-0-2.png",
+        "native-2000-0.png",
+        "native-2000-1.png",
+        "native-2000-2.png",
+        "native-500-0.png",
+        "native-500-1.png",
+        "native-500-2.png",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json",
+        "target-0-0.png",
+        "target-0-1.png",
+        "target-0-2.png",
+        "target-2000-0.png",
+        "target-2000-1.png",
+        "target-2000-2.png",
+        "target-500-0.png",
+        "target-500-1.png",
+        "target-500-2.png"
+      ]
+    }
+  ]
+}

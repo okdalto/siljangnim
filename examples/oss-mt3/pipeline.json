@@ -1,0 +1,67 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "mt3.gallery@1",
+      "packages": [
+        "tensorflow==2.18.1",
+        "tensorflow-text==2.18.1",
+        "jax==0.4.23",
+        "jaxlib==0.4.23",
+        "flax==0.8.4",
+        "optax==0.2.2",
+        "chex==0.1.86",
+        "orbax-checkpoint==0.5.0",
+        "numpy==1.26.4",
+        "ml-dtypes==0.4.1",
+        "seqio==0.0.20",
+        "note-seq==0.0.5",
+        "clu==0.0.12",
+        "tensorstore==0.1.66",
+        "tensorflow-datasets==4.9.7",
+        "pretty_midi==0.2.11",
+        "mir_eval==0.8.2",
+        "librosa==0.10.2.post1",
+        "soundfile==0.13.1",
+        "scipy==1.12.0",
+        "Pillow==12.3.0",
+        "gin-config==0.5.0",
+        "fiddle==0.3.0",
+        "cached-property==2.0.1",
+        "tensorflow-metadata==1.16.1",
+        "protobuf==4.25.8",
+        "array-record==0.6.0",
+        "nest-asyncio==1.6.0",
+        "babel==2.18.0",
+        "editdistance==0.8.1",
+        "immutabledict==4.3.1",
+        "mesh-tensorflow==0.1.21",
+        "nltk==3.10.3",
+        "pandas==3.0.6",
+        "rouge-score==0.1.2",
+        "sacrebleu==2.6.0",
+        "scikit-learn==1.9.1",
+        "sentencepiece==0.2.2",
+        "six==1.17.0",
+        "transformers==5.17.0"
+      ],
+      "inputs": [
+        "driver.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "input-0.wav",
+        "input-1.wav",
+        "input-2.wav",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json",
+        "transcription-0.mid",
+        "transcription-1.mid",
+        "transcription-2.mid"
+      ]
+    }
+  ]
+}

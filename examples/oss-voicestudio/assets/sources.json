@@ -1,0 +1,40 @@
+{
+  "engine": {
+    "repo": "debpalash/VoiceStudio",
+    "revision": "334cb933f510210651d5c116b451c6462da3e08a",
+    "url": "https://codeload.github.com/debpalash/VoiceStudio/tar.gz/334cb933f510210651d5c116b451c6462da3e08a",
+    "size": 44328951,
+    "sha256": "994cafe142e58b5b526b0e164ec994ed68c7bf1ad80d69926e5886023c99a8bc"
+  },
+  "kitten": {
+    "repo": "KittenML/KittenTTS",
+    "revision": "be5758500b731b8fc674acc62ea480d3022b7ebe",
+    "url": "https://codeload.github.com/KittenML/KittenTTS/tar.gz/be5758500b731b8fc674acc62ea480d3022b7ebe",
+    "size": 29525,
+    "sha256": "55ec54270ce9179b8441ee73b79dc0b6d326a9b9e605da2229df3200eb27f510"
+  },
+  "model": {
+    "repo": "KittenML/kitten-tts-mini-0.8",
+    "revision": "c02725660cea441db4c383af69f1f26f5cd00947",
+    "files": [
+      {
+        "path": "config.json",
+        "url": "https://huggingface.co/KittenML/kitten-tts-mini-0.8/resolve/c02725660cea441db4c383af69f1f26f5cd00947/config.json",
+        "size": 470,
+        "sha256": "6b160bc9b19e24ecb21e84bc14f8a7da21fdf47ec72d42450bc5cf514b61804a"
+      },
+      {
+        "path": "kitten_tts_mini_v0_8.onnx",
+        "url": "https://huggingface.co/KittenML/kitten-tts-mini-0.8/resolve/c02725660cea441db4c383af69f1f26f5cd00947/kitten_tts_mini_v0_8.onnx",
+        "size": 78268016,
+        "sha256": "0f5bbae4fc4800c98dbc544a87ecfa79510de2fb8222db30d12e5bfe9177df91"
+      },
+      {
+        "path": "voices.npz",
+        "url": "https://huggingface.co/KittenML/kitten-tts-mini-0.8/resolve/c02725660cea441db4c383af69f1f26f5cd00947/voices.npz",
+        "size": 3278902,
+        "sha256": "40ad2638952b77b7b2f30127e2608e169fc69dd256b53bd8aaa3409a33193c42"
+      }
+    ]
+  }
+}

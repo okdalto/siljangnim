@@ -1,0 +1,28 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "opensplat.gallery@1",
+      "packages": [
+        "torch==2.7.1",
+        "numpy==2.2.6",
+        "Pillow==12.3.0",
+        "cmake==4.4.3"
+      ],
+      "inputs": [
+        "driver.py",
+        "sources.json"
+      ],
+      "params": {},
+      "outputs": [
+        "native-0.png",
+        "native-1.png",
+        "native-2.png",
+        "render-0.png",
+        "render-1.png",
+        "render-2.png",
+        "result.json"
+      ]
+    }
+  ]
+}

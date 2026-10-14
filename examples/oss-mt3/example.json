@@ -1,0 +1,62 @@
+{
+  "order": 521,
+  "title": "Transcribing three short melodies (MT3)",
+  "title_ko": "짧은 선율을 음표로 변환하기 (MT3)",
+  "description": "Original MT3 transcribes three locally synthesized melodies on the CPU, comparing its estimated notes with the supplied input.",
+  "description_ko": "원본 MT3가 직접 합성한 짧은 선율 세 개를 CPU에서 음표로 변환합니다. 입력 음표와 모델의 추정 결과를 비교해 보세요.",
+  "prompt": "Transcribing three short melodies. Use the original engine.",
+  "made_with": "MT3 original engine, locally executed",
+  "features": [
+    "interactive",
+    "prepared result",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "mt3"
+  ],
+  "summary": "Original MT3 transcribes three locally synthesized melodies on the CPU, comparing its estimated notes with the supplied input.",
+  "summary_ko": "원본 MT3가 직접 합성한 짧은 선율 세 개를 CPU에서 음표로 변환합니다. 입력 음표와 모델의 추정 결과를 비교해 보세요.",
+  "try": [
+    "Compare the prepared results",
+    "Change the inputs and rerun the recipe"
+  ],
+  "try_ko": [
+    "준비된 결과를 비교하세요",
+    "입력을 바꾸고 레시피를 다시 실행하세요"
+  ],
+  "tool_about": "Original MT3 transcribes three locally synthesized melodies on the CPU, comparing its estimated notes with the supplied input.",
+  "tool_about_ko": "원본 MT3가 직접 합성한 짧은 선율 세 개를 CPU에서 음표로 변환합니다. 입력 음표와 모델의 추정 결과를 비교해 보세요.",
+  "credits": [
+    {
+      "what": "Original engine",
+      "source": "MT3 contributors",
+      "url": "https://github.com/magenta/mt3",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Original t5x inference dependency",
+      "source": "google-research/t5x",
+      "url": "https://github.com/google-research/t5x",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Original jestimator inference dependency",
+      "source": "google-research/jestimator",
+      "url": "https://github.com/google-research/jestimator",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Original t5 inference dependency",
+      "source": "google-research/text-to-text-transfer-transformer",
+      "url": "https://github.com/google-research/text-to-text-transfer-transformer",
+      "license": "Apache-2.0"
+    },
+    {
+      "what": "Official public MT3 pretrained checkpoint (downloaded only on recipe execution)",
+      "source": "Magenta contributors",
+      "url": "https://github.com/magenta/mt3",
+      "license": "Not separately specified for checkpoint"
+    }
+  ]
+}
