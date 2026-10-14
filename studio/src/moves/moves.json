@@ -290,7 +290,8 @@
     "rapier",
     "matter-js"
    ],
-   "guide": "2D: matter-js; 3D: Rapier (catalog_get rapier / matter-js for the pinned import and the example that uses it). Build bodies from the scene's shapes (boxes/spheres/convex hulls approximating them), a floor and walls fitted to the current aspect (rebuild walls on ctx.resized), step with a fixed dt (1/60, max 3 substeps), and draw with the scene's existing rendering using the bodies' transforms. Mouse: pick and drag with a spring joint. Uniforms: Gravity, Bounce, Spawn (button)."
+   "guide": "2D: matter-js; 3D: Rapier (catalog_get rapier / matter-js for the pinned import and the example that uses it). Simulate in world units (height 1000, width 1000·w/h) and draw with k = h/1000. Build bodies from the scene's shapes: convex pieces with Bodies.fromVertices (triangles from earcut need no poly-decomp; skip slivers below a few units²), circles/boxes for the rest; keep each body's original color. Floor and walls fitted to the current aspect and tall enough for pieces spawned above the top; rebuild them on ctx.resized and clamp bodies inside. Step with a fixed dt (accumulator, 1000/60 ms, max 3 substeps); apply Gravity to engine.gravity.y and Bounce to every body's restitution each frame. Draw with the scene's existing rendering from body.vertices (or position/angle). Mouse: MouseConstraint wants a DOM element, so on press Query.point the bodies at ctx.mouse, attach a Constraint (pointA = mouse, stiffness ~0.05, length 0) and update pointA while held; release to throw. Keep it alive: the Spawn button (and a timer) drops a new set from above, removing the oldest past a body cap (~700). Uniforms: Gravity, Bounce, Spawn (button).",
+   "verified": true
   },
   {
    "id": "pixel-sorting",
@@ -517,7 +518,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Add a timeline with loop: true and duration T (default 6 s). Replace free-running time with phase = ctx.time / T and drive every motion with periodic functions of phase: angles 2π·phase, noise sampled on a circle (noise(cos 2πφ·r, sin 2πφ·r, z)), or crossfade the last 15% into the start. Simulations: keep preserveStateOnLoop false and seed deterministically. Offer to record one loop (viewport_record)."
+   "guide": "Add a timeline with loop: true and duration T (default 6 s); use the same T in code. Setup runs again at every loop, so every Math.random in setup (and per frame) must come from a seeded PRNG, or each loop starts different. Replace free-running time and accumulators (s.t += dt, x += v*dt) with phase = (ctx.time % T) / T, and drive every motion with periodic functions of phase that turn a whole number of times per loop: angles 2PI*k*phase with integer k (give each wave/layer its own k, sign or phase offset), noise sampled on a circle (noise(cos 2PI*phase*r, sin 2PI*phase*r, z)). A float Speed knob breaks the loop; make it an int 'Cycles per loop'. Simulations: preserveStateOnLoop false plus a deterministic seed restarts identically but still cuts at T unless the state returns to the seed; to hide the cut, crossfade the last 15% onto the opening frames (kept in a texture array). Check it: record a little more than T and compare the frame at 0 with the frame at T (identical) and the last frame of the loop with the first (an ordinary one-frame step). Offer to record one loop (viewport_record).",
+   "verified": true
   },
   {
    "id": "ssao",
@@ -536,7 +538,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Raster scenes: render normals (view space) and linear view depth into an RGBA16F target in the same pass as color (createPingPong(w, h, {count: 2, internalFormat: RGBA16F, type: HALF_FLOAT, depth: true}); clearBufferfv per attachment). SSAO pass at half resolution: reconstruct view position from depth and the inverse projection (cam.getProjectionMatrix(aspect)), 16–32 hemisphere kernel samples scaled toward the center, oriented by the normal with a per-pixel random rotation (4×4 hash), project each, compare depths with bias ≈ 0.02·radius and a range check smoothstep(0, 1, radius / |Δz|). Blur 4×4 depth-aware, then multiply only the ambient/indirect term in the composite (not direct light), and keep it subtle. Radius in world units relative to the subject's size. Raymarched SDFs: skip the buffers and use 5 samples along the normal (ao += (h − map(p + n·h))·w). Uniforms: AO radius, Intensity, Samples. Don't name the kernel array like a scene uniform."
+   "guide": "Raster: G-buffer from the main pass via MRT, createPingPong(w, h, {count: 3, internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT, filter: gl.NEAREST, depth: true}): 0 direct light, 1 ambient term, 2 view normal (mat3(view)·n) + linear depth (−viewPos.z) in .w; write linear and move the scene's gamma to the composite; clearBufferfv per attachment, normal/depth to 0 so the background gets no AO. AO only darkens ambient, and most scenes use ~0.08 ambient: add a hemisphere sky term and rebalance to ~50% ambient or nothing shows. SSAO at half res (second target): P = cam.getProjectionMatrix(aspect), V = cam.getViewMatrix(); view pos = vec3(ndc·z / vec2(P[0][0], P[1][1]), −z); 16–32 hemisphere kernel (flat Float32Array → uniform vec3 u_kern[32]) scaled toward the center, TBN from the normal with a 4×4 hash rotation; project each sample with P, occluded if bufDepth < sampleDepth − 0.02·radius, × smoothstep(0, 1, radius / |Δz|). Composite: depth-aware 4×4 blur, ao = pow(ao, Intensity), times ambient only, then gamma. Radius ≈ 30–40% of the subject. Raymarched SDFs: skip buffers, 5 samples along the normal (ao += (h − map(p + n·h))·w). Uniforms: AO radius, Intensity (exponent 0–4, ~2), Samples.",
+   "verified": true
   },
   {
    "id": "perspective-warp",
@@ -551,7 +554,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Render the scene into a canvas-sized target (bind it where its last pass binds null). Final pass: a perspective-correct homography, not two affine triangles (those kink along the diagonal). Compute the 3×3 matrix mapping the unit square to the four corner points (square-to-quad: dx1 = x1−x2, … standard Heckbert formula) in JS each frame, invert it, and in a fullscreen fragment shader map each output pixel p (0..1, y up) through H⁻¹ (homogeneous divide) to the source uv; black outside [0,1]². Corners as four vec2 pad uniforms (TL, TR, BR, BL; defaults at the frame corners) or a custom panel with draggable handles; add Edge feather and Brightness for blending projectors, and a Grid toggle that draws a test grid to line it up on the wall. Several surfaces: one quad per surface, each with its own corners and a source sub-rect. Tell the person to use Perform for full screen on the projector."
+   "guide": "Render the scene into a canvas-sized target (createPingPong(w, h), resize on ctx.resized) bound where its last pass binds null; run the warp at the very end, after anything else that rebinds null (readPixels blocks). Final pass: a perspective-correct homography, not two affine triangles (they kink along the diagonal). In JS each frame build the square-to-quad matrix (Heckbert) for unit corners (0,0),(1,0),(1,1),(0,1) -> BL, BR, TR, TL (order matters): sx = x0-x1+x2-x3, sy = y0-y1+y2-y3, dx1 = x1-x2, dx2 = x3-x2, dy1 = y1-y2, dy2 = y3-y2, det = dx1*dy2-dx2*dy1, g = (sx*dy2-dx2*sy)/det, h = (dx1*sy-sx*dy1)/det, a = x1-x0+g*x1, b = x3-x0+h*x3, c = x0, d = y1-y0+g*y1, e = y3-y0+h*y3, f = y0. Invert by adjugate, pass column-major as mat3 (setUniforms takes 9 numbers). Shader: q = Hinv*vec3(v_uv, 1); black if q.z <= 0 or q.xy/q.z outside [0,1]^2. Corners: four vec2 pad uniforms TL, TR, BR, BL in v_uv space (y up), min -0.25 max 1.25 so they can leave the frame; at the frame-corner defaults nothing changes, so point the person to the pads. Add Edge feather and Brightness for blending projectors, and a Grid toggle drawing an 8x8 grid plus diagonals in source uv to line it up on the wall. Several surfaces: one quad per surface, each with its own corners and a source sub-rect. Suggest Perform for full screen on the projector.",
+   "verified": true
   },
   {
    "id": "instancing",
@@ -571,7 +575,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Replace per-object draw loops with one instanced draw. Per-instance data either as attributes (bind the createMesh vao, add a buffer with offset/scale/rotation/color at locations 3+ — 0–2 are a_position, a_normal, a_uv — and gl.vertexAttribDivisor(loc, 1)) or, when a GPU simulation drives them, computed in the vertex shader from gl_InstanceID with texelFetch from a float data texture (ivec2(id % side, id / side)). Draw with mesh.draw(gl.TRIANGLES, count). Rotate by a quaternion or orient along velocity; vary color and phase per instance from a hash of the id; animate in the shader so the CPU uploads nothing per frame. With three.js: InstancedMesh, setMatrixAt/setColorAt, instanceMatrix.needsUpdate. Keep 2D scenes 2D (orthographic, instanced quads). Uniforms: Count (select up to 100k–1M), Spread, Scale, Jitter. Publish the count with ctx.publish."
+   "guide": "Replace per-object draw loops with one instanced draw per mesh. Per-instance data either as attributes - use a separate createMesh for the instanced draw (instance attributes added to a VAO that a plain draw also uses break that draw), bind its vao, add a buffer (e.g. position, quaternion, size, color as four vec4) at locations 3+ (0-2 are a_position, a_normal, a_uv) with gl.vertexAttribDivisor(loc, 1) - or, when a GPU simulation drives them, computed in the vertex shader from gl_InstanceID with texelFetch from a float data texture (ivec2(id % side, id / side)). Draw with mesh.draw(gl.TRIANGLES, count). Rotate by a quaternion (v + 2*cross(q.xyz, cross(q.xyz, v) + q.w*v)); with non-uniform scale rotate a_normal / scale. Vary color and phase per instance from a hash of the id; animate in the shader so the CPU uploads nothing per frame. CPU physics (cannon, rapier): one bufferSubData of the poses per frame is fine, and the solver, not the draw, bounds the count. With three.js: InstancedMesh, setMatrixAt/setColorAt, instanceMatrix.needsUpdate. Keep 2D scenes 2D (orthographic, instanced quads). Uniforms: Count (select; 100k-1M for shader-animated instances), plus what fits the scene of Spread, Scale, Jitter. Publish instances and draw calls with ctx.publish.",
+   "verified": true
   },
   {
    "id": "shadow-mapping",
@@ -589,7 +594,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Depth pass from the light: a directional light uses an orthographic projection fitted to the scene bounds (mat4 ortho or perspective with a tight frustum), rendered into a DEPTH_COMPONENT24 depth texture you create yourself (texImage2D + framebufferTexture2D; createPingPong's depth is a renderbuffer you can't sample), 2048², with gl.cullFace(FRONT) or slope-scaled bias against acne. Main pass: transform the world position by lightViewProj, sample with a sampler2DShadow (TEXTURE_COMPARE_MODE = COMPARE_REF_TO_TEXTURE, LINEAR filter gives 2×2 PCF for free) and a 16-tap Poisson disk for soft edges; widen the radius with distance to the occluder for a PCSS feel. Add a ground plane so shadows read, and a little ambient so shadowed sides aren't black. Uniforms: Light direction (pad), Softness, Bias."
+   "guide": "Depth pass from the light into a depth texture you create (createPingPong's depth is a renderbuffer you can't sample): texStorage2D(DEPTH_COMPONENT24, 2048, 2048), LINEAR, TEXTURE_COMPARE_MODE = COMPARE_REF_TO_TEXTURE, framebufferTexture2D(DEPTH_ATTACHMENT), drawBuffers([gl.NONE]). Directional light: ctx.utils.mat4.ortho(l, r, b, t, near, far) (exists though unlisted) × mat4.lookAt(dir·10, target, up), bounds fitted to the subject plus where its shadow lands; a depth-only program with the scene's model matrices, cullFace(FRONT), viewport 2048², then rebind null and reset the viewport. Main pass: p = lightVP·(world + n·0.02), ref = p.z − Bias·(1 + slope); sampler2DShadow (LINEAR = free 2×2 PCF) with a rotated 16-tap Poisson disk. PCSS feel: bind the same texture on a second unit with a sampler object (createSampler, COMPARE_MODE NONE; bindSampler(unit, s), unbind after) to average blocker depth and widen the radius. Add a ground plane (geometry.plane is XZ, +Y) that fades to the clear color in the shader's output space (before your gamma that is clear^2.2), and keep some ambient on shadowed sides. smoothstep with edge0 > edge1 is undefined: use 1 − smoothstep. Uniforms: Light direction (pad → azimuth/elevation), Softness, Bias (~0.0015).",
+   "verified": true
   },
   {
    "id": "ssr",
@@ -607,7 +613,8 @@
    ],
    "weight": "heavy",
    "tools": [],
-   "guide": "Needs a G-buffer: color (HDR) plus view-space normal and depth (createPingPong count 2, RGBA16F). Add a glossy floor if there is none, so the effect shows. SSR pass: from each reflective pixel march along reflect(viewDir, normal) in view space, projecting to screen each step (32–64 steps with growing stride, then 6–8 binary-search refinements on a hit where ray depth passes the buffer depth within a thickness); sample color at the hit. Fade by screen-edge distance, by how much the ray faces the camera, by distance travelled and by roughness (mip-blur the color buffer for rough surfaces); fall back to a sky/env color where it misses. Composite with Fresnel weighting. Uniforms: Reflectivity, Roughness, Steps."
+   "guide": "G-buffer: createPingPong(w, h, {count: 2, internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT, depth: true}); 0 = linear HDR color with reflectivity in alpha (move the scene's gamma to the composite), 1 = view normal + linear depth (−viewPos.z). Add a dark glossy floor (geometry.plane, faded to the background) if there is none. SSR pass at full res (half res goes blocky): P = cam.getProjectionMatrix(aspect), V = cam.getViewMatrix(); view pos = vec3(ndc·z / vec2(P[0][0], P[1][1]), −z); march r = reflect(normalize(p), n) in view space, projecting each step, 48–96 steps from ~0.03 growing ×1.06, jittered start; hit when 0 < rayDepth − bufDepth < max(thickness, 2·step), then 6–8 bisection steps. Reject hits whose stored normal faces along the ray (back faces) or you get streaky ghosts behind objects. Fade by screen edge, rays toward the camera (r.z > 0) and distance. On a miss use the scene's actual background color: a brighter sky greys the whole floor. Roughness: set the color texture to LINEAR_MIPMAP_LINEAR and generateMipmap after the G pass every frame, textureLod by roughness. Composite color + reflection·Fresnel·reflectivity, then gamma. Uniforms: Reflectivity, Roughness, Steps.",
+   "verified": true
   },
   {
    "id": "god-rays",
@@ -628,7 +635,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Render an occlusion buffer at half resolution: the light source as a bright disc (its screen position from projecting the 3D light with the view-projection, or a pad uniform for 2D) and every scene object in black. Radial-blur it toward the light (GPU Gems 3 ch. 13: 64–100 samples along the vector to the light, density ~0.9, weight ~0.6, decay ~0.96, exposure), then add it over the scene with additive blending, tinted by the light color. Fade out when the light leaves the screen or goes behind the camera. Uniforms: Intensity, Decay, Light position (pad), Color."
+   "guide": "Shafts only read when the light sits behind perforated or thin geometry (gaps, ribbons, leaves) and is small on screen (~5–10% of the height); a big light with a few occluders gives a plain glow, so place or frame the light so things cross it. Occlusion buffer at half size (createPingPong(w>>1, h>>1, {depth: true})): the light as a white aspect-corrected disc (fullscreen pass at its screen position), every object drawn black with a flat program using the same transforms (and instance attributes). Screen position: c = proj·view·[L, 1]; c.w ≤ 0 means behind the camera. Radial blur in the composite (GPU Gems 3 ch. 13: 80–100 samples toward the light, density ~0.95, weight ~0.5, decay 0.96–0.98, jittered start), added with blendFunc(ONE, ONE), tinted, faded out as the light leaves the screen. Draw the visible disc/halo in the main pass too. Library scenes (OGL, three): swap meshes to a black program/material for the occlusion render into the library's render target, restore, and reset its GL state cache after raw GL (three: resetState(); OGL: renderer.state.currentProgram = null, textureUnits = [], activeTextureUnit = -1, renderer.currentGeometry = null). Uniforms: Intensity, Decay, Color, Light position (pad for 2D).",
+   "verified": true
   },
   {
    "id": "motion-blur",
@@ -648,7 +656,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Pick by scene: (a) 3D: write per-pixel screen velocity (current minus previous clip position, keep last frame's view-projection and model matrices) into a target, then 8–16 taps along it in a post pass, clamped to a max length from the frame height; (b) particles/2D: temporal accumulation in an RGBA16F ping-pong, out = mix(current, prev, Shutter) — cheap and smooth; (c) offline recordings: render several sub-frames per frame by stepping time in small increments and averaging (only when the scene can be evaluated at arbitrary time). Uniforms: Shutter, Samples."
+   "guide": "Pick by scene: (a) 3D: render into createPingPong(w, h, {internalFormat: RGBA16F, format: RGBA, type: HALF_FLOAT, depth: true, count: 2}) with gl.drawBuffers([COLOR_ATTACHMENT0, COLOR_ATTACHMENT1]); the fragment shader writes color to location 0 and velocity (cur.xy/cur.w - prev.xy/prev.w)*0.5 (uv per frame) to location 1, prev = last frame's view-projection x last frame's world position. Keep last frame's VP and model matrices; for instanced or physics scenes a second instance buffer of previous poses (copy this frame's after uploading); plain draws (floor) set the same constants with gl.vertexAttrib4f. On the first frame, after a reset and on ctx.resized use prev = current. Clear each attachment with gl.clearBufferfv - a shared clearColor writes the background color as velocity. Post pass: take the longest velocity in a 5x5 neighborhood (spacing maxLen/4) so streaks spill past silhouettes, scale by Shutter, clamp to ~6% of the frame height, average 8-16 taps centered on the pixel. (b) particles/2D: temporal accumulation in an RGBA16F ping-pong, out = mix(current, prev, Shutter). (c) offline recordings: render several sub-frames per frame by stepping time in small increments and averaging (only when the scene can be evaluated at arbitrary time). Uniforms: Shutter, Samples.",
+   "verified": true
   },
   {
    "id": "color-grading",
@@ -663,7 +672,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Render the scene into a target, then a grading pass in linear light: white balance (temperature/tint), lift/gamma/gain (three color wheels as color uniforms), saturation and contrast around 0.18 grey, then ACES and sRGB. Looks as a select (Neutral, Teal & orange, Bleach bypass, Warm film, Cold night). If the person uploads a .cube LUT, parse it in setup (asset_read or fetch text; skip comments, read LUT_3D_SIZE and the triplets) into a 3D texture (texImage3D RGB16F, LINEAR) and sample it after tonemapping; blend by Amount. Uniforms: Look (select), Amount, Temperature, Saturation, Contrast."
+   "guide": "Render the scene into an RGBA16F target (createPingPong, HALF_FLOAT) instead of the canvas. regl: bind it right after regl._refresh(); regl keeps its cached null framebuffer and draws into yours. Other libraries: their own render target, or blit the canvas into an RGB8 target (the canvas is antialias, alpha: false). Grading pass in linear light: if the scene wrote display values with no tonemap, pow(c, 2.2) × ~1.8 first so Neutral matches the original. Then white balance (temperature/tint as channel gains), lift/gamma/gain as color uniforms where 0.5 grey is neutral (keep lift tiny, ~0.1·(1 − c): it raises the whole background), saturation around luma, contrast around 0.18 grey (0.18·pow(c / 0.18, k)), the Look, ACES fitted, pow(1/2.2). Looks as an int select: Neutral, Teal & orange (teal shadows, warm highlights by luma), Bleach bypass (~60% desaturated, more contrast), Warm film, Cold night. A .cube LUT: parse in setup (asset_read or fetch text; skip # and TITLE lines, read LUT_3D_SIZE, triplets with red fastest) into texImage3D RGB16F, LINEAR, CLAMP_TO_EDGE; sample after tonemapping at c·(N−1)/N + 0.5/N; blend by Amount. Uniforms: Look (select), Amount, Temperature, Tint, Saturation, Contrast, Lift/Gamma/Gain.",
+   "verified": true
   },
   {
    "id": "crt-vhs",
@@ -683,7 +693,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Post pass over the rendered scene. CRT: barrel distortion of the uv (k ≈ 0.1), scanlines from the frame height (sin(uv.y·h·π/2) at ~h/2 lines), an RGB aperture-grille or shadow mask at the pixel scale, phosphor glow (blurred copy added), vignette and slight flicker. VHS: chroma bleed (convert to YIQ, low-pass I/Q horizontally with ~6 taps, back to RGB), per-line horizontal jitter from hash(line, time), tracking bands of noise drifting vertically, head-switching wobble in the bottom 3%, a little tape noise. Style select switches CRT / VHS / both. Uniforms: Style, Curvature, Scanlines, Noise."
+   "guide": "Post pass: render the scene into a canvas-sized RGBA8 target bound where its last pass binds null (resize on ctx.resized), then draw the effect to the screen. CRT: barrel distortion on aspect-corrected centered coords (c *= 1 + k*dot(c,c), k ~ 0.1, then c /= 1 + k so the corners stay on screen; black outside 0..1); scanlines from the frame height but 240-480 lines (clamp(h/3, 240, 480)) - a period under ~3 px aliases into moire once curved or recorded; an RGB aperture grille from mod(gl_FragCoord.x, 3); phosphor glow from the target's mip chain (MIN_FILTER LINEAR_MIPMAP_LINEAR, gl.generateMipmap every frame, textureLod at lod 2 and 4, squared so only highlights bloom); vignette and slight flicker. VHS: chroma bleed (to YIQ, average I/Q over ~6 taps to the left with spacing scaled by h/540, back to RGB, Y stays sharp; GLSL mat3 is column-major, so write the matrices transposed), per-line horizontal jitter from hash(line, floor(time*30)), a tracking band of noise drifting vertically, head-switching wobble in the bottom 3%, a little tape noise. Style select switches CRT / VHS / both. Uniforms: Style, Curvature, Scanlines, Noise.",
+   "verified": true
   },
   {
    "id": "slit-scan",
@@ -703,7 +714,8 @@
    ],
    "weight": "heavy",
    "tools": [],
-   "guide": "Keep a ring buffer of the last N frames in a TEXTURE_2D_ARRAY (RGBA8, N 64–128, layers at a reduced size such as 512 on the long side; render the current frame into layer frame % N with framebufferTextureLayer). Display pass: per pixel pick a delay d = Depth × map(x, y) — horizontal, vertical, radial from the center or a slow noise field (select) — and sample layer (frame − d) mod N, interpolating between two layers for smoothness. Reallocate on ctx.resized. Memory is N × w × h × 4 bytes; publish it. Uniforms: Delay depth (frames), Direction (select), Smooth."
+   "guide": "Keep the last N frames in a TEXTURE_2D_ARRAY (texStorage3D RGBA8, N 64-128, layers at a reduced size such as 512 on the long side; 768-1024 for crisp detail). Each frame advance head = (head+1) % N, attach that layer with framebufferTextureLayer to one framebuffer, set the viewport to the layer size and run the scene's last pass there instead of to null (u_resolution can stay the canvas size: same aspect). Display pass: per pixel a delay d = Depth x map(x, y) - horizontal, vertical, radial from the center (aspect-corrected) or a slow noise field (select) - clamped to framesWritten - 1 so the first N frames don't show unwritten black layers; sample layer mod(head - floor(d), N) and the one before it, mixed by fract(d) when Smooth. GLSL needs 'precision highp sampler2DArray;' (it has no default precision), and ctx.utils.bindTexture only binds TEXTURE_2D: use gl.activeTexture, gl.bindTexture(gl.TEXTURE_2D_ARRAY, tex) and gl.uniform1i yourself. texStorage3D is immutable: on ctx.resized delete and recreate it and reset head/framesWritten. Memory is N x w x h x 4 bytes; publish it. Uniforms: Delay depth (frames), Direction (select), Smooth. Fast or high-contrast motion (text, shapes) smears most visibly.",
+   "verified": true
   },
   {
    "id": "kaleidoscope",
@@ -724,7 +736,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Post pass over the rendered scene: convert to polar coordinates around Center (aspect-corrected), fold the angle into a wedge of 2π/N with alternate wedges mirrored (a = abs(mod(a, 2w) − w)), rotate over time, optionally zoom recursively (sample at r·Zoom with fract for an infinite tunnel). Variants by select: radial N-fold, 4-way mirror, hexagonal tiling. Uniforms: Segments, Rotation speed, Zoom, Center (pad), Mode."
+   "guide": "Post pass: render the scene into a canvas-sized target bound where its last pass binds null (if that pass is several draws, all of them), then fold it onto the screen. Work in short-side units so wedges stay round in portrait: k = vec2(a, 1)/min(a, 1) with a = w/h, p = (v_uv - Center)*k. Radial: r = length(p), angle + time*Rotation speed, wedge w = PI/N folded with ang = abs(mod(ang, 2w) - w) (N mirrored pairs; w = 2PI/N gives only N/2-fold symmetry), p = r*(cos, sin). Then p /= Zoom, uv = Center + p/k, and wrap with a mirrored repeat uv = 1 - abs(1 - mod(uv, 2)) so nothing samples past the edge (clamping smears streaks). Variants by select: radial N-fold, 4-way mirror (abs of the rotated p), hexagonal tiling (nearest of two grids offset by half of (1, sqrt 3), fold the cell's angle into 12 mirrored wedges). An infinite tunnel needs log-polar zoom: r' = R0*exp2(fract(log2(r) - time*speed)); it seams once per octave unless the source is self-similar. Uniforms: Segments, Rotation speed, Zoom, Center (pad), Mode. Centered compositions fold best; for off-center content move Center to the subject.",
+   "verified": true
   },
   {
    "id": "domain-warp",
@@ -743,7 +756,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Warp the lookup coordinates of the existing field or image with layered fbm (Inigo Quilez: q = fbm(p), r = fbm(p + 4q + t·0.1), sample the original at p + Amount·r; use ctx.utils.glsl.FBM / SIMPLEX_3D). For a rendered scene, render it into a target first and displace its uv. Color can also take |q| and |r| for marbling. Animate slowly; keep Amount modest so the piece stays recognisable. Uniforms: Amount, Scale, Speed, Octaves."
+   "guide": "Warp the lookup coordinates of the existing field or image with layered fbm (Inigo Quilez: q = fbm(p), r = fbm(p + 4q + t·0.1), sample the original at p + Amount·r). Paste ctx.utils.glsl.SIMPLEX_3D before FBM (FBM calls snoise): fbm(vec3 p, int octaves) returns about −1..1, so put slow time in z and use two offset calls per vec2. Warp in aspect-corrected coordinates (vec2(uv.x·w/h, uv.y)) at the top of the scene's own shader, before its math, so portrait and landscape warp alike; leave legends/UI strips unwarped. For a rendered (non-shader) scene, render it into a target first and displace its uv. Color can also take |q| and |r| for marbling (lighten/darken veins, scaled by Amount so Amount 0 is the original). Animate slowly; Amount ≈ 0.05–0.15 (uv units) keeps the piece recognisable. Uniforms: Amount, Scale, Speed, Octaves (int, ≤ 8).",
+   "verified": true
   },
   {
    "id": "boids",
@@ -762,7 +776,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Positions and velocities in RGBA32F ping-pong textures (up to ~16k agents in WebGL2; WebGPU compute for more). Neighbors: brute force over a texel neighborhood is too slow past ~4k, so bin agents into a coarse grid texture (scatter with gl.POINTS into a count/average target) and read the averages per cell for alignment and cohesion; separation from the 3×3 cells around. Add attraction toward the scene's bright regions (sample a low-res render of it) and toward/away from the mouse, limit speed and turn rate. Draw instanced triangles oriented along velocity (gl_InstanceID → texelFetch), colored by speed or by the scene underneath. Uniforms: Count, Separation, Alignment, Cohesion, Speed, Attraction."
+   "guide": "Render the scene into a target (mipmapped: generateMipmap each frame, for a blurred brightness lookup), blit it dimmed, flock on top. State: one RGBA32F ping-pong, xy = position in uv (wrap with fract), zw = velocity in height units (≤ 16k agents in a 128² texture; WebGPU compute for more). Neighbors: don't average per cell (cell-mean separation makes grid-aligned lanes). Splat every agent bilinearly into a coarse grid (~40 cells on the short side): gl.POINTS, gl_PointSize 2 at its exact grid position, fragment weight (1−|dx|)(1−|dy|) from a flat varying, output (vel·k, k) with ONE/ONE blending into RGBA16F (float32 blending needs EXT_float_blend), LINEAR + REPEAT. Then per agent: separation = −density gradient at ±0.5 cell, cohesion = +gradient at ±2.5 cells, alignment = steer to normalize(Σvel)·Speed, attraction = gradient of textureLod(scene, uv, 4) luminance, pull toward the mouse only while held (ctx.mouse rests at 0.5,0.5). Limit turn rate and clamp speed to 0.4–1×Speed. Draw instanced triangles via gl_InstanceID → texelFetch (bind an empty VAO), oriented along velocity, sized in height units, colored by the scene underneath, lightened. Uniforms: Count, Separation, Alignment, Cohesion, Speed, Attraction.",
+   "verified": true
   },
   {
    "id": "fluid-sim",
@@ -784,7 +799,8 @@
    "tools": [
     "webgl-fluid-simulation"
    ],
-   "guide": "Use the structure of the oss-webgl-fluid example (catalog_get webgl-fluid-simulation for its scene): velocity RG16F at ~128 on the short side and dye RGBA16F at ~1024, curl → vorticity confinement → divergence → 20 Jacobi pressure iterations → gradient subtract → advect velocity and dye. Inject from the current scene: render it into a target, add it into the dye scaled by Inject each frame (or splat where it's bright or moving), and push velocity along its luminance gradient; mouse drags add splats. Display dye with the scene's palette; add bloom lightly. Uniforms: Viscosity (velocity dissipation), Dye fade, Curl, Inject, Splat force."
+   "guide": "Follow oss-webgl-fluid (catalog_get webgl-fluid-simulation): copy its VS (own a_position VAO, texelSize), passes and fbo helpers; velocity RG16F ~128 on the short side, dye RGBA16F ≤1024, curl → vorticity → divergence → 20 Jacobi → gradient subtract → advect velocity and dye. Inject from the scene: render it into a canvas-sized target. Velocity: add perp(∇lum) = (−g.y, g.x)·Inject·~1500·dt (sim texels/s); a plain gradient push is curl-free and the pressure projection removes it. Fade velocity to 0 within ~3 texels of the walls (else the border churns). Dye: relax toward the scene, dye = mix(dye, scene, min(1, Inject·dt·3)), and copy it in fully on the first frame; adding the scene every frame blows out. Mouse drags splat velocity. Display the dye (it carries the scene's palette) with light height shading; bloom optional. Recreate targets on ctx.resized. Defaults that keep the piece recognisable: Curl ~15, Dye fade ~0.03, Viscosity ~0.3. Uniforms: Viscosity (velocity dissipation), Dye fade, Curl, Inject, Splat force.",
+   "verified": true
   },
   {
    "id": "cloth",
@@ -804,7 +820,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "A 48–96² particle grid simulated with Verlet (ctx.utils.createVerletSystem, or your own: structural, shear and bend constraints, 4–8 relaxation iterations, fixed dt 1/60), top edge pinned, gravity, wind from noise over time, the mouse grabs the nearest particle (project its ray with the orbit camera). Recompute normals per frame, upload positions/normals into the mesh buffers (bufferSubData), and texture the cloth with the scene rendered into a target, two-sided lighting (flip the normal on back faces). Optional tearing when a constraint stretches past a limit. Uniforms: Wind, Stiffness, Gravity."
+   "guide": "Render the scene into a target at its own size (cloth aspect = picture aspect, width ~1.8 units). Simulate a 48–96 wide grid yourself with typed arrays (ctx.utils.createVerletSystem is 2D, screen-pixel units): Verlet with fixed dt 1/60 (accumulator, ≤3 steps), damping 0.99, structural + shear + bend (2 apart) constraints, 4–8 relaxation passes scaled by Stiffness, rest lengths from the flat grid. Pin rings every ~8 particles along the top, pulled ~12% closer than the width, so it drapes into folds (a fully pinned edge under uniform wind just tilts like a board). Wind: layered sines/noise over x, y, t applied along each vertex normal. Mouse: on press cast a ray (mat4.invert of getViewProjection, unproject NDC z ±1), grab the particle within ~0.1 of it and hold it at its ray depth; only call camera.update when nothing is grabbed. Normals per frame from grid neighbours; createMesh doesn't expose its buffers, so make your own VAO (locations 0/1/2 for MESH_VERTEX_SHADER, DYNAMIC_DRAW) and bufferSubData positions/normals. Two-sided lighting (flip on !gl_FrontFacing, dim the back), dark gradient background, depth test on. Orbit camera distance ~2 at fov 45. Optional tearing. Uniforms: Wind, Stiffness, Gravity.",
+   "verified": true
   },
   {
    "id": "metaballs",
@@ -826,7 +843,8 @@
    "tools": [
     "isosurface"
    ],
-   "guide": "Build a scalar field from the scene: each particle or bright point contributes r²/d² (metaballs), or use the existing density. Two routes: raymarch the field directly in a fullscreen pass (sphere-trace with a conservative step, cheap for < 64 balls passed as a uniform array or a data texture), or extract a mesh each frame on the CPU with marching cubes on a 48–96³ grid (the isosurface catalog entry, as in the oss-isosurface example) and draw it with smooth normals from the field gradient. Shade with the PBR or toon moves for a finished look. Uniforms: Threshold, Resolution, Blob size."
+   "guide": "Build a scalar field from the scene: particles or bright points contribute kernels, or use its density. Three routes. Many 2D points (hundreds+): splat a finite kernel k = (1−d²/R²)³ per point as gl.POINTS (size 2R) with ONE/ONE blending into an RGBA16F target at ~0.5× canvas (rgb = color·k, a = k); a fullscreen pass thresholds a (smoothstep ±fwidth), colors by rgb/a (groups blend where they merge), and shades with a normal from the gradient of sqrt(a − T) plus a specular. R ≈ r·Blob/0.54 makes a lone ball keep its radius at T 0.35; with collision-packed sources keep Blob ~1.1 (1.5 fuses everything into one mass). Few 3D balls (< 64): sphere-trace Σr²/d² in a fullscreen pass (uniform array or data texture). Volumes: CPU marching cubes on a 48–96³ grid (isosurface catalog entry, oss-isosurface) with normals from the field gradient. Keep the subject framed in portrait too. Shade further with the PBR or toon moves. Uniforms: Threshold, Resolution, Blob size.",
+   "verified": true
   },
   {
    "id": "voronoi-mosaic",
@@ -847,7 +865,8 @@
    "tools": [
     "d3-delaunay"
    ],
-   "guide": "Render the scene into a target. Seeds: read a low-res copy back (readPixels at ~160 px, a few times a second) to place seeds with density proportional to edge magnitude (rejection sampling), or use an in-shader jittered grid for a uniform mosaic. Fill each cell with the color at its seed (or the cell average via a second pass), darken borders by (d2 − d1) to the second-nearest seed, and drift seeds slowly with noise. For an exact CPU version with polygons, d3-delaunay (catalog). Use jump flooding (log2 passes) for thousands of seeds on the GPU. Uniforms: Cells, Border, Jitter, Detail bias."
+   "guide": "Render the scene into a canvas-sized target. Seeds (CPU, persistent): every ~0.25 s blitFramebuffer it into a ~160 px RGBA8 target, readPixels, edge magnitude |∂x lum|+|∂y lum|, density = lo + (1−lo)·min(1, e/(0.6·max)) with lo = (1−Detail)² (a linear floor lets the large flat areas take most seeds). Place by rejection sampling; on later readbacks respawn only seeds whose density is low (probability ∝ 1−density) so the mosaic follows without flicker; drift them with small sines (Jitter). Nearest seed on the GPU by jump flooding at half resolution: RG32F NEAREST ping-pong cleared to −10, seeds drawn as gl.POINTS writing their uv (flat varying), passes k = nextPow2(max side)/2 … 1 over 3×3 texelFetch neighbours, distances in aspect-corrected units. Final pass: a = nearest seed, color = scene at a; border = distance to the bisector with seeds b found at 8 directions × 2 radii around: −dot((p−(a+b)/2)·A, normalize((b−a)·A)) in pixels, darkened over Border·h/1000. For an exact CPU version with polygons, d3-delaunay (catalog). A uniform mosaic needs no readback: ctx.utils.glsl.VORONOI (paste HASH first). Uniforms: Cells, Border, Jitter, Detail bias.",
+   "verified": true
   },
   {
    "id": "glass-refraction",
@@ -866,7 +885,8 @@
    ],
    "weight": "heavy",
    "tools": [],
-   "guide": "Raster: render the background (everything but the glass) into a target; draw the glass objects sampling it at screen uv + refract(viewDir, normal, 1/IOR).xy × Thickness (estimate thickness from a back-face depth pass), Fresnel (Schlick, F0 0.04) mix with a sharp environment reflection, three samples at slightly different IORs for chromatic dispersion, a light tint and blur for frosted glass (mip of the background). SDF scenes: on hit, refract into the volume and march the negated SDF to the exit point, refract out, then shade the background along the exit ray; repeat for 2 bounces max. Uniforms: IOR, Dispersion, Tint, Frost."
+   "guide": "Raster. Glass needs detail behind it: with a flat background add a backdrop (env(dir) per pixel from inverse(viewProj): gradient, softbox stripes, checker floor) and reuse env() for the reflections. 1) Everything but the glass into an RGBA16F target with depth, written linear; set its texture to LINEAR_MIPMAP_LINEAR and generateMipmap each frame (Frost = textureLod). 2) Glass back faces into a float target as linear view depth (depthFunc GREATER + clearDepth 0, or cullFace FRONT); thickness = back − front depth. 3) Canvas: draw the background target, redraw opaque objects with colorMask(false) to get their depth back (a depth renderbuffer won't blit to the canvas), then the glass: uv = gl_FragCoord.xy / u_resolution + refract(I, N, 1/IOR).xy (view space) × thickness × ~0.12, three samples at IOR − Dispersion, IOR, IOR + Dispersion for R, G, B, tint by thickness, mix with env(reflect) by Schlick Fresnel (F0 0.04), a sharp specular, gamma last. SDF scenes: on hit refract in, march the negated SDF to the exit, refract out (reflect on total internal reflection), shade the background along the exit ray; 2 bounces max. Uniforms: IOR, Dispersion, Tint, Frost.",
+   "verified": true
   },
   {
    "id": "gpu-particles",
@@ -884,7 +904,8 @@
    ],
    "weight": "heavy",
    "tools": [],
-   "guide": "This rewrites the scene for backend \"webgpu\" (see the WebGPU section of the scene reference): particle state in a storage buffer (vec4 position + vec4 velocity, 1M entries), a compute pass with @workgroup_size(64) integrating forces (curl noise, attraction to the scene's shapes from a texture of the old render, mouse), and a render pass drawing instanced quads that read the storage buffer by instance_index, additive blending into an rgba16float target, then a fullscreen tonemap to the canvas. Keep the old look's colors and controls. If WebGPU isn't available, WebGL2 transform feedback is the fallback. Uniforms: Count (select), Speed, Size."
+   "guide": "Rewrite as backend \"webgpu\" (WebGPU section of the scene reference). Storage buffer of MAX = 2^20 × (vec4 pos, vec4 vel); it starts zeroed, so spawn where pos.w == 0 (also on leaving 0..1 or rarely at random; pcg hash of index ^ frame). Compute @workgroup_size(64), dispatch ceil(count/64): curl noise on pos·(aspect,1)·Scale (finite differences of a 2-octave noise, time in z), a pull up the luminance gradient of the previous frame's trail texture (the old render doesn't exist after the rewrite), mouse pull/swirl while u.mouse.z > 0. Render: fade pass (prev·Trail) then instanced quads (draw(6, count), corners in a var array, ps[instance_index]) with one/one blending into an rgba16float ping-pong, then a tonemap pass 1−exp(−c) to ctx.format. Scale per-particle brightness by (1−Trail)/Count so exposure doesn't change with them. WGSL gotchas: parenthesise mixed * and ^, one declaration per let, uniform fields carry the scene uniform names (ints as f32: u32(u.u_count)), texture row 0 is the top (sample targets at vec2(uv.x, 1−uv.y)), layout \"auto\" + getBindGroupLayout(0) with only the bindings that pipeline uses. Rebuild targets/bind groups when the size changes. Keep the old colors and controls; fallback without WebGPU: WebGL2 transform feedback. Uniforms: Count (select), Speed, Size.",
+   "verified": true
   },
   {
    "id": "tilt-shift",
@@ -904,7 +925,8 @@
    ],
    "weight": "light",
    "tools": [],
-   "guide": "Post pass over the rendered scene: blur radius grows with vertical distance from a focus band (Focus y, Band width), applied as a two-pass separable Gaussian whose sigma varies per pixel, or a golden-angle bokeh blur with ~32 taps for nicer highlights; boost saturation and contrast a little for the miniature look. Works best looking down at a 3D scene from above, so suggest raising the camera. Uniforms: Focus, Band width, Blur, Saturation."
+   "guide": "Post pass over the finished frame. Render into a target; when a library draws to the canvas (three, regl, OGL, Babylon), copy it afterwards with blitFramebuffer (READ_FRAMEBUFFER null → your target, same size). The canvas is antialias: true, alpha: false, so that target must be RGB8 (createPingPong(w, h, {internalFormat: gl.RGB8, format: gl.RGB})); RGBA8 fails the resolve with INVALID_OPERATION. Blur: two-pass separable Gaussian with per-pixel sigma: dist = max(0, |uv.y − Focus| − Band/2), sigma = Blur · smoothstep(0, 0.35, dist) · h/100 px, ~25 taps spaced sigma/3; horizontal into the ping-pong's write() target, vertical to the canvas with saturation and a touch of contrast. Disable DEPTH_TEST, BLEND and CULL_FACE first (libraries leave them on). A golden-angle bokeh blur (~32 taps) is the nicer-highlights alternative. Works best looking down at a 3D scene: raise the camera (orbit phi ~0.8) and say so. Uniforms: Focus, Band width, Blur, Saturation.",
+   "verified": true
   }
  ]
 }
