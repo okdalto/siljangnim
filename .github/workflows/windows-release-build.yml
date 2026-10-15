@@ -1,0 +1,57 @@
+name: Windows 0.2.11 verification
+on:
+  push:
+    branches: [codex/windows-0.2.11-build]
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: b6e0866493ba0c65548fa09293d94b1598e738db
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Typecheck and lint
+        run: npm run check
+      - name: Studio tests
+        run: npm --prefix studio test -- --testTimeout=30000
+      - name: Desktop tests
+        run: node --test "desktop/test/*.test.js"
+      - name: Build Windows installer
+        run: npm run dist
+        env:
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          SILJANGNIM_EXAMPLES_BASE_URL: https://raw.githubusercontent.com/okdalto/siljangnim/b6e0866493ba0c65548fa09293d94b1598e738db/examples
+      - name: Verify packaged Windows app
+        working-directory: desktop
+        run: npm run smoke
+        env:
+          SILJANGNIM_APP_PATH: release/win-unpacked/Siljangnim.exe
+          SILJANGNIM_SMOKE_EXAMPLE_INCLUDE: oss-field-play,oss-three-skinning,oss-three-clipping,oss-blender-nodes,oss-blender-physics
+      - name: Installer checksum and signature status
+        shell: pwsh
+        run: |
+          $installer = Get-Item desktop/release/Siljangnim-0.2.11-win-x64.exe
+          $hash = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLower()
+          "$hash  $($installer.Name)" | Set-Content -Encoding ascii "$($installer.FullName).sha256"
+          Get-AuthenticodeSignature $installer | Select-Object Status,StatusMessage | ConvertTo-Json | Set-Content desktop/release/windows-signature.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-verification-0.2.11
+          path: |
+            desktop/release/smoke
+            desktop/release/windows-signature.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-0.2.11
+          path: |
+            desktop/release/Siljangnim-0.2.11-win-x64.exe
+            desktop/release/Siljangnim-0.2.11-win-x64.exe.sha256
+          if-no-files-found: error
