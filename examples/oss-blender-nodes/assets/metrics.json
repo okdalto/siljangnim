@@ -1,0 +1,29 @@
+{
+  "blender": "4.5.3 LTS",
+  "nodes": [
+    "GeometryNodeMeshGrid",
+    "GeometryNodeMeshIcoSphere",
+    "FunctionNodeRandomValue",
+    "GeometryNodeInstanceOnPoints",
+    "GeometryNodeRealizeInstances",
+    "GeometryNodeSetMaterial",
+    "NodeGroupOutput"
+  ],
+  "variants": [
+    {
+      "grid_side": 4,
+      "instances": 16,
+      "evaluated_vertices": 672
+    },
+    {
+      "grid_side": 7,
+      "instances": 49,
+      "evaluated_vertices": 2058
+    },
+    {
+      "grid_side": 10,
+      "instances": 100,
+      "evaluated_vertices": 4200
+    }
+  ]
+}

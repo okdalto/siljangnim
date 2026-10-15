@@ -93,6 +93,32 @@
       "sha256": "4fe969f57b3d70920b22b768737db9c4219f0061d789427428021592bff79ec2"
     },
     {
+      "id": "blender.nodes",
+      "version": 1,
+      "title": "Procedural instances (Blender)",
+      "capability": "3d nodes simulation render",
+      "kind": "command",
+      "license": "GPL-2.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/blender.nodes/recipe.md",
+      "sha256": "9db564564f1e132086d180aa6497363eed823f8ee507953f24ce6844be656505"
+    },
+    {
+      "id": "blender.physics",
+      "version": 1,
+      "title": "Falling rigid bodies (Blender)",
+      "capability": "3d physics simulation render",
+      "kind": "command",
+      "license": "GPL-2.0-or-later",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/blender.physics/recipe.md",
+      "sha256": "1e5e0a71704bfbb26ddd09fef0b48315b0d56dc985a3c7f0627d7f5acb558c8b"
+    },
+    {
       "id": "box2d.gallery",
       "version": 1,
       "title": "Bounce histories from Box2D",

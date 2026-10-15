@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "inputs": [],
+  "uniforms": {
+    "u_variant": {
+      "type": "int",
+      "value": 1,
+      "min": 0,
+      "max": 2,
+      "step": 1,
+      "label": "Variant"
+    }
+  },
+  "script": {
+    "setup": "ctx.state.images=await Promise.all([0,1,2].map(i=>ctx.utils.loadTexture(`result-${i}.png`)));ctx.state.p=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float;in vec2 v_uv;out vec4 outColor;uniform sampler2D u_image;uniform vec2 u_resolution;void main(){float aspect=640.0/480.0;float view=u_resolution.x/u_resolution.y;vec2 q=(v_uv-0.5)*vec2(max(1.0,view/aspect),max(1.0,aspect/view))+0.5;if(any(lessThan(q,vec2(0)))||any(greaterThan(q,vec2(1)))){outColor=vec4(.055,.065,.08,1);return;}outColor=texture(u_image,q);}\");",
+    "render": "const s=ctx.state;ctx.gl.useProgram(s.p);ctx.utils.bindTexture(s.p,\"u_image\",s.images[Math.max(0,Math.min(2,Math.round(ctx.uniforms.u_variant)))].texture,0);ctx.utils.drawFullscreen(s.p);",
+    "cleanup": "const s=ctx.state;for(const x of s.images??[])ctx.gl.deleteTexture(x.texture);if(s.p)ctx.gl.deleteProgram(s.p);"
+  }
+}

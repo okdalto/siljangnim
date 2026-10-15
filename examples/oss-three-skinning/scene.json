@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "const mod=await ctx.utils.import(\"https://esm.sh/three@0.186.0\");const T=mod.default??mod;\nconst renderer=new T.WebGLRenderer({canvas:ctx.canvas,context:ctx.gl,antialias:true});renderer.setPixelRatio(1);\nconst scene=new T.Scene();scene.background=new T.Color(0x101821);\nscene.add(new T.HemisphereLight(0xffffff,0x334455,2));\nconst light=new T.DirectionalLight(0xffffff,3);light.position.set(3,5,6);scene.add(light);\nconst camera=new T.PerspectiveCamera(42,1,0.1,50);\nObject.assign(ctx.state,{T,renderer,scene,camera,size:[0,0],orbit:ctx.utils.createOrbitCamera({distance:8,theta:-0.65,phi:1.15,fov:42,near:0.1,far:50,minDistance:4,maxDistance:14})});\nconst geometry=new T.CylinderGeometry(0.4,0.4,4,24,40);const pos=geometry.attributes.position,indices=[],weights=[];\nfor(let i=0;i<pos.count;i++){const y=Math.max(0,Math.min(4,pos.getY(i)+2));const b=Math.min(3,Math.floor(y));const f=y-b;indices.push(b,b+1,0,0);weights.push(1-f,f,0,0);if(Math.abs((1-f)+f-1)>1e-6)throw Error(\"invalid weights\");}\ngeometry.setAttribute('skinIndex',new T.Uint16BufferAttribute(indices,4));geometry.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));\nconst bones=[];for(let i=0;i<5;i++){const b=new T.Bone();b.position.y=i===0?-2:1;if(i)bones[i-1].add(b);bones.push(b);}\nconst mesh=new T.SkinnedMesh(geometry,new T.MeshStandardMaterial({color:0x25cbbb,roughness:0.35,metalness:0.1}));mesh.add(bones[0]);const skeleton=new T.Skeleton(bones);mesh.bind(skeleton);mesh.frustumCulled=false;scene.add(mesh);\nconst helper=new T.SkeletonHelper(mesh);helper.material.depthTest=false;helper.renderOrder=2;scene.add(helper);\n// Verify Three's CPU skin transform moves a tip vertex when a bone rotates.\nlet tip=0;for(let i=0;i<pos.count;i++)if(pos.getY(i)>pos.getY(tip))tip=i;\nconst rest=new T.Vector3().fromBufferAttribute(pos,tip);bones[1].rotation.z=0.5;mesh.updateMatrixWorld(true);skeleton.update();const bent=mesh.applyBoneTransform(tip,rest.clone());if(bent.distanceTo(rest)<0.5)throw Error('skin deformation failed');bones[1].rotation.z=0;mesh.updateMatrixWorld(true);\nObject.assign(ctx.state,{mesh,bones,skeleton,helper});ctx.publish('bones',5);ctx.publish('skin check displacement',bent.distanceTo(rest));\n",
+    "render": "const s=ctx.state,u=ctx.uniforms,[w,h]=ctx.resolution;\nif(s.size[0]!==w||s.size[1]!==h){s.size=[w,h];s.renderer.setSize(w,h,false);s.camera.fov=s.orbit.fovFor(w/h);s.camera.aspect=w/h;s.camera.updateProjectionMatrix();}\ns.orbit.update(ctx.mouse,ctx.mousePrev,ctx.mouseDown,ctx.keys,ctx.dt);s.camera.position.set(...s.orbit.getEye());s.camera.lookAt(...s.orbit.getTarget());\nfor(let i=1;i<5;i++){s.bones[i].rotation.z=Math.sin(ctx.time*u.u_speed+i*0.65)*u.u_bend;s.bones[i].rotation.x=Math.cos(ctx.time*u.u_speed+i*0.5)*u.u_bend*0.3;}s.helper.visible=Boolean(u.u_bones);s.mesh.material.wireframe=Boolean(u.u_wire);\ns.renderer.resetState();s.renderer.render(s.scene,s.camera);",
+    "cleanup": "const s=ctx.state;s.scene?.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});s.skeleton?.dispose();s.renderer?.dispose();"
+  },
+  "uniforms": {
+    "u_bend": {
+      "type": "float",
+      "value": 0.32,
+      "min": 0,
+      "max": 0.65,
+      "step": 0.01,
+      "label": "Bend"
+    },
+    "u_speed": {
+      "type": "float",
+      "value": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.01,
+      "label": "Speed"
+    },
+    "u_bones": {
+      "type": "int",
+      "value": 1,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "label": "Show bones"
+    },
+    "u_wire": {
+      "type": "int",
+      "value": 0,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "label": "Wireframe"
+    }
+  },
+  "inputs": []
+}

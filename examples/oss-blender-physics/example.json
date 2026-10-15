@@ -1,0 +1,30 @@
+{
+  "order": 423,
+  "title": "Falling rigid bodies (Blender)",
+  "title_ko": "떨어지는 강체 블록 (Blender)",
+  "description": "Blender simulates 12 colliding blocks over 90 frames. Compare saved renders at frames 1, 18 and 90. The .blend contains the simulation setup; play from frame 1 to recalculate it.",
+  "description_ko": "Blender로 블록 12개의 충돌을 90프레임 동안 계산했어요. 1·18·90프레임의 저장된 렌더를 비교하세요. .blend에는 시뮬레이션 설정이 있으며 1프레임부터 재생하면 다시 계산해요.",
+  "prompt": "Falling rigid bodies (Blender)",
+  "made_with": "blender through a bundled, executed recipe",
+  "features": [
+    "blender",
+    "interactive",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "blender"
+  ],
+  "summary": "Compare 12 rigid bodies before, during and after their fall and collisions.",
+  "summary_ko": "강체 블록 12개의 낙하 전·중간·충돌 후 렌더를 비교해요.",
+  "try": [
+    "0 = frame 1, 1 = frame 18, 2 = frame 90",
+    "Edit build.py and rerun the recipe to change the scene"
+  ],
+  "try_ko": [
+    "Variant 0·1·2로 저장된 결과를 비교하세요",
+    "build.py를 수정하고 레시피를 다시 실행해 장면을 바꾸세요"
+  ],
+  "tool_about": "Blender simulates 12 colliding blocks over 90 frames. Compare saved renders at frames 1, 18 and 90. The .blend contains the simulation setup; play from frame 1 to recalculate it.",
+  "tool_about_ko": "Blender로 블록 12개의 충돌을 90프레임 동안 계산했어요. 1·18·90프레임의 저장된 렌더를 비교하세요. .blend에는 시뮬레이션 설정이 있으며 1프레임부터 재생하면 다시 계산해요."
+}

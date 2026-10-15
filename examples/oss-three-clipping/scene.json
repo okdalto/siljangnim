@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "const mod=await ctx.utils.import(\"https://esm.sh/three@0.186.0\");const T=mod.default??mod;\nconst renderer=new T.WebGLRenderer({canvas:ctx.canvas,context:ctx.gl,antialias:true});renderer.setPixelRatio(1);\nconst scene=new T.Scene();scene.background=new T.Color(0x101821);\nscene.add(new T.HemisphereLight(0xffffff,0x334455,2));\nconst light=new T.DirectionalLight(0xffffff,3);light.position.set(3,5,6);scene.add(light);\nconst camera=new T.PerspectiveCamera(42,1,0.1,50);\nObject.assign(ctx.state,{T,renderer,scene,camera,size:[0,0],orbit:ctx.utils.createOrbitCamera({distance:8,theta:-0.65,phi:1.15,fov:42,near:0.1,far:50,minDistance:4,maxDistance:14})});\nrenderer.localClippingEnabled=true;\nconst plane=new T.Plane(new T.Vector3(1,0,0),0.2);const shells=[];\nfor(let i=0;i<5;i++){const mesh=new T.Mesh(new T.SphereGeometry(1.9-i*0.32,64,32),new T.MeshStandardMaterial({color:[0x35bfc4,0xf4ce57,0xf47770,0x596be0,0xf7efda][i],roughness:0.48,side:T.DoubleSide,clippingPlanes:[plane]}));scene.add(mesh);shells.push(mesh);}\nconst guide=new T.PlaneHelper(plane,4.8,0xffffff);scene.add(guide);Object.assign(ctx.state,{plane,guide,shells});\nif(!renderer.localClippingEnabled||shells.some(o=>o.material.clippingPlanes[0]!==plane))throw Error('clipping configuration failed');ctx.publish('nested shells',5);\n",
+    "render": "const s=ctx.state,u=ctx.uniforms,[w,h]=ctx.resolution;\nif(s.size[0]!==w||s.size[1]!==h){s.size=[w,h];s.renderer.setSize(w,h,false);s.camera.fov=s.orbit.fovFor(w/h);s.camera.aspect=w/h;s.camera.updateProjectionMatrix();}\ns.orbit.update(ctx.mouse,ctx.mousePrev,ctx.mouseDown,ctx.keys,ctx.dt);s.camera.position.set(...s.orbit.getEye());s.camera.lookAt(...s.orbit.getTarget());\ns.plane.normal.set(Math.cos(u.u_angle),0,Math.sin(u.u_angle));s.plane.constant=u.u_cut;s.guide.visible=Boolean(u.u_guide);\ns.renderer.resetState();s.renderer.render(s.scene,s.camera);",
+    "cleanup": "const s=ctx.state;s.scene?.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});s.skeleton?.dispose();s.renderer?.dispose();"
+  },
+  "uniforms": {
+    "u_cut": {
+      "type": "float",
+      "value": 0.2,
+      "min": -2.1,
+      "max": 2.1,
+      "step": 0.01,
+      "label": "Cut position"
+    },
+    "u_angle": {
+      "type": "float",
+      "value": 0,
+      "min": -3.14,
+      "max": 3.14,
+      "step": 0.01,
+      "label": "Plane angle"
+    },
+    "u_guide": {
+      "type": "int",
+      "value": 0,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "label": "Show plane"
+    }
+  },
+  "inputs": []
+}

@@ -1,0 +1,30 @@
+{
+  "order": 420,
+  "title": "A mesh with bones (Three.js)",
+  "title_ko": "뼈대로 휘어지는 메시 (Three.js)",
+  "description": "Five bones deform a weighted mesh; compare its rest pose and animated pose. Uses actual SkinnedMesh, Skeleton and per-vertex weights, with a CPU deformation assertion.",
+  "description_ko": "다섯 뼈대가 가중치에 따라 메시를 휘게 해요. 기본 자세와 움직이는 자세를 비교하세요. 실제 SkinnedMesh·Skeleton과 정점별 가중치로 계산하며 초기화 때 변형 검증을 실행해요.",
+  "prompt": "Explore Three.js skinning using this editable scene.",
+  "made_with": "three 0.186.0 via ctx.utils.import",
+  "features": [
+    "skinning",
+    "three.js",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "three-js"
+  ],
+  "summary": "Five bones deform a weighted mesh; compare its rest pose and animated pose.",
+  "summary_ko": "다섯 뼈대가 가중치에 따라 메시를 휘게 해요. 기본 자세와 움직이는 자세를 비교하세요.",
+  "try": [
+    "Drag to orbit and scroll to zoom.",
+    "Set Bend to 0 for the rest pose, or turn on Wireframe."
+  ],
+  "try_ko": [
+    "드래그로 카메라를 돌리고 스크롤로 확대하세요.",
+    "Bend를 0으로 놓아 기본 자세를 보거나 Wireframe을 켜 보세요."
+  ],
+  "tool_about": "Three.js is the most popular JavaScript library for 3D graphics on the web: it handles cameras, lights, materials, shadows and 3D models. It runs in the browser.",
+  "tool_about_ko": "Three.js는 웹에서 3D 그래픽을 만들 때 가장 많이 쓰이는 JavaScript 라이브러리예요. 카메라, 조명, 재질, 그림자, 3D 모델을 다루며 브라우저에서 돌아가요."
+}

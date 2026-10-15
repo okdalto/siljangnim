@@ -649,6 +649,7 @@ async function runExampleCacheScenario(win) {
         const found = document.querySelector('[data-example="' + slug + '"]');
         if (found) return found;
         if (!document.querySelector('[data-testid="examples"]')) document.querySelector('[data-testid="view-examples"]')?.click();
+        for (const button of document.querySelectorAll('[data-example-folder] > button[aria-expanded="false"]')) button.click();
         await sleep(100);
       }
       throw new Error("no gallery card for " + slug);
@@ -665,11 +666,7 @@ async function runExampleCacheScenario(win) {
     };
     try {
       // The app may still be starting after the reload: (re)open the gallery until the card is there.
-      let card = null;
-      for (let i = 0; i < 150 && !(card = document.querySelector('[data-example="oss-blender"]')); i++) {
-        if (!document.querySelector('[data-testid="examples"]')) document.querySelector('[data-testid="view-examples"]')?.click();
-        await sleep(100);
-      }
+      const card = await galleryCard("oss-blender");
       await sleep(300);
       const cachedLabel = /Downloaded|다운로드됨/.test(card?.textContent ?? "");
       card.click();

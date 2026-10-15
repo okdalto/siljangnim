@@ -1,0 +1,30 @@
+{
+  "order": 421,
+  "title": "Slice through nested shells (Three.js)",
+  "title_ko": "겹친 구체의 단면 보기 (Three.js)",
+  "description": "Move a clipping plane through five nested shells and orbit to see inside. Uses material clippingPlanes; open shell surfaces are not a capped solid or a Boolean mesh edit.",
+  "description_ko": "다섯 겹의 구체를 자르는 평면을 옮기고 카메라를 돌려 내부를 살펴보세요. clippingPlanes로 화면에서 잘라 보여줘요. 절단면을 메우거나 원본 메시를 바꾸는 불리언 연산은 아니에요.",
+  "prompt": "Explore Three.js clipping using this editable scene.",
+  "made_with": "three 0.186.0 via ctx.utils.import",
+  "features": [
+    "clipping",
+    "three.js",
+    "orbit camera"
+  ],
+  "mode": "live",
+  "uses": [
+    "three-js"
+  ],
+  "summary": "Move a clipping plane through five nested shells and orbit to see inside.",
+  "summary_ko": "다섯 겹의 구체를 자르는 평면을 옮기고 카메라를 돌려 내부를 살펴보세요.",
+  "try": [
+    "Drag to orbit and scroll to zoom.",
+    "Move Cut position through the shells; Show plane reveals the cutting guide."
+  ],
+  "try_ko": [
+    "드래그로 카메라를 돌리고 스크롤로 확대하세요.",
+    "Cut position으로 절단 위치를 옮기고 Show plane으로 평면을 확인하세요."
+  ],
+  "tool_about": "Three.js is the most popular JavaScript library for 3D graphics on the web: it handles cameras, lights, materials, shadows and 3D models. It runs in the browser.",
+  "tool_about_ko": "Three.js는 웹에서 3D 그래픽을 만들 때 가장 많이 쓰이는 JavaScript 라이브러리예요. 카메라, 조명, 재질, 그림자, 3D 모델을 다루며 브라우저에서 돌아가요."
+}

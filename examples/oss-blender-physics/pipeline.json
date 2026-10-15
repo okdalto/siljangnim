@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "blender.physics@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "build.py"
+      ],
+      "params": {},
+      "outputs": [
+        "metrics.json",
+        "physics.blend",
+        "result-0.png",
+        "result-1.png",
+        "result-2.png"
+      ]
+    }
+  ]
+}

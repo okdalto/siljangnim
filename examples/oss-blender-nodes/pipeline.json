@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "blender.nodes@1",
+      "packages": [],
+      "resolved": [],
+      "inputs": [
+        "build.py"
+      ],
+      "params": {},
+      "outputs": [
+        "metrics.json",
+        "procedural.blend",
+        "result-0.png",
+        "result-1.png",
+        "result-2.png"
+      ]
+    }
+  ]
+}
