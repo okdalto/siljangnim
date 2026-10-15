@@ -19,6 +19,8 @@ Examples from the same library and its related extensions, such as D3, Three.js,
 Click a folder to expand it; searching automatically reveals matching examples. The remix picker uses the same grouping.
 Expanding a folder does not download example files.
 
+The OpenCV folder includes four-corner perspective correction, point tracking between two frames, and masked scratch repair alongside edge drawing. Use Reveal result to compare the input and computed output. The FFmpeg folder compares transitions and double-speed editing against baseline clips. Each includes directly executed results and a rerunnable recipe. Viewer controls compare stored outputs; rerun the recipe to change processing settings.
+
 Examples download their scene and prepared images, audio and data when first opened. Each card shows the
 size; the gallery shows progress and lets you cancel. Downloads are cached in this browser/app for reuse.
 If a download fails or is cancelled, open it again to retry; verified files are reused.

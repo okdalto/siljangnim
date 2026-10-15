@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "opencv.perspective@1",
+      "packages": [
+        "numpy==2.2.4",
+        "opencv-python-headless==4.11.0.86"
+      ],
+      "inputs": [],
+      "outputs": [
+        "metrics.json",
+        "result.png",
+        "input.png"
+      ],
+      "params": {}
+    }
+  ]
+}

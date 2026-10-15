@@ -1,0 +1,6 @@
+{
+  "opencv": "4.11.0",
+  "damaged_mae": 136.10023134178235,
+  "restored_mae": 6.000452625226313,
+  "outside_mask_unchanged": true
+}

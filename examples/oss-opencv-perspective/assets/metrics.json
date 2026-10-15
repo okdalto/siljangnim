@@ -1,0 +1,23 @@
+{
+  "opencv": "4.11.0",
+  "corners": [
+    [
+      140.0,
+      75.0
+    ],
+    [
+      535.0,
+      30.0
+    ],
+    [
+      480.0,
+      310.0
+    ],
+    [
+      60.0,
+      270.0
+    ]
+  ],
+  "roundtrip_mae": 2.91259375,
+  "note": "Known corners supplied; not automatic document detection."
+}

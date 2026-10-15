@@ -1,0 +1,31 @@
+{
+  "order": 412,
+  "title": "Repair masked scratches (OpenCV)",
+  "title_ko": "마스크로 긁힌 자국 복원하기 (OpenCV)",
+  "description": "Compare a scratched illustration with Telea inpainting; the mask defines what to repair. Directly computed with OpenCV 4.11.0.86 on original synthetic inputs. The viewer compares stored results; rerun the recipe to change inputs.",
+  "description_ko": "긁힌 그림과 Telea 복원 결과를 비교해요. 복원할 영역은 마스크로 지정했어요. 직접 만든 입력을 OpenCV 4.11.0.86으로 계산했어요. 화면은 저장된 결과를 비교하며 입력을 바꾸려면 레시피를 다시 실행하세요.",
+  "prompt": "Recreate or adapt this OpenCV inpaint example using the included recipe.",
+  "made_with": "OpenCV 4.11.0.86; inpaint / INPAINT_TELEA",
+  "features": [
+    "inpaint",
+    "inpaint / INPAINT_TELEA",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "opencv"
+  ],
+  "summary": "Compare a scratched illustration with Telea inpainting; the mask defines what to repair.",
+  "summary_ko": "긁힌 그림과 Telea 복원 결과를 비교해요. 복원할 영역은 마스크로 지정했어요.",
+  "try": [
+    "Move Reveal result from 0 (input) to 1 (processed).",
+    "Rerun the included recipe to change inputs; inspect metrics.json for numerical checks."
+  ],
+  "try_ko": [
+    "Reveal result를 0(입력)부터 1(처리 결과)까지 움직여 비교하세요.",
+    "입력은 레시피를 다시 실행해 바꾸고 metrics.json에서 계산 검증값을 확인하세요."
+  ],
+  "tool_about": "OpenCV is a big toolkit for working with pictures and video: finding edges, shapes, faces and motion. It runs on this computer through Python, not in the browser.",
+  "tool_about_ko": "OpenCV는 사진과 영상을 다루는 큰 도구 모음으로, 윤곽·모양·얼굴·움직임을 찾아내요. 브라우저가 아니라 이 컴퓨터의 파이썬에서 돌아가요.",
+  "credits": []
+}

@@ -529,6 +529,8 @@ async function runExamplesScenario(win, examplesOut, onCount = () => undefined) 
     await new Promise((r) => setTimeout(r, 200));
     document.querySelector('[data-testid="open-examples"]').click();
     await new Promise((r) => setTimeout(r, 300));
+    for (const button of document.querySelectorAll('[data-example-folder] > button[aria-expanded="false"]')) button.click();
+    await new Promise((r) => setTimeout(r, 100));
     const slugs = [...document.querySelectorAll("[data-example]")].map((e) => ({ slug: e.dataset.example, requires: e.dataset.requires }));
     document.querySelector('[data-testid="examples"]')?.parentElement?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
     return slugs;
@@ -547,7 +549,12 @@ async function runExamplesScenario(win, examplesOut, onCount = () => undefined) 
   // SILJANGNIM_SMOKE_EXAMPLE_SAMPLE=n: n examples spread evenly over the list instead of all of them.
   const sample = Number(process.env.SILJANGNIM_SMOKE_EXAMPLE_SAMPLE) || 0;
   // oss-blender always: the example-cache scenario reopens it from the cache afterwards.
-  const picked = sample && slugs.length > sample ? slugs.filter((e, i) => i % Math.ceil(slugs.length / sample) === 0 || e.slug === "oss-blender") : slugs;
+  // Include newly added examples explicitly even when sampling the broader gallery.
+  const included = new Set((process.env.SILJANGNIM_SMOKE_EXAMPLE_INCLUDE ?? "").split(",").filter(Boolean));
+  for (const slug of included) {
+    if (!slugs.some((e) => e.slug === slug)) throw new Error(`requested smoke example is missing: ${slug}`);
+  }
+  const picked = sample && slugs.length > sample ? slugs.filter((e, i) => i % Math.ceil(slugs.length / sample) === 0 || e.slug === "oss-blender" || included.has(e.slug)) : slugs;
   onCount(picked.length);
   for (const { slug, requires } of picked) {
     if (requires?.includes("webgpu") && !gpu) {
@@ -573,6 +580,7 @@ async function runExamplesScenario(win, examplesOut, onCount = () => undefined) 
       for (let i = 0; i < 100 && !(card = document.querySelector('[data-example="${slug}"]')); i++) {
         // (Re)open the view if it isn't showing; the previous example may still be settling.
         if (!document.querySelector('[data-testid="examples"]')) document.querySelector('[data-testid="view-examples"]').click();
+        for (const button of document.querySelectorAll('[data-example-folder] > button[aria-expanded="false"]')) button.click();
         await new Promise((r) => setTimeout(r, 100));
       }
       if (!card) throw new Error("no card for ${slug}");

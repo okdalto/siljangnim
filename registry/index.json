@@ -561,6 +561,32 @@
       "sha256": "b23b25a3ede0a9298ab98c73ffb4c896d6f8b2788e75332ded29438d6f77c5be"
     },
     {
+      "id": "ffmpeg.retime",
+      "version": 1,
+      "title": "Edit playback speed",
+      "capability": "video retime",
+      "kind": "command",
+      "license": "LGPL-2.1-or-later (this build may include GPL parts)",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ffmpeg.retime/recipe.md",
+      "sha256": "5876e219dea4e3a3d66a283042797d25b097f11bee7250e2ce1325dcc734c41d"
+    },
+    {
+      "id": "ffmpeg.transition",
+      "version": 1,
+      "title": "Transition between clips",
+      "capability": "video transition",
+      "kind": "command",
+      "license": "LGPL-2.1-or-later (this build may include GPL parts)",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ffmpeg.transition/recipe.md",
+      "sha256": "67af9aff217ea527abdda084eb7567dd6a4c74800aca97b7233ac964e1b512fd"
+    },
+    {
       "id": "fidget.gallery",
       "version": 1,
       "title": "Slices through implicit surfaces",
@@ -1599,6 +1625,45 @@
       ],
       "path": "recipes/opencv.contours/recipe.md",
       "sha256": "ab16e3e78ec41d198874c0706cb5a87ba5c968a4935b8d785abb8878dd58e257"
+    },
+    {
+      "id": "opencv.flow",
+      "version": 1,
+      "title": "Track moving corners",
+      "capability": "image flow",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/opencv.flow/recipe.md",
+      "sha256": "753709d299ba760a980bd733a02f28a0e9fa3a472c651877ecfb949a1d6bc181"
+    },
+    {
+      "id": "opencv.inpaint",
+      "version": 1,
+      "title": "Repair masked scratches",
+      "capability": "image inpaint",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/opencv.inpaint/recipe.md",
+      "sha256": "237af0dd8dd9cb50ea5fecf506c1eae1c7b06effc39ba3cf59db972feb80cd75"
+    },
+    {
+      "id": "opencv.perspective",
+      "version": 1,
+      "title": "Perspective correction",
+      "capability": "image perspective",
+      "kind": "python",
+      "license": "Apache-2.0",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/opencv.perspective/recipe.md",
+      "sha256": "28fb18bb3a15e5b026fee23b88a93a3c5e704bdc9e2e1076ade9f4854efeb029"
     },
     {
       "id": "openframeworks.gallery",

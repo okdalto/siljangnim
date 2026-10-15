@@ -1,0 +1,13 @@
+{
+  "steps": [
+    {
+      "kind": "command",
+      "recipe": "ffmpeg.transition@1",
+      "inputs": [],
+      "outputs": [
+        "comparison.mp4"
+      ],
+      "params": {}
+    }
+  ]
+}

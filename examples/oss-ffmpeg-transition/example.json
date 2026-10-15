@@ -1,0 +1,32 @@
+{
+  "order": 413,
+  "title": "Transition between clips (FFmpeg)",
+  "title_ko": "두 클립을 이어 붙이는 전환 (FFmpeg)",
+  "description": "Compare a hard cut with a one-second diagonal wipe between two synthetic clips. Left: baseline. Right: edited. These are directly encoded, silent results; rerun the recipe to change the edit.",
+  "description_ko": "두 합성 클립을 바로 잘라 잇는 편집과 1초 대각선 전환을 비교해요. 왼쪽은 기준 영상, 오른쪽은 편집 결과예요. 실제로 인코딩한 무음 영상이며 편집을 바꾸려면 레시피를 다시 실행하세요.",
+  "prompt": "Adapt the included FFmpeg transition recipe.",
+  "made_with": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "features": [
+    "video",
+    "transition",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "ffmpeg"
+  ],
+  "summary": "Compare a hard cut with a one-second diagonal wipe between two synthetic clips.",
+  "summary_ko": "두 합성 클립을 바로 잘라 잇는 편집과 1초 대각선 전환을 비교해요.",
+  "try": [
+    "Set Panel to 0 for both, 1 for baseline, or 2 for the edited result.",
+    "Watch the edit at 3–4 seconds, then compare the two panels.",
+    "Rerun the recipe to change speed or transition; the viewer plays prepared output."
+  ],
+  "try_ko": [
+    "Panel을 0(나란히), 1(기준), 2(편집 결과)로 바꿔 보세요.",
+    "3~4초의 장면 전환을 두 패널에서 비교해 보세요.",
+    "속도나 전환을 바꾸려면 레시피를 다시 실행하세요. 화면은 준비된 영상을 재생해요."
+  ],
+  "tool_about": "FFmpeg is a free program for converting, cutting and creating video and audio files. It is installed and runs on this computer, not in the browser.",
+  "tool_about_ko": "FFmpeg는 영상과 소리 파일을 변환하고 자르고 만드는 무료 프로그램이에요. 브라우저가 아니라 이 컴퓨터에 설치되어 돌아가요."
+}

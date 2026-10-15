@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "ctx.state.a=await ctx.utils.loadTexture(\"input.png\"); ctx.state.b=await ctx.utils.loadTexture(\"result.png\"); ctx.state.p=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor;\\nuniform sampler2D u_input; uniform sampler2D u_result; uniform vec2 u_resolution; uniform float u_reveal;\\nvoid main(){float aspect=640.0/360.0; float view=u_resolution.x/u_resolution.y; vec2 q=(v_uv-0.5)*vec2(max(1.0,view/aspect),max(1.0,aspect/view))+0.5;\\nif(any(lessThan(q,vec2(0)))||any(greaterThan(q,vec2(1)))){outColor=vec4(0.055,0.065,0.08,1);return;}\\nvec3 c=q.x<u_reveal?texture(u_result,q).rgb:texture(u_input,q).rgb;\\nif(u_reveal>0.001&&u_reveal<0.999&&abs(q.x-u_reveal)<0.002)c=vec3(1,0.8,0.25);outColor=vec4(c,1);}\\n\");",
+    "render": "const s=ctx.state; ctx.gl.useProgram(s.p);ctx.utils.bindTexture(s.p,\"u_input\",s.a.texture,0);ctx.utils.bindTexture(s.p,\"u_result\",s.b.texture,1);ctx.utils.drawFullscreen(s.p);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_reveal": {
+      "type": "float",
+      "value": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "Reveal result"
+    }
+  },
+  "inputs": []
+}
