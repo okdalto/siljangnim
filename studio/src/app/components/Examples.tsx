@@ -4,6 +4,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { CATALOG, REFERENCES, REFERENCE_SOURCE, referenceFor, referenceLabels, type CatalogEntry, type ReferenceEntry } from "../../catalog/catalog";
 import { EXAMPLES, exampleText, type Example } from "../../project/examples";
+import { exampleFamily, groupExamples } from "../../project/exampleGroups";
+import { ExampleFolders } from "./ExampleFolders";
 import { exampleCache } from "../../project/exampleCache";
 import { cancelExampleDownload, clearExampleDownloads, buildWithAgent, exampleLink, mixExample, openExample, setExamplesOpen } from "../session";
 import type { Language } from "../language";
@@ -143,7 +145,7 @@ function useItems(): Item[] {
       return {
         key: e.slug,
         category: tools.length ? category(ref?.principle) : MADE_HERE,
-        text: [e.title, e.title_ko ?? "", e.summary ?? "", e.summary_ko ?? "", e.description, e.made_with, ...e.features, ...tools.flatMap((t) => [t.name, ...t.tags]), ref?.concept ?? "", ref?.ko?.concept ?? ""].join(" ").toLowerCase(),
+        text: [exampleFamily(e)?.label ?? "", e.title, e.title_ko ?? "", e.summary ?? "", e.summary_ko ?? "", e.description, e.made_with, ...e.features, ...tools.flatMap((t) => [t.name, ...t.tags]), ref?.concept ?? "", ref?.ko?.concept ?? ""].join(" ").toLowerCase(),
         example: e,
         tools,
       };
@@ -263,8 +265,7 @@ export function ExamplesDialog() {
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
           {examples.length > 0 && (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
-              {examples.map((i) => (
+            <ExampleFolders groups={groupExamples(examples, (i) => i.example!)} korean={korean} searching={words.length > 0} renderItem={(i) => (
                 <ExampleCard
                   key={i.key}
                   example={i.example!}
@@ -276,8 +277,7 @@ export function ExamplesDialog() {
                   onInfo={() => setDetail(i)}
                   onDrag={projectName ? setDragging : undefined}
                 />
-              ))}
-            </div>
+              )} />
           )}
           {unbuilt.length > 0 && (
             <section className="mt-7">

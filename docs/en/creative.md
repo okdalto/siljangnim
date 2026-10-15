@@ -15,6 +15,10 @@ answering.
 
 You can also start from an example. Open any piece from **Examples** and it becomes your own project as is.
 
+Examples from the same library and its related extensions, such as D3, Three.js, p5.js and ngraph, appear in folders.
+Click a folder to expand it; searching automatically reveals matching examples. The remix picker uses the same grouping.
+Expanding a folder does not download example files.
+
 Examples download their scene and prepared images, audio and data when first opened. Each card shows the
 size; the gallery shows progress and lets you cancel. Downloads are cached in this browser/app for reuse.
 If a download fails or is cancelled, open it again to retry; verified files are reused.

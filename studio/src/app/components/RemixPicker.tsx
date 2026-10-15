@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { MOVES, MOVE_CATEGORIES, suggestMoves, type Move } from "../../moves/moves";
 import { EXAMPLES, exampleText } from "../../project/examples";
+import { exampleFamily, groupExamples } from "../../project/exampleGroups";
+import { ExampleFolders } from "./ExampleFolders";
 import { resolveLanguage } from "../language";
 import { appliedMoves, remix, setRemixOpen } from "../session";
 import { useApp } from "../state";
@@ -48,7 +50,7 @@ export function RemixPicker() {
     () => EXAMPLES.map((e) => ({ example: e, text: exampleText(e, korean) })),
     [korean],
   );
-  const shownExamples = exampleItems.filter(({ example, text }) => matches(`${text.title} ${text.summary} ${example.title} ${(example.uses ?? []).join(" ")}`));
+  const shownExamples = exampleItems.filter(({ example, text }) => matches(`${exampleFamily(example)?.label ?? ""} ${text.title} ${text.summary} ${example.title} ${(example.uses ?? []).join(" ")}`));
   const toggle = (set: (update: (list: string[]) => string[]) => void, id: string) => set((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]));
   const picked = [
     ...moves.map((id) => ({ key: `m:${id}`, label: moveText(MOVES.find((m) => m.id === id)!).name, remove: () => toggle(setMoves, id) })),
@@ -129,8 +131,8 @@ export function RemixPicker() {
               );
             })
           ) : (
-            <div className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
-              {shownExamples.map(({ example: e, text }) => {
+            <div className="mt-3">
+              <ExampleFolders groups={groupExamples(shownExamples, (i) => i.example)} korean={korean} searching={words.length > 0} compact renderItem={({ example: e, text }) => {
                 const on = examples.includes(e.slug);
                 return (
                   <button
@@ -146,7 +148,7 @@ export function RemixPicker() {
                     <span className="block truncate px-2 py-1.5 text-[11px] text-fg">{text.title}</span>
                   </button>
                 );
-              })}
+              }} />
             </div>
           )}
         </div>
