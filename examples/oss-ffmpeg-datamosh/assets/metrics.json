@@ -1,0 +1,24 @@
+{
+  "engine": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "source_frames": 180,
+  "removed_packets": 1,
+  "source_keyframes_seconds": [
+    0.0,
+    2.0,
+    5.0
+  ],
+  "altered_keyframes_seconds": [
+    0.0,
+    5.0
+  ],
+  "grayscale_mae_by_frame": {
+    "30": 0.0,
+    "75": 54.72736111111111,
+    "105": 50.20451388888889,
+    "135": 45.715694444444445,
+    "165": 0.0
+  },
+  "output_frames": 180,
+  "output_sha256": "09183de0dd00138e497c44bc275986b70777bb1e7fafcfe4d0141b28c89f145c",
+  "note": "0\u20132s identical; keyframe at 2s dropped; 2\u20135s prediction uses prior scene; keyframe at 5s restores image. No B-frames. No pixel glitch filter."
+}

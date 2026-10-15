@@ -21,6 +21,8 @@ Expanding a folder does not download example files.
 
 The OpenCV folder includes four-corner perspective correction, point tracking between two frames, and masked scratch repair alongside edge drawing. Use Reveal result to compare the input and computed output. The FFmpeg folder compares transitions and double-speed editing against baseline clips. Each includes directly executed results and a rerunnable recipe. Viewer controls compare stored outputs; rerun the recipe to change processing settings.
 
+The FFmpeg datamosh example actually removes the I-frame at two seconds. The original on the left and altered output on the right match before two seconds, differ from two to five seconds, and recover at five seconds. Set Play to 0 and adjust Inspect time to compare synchronized frames. The viewer receives a valid re-encoded MP4; damaged intermediates exist only in the recipe’s temporary directory.
+
 Examples download their scene and prepared images, audio and data when first opened. Each card shows the
 size; the gallery shows progress and lets you cancel. Downloads are cached in this browser/app for reuse.
 If a download fails or is cancelled, open it again to retry; verified files are reused.

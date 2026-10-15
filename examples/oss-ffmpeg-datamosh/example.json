@@ -1,0 +1,33 @@
+{
+  "order": 415,
+  "title": "Break a keyframe (FFmpeg datamosh)",
+  "title_ko": "기준 프레임을 지우면 (FFmpeg 데이터모쉬)",
+  "description": "A real MPEG-4 keyframe is dropped at 2 seconds with FFmpeg noise bitstream filtering. Prediction retains parts of the old tile mural until the keyframe at 5 seconds restores the image. Left: original, right: datamosh. The final silent comparison is re-encoded as a valid H.264 MP4; intermediate damage is never loaded by the viewer.",
+  "description_ko": "FFmpeg로 MPEG-4 영상의 2초 지점 I-frame 하나를 실제로 제거했어요. 이전 타일 그림의 일부가 다음 장면의 움직임에 따라 변형되다가 5초의 I-frame에서 복구돼요. 왼쪽은 원본, 오른쪽은 데이터모쉬예요. 앱에서는 정상 H.264 MP4로 다시 인코딩한 무음 결과를 재생해요.",
+  "prompt": "Adapt the included ffmpeg.datamosh recipe; change the murals or keyframe drop time, then re-encode a valid MP4.",
+  "made_with": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers; MPEG-4 + noise bitstream packet drop + libx264",
+  "features": [
+    "datamosh",
+    "I-frame removal",
+    "MPEG-4 prediction",
+    "recipe"
+  ],
+  "mode": "live",
+  "uses": [
+    "ffmpeg"
+  ],
+  "summary": "Drop one keyframe: the old mural follows the next scene’s movement, then snaps back at the recovery frame.",
+  "summary_ko": "기준 프레임 하나를 지우면 이전 그림이 다음 장면의 움직임에 따라 변형되다가 복구 프레임에서 돌아와요.",
+  "try": [
+    "Watch 0–2 seconds (identical), 2–5 seconds (datamosh), then the recovery at 5 seconds.",
+    "Set Play to 0 and adjust Inspect time to compare the same frame; Panel isolates either side.",
+    "Rerun the recipe to change the source or frame removal. This is prepared output, not live corruption."
+  ],
+  "try_ko": [
+    "0~2초는 동일하고 2~5초에는 데이터모쉬가 나타나며 5초에 정상으로 돌아와요.",
+    "Play를 0으로 놓고 Inspect time을 움직여 같은 시점의 프레임을 비교하세요. Panel로 한쪽만 볼 수도 있어요.",
+    "원본이나 제거 시점은 레시피를 다시 실행해 바꾸세요. 준비된 결과를 재생하며 실시간으로 영상을 손상시키지는 않아요."
+  ],
+  "tool_about": "FFmpeg is a free program for converting, cutting and creating video and audio files. It is installed and runs on this computer, not in the browser.",
+  "tool_about_ko": "FFmpeg는 영상과 소리 파일을 변환하고 자르고 만드는 무료 프로그램이에요. 브라우저가 아니라 이 컴퓨터에 설치되어 돌아가요."
+}

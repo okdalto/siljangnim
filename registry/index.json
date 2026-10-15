@@ -548,6 +548,19 @@
       "sha256": "620742dab005dfb1ad94690fe83fcbd21260fdf11a6c8396e01e9b5821b7051d"
     },
     {
+      "id": "ffmpeg.datamosh",
+      "version": 1,
+      "title": "Real keyframe-drop datamosh with a synchronized comparison",
+      "capability": "video datamosh keyframe bitstream",
+      "kind": "python",
+      "license": "LGPL-2.1-or-later (this build may include GPL parts)",
+      "verified_on": [
+        "mac-arm64"
+      ],
+      "path": "recipes/ffmpeg.datamosh/recipe.md",
+      "sha256": "38234db7ad3b057054e268a53ef1a77276994079999a9d6708af4c8def3eecd1"
+    },
+    {
       "id": "ffmpeg.mandelbrot-zoom",
       "version": 2,
       "title": "Mandelbrot zoom video from ffmpeg's lavfi source",

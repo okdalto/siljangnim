@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "backend": "webgl2",
+  "keyframes": {},
+  "script": {
+    "setup": "ctx.state.video=await ctx.utils.createVideoTexture(\"comparison.mp4\",{loop:true,muted:true});ctx.state.p=ctx.utils.createProgram(ctx.utils.FULLSCREEN_VERTEX_SHADER,\"#version 300 es\\nprecision highp float; in vec2 v_uv; out vec4 outColor; uniform sampler2D u_video; uniform vec2 u_resolution; uniform int u_panel;\\nvoid main(){float aspect=u_panel==0?1280.0/360.0:640.0/360.0;float view=u_resolution.x/u_resolution.y; vec2 q=(v_uv-0.5)*vec2(max(1.0,view/aspect),max(1.0,aspect/view))+0.5;\\nif(any(lessThan(q,vec2(0)))||any(greaterThan(q,vec2(1)))){outColor=vec4(0.055,0.065,0.08,1);return;}\\nif(u_panel>0)q.x=q.x*0.5+(u_panel==2?0.5:0.0);outColor=vec4(texture(u_video,q).rgb,1);}\\n\");",
+    "render": "const s=ctx.state, v=s.video.video, u=ctx.uniforms;\nif(s.play !== u.u_play){s.play=u.u_play;if(u.u_play) v.play().catch(()=>{});else v.pause();s.inspect=undefined;}\nif(!u.u_play && s.inspect !== u.u_inspect){s.inspect=u.u_inspect;v.currentTime=u.u_inspect;}\ns.video.update();ctx.gl.useProgram(s.p);ctx.utils.bindTexture(s.p,\"u_video\",s.video.texture,0);ctx.utils.drawFullscreen(s.p);",
+    "cleanup": ""
+  },
+  "uniforms": {
+    "u_panel": {
+      "type": "int",
+      "value": 0,
+      "min": 0,
+      "max": 2,
+      "step": 1,
+      "label": "Panel: 0 both / 1 original / 2 datamosh"
+    },
+    "u_play": {
+      "type": "int",
+      "value": 1,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "label": "Play: 0 inspect / 1 loop"
+    },
+    "u_inspect": {
+      "type": "float",
+      "value": 3.5,
+      "min": 0,
+      "max": 5.96,
+      "step": 0.0333333333,
+      "label": "Inspect time (s)"
+    }
+  },
+  "inputs": []
+}

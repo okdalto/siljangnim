@@ -1,0 +1,16 @@
+{
+  "steps": [
+    {
+      "kind": "python",
+      "recipe": "ffmpeg.datamosh@1",
+      "packages": [],
+      "inputs": [],
+      "outputs": [
+        "comparison.mp4",
+        "metrics.json",
+        "preview.png"
+      ],
+      "params": {}
+    }
+  ]
+}
