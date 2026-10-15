@@ -35,6 +35,8 @@ Pick one. Each takes about a minute.
 
 ### A. Desktop app — recommended
 
+**Updates (0.2.11+):** Settings → App updates → Check for updates. Download opens the matching installer in your browser; quit the app and install it manually.
+
 1. Download the installer from **[Releases](https://github.com/okdalto/siljangnim/releases/latest)**: `.dmg` for macOS (Apple Silicon), `.exe` for Windows.
 2. Open Siljangnim, then **Settings** (gear icon) → **Agent**:
    - **Claude Code** or **Codex** — runs on your Claude (Pro, Max, Team) or ChatGPT plan, no API key. If it isn't

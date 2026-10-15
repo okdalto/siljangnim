@@ -11,6 +11,8 @@ import { projectsRoot, writeProjectFolder } from "./projectFolder.js";
 import { handleAppProtocol, registerScheme } from "./protocol.js";
 import { runSmokeTest } from "./smoke.js";
 
+import { createUpdates } from "./updates.js";
+
 const srcDir = dirname(fileURLToPath(import.meta.url));
 const DEV_URL = process.env.SILJANGNIM_DEV_URL || null;
 const ORIGINS = resolveOrigins(DEV_URL);
@@ -113,6 +115,13 @@ function fromApp(event) {
 }
 
 function registerIpc() {
+  const updates = createUpdates({ currentVersion: app.getVersion(), platform: process.platform, arch: process.arch, openExternal: (url) => shell.openExternal(url) });
+  for (const action of ["info", "check", "download", "releases"]) {
+    ipcMain.handle(`updates:${action}`, (event) => {
+      if (!fromApp(event)) throw new Error("forbidden");
+      return updates[action]();
+    });
+  }
   ipcMain.handle("hub:info", (event) => (fromApp(event) ? hub.info() : null));
   ipcMain.handle("keys:status", (event) => (fromApp(event) ? keys.status() : null));
   ipcMain.handle("llm:token", (event) => (fromApp(event) ? forwarderToken : null));

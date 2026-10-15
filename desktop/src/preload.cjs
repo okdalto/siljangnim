@@ -6,6 +6,12 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("siljangnim", {
   desktop: true,
   platform: process.platform,
+  updates: {
+    info: () => ipcRenderer.invoke("updates:info"),
+    check: () => ipcRenderer.invoke("updates:check"),
+    download: () => ipcRenderer.invoke("updates:download"),
+    releases: () => ipcRenderer.invoke("updates:releases"),
+  },
   hub: {
     info: () => ipcRenderer.invoke("hub:info"),
     onStatus(callback) {

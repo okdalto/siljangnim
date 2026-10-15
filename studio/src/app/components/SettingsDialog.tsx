@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ANTHROPIC_MODELS } from "../../agent/llm/anthropic";
 import type { Effort } from "../../agent/llm/types";
-import type { LocalEngineId, ProviderKeyId } from "../../desktop";
+import type { LocalEngineId, ProviderKeyId, UpdateInfo } from "../../desktop";
 import { bridge, isDesktop } from "../platform";
 import { refreshLocalEngines, setApiKey, setSettingsOpen, updateSettings } from "../session";
 import { fetchModels, isLocalEngine, looksLikeApiKey, type ProviderChoice } from "../settings";
@@ -24,7 +24,7 @@ export function SettingsDialog() {
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onMouseDown={(e) => e.target === e.currentTarget && close()}>
-      <div className="w-full max-w-md rounded-xl border border-line bg-panel p-5 text-sm shadow-2xl">
+      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl border border-line bg-panel p-5 text-sm shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold">Settings</h2>
           <button type="button" onClick={close} className="text-muted hover:text-fg" data-testid="close-settings">
@@ -63,8 +63,54 @@ export function SettingsDialog() {
         ) : (
           <ApiSettings advanced={advanced} setAdvanced={setAdvanced} />
         )}
+        {bridge?.updates && <UpdatePanel />}
       </div>
     </div>
+  );
+}
+
+/** Updates are checked on request; the browser downloads the installer for manual installation. */
+function UpdatePanel() {
+  const [version, setVersion] = useState("");
+  const [result, setResult] = useState<UpdateInfo | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [opened, setOpened] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void bridge!.updates!.info().then(info => { if (active) setVersion(info.currentVersion); }).catch(() => { if (active) setError("Could not read the app version."); });
+    return () => { active = false; };
+  }, []);
+  const check = async () => {
+    setBusy(true); setError(""); setResult(null); setOpened(false);
+    try { setResult(await bridge!.updates!.check()); }
+    catch (e) { setError(e instanceof Error ? e.message.replace(/^Error invoking remote method '[^']+': (?:Error: )?/, "") : "Could not check updates. Try again."); }
+    finally { setBusy(false); }
+  };
+  const open = async (download: boolean) => {
+    setError("");
+    try {
+      if (download) { await bridge!.updates!.download(); setOpened(true); }
+      else await bridge!.updates!.releases();
+    } catch { setError("Could not open your browser. Please try again."); }
+  };
+  return (
+    <section className="mt-5 border-t border-line pt-4" aria-label="App updates" data-testid="app-updates">
+      <div className="flex items-center justify-between gap-3">
+        <div><h3 className="font-medium">App updates</h3><p className="text-xs text-muted">Siljangnim {version || "…"}</p></div>
+        <button type="button" className="rounded border border-line px-3 py-1.5 hover:bg-white/5 disabled:opacity-50" disabled={busy} onClick={() => void check()} data-testid="check-updates">{busy ? "Checking…" : "Check for updates"}</button>
+      </div>
+      <div className="mt-2 text-xs text-muted" role="status" aria-live="polite">
+        {result && (result.available ? <p>Version {result.latestVersion} is available.{!result.downloadUrl && " An installer for this computer is not available yet."}</p> : <p>You’re up to date.</p>)}
+        {opened && <p>Your browser opened the download. Quit Siljangnim before installing the new version.</p>}
+      </div>
+      {error && <p className="mt-2 text-xs text-red-400" role="alert">{error}</p>}
+      <div className="mt-2 flex gap-4">
+        {result?.available && result.downloadUrl && <button type="button" className="text-accent hover:underline" onClick={() => void open(true)} data-testid="download-update">Download {result.latestVersion}</button>}
+        <button type="button" className="text-muted hover:text-fg" onClick={() => void open(false)}>Release notes</button>
+      </div>
+      <p className="mt-2 text-xs text-muted">Checks GitHub when you ask. Installers download in your browser; installation is manual.</p>
+    </section>
   );
 }
 

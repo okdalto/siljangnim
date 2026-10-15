@@ -9,9 +9,23 @@ export interface HubInfo {
   logPath: string;
 }
 
+export interface UpdateInfo {
+  currentVersion: string;
+  latestVersion: string;
+  available: boolean;
+  downloadUrl: string | null;
+  releaseUrl: string;
+}
+
 export interface SiljangnimBridge {
   desktop: true;
   platform: string;
+  updates?: {
+    info(): Promise<{ currentVersion: string }>;
+    check(): Promise<UpdateInfo>;
+    download(): Promise<void>;
+    releases(): Promise<void>;
+  };
   hub: {
     info(): Promise<HubInfo>;
     onStatus(callback: (info: HubInfo) => void): () => void;

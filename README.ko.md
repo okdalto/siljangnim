@@ -34,6 +34,8 @@
 
 ### A. 데스크톱 앱 — 추천
 
+**업데이트(0.2.11 이상):** Settings → App updates → Check for updates에서 확인하세요. Download로 맞는 설치 파일을 브라우저에서 받은 뒤 앱을 종료하고 직접 설치합니다.
+
 1. **[Releases](https://github.com/okdalto/siljangnim/releases/latest)** 에서 설치 파일을 받으세요. macOS(Apple Silicon)는 `.dmg`, Windows는 `.exe`입니다.
 2. 실장님을 열고 **Settings**(설정, 톱니바퀴 아이콘) → **Agent**에서 고르세요.
    - **Claude Code**나 **Codex** — Claude(Pro, Max, Team)나 ChatGPT 구독으로 돌아가고 API 키가 필요 없습니다.

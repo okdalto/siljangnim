@@ -385,6 +385,16 @@ async function runLocalAgentScenario(win, outDir) {
   // What Settings shows for it (release/smoke/settings-agent.png).
   await win.webContents.executeJavaScript(`document.querySelector('button[title="Settings"]')?.click()`);
   await wait(600);
+  const updatePanel = await win.webContents.executeJavaScript(`(async () => {
+    const info = await window.siljangnim.updates.info();
+    for (let i = 0; i < 50; i++) {
+      const panel = document.querySelector('[data-testid="app-updates"]');
+      if (panel?.textContent.includes(info.currentVersion) && panel.querySelector('[data-testid="check-updates"]')) return true;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return false;
+  })()`);
+  if (!updatePanel) throw new Error("Settings update panel did not show the installed version");
   writeFileSync(join(outDir, "settings-agent.png"), (await win.webContents.capturePage()).toPNG());
   await win.webContents.executeJavaScript(`document.querySelector('[data-testid="close-settings"]')?.click()`);
   const send = async (text) => {

@@ -205,3 +205,7 @@ this repository was made by recording the examples this way.
 Export a project as `project.md` (what was asked, and which tools were used and how) or as a zip. The recipient's agent
 rebuilds it from that document, then changes and mixes it further. Tool integrations that worked become recipes that
 speed up the next piece of work. See [Sharing](sharing.md) for details.
+
+## App updates
+
+In the desktop app, Settings → App updates shows your version. Choose Check for updates to check the latest stable GitHub release. If a newer compatible installer exists, Download opens it in your browser. Quit Siljangnim before installing it manually. If no installer is available for your computer yet, use Release notes to check availability. Checking requires internet access and only happens when requested.
