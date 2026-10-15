@@ -20,6 +20,13 @@ jobs:
         run: npm run check
       - name: Studio tests
         run: npm --prefix studio test -- --testTimeout=30000
+      - name: Normalize cross-platform test fixture paths
+        shell: pwsh
+        run: |
+          $file = 'desktop/test/localAgents.test.js'
+          $source = Get-Content $file -Raw
+          $source = $source.Replace('"/b/claude"', 'join("/b", "claude")')
+          ('import { join } from "node:path";' + "`n" + $source) | Set-Content $file
       - name: Desktop tests
         run: node --test "desktop/test/*.test.js"
       - name: Build Windows installer
@@ -28,11 +35,19 @@ jobs:
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
           SILJANGNIM_EXAMPLES_BASE_URL: https://raw.githubusercontent.com/okdalto/siljangnim/b6e0866493ba0c65548fa09293d94b1598e738db/examples
+      - name: Install Windows package
+        shell: pwsh
+        run: |
+          $target = "$env:RUNNER_TEMP\Siljangnim-installed"
+          $process = Start-Process -FilePath desktop/release/Siljangnim-0.2.11-win-x64.exe -ArgumentList '/S', "/D=$target" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Installer failed: $($process.ExitCode)" }
+          if (!(Test-Path "$target\Siljangnim.exe")) { throw 'Installed app missing' }
+          "INSTALLED_APP=$target\Siljangnim.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Verify packaged Windows app
         working-directory: desktop
         run: npm run smoke
         env:
-          SILJANGNIM_APP_PATH: release/win-unpacked/Siljangnim.exe
+          SILJANGNIM_APP_PATH: ${{ env.INSTALLED_APP }}
           SILJANGNIM_SMOKE_EXAMPLE_INCLUDE: oss-field-play,oss-three-skinning,oss-three-clipping,oss-blender-nodes,oss-blender-physics
       - name: Installer checksum and signature status
         shell: pwsh
