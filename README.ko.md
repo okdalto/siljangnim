@@ -22,6 +22,8 @@
   <a href="https://cdn.jsdelivr.net/gh/okdalto/siljangnim@df9822e1e6/media/siljangnim-short.mp4">▶ 소리와 함께 보기 (39초, 영어 내레이션, 한/영 자막)</a>
 </p>
 
+실장님 홍보 쇼츠는 [실장님 Shorts](https://github.com/okdalto/siljangnim-shorts)로 만듭니다.
+
 ---
 
 ## 시작하기
