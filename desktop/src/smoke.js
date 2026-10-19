@@ -7,6 +7,7 @@ import { createRequire } from "node:module";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { app } from "electron";
+import { exampleReady } from "./smokeReadiness.js";
 
 // Everything but the examples; each example opened adds its own allowance (there are hundreds, a few seconds each).
 const TIMEOUT_MS = 600_000;
@@ -600,7 +601,7 @@ async function runExamplesScenario(win, examplesOut, onCount = () => undefined) 
         const s = document.querySelector("[data-runtime-state]");
         // An example that can't open shows why in the gallery (download or integrity errors); keep it for the report.
         const alert = document.querySelector('[data-testid="examples"] [role="alert"]')?.innerText;
-        return s && { state: s.dataset.runtimeState, errors: Number(s.dataset.runtimeErrors), project: document.querySelector('header button[title="Rename project"]')?.innerText, ...(alert ? { alert } : {}) };
+        return s && { state: s.dataset.runtimeState, errors: Number(s.dataset.runtimeErrors), galleryOpen: Boolean(document.querySelector('[data-testid="examples"]')), project: document.querySelector('header button[title="Rename project"]')?.innerText, ...(alert ? { alert } : {}) };
       })()`);
     let state = null;
     for (let i = 0; i < 60; i++) {
@@ -612,13 +613,14 @@ async function runExamplesScenario(win, examplesOut, onCount = () => undefined) 
     await wait(1200);
     const frame = await findSceneFrame(win);
     // Libraries come from a CDN with an empty cache here, and heavy setups (reaction-diffusion's warm-up)
-    // crawl on CI's software GPU: give setup up to ~15 s. Only a dark canvas is retried; a frame that
-    // doesn't answer has failed already.
+    // crawl on CI's software GPU. Keep polling both readiness and pixels for the remaining ~15 s;
+    // a visible previous canvas is not proof that the new setup finished. Frame failures still fail.
     let sample = null;
     for (let i = 0; i < 20 && frame; i++) {
       if (i) await wait(750);
       sample = await inFrame(frame, SAMPLE_CANVAS, `sample ${slug}`, 10_000).catch(() => null);
-      if (!sample || sample.litFraction > 0.01) break;
+      state = await readState();
+      if (!sample || state?.errors > 0 || state?.alert || exampleReady(state, sample)) break;
     }
     // Setup can finish while the first visible frame is being sampled. Report its current state.
     state = await readState();
