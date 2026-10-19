@@ -45,5 +45,5 @@ if (!parentOrigin || window.parent === window || !root) {
     }
   });
 
-  emit("ready", {});
+  emit("ready", { documentId: new URLSearchParams(location.search).get("documentId") ?? "" });
 }

@@ -147,7 +147,9 @@ export async function boot(): Promise<void> {
   void pickLocalEngine();
   let projects = await store.listProjects();
   if (!projects.length) {
-    await createProject("Untitled");
+    // Create without opening: boot selects and opens exactly once below.
+    const project = await store.createProject("Untitled");
+    await store.writeFile(project.id, SCENE_FILE, JSON.stringify(DEFAULT_SCENE, null, 2));
     projects = await store.listProjects();
   }
   const remembered = safeLocal(() => localStorage.getItem(ACTIVE_PROJECT_KEY));
@@ -479,7 +481,7 @@ export function attachSceneHost(next: SceneHost): () => void {
       ),
     })),
   );
-  void loadIntoHost(get().scene);
+  if (get().project) void loadIntoHost(get().scene);
   return () => {
     offStats();
     offError();

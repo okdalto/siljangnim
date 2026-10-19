@@ -99,7 +99,7 @@ export type MethodName = keyof RuntimeMethods;
 
 /** Events the runtime pushes without a request. */
 export interface RuntimeEvents {
-  ready: Record<string, never>;
+  ready: { documentId: string };
   error: SceneError;
   stats: { state: RuntimeState; time: number; fps: number };
   /** Recording progress. */

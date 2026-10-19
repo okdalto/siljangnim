@@ -50,6 +50,7 @@ export class SceneHost {
   private readonly pending = new Map<number, Pending>();
   private readonly listeners = new Map<EventName, Set<Listener<EventName>>>();
   private nextId = 1;
+  private documentId = crypto.randomUUID();
   private readyPromise: Promise<void>;
   private loadChain: Promise<unknown> = Promise.resolve();
   private readonly onMessage = (e: MessageEvent) => this.handleMessage(e);
@@ -59,7 +60,7 @@ export class SceneHost {
     this.url = url.href;
     this.iframe = document.createElement("iframe");
     this.iframe.title = "Scene";
-    this.iframe.src = url.href;
+    this.iframe.src = this.documentUrl();
     // Same-origin here means the *scene's own* origin, never the app's.
     this.iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-pointer-lock");
     this.iframe.setAttribute("allow", "camera; microphone; midi; fullscreen; autoplay");
@@ -83,9 +84,16 @@ export class SceneHost {
       p.reject(new Error("scene runtime restarted"));
     }
     this.pending.clear();
+    this.documentId = crypto.randomUUID();
     this.readyPromise = this.waitForReady();
-    this.iframe.src = this.url;
+    this.iframe.src = this.documentUrl();
     return this.readyPromise;
+  }
+
+  private documentUrl(): string {
+    const url = new URL(this.url);
+    url.searchParams.set("documentId", this.documentId);
+    return url.href;
   }
 
   private waitForReady(): Promise<void> {
@@ -109,7 +117,12 @@ export class SceneHost {
     params: RuntimeMethods[M]["params"],
     timeoutMs = DEFAULT_TIMEOUT_MS,
   ): Promise<RuntimeMethods[M]["result"]> {
-    await this.readyPromise;
+    // Restart can replace readiness while this request is suspended.
+    let ready;
+    do {
+      ready = this.readyPromise;
+      await ready;
+    } while (ready !== this.readyPromise);
     const id = this.nextId++;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
@@ -150,6 +163,9 @@ export class SceneHost {
   private handleMessage(e: MessageEvent): void {
     if (e.source !== this.iframe.contentWindow || e.origin !== this.origin || !isEnvelope(e.data)) return;
     const msg = e.data;
+    // Navigation retains the WindowProxy, so source/origin alone cannot identify the document.
+    if (msg.kind === "event" && msg.event === "ready" &&
+        (msg.data as RuntimeEvents["ready"] | null)?.documentId !== this.documentId) return;
     if (msg.kind === "response") {
       const p = this.pending.get(msg.id);
       if (!p) return;
