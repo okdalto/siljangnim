@@ -1,5 +1,6 @@
 // Viewer side of the MCP bridge (mcp/src/bridge.js): runs the tools an
 // external agent calls and reports the connection in the UI.
+import { registerAgentSender } from "./agentHandoff";
 import { setHubProvider } from "./hubClient";
 import { runExternalTool, setExternal } from "./session";
 import { useApp } from "./state";
@@ -9,7 +10,8 @@ const RETRY_MAX_MS = 5_000;
 const MAX_ATTEMPTS = 8;
 
 type BridgeMessage =
-  | { type: "client"; name: string }
+  | { type: "client"; name: string; codexThreadId?: string | null }
+  | { type: "chat_result"; id: string; queued?: boolean; threadId?: string; error?: string }
   | { type: "hub"; id: number; url?: string; token?: string; error?: string }
   | { type: "call"; id: number; name: string; input: unknown }
   | { type: "replaced" };
@@ -42,9 +44,20 @@ export function connectBridge(token: string, options: BridgeOptions = {}): void 
   let socket: WebSocket | null = null;
   let hubRequests = 0;
   const hubWaiters = new Map<number, (access: { url: string; token: string } | string) => void>();
+  let unregisterSender = () => {};
+  const chatWaiters = new Map<string, { resolve: (thread: string) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>();
+  const clearSender = () => {
+    unregisterSender();
+    for (const waiter of chatWaiters.values()) {
+      clearTimeout(waiter.timer);
+      waiter.reject(new Error("Connection lost before Codex confirmed delivery. Check the chat before retrying."));
+    }
+    chatWaiters.clear();
+  };
   const self = {
     close() {
       finished = true;
+      clearSender();
       socket?.close();
     },
   };
@@ -90,7 +103,29 @@ export function connectBridge(token: string, options: BridgeOptions = {}): void 
       if (message.type === "client") {
         attempt = 0;
         client = prettyClient(message.name);
-        show({ status: "connected", client });
+        unregisterSender();
+        if (!options.embedded && message.codexThreadId) {
+          const target = message.codexThreadId;
+          unregisterSender = registerAgentSender((text) => new Promise((resolve, reject) => {
+            if (ws.readyState !== WebSocket.OPEN) return reject(new Error("The Codex connection is closed."));
+            if (chatWaiters.size) return reject(new Error("A message is already being sent."));
+            const id = crypto.randomUUID();
+            const timer = setTimeout(() => {
+              chatWaiters.delete(id);
+              reject(new Error("Codex did not confirm delivery. Check the chat before retrying."));
+            }, 20000);
+            chatWaiters.set(id, { resolve: (thread) => thread === target ? resolve(thread) : reject(new Error("The connected chat changed. Check Codex before retrying.")), reject, timer });
+            ws.send(JSON.stringify({ type: "chat_request", id, text }));
+          }));
+        }
+        show({ status: "connected", client, codexThreadId: message.codexThreadId });
+      } else if (message.type === "chat_result") {
+        const waiter = chatWaiters.get(message.id);
+        if (!waiter) return;
+        chatWaiters.delete(message.id);
+        clearTimeout(waiter.timer);
+        if (message.queued && message.threadId) waiter.resolve(message.threadId);
+        else waiter.reject(new Error(message.error ?? "Codex did not confirm delivery."));
       } else if (message.type === "call") {
         void runExternalTool(message.name, message.input).then((output) => {
           if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "result", id: message.id, output }));
@@ -104,6 +139,7 @@ export function connectBridge(token: string, options: BridgeOptions = {}): void 
       }
     };
     ws.onclose = (e) => {
+      clearSender();
       for (const resolve of hubWaiters.values()) resolve("The connection to the agent's bridge was lost.");
       hubWaiters.clear();
       if (finished) return;

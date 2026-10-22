@@ -56,7 +56,9 @@ function Status({ external }: { external: ExternalAgent }) {
   const agent = external.client ?? "your agent";
   const text = {
     connecting: "Connecting to the agent…",
-    connected: `Connected to ${agent}. Chat with it there; changes appear here.`,
+    connected: external.codexThreadId
+      ? `Connected to Codex chat ${external.codexThreadId.slice(0, 8)}. Suggestion clicks send a message there immediately.`
+      : `Connected to ${agent}. Chat with it there; changes appear here.`,
     reconnecting: `Lost the connection to ${agent}. Reconnecting…`,
     ended: `The ${agent} session that opened this viewer has ended. Your work is saved; ask your agent to open the viewer again.`,
     replaced: "This viewer was opened in another tab. Use that one.",

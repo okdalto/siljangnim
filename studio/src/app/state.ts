@@ -35,6 +35,7 @@ export interface ActivityEntry {
 export interface ExternalAgent {
   status: "connecting" | "connected" | "reconnecting" | "ended" | "replaced";
   client: string | null;
+  codexThreadId?: string | null;
 }
 
 export interface Notice {

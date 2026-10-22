@@ -1,5 +1,6 @@
 // App controller: projects, the scene host, and agent runs. UI components
 // read state from useApp and call these functions.
+import { sendToExternalAgent } from "./agentHandoff";
 import { studioNote } from "../agent/context";
 import { HISTORY_TOOLS } from "../agent/historyTools";
 import { repairConversation, runAgent } from "../agent/loop";
@@ -410,26 +411,38 @@ export async function remix(picks: { moves: string[]; examples: string[]; note?:
   }
 }
 
-/** Send a request to the built-in agent, or copy it for an external agent (or when no key is set yet). */
+/** Queue in a connected Codex chat, run the built-in agent, or explicitly fall back to copying. */
 async function handToAgent(request: string, what: string, newProject?: string): Promise<void> {
   const { external, settings } = get();
+  if (external?.codexThreadId) {
+    set({ notice: { kind: "info", text: `Sending ${what} to Codex…` } });
+    try {
+      const thread = await sendToExternalAgent(request);
+      set({ notice: { kind: "info", text: `Queued ${what} in Codex chat ${thread.slice(0, 8)}.` } });
+    } catch (error) {
+      set({ notice: { kind: "error", text: error instanceof Error ? error.message : "Codex did not confirm delivery." } });
+    }
+    return;
+  }
   const status = await keys.status();
   const local = isLocalEngine(settings.provider) ? get().localEngines?.[settings.provider] : null;
   const ready = local
     ? local.installed && local.loggedIn
     : settings.provider === "custom" || (settings.provider === "anthropic" ? status.anthropic : status.openai);
   if (external || !ready) {
+    let copied = false;
     try {
       await navigator.clipboard.writeText(request);
+      copied = true;
     } catch {
-      // clipboard not allowed: the notice still says what to ask
+      // Report clipboard refusal instead of claiming a successful copy.
     }
     set({
       notice: {
         kind: "info",
         text: external
-          ? `Copied the request for ${what}; paste it into ${external.client ?? "your agent"}'s chat.`
-          : `Copied the request for ${what}. Set up an agent in Settings (Claude Code, Codex or an API key), then paste it into the chat.`,
+          ? `${copied ? "Copied" : "Could not copy"} the request for ${what}. ${external.client === "Codex" ? "Ask Codex to connect suggestion buttons to this chat with viewer_open(codex_thread_id)." : `Paste it into ${external.client ?? "your agent"}'s chat.`}`
+          : `${copied ? "Copied" : "Could not copy"} the request for ${what}. Set up an agent in Settings (Claude Code, Codex or an API key), then paste it into the chat.`,
       },
     });
     return;

@@ -7,6 +7,7 @@
 // (spec.json is generated from studio/src/agent/external.ts). The viewer
 // proves itself with a per-launch token that only reaches it in the URL
 // fragment of the page the bridge opens.
+import { queueCodexMessage, isThreadId } from "./codexQueue.js";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
@@ -40,7 +41,7 @@ const VIEWER_OPEN_TOOL = {
   description:
     "Open the Siljangnim viewer in the person's browser (or reopen it if they closed it) and wait until it is connected. " +
     "Other tools open it automatically; use this when the person asks to see the viewer or after it was closed.",
-  inputSchema: { type: "object", properties: {} },
+  inputSchema: { type: "object", properties: { codex_thread_id: { type: "string", description: "Optional exact current Codex conversation UUID. Bind suggestion clicks to this chat using codex queue. Only supply the current conversation ID, never guess a title or use another chat." } }, additionalProperties: false },
   annotations: { readOnlyHint: true },
 };
 
@@ -51,13 +52,14 @@ const VIEWER_OPEN_TOOL = {
  *   version?: string,
  *   port?: number,
  *   responseWaitMs?: number,
+ *   queueMessage?: (threadId: string, text: string) => Promise<void>,
  *   open?: (url: string) => void,
  *   log?: (message: string) => void,
  *   hub?: (origin: string) => Promise<{ url: string, token: string }>,
  *   attach?: (request: { ws: string, token: string }) => Promise<boolean>,
  * }} options  attach hands the bridge to a running desktop app (true when it took it) before a browser tab is opened;  hub starts (once) and returns the runtime hub for the viewer; leave it out to run without one
  */
-export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAULT_PORT, open = () => undefined, log = () => undefined, hub, attach, responseWaitMs = 45_000 }) {
+export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAULT_PORT, open = () => undefined, log = () => undefined, hub, attach, responseWaitMs = 45_000, queueMessage = queueCodexMessage }) {
   const token = randomBytes(24).toString("base64url");
   let boundPort = port;
   /** @type {import("ws").WebSocket | null} */
@@ -82,8 +84,12 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
   // --- MCP ---
 
   const mcp = new Server({ name: "siljangnim", version }, { capabilities: { tools: {} }, instructions: spec.instructions });
+  let codexThreadId = null;
+  let sendingMessage = false;
+  const deliveries = new Map();
+  const clientState = () => ({ type: "client", name: clientName(), codexThreadId });
   const clientName = () => mcp.getClientVersion()?.name ?? "an MCP client";
-  mcp.oninitialized = () => send({ type: "client", name: clientName() });
+  mcp.oninitialized = () => send(clientState());
 
   mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
@@ -98,9 +104,15 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
     try {
       if (name === CALL_STATUS_TOOL.name) return toMcpResult(await calls.poll(input.call_id));
       if (name === VIEWER_OPEN_TOOL.name) {
+        if (input.codex_thread_id !== undefined) {
+          if (!/codex/i.test(clientName()) || !isThreadId(input.codex_thread_id)) throw new Error("Only a Codex client can bind its exact conversation UUID.");
+          if (sendingMessage) throw new Error("Wait for the pending message before changing the connected chat.");
+          codexThreadId = input.codex_thread_id;
+          send(clientState());
+        }
         await ensureViewer(true);
         const where = viewerPlace === "desktop" ? "in the Siljangnim desktop app" : appOrigin();
-        return { content: [{ type: "text", text: `The viewer is open and connected: ${where}` }] };
+        return { content: [{ type: "text", text: `The viewer is open and connected: ${where}${codexThreadId ? `. Suggestion clicks queue messages to Codex conversation ${codexThreadId}.` : ". Codex clients may call viewer_open with codex_thread_id to connect suggestion clicks to the current chat."}` }] };
       }
       if (!spec.tools.some((t) => t.name === name)) {
         return { isError: true, content: [{ type: "text", text: `Unknown tool "${name}".` }] };
@@ -154,10 +166,37 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
   }
 
   function onViewerMessage(raw) {
+    const source = this;
+    if (source !== viewer) return;
     let message;
     try {
       message = JSON.parse(String(raw));
     } catch {
+      return;
+    }
+    if (message?.type === "chat_request") {
+      const { id, text } = message;
+      if (!isThreadId(id)) return;
+      const reply = (result) => {
+        if (source.readyState === 1) source.send(JSON.stringify({ type: "chat_result", id, ...result }));
+      };
+      const prior = deliveries.get(id);
+      if (prior) {
+        if (prior.text !== text) return reply({ error: "This message ID was already used for a different request." });
+        void prior.result.then(reply);
+        return;
+      }
+      if (!codexThreadId || !/codex/i.test(clientName())) return reply({ error: "Connect this viewer to the current Codex chat with viewer_open(codex_thread_id) first." });
+      if (sendingMessage) return reply({ error: "A message is already being sent. Wait for its confirmation." });
+      if (typeof text !== "string" || !text.trim() || Buffer.byteLength(text, "utf8") > 16000) return reply({ error: "The request is empty or exceeds 16 KB. Copy longer remixes into Codex." });
+      sendingMessage = true;
+      const threadId = codexThreadId;
+      const result = Promise.resolve().then(() => queueMessage(threadId, text))
+        .then(() => ({ queued: true, threadId }), (error) => ({ error: error instanceof Error ? error.message : "Message delivery was not confirmed." }))
+        .finally(() => { sendingMessage = false; });
+      deliveries.set(id, { text, result });
+      if (deliveries.size > 100) deliveries.delete(deliveries.keys().next().value);
+      void result.then(reply);
       return;
     }
     if (message?.type === "hub_request") {
@@ -248,7 +287,7 @@ export function createBridge({ studioDir, spec, version = "0.0.0", port = DEFAUL
         log("viewer connected");
         ws.on("message", onViewerMessage);
         ws.on("close", () => onViewerClosed(ws));
-        send({ type: "client", name: clientName() });
+        send(clientState());
         const waiters = viewerWaiters;
         viewerWaiters = [];
         waiters.forEach((w) => w());

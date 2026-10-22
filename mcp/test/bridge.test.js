@@ -102,6 +102,12 @@ describe("bridge", () => {
     assert.equal(client.getInstructions(), "test instructions");
   });
 
+  it("does not bind a Codex conversation for another MCP client", async () => {
+    const result = await client.callTool({ name: "viewer_open", arguments: { codex_thread_id: "01234567-89ab-4def-8123-456789abcdef" } });
+    assert.equal(result.isError, true);
+    assert.match(result.content[0].text, /Only a Codex client/);
+  });
+
   it("serves the studio and refuses traversal and foreign hosts", async () => {
     const page = await fetch(`${bridge.url}/`);
     assert.equal(page.status, 200);
@@ -283,5 +289,48 @@ describe("bridge runtime hub", () => {
       await client.close();
       await bridge.close();
     }
+  });
+});
+
+describe("Codex suggestion handoff", () => {
+  it("binds through MCP, queues only authenticated viewer clicks, deduplicates, and reports errors", async () => {
+    const sent = [];
+    const thread = "01234567-89ab-4def-8123-456789abcdef";
+    const bridge = createBridge({ studioDir: studioDir(), spec, port: 0, queueMessage: async (id, text) => {
+      sent.push({ id, text });
+      if (text === "fail") throw new Error("delivery uncertain");
+    } });
+    await bridge.listen();
+    const client = new Client({ name: "codex", version: "1" });
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    await Promise.all([bridge.mcp.connect(b), client.connect(a)]);
+    const viewer = fakeViewer(bridge);
+    await viewer.ready;
+    const chat = (id, text) => new Promise((resolve) => {
+      const listener = (raw) => {
+        const msg = JSON.parse(String(raw));
+        if (msg.type === "chat_result" && msg.id === id) { viewer.ws.off("message", listener); resolve(msg); }
+      };
+      viewer.ws.on("message", listener);
+      viewer.ws.send(JSON.stringify({ type: "chat_request", id, text }));
+    });
+    try {
+      const unbound = await chat("11111111-1111-4111-8111-111111111111", "blur");
+      assert.match(unbound.error, /Connect/);
+      assert.equal(sent.length, 0);
+      const bad = await client.callTool({ name: "viewer_open", arguments: { codex_thread_id: "latest" } });
+      assert.equal(bad.isError, true);
+      const bound = await client.callTool({ name: "viewer_open", arguments: { codex_thread_id: thread } });
+      assert.ok(!bound.isError);
+      const id = "22222222-2222-4222-8222-222222222222";
+      assert.equal((await chat(id, "Motion blur")).queued, true);
+      assert.equal((await chat(id, "Motion blur")).threadId, thread);
+      assert.equal(sent.length, 1);
+      assert.match((await chat(id, "different text")).error, /different request/);
+      const failure = await chat("33333333-3333-4333-8333-333333333333", "fail");
+      assert.equal(failure.queued, undefined);
+      assert.equal(failure.error, "delivery uncertain");
+      assert.deepEqual(sent, [{ id: thread, text: "Motion blur" }, { id: thread, text: "fail" }]);
+    } finally { viewer.ws.close(); await client.close(); await bridge.close(); }
   });
 });

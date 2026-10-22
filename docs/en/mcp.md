@@ -95,3 +95,13 @@ You can change these with environment variables (put them in `env` in the MCP se
 
 The viewer server listens only on this computer (127.0.0.1), and connecting requires a token that changes on every
 launch. Scene code runs on a separate origin and can't reach your projects or keys. Don't expose it to the network.
+
+## Send suggestion clicks directly to Codex
+
+Ask Codex: **“Connect Siljangnim's suggestion buttons to this Codex chat.”** Codex opens the viewer with the current conversation's exact ID using `viewer_open({codex_thread_id: "…"})`. The Activity header shows the connected chat ID and says that suggestion clicks send messages immediately. Clicking **Try next** or submitting a remix then queues its request in that conversation; it does not fill a draft or start a separate chat.
+
+This needs a local Codex CLI with `codex queue` support and access to the app's session. If Codex isn't on the MCP server's PATH, set `SILJANGNIM_CODEX_PATH` to its executable. The viewer must use this updated MCP server and studio build; restart the MCP connection after upgrading, then connect the chat again. No API key is added for this feature.
+
+Success means Codex accepted the message into its queue, not that the visual edit has finished. If delivery times out or the connection drops, check the chat before retrying; Siljangnim does not resend automatically. Requests above 16 KB must be copied manually. Without a connected chat, the viewer keeps the clipboard fallback and explains how to connect. Never use a different conversation ID or guess by chat title.
+
+The integration uses the documented [Codex queue command](https://learn.chatgpt.com/docs/developer-commands).

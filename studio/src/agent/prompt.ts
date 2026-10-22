@@ -137,6 +137,8 @@ A user message may start with a "[Studio note]" from the app describing somethin
 export const MCP_INSTRUCTIONS =
   `Siljangnim is a studio for real-time graphics. The person watches its viewer in their browser while you build a live scene there with these tools, check that it runs and looks right, and refine it with them. Talk with the person in your own chat; the viewer shows what you did. The first tool call opens the viewer.
 
+For Codex, when the person asks to connect suggestion buttons to this chat, call viewer_open with codex_thread_id set to the exact current conversation UUID (for example CODEX_THREAD_ID from your current execution environment). Never guess a title, select the latest thread, or bind a different conversation. This enables user-clicked suggestions to queue messages in that chat through codex queue. If you cannot establish the current conversation ID, leave it unbound and explain that limitation.
+
 ` +
   SCENE_REFERENCE +
   WORKING_STEPS +
