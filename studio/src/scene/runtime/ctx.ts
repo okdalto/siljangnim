@@ -1,3 +1,4 @@
+import { importWithRetry } from "./importRetry";
 // The `ctx` object scene scripts receive. This interface is the contract
 // with every saved scene and with the agent prompt (agent/prompt.ts) —
 // change both together.
@@ -138,7 +139,7 @@ export function importModule(url: string): Promise<unknown> {
   if (!ALLOWED_IMPORT_ORIGINS.includes(origin)) {
     return Promise.reject(new Error(`ctx.utils.import: ${origin} is not allowed; use ${ALLOWED_IMPORT_ORIGINS.join(", ")}`));
   }
-  return import(/* @vite-ignore */ url);
+  return importWithRetry(url, (target) => import(/* @vite-ignore */ target));
 }
 
 export function createCtx(
